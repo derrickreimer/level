@@ -1,0 +1,32 @@
+{
+  "name": "Bridge",
+  "description": "Asychronous communication, solved",
+  "repository": "https://github.com/djreimer/bridge",
+  "keywords": ["chat", "elixir", "phoenix"],
+  "addons": [
+    {
+      "plan": "heroku-postgresql",
+      "options": {
+        "version": "9.6"
+      }
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/HashNuke/heroku-buildpack-elixir"
+    },
+    {
+      "url": "https://github.com/gjaldon/heroku-buildpack-phoenix-static"
+    }
+  ],
+  "env": {
+    "SECRET_KEY_BASE": {
+      "description": "A secret key for verifying the integrity of signed cookies.",
+      "generator": "secret"
+    },
+    "POOL_SIZE": {
+      "description": "The maximum number of database connections each process may consume.",
+      "value": "18"
+    }
+  }
+}
