@@ -1,0 +1,10 @@
+.text-field {
+  background-color: $input-background-color;
+  color: $input-text-color;
+
+  &:hover,
+  &:active,
+  &:focus {
+    background-color: $input-background-active-color;
+  }
+}

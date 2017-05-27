@@ -1,0 +1,12 @@
+.button {
+  padding: 15px;
+  border: none;
+  border-radius: 3px;
+  font-weight: $bold-weight;
+  font-size: $default-font-size;
+  cursor: pointer;
+
+  &--full {
+    width: 100%;
+  }
+}

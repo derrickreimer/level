@@ -6,6 +6,7 @@
     "watch": "brunch watch --stdin"
   },
   "dependencies": {
+    "normalize.css": "^7.0.0",
     "phoenix": "file:deps/phoenix",
     "phoenix_html": "file:deps/phoenix_html"
   },
@@ -15,7 +16,7 @@
     "clean-css-brunch": "~2.0.0",
     "css-brunch": "~2.0.0",
     "javascript-brunch": "~2.0.0",
-    "uglify-js-brunch": "~2.0.1",
-    "sass-brunch": "^2.10.4"
+    "sass-brunch": "^2.10.4",
+    "uglify-js-brunch": "~2.0.1"
   }
 }

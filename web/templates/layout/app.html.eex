@@ -8,7 +8,8 @@
     <meta name="author" content="">
 
     <title>Bridge</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/base.css") %>">
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/themes/dark.css") %>">
   </head>
 
   <body>
@@ -17,8 +18,8 @@
         <!-- TODO -->
       </header>
 
-      <p class="alert alert--info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert--danger" role="alert"><%= get_flash(@conn, :error) %></p>
+      <div class="alert alert--info" role="alert"><%= get_flash(@conn, :info) %></div>
+      <div class="alert alert--danger" role="alert"><%= get_flash(@conn, :error) %></div>
 
       <main role="main">
         <%= render @view_module, @view_template, assigns %>

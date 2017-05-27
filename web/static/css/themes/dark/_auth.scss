@@ -1,0 +1,11 @@
+.auth-form {
+  color: $default-text-color;
+
+  &__form {
+    border-color: $default-border-color;
+  }
+
+  &__footer {
+    color: $muted-text-color;
+  }
+}

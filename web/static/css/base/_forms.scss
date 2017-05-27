@@ -1,0 +1,20 @@
+.form-field {
+}
+
+.text-field {
+  font-family: $system-font-stack;
+  font-weight: $normal-weight;
+  padding: 15px;
+  border: none;
+  border-radius: 3px;
+  font-size: $default-font-size;
+  transition: background-color 0.2s ease;
+
+  &--full {
+    width: 100%;
+  }
+}
+
+.form-controls {
+  margin-top: 32px;
+}

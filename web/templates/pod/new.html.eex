@@ -1,0 +1,40 @@
+<div class="auth-form">
+  <h2 class="auth-form__heading">Sign up for Bridge</h2>
+
+  <form class="auth-form__form" action="/" method="post">
+    <div class="form-field">
+      <label class="form-label" for="name">Pod Name</label>
+      <input class="text-field text-field--full"
+             type="text"
+             name="name"
+             value="" />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="email">Email</label>
+      <input class="text-field text-field--full"
+             type="email"
+             name="email"
+             value="" />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="password">Password</label>
+      <input class="text-field text-field--full"
+             type="password"
+             name="password"
+             value="" />
+    </div>
+
+    <div class="form-controls">
+      <input class="button button--primary button--full"
+             type="submit"
+             name="submit"
+             value="Sign up" />
+    </div>
+  </form>
+
+  <div class="auth-form__footer">
+    <p>Already have an account? <a href="#">Sign in</a>.</p>
+  </div>
+</div>
