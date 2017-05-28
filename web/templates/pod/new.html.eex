@@ -3,22 +3,25 @@
 
   <%= form_for @changeset, pod_path(@conn, :create), [class: "auth-form__form"], fn f -> %>
     <div class="form-field">
-      <%= label f, :pod_name, "Pod Name", [class: "form-label"] %>
-      <%= text_input f, :pod_name, [class: "text-field text-field--full"] %>
+      <%= label f, :pod_name, "Pod Name", class: "form-label" %>
+      <%= text_input f, :pod_name, class: "text-field text-field--full" %>
+      <%= error_tag f, :pod_name %>
     </div>
 
     <div class="form-field">
-      <%= label f, :email, "Email", [class: "form-label"] %>
-      <%= email_input f, :email, [class: "text-field text-field--full"] %>
+      <%= label f, :email, "Email", class: "form-label" %>
+      <%= email_input f, :email, class: "text-field text-field--full" %>
+      <%= error_tag f, :email %>
     </div>
 
     <div class="form-field">
-      <%= label f, :password, "Password", [class: "form-label"] %>
-      <%= password_input f, :password, [class: "text-field text-field--full"] %>
+      <%= label f, :password, "Password", class: "form-label" %>
+      <%= password_input f, :password, class: "text-field text-field--full" %>
+      <%= error_tag f, :password %>
     </div>
 
     <div class="form-controls">
-      <%= submit "Sign up", [class: "button button--primary button--full"] %>
+      <%= submit "Sign up", class: "button button--primary button--full" %>
     </div>
   <% end %>
 
