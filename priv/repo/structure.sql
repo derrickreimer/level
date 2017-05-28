@@ -78,10 +78,56 @@ CREATE TABLE schema_migrations (
 
 
 --
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE users (
+    id integer NOT NULL,
+    pod_id integer NOT NULL,
+    state integer NOT NULL,
+    role integer NOT NULL,
+    email character varying(255) NOT NULL,
+    username character varying(20) NOT NULL,
+    first_name character varying(255),
+    last_name character varying(255),
+    time_zone character varying(255) NOT NULL,
+    password_hash character varying(255) NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE users_id_seq OWNED BY users.id;
+
+
+--
 -- Name: pods id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY pods ALTER COLUMN id SET DEFAULT nextval('pods_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 
 
 --
@@ -101,6 +147,14 @@ ALTER TABLE ONLY schema_migrations
 
 
 --
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: pods_slug_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -108,8 +162,37 @@ CREATE UNIQUE INDEX pods_slug_index ON pods USING btree (slug);
 
 
 --
+-- Name: users_pod_id_email_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX users_pod_id_email_index ON users USING btree (pod_id, email);
+
+
+--
+-- Name: users_pod_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_pod_id_index ON users USING btree (pod_id);
+
+
+--
+-- Name: users_pod_id_username_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX users_pod_id_username_index ON users USING btree (pod_id, username);
+
+
+--
+-- Name: users users_pod_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pod_id_fkey FOREIGN KEY (pod_id) REFERENCES pods(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152);
 
