@@ -1,38 +1,26 @@
 <div class="auth-form">
   <h2 class="auth-form__heading">Sign up for Bridge</h2>
 
-  <form class="auth-form__form" action="/" method="post">
+  <%= form_for @changeset, pod_path(@conn, :create), [class: "auth-form__form"], fn f -> %>
     <div class="form-field">
-      <label class="form-label" for="name">Pod Name</label>
-      <input class="text-field text-field--full"
-             type="text"
-             name="name"
-             value="" />
+      <%= label f, :pod_name, "Pod Name", [class: "form-label"] %>
+      <%= text_input f, :pod_name, [class: "text-field text-field--full"] %>
     </div>
 
     <div class="form-field">
-      <label class="form-label" for="email">Email</label>
-      <input class="text-field text-field--full"
-             type="email"
-             name="email"
-             value="" />
+      <%= label f, :email, "Email", [class: "form-label"] %>
+      <%= email_input f, :email, [class: "text-field text-field--full"] %>
     </div>
 
     <div class="form-field">
-      <label class="form-label" for="password">Password</label>
-      <input class="text-field text-field--full"
-             type="password"
-             name="password"
-             value="" />
+      <%= label f, :password, "Password", [class: "form-label"] %>
+      <%= password_input f, :password, [class: "text-field text-field--full"] %>
     </div>
 
     <div class="form-controls">
-      <input class="button button--primary button--full"
-             type="submit"
-             name="submit"
-             value="Sign up" />
+      <%= submit "Sign up", [class: "button button--primary button--full"] %>
     </div>
-  </form>
+  <% end %>
 
   <div class="auth-form__footer">
     <p>Already have an account? <a href="#">Sign in</a>.</p>
