@@ -3,16 +3,22 @@ defmodule Bridge.PodTest do
 
   alias Bridge.Pod
 
-  @valid_attrs %{name: "some content", slug: "some content", state: 42}
-  @invalid_attrs %{}
+  @valid_signup_params %{
+    name: "Bridge, Inc.",
+    slug: "bridge-inc"
+  }
 
-  test "changeset with valid attributes" do
-    changeset = Pod.changeset(%Pod{}, @valid_attrs)
-    assert changeset.valid?
-  end
+  describe "signup_changeset/2" do
+    test "validates with valid data" do
+      changeset = Pod.signup_changeset(%Pod{}, @valid_signup_params)
+      assert changeset.valid?
+    end
 
-  test "changeset with invalid attributes" do
-    changeset = Pod.changeset(%Pod{}, @invalid_attrs)
-    refute changeset.valid?
+    test "sets the initial state" do
+      changeset = Pod.signup_changeset(%Pod{}, @valid_signup_params)
+      %{state: state} = changeset.changes
+
+      assert state == 0
+    end
   end
 end

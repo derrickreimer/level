@@ -21,19 +21,6 @@ defmodule Bridge.User do
   end
 
   @doc """
-  Builds a changeset based on the `struct` and `params`.
-  """
-  def changeset(struct, params \\ %{}) do
-    struct
-    |> cast(params, [:pod_id, :email, :username, :first_name, :last_name, :time_zone, :state, :role, :password_hash])
-    |> validate_required([:email, :username, :time_zone])
-    |> validate_length(:email, min: 1, max: 254)
-    |> validate_length(:username, min: 1, max: 20)
-    |> unique_constraint(:email, name: :users_pod_id_email_index)
-    |> unique_constraint(:username, name: :users_pod_id_username_index)
-  end
-
-  @doc """
   Builds a changeset for signup based on the `struct` and `params`.
   This method gets used within the Signup.multi function.
   """
