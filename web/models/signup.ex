@@ -60,8 +60,9 @@ defmodule Bridge.Signup do
   end
 
   defp pod_params(changeset) do
-    %{pod_name: name, slug: slug} = changeset.changes
-    %{name: name, slug: slug}
+    Map.take(changeset.changes, [:pod_name, :slug])
+    |> Map.delete(:pod_name)
+    |> Map.put(:name, changeset.changes.pod_name)
   end
 
   defp user_params(changeset) do
