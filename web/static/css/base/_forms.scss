@@ -1,6 +1,3 @@
-.form-field {
-}
-
 .text-field {
   font-family: $system-font-stack;
   font-weight: $normal-weight;
@@ -13,6 +10,11 @@
   &--full {
     width: 100%;
   }
+}
+
+.form-errors {
+  margin-top: 6px;
+  font-weight: $bold-weight;
 }
 
 .form-controls {

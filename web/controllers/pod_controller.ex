@@ -3,7 +3,25 @@ defmodule Bridge.PodController do
   alias Bridge.Signup
 
   def new(conn, _params) do
-    changeset = Signup.changeset(%Signup{})
+    changeset = Signup.form_changeset(%{})
     render conn, "new.html", changeset: changeset
+  end
+
+  def create(conn, %{"signup" => signup_params}) do
+    changeset = Signup.form_changeset(%{}, signup_params)
+
+    if changeset.valid? do
+      case Repo.transaction(Signup.transaction(changeset)) do
+        {:ok, _result} ->
+          # TODO: redirect somewhere
+          IO.puts "Success!"
+        {:error, _, _, _} ->
+          # TODO: something went really wrong here
+          render conn, "new.html", changeset: changeset
+      end
+    else
+      changeset = %{changeset | action: :insert}
+      render conn, "new.html", changeset: changeset
+    end
   end
 end

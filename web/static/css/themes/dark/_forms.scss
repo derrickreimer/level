@@ -1,3 +1,19 @@
+.form-field {
+
+  &--error {
+
+    .text-field {
+      background-color: $error-color;
+
+      &:hover,
+      &:active,
+      &:focus {
+        background-color: lighten($error-color, 5%);
+      }
+    }
+  }
+}
+
 .text-field {
   background-color: $input-background-color;
   color: $input-text-color;
@@ -5,6 +21,10 @@
   &:hover,
   &:active,
   &:focus {
-    background-color: $input-background-active-color;
+    background-color: lighten($input-background-color, 5%);
   }
+}
+
+.form-errors {
+  color: $error-color;
 }
