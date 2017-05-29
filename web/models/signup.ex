@@ -1,6 +1,6 @@
 defmodule Bridge.Signup do
   @moduledoc """
-  This is a virtual model whose changeset is designed to be bound to the
+  This is a virtual model whose form changeset is designed to be bound to the
   new pod sign up form.
   """
 
@@ -60,7 +60,8 @@ defmodule Bridge.Signup do
   end
 
   defp pod_params(changeset) do
-    %{name: changeset.changes.pod_name}
+    %{pod_name: name, slug: slug} = changeset.changes
+    %{name: name, slug: slug}
   end
 
   defp user_params(changeset) do
