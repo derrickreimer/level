@@ -78,5 +78,19 @@ defmodule Bridge.SignupTest do
       assert {:password, {"should be at least %{count} character(s)", count: 6, validation: :length, min: 6}}
         in changeset.errors
     end
+
+    test "requires a valid email" do
+      params = Map.put(@valid_form_params, :email, "derrick@nowhere")
+      changeset = Signup.form_changeset(%{}, params)
+      assert {:email, {"is invalid", validation: :format}}
+        in changeset.errors
+    end
+
+    test "requires a valid username" do
+      params = Map.put(@valid_form_params, :username, "$upercool")
+      changeset = Signup.form_changeset(%{}, params)
+      assert {:username, {"must be lowercase and alphanumeric", validation: :format}}
+        in changeset.errors
+    end
   end
 end

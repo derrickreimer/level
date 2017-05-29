@@ -56,4 +56,50 @@ defmodule Bridge.UserTest do
       assert role == 0
     end
   end
+
+  describe "username_format/0" do
+    test "matches lowercase alphanumeric, dot, and dash chars" do
+      assert Regex.match?(User.username_format, "derrick")
+      assert Regex.match?(User.username_format, "derrick-reimer")
+      assert Regex.match?(User.username_format, "derrick.reimer")
+    end
+
+    test "does not match whitespace" do
+      refute Regex.match?(User.username_format, "derrick reimer")
+    end
+
+    test "does not match trailing dashes or dots" do
+      refute Regex.match?(User.username_format, "derrick-")
+      refute Regex.match?(User.username_format, "derrick.")
+    end
+
+    test "does not match leading numbers, dashes or dots" do
+      refute Regex.match?(User.username_format, "-derrick")
+      refute Regex.match?(User.username_format, ".derrick")
+      refute Regex.match?(User.username_format, "8derrick")
+    end
+
+    test "does not match special chars" do
+      refute Regex.match?(User.username_format, "derr$ick")
+    end
+
+    test "does not match uppercase chars" do
+      refute Regex.match?(User.username_format, "DerRick")
+    end
+  end
+
+  describe "email_format/0" do
+    test "matches valid email addresses" do
+      assert Regex.match?(User.email_format, "derrick@gmail.com")
+      assert Regex.match?(User.email_format, "der-rick@gmail.com")
+      assert Regex.match?(User.email_format, "der.ric%k@gmail.co")
+      assert Regex.match?(User.email_format, "derrick+123@bridge.chat")
+      assert Regex.match?(User.email_format, "OLDERGENTLEMAN@GMAIL.COM")
+    end
+
+    test "does not match invalid addresses" do
+      refute Regex.match?(User.email_format, "der rick@gmail.com")
+      refute Regex.match?(User.email_format, "foo@")
+    end
+  end
 end

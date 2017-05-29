@@ -21,6 +21,21 @@ defmodule Bridge.User do
   end
 
   @doc """
+  The regex format for a username.
+  """
+  def username_format do
+    ~r/^(?>[a-z][a-z0-9-\.]*[a-z0-9])$/
+  end
+
+  @doc """
+  The regex format for an email address.
+  Borrowed from http://www.regular-expressions.info/email.html
+  """
+  def email_format do
+    ~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+  end
+
+  @doc """
   Builds a changeset for signup based on the `struct` and `params`.
   This method gets used within the Signup.multi function.
   """
