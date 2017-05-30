@@ -26,6 +26,7 @@ defmodule Bridge.ConnCase do
       import Ecto.Query
 
       import Bridge.Router.Helpers
+      import Bridge.TestHelpers
 
       # The default endpoint for testing
       @endpoint Bridge.Endpoint

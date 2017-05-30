@@ -35,6 +35,7 @@ defmodule Bridge.Signup do
     |> validate_format(:slug, Pod.slug_format, message: "must be lowercase and alphanumeric")
     |> validate_format(:username, User.username_format, message: "must be lowercase and alphanumeric")
     |> validate_format(:email, User.email_format, message: "is invalid")
+    |> validate_slug_uniqueness
   end
 
   @doc """
@@ -64,5 +65,14 @@ defmodule Bridge.Signup do
   defp user_params(changeset) do
     changeset.changes
     |> Map.take([:username, :email, :password, :time_zone])
+  end
+
+  def validate_slug_uniqueness(changeset, _opts \\ []) do
+    validate_change changeset, :slug, {:uniqueness}, fn _, value ->
+      case Repo.get_by(Pod, slug: value) do
+        nil -> []
+        _ -> [{:slug, {"is already taken", [validation: :uniqueness]}}]
+      end
+    end
   end
 end

@@ -25,6 +25,16 @@ defmodule Bridge.Pod do
   end
 
   @doc """
+  Builds a changeset based on the `struct` and `params`.
+  """
+  def changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:name, :slug])
+    |> put_change(:state, 0) # TODO: implement real states
+    |> unique_constraint(:slug)
+  end
+
+  @doc """
   Builds a changeset for signup based on the `struct` and `params`.
   This method gets used within the Signup.multi function.
   """
