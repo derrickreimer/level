@@ -13,11 +13,12 @@ defmodule Bridge.PodController do
     if changeset.valid? do
       case Repo.transaction(Signup.transaction(changeset)) do
         {:ok, _result} ->
-          # TODO: redirect somewhere
-          IO.puts "Success!"
+          conn
+          |> redirect(to: thread_path(conn, :index))
         {:error, _, _, _} ->
-          # TODO: something went really wrong here
-          render conn, "new.html", changeset: changeset
+          conn
+          |> put_flash(:error, "Uh oh, something went wrong. Please try again.")
+          |> render("new.html", changeset: changeset)
       end
     else
       changeset = %{changeset | action: :insert}

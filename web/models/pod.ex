@@ -30,7 +30,7 @@ defmodule Bridge.Pod do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:name, :slug])
-    |> put_change(:state, 0) # TODO: implement real states
+    |> put_change(:state, 0)
     |> unique_constraint(:slug)
   end
 
@@ -41,6 +41,6 @@ defmodule Bridge.Pod do
   def signup_changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:name, :slug])
-    |> put_change(:state, 0) # TODO: implement real states
+    |> put_change(:state, 0)
   end
 end

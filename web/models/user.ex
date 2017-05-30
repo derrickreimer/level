@@ -44,8 +44,8 @@ defmodule Bridge.User do
     |> cast(params, [:pod_id, :email, :username, :time_zone, :password])
     |> put_default_time_zone
     |> put_pass_hash
-    |> put_change(:state, 0) # TODO: implement real states
-    |> put_change(:role, 0) # TODO: implement real roles
+    |> put_change(:state, 0)
+    |> put_change(:role, 0)
   end
 
   defp put_pass_hash(changeset) do

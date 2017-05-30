@@ -18,6 +18,7 @@ defmodule Bridge.Router do
 
     get "/", PageController, :index
     resources "/pods", PodController, only: [:new, :create]
+    resources "/threads", ThreadController
   end
 
   # Other scopes may use custom stacks.
