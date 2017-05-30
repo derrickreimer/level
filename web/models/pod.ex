@@ -18,6 +18,13 @@ defmodule Bridge.Pod do
   end
 
   @doc """
+  The regex format for a slug.
+  """
+  def slug_format do
+    ~r/^(?>[a-z0-9][a-z0-9-]*[a-z0-9])$/
+  end
+
+  @doc """
   Builds a changeset for signup based on the `struct` and `params`.
   This method gets used within the Signup.multi function.
   """

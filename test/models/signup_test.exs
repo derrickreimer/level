@@ -4,6 +4,7 @@ defmodule Bridge.SignupTest do
   alias Bridge.Signup
 
   @valid_form_params %{
+    slug: "bridge",
     pod_name: "Bridge, Inc.",
     username: "derrick",
     email: "derrick@bridge.chat",
@@ -14,13 +15,6 @@ defmodule Bridge.SignupTest do
     test "validates with valid data" do
       changeset = Signup.form_changeset(%{}, @valid_form_params)
       assert changeset.valid?
-    end
-
-    test "auto-generates the slug" do
-      changeset = Signup.form_changeset(%{}, @valid_form_params)
-      %{slug: slug} = changeset.changes
-
-      assert slug == "bridge-inc"
     end
 
     test "requires a pod name" do
@@ -76,6 +70,13 @@ defmodule Bridge.SignupTest do
       params = Map.put(@valid_form_params, :password, "12345")
       changeset = Signup.form_changeset(%{}, params)
       assert {:password, {"should be at least %{count} character(s)", count: 6, validation: :length, min: 6}}
+        in changeset.errors
+    end
+
+    test "requires a valid slug" do
+      params = Map.put(@valid_form_params, :slug, "$upercool")
+      changeset = Signup.form_changeset(%{}, params)
+      assert {:slug, {"must be lowercase and alphanumeric", validation: :format}}
         in changeset.errors
     end
 

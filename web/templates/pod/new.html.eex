@@ -2,21 +2,29 @@
   <h2 class="auth-form__heading">Sign up for Bridge</h2>
 
   <%= form_for @changeset, pod_path(@conn, :create), [as: :signup, class: "auth-form__form"], fn f -> %>
+    <div class="form-field <%= if f.errors[:slug], do: "form-field--error" %>">
+      <%= label f, :slug, "URL", class: "form-label" %>
+      <div class="subdomain-field-container">
+        <%= text_input f, :slug, class: "text-field auth-form__slug", placeholder: "acme-inc" %>.bridge.chat
+      </div>
+      <%= error_tag f, :slug %>
+    </div>
+
     <div class="form-field <%= if f.errors[:pod_name], do: "form-field--error" %>">
       <%= label f, :pod_name, "Organization Name", class: "form-label" %>
-      <%= text_input f, :pod_name, class: "text-field text-field--full" %>
+      <%= text_input f, :pod_name, class: "text-field text-field--full", placeholder: "Acme, Inc." %>
       <%= error_tag f, :pod_name %>
     </div>
 
     <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
       <%= label f, :username, "Username", class: "form-label" %>
-      <%= text_input f, :username, class: "text-field text-field--full" %>
+      <%= text_input f, :username, class: "text-field text-field--full", placeholder: "johndoe" %>
       <%= error_tag f, :username %>
     </div>
 
     <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
       <%= label f, :email, "Email Address", class: "form-label" %>
-      <%= email_input f, :email, class: "text-field text-field--full" %>
+      <%= email_input f, :email, class: "text-field text-field--full", placeholder: "john@acme.com" %>
       <%= error_tag f, :email %>
     </div>
 

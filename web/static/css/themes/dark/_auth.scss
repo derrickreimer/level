@@ -8,4 +8,10 @@
   &__footer {
     color: $muted-text-color;
   }
+
+  &__slug {
+    margin-right: 5px;
+    width: 100px;
+    // text-align: right;
+  }
 }

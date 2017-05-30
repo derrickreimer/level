@@ -5,6 +5,11 @@
     .text-field {
       background-color: $error-color;
 
+      &::placeholder {
+        opacity: 0;
+        color: lighten($error-color, 30%);
+      }
+
       &:hover,
       &:active,
       &:focus {
@@ -18,11 +23,19 @@
   background-color: $input-background-color;
   color: $input-text-color;
 
+  &::placeholder {
+    color: lighten($input-background-color, 20%);
+  }
+
   &:hover,
   &:active,
   &:focus {
     background-color: lighten($input-background-color, 5%);
   }
+}
+
+.subdomain-field-container {
+  background-color: darken($input-background-color, 20%);
 }
 
 .form-errors {
