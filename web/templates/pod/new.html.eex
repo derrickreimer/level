@@ -5,7 +5,7 @@
     <div class="form-field <%= if f.errors[:slug], do: "form-field--error" %>">
       <%= label f, :slug, "URL", class: "form-label" %>
       <div class="subdomain-field-container">
-        <%= text_input f, :slug, class: "text-field auth-form__slug", placeholder: "acme-inc" %>.bridge.chat
+        <%= text_input f, :slug, class: "text-field", placeholder: "acme-inc" %>.bridge.chat
       </div>
       <%= error_tag f, :slug %>
     </div>

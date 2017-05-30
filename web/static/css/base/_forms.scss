@@ -15,6 +15,13 @@
 .subdomain-field-container {
   padding-right: 15px;
   border-radius: 3px;
+
+  .text-field {
+    border-radius: 3px 0 0 3px;
+    text-align: right;
+    margin-right: 12px;
+    width: 100px;
+  }
 }
 
 .form-errors {
