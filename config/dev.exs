@@ -36,8 +36,8 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :bridge, Bridge.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
+  username: System.get_env("BRIDGE_DB_USERNAME") || "postgres",
+  password: System.get_env("BRIDGE_DB_PASSWORD") || "postgres",
   database: "bridge_dev",
   hostname: "localhost",
   pool_size: 10
