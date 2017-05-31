@@ -1,0 +1,23 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $system-font-stack;
+  font-weight: $normal-weight;
+  font-size: $default-font-size;
+}
+
+a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.inline-flash {
+  padding: 18px;
+  text-align: center;
+  font-weight: $bold-weight;
+}

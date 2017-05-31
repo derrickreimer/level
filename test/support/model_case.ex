@@ -22,6 +22,7 @@ defmodule Bridge.ModelCase do
       import Ecto.Changeset
       import Ecto.Query
       import Bridge.ModelCase
+      import Bridge.TestHelpers
     end
   end
 

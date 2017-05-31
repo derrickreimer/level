@@ -7,7 +7,6 @@
 ## Run `mix gettext.extract` to bring this file up to
 ## date. Leave `msgstr`s empty as changing them here as no
 ## effect: edit them in PO (`.po`) files instead.
-
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
 msgstr ""
@@ -17,6 +16,7 @@ msgid "has already been taken"
 msgstr ""
 
 ## From Ecto.Changeset.put_change/3
+#: web/models/signup.ex:38
 msgid "is invalid"
 msgstr ""
 
@@ -88,4 +88,12 @@ msgid "must be greater than or equal to %{number}"
 msgstr ""
 
 msgid "must be equal to %{number}"
+msgstr ""
+
+#: web/models/signup.ex:75
+msgid "is already taken"
+msgstr ""
+
+#: web/models/signup.ex:36 web/models/signup.ex:37
+msgid "must be lowercase and alphanumeric"
 msgstr ""

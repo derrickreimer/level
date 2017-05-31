@@ -1,0 +1,15 @@
+body {
+  background-color: $background-color;
+}
+
+a {
+  color: $default-link-color;
+}
+
+.inline-flash {
+
+  &--error {
+    background-color: $error-color;
+    color: #fff;
+  }
+}

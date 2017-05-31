@@ -19,7 +19,7 @@ defmodule Bridge.Mixfile do
   def application do
     [mod: {Bridge, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex]]
+                    :phoenix_ecto, :postgrex, :comeonin]]
   end
 
   # Specifies which paths to compile per environment.
@@ -38,7 +38,8 @@ defmodule Bridge.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:credo, "~> 0.7", only: [:dev, :test]}]
+     {:credo, "~> 0.7", only: [:dev, :test]},
+     {:comeonin, "~> 3.0"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
@@ -50,6 +51,8 @@ defmodule Bridge.Mixfile do
   defp aliases do
     ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
      "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": ["ecto.create --quiet", "ecto.migrate", "test"]]
+     "ecto.migrate": ["ecto.migrate", "ecto.dump"],
+     "ecto.rollback": ["ecto.rollback", "ecto.dump"],
+     "test": ["ecto.create --quiet", "ecto.migrate", "test", "credo"]]
   end
 end

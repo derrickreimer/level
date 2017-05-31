@@ -1,0 +1,16 @@
+.button {
+
+  &--primary {
+    background-color: $button-primary-color;
+    color: $button-primary-text-color;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: lighten($button-primary-color, 5%);
+    }
+
+    &:active {
+      background-color: darken($button-primary-color, 10%);
+    }
+  }
+}

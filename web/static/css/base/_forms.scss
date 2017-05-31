@@ -1,0 +1,34 @@
+.text-field {
+  font-family: $system-font-stack;
+  font-weight: $normal-weight;
+  padding: 15px;
+  border: none;
+  border-radius: 3px;
+  font-size: $default-font-size;
+  transition: background-color 0.2s ease;
+
+  &--full {
+    width: 100%;
+  }
+}
+
+.subdomain-field-container {
+  padding-right: 15px;
+  border-radius: 3px;
+
+  .text-field {
+    border-radius: 3px 0 0 3px;
+    text-align: right;
+    margin-right: 12px;
+    width: 100px;
+  }
+}
+
+.form-errors {
+  margin-top: 6px;
+  font-weight: $bold-weight;
+}
+
+.form-controls {
+  margin-top: 32px;
+}

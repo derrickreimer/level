@@ -17,6 +17,8 @@ defmodule Bridge.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    resources "/pods", PodController, only: [:new, :create]
+    resources "/threads", ThreadController
   end
 
   # Other scopes may use custom stacks.

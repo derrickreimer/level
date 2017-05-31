@@ -1,0 +1,51 @@
+## This file is a PO Template file.
+##
+## `msgid`s here are often extracted from source code.
+## Add new translations manually only if they're dynamic
+## translations that can't be statically extracted.
+##
+## Run `mix gettext.extract` to bring this file up to
+## date. Leave `msgstr`s empty as changing them here as no
+## effect: edit them in PO (`.po`) files instead.
+msgid ""
+msgstr ""
+
+#: web/templates/pod/new.html.eex:43
+msgid "Already have an account?"
+msgstr ""
+
+#: web/templates/pod/new.html.eex:26
+msgid "Email Address"
+msgstr ""
+
+#: web/templates/pod/new.html.eex:14
+msgid "Organization Name"
+msgstr ""
+
+#: web/templates/pod/new.html.eex:32
+msgid "Password"
+msgstr ""
+
+#: web/templates/pod/new.html.eex:43
+msgid "Sign in"
+msgstr ""
+
+#: web/templates/pod/new.html.eex:38
+msgid "Sign up"
+msgstr ""
+
+#: web/templates/pod/new.html.eex:2
+msgid "Sign up for Bridge"
+msgstr ""
+
+#: web/templates/pod/new.html.eex:6
+msgid "URL"
+msgstr ""
+
+#: web/controllers/pod_controller.ex:20
+msgid "Uh oh, something went wrong. Please try again."
+msgstr ""
+
+#: web/templates/pod/new.html.eex:20
+msgid "Username"
+msgstr ""

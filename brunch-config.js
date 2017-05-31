@@ -20,9 +20,15 @@ exports.config = {
       // }
     },
     stylesheets: {
-      joinTo: "css/app.css",
+      joinTo: {
+        "css/base.css": /^(web\/static\/css\/base)/,
+        "css/themes/dark.css": /^(web\/static\/css\/themes\/dark)/
+      },
       order: {
-        after: ["web/static/css/app.css"] // concat app.css last
+        after: [
+          "web/static/css/base.scss",
+          "web/static/css/themes/dark.scss"
+        ]
       }
     },
     templates: {
@@ -56,7 +62,10 @@ exports.config = {
       ignore: [/web\/static\/vendor/]
     },
     sass: {
-      mode: "native"
+      mode: "native",
+      options: {
+        includePaths: ['node_modules/normalize.css']
+      }
     }
   },
 

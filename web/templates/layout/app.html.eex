@@ -7,23 +7,24 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Hello Bridge!</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <title>Bridge</title>
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/base.css") %>">
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/themes/dark.css") %>">
   </head>
 
   <body>
     <div class="container">
       <header class="header">
-        <nav role="navigation">
-          <ul class="nav nav-pills pull-right">
-            <li><a href="http://www.phoenixframework.org/docs">Get Started</a></li>
-          </ul>
-        </nav>
-        <span class="logo"></span>
+        <!-- TODO -->
       </header>
 
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+      <%= if get_flash(@conn, :info) do %>
+        <div class="inline-flash inline-flash--info" role="alert"><%= get_flash(@conn, :info) %></div>
+      <% end %>
+
+      <%= if get_flash(@conn, :error) do %>
+        <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
+      <% end %>
 
       <main role="main">
         <%= render @view_module, @view_template, assigns %>
