@@ -5,6 +5,9 @@ defmodule Bridge.User do
 
   use Bridge.Web, :model
 
+  alias Comeonin.Bcrypt
+  alias Ecto.Changeset
+
   schema "users" do
     field :state, :integer
     field :role, :integer
@@ -50,8 +53,8 @@ defmodule Bridge.User do
 
   defp put_pass_hash(changeset) do
     case changeset do
-      %Ecto.Changeset{valid?: true, changes: %{password: pass}} ->
-        put_change(changeset, :password_hash, Comeonin.Bcrypt.hashpwsalt(pass))
+      %Changeset{valid?: true, changes: %{password: pass}} ->
+        put_change(changeset, :password_hash, Bcrypt.hashpwsalt(pass))
       _ ->
         changeset
     end
@@ -59,9 +62,9 @@ defmodule Bridge.User do
 
   defp put_default_time_zone(changeset) do
     case changeset do
-      %Ecto.Changeset{changes: %{time_zone: ""}} ->
+      %Changeset{changes: %{time_zone: ""}} ->
         put_change(changeset, :time_zone, "UTC")
-      %Ecto.Changeset{changes: %{time_zone: _}} ->
+      %Changeset{changes: %{time_zone: _}} ->
         changeset
       _ ->
         put_change(changeset, :time_zone, "UTC")
