@@ -4,6 +4,7 @@ defmodule Bridge.Signup do
   new pod sign up form.
   """
 
+  import Bridge.Gettext
   import Ecto.Changeset
   alias Ecto.Multi
 
@@ -32,9 +33,9 @@ defmodule Bridge.Signup do
     |> validate_length(:email, min: 1, max: 254)
     |> validate_length(:username, min: 3, max: 20)
     |> validate_length(:password, min: 6)
-    |> validate_format(:slug, Pod.slug_format, message: "must be lowercase and alphanumeric")
-    |> validate_format(:username, User.username_format, message: "must be lowercase and alphanumeric")
-    |> validate_format(:email, User.email_format, message: "is invalid")
+    |> validate_format(:slug, Pod.slug_format, message: dgettext("errors", "must be lowercase and alphanumeric"))
+    |> validate_format(:username, User.username_format, message: dgettext("errors", "must be lowercase and alphanumeric"))
+    |> validate_format(:email, User.email_format, message: dgettext("errors", "is invalid"))
     |> validate_slug_uniqueness
   end
 
@@ -71,7 +72,7 @@ defmodule Bridge.Signup do
     validate_change changeset, :slug, {:uniqueness}, fn _, value ->
       case Repo.get_by(Pod, slug: value) do
         nil -> []
-        _ -> [{:slug, {"is already taken", [validation: :uniqueness]}}]
+        _ -> [{:slug, {dgettext("errors", "is already taken"), [validation: :uniqueness]}}]
       end
     end
   end

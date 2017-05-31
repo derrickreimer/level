@@ -17,7 +17,7 @@ defmodule Bridge.PodController do
           |> redirect(to: thread_path(conn, :index))
         {:error, _, _, _} ->
           conn
-          |> put_flash(:error, "Uh oh, something went wrong. Please try again.")
+          |> put_flash(:error, gettext("Uh oh, something went wrong. Please try again."))
           |> render("new.html", changeset: changeset)
       end
     else
