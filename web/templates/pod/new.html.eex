@@ -5,26 +5,26 @@
     <div class="form-field <%= if f.errors[:slug], do: "form-field--error" %>">
       <%= label f, :slug, gettext("URL"), class: "form-label" %>
       <div class="subdomain-field-container">
-        <%= text_input f, :slug, class: "text-field", placeholder: "acme-inc" %>.bridge.chat
+        <%= text_input f, :slug, class: "text-field" %>.bridge.chat
       </div>
       <%= error_tag f, :slug %>
     </div>
 
     <div class="form-field <%= if f.errors[:pod_name], do: "form-field--error" %>">
       <%= label f, :pod_name, gettext("Organization Name"), class: "form-label" %>
-      <%= text_input f, :pod_name, class: "text-field text-field--full", placeholder: "Acme, Inc." %>
+      <%= text_input f, :pod_name, class: "text-field text-field--full" %>
       <%= error_tag f, :pod_name %>
     </div>
 
     <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
       <%= label f, :username, gettext("Username"), class: "form-label" %>
-      <%= text_input f, :username, class: "text-field text-field--full", placeholder: "johndoe" %>
+      <%= text_input f, :username, class: "text-field text-field--full" %>
       <%= error_tag f, :username %>
     </div>
 
     <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
       <%= label f, :email, gettext("Email Address"), class: "form-label" %>
-      <%= email_input f, :email, class: "text-field text-field--full", placeholder: "john@acme.com" %>
+      <%= email_input f, :email, class: "text-field text-field--full" %>
       <%= error_tag f, :email %>
     </div>
 
