@@ -19,10 +19,10 @@ defmodule Bridge.Auth do
       conn.assigns[:pod] == nil ->
         delete_current_user(conn)
 
-      session = get_session(conn, :sessions) ->
+      sessions = get_session(conn, :sessions) ->
         pod_id = Integer.to_string(conn.assigns.pod.id)
 
-        case Poison.decode!(session) do
+        case decode_user_sessions(sessions) do
           %{^pod_id => %{"user_id" => user_id}} ->
             user = repo.get(Bridge.User, user_id)
             put_current_user(conn, user)
@@ -33,6 +33,39 @@ defmodule Bridge.Auth do
       true ->
         delete_current_user(conn)
     end
+  end
+
+  @doc """
+  Signs a user in to a particular pod.
+  """
+  def sign_in(conn, pod, user) do
+    conn
+    |> put_current_user(user)
+    |> put_user_session(pod, user)
+  end
+
+  defp put_user_session(conn, pod, user) do
+    pod_id = Integer.to_string(pod.id)
+
+    sessions =
+      conn
+      |> get_session(:sessions)
+      |> decode_user_sessions()
+      |> Map.put(pod_id, %{user_id: user.id})
+      |> encode_user_sessions()
+
+    put_session(conn, :sessions, sessions)
+  end
+
+  defp decode_user_sessions(data) do
+    case data do
+      nil -> %{}
+      json -> Poison.decode!(json)
+    end
+  end
+
+  defp encode_user_sessions(data) do
+    Poison.encode!(data)
   end
 
   defp delete_current_user(conn) do
