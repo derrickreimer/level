@@ -4,8 +4,9 @@
   <%= form_for @changeset, pod_path(@conn, :create), [as: :signup, class: "auth-form__form"], fn f -> %>
     <div class="form-field <%= if f.errors[:slug], do: "form-field--error" %>">
       <%= label f, :slug, gettext("URL"), class: "form-label" %>
-      <div class="subdomain-field-container">
-        <%= text_input f, :slug, class: "text-field" %>.bridge.chat
+      <div class="slug-field">
+        <div class="slug-field__domain">bridge.chat/</div>
+        <%= text_input f, :slug, class: "text-field slug-field__slug" %>
       </div>
       <%= error_tag f, :slug %>
     </div>
