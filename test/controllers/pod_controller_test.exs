@@ -30,8 +30,15 @@ defmodule Bridge.PodControllerTest do
       assert user.role == 0
     end
 
-    test "redirects to the threads index", %{conn: conn} do
-      assert redirected_to(conn) == "/threads"
+    test "sign the user in", %{conn: conn, params: %{email: email}} do
+      user = Repo.get_by!(Bridge.User, %{email: email})
+      assert conn.assigns.current_user.id == user.id
+    end
+
+    test "redirects to the threads index",
+      %{conn: conn, params: %{slug: slug}} do
+
+      assert redirected_to(conn) == "/#{slug}"
     end
   end
 

@@ -12,9 +12,10 @@ defmodule Bridge.PodController do
 
     if changeset.valid? do
       case Repo.transaction(Signup.transaction(changeset)) do
-        {:ok, _result} ->
+        {:ok, %{pod: pod, user: user}} ->
           conn
-          |> redirect(to: thread_path(conn, :index))
+          |> Bridge.UserAuth.sign_in(pod, user)
+          |> redirect(to: thread_path(conn, :index, pod.slug))
         {:error, _, _, _} ->
           conn
           |> put_flash(:error, gettext("Uh oh, something went wrong. Please try again."))

@@ -9,6 +9,12 @@ defmodule Bridge.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :pod do
+    plug :fetch_pod, repo: Bridge.Repo
+    plug :fetch_current_user, repo: Bridge.Repo
+    plug :authenticate_user
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -18,7 +24,15 @@ defmodule Bridge.Router do
 
     get "/", PageController, :index
     resources "/pods", PodController, only: [:new, :create]
-    resources "/threads", ThreadController
+
+    get "/:pod_id/signin", SessionController, :new
+    post "/:pod_id/signin", SessionController, :create
+  end
+
+  scope "/:pod_id", Bridge do
+    pipe_through [:browser, :pod]
+
+    get "/", ThreadController, :index
   end
 
   # Other scopes may use custom stacks.
