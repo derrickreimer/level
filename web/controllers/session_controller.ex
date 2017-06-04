@@ -3,6 +3,7 @@ defmodule Bridge.SessionController do
 
   plug :fetch_pod, repo: Bridge.Repo
   plug :fetch_current_user, repo: Bridge.Repo
+  plug :redirect_if_signed_in
 
   def new(conn, _params) do
     render conn, "new.html"
@@ -19,6 +20,16 @@ defmodule Bridge.SessionController do
         conn
         |> put_flash(:error, "Oops, those credentials are not correct")
         |> render("new.html")
+    end
+  end
+
+  defp redirect_if_signed_in(conn, _opts) do
+    if conn.assigns.current_user do
+      conn
+      |> redirect(to: thread_path(conn, :index, conn.assigns.pod))
+      |> halt()
+    else
+      conn
     end
   end
 end

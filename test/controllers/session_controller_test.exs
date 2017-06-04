@@ -7,15 +7,23 @@ defmodule Bridge.SessionControllerTest do
       conn = get conn, "/#{pod.slug}/signin"
       assert html_response(conn, 200) =~ "Sign in to Bridge"
     end
+
+    test "redirects to threads path if already signed in", %{conn: conn} do
+      password = "$ecret$"
+      {:ok, %{user: user, pod: pod}} = insert_signup(%{password: password})
+
+      signed_in_conn = post conn, "/#{pod.slug}/signin",
+        %{"session" => %{"username" => user.username, "password" => password}}
+
+      conn = get signed_in_conn, "/#{pod.slug}/signin"
+      assert redirected_to(conn, 302) =~ "/#{pod.slug}"
+    end
   end
 
   describe "POST /:pod_id/signin" do
     setup %{conn: conn} do
       password = "$ecret$"
-
-      {:ok, %{user: user, pod: pod}} =
-        insert_signup(%{password: password})
-
+      {:ok, %{user: user, pod: pod}} = insert_signup(%{password: password})
       {:ok, %{conn: conn, user: user, pod: pod, password: password}}
     end
 
