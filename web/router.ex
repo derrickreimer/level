@@ -25,8 +25,8 @@ defmodule Bridge.Router do
     get "/", PageController, :index
     resources "/pods", PodController, only: [:new, :create]
 
-    get "/:pod_id/signin", SessionController, :new
-    post "/:pod_id/signin", SessionController, :create
+    get "/:pod_id/login", SessionController, :new
+    post "/:pod_id/login", SessionController, :create
   end
 
   scope "/:pod_id", Bridge do

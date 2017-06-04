@@ -1,10 +1,10 @@
 defmodule Bridge.SessionControllerTest do
   use Bridge.ConnCase
 
-  describe "GET /:pod_id/signin" do
+  describe "GET /:pod_id/login" do
     test "includes the correct heading", %{conn: conn} do
       {:ok, %{pod: pod}} = insert_signup()
-      conn = get conn, "/#{pod.slug}/signin"
+      conn = get conn, "/#{pod.slug}/login"
       assert html_response(conn, 200) =~ "Sign in to Bridge"
     end
 
@@ -12,15 +12,15 @@ defmodule Bridge.SessionControllerTest do
       password = "$ecret$"
       {:ok, %{user: user, pod: pod}} = insert_signup(%{password: password})
 
-      signed_in_conn = post conn, "/#{pod.slug}/signin",
+      signed_in_conn = post conn, "/#{pod.slug}/login",
         %{"session" => %{"username" => user.username, "password" => password}}
 
-      conn = get signed_in_conn, "/#{pod.slug}/signin"
+      conn = get signed_in_conn, "/#{pod.slug}/login"
       assert redirected_to(conn, 302) =~ "/#{pod.slug}"
     end
   end
 
-  describe "POST /:pod_id/signin" do
+  describe "POST /:pod_id/login" do
     setup %{conn: conn} do
       password = "$ecret$"
       {:ok, %{user: user, pod: pod}} = insert_signup(%{password: password})
@@ -30,7 +30,7 @@ defmodule Bridge.SessionControllerTest do
     test "signs in the user by username",
       %{conn: conn, user: user, pod: pod, password: password} do
 
-      conn = post conn, "/#{pod.slug}/signin",
+      conn = post conn, "/#{pod.slug}/login",
         %{"session" => %{"username" => user.username, "password" => password}}
 
       assert conn.assigns.current_user.id == user.id
@@ -40,7 +40,7 @@ defmodule Bridge.SessionControllerTest do
     test "signs in the user by email",
       %{conn: conn, user: user, pod: pod, password: password} do
 
-      conn = post conn, "/#{pod.slug}/signin",
+      conn = post conn, "/#{pod.slug}/login",
         %{"session" => %{"username" => user.email, "password" => password}}
 
       assert conn.assigns.current_user.id == user.id
@@ -50,7 +50,7 @@ defmodule Bridge.SessionControllerTest do
     test "renders an error with invalid credentials",
       %{conn: conn, user: user, pod: pod} do
 
-      conn = post conn, "/#{pod.slug}/signin",
+      conn = post conn, "/#{pod.slug}/login",
         %{"session" => %{"username" => user.email, "password" => "wrong"}}
 
       assert conn.assigns.current_user == nil
