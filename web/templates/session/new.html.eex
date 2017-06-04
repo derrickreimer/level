@@ -1,5 +1,5 @@
 <div class="auth-form">
-  <h2 class="auth-form__heading"><%= gettext "Sign in to" %> <%= @pod.name %></h2>
+  <h2 class="auth-form__heading"><%= gettext "Sign in to Bridge" %></h2>
 
   <%= form_for @conn, session_path(@conn, :create, @pod.slug), [as: :session, class: "auth-form__form"], fn f -> %>
     <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
