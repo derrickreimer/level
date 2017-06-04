@@ -54,7 +54,7 @@ defmodule Bridge.UserAuth do
       conn
     else
       conn
-      |> redirect(to: Helpers.session_path(conn, :new, conn.assigns.pod.slug))
+      |> redirect(to: Helpers.session_path(conn, :new, conn.assigns.pod))
       |> halt()
     end
   end

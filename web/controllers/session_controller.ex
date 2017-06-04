@@ -14,7 +14,7 @@ defmodule Bridge.SessionController do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")
-        |> redirect(to: thread_path(conn, :index, conn.assigns.pod.slug))
+        |> redirect(to: thread_path(conn, :index, conn.assigns.pod))
       {:error, _reason, conn} ->
         conn
         |> put_flash(:error, "Invalid username/password combination")

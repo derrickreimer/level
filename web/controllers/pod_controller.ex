@@ -15,7 +15,7 @@ defmodule Bridge.PodController do
         {:ok, %{pod: pod, user: user}} ->
           conn
           |> Bridge.UserAuth.sign_in(pod, user)
-          |> redirect(to: thread_path(conn, :index, pod.slug))
+          |> redirect(to: thread_path(conn, :index, pod))
         {:error, _, _, _} ->
           conn
           |> put_flash(:error, gettext("Uh oh, something went wrong. Please try again."))

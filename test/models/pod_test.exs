@@ -40,4 +40,11 @@ defmodule Bridge.PodTest do
       refute Regex.match?(Pod.slug_format, "Bridge")
     end
   end
+
+  describe "Phoenix.Param.to_param implementation" do
+    test "returns the slug" do
+      pod = %Pod{id: 123, slug: "foo"}
+      assert Phoenix.Param.to_param(pod) == "foo"
+    end
+  end
 end

@@ -44,3 +44,9 @@ defmodule Bridge.Pod do
     |> put_change(:state, 0)
   end
 end
+
+defimpl Phoenix.Param, for: Bridge.Pod do
+  def to_param(%{slug: slug}) do
+    slug
+  end
+end
