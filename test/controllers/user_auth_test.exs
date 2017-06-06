@@ -67,7 +67,7 @@ defmodule Bridge.UserAuthTest do
       conn =
         conn
         |> assign(:pod, pod)
-        |> put_session(:sessions, encoded_sessions(pod, user))
+        |> put_session(:sessions, to_user_session(pod, user))
         |> UserAuth.fetch_current_user(repo: Repo)
 
       assert conn.assigns.current_user.id == user.id
@@ -98,7 +98,7 @@ defmodule Bridge.UserAuthTest do
     test "sets the user session", %{conn: conn, pod: pod, user: user} do
       pod_id = Integer.to_string(pod.id)
 
-      %{^pod_id => %{"user_id" => user_id}} =
+      %{^pod_id => [user_id | _]} =
         conn
         |> get_session(:sessions)
         |> Poison.decode!
@@ -174,7 +174,7 @@ defmodule Bridge.UserAuthTest do
     end
   end
 
-  defp encoded_sessions(pod, user) do
-    Poison.encode!(%{Integer.to_string(pod.id) => %{user_id: user.id}})
+  defp to_user_session(pod, user, ts \\ 123) do
+    Poison.encode!(%{Integer.to_string(pod.id) => [user.id, ts]})
   end
 end

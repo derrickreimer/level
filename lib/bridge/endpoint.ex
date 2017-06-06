@@ -37,7 +37,7 @@ defmodule Bridge.Endpoint do
     store: :cookie,
     key: "_bridge_key",
     signing_salt: "Yx0Th4sC",
-    max_age: 31557600 # 1 year
+    max_age: 31_557_600 # 1 year
 
   plug Bridge.Router
 end

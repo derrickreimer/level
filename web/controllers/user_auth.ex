@@ -34,7 +34,7 @@ defmodule Bridge.UserAuth do
         pod_id = Integer.to_string(conn.assigns.pod.id)
 
         case decode_user_sessions(sessions) do
-          %{^pod_id => %{"user_id" => user_id}} ->
+          %{^pod_id => [user_id, _issued_at_ts]} ->
             user = repo.get(Bridge.User, user_id)
             put_current_user(conn, user)
           _ ->
@@ -112,7 +112,7 @@ defmodule Bridge.UserAuth do
       conn
       |> get_session(:sessions)
       |> decode_user_sessions()
-      |> Map.put(pod_id, %{user_id: user.id})
+      |> Map.put(pod_id, [user.id, now_timestamp()])
       |> encode_user_sessions()
 
     put_session(conn, :sessions, sessions)
@@ -148,5 +148,9 @@ defmodule Bridge.UserAuth do
 
   defp put_current_user(conn, user) do
     assign(conn, :current_user, user)
+  end
+
+  defp now_timestamp do
+    Timex.to_unix(Timex.now())
   end
 end
