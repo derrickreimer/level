@@ -143,10 +143,10 @@ defmodule Bridge.UserAuth do
   end
 
   defp delete_current_user(conn) do
-    conn |> assign(:current_user, nil)
+    assign(conn, :current_user, nil)
   end
 
   defp put_current_user(conn, user) do
-    conn |> assign(:current_user, user)
+    assign(conn, :current_user, user)
   end
 end
