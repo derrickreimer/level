@@ -8,6 +8,11 @@ a {
 
 .inline-flash {
 
+  &--info {
+    background-color: $success-color;
+    color: #fff;
+  }
+
   &--error {
     background-color: $error-color;
     color: #fff;
