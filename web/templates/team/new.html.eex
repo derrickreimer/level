@@ -12,7 +12,7 @@
     </div>
 
     <div class="form-field <%= if f.errors[:team_name], do: "form-field--error" %>">
-      <%= label f, :team_name, gettext("Organization Name"), class: "form-label" %>
+      <%= label f, :team_name, gettext("Team Name"), class: "form-label" %>
       <%= text_input f, :team_name, class: "text-field text-field--full" %>
       <%= error_tag f, :team_name %>
     </div>
