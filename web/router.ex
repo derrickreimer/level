@@ -9,8 +9,8 @@ defmodule Bridge.Router do
     plug :put_secure_browser_headers
   end
 
-  pipeline :pod do
-    plug :fetch_pod, repo: Bridge.Repo
+  pipeline :team do
+    plug :fetch_team, repo: Bridge.Repo
     plug :fetch_current_user, repo: Bridge.Repo
     plug :authenticate_user
   end
@@ -23,14 +23,14 @@ defmodule Bridge.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
-    resources "/pods", PodController, only: [:new, :create]
+    resources "/teams", TeamController, only: [:new, :create]
 
-    get "/:pod_id/login", SessionController, :new
-    post "/:pod_id/login", SessionController, :create
+    get "/:team_id/login", SessionController, :new
+    post "/:team_id/login", SessionController, :create
   end
 
-  scope "/:pod_id", Bridge do
-    pipe_through [:browser, :pod]
+  scope "/:team_id", Bridge do
+    pipe_through [:browser, :team]
 
     get "/", ThreadController, :index
   end

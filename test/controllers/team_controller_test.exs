@@ -1,32 +1,32 @@
-defmodule Bridge.PodControllerTest do
+defmodule Bridge.TeamControllerTest do
   use Bridge.ConnCase
 
-  describe "GET /pods/new" do
+  describe "GET /teams/new" do
     test "includes the correct headline", %{conn: conn} do
-      conn = get conn, "/pods/new"
+      conn = get conn, "/teams/new"
       assert html_response(conn, 200) =~ "Sign up for Bridge"
     end
   end
 
-  describe "POST /pods with valid data" do
+  describe "POST /teams with valid data" do
     setup %{conn: conn} do
       params = valid_signup_params()
-      conn = post conn, "/pods", %{signup: params}
+      conn = post conn, "/teams", %{signup: params}
       {:ok, %{conn: conn, params: params}}
     end
 
-    test "creates new pod", %{params: %{slug: slug}} do
-      assert Repo.get_by!(Bridge.Pod, %{slug: slug})
+    test "creates new team", %{params: %{slug: slug}} do
+      assert Repo.get_by!(Bridge.Team, %{slug: slug})
     end
 
-    test "creates new user as the owner of the pod",
+    test "creates new user as the owner of the team",
       %{params: %{slug: slug, email: email}} do
 
       user = Repo.get_by!(Bridge.User, %{email: email})
-      pod = Ecto.assoc(user, :pod) |> Repo.one
+      team = Ecto.assoc(user, :team) |> Repo.one
 
       assert user.email == email
-      assert pod.slug == slug
+      assert team.slug == slug
       assert user.role == 0
     end
 
@@ -42,17 +42,17 @@ defmodule Bridge.PodControllerTest do
     end
   end
 
-  describe "POST /pods with invalid data" do
+  describe "POST /teams with invalid data" do
     setup %{conn: conn} do
-      params = %{email: "foobar", slug: "boo", pod_name: "Foo"}
+      params = %{email: "foobar", slug: "boo", team_name: "Foo"}
       user_count = count_all(Bridge.User)
-      pod_count = count_all(Bridge.Pod)
-      conn = post conn, "/pods", %{signup: params}
-      {:ok, %{conn: conn, user_count: user_count, pod_count: pod_count}}
+      team_count = count_all(Bridge.Team)
+      conn = post conn, "/teams", %{signup: params}
+      {:ok, %{conn: conn, user_count: user_count, team_count: team_count}}
     end
 
-    test "does not not create a new pod", %{pod_count: pod_count} do
-      assert pod_count == count_all(Bridge.Pod)
+    test "does not not create a new team", %{team_count: team_count} do
+      assert team_count == count_all(Bridge.Team)
     end
 
     test "does not not create a new user", %{user_count: user_count} do

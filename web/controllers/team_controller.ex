@@ -1,4 +1,4 @@
-defmodule Bridge.PodController do
+defmodule Bridge.TeamController do
   use Bridge.Web, :controller
   alias Bridge.Signup
 
@@ -12,10 +12,10 @@ defmodule Bridge.PodController do
 
     if changeset.valid? do
       case Repo.transaction(Signup.transaction(changeset)) do
-        {:ok, %{pod: pod, user: user}} ->
+        {:ok, %{team: team, user: user}} ->
           conn
-          |> Bridge.UserAuth.sign_in(pod, user)
-          |> redirect(to: thread_path(conn, :index, pod))
+          |> Bridge.UserAuth.sign_in(team, user)
+          |> redirect(to: thread_path(conn, :index, team))
         {:error, _, _, _} ->
           conn
           |> put_flash(:error, gettext("Uh oh, something went wrong. Please try again."))

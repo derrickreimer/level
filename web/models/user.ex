@@ -1,6 +1,6 @@
 defmodule Bridge.User do
   @moduledoc """
-  A User always belongs to a pod and has a specific role in the pod.
+  A User always belongs to a team and has a specific role in the team.
   """
 
   use Bridge.Web, :model
@@ -18,7 +18,7 @@ defmodule Bridge.User do
     field :time_zone, :string
     field :password, :string, virtual: true
     field :password_hash, :string
-    belongs_to :pod, Bridge.Pod
+    belongs_to :team, Bridge.Team
 
     timestamps()
   end
@@ -44,7 +44,7 @@ defmodule Bridge.User do
   """
   def signup_changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:pod_id, :email, :username, :time_zone, :password])
+    |> cast(params, [:team_id, :email, :username, :time_zone, :password])
     |> put_default_time_zone
     |> put_pass_hash
     |> put_change(:state, 0)

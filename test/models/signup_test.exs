@@ -9,10 +9,10 @@ defmodule Bridge.SignupTest do
       assert changeset.valid?
     end
 
-    test "requires a pod name" do
-      params = Map.put(valid_signup_params(), :pod_name, "")
+    test "requires a team name" do
+      params = Map.put(valid_signup_params(), :team_name, "")
       changeset = Signup.form_changeset(%{}, params)
-      assert {:pod_name, {"can't be blank", validation: :required}}
+      assert {:team_name, {"can't be blank", validation: :required}}
         in changeset.errors
     end
 
@@ -30,10 +30,10 @@ defmodule Bridge.SignupTest do
         in changeset.errors
     end
 
-    test "requires a pod name no longer than 255 chars" do
-      params = Map.put(valid_signup_params(), :pod_name, String.duplicate("a", 256))
+    test "requires a team name no longer than 255 chars" do
+      params = Map.put(valid_signup_params(), :team_name, String.duplicate("a", 256))
       changeset = Signup.form_changeset(%{}, params)
-      assert {:pod_name, {"should be at most %{count} character(s)", count: 255, validation: :length, max: 255}}
+      assert {:team_name, {"should be at most %{count} character(s)", count: 255, validation: :length, max: 255}}
         in changeset.errors
     end
 

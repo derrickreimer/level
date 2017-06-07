@@ -1,15 +1,15 @@
-defmodule Bridge.Pod do
+defmodule Bridge.Team do
   @moduledoc """
-  A Pod is the fundamental unit in Bridge. Think of a pod like an "organization"
+  A Team is the fundamental unit in Bridge. Think of a team like an "organization"
   or "company", just more concise and generically-named. All users must be
-  related to a particular pod, either as the the owner or some other role.
+  related to a particular team, either as the the owner or some other role.
 
-  The slug is the subdomain at which the pod can be accessed.
+  The slug is the subdomain at which the team can be accessed.
   """
 
   use Bridge.Web, :model
 
-  schema "pods" do
+  schema "teams" do
     field :name, :string
     field :state, :integer
     field :slug, :string
@@ -45,7 +45,7 @@ defmodule Bridge.Pod do
   end
 end
 
-defimpl Phoenix.Param, for: Bridge.Pod do
+defimpl Phoenix.Param, for: Bridge.Team do
   def to_param(%{slug: slug}) do
     slug
   end

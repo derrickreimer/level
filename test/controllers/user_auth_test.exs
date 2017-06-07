@@ -11,34 +11,34 @@ defmodule Bridge.UserAuthTest do
     {:ok, %{conn: conn}}
   end
 
-  describe "fetch_pod/2" do
-    test "assigns the pod to the connection if found", %{conn: conn} do
-      {:ok, %{pod: pod}} = insert_signup()
+  describe "fetch_team/2" do
+    test "assigns the team to the connection if found", %{conn: conn} do
+      {:ok, %{team: team}} = insert_signup()
 
-      pod_conn =
+      team_conn =
         conn
-        |> get("/#{pod.slug}")
-        |> UserAuth.fetch_pod(repo: Repo)
+        |> get("/#{team.slug}")
+        |> UserAuth.fetch_team(repo: Repo)
 
-      assert pod_conn.assigns.pod.id == pod.id
+      assert team_conn.assigns.team.id == team.id
     end
 
-    test "raise a 404 if pod is not found", %{conn: conn} do
+    test "raise a 404 if team is not found", %{conn: conn} do
       assert_raise Ecto.NoResultsError, fn ->
         conn
         |> get("/notfound")
-        |> UserAuth.fetch_pod(repo: Repo)
+        |> UserAuth.fetch_team(repo: Repo)
       end
     end
   end
 
   describe "fetch_current_user/2" do
-    test "does not attach a current user when pod is not specified",
+    test "does not attach a current user when team is not specified",
       %{conn: conn} do
 
       conn =
         conn
-        |> assign(:pod, nil)
+        |> assign(:team, nil)
         |> UserAuth.fetch_current_user(repo: Repo)
 
       assert conn.assigns.current_user == nil
@@ -49,12 +49,12 @@ defmodule Bridge.UserAuthTest do
       assert conn.assigns.current_user == nil
     end
 
-    test "sets the current user to nil if a pod is assigned but no sessions",
+    test "sets the current user to nil if a team is assigned but no sessions",
       %{conn: conn} do
 
       conn =
         conn
-        |> assign(:pod, "pod")
+        |> assign(:team, "team")
         |> put_session(:sessions, nil)
         |> UserAuth.fetch_current_user(repo: Repo)
 
@@ -62,12 +62,12 @@ defmodule Bridge.UserAuthTest do
     end
 
     test "sets the current user if logged in", %{conn: conn} do
-      {:ok, %{pod: pod, user: user}} = insert_signup()
+      {:ok, %{team: team, user: user}} = insert_signup()
 
       conn =
         conn
-        |> assign(:pod, pod)
-        |> put_session(:sessions, to_user_session(pod, user))
+        |> assign(:team, team)
+        |> put_session(:sessions, to_user_session(team, user))
         |> UserAuth.fetch_current_user(repo: Repo)
 
       assert conn.assigns.current_user.id == user.id
@@ -76,29 +76,29 @@ defmodule Bridge.UserAuthTest do
 
   describe "sign_in/3" do
     setup %{conn: conn} do
-      {:ok, %{pod: pod, user: user}} = insert_signup()
+      {:ok, %{team: team, user: user}} = insert_signup()
 
       login_conn =
         conn
-        |> UserAuth.sign_in(pod, user)
+        |> UserAuth.sign_in(team, user)
         |> send_resp(:ok, "")
 
-      next_conn = get(login_conn, "/#{pod.slug}")
+      next_conn = get(login_conn, "/#{team.slug}")
 
-      {:ok, %{conn: next_conn, pod: pod, user: user}}
+      {:ok, %{conn: next_conn, team: team, user: user}}
     end
 
-    test "sets the current user when viewing a page in the pod",
-      %{conn: conn, pod: pod, user: user} do
+    test "sets the current user when viewing a page in the team",
+      %{conn: conn, team: team, user: user} do
 
-      assert conn.assigns.pod.id == pod.id
+      assert conn.assigns.team.id == team.id
       assert conn.assigns.current_user.id == user.id
     end
 
-    test "sets the user session", %{conn: conn, pod: pod, user: user} do
-      pod_id = Integer.to_string(pod.id)
+    test "sets the user session", %{conn: conn, team: team, user: user} do
+      team_id = Integer.to_string(team.id)
 
-      %{^pod_id => [user_id | _]} =
+      %{^team_id => [user_id | _]} =
         conn
         |> get_session(:sessions)
         |> Poison.decode!
@@ -108,18 +108,18 @@ defmodule Bridge.UserAuthTest do
   end
 
   describe "sign_out/2" do
-    test "signs out of the given pod only", %{conn: conn} do
-      pod1 = %Bridge.Pod{id: 1}
-      pod2 = %Bridge.Pod{id: 2}
+    test "signs out of the given team only", %{conn: conn} do
+      team1 = %Bridge.Team{id: 1}
+      team2 = %Bridge.Team{id: 2}
 
       user1 = %Bridge.User{id: 1}
       user2 = %Bridge.User{id: 2}
 
       sign_out_conn =
         conn
-        |> UserAuth.sign_in(pod1, user1)
-        |> UserAuth.sign_in(pod2, user2)
-        |> UserAuth.sign_out(pod1)
+        |> UserAuth.sign_in(team1, user1)
+        |> UserAuth.sign_in(team2, user2)
+        |> UserAuth.sign_out(team1)
         |> send_resp(:ok, "")
 
       next_conn = get(sign_out_conn, "/")
@@ -137,44 +137,44 @@ defmodule Bridge.UserAuthTest do
   describe "sign_in_with_credentials/5" do
     setup %{conn: conn} do
       password = "$ecret$"
-      {:ok, %{pod: pod, user: user}} = insert_signup(%{password: password})
-      {:ok, %{conn: conn, pod: pod, user: user, password: password}}
+      {:ok, %{team: team, user: user}} = insert_signup(%{password: password})
+      {:ok, %{conn: conn, team: team, user: user, password: password}}
     end
 
     test "signs in user with username credentials",
-      %{conn: conn, pod: pod, user: user, password: password} do
+      %{conn: conn, team: team, user: user, password: password} do
 
       {:ok, conn} =
-        UserAuth.sign_in_with_credentials(conn, pod, user.username, password, repo: Repo)
+        UserAuth.sign_in_with_credentials(conn, team, user.username, password, repo: Repo)
 
       assert conn.assigns.current_user.id == user.id
     end
 
     test "signs in user with email credentials",
-      %{conn: conn, pod: pod, user: user, password: password} do
+      %{conn: conn, team: team, user: user, password: password} do
 
       {:ok, conn} =
-        UserAuth.sign_in_with_credentials(conn, pod, user.email, password, repo: Repo)
+        UserAuth.sign_in_with_credentials(conn, team, user.email, password, repo: Repo)
 
       assert conn.assigns.current_user.id == user.id
     end
 
     test "returns unauthorized if password does not match",
-      %{conn: conn, pod: pod, user: user} do
+      %{conn: conn, team: team, user: user} do
 
       {:error, :unauthorized, _conn} =
-        UserAuth.sign_in_with_credentials(conn, pod, user.email, "wrongo", repo: Repo)
+        UserAuth.sign_in_with_credentials(conn, team, user.email, "wrongo", repo: Repo)
     end
 
     test "returns unauthorized if user is not found",
-      %{conn: conn, pod: pod} do
+      %{conn: conn, team: team} do
 
       {:error, :not_found, _conn} =
-        UserAuth.sign_in_with_credentials(conn, pod, "foo@bar.co", "wrongo", repo: Repo)
+        UserAuth.sign_in_with_credentials(conn, team, "foo@bar.co", "wrongo", repo: Repo)
     end
   end
 
-  defp to_user_session(pod, user, ts \\ 123) do
-    Poison.encode!(%{Integer.to_string(pod.id) => [user.id, ts]})
+  defp to_user_session(team, user, ts \\ 123) do
+    Poison.encode!(%{Integer.to_string(team.id) => [user.id, ts]})
   end
 end
