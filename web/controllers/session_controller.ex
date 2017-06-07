@@ -1,7 +1,7 @@
 defmodule Bridge.SessionController do
   use Bridge.Web, :controller
 
-  plug :fetch_pod, repo: Bridge.Repo
+  plug :fetch_team, repo: Bridge.Repo
   plug :fetch_current_user, repo: Bridge.Repo
   plug :redirect_if_signed_in
 
@@ -11,11 +11,11 @@ defmodule Bridge.SessionController do
 
   def create(conn, %{"session" => %{"username" => username,
                                     "password" => pass}}) do
-    case Bridge.UserAuth.sign_in_with_credentials(conn, conn.assigns.pod, username, pass, repo: Repo) do
+    case Bridge.UserAuth.sign_in_with_credentials(conn, conn.assigns.team, username, pass, repo: Repo) do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")
-        |> redirect(to: thread_path(conn, :index, conn.assigns.pod))
+        |> redirect(to: thread_path(conn, :index, conn.assigns.team))
       {:error, _reason, conn} ->
         conn
         |> put_flash(:error, "Oops, those credentials are not correct")
@@ -26,7 +26,7 @@ defmodule Bridge.SessionController do
   defp redirect_if_signed_in(conn, _opts) do
     if conn.assigns.current_user do
       conn
-      |> redirect(to: thread_path(conn, :index, conn.assigns.pod))
+      |> redirect(to: thread_path(conn, :index, conn.assigns.team))
       |> halt()
     else
       conn

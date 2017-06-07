@@ -10,31 +10,31 @@ defmodule Bridge.UserAuth do
   alias Bridge.Router.Helpers
 
   @doc """
-  A plug that looks up the pod in scope and sets it in the connection assigns.
+  A plug that looks up the team in scope and sets it in the connection assigns.
   """
-  def fetch_pod(conn, opts) do
+  def fetch_team(conn, opts) do
     repo = Keyword.fetch!(opts, :repo)
-    pod = repo.get_by!(Bridge.Pod, slug: conn.params["pod_id"])
-    assign(conn, :pod, pod)
+    team = repo.get_by!(Bridge.Team, slug: conn.params["team_id"])
+    assign(conn, :team, team)
   end
 
   @doc """
-  A plug that looks up the currently logged in user for the current pod
-  and assigns it to the current_user key. If pod is not specified or user is
+  A plug that looks up the currently logged in user for the current team
+  and assigns it to the current_user key. If team is not specified or user is
   not logged in, sets the current_user to nil.
   """
   def fetch_current_user(conn, opts) do
     repo = Keyword.fetch!(opts, :repo)
 
     cond do
-      conn.assigns[:pod] == nil ->
+      conn.assigns[:team] == nil ->
         delete_current_user(conn)
 
       sessions = get_session(conn, :sessions) ->
-        pod_id = Integer.to_string(conn.assigns.pod.id)
+        team_id = Integer.to_string(conn.assigns.team.id)
 
         case decode_user_sessions(sessions) do
-          %{^pod_id => [user_id, _issued_at_ts]} ->
+          %{^team_id => [user_id, _issued_at_ts]} ->
             user = repo.get(Bridge.User, user_id)
             put_current_user(conn, user)
           _ ->
@@ -47,42 +47,42 @@ defmodule Bridge.UserAuth do
   end
 
   @doc """
-  A plug for ensuring that a user is currently logged in to the particular pod.
+  A plug for ensuring that a user is currently logged in to the particular team.
   """
   def authenticate_user(conn, _opts) do
     if conn.assigns.current_user do
       conn
     else
       conn
-      |> redirect(to: Helpers.session_path(conn, :new, conn.assigns.pod))
+      |> redirect(to: Helpers.session_path(conn, :new, conn.assigns.team))
       |> halt()
     end
   end
 
   @doc """
-  Signs a user in to a particular pod.
+  Signs a user in to a particular team.
   """
-  def sign_in(conn, pod, user) do
+  def sign_in(conn, team, user) do
     conn
     |> put_current_user(user)
-    |> put_user_session(pod, user)
+    |> put_user_session(team, user)
   end
 
   @doc """
-  Signs a user out of a particular pod.
+  Signs a user out of a particular team.
   """
-  def sign_out(conn, pod) do
+  def sign_out(conn, team) do
     conn
-    |> delete_user_session(pod)
+    |> delete_user_session(team)
   end
 
   @doc """
-  Looks up the user for a given pod by identifier (either username or email
+  Looks up the user for a given team by identifier (either username or email
   address) and compares the given password with the password hash.
   If the user is found and password is valid, signs the user in and returns
   an :ok tuple. Otherwise, returns an :error tuple.
   """
-  def sign_in_with_credentials(conn, pod, identifier, given_pass, opts) do
+  def sign_in_with_credentials(conn, team, identifier, given_pass, opts) do
     repo = Keyword.fetch!(opts, :repo)
 
     column = if Regex.match?(~r/@/, identifier) do
@@ -91,12 +91,12 @@ defmodule Bridge.UserAuth do
       :username
     end
 
-    conditions = %{pod_id: pod.id} |> Map.put(column, identifier)
+    conditions = %{team_id: team.id} |> Map.put(column, identifier)
     user = repo.get_by(Bridge.User, conditions)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->
-        {:ok, sign_in(conn, pod, user)}
+        {:ok, sign_in(conn, team, user)}
       user ->
         {:error, :unauthorized, conn}
       true ->
@@ -105,27 +105,27 @@ defmodule Bridge.UserAuth do
     end
   end
 
-  defp put_user_session(conn, pod, user) do
-    pod_id = Integer.to_string(pod.id)
+  defp put_user_session(conn, team, user) do
+    team_id = Integer.to_string(team.id)
 
     sessions =
       conn
       |> get_session(:sessions)
       |> decode_user_sessions()
-      |> Map.put(pod_id, [user.id, now_timestamp()])
+      |> Map.put(team_id, [user.id, now_timestamp()])
       |> encode_user_sessions()
 
     put_session(conn, :sessions, sessions)
   end
 
-  defp delete_user_session(conn, pod) do
-    pod_id = Integer.to_string(pod.id)
+  defp delete_user_session(conn, team) do
+    team_id = Integer.to_string(team.id)
 
     sessions =
       conn
       |> get_session(:sessions)
       |> decode_user_sessions()
-      |> Map.delete(pod_id)
+      |> Map.delete(team_id)
       |> encode_user_sessions()
 
     put_session(conn, :sessions, sessions)

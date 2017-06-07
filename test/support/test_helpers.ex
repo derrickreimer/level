@@ -4,7 +4,7 @@ defmodule Bridge.TestHelpers do
   def valid_signup_params do
     %{
       slug: "bridge",
-      pod_name: "Bridge, Inc.",
+      team_name: "Bridge, Inc.",
       username: "derrick",
       email: "derrick@bridge.chat",
       password: "$ecret$"
@@ -15,11 +15,11 @@ defmodule Bridge.TestHelpers do
     random_string = Base.encode16(:crypto.strong_rand_bytes(8))
     username = "user#{random_string}"
     email = "#{username}@bridge.chat"
-    slug = "pod#{random_string}"
+    slug = "team#{random_string}"
 
     changes = Map.merge(%{
       slug: slug,
-      pod_name: "Some pod",
+      team_name: "Some team",
       username: username,
       email: email,
       password: "$ecret$",

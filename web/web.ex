@@ -36,7 +36,7 @@ defmodule Bridge.Web do
 
       import Bridge.Router.Helpers
       import Bridge.Gettext
-      import Bridge.UserAuth, only: [fetch_pod: 2, fetch_current_user: 2, authenticate_user: 2]
+      import Bridge.UserAuth, only: [fetch_team: 2, fetch_current_user: 2, authenticate_user: 2]
     end
   end
 
@@ -59,7 +59,7 @@ defmodule Bridge.Web do
   def router do
     quote do
       use Phoenix.Router
-      import Bridge.UserAuth, only: [fetch_pod: 2, fetch_current_user: 2, authenticate_user: 2]
+      import Bridge.UserAuth, only: [fetch_team: 2, fetch_current_user: 2, authenticate_user: 2]
     end
   end
 

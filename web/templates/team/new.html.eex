@@ -1,7 +1,7 @@
 <div class="auth-form">
   <h2 class="auth-form__heading"><%= gettext "Sign up for Bridge" %></h2>
 
-  <%= form_for @changeset, pod_path(@conn, :create), [as: :signup, class: "auth-form__form"], fn f -> %>
+  <%= form_for @changeset, team_path(@conn, :create), [as: :signup, class: "auth-form__form"], fn f -> %>
     <div class="form-field <%= if f.errors[:slug], do: "form-field--error" %>">
       <%= label f, :slug, gettext("URL"), class: "form-label" %>
       <div class="slug-field">
@@ -11,10 +11,10 @@
       <%= error_tag f, :slug %>
     </div>
 
-    <div class="form-field <%= if f.errors[:pod_name], do: "form-field--error" %>">
-      <%= label f, :pod_name, gettext("Organization Name"), class: "form-label" %>
-      <%= text_input f, :pod_name, class: "text-field text-field--full" %>
-      <%= error_tag f, :pod_name %>
+    <div class="form-field <%= if f.errors[:team_name], do: "form-field--error" %>">
+      <%= label f, :team_name, gettext("Organization Name"), class: "form-label" %>
+      <%= text_input f, :team_name, class: "text-field text-field--full" %>
+      <%= error_tag f, :team_name %>
     </div>
 
     <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">

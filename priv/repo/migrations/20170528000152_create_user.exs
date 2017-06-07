@@ -3,7 +3,7 @@ defmodule Bridge.Repo.Migrations.CreateUser do
 
   def change do
     create table(:users) do
-      add :pod_id, references(:pods, on_delete: :nothing), null: false
+      add :team_id, references(:teams, on_delete: :nothing), null: false
       add :state, :integer, null: false
       add :role, :integer, null: false
       add :email, :string, null: false
@@ -16,8 +16,8 @@ defmodule Bridge.Repo.Migrations.CreateUser do
       timestamps()
     end
 
-    create index(:users, [:pod_id])
-    create unique_index(:users, [:pod_id, :email])
-    create unique_index(:users, [:pod_id, :username])
+    create index(:users, [:team_id])
+    create unique_index(:users, [:team_id, :email])
+    create unique_index(:users, [:team_id, :username])
   end
 end
