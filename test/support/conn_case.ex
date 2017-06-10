@@ -1,4 +1,4 @@
-defmodule Bridge.ConnCase do
+defmodule Bridge.Web.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -25,11 +25,11 @@ defmodule Bridge.ConnCase do
       import Ecto.Changeset
       import Ecto.Query
 
-      import Bridge.Router.Helpers
+      import Bridge.Web.Router.Helpers
       import Bridge.TestHelpers
 
       # The default endpoint for testing
-      @endpoint Bridge.Endpoint
+      @endpoint Bridge.Web.Endpoint
     end
   end
 
