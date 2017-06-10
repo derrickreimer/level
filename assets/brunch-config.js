@@ -40,7 +40,7 @@ exports.config = {
   // Phoenix paths configuration
   paths: {
     // Dependencies and current project directories to watch
-    watched: ["static", "css", "js", "vendor"],
+    watched: ["static", "css", "elm", "js", "vendor"],
 
     // Where to compile files to
     public: "../priv/static"
@@ -57,6 +57,14 @@ exports.config = {
       options: {
         includePaths: ['node_modules/normalize.css']
       }
+    },
+    elmBrunch: {
+      executablePath: '../node_modules/elm/binwrappers',
+      elmFolder: 'elm',
+      mainModules: ['src/Main.elm'],
+      outputFolder: '../../priv/static/js',
+      outputFile: 'bundle.js',
+      makeParameters: ['--warn']
     }
   },
 
