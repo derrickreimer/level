@@ -1,4 +1,4 @@
-defmodule Bridge.ChannelCase do
+defmodule Bridge.Web.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -27,7 +27,7 @@ defmodule Bridge.ChannelCase do
 
 
       # The default endpoint for testing
-      @endpoint Bridge.Endpoint
+      @endpoint Bridge.Web.Endpoint
     end
   end
 
