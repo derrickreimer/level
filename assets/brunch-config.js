@@ -21,14 +21,8 @@ exports.config = {
     },
     stylesheets: {
       joinTo: {
-        "css/base.css": /^(web\/static\/css\/base)/,
-        "css/themes/dark.css": /^(web\/static\/css\/themes\/dark)/
-      },
-      order: {
-        after: [
-          "web/static/css/base.scss",
-          "web/static/css/themes/dark.scss"
-        ]
+        "css/base.css": /^(css\/base)/,
+        "css/themes/dark.css": /^(css\/themes\/dark)/
       }
     },
     templates: {
