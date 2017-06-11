@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+# Verify that elixir is installed
+command -v mix >/dev/null 2>&1 || {
+  echo >&2 "Whoops! You need to install Elixir first.";
+  echo >&2 "Follow the instructions here, then try again:";
+  echo >&2 "https://elixir-lang.org/install.html";
+  exit 1;
+}
+
+# Verify that yarn is installed
+command -v yarn >/dev/null 2>&1 || {
+  echo >&2 "Whoops! You need to install Yarn first.";
+  echo >&2 "Follow the instructions here, then try again:";
+  echo >&2 "https://yarnpkg.com/en/docs/install";
+  exit 1;
+}
+
+# Install dependencies
+echo "* Installing Elixir dependencies"
+mix deps.get
+
+# Install node dependencies
+echo "* Installing node.js dependencies"
+cd assets && yarn
+
+# Setup the local database
+echo "* Creating the development database"
+mix ecto.create && mix ecto.load
