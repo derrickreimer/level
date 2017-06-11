@@ -2,15 +2,18 @@
 
   &--primary {
     background-color: $button-primary-color;
+    background-image: linear-gradient(0deg, darken($button-primary-color, 8%), $button-primary-color);
     color: $button-primary-text-color;
     transition: background-color 0.2s ease;
 
     &:hover {
       background-color: lighten($button-primary-color, 5%);
+      background-image: linear-gradient(0deg, darken($button-primary-color, 6%), lighten($button-primary-color, 2%));
     }
 
     &:active {
       background-color: darken($button-primary-color, 10%);
+      background-image: linear-gradient(0deg, darken($button-primary-color, 6%), $button-primary-color);
     }
   }
 }
