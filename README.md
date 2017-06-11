@@ -12,3 +12,7 @@ To get up and running:
 - Start the server with `mix phx.server`
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+
+---
+
+Copyright &copy; 2017 Derrick Reimer
