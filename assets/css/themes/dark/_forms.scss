@@ -20,6 +20,8 @@
 }
 
 .text-field {
+  @include shadow-on-focus;
+
   background-color: $input-background-color;
   color: $input-text-color;
 

@@ -1,4 +1,5 @@
 .button {
+  @include shadow-on-focus;
 
   &--primary {
     background-color: $button-primary-color;
