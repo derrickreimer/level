@@ -28,4 +28,4 @@ cd assets && yarn
 
 # Setup the local database
 echo "* Creating the development database"
-mix ecto.create && mix ecto.load
+cd ../ && mix ecto.create && mix ecto.load
