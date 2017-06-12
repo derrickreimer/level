@@ -10,7 +10,8 @@ defmodule Bridge.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      aliases: aliases(),
-     deps: deps()]
+     deps: deps(),
+     docs: docs()]
   end
 
   # Configuration for the OTP application.
@@ -39,7 +40,8 @@ defmodule Bridge.Mixfile do
      {:cowboy, "~> 1.0"},
      {:credo, "~> 0.7", only: [:dev, :test]},
      {:comeonin, "~> 3.0"},
-     {:timex, "~> 3.0"}]
+     {:timex, "~> 3.0"},
+     {:ex_doc, "~> 0.16"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
@@ -54,5 +56,12 @@ defmodule Bridge.Mixfile do
      "ecto.migrate": ["ecto.migrate", "ecto.dump"],
      "ecto.rollback": ["ecto.rollback", "ecto.dump"],
      "test": ["ecto.create --quiet", "ecto.migrate", "test", "credo"]]
+  end
+
+  defp docs do
+    [
+      source_url: "https://github.com/djreimer/bridge",
+      extras: ["README.md"]
+    ]
   end
 end

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+echo "* Compiling docs"
+mix docs
+
+echo "* Opening docs"
+open doc/index.html

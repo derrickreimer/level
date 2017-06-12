@@ -2,7 +2,7 @@
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/djreimer/bridge/tree/master)
 
-## Developing
+## Development
 
 To get up and running:
 
@@ -12,6 +12,14 @@ To get up and running:
 - Start the server with `mix phx.server`
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+
+## Documentation
+
+To generate and view low-level API documentation locally, run the following script:
+
+```
+script/docs
+```
 
 ---
 
