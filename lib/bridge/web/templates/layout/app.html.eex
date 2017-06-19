@@ -15,22 +15,6 @@
   </head>
 
   <body>
-    <div class="container">
-      <header class="header">
-        <!-- TODO -->
-      </header>
-
-      <%= if get_flash(@conn, :info) do %>
-        <div class="inline-flash inline-flash--info" role="alert"><%= get_flash(@conn, :info) %></div>
-      <% end %>
-
-      <%= if get_flash(@conn, :error) do %>
-        <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
-      <% end %>
-
-      <main role="main">
-        <%= render @view_module, @view_template, assigns %>
-      </main>
-    </div> <!-- /container -->
+    <%= render @view_module, @view_template, assigns %>
   </body>
 </html>

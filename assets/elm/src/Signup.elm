@@ -68,7 +68,7 @@ slugify teamName =
 
 view : Model -> Html Msg
 view model =
-  div []
+  div [ class "auth-form" ]
     [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
     , div [ class "auth-form__form" ]
       [ textField TeamName "text" "team_name" "Team Name" model.team_name

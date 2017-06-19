@@ -1,6 +1,3 @@
-<div id="signup-form" class="auth-form"></div>
-
 <script type="text/javascript">
-  var node = document.getElementById("signup-form");
-  var app = Elm.Signup.embed(node);
+  var app = Elm.Signup.fullscreen();
 </script>
