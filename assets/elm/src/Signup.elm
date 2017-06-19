@@ -71,10 +71,7 @@ view model =
   div []
     [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
     , div [ class "auth-form__form" ]
-      [ div [ class "form-field" ]
-        [ label [ for "team_name", class "form-label" ] [ text "Team Name" ]
-        , input [ id "team_name", type_ "text", class "text-field text-field--full", name "team_name", value model.team_name, onInput TeamName ] []
-        ]
+      [ textField TeamName "text" "team_name" "Team Name" model.team_name
       , div [ class "form-field" ]
         [ label [ for "slug", class "form-label" ] [ text "URL" ]
         , div [ class "slug-field" ]
@@ -82,18 +79,9 @@ view model =
           , input [ id "slug", type_ "text", class "text-field slug-field__slug", name "slug", value model.slug, onInput Slug ] []
           ]
         ]
-      , div [ class "form-field" ]
-        [ label [ for "username", class "form-label" ] [ text "Username" ]
-        , input [ id "username", type_ "text", class "text-field text-field--full", name "username", value model.username, onInput Username ] []
-        ]
-      , div [ class "form-field" ]
-        [ label [ for "email", class "form-label" ] [ text "Email Address" ]
-        , input [ id "email", type_ "email", class "text-field text-field--full", name "email", value model.email, onInput Email ] []
-        ]
-      , div [ class "form-field" ]
-        [ label [ for "password", class "form-label" ] [ text "Password" ]
-        , input [ id "password", type_ "password", class "text-field text-field--full", name "password", value model.password, onInput Password ] []
-        ]
+      , textField Username "text" "username" "Username" model.username
+      , textField Email "email" "email" "Email Address" model.email
+      , textField Password "password" "password" "Password" model.password
       , div [ class "form-controls"]
         [ button [ type_ "submit", class "button button--primary button--full" ] [ text "Sign up" ] ]
       ]
@@ -104,4 +92,11 @@ view model =
         , text "."
         ]
       ]
+    ]
+
+textField : (String -> msg) -> String -> String -> String -> String -> Html msg
+textField msg fieldType fieldName labelText val =
+  div [ class "form-field" ]
+    [ label [ for fieldName, class "form-label" ] [ text labelText ]
+    , input [ id fieldName, type_ fieldType, class "text-field text-field--full", name fieldName, value val, onInput msg ] []
     ]
