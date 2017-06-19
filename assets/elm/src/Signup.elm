@@ -43,8 +43,7 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
     TeamName val ->
-      -- TODO: auto-generate slug
-      { model | team_name = val }
+      { model | team_name = val, slug = (slugify val) }
 
     Slug val ->
       { model | slug = val }
@@ -57,6 +56,11 @@ update msg model =
 
     Password val ->
       { model | password = val }
+
+-- TODO: scrub invalid characters, sub whitespace for "-"
+slugify : String -> String
+slugify teamName =
+  String.toLower(teamName)
 
 
 -- VIEW
