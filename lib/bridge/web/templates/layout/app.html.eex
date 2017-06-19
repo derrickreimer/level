@@ -10,6 +10,8 @@
     <title>Bridge</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/base.css") %>">
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/themes/dark.css") %>">
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
   </head>
 
   <body>
@@ -29,8 +31,6 @@
       <main role="main">
         <%= render @view_module, @view_template, assigns %>
       </main>
-
     </div> <!-- /container -->
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>

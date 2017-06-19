@@ -1,46 +1,6 @@
-<div class="auth-form">
-  <h2 class="auth-form__heading"><%= gettext "Sign up for Bridge" %></h2>
+<div id="signup-form" class="auth-form"></div>
 
-  <%= form_for @changeset, team_path(@conn, :create), [as: :signup, class: "auth-form__form"], fn f -> %>
-    <div class="form-field <%= if f.errors[:slug], do: "form-field--error" %>">
-      <%= label f, :slug, gettext("URL"), class: "form-label" %>
-      <div class="slug-field">
-        <div class="slug-field__domain">bridge.chat/</div>
-        <%= text_input f, :slug, class: "text-field slug-field__slug" %>
-      </div>
-      <%= error_tag f, :slug %>
-    </div>
-
-    <div class="form-field <%= if f.errors[:team_name], do: "form-field--error" %>">
-      <%= label f, :team_name, gettext("Team Name"), class: "form-label" %>
-      <%= text_input f, :team_name, class: "text-field text-field--full" %>
-      <%= error_tag f, :team_name %>
-    </div>
-
-    <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
-      <%= label f, :username, gettext("Username"), class: "form-label" %>
-      <%= text_input f, :username, class: "text-field text-field--full" %>
-      <%= error_tag f, :username %>
-    </div>
-
-    <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
-      <%= label f, :email, gettext("Email Address"), class: "form-label" %>
-      <%= email_input f, :email, class: "text-field text-field--full" %>
-      <%= error_tag f, :email %>
-    </div>
-
-    <div class="form-field <%= if f.errors[:password], do: "form-field--error" %>">
-      <%= label f, :password, gettext("Password"), class: "form-label" %>
-      <%= password_input f, :password, class: "text-field text-field--full" %>
-      <%= error_tag f, :password %>
-    </div>
-
-    <div class="form-controls">
-      <%= submit gettext("Sign up"), class: "button button--primary button--full" %>
-    </div>
-  <% end %>
-
-  <div class="auth-form__footer">
-    <p><%= gettext "Already have an account?" %> <a href="#"><%= gettext "Sign in" %></a>.</p>
-  </div>
-</div>
+<script type="text/javascript">
+  var node = document.getElementById("signup-form");
+  var app = Elm.Signup.embed(node);
+</script>
