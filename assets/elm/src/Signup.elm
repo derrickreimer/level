@@ -71,7 +71,7 @@ view model =
   div [ class "auth-form" ]
     [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
     , div [ class "auth-form__form" ]
-      [ textField TeamName "text" "team_name" "Team Name" model.team_name
+      [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name)
       , div [ class "form-field" ]
         [ label [ for "slug", class "form-label" ] [ text "URL" ]
         , div [ class "slug-field" ]
@@ -79,9 +79,9 @@ view model =
           , input [ id "slug", type_ "text", class "text-field slug-field__slug", name "slug", value model.slug, onInput Slug ] []
           ]
         ]
-      , textField Username "text" "username" "Username" model.username
-      , textField Email "email" "email" "Email Address" model.email
-      , textField Password "password" "password" "Password" model.password
+      , textField Username (FormField "text" "username" "Username" model.username)
+      , textField Email (FormField "email" "email" "Email Address" model.email)
+      , textField Password (FormField "password" "password" "Password" model.password)
       , div [ class "form-controls"]
         [ button [ type_ "submit", class "button button--primary button--full" ] [ text "Sign up" ] ]
       ]
@@ -94,9 +94,16 @@ view model =
       ]
     ]
 
-textField : (String -> msg) -> String -> String -> String -> String -> Html msg
-textField msg fieldType fieldName labelText val =
+type alias FormField =
+  { type_ : String
+  , name : String
+  , label : String
+  , value : String
+  }
+
+textField : (String -> msg) -> FormField -> Html msg
+textField msg field =
   div [ class "form-field" ]
-    [ label [ for fieldName, class "form-label" ] [ text labelText ]
-    , input [ id fieldName, type_ fieldType, class "text-field text-field--full", name fieldName, value val, onInput msg ] []
+    [ label [ for field.name, class "form-label" ] [ text field.label ]
+    , input [ id field.name, type_ field.type_, class "text-field text-field--full", name field.name, value field.value, onInput msg ] []
     ]
