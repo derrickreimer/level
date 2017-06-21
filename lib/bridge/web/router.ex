@@ -35,8 +35,9 @@ defmodule Bridge.Web.Router do
     get "/", ThreadController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", Bridge do
-  #   pipe_through :api
-  # end
+  scope "/api", Bridge.Web do
+    pipe_through :api
+
+    resources "/teams", API.TeamController, only: [:create]
+  end
 end
