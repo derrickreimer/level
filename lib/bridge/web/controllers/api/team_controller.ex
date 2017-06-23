@@ -9,19 +9,18 @@ defmodule Bridge.Web.API.TeamController do
       case Repo.transaction(Signup.transaction(changeset)) do
         {:ok, %{team: team, user: user}} ->
           conn
-          # TODO: generate a JWT instead of a session cookie
-          # |> Bridge.Web.UserAuth.sign_in(team, user)
+          |> Bridge.Web.UserAuth.sign_in(team, user)
           |> put_status(:created)
           |> render("create.json", %{team: team, user: user})
         {:error, _, _, _} ->
           conn
           |> put_status(:unprocessable_entity)
-          |> render("errors.json", errors: changeset.errors)
+          |> render("errors.json", changeset: changeset)
       end
     else
       conn
       |> put_status(:unprocessable_entity)
-      |> render("errors.json", errors: changeset.errors)
+      |> render("errors.json", changeset: changeset)
     end
   end
 end

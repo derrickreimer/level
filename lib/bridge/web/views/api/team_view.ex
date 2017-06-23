@@ -10,9 +10,12 @@ defmodule Bridge.Web.API.TeamView do
     }
   end
 
-  def render("errors.json", %{errors: _errors}) do
-    # TODO
-    %{}
+  def render("errors.json", %{changeset: changeset}) do
+    %{
+      errors: Enum.map(changeset.errors, fn({attr, {msg, props}}) ->
+        %{attribute: attr, message: msg, properties: Map.new(props)}
+      end)
+    }
   end
 
   def team_json(team) do

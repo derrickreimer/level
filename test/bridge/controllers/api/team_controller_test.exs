@@ -28,6 +28,11 @@ defmodule Bridge.API.TeamControllerTest do
       assert user.role == 0
     end
 
+    test "sign the user in", %{conn: conn, params: %{email: email}} do
+      user = Repo.get_by!(Bridge.User, %{email: email})
+      assert conn.assigns.current_user.id == user.id
+    end
+
     test "returns a created response",
       %{conn: conn, params: %{email: email}} do
 
