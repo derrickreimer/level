@@ -1227,9 +1227,9 @@ elm-brunch@^0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/elm-brunch/-/elm-brunch-0.8.0.tgz#713c5c5de5483b17dcc6272cc1f1fdefed468ed1"
 
-elm-test@^4.0.0:
+elm-test@rtfeldman/node-test-runner:
   version "0.18.6"
-  resolved "https://registry.yarnpkg.com/elm-test/-/elm-test-0.18.6.tgz#975e6802bb7a6d92c0767034f54ec3e9826e78cf"
+  resolved "https://codeload.github.com/rtfeldman/node-test-runner/tar.gz/fba1961dee7b315c457ea3639d73b3fc00d129ad"
   dependencies:
     binstall "1.2.0"
     chalk "1.1.3"

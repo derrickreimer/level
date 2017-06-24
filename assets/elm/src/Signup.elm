@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 
+import Regex
+
 main : Program Never Model Msg
 main =
   Html.beginnerProgram
@@ -60,7 +62,7 @@ update msg model =
 -- TODO: scrub invalid characters, sub whitespace for "-"
 slugify : String -> String
 slugify teamName =
-  String.toLower(teamName)
+  Regex.replace Regex.All (Regex.regex " ") (\_ -> "-") teamName
 
 
 -- VIEW
