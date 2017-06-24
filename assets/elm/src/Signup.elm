@@ -62,7 +62,8 @@ update msg model =
 -- TODO: scrub invalid characters, sub whitespace for "-"
 slugify : String -> String
 slugify teamName =
-  Regex.replace Regex.All (Regex.regex " ") (\_ -> "-") teamName
+  (Regex.replace Regex.All (Regex.regex " ") (\_ -> "-") teamName) |>
+    String.toLower 
 
 
 -- VIEW
