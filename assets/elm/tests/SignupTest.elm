@@ -11,9 +11,12 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "Signup.slugify"
-        [ test "converts spaces to dashes" <|
+        [ test "converts non-alphanumeric chars to dashes" <|
             \_ ->
-                Expect.equal "abc-123" (Signup.slugify "abc 123")
+                Expect.equal "foo-bar-baz" (Signup.slugify "Foo,Bar.Baz")
+        , test "trims trailing and leading dashes" <|
+            \_ ->
+                Expect.equal "drip-inc" (Signup.slugify "Drip, Inc.")
         , fuzz string "generates valid URLs" <|
             Signup.slugify
                 >> isValidUrl
@@ -26,10 +29,10 @@ isLower str =
     String.toLower str == str
 
 
-hasNoSpaces : String -> Bool
-hasNoSpaces str =
+isAlphanumeric : String -> Bool
+isAlphanumeric str =
     str
-        |> Regex.contains (Regex.regex " ")
+        |> Regex.contains (Regex.regex "[^a-z0-9-]")
         |> not
 
 
@@ -37,4 +40,4 @@ isValidUrl : String -> Bool
 isValidUrl str =
     List.all
         ((|>) str)
-        [ isLower, hasNoSpaces ]
+        [ isLower, isAlphanumeric ]

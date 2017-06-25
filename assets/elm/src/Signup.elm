@@ -3,7 +3,7 @@ module Signup exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
-import Regex
+import Regex exposing (regex)
 
 
 main : Program Never Model Msg
@@ -70,8 +70,10 @@ update msg model =
 
 slugify : String -> String
 slugify teamName =
-    (Regex.replace Regex.All (Regex.regex " ") (\_ -> "-") teamName)
+    teamName
         |> String.toLower
+        |> (Regex.replace Regex.All (regex "[^a-z0-9]+") (\_ -> "-"))
+        |> (Regex.replace Regex.All (regex "(^-|-$)") (\_ -> ""))
 
 
 
