@@ -17,7 +17,6 @@
     "css-brunch": "~2.0.0",
     "elm": "^0.18.0",
     "elm-brunch": "^0.8.0",
-    "elm-test": "rtfeldman/node-test-runner",
     "javascript-brunch": "~2.0.0",
     "sass-brunch": "^2.10.4",
     "uglify-js-brunch": "~2.0.1"

@@ -50,6 +50,7 @@ mix deps.get
 # Install node dependencies
 echo "* Installing node.js dependencies"
 cd assets && yarn
+npm install -g rtfeldman/node-test-runner elm-format
 
 # Setup the local database
 echo "* Creating the development database"
