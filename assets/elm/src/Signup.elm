@@ -64,10 +64,6 @@ update msg model =
             { model | password = val }
 
 
-
--- TODO: scrub invalid characters, sub whitespace for "-"
-
-
 slugify : String -> String
 slugify teamName =
     teamName
