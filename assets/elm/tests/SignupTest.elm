@@ -17,6 +17,10 @@ suite =
         , test "trims trailing and leading dashes" <|
             \_ ->
                 Expect.equal "drip-inc" (Signup.slugify "Drip, Inc.")
+        , fuzz string "truncates at 20 characters" <|
+            Signup.slugify
+                >> String.length
+                >> Expect.atMost 20
         , fuzz string "generates valid URLs" <|
             Signup.slugify
                 >> isValidUrl

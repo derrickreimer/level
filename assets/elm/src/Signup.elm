@@ -70,6 +70,7 @@ slugify teamName =
         |> String.toLower
         |> (Regex.replace Regex.All (regex "[^a-z0-9]+") (\_ -> "-"))
         |> (Regex.replace Regex.All (regex "(^-|-$)") (\_ -> ""))
+        |> String.slice 0 20
 
 
 
