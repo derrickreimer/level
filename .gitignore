@@ -10,6 +10,11 @@ erl_crash.dump
 # Static artifacts
 /assets/node_modules
 
+# Elm stuff
+elm-stuff
+/assets/elm/dist/*
+/assets/elm/tests/index.html
+
 # Auto-generated ExDoc files
 /doc
 
