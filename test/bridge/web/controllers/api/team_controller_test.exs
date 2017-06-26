@@ -1,4 +1,4 @@
-defmodule Bridge.API.TeamControllerTest do
+defmodule Bridge.Web.API.TeamControllerTest do
   use Bridge.Web.ConnCase
 
   describe "POST /api/teams with valid data" do
