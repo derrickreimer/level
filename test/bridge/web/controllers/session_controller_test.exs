@@ -1,4 +1,4 @@
-defmodule Bridge.SessionControllerTest do
+defmodule Bridge.Web.SessionControllerTest do
   use Bridge.Web.ConnCase
 
   describe "GET /:team_id/login" do

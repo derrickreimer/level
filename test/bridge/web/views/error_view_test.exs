@@ -1,4 +1,4 @@
-defmodule Bridge.ErrorViewTest do
+defmodule Bridge.Web.ErrorViewTest do
   use Bridge.Web.ConnCase, async: true
 
   # Bring render/3 and render_to_string/3 for testing custom views

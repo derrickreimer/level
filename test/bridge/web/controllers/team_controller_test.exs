@@ -1,4 +1,4 @@
-defmodule Bridge.TeamControllerTest do
+defmodule Bridge.Web.TeamControllerTest do
   use Bridge.Web.ConnCase
 
   describe "GET /teams/new" do
