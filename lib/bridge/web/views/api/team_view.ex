@@ -11,11 +11,7 @@ defmodule Bridge.Web.API.TeamView do
   end
 
   def render("errors.json", %{changeset: changeset}) do
-    %{
-      errors: Enum.map(changeset.errors, fn({attr, {msg, props}}) ->
-        %{attribute: attr, message: msg, properties: Map.new(props)}
-      end)
-    }
+    json_validation_errors(changeset)
   end
 
   def team_json(team) do

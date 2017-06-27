@@ -42,6 +42,6 @@ defmodule Bridge.Web.Router do
     pipe_through :api
 
     resources "/teams", API.TeamController, only: [:create]
-    resources "/slug_checks", API.SlugCheckController, only: [:create]
+    resources "/signup/errors", API.SignupErrorsController, only: [:index]
   end
 end
