@@ -27,6 +27,7 @@ defmodule Bridge.Web.ConnCase do
 
       import Bridge.Web.Router.Helpers
       import Bridge.TestHelpers
+      import Bridge.ConnCaseHelpers
 
       # The default endpoint for testing
       @endpoint Bridge.Web.Endpoint

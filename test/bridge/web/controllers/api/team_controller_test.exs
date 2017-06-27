@@ -1,6 +1,8 @@
 defmodule Bridge.Web.API.TeamControllerTest do
   use Bridge.Web.ConnCase
 
+  alias Bridge.Web.API.TeamView
+
   describe "POST /api/teams with valid data" do
     setup %{conn: conn} do
       params = valid_signup_params()
@@ -21,7 +23,7 @@ defmodule Bridge.Web.API.TeamControllerTest do
       %{params: %{slug: slug, email: email}} do
 
       user = Repo.get_by!(Bridge.User, %{email: email})
-      team = Ecto.assoc(user, :team) |> Repo.one
+      team = user |> Ecto.assoc(:team) |> Repo.one
 
       assert user.email == email
       assert team.slug == slug
@@ -37,10 +39,10 @@ defmodule Bridge.Web.API.TeamControllerTest do
       %{conn: conn, params: %{email: email}} do
 
       user = Repo.get_by!(Bridge.User, %{email: email})
-      team = Ecto.assoc(user, :team) |> Repo.one
+      team = user |> Ecto.assoc(:team) |> Repo.one
 
       assert json_response(conn, 201) ==
-        render_json("create.json", team: team, user: user)
+        render_json(TeamView, "create.json", team: team, user: user)
     end
   end
 
@@ -73,13 +75,5 @@ defmodule Bridge.Web.API.TeamControllerTest do
 
   defp count_all(model) do
     Repo.all(from r in model, select: count(r.id))
-  end
-
-  defp render_json(template, assigns) do
-    assigns = Map.new(assigns)
-
-    Bridge.Web.API.TeamView.render(template, assigns)
-    |> Poison.encode!
-    |> Poison.decode!
   end
 end

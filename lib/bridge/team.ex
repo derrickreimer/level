@@ -9,6 +9,7 @@ defmodule Bridge.Team do
 
   use Ecto.Schema
   import Ecto.Changeset
+  alias Bridge.Repo
 
   schema "teams" do
     field :name, :string
@@ -43,6 +44,26 @@ defmodule Bridge.Team do
     struct
     |> cast(params, [:name, :slug])
     |> put_change(:state, 0)
+  end
+
+  @doc """
+  Determines if a given slug is a valid format and not yet taken.
+  """
+  def slug_valid?(slug) do
+    message = cond do
+      !(slug =~ slug_format()) ->
+        "must be lowercase and alphanumeric"
+      Repo.one(__MODULE__, slug: slug) != nil ->
+        "is already taken"
+      true ->
+        nil
+    end
+
+    if message do
+      {:error, %{message: message}}
+    else
+      {:ok}
+    end
   end
 end
 

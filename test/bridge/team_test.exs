@@ -41,6 +41,26 @@ defmodule Bridge.TeamTest do
     end
   end
 
+  describe "slug_valid?/1" do
+    test "returns format errors" do
+      slug = "Wr*ng"
+      {:error, %{message: message}} = Team.slug_valid?(slug)
+      assert message == "must be lowercase and alphanumeric"
+    end
+
+    test "returns uniqueness errors" do
+      slug = "foobar"
+      insert_signup(%{slug: slug})
+      {:error, %{message: message}} = Team.slug_valid?(slug)
+      assert message == "is already taken"
+    end
+
+    test "returns ok when valid" do
+      slug = "foobar"
+      {:ok} = Team.slug_valid?(slug)
+    end
+  end
+
   describe "Phoenix.Param.to_param implementation" do
     test "returns the slug" do
       team = %Team{id: 123, slug: "foo"}
