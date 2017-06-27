@@ -1,0 +1,5 @@
+#!/bin/sh
+
+script/test
+script/lint
+script/elm-test

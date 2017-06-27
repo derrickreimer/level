@@ -2,6 +2,23 @@
 
 set -e
 
+cat <<"EOF"
+
++ + + + + + + + + + + + + + + + + + + + +
++     ____       _     _                +
++    |  _ \     (_)   | |               +
++    | |_) |_ __ _  __| | __ _  ___     +
++    |  _ <| '__| |/ _` |/ _` |/ _ \    +
++    | |_) | |  | | (_| | (_| |  __/    +
++    |____/|_|  |_|\__,_|\__, |\___|    +
++                         __/ |         +
++                        |___/          +
++ + + + + + + + + + + + + + + + + + + + +
+
+            Bootstrap Script
+
+EOF
+
 # Verify that elixir is installed
 command -v mix >/dev/null 2>&1 || {
   echo >&2 "Whoops! You need to install Elixir first.";
