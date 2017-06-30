@@ -75,6 +75,16 @@ exports.config = {
     }
   },
 
+  overrides: {
+    development: {
+      plugins: {
+        elmBrunch: {
+          makeParameters: ['--warn', '--debug']
+        }
+      }
+    }
+  },
+
   npm: {
     enabled: true
   }
