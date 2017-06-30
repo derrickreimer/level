@@ -35,6 +35,14 @@ command -v yarn >/dev/null 2>&1 || {
   exit 1;
 }
 
+# Verify that Postgres is installed
+command -v psql >/dev/null 2>&1 || {
+  echo >&2 "Whoops! You need to install Postgres first.";
+  echo >&2 "We recommend Postgres.app for Mac:";
+  echo >&2 "https://postgresapp.com";
+  exit 1;
+}
+
 # Install dependencies
 echo "* Installing Elixir dependencies"
 mix deps.get
