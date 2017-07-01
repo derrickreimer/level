@@ -41,12 +41,12 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( (initialState flags.csrf_token), Cmd.none )
+    ( (initialState flags), Cmd.none )
 
 
-initialState : String -> Model
-initialState csrfToken =
-    { csrf_token = csrfToken
+initialState : Flags -> Model
+initialState flags =
+    { csrf_token = flags.csrf_token
     , team_name = ""
     , slug = ""
     , username = ""
