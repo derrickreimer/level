@@ -128,14 +128,12 @@ subscriptions model =
 -- VIEW
 
 
-errorFor : String -> List ValidationError -> Maybe ValidationError
-errorFor attribute errors =
-    case (List.filter (\error -> error.attribute == attribute) errors) of
-        error :: _ ->
-            Just error
-
-        [] ->
-            Nothing
+type alias FormField =
+    { type_ : String
+    , name : String
+    , label : String
+    , value : String
+    }
 
 
 view : Model -> Html Msg
@@ -143,25 +141,11 @@ view model =
     div [ class "auth-form" ]
         [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
         , div [ class "auth-form__form" ]
-            [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name) (errorFor "team_name" model.errors)
-            , div [ class "form-field" ]
-                [ label [ for "slug", class "form-label" ] [ text "URL" ]
-                , div [ class "slug-field" ]
-                    [ div [ class "slug-field__domain" ] [ text "bridge.chat/" ]
-                    , input
-                        [ id "slug"
-                        , type_ "text"
-                        , class "text-field slug-field__slug"
-                        , name "slug"
-                        , value model.slug
-                        , onInput Slug
-                        ]
-                        []
-                    ]
-                ]
-            , textField Username (FormField "text" "username" "Username" model.username) (errorFor "username" model.errors)
-            , textField Email (FormField "email" "email" "Email Address" model.email) (errorFor "email" model.errors)
-            , textField Password (FormField "password" "password" "Password" model.password) (errorFor "password" model.errors)
+            [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name) (errorsFor "team_name" model.errors)
+            , slugField Slug (FormField "text" "slug" "URL" model.slug) (errorsFor "slug" model.errors)
+            , textField Username (FormField "text" "username" "Username" model.username) (errorsFor "username" model.errors)
+            , textField Email (FormField "email" "email" "Email Address" model.email) (errorsFor "email" model.errors)
+            , textField Password (FormField "password" "password" "Password" model.password) (errorsFor "password" model.errors)
             , div [ class "form-controls" ]
                 [ button
                     [ type_ "submit"
@@ -181,46 +165,66 @@ view model =
         ]
 
 
-type alias FormField =
-    { type_ : String
-    , name : String
-    , label : String
-    , value : String
-    }
+errorsFor : String -> List ValidationError -> List ValidationError
+errorsFor attribute errors =
+    List.filter (\error -> error.attribute == attribute) errors
 
 
-textField : (String -> msg) -> FormField -> Maybe ValidationError -> Html msg
-textField msg field error =
-    let
-        errorClass =
-            case error of
-                Just _ ->
-                    "form-field--error"
+textField : (String -> msg) -> FormField -> List ValidationError -> Html msg
+textField msg field errors =
+    div [ class (String.join " " [ "form-field", (errorClass errors) ]) ]
+        [ label [ for field.name, class "form-label" ] [ text field.label ]
+        , input
+            [ id field.name
+            , type_ field.type_
+            , class "text-field text-field--full"
+            , name field.name
+            , value field.value
+            , onInput msg
+            ]
+            []
+        , formErrors errors
+        ]
 
-                Nothing ->
-                    ""
 
-        errorMessage =
-            case error of
-                Just value ->
-                    value.message
-
-                Nothing ->
-                    ""
-    in
-        div [ class (String.join " " [ "form-field ", errorClass ]) ]
-            [ label [ for field.name, class "form-label" ] [ text field.label ]
+slugField : (String -> msg) -> FormField -> List ValidationError -> Html msg
+slugField msg field errors =
+    div [ class (String.join " " [ "form-field", (errorClass errors) ]) ]
+        [ label [ for "slug", class "form-label" ] [ text "URL" ]
+        , div [ class "slug-field" ]
+            [ div [ class "slug-field__domain" ] [ text "bridge.chat/" ]
             , input
                 [ id field.name
                 , type_ field.type_
-                , class "text-field text-field--full"
+                , class "text-field slug-field__slug"
                 , name field.name
                 , value field.value
                 , onInput msg
                 ]
                 []
-            , div [ class "form-errors" ] [ text errorMessage ]
             ]
+        , formErrors errors
+        ]
+
+
+errorClass : List ValidationError -> String
+errorClass errors =
+    case errors of
+        [] ->
+            ""
+
+        _ ->
+            "form-field--error"
+
+
+formErrors : List ValidationError -> Html a
+formErrors errors =
+    case errors of
+        error :: _ ->
+            div [ class "form-errors" ] [ text error.message ]
+
+        [] ->
+            text ""
 
 
 
