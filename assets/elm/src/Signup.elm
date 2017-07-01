@@ -128,11 +128,11 @@ subscriptions model =
 -- VIEW
 
 
-errorFor : String -> List ValidationError -> Maybe String
+errorFor : String -> List ValidationError -> Maybe ValidationError
 errorFor attribute errors =
     case (List.filter (\error -> error.attribute == attribute) errors) of
         error :: _ ->
-            Just error.message
+            Just error
 
         [] ->
             Nothing
@@ -143,7 +143,7 @@ view model =
     div [ class "auth-form" ]
         [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
         , div [ class "auth-form__form" ]
-            [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name) Nothing
+            [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name) (errorFor "team_name" model.errors)
             , div [ class "form-field" ]
                 [ label [ for "slug", class "form-label" ] [ text "URL" ]
                 , div [ class "slug-field" ]
@@ -189,29 +189,42 @@ type alias FormField =
     }
 
 
-textField : (String -> msg) -> FormField -> Maybe String -> Html msg
-textField msg field string =
-    div [ class "form-field" ]
-        [ label [ for field.name, class "form-label" ] [ text field.label ]
-        , input
-            [ id field.name
-            , type_ field.type_
-            , class "text-field text-field--full"
-            , name field.name
-            , value field.value
-            , onInput msg
+textField : (String -> msg) -> FormField -> Maybe ValidationError -> Html msg
+textField msg field error =
+    let
+        errorClass =
+            case error of
+                Just _ ->
+                    "form-field--error"
+
+                Nothing ->
+                    ""
+
+        errorMessage =
+            case error of
+                Just value ->
+                    value.message
+
+                Nothing ->
+                    ""
+    in
+        div [ class (String.join " " [ "form-field ", errorClass ]) ]
+            [ label [ for field.name, class "form-label" ] [ text field.label ]
+            , input
+                [ id field.name
+                , type_ field.type_
+                , class "text-field text-field--full"
+                , name field.name
+                , value field.value
+                , onInput msg
+                ]
+                []
+            , div [ class "form-errors" ] [ text errorMessage ]
             ]
-            []
-        , div [ class "form-errors" ] [ text <| Maybe.withDefault "" string ]
-        ]
 
 
 
 -- HTTP
-
-
-type alias ErrorResponse =
-    { errors : List ValidationError }
 
 
 type alias ValidationError =
