@@ -128,12 +128,57 @@ subscriptions model =
 -- VIEW
 
 
+passwordError : List ValidationError -> Maybe String
+passwordError errors =
+    let
+        isPasswordError =
+            \error ->
+                error.attribute == "password"
+    in
+        case (List.filter isPasswordError errors) of
+            [] ->
+                Nothing
+
+            error :: _ ->
+                Just error.message
+
+
+emailError : List ValidationError -> Maybe String
+emailError errors =
+    let
+        isEmailError =
+            \error ->
+                error.attribute == "email"
+    in
+        case (List.filter isEmailError errors) of
+            [] ->
+                Nothing
+
+            error :: _ ->
+                Just error.message
+
+
+userError : List ValidationError -> Maybe String
+userError errors =
+    let
+        isUserError =
+            \error ->
+                error.attribute == "username"
+    in
+        case (List.filter isUserError errors) of
+            [] ->
+                Nothing
+
+            error :: _ ->
+                Just error.message
+
+
 view : Model -> Html Msg
 view model =
     div [ class "auth-form" ]
         [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
         , div [ class "auth-form__form" ]
-            [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name)
+            [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name) Nothing
             , div [ class "form-field" ]
                 [ label [ for "slug", class "form-label" ] [ text "URL" ]
                 , div [ class "slug-field" ]
@@ -149,9 +194,9 @@ view model =
                         []
                     ]
                 ]
-            , textField Username (FormField "text" "username" "Username" model.username)
-            , textField Email (FormField "email" "email" "Email Address" model.email)
-            , textField Password (FormField "password" "password" "Password" model.password)
+            , textField Username (FormField "text" "username" "Username" model.username) (userError model.errors)
+            , textField Email (FormField "email" "email" "Email Address" model.email) (emailError model.errors)
+            , textField Password (FormField "password" "password" "Password" model.password) (passwordError model.errors)
             , div [ class "form-controls" ]
                 [ button
                     [ type_ "submit"
@@ -179,8 +224,8 @@ type alias FormField =
     }
 
 
-textField : (String -> msg) -> FormField -> Html msg
-textField msg field =
+textField : (String -> msg) -> FormField -> Maybe String -> Html msg
+textField msg field string =
     div [ class "form-field" ]
         [ label [ for field.name, class "form-label" ] [ text field.label ]
         , input
@@ -192,6 +237,7 @@ textField msg field =
             , onInput msg
             ]
             []
+        , div [ class "form-errors" ] [ text <| Maybe.withDefault "" string ]
         ]
 
 
