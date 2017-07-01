@@ -91,7 +91,7 @@ update msg model =
         Submit ->
             ( model, submit model )
 
-        Submitted (Ok teamName) ->
+        Submitted (Ok slug) ->
             ( model, Cmd.none )
 
         Submitted (Err (Http.BadStatus resp)) ->
@@ -249,9 +249,13 @@ buildBody model =
         )
 
 
+
+-- DECODERS
+
+
 successDecoder : Decode.Decoder String
 successDecoder =
-    Decode.at [ "team", "name" ] Decode.string
+    Decode.at [ "team", "slug" ] Decode.string
 
 
 errorDecoder : Decode.Decoder (List ValidationError)

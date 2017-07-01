@@ -6,10 +6,11 @@ import List
 import Regex
 import Signup
 import Test exposing (..)
+import Json.Decode as Decode
 
 
-suite : Test
-suite =
+utils : Test
+utils =
     describe "Signup.slugify"
         [ test "converts non-alphanumeric chars to dashes" <|
             \_ ->
@@ -25,6 +26,71 @@ suite =
             Signup.slugify
                 >> isValidUrl
                 >> Expect.true "Not a valid URL"
+        ]
+
+
+decoders : Test
+decoders =
+    describe "decoders"
+        [ describe "Signup.successDecoder"
+            [ test "extracts the slug from JSON payload" <|
+                \_ ->
+                    let
+                        payload =
+                            """
+                            {
+                              "team": {
+                                "id": 999,
+                                "name": "Foo",
+                                "slug": "foo",
+                                "inserted_at": "2017-07-01T10:00:00Z",
+                                "updated_at": "2017-07-01T10:00:00Z"
+                              },
+                              "user": {
+                                "id": 888,
+                                "email": "derrick@bridge.chat",
+                                "username": "derrick",
+                                "inserted_at": "2017-07-01T10:00:00Z",
+                                "updated_at": "2017-07-01T10:00:00Z"
+                              }
+                            }
+                            """
+
+                        result =
+                            payload
+                                |> Decode.decodeString Signup.successDecoder
+                    in
+                        Expect.equal (Ok "foo") result
+            ]
+        , describe "Signup.errorDecoder"
+            [ test "extracts a list of validation errors" <|
+                \_ ->
+                    let
+                        payload =
+                            """
+                            {
+                              "errors": [
+                                {
+                                  "attribute": "email",
+                                  "message": "is required",
+                                  "properties": { "validation": "required" }
+                                }
+                              ]
+                            }
+                            """
+
+                        result =
+                            payload
+                                |> Decode.decodeString Signup.errorDecoder
+
+                        expected =
+                            [ { attribute = "email"
+                              , message = "is required"
+                              }
+                            ]
+                    in
+                        Expect.equal (Ok expected) result
+            ]
         ]
 
 
