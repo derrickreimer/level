@@ -128,44 +128,14 @@ subscriptions model =
 -- VIEW
 
 
-passwordError : List ValidationError -> Maybe String
-passwordError errors =
+errorFor : String -> List ValidationError -> Maybe String
+errorFor attribute errors =
     let
-        isPasswordError =
+        isError =
             \error ->
-                error.attribute == "password"
+                error.attribute == attribute
     in
-        case (List.filter isPasswordError errors) of
-            [] ->
-                Nothing
-
-            error :: _ ->
-                Just error.message
-
-
-emailError : List ValidationError -> Maybe String
-emailError errors =
-    let
-        isEmailError =
-            \error ->
-                error.attribute == "email"
-    in
-        case (List.filter isEmailError errors) of
-            [] ->
-                Nothing
-
-            error :: _ ->
-                Just error.message
-
-
-userError : List ValidationError -> Maybe String
-userError errors =
-    let
-        isUserError =
-            \error ->
-                error.attribute == "username"
-    in
-        case (List.filter isUserError errors) of
+        case (List.filter isError errors) of
             [] ->
                 Nothing
 
@@ -194,9 +164,9 @@ view model =
                         []
                     ]
                 ]
-            , textField Username (FormField "text" "username" "Username" model.username) (userError model.errors)
-            , textField Email (FormField "email" "email" "Email Address" model.email) (emailError model.errors)
-            , textField Password (FormField "password" "password" "Password" model.password) (passwordError model.errors)
+            , textField Username (FormField "text" "username" "Username" model.username) (errorFor "username" model.errors)
+            , textField Email (FormField "email" "email" "Email Address" model.email) (errorFor "email" model.errors)
+            , textField Password (FormField "password" "password" "Password" model.password) (errorFor "password" model.errors)
             , div [ class "form-controls" ]
                 [ button
                     [ type_ "submit"
