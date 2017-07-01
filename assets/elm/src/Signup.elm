@@ -130,17 +130,12 @@ subscriptions model =
 
 errorFor : String -> List ValidationError -> Maybe String
 errorFor attribute errors =
-    let
-        isError =
-            \error ->
-                error.attribute == attribute
-    in
-        case (List.filter isError errors) of
-            [] ->
-                Nothing
+    case (List.filter (\error -> error.attribute == attribute) errors) of
+        error :: _ ->
+            Just error.message
 
-            error :: _ ->
-                Just error.message
+        [] ->
+            Nothing
 
 
 view : Model -> Html Msg
