@@ -8,6 +8,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (decodeString)
 import Time exposing (Time, second)
+import Navigation
 
 
 main : Program Flags Model Msg
@@ -97,7 +98,7 @@ update msg model =
             ( model, submit model )
 
         Submitted (Ok slug) ->
-            ( model, Cmd.none )
+            ( model, Navigation.load ("/" ++ slug) )
 
         Submitted (Err (Http.BadStatus resp)) ->
             case decodeString errorDecoder resp.body of
