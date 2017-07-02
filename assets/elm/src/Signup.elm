@@ -7,6 +7,7 @@ import Regex exposing (regex)
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (decodeString)
+import Time exposing (Time, second)
 
 
 main : Program Flags Model Msg
@@ -31,6 +32,7 @@ type alias Model =
     , email : String
     , password : String
     , errors : List ValidationError
+    , lastCheckedSlug : String
     }
 
 
@@ -53,6 +55,7 @@ initialState flags =
     , email = ""
     , password = ""
     , errors = []
+    , lastCheckedSlug = ""
     }
 
 
@@ -68,6 +71,8 @@ type Msg
     | Password String
     | Submit
     | Submitted (Result Http.Error String)
+    | Validated String (Result Http.Error (List ValidationError))
+    | Tick Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -105,6 +110,23 @@ update msg model =
         Submitted (Err _) ->
             ( model, Cmd.none )
 
+        Validated attribute (Ok errors) ->
+            let
+                newErrors =
+                    (errorsFor attribute errors)
+                        ++ (errorsNotFor attribute model.errors)
+            in
+                ( { model | errors = newErrors }, Cmd.none )
+
+        Validated _ (Err _) ->
+            ( model, Cmd.none )
+
+        Tick _ ->
+            if not (model.slug == "") && not (model.slug == model.lastCheckedSlug) then
+                ( { model | lastCheckedSlug = model.slug }, validate "slug" model )
+            else
+                ( model, Cmd.none )
+
 
 slugify : String -> String
 slugify teamName =
@@ -121,7 +143,7 @@ slugify teamName =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Time.every second Tick
 
 
 
@@ -168,6 +190,11 @@ view model =
 errorsFor : String -> List ValidationError -> List ValidationError
 errorsFor attribute errors =
     List.filter (\error -> error.attribute == attribute) errors
+
+
+errorsNotFor : String -> List ValidationError -> List ValidationError
+errorsNotFor attribute errors =
+    List.filter (\error -> not (error.attribute == attribute)) errors
 
 
 textField : (String -> msg) -> FormField -> List ValidationError -> Html msg
@@ -239,12 +266,22 @@ type alias ValidationError =
 
 submit : Model -> Cmd Msg
 submit model =
-    Http.send Submitted (buildRequest model)
+    Http.send Submitted (buildSubmitRequest model)
 
 
-buildRequest : Model -> Http.Request String
-buildRequest model =
+validate : String -> Model -> Cmd Msg
+validate attribute model =
+    Http.send (Validated attribute) (buildValidationRequest model)
+
+
+buildSubmitRequest : Model -> Http.Request String
+buildSubmitRequest model =
     postWithCsrfToken model.csrf_token "/api/teams" (buildBody model) successDecoder
+
+
+buildValidationRequest : Model -> Http.Request (List ValidationError)
+buildValidationRequest model =
+    postWithCsrfToken model.csrf_token "/api/signup/errors" (buildBody model) errorDecoder
 
 
 postWithCsrfToken : String -> String -> Http.Body -> Decode.Decoder a -> Http.Request a
