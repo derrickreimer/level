@@ -222,8 +222,8 @@ view model =
             ]
         , div [ class "auth-form__footer" ]
             [ p []
-                [ text "Already have an account? "
-                , a [ href "#" ] [ text "Sign in" ]
+                [ text "Already have an team? "
+                , a [ href "/login" ] [ text "Sign in" ]
                 , text "."
                 ]
             ]

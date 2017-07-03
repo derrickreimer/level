@@ -5,7 +5,7 @@ defmodule Bridge.Web.SessionControllerTest do
     test "includes the correct heading", %{conn: conn} do
       {:ok, %{team: team}} = insert_signup()
       conn = get conn, "/#{team.slug}/login"
-      assert html_response(conn, 200) =~ "Sign in to #{team.name}"
+      assert html_response(conn, 200) =~ "Sign in to Bridge"
     end
 
     test "redirects to threads path if already signed in", %{conn: conn} do
