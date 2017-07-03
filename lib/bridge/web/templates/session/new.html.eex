@@ -7,7 +7,7 @@
 
   <%= form_for @conn, session_path(@conn, :create, @team), [as: :session, class: "auth-form__form"], fn f -> %>
     <div class="form-field">
-      <label for="slug" class="form-label">Team</label>
+      <label for="slug" class="form-label"><%= gettext("Team") %></label>
       <div class="slug-field">
         <div class="slug-field__domain">
           bridge.chat/
@@ -18,7 +18,7 @@
 
     <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
       <%= label f, :username, gettext("Email Address"), class: "form-label" %>
-      <%= text_input f, :username, class: "text-field text-field--full" %>
+      <%= text_input f, :username, class: "text-field text-field--full", autofocus: true %>
       <%= error_tag f, :username %>
     </div>
 
@@ -32,4 +32,11 @@
       <%= submit gettext("Sign in"), class: "button button--primary button--full" %>
     </div>
   <% end %>
+
+  <div class="auth-form__footer">
+    <p>
+      <%= gettext "Want to create a team instead?" %>
+      <%= link gettext("Sign up"), to: team_path(@conn, :new) %>.
+    </p>
+  </div>
 </div>

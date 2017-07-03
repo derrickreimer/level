@@ -28,6 +28,8 @@ defmodule Bridge.Web.Router do
     get "/", PageController, :index
     resources "/teams", TeamController, only: [:new, :create]
 
+    get "/login", GenericSessionController, :new
+    post "/login", GenericSessionController, :create
     get "/:team_id/login", SessionController, :new
     post "/:team_id/login", SessionController, :create
   end
