@@ -1,8 +1,8 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/user/project.git",
-    "license": "BSD3",
+    "summary": "Front-end application for Bridge",
+    "repository": "https://github.com/djreimer/bridge.git",
+    "license": "Apache-2.0",
     "source-directories": [
         "."
     ],
