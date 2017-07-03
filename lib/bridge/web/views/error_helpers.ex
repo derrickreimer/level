@@ -41,7 +41,11 @@ defmodule Bridge.Web.ErrorHelpers do
   def json_validation_errors(changeset) do
     %{
       errors: Enum.map(changeset.errors, fn({attr, {msg, props}}) ->
-        %{attribute: attr, message: msg, properties: Map.new(props)}
+        message = Enum.reduce props, msg, fn {k, v}, acc ->
+          String.replace(acc, "%{#{k}}", to_string(v))
+        end
+
+        %{attribute: attr, message: message, properties: Map.new(props)}
       end)
     }
   end

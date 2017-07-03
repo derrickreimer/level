@@ -26,6 +26,18 @@ defmodule Bridge.Web.API.TeamViewTest do
           }
         ]}
     end
+
+    test "interpolates properties" do
+      errors = [{:username, {"must be %{count} characters", [count: 2]}}]
+      assert TeamView.render("errors.json", %{changeset: %{errors: errors}}) ==
+        %{errors: [
+          %{
+            attribute: :username,
+            message: "must be 2 characters",
+            properties: %{count: 2}
+          }
+        ]}
+    end
   end
 
   describe "team_json/1" do
