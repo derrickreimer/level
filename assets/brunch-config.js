@@ -34,7 +34,8 @@ exports.config = {
     // This option sets where we should place non-css and non-js assets in.
     // By default, we set this to "/assets/static". Files in this directory
     // will be copied to `paths.public`, which is "priv/static" by default.
-    assets: /^(static)/
+    assets: /^(static)/,
+    ignored: [/\/_/, /vendor\/(node|j?ruby-.+|bundle)\//, /elm-stuff/]
   },
 
   // Phoenix paths configuration
@@ -61,7 +62,7 @@ exports.config = {
     elmBrunch: {
       executablePath: '../node_modules/elm/binwrappers',
       elmFolder: 'elm',
-      mainModules: ['src/Main.elm'],
+      mainModules: ['src/Main.elm', 'src/Signup.elm'],
       outputFolder: '../../priv/static/js',
       outputFile: 'bundle.js',
       makeParameters: ['--warn']
@@ -71,6 +72,16 @@ exports.config = {
   modules: {
     autoRequire: {
       "js/app.js": ["js/app"]
+    }
+  },
+
+  overrides: {
+    development: {
+      plugins: {
+        elmBrunch: {
+          makeParameters: ['--warn', '--debug']
+        }
+      }
     }
   },
 

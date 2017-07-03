@@ -6,31 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
+    <meta name="csrf_token" content="<%= Plug.CSRFProtection.get_csrf_token() %>">
 
     <title>Bridge</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/base.css") %>">
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/themes/dark.css") %>">
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
   </head>
 
   <body>
-    <div class="container">
-      <header class="header">
-        <!-- TODO -->
-      </header>
-
-      <%= if get_flash(@conn, :info) do %>
-        <div class="inline-flash inline-flash--info" role="alert"><%= get_flash(@conn, :info) %></div>
-      <% end %>
-
-      <%= if get_flash(@conn, :error) do %>
-        <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
-      <% end %>
-
-      <main role="main">
-        <%= render @view_module, @view_template, assigns %>
-      </main>
-
-    </div> <!-- /container -->
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <%= render @view_module, @view_template, assigns %>
   </body>
 </html>

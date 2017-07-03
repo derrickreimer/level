@@ -1,3 +1,7 @@
+<%= if get_flash(@conn, :error) do %>
+  <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
+<% end %>
+
 <div class="auth-form">
   <h2 class="auth-form__heading"><%= gettext "Sign in to %{name}", name: @team.name %></h2>
 

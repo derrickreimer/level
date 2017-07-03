@@ -1,13 +1,16 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
+    "summary": "Test Suites",
     "repository": "https://github.com/user/project.git",
     "license": "BSD3",
     "source-directories": [
-        "."
+        "..",
+        ".",
+        "../src/"
     ],
     "exposed-modules": [],
     "dependencies": {
+        "eeue56/elm-html-test": "4.1.0 <= v < 5.0.0",
         "elm-community/elm-test": "4.1.0 <= v < 5.0.0",
         "elm-lang/core": "5.1.1 <= v < 6.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0",

@@ -17,6 +17,9 @@ defmodule Bridge.Web.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
   end
 
   scope "/", Bridge.Web do
@@ -35,8 +38,10 @@ defmodule Bridge.Web.Router do
     get "/", ThreadController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", Bridge do
-  #   pipe_through :api
-  # end
+  scope "/api", Bridge.Web do
+    pipe_through :api
+
+    resources "/teams", API.TeamController, only: [:create]
+    post "/signup/errors", API.SignupErrorsController, :index
+  end
 end
