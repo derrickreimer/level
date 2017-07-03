@@ -16,5 +16,12 @@
       background-color: darken($button-primary-color, 10%);
       background-image: linear-gradient(0deg, darken($button-primary-color, 6%), $button-primary-color);
     }
+
+    &:disabled,
+    &--disabled {
+      background-color: lighten($button-primary-color, 15%);
+      background-image: linear-gradient(0deg, lighten($button-primary-color, 8%), lighten($button-primary-color, 15%));
+      color: rgba(255, 255, 255, 0.8);
+    }
   }
 }

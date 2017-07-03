@@ -34,7 +34,13 @@ type alias Model =
     , password : String
     , errors : List ValidationError
     , lastCheckedSlug : String
+    , formState : FormState
     }
+
+
+type FormState
+    = Idle
+    | Submitting
 
 
 type alias Flags =
@@ -57,6 +63,7 @@ initialState flags =
     , password = ""
     , errors = []
     , lastCheckedSlug = ""
+    , formState = Idle
     }
 
 
@@ -116,7 +123,7 @@ update msg model =
             validateIfPresent model "password" model.password
 
         Submit ->
-            ( model, submit model )
+            ( { model | formState = Submitting }, submit model )
 
         Submitted (Ok slug) ->
             ( model, Navigation.load ("/" ++ slug) )
@@ -124,13 +131,13 @@ update msg model =
         Submitted (Err (Http.BadStatus resp)) ->
             case decodeString errorDecoder resp.body of
                 Ok value ->
-                    ( { model | errors = value }, Cmd.none )
+                    ( { model | formState = Idle, errors = value }, Cmd.none )
 
                 Err _ ->
-                    ( model, Cmd.none )
+                    ( { model | formState = Idle }, Cmd.none )
 
         Submitted (Err _) ->
-            ( model, Cmd.none )
+            ( { model | formState = Idle }, Cmd.none )
 
         Validate ->
             ( model, Cmd.none )
@@ -208,6 +215,7 @@ view model =
                     [ type_ "submit"
                     , class "button button--primary button--full"
                     , onClick Submit
+                    , disabled (model.formState == Submitting)
                     ]
                     [ text "Sign up" ]
                 ]
