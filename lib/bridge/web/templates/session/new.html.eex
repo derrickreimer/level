@@ -3,9 +3,19 @@
 <% end %>
 
 <div class="auth-form">
-  <h2 class="auth-form__heading"><%= gettext "Sign in to %{name}", name: @team.name %></h2>
+  <h2 class="auth-form__heading"><%= gettext "Sign in to Bridge" %></h2>
 
   <%= form_for @conn, session_path(@conn, :create, @team), [as: :session, class: "auth-form__form"], fn f -> %>
+    <div class="form-field">
+      <label for="slug" class="form-label">Team</label>
+      <div class="slug-field">
+        <div class="slug-field__domain">
+          bridge.chat/
+        </div>
+        <input type="text" name="slug" value="<%= @team.slug %>" class="text-field slug-field__slug" disabled>
+      </div>
+    </div>
+
     <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
       <%= label f, :username, gettext("Email Address"), class: "form-label" %>
       <%= text_input f, :username, class: "text-field text-field--full" %>
