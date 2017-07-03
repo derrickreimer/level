@@ -101,34 +101,19 @@ update msg model =
             ( { model | password = val }, Cmd.none )
 
         TeamNameBlurred ->
-            if not (model.team_name == "") then
-                ( model, validate "team_name" model )
-            else
-                ( model, Cmd.none )
+            validateIfPresent model "team_name" model.team_name
 
         SlugBlurred ->
-            if not (model.slug == "") then
-                ( model, validate "slug" model )
-            else
-                ( model, Cmd.none )
+            validateIfPresent model "slug" model.slug
 
         UsernameBlurred ->
-            if not (model.username == "") then
-                ( model, validate "username" model )
-            else
-                ( model, Cmd.none )
+            validateIfPresent model "username" model.username
 
         EmailBlurred ->
-            if not (model.email == "") then
-                ( model, validate "email" model )
-            else
-                ( model, Cmd.none )
+            validateIfPresent model "email" model.email
 
         PasswordBlurred ->
-            if not (model.password == "") then
-                ( model, validate "password" model )
-            else
-                ( model, Cmd.none )
+            validateIfPresent model "password" model.password
 
         Submit ->
             ( model, submit model )
@@ -166,6 +151,14 @@ update msg model =
                 ( { model | lastCheckedSlug = model.slug }, validate "slug" model )
             else
                 ( model, Cmd.none )
+
+
+validateIfPresent : Model -> String -> String -> ( Model, Cmd Msg )
+validateIfPresent model attribute value =
+    if not (value == "") then
+        ( model, validate attribute model )
+    else
+        ( model, Cmd.none )
 
 
 slugify : String -> String
