@@ -2,7 +2,7 @@ module Signup exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
+import Html.Events exposing (onInput, onClick, onBlur)
 import Regex exposing (regex)
 import Http
 import Json.Encode as Encode
@@ -65,13 +65,19 @@ initialState flags =
 
 
 type Msg
-    = TeamName String
-    | Slug String
-    | Username String
-    | Email String
-    | Password String
+    = TeamNameChanged String
+    | SlugChanged String
+    | UsernameChanged String
+    | EmailChanged String
+    | PasswordChanged String
+    | TeamNameBlurred
+    | SlugBlurred
+    | UsernameBlurred
+    | EmailBlurred
+    | PasswordBlurred
     | Submit
     | Submitted (Result Http.Error String)
+    | Validate
     | Validated String (Result Http.Error (List ValidationError))
     | Tick Time
 
@@ -79,20 +85,50 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        TeamName val ->
+        TeamNameChanged val ->
             ( { model | team_name = val, slug = (slugify val) }, Cmd.none )
 
-        Slug val ->
+        SlugChanged val ->
             ( { model | slug = val }, Cmd.none )
 
-        Username val ->
+        UsernameChanged val ->
             ( { model | username = val }, Cmd.none )
 
-        Email val ->
+        EmailChanged val ->
             ( { model | email = val }, Cmd.none )
 
-        Password val ->
+        PasswordChanged val ->
             ( { model | password = val }, Cmd.none )
+
+        TeamNameBlurred ->
+            if not (model.team_name == "") then
+                ( model, validate "team_name" model )
+            else
+                ( model, Cmd.none )
+
+        SlugBlurred ->
+            if not (model.slug == "") then
+                ( model, validate "slug" model )
+            else
+                ( model, Cmd.none )
+
+        UsernameBlurred ->
+            if not (model.username == "") then
+                ( model, validate "username" model )
+            else
+                ( model, Cmd.none )
+
+        EmailBlurred ->
+            if not (model.email == "") then
+                ( model, validate "email" model )
+            else
+                ( model, Cmd.none )
+
+        PasswordBlurred ->
+            if not (model.password == "") then
+                ( model, validate "password" model )
+            else
+                ( model, Cmd.none )
 
         Submit ->
             ( model, submit model )
@@ -109,6 +145,9 @@ update msg model =
                     ( model, Cmd.none )
 
         Submitted (Err _) ->
+            ( model, Cmd.none )
+
+        Validate ->
             ( model, Cmd.none )
 
         Validated attribute (Ok errors) ->
@@ -156,6 +195,8 @@ type alias FormField =
     , name : String
     , label : String
     , value : String
+    , onInput : String -> Msg
+    , onBlur : Msg
     }
 
 
@@ -164,11 +205,11 @@ view model =
     div [ class "auth-form" ]
         [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
         , div [ class "auth-form__form" ]
-            [ textField TeamName (FormField "text" "team_name" "Team Name" model.team_name) (errorsFor "team_name" model.errors)
-            , slugField Slug (FormField "text" "slug" "URL" model.slug) (errorsFor "slug" model.errors)
-            , textField Username (FormField "text" "username" "Username" model.username) (errorsFor "username" model.errors)
-            , textField Email (FormField "email" "email" "Email Address" model.email) (errorsFor "email" model.errors)
-            , textField Password (FormField "password" "password" "Password" model.password) (errorsFor "password" model.errors)
+            [ textField (FormField "text" "team_name" "Team Name" model.team_name TeamNameChanged TeamNameBlurred) (errorsFor "team_name" model.errors)
+            , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
+            , textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
+            , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
+            , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
             , div [ class "form-controls" ]
                 [ button
                     [ type_ "submit"
@@ -198,8 +239,8 @@ errorsNotFor attribute errors =
     List.filter (\error -> not (error.attribute == attribute)) errors
 
 
-textField : (String -> msg) -> FormField -> List ValidationError -> Html msg
-textField msg field errors =
+textField : FormField -> List ValidationError -> Html Msg
+textField field errors =
     div [ class (String.join " " [ "form-field", (errorClass errors) ]) ]
         [ label [ for field.name, class "form-label" ] [ text field.label ]
         , input
@@ -208,15 +249,16 @@ textField msg field errors =
             , class "text-field text-field--full"
             , name field.name
             , value field.value
-            , onInput msg
+            , onInput field.onInput
+            , onBlur field.onBlur
             ]
             []
         , formErrors errors
         ]
 
 
-slugField : (String -> msg) -> FormField -> List ValidationError -> Html msg
-slugField msg field errors =
+slugField : FormField -> List ValidationError -> Html Msg
+slugField field errors =
     div [ class (String.join " " [ "form-field", (errorClass errors) ]) ]
         [ label [ for "slug", class "form-label" ] [ text "URL" ]
         , div [ class "slug-field" ]
@@ -227,7 +269,8 @@ slugField msg field errors =
                 , class "text-field slug-field__slug"
                 , name field.name
                 , value field.value
-                , onInput msg
+                , onInput field.onInput
+                , onBlur field.onBlur
                 ]
                 []
             ]
