@@ -1,4 +1,11 @@
 defmodule Bridge.ConnCaseHelpers do
+  def sign_in(conn, team, user) do
+    conn
+    |> Bridge.Web.UserAuth.sign_in(team, user)
+    |> Plug.Conn.send_resp(:ok, "")
+    |> Phoenix.ConnTest.recycle
+  end
+
   def render_json(view, template, assigns) do
     assigns = Map.new(assigns)
 

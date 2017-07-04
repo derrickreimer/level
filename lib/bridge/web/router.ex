@@ -56,10 +56,12 @@ defmodule Bridge.Web.Router do
     get "/", ThreadController, :index
   end
 
-  scope "/api", Bridge.Web do
+  scope "/api", Bridge.Web.API do
     pipe_through :api
 
-    resources "/teams", API.TeamController, only: [:create]
-    post "/signup/errors", API.SignupErrorsController, :index
+    resources "/teams", TeamController, only: [:create]
+    post "/signup/errors", SignupErrorsController, :index
+
+    resources "/:team_id/user_tokens", UserTokenController, only: [:create]
   end
 end
