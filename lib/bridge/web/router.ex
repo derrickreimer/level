@@ -24,6 +24,17 @@ defmodule Bridge.Web.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :graphql do
+    # TODO: add authentication
+  end
+
+  scope "/graphql" do
+    pipe_through :graphql
+
+    forward "/", Absinthe.Plug,
+      schema: Bridge.Web.Schema
+  end
+
   scope "/", Bridge.Web, host: "launch." do
     pipe_through :browser # Use the default browser stack
 
