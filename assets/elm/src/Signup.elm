@@ -264,16 +264,18 @@ slugField field errors =
         [ label [ for "slug", class "form-label" ] [ text "URL" ]
         , div [ class "slug-field" ]
             [ div [ class "slug-field__domain" ] [ text "bridge.chat/" ]
-            , input
-                [ id field.name
-                , type_ field.type_
-                , class "text-field slug-field__slug"
-                , name field.name
-                , value field.value
-                , onInput field.onInput
-                , onBlur field.onBlur
+            , div [ class "slug-field__slug" ]
+                [ input
+                    [ id field.name
+                    , type_ field.type_
+                    , class "text-field"
+                    , name field.name
+                    , value field.value
+                    , onInput field.onInput
+                    , onBlur field.onBlur
+                    ]
+                    []
                 ]
-                []
             ]
         , formErrors errors
         ]

@@ -12,7 +12,9 @@
         <div class="slug-field__domain">
           bridge.chat/
         </div>
-        <input type="text" name="slug" value="<%= @team.slug %>" class="text-field slug-field__slug" disabled>
+        <div class="slug-field__slug">
+          <input type="text" name="slug" value="<%= @team.slug %>" class="text-field" disabled>
+        </div>
       </div>
     </div>
 
