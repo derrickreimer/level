@@ -41,7 +41,9 @@ defmodule Bridge.Mixfile do
      {:credo, "~> 0.7", only: [:dev, :test]},
      {:comeonin, "~> 3.0"},
      {:timex, "~> 3.0"},
-     {:ex_doc, "~> 0.16"}]
+     {:ex_doc, "~> 0.16"},
+     {:absinthe, "~> 1.3"},
+     {:absinthe_plug, "~> 1.3"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
