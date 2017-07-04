@@ -10,7 +10,7 @@ You'll need to install the following dependencies first:
 - [PostgreSQL](https://postgresapp.com/) (>= 9.6.2)
 - [Yarn](https://yarnpkg.com/en/docs/install) (>= 0.24.6)
 - [Elm](https://guide.elm-lang.org/install.html) (0.18.0)
-- [nvm](https://github.com/creationix/nvm) ([optional](#node-js))
+- [nvm](https://github.com/creationix/nvm) ([optional](#nodejs))
 
 Run the bootstrap script to install the remaining dependencies and create your
 development database:
