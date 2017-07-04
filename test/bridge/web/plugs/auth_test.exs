@@ -166,6 +166,20 @@ defmodule Bridge.Web.AuthTest do
     end
   end
 
+  describe "generate_signed_jwt/1" do
+    setup do
+      user = %Bridge.User{id: 999}
+      {:ok, %{user: user}}
+    end
+
+    test "references the user as the subject", %{user: user} do
+      signed_token = UserAuth.generate_signed_jwt(user)
+      verified_token = UserAuth.verify_signed_jwt(signed_token)
+      %Joken.Token{claims: %{"sub" => user_id}} = verified_token
+      assert user_id == user.id
+    end
+  end
+
   defp to_user_session(team, user, ts \\ 123) do
     Poison.encode!(%{Integer.to_string(team.id) => [user.id, ts]})
   end

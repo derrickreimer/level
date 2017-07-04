@@ -6,6 +6,7 @@ defmodule Bridge.Web.Auth do
   import Plug.Conn
   import Comeonin.Bcrypt, only: [checkpw: 2, dummy_checkpw: 0]
   import Phoenix.Controller
+  import Joken
 
   alias Bridge.Web.Router.Helpers
   alias Bridge.Web.UrlHelpers
@@ -113,6 +114,47 @@ defmodule Bridge.Web.Auth do
         dummy_checkpw()
         {:error, :not_found, conn}
     end
+  end
+
+  @doc """
+  Generates a JSON Web Token (JWT) for a particular user for use by front end
+  clients. Returns a Joken.Token struct.
+
+  Use the `generate_signed_jwt/1` function to generate a fully-signed
+  token in binary format.
+  """
+  def generate_jwt(user) do
+    %{sub: user.id}
+    |> token
+    |> with_signer(hs256(jwt_secret()))
+  end
+
+  @doc """
+  Generates a fully-signed JSON Web Token (JWT) for a particular user for use by
+  front end clients.
+  """
+  def generate_signed_jwt(user) do
+    user
+    |> generate_jwt
+    |> sign
+    |> get_compact
+  end
+
+  @doc """
+  Verifies a signed JSON Web Token (JWT).
+  """
+  def verify_signed_jwt(signed_token) do
+    signed_token
+    |> token
+    |> with_signer(hs256(jwt_secret()))
+    |> verify
+  end
+
+  @doc """
+  Returns the secret key base to use for signing JSON Web Tokens.
+  """
+  def jwt_secret do
+    Application.get_env(:bridge, Bridge.Web.Endpoint)[:secret_key_base]
   end
 
   defp put_user_session(conn, team, user) do
