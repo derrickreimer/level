@@ -56,6 +56,24 @@ To run the Elm test suite, execute `script/elm-test` from the project root.
 Note: When you install a new Elm package dependency, make sure you also add the same
 dependency in the `tests` directory (the tests maintain their own set of dependencies).
 
+### Routing
+
+Bridge uses subdomains to keep track of which team you are viewing. There are a variety
+of different techniques for configuring a local TLD to point at localhost. You can simply
+edit your `/etc/hosts` file with something like this to make the Phoenix app available
+at http://bridge.dev:4000.
+
+```
+127.0.0.1  bridge.dev
+```
+
+However, the hosts file approach does not support wildcard subdomains, so you will have to
+update your hosts file when you need a new subdomain to forward.
+
+Dnsmasq is a handy utility that can be used to forward all `.dev` requests to localhost.
+[Follow these instructions](http://asciithoughts.com/posts/2014/02/23/setting-up-a-wildcard-dns-domain-on-mac-os-x/) to set it up on macOS.
+
+
 ## Documentation
 
 To generate and view low-level API documentation locally, run the following script:
