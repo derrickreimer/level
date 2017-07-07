@@ -14,8 +14,8 @@ defmodule Bridge.Web.TeamController do
       case Repo.transaction(Signup.transaction(changeset)) do
         {:ok, %{team: team, user: user}} ->
           conn
-          |> Bridge.Web.UserAuth.sign_in(team, user)
-          |> redirect(to: thread_path(conn, :index, team))
+          |> Bridge.Web.Auth.sign_in(team, user)
+          |> redirect(to: thread_path(conn, :index))
         {:error, _, _, _} ->
           conn
           |> put_flash(:error, gettext("Uh oh, something went wrong. Please try again."))

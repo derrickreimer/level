@@ -38,7 +38,7 @@ Use the `mix phx.server` command to start up your local server and visit
 
 This repository includes a `.nvmrc` file targeting a specific version of Node
 that is known the be compatibile with all current node dependencies. Things might work
-with a newer version of Node, but the most guaranteed route is to install 
+with a newer version of Node, but the most guaranteed route is to install
 [Node Version Manager](https://github.com/creationix/nvm) and run `nvm install` from
 the project root.
 
@@ -47,7 +47,7 @@ with the correct version of node.
 
 ### Elm
 
-Much of the front-end is powered by [Elm](http://elm-lang.org/). 
+Much of the front-end is powered by [Elm](http://elm-lang.org/).
 The Elm code lives in the `assets/elm/src` directory and the corresponding test files
 live in the `assets/elm/tests` directory.
 
@@ -59,20 +59,20 @@ dependency in the `tests` directory (the tests maintain their own set of depende
 ### Routing
 
 Bridge uses subdomains to keep track of which team you are viewing. There are a variety
-of different techniques for configuring a local TLD to point at localhost. You can simply
+of different techniques for configuring a local TLD to point at localhost. One option is to
 edit your `/etc/hosts` file with something like this to make the Phoenix app available
-at http://bridge.dev:4000.
+at http://launch.bridge.dev:4000:
 
 ```
-127.0.0.1  bridge.dev
+127.0.0.1  launch.bridge.dev    # required
+127.0.0.1  yourteam.bridge.dev  # need add entry for every team you create
 ```
 
-However, the hosts file approach does not support wildcard subdomains, so you will have to
-update your hosts file when you need a new subdomain to forward.
+**Caveat**: The hosts file approach does not support wildcard subdomains, so you
+will have to add a new entry every time you create a new team. That's a pain.
 
 Dnsmasq is a handy utility that can be used to forward all `.dev` requests to localhost.
 [Follow these instructions](http://asciithoughts.com/posts/2014/02/23/setting-up-a-wildcard-dns-domain-on-mac-os-x/) to set it up on macOS.
-
 
 ## Documentation
 

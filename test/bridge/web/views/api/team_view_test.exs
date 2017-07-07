@@ -8,9 +8,10 @@ defmodule Bridge.Web.API.TeamViewTest do
     test "includes the new team" do
       user = %Bridge.User{email: "derrick@bridge.chat"}
       team = %Bridge.Team{slug: "bridge"}
+      redirect_url = "foo.bar"
 
-      assert TeamView.render("create.json", %{user: user, team: team}) ==
-        %{team: TeamView.team_json(team), user: UserView.user_json(user)}
+      assert TeamView.render("create.json", %{user: user, team: team, redirect_url: redirect_url}) ==
+        %{team: TeamView.team_json(team), user: UserView.user_json(user), redirect_url: redirect_url}
     end
   end
 

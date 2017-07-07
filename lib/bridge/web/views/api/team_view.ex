@@ -3,10 +3,11 @@ defmodule Bridge.Web.API.TeamView do
 
   alias Bridge.Web.API.UserView
 
-  def render("create.json", %{team: team, user: user}) do
+  def render("create.json", %{team: team, user: user, redirect_url: redirect_url}) do
     %{
       team: team_json(team),
-      user: UserView.user_json(user)
+      user: UserView.user_json(user),
+      redirect_url: redirect_url
     }
   end
 

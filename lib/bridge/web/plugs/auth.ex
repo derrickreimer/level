@@ -1,4 +1,4 @@
-defmodule Bridge.Web.UserAuth do
+defmodule Bridge.Web.Auth do
   @moduledoc """
   Provides user authentication-related plugs and other helper functions.
   """
@@ -8,14 +8,24 @@ defmodule Bridge.Web.UserAuth do
   import Phoenix.Controller
 
   alias Bridge.Web.Router.Helpers
+  alias Bridge.Web.UrlHelpers
 
   @doc """
   A plug that looks up the team in scope and sets it in the connection assigns.
   """
   def fetch_team(conn, opts) do
     repo = Keyword.fetch!(opts, :repo)
-    team = repo.get_by!(Bridge.Team, slug: conn.params["team_id"])
-    assign(conn, :team, team)
+
+    case conn.assigns[:subdomain] do
+      "" ->
+        conn
+        |> redirect(external: UrlHelpers.team_search_url(conn))
+        |> halt()
+
+      subdomain ->
+        team = repo.get_by!(Bridge.Team, slug: subdomain)
+        assign(conn, :team, team)
+    end
   end
 
   @doc """
@@ -54,7 +64,7 @@ defmodule Bridge.Web.UserAuth do
       conn
     else
       conn
-      |> redirect(to: Helpers.session_path(conn, :new, conn.assigns.team))
+      |> redirect(to: Helpers.session_path(conn, :new))
       |> halt()
     end
   end

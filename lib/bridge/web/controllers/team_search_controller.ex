@@ -1,19 +1,20 @@
-defmodule Bridge.Web.GenericSessionController do
+defmodule Bridge.Web.TeamSearchController do
   use Bridge.Web, :controller
+
+  require Logger
 
   def new(conn, _params) do
     render conn, "new.html"
   end
 
-  def create(conn, %{"session" => %{"slug" => slug}}) do
+  def create(conn, %{"search" => %{"slug" => slug}}) do
     case Bridge.Repo.get_by(Bridge.Team, %{slug: slug}) do
       nil ->
         conn
         |> put_flash(:error, "We could not find your team")
         |> render("new.html")
       team ->
-        conn
-        |> redirect(to: session_path(conn, :new, team))
+        redirect(conn, external: team_login_url(conn, team))
     end
   end
 end
