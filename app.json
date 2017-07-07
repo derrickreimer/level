@@ -20,11 +20,15 @@
     }
   ],
   "env": {
-    "SECRET_KEY_BASE": {
+    "BRIDGE_HOST": {
+      "description": "The domain on which you are serving this application.",
+      "value": ""
+    },
+    "BRIDGE_SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
-    "POOL_SIZE": {
+    "BRIDGE_POOL_SIZE": {
       "description": "The maximum number of database connections each process may consume.",
       "value": "18"
     }
