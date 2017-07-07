@@ -6,7 +6,10 @@ defmodule Bridge.Web.Subdomain do
   import Plug.Conn
 
   @doc """
-  Validates the host matches the configured hostname and is not `localhost`.
+  A plug that ensures that:
+
+  - The host matches the configured hostname, and
+  - The host is not `localhost` (because subdomains are required for routing).
   """
   def validate_host(conn, _opts \\ []) do
     cond do
@@ -34,7 +37,7 @@ defmodule Bridge.Web.Subdomain do
   end
 
   @doc """
-  Parses out the subdomain and sets it in the connection assigns.
+  A plug that parses out the subdomain and sets it in the connection assigns.
   """
   def extract_subdomain(conn, _opts \\ []) do
     subdomain = conn.host
