@@ -31,4 +31,12 @@ defmodule Bridge.TestHelpers do
     |> Bridge.Signup.transaction()
     |> Repo.transaction()
   end
+
+  def put_launch_host(conn) do
+    %{conn | host: "launch.bridge.test"}
+  end
+
+  def put_team_host(conn, team) do
+    %{conn | host: "#{team.slug}.bridge.test"}
+  end
 end

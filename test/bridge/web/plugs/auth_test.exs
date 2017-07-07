@@ -1,10 +1,11 @@
-defmodule Bridge.Web.UserAuthTest do
+defmodule Bridge.Web.AuthTest do
   use Bridge.Web.ConnCase
-  alias Bridge.Web.UserAuth
+  alias Bridge.Web.Auth
 
   setup %{conn: conn} do
     conn =
       conn
+      |> put_launch_host()
       |> bypass_through(Bridge.Web.Router, :browser)
       |> get("/")
 
@@ -17,8 +18,8 @@ defmodule Bridge.Web.UserAuthTest do
 
       team_conn =
         conn
-        |> get("/#{team.slug}")
-        |> UserAuth.fetch_team(repo: Repo)
+        |> assign(:subdomain, team.slug)
+        |> Auth.fetch_team(repo: Repo)
 
       assert team_conn.assigns.team.id == team.id
     end
@@ -26,8 +27,8 @@ defmodule Bridge.Web.UserAuthTest do
     test "raise a 404 if team is not found", %{conn: conn} do
       assert_raise Ecto.NoResultsError, fn ->
         conn
-        |> get("/notfound")
-        |> UserAuth.fetch_team(repo: Repo)
+        |> assign(:subdomain, "doesnotexist")
+        |> Auth.fetch_team(repo: Repo)
       end
     end
   end
@@ -39,13 +40,13 @@ defmodule Bridge.Web.UserAuthTest do
       conn =
         conn
         |> assign(:team, nil)
-        |> UserAuth.fetch_current_user(repo: Repo)
+        |> Auth.fetch_current_user(repo: Repo)
 
       assert conn.assigns.current_user == nil
     end
 
     test "sets the current user to nil if there is no session", %{conn: conn} do
-      conn = UserAuth.fetch_current_user(conn, repo: Repo)
+      conn = Auth.fetch_current_user(conn, repo: Repo)
       assert conn.assigns.current_user == nil
     end
 
@@ -56,7 +57,7 @@ defmodule Bridge.Web.UserAuthTest do
         conn
         |> assign(:team, "team")
         |> put_session(:sessions, nil)
-        |> UserAuth.fetch_current_user(repo: Repo)
+        |> Auth.fetch_current_user(repo: Repo)
 
       assert conn.assigns.current_user == nil
     end
@@ -68,7 +69,7 @@ defmodule Bridge.Web.UserAuthTest do
         conn
         |> assign(:team, team)
         |> put_session(:sessions, to_user_session(team, user))
-        |> UserAuth.fetch_current_user(repo: Repo)
+        |> Auth.fetch_current_user(repo: Repo)
 
       assert conn.assigns.current_user.id == user.id
     end
@@ -78,20 +79,14 @@ defmodule Bridge.Web.UserAuthTest do
     setup %{conn: conn} do
       {:ok, %{team: team, user: user}} = insert_signup()
 
-      login_conn =
+      conn =
         conn
-        |> UserAuth.sign_in(team, user)
-        |> send_resp(:ok, "")
+        |> Auth.sign_in(team, user)
 
-      next_conn = get(login_conn, "/#{team.slug}")
-
-      {:ok, %{conn: next_conn, team: team, user: user}}
+      {:ok, %{conn: conn, team: team, user: user}}
     end
 
-    test "sets the current user when viewing a page in the team",
-      %{conn: conn, team: team, user: user} do
-
-      assert conn.assigns.team.id == team.id
+    test "sets the current user", %{conn: conn, user: user} do
       assert conn.assigns.current_user.id == user.id
     end
 
@@ -115,17 +110,14 @@ defmodule Bridge.Web.UserAuthTest do
       user1 = %Bridge.User{id: 1}
       user2 = %Bridge.User{id: 2}
 
-      sign_out_conn =
+      conn =
         conn
-        |> UserAuth.sign_in(team1, user1)
-        |> UserAuth.sign_in(team2, user2)
-        |> UserAuth.sign_out(team1)
-        |> send_resp(:ok, "")
-
-      next_conn = get(sign_out_conn, "/")
+        |> Auth.sign_in(team1, user1)
+        |> Auth.sign_in(team2, user2)
+        |> Auth.sign_out(team1)
 
       sessions =
-        next_conn
+        conn
         |> get_session(:sessions)
         |> Poison.decode!
 
@@ -145,7 +137,7 @@ defmodule Bridge.Web.UserAuthTest do
       %{conn: conn, team: team, user: user, password: password} do
 
       {:ok, conn} =
-        UserAuth.sign_in_with_credentials(conn, team, user.username, password, repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, user.username, password, repo: Repo)
 
       assert conn.assigns.current_user.id == user.id
     end
@@ -154,7 +146,7 @@ defmodule Bridge.Web.UserAuthTest do
       %{conn: conn, team: team, user: user, password: password} do
 
       {:ok, conn} =
-        UserAuth.sign_in_with_credentials(conn, team, user.email, password, repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, user.email, password, repo: Repo)
 
       assert conn.assigns.current_user.id == user.id
     end
@@ -163,14 +155,14 @@ defmodule Bridge.Web.UserAuthTest do
       %{conn: conn, team: team, user: user} do
 
       {:error, :unauthorized, _conn} =
-        UserAuth.sign_in_with_credentials(conn, team, user.email, "wrongo", repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, user.email, "wrongo", repo: Repo)
     end
 
     test "returns unauthorized if user is not found",
       %{conn: conn, team: team} do
 
       {:error, :not_found, _conn} =
-        UserAuth.sign_in_with_credentials(conn, team, "foo@bar.co", "wrongo", repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, "foo@bar.co", "wrongo", repo: Repo)
     end
   end
 

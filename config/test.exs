@@ -2,12 +2,18 @@ use Mix.Config
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :bridge, Bridge.Endpoint,
+config :bridge, Bridge.Web.Endpoint,
   http: [port: 4001],
+  url: [host: "bridge.test"],
   server: false
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+
+# Switch to this configuration for verbose logging in tests
+# config :logger,
+#   backends: [:console],
+#   compile_time_purge_level: :debug
 
 # Configure your database
 config :bridge, Bridge.Repo,

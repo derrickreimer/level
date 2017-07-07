@@ -7,6 +7,8 @@ defmodule Bridge.Web.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :validate_host
+    plug :extract_subdomain
   end
 
   pipeline :team do
@@ -22,19 +24,22 @@ defmodule Bridge.Web.Router do
     plug :put_secure_browser_headers
   end
 
-  scope "/", Bridge.Web do
+  scope "/", Bridge.Web, host: "launch." do
     pipe_through :browser # Use the default browser stack
 
-    get "/", PageController, :index
+    get "/", TeamSearchController, :new
+    post "/", TeamSearchController, :create
     resources "/teams", TeamController, only: [:new, :create]
-
-    get "/login", GenericSessionController, :new
-    post "/login", GenericSessionController, :create
-    get "/:team_id/login", SessionController, :new
-    post "/:team_id/login", SessionController, :create
   end
 
-  scope "/:team_id", Bridge.Web do
+  scope "/", Bridge.Web do
+    pipe_through :browser
+
+    get "/login", SessionController, :new
+    post "/login", SessionController, :create
+  end
+
+  scope "/", Bridge.Web do
     pipe_through [:browser, :team]
 
     get "/", ThreadController, :index

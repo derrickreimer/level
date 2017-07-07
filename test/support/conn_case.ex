@@ -26,6 +26,7 @@ defmodule Bridge.Web.ConnCase do
       import Ecto.Query
 
       import Bridge.Web.Router.Helpers
+      import Bridge.Web.UrlHelpers
       import Bridge.TestHelpers
       import Bridge.ConnCaseHelpers
 

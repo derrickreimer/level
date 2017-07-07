@@ -5,15 +5,15 @@
 <div class="auth-form">
   <h2 class="auth-form__heading"><%= gettext "Sign in to Bridge" %></h2>
 
-  <%= form_for @conn, generic_session_path(@conn, :create), [as: :session, class: "auth-form__form"], fn f -> %>
+  <%= form_for @conn, team_search_path(@conn, :create), [as: :search, class: "auth-form__form"], fn f -> %>
     <div class="form-field">
       <%= label f, :slug, gettext("Team"), class: "form-label" %>
       <div class="slug-field">
-        <div class="slug-field__domain">
-          bridge.chat/
-        </div>
         <div class="slug-field__slug">
           <%= text_input f, :slug, class: "text-field", autofocus: true %>
+        </div>
+        <div class="slug-field__domain">
+          .bridge.chat
         </div>
       </div>
     </div>
@@ -26,7 +26,7 @@
   <div class="auth-form__footer">
     <p>
       <%= gettext "Want to create a team instead?" %>
-      <%= link gettext("Sign up"), to: team_path(@conn, :new) %>.
+      <%= link gettext("Sign up"), to: signup_url(@conn) %>.
     </p>
   </div>
 </div>

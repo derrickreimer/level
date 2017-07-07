@@ -125,8 +125,8 @@ update msg model =
         Submit ->
             ( { model | formState = Submitting }, submit model )
 
-        Submitted (Ok slug) ->
-            ( model, Navigation.load ("/" ++ slug) )
+        Submitted (Ok redirectUrl) ->
+            ( model, Navigation.load redirectUrl )
 
         Submitted (Err (Http.BadStatus resp)) ->
             case decodeString errorDecoder resp.body of
@@ -223,7 +223,7 @@ view model =
         , div [ class "auth-form__footer" ]
             [ p []
                 [ text "Already have an team? "
-                , a [ href "/login" ] [ text "Sign in" ]
+                , a [ href "/" ] [ text "Sign in" ]
                 , text "."
                 ]
             ]
@@ -263,8 +263,7 @@ slugField field errors =
     div [ class (String.join " " [ "form-field", (errorClass errors) ]) ]
         [ label [ for "slug", class "form-label" ] [ text "URL" ]
         , div [ class "slug-field" ]
-            [ div [ class "slug-field__domain" ] [ text "bridge.chat/" ]
-            , div [ class "slug-field__slug" ]
+            [ div [ class "slug-field__slug" ]
                 [ input
                     [ id field.name
                     , type_ field.type_
@@ -276,6 +275,7 @@ slugField field errors =
                     ]
                     []
                 ]
+            , div [ class "slug-field__domain" ] [ text ".bridge.chat" ]
             ]
         , formErrors errors
         ]
@@ -367,7 +367,7 @@ buildBody model =
 
 successDecoder : Decode.Decoder String
 successDecoder =
-    Decode.at [ "team", "slug" ] Decode.string
+    Decode.at [ "redirect_url" ] Decode.string
 
 
 errorDecoder : Decode.Decoder (List ValidationError)

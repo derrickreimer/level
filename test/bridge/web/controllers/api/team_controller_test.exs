@@ -9,6 +9,7 @@ defmodule Bridge.Web.API.TeamControllerTest do
 
       conn =
         conn
+        |> put_launch_host()
         |> put_req_header("content-type", "application/json")
         |> post("/api/teams", %{signup: params})
 
@@ -41,8 +42,10 @@ defmodule Bridge.Web.API.TeamControllerTest do
       user = Repo.get_by!(Bridge.User, %{email: email})
       team = user |> Ecto.assoc(:team) |> Repo.one
 
+      redirect_url = threads_url(conn, team)
+
       assert json_response(conn, 201) ==
-        render_json(TeamView, "create.json", team: team, user: user)
+        render_json(TeamView, "create.json", team: team, user: user, redirect_url: redirect_url)
     end
   end
 
@@ -54,6 +57,7 @@ defmodule Bridge.Web.API.TeamControllerTest do
 
       conn =
         conn
+        |> put_launch_host()
         |> put_req_header("content-type", "application/json")
         |> post("/api/teams", %{signup: params})
 

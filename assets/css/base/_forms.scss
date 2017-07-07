@@ -17,20 +17,22 @@
   display: flex;
   align-items: baseline;
 
-  &__domain {
-    flex: 0 1;
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-
   &__slug {
-    flex: 1 1; // the first 1 means this can auto-grow
-    width: 100%;
+    flex: 0 1; // the first 1 means this can auto-grow
+    min-width: 120px;
 
     input {
-      border-radius: 0 3px 3px 0;
+      border-radius: 3px 0 0 3px;
       width: 100%;
+      // text-align: right;
     }
+  }
+
+  &__domain {
+    flex: 1 1; // the first 1 means this can auto-grow
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 100%;
   }
 }
 

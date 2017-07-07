@@ -9,9 +9,9 @@ defmodule Bridge.Web.API.TeamController do
       case Repo.transaction(Signup.transaction(changeset)) do
         {:ok, %{team: team, user: user}} ->
           conn
-          |> Bridge.Web.UserAuth.sign_in(team, user)
+          |> Bridge.Web.Auth.sign_in(team, user)
           |> put_status(:created)
-          |> render("create.json", %{team: team, user: user})
+          |> render("create.json", %{team: team, user: user, redirect_url: threads_url(conn, team)})
         {:error, _, _, _} ->
           conn
           |> put_status(:unprocessable_entity)

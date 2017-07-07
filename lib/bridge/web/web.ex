@@ -36,7 +36,19 @@ defmodule Bridge.Web do
 
       import Bridge.Web.Router.Helpers
       import Bridge.Web.Gettext
-      import Bridge.Web.UserAuth, only: [fetch_team: 2, fetch_current_user: 2, authenticate_user: 2]
+
+      import Bridge.Web.Auth, only: [
+        fetch_team: 2,
+        fetch_current_user: 2,
+        authenticate_user: 2
+      ]
+
+      import Bridge.Web.Subdomain, only: [
+        validate_host: 2,
+        extract_subdomain: 2
+      ]
+
+      import Bridge.Web.UrlHelpers
     end
   end
 
@@ -46,7 +58,11 @@ defmodule Bridge.Web do
                         namespace: Bridge.Web
 
       # Import convenience functions from controllers
-      import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
+      import Phoenix.Controller, only: [
+        get_csrf_token: 0,
+        get_flash: 2,
+        view_module: 1
+      ]
 
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
@@ -54,13 +70,24 @@ defmodule Bridge.Web do
       import Bridge.Web.Router.Helpers
       import Bridge.Web.ErrorHelpers
       import Bridge.Web.Gettext
+      import Bridge.Web.UrlHelpers
     end
   end
 
   def router do
     quote do
       use Phoenix.Router
-      import Bridge.Web.UserAuth, only: [fetch_team: 2, fetch_current_user: 2, authenticate_user: 2]
+
+      import Bridge.Web.Auth, only: [
+        fetch_team: 2,
+        fetch_current_user: 2,
+        authenticate_user: 2
+      ]
+
+      import Bridge.Web.Subdomain, only: [
+        validate_host: 2,
+        extract_subdomain: 2
+      ]
     end
   end
 
