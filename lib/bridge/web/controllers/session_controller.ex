@@ -1,8 +1,8 @@
 defmodule Bridge.Web.SessionController do
   use Bridge.Web, :controller
 
-  plug :fetch_team, repo: Bridge.Repo
-  plug :fetch_current_user, repo: Bridge.Repo
+  plug :fetch_team
+  plug :fetch_current_user_by_session
   plug :redirect_if_signed_in
 
   def new(conn, _params) do

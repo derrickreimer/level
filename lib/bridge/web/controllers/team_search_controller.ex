@@ -1,8 +1,6 @@
 defmodule Bridge.Web.TeamSearchController do
   use Bridge.Web, :controller
 
-  require Logger
-
   def new(conn, _params) do
     render conn, "new.html"
   end

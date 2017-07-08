@@ -12,8 +12,8 @@ defmodule Bridge.Web.Router do
   end
 
   pipeline :team do
-    plug :fetch_team, repo: Bridge.Repo
-    plug :fetch_current_user, repo: Bridge.Repo
+    plug :fetch_team
+    plug :fetch_current_user_by_session
     plug :authenticate_user
   end
 
@@ -27,7 +27,10 @@ defmodule Bridge.Web.Router do
   end
 
   pipeline :graphql do
-    # TODO: add authentication
+    plug :validate_host
+    plug :extract_subdomain
+    plug :fetch_team
+    plug :authenticate_with_token
   end
 
   scope "/graphql" do

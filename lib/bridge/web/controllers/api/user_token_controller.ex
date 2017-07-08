@@ -3,8 +3,8 @@ defmodule Bridge.Web.API.UserTokenController do
 
   alias Bridge.Web.Auth
 
-  plug :fetch_team, repo: Bridge.Repo
-  plug :fetch_current_user, repo: Bridge.Repo
+  plug :fetch_team
+  plug :fetch_current_user_by_session
 
   def create(conn, _params) do
     user = conn.assigns.current_user

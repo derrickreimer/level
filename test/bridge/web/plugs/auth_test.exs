@@ -19,7 +19,7 @@ defmodule Bridge.Web.AuthTest do
       team_conn =
         conn
         |> assign(:subdomain, team.slug)
-        |> Auth.fetch_team(repo: Repo)
+        |> Auth.fetch_team()
 
       assert team_conn.assigns.team.id == team.id
     end
@@ -28,25 +28,25 @@ defmodule Bridge.Web.AuthTest do
       assert_raise Ecto.NoResultsError, fn ->
         conn
         |> assign(:subdomain, "doesnotexist")
-        |> Auth.fetch_team(repo: Repo)
+        |> Auth.fetch_team()
       end
     end
   end
 
-  describe "fetch_current_user/2" do
+  describe "fetch_current_user_by_session/2" do
     test "does not attach a current user when team is not specified",
       %{conn: conn} do
 
       conn =
         conn
         |> assign(:team, nil)
-        |> Auth.fetch_current_user(repo: Repo)
+        |> Auth.fetch_current_user_by_session()
 
       assert conn.assigns.current_user == nil
     end
 
     test "sets the current user to nil if there is no session", %{conn: conn} do
-      conn = Auth.fetch_current_user(conn, repo: Repo)
+      conn = Auth.fetch_current_user_by_session(conn)
       assert conn.assigns.current_user == nil
     end
 
@@ -57,7 +57,7 @@ defmodule Bridge.Web.AuthTest do
         conn
         |> assign(:team, "team")
         |> put_session(:sessions, nil)
-        |> Auth.fetch_current_user(repo: Repo)
+        |> Auth.fetch_current_user_by_session()
 
       assert conn.assigns.current_user == nil
     end
@@ -69,9 +69,60 @@ defmodule Bridge.Web.AuthTest do
         conn
         |> assign(:team, team)
         |> put_session(:sessions, to_user_session(team, user))
-        |> Auth.fetch_current_user(repo: Repo)
+        |> Auth.fetch_current_user_by_session()
 
       assert conn.assigns.current_user.id == user.id
+    end
+  end
+
+  describe "authenticate_with_token/2" do
+    test "does not attach a current user when team is not specified",
+      %{conn: conn} do
+
+      conn =
+        conn
+        |> assign(:team, nil)
+        |> Auth.authenticate_with_token()
+
+      assert conn.assigns.current_user == nil
+      assert conn.status == 400
+      assert conn.halted
+    end
+
+    test "sets the current user to nil if there is no token", %{conn: conn} do
+      conn = Auth.authenticate_with_token(conn)
+      assert conn.assigns.current_user == nil
+      assert conn.status == 400
+      assert conn.halted
+    end
+
+    test "sets the current user to nil if a team is assigned but no token",
+      %{conn: conn} do
+
+      conn =
+        conn
+        |> assign(:team, "team")
+        |> Auth.authenticate_with_token()
+
+      assert conn.assigns.current_user == nil
+      assert conn.status == 400
+      assert conn.halted
+    end
+
+    test "sets the current user if token is valid", %{conn: conn} do
+      {:ok, %{team: team, user: user}} = insert_signup()
+
+      token = Auth.generate_signed_jwt(user)
+
+      conn =
+        conn
+        |> assign(:team, team)
+        |> put_req_header("authorization", "Bearer #{token}")
+        |> Auth.authenticate_with_token()
+
+      assert conn.assigns.current_user.id == user.id
+      assert conn.private.absinthe[:context][:current_user].id == user.id
+      refute conn.halted
     end
   end
 
@@ -137,7 +188,7 @@ defmodule Bridge.Web.AuthTest do
       %{conn: conn, team: team, user: user, password: password} do
 
       {:ok, conn} =
-        Auth.sign_in_with_credentials(conn, team, user.username, password, repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, user.username, password)
 
       assert conn.assigns.current_user.id == user.id
     end
@@ -146,7 +197,7 @@ defmodule Bridge.Web.AuthTest do
       %{conn: conn, team: team, user: user, password: password} do
 
       {:ok, conn} =
-        Auth.sign_in_with_credentials(conn, team, user.email, password, repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, user.email, password)
 
       assert conn.assigns.current_user.id == user.id
     end
@@ -155,14 +206,14 @@ defmodule Bridge.Web.AuthTest do
       %{conn: conn, team: team, user: user} do
 
       {:error, :unauthorized, _conn} =
-        Auth.sign_in_with_credentials(conn, team, user.email, "wrongo", repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, user.email, "wrongo")
     end
 
     test "returns unauthorized if user is not found",
       %{conn: conn, team: team} do
 
       {:error, :not_found, _conn} =
-        Auth.sign_in_with_credentials(conn, team, "foo@bar.co", "wrongo", repo: Repo)
+        Auth.sign_in_with_credentials(conn, team, "foo@bar.co", "wrongo")
     end
   end
 
