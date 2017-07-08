@@ -22,6 +22,8 @@ defmodule Bridge.Web.Router do
     plug :fetch_session
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :validate_host
+    plug :extract_subdomain
   end
 
   pipeline :graphql do
@@ -62,6 +64,6 @@ defmodule Bridge.Web.Router do
     resources "/teams", TeamController, only: [:create]
     post "/signup/errors", SignupErrorsController, :index
 
-    resources "/:team_id/user_tokens", UserTokenController, only: [:create]
+    resources "/user_tokens", UserTokenController, only: [:create]
   end
 end

@@ -1,7 +1,7 @@
 defmodule Bridge.Web.API.UserTokenController do
   use Bridge.Web, :controller
 
-  alias Bridge.Web.UserAuth
+  alias Bridge.Web.Auth
 
   plug :fetch_team, repo: Bridge.Repo
   plug :fetch_current_user, repo: Bridge.Repo
@@ -10,7 +10,7 @@ defmodule Bridge.Web.API.UserTokenController do
     user = conn.assigns.current_user
 
     if user do
-      token = UserAuth.generate_signed_jwt(user)
+      token = Auth.generate_signed_jwt(user)
 
       conn
       |> put_status(:created)

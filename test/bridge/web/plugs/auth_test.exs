@@ -173,8 +173,8 @@ defmodule Bridge.Web.AuthTest do
     end
 
     test "references the user as the subject", %{user: user} do
-      signed_token = UserAuth.generate_signed_jwt(user)
-      verified_token = UserAuth.verify_signed_jwt(signed_token)
+      signed_token = Auth.generate_signed_jwt(user)
+      verified_token = Auth.verify_signed_jwt(signed_token)
       %Joken.Token{claims: %{"sub" => user_id}} = verified_token
       assert user_id == user.id
     end
