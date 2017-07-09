@@ -26,6 +26,29 @@ defmodule Bridge.Web.GraphQLTest do
     }
   end
 
+  test "querying viewer team relation", %{conn: conn, team: team} do
+    query = """
+      {
+        viewer {
+          team {
+            name
+          }
+        }
+      }
+    """
+
+    conn = post_graphql(conn, query)
+    assert json_response(conn, 200) == %{
+      "data" => %{
+        "viewer" => %{
+          "team" => %{
+            "name" => team.name
+          }
+        }
+      }
+    }
+  end
+
   def post_graphql(conn, query) do
     conn
     |> put_req_header("content-type", "application/graphql")

@@ -1,6 +1,8 @@
 defmodule Bridge.Web.Schema.Types do
   use Absinthe.Schema.Notation
 
+  alias Bridge.Web.Schema.Helpers
+
   scalar :time do
     description "ISO-8601 time"
     parse &Timex.parse(&1.value, "{ISO:Extended:Z}")
@@ -16,6 +18,14 @@ defmodule Bridge.Web.Schema.Types do
     field :time_zone, :string
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
+
+    field :team, :team do
+      resolve fn user, _, _ ->
+        batch({Helpers, :by_id, Bridge.Team}, user.team_id, fn batch_results ->
+          {:ok, Map.get(batch_results, user.team_id)}
+        end)
+      end
+    end
   end
 
   object :team do
