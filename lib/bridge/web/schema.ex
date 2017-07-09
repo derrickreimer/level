@@ -2,10 +2,11 @@ defmodule Bridge.Web.Schema do
   use Absinthe.Schema
   import_types Bridge.Web.Schema.Types
 
-  # TODO: add root `viewer` corresponding to the currently authenticated user
   query do
-    field :teams, list_of(:team) do
-      resolve &Bridge.Web.TeamResolver.all/2
+    field :viewer, :user do
+      resolve fn _, %{context: %{current_user: current_user}} ->
+        {:ok, current_user}
+      end
     end
   end
 end
