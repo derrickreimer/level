@@ -178,8 +178,8 @@ defmodule Bridge.Web.Auth do
   token in binary format.
   """
   def generate_jwt(user) do
-    %{sub: user.id}
-    |> token
+    token()
+    |> Map.put(:claims, %{sub: user.id})
     |> with_signer(hs256(jwt_secret()))
   end
 
