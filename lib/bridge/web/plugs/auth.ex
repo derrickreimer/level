@@ -82,34 +82,7 @@ defmodule Bridge.Web.Auth do
         put_current_user(conn, user)
 
       true ->
-        case get_req_header(conn, "authorization") do
-          ["Bearer " <> token] ->
-            case verify_signed_jwt(token) do
-              %Joken.Token{claims: %{"sub" => user_id}} ->
-                user = Repo.get(Bridge.User, user_id)
-
-                if user.team_id == conn.assigns.team.id do
-                  put_current_user(conn, user)
-                else
-                  conn
-                  |> delete_current_user()
-                  |> send_resp(403, "")
-                  |> halt()
-                end
-
-              _ ->
-                conn
-                |> delete_current_user()
-                |> send_resp(403, "")
-                |> halt()
-            end
-
-          _ ->
-            conn
-            |> delete_current_user()
-            |> send_resp(400, "")
-            |> halt()
-        end
+        verify_bearer_token(conn)
     end
   end
 
@@ -209,6 +182,37 @@ defmodule Bridge.Web.Auth do
   """
   def jwt_secret do
     Application.get_env(:bridge, Bridge.Web.Endpoint)[:secret_key_base]
+  end
+
+  defp verify_bearer_token(conn) do
+    case get_req_header(conn, "authorization") do
+      ["Bearer " <> token] ->
+        case verify_signed_jwt(token) do
+          %Joken.Token{claims: %{"sub" => user_id}} ->
+            user = Repo.get(Bridge.User, user_id)
+
+            if user.team_id == conn.assigns.team.id do
+              put_current_user(conn, user)
+            else
+              conn
+              |> delete_current_user()
+              |> send_resp(403, "")
+              |> halt()
+            end
+
+          _ ->
+            conn
+            |> delete_current_user()
+            |> send_resp(403, "")
+            |> halt()
+        end
+
+      _ ->
+        conn
+        |> delete_current_user()
+        |> send_resp(400, "")
+        |> halt()
+    end
   end
 
   defp put_user_session(conn, team, user) do

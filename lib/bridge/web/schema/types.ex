@@ -1,4 +1,8 @@
 defmodule Bridge.Web.Schema.Types do
+  @moduledoc """
+  GraphQL type definitions.
+  """
+
   use Absinthe.Schema.Notation
 
   alias Bridge.Web.Schema.Helpers

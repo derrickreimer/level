@@ -1,4 +1,8 @@
 defmodule Bridge.Web.Schema.Helpers do
+  @moduledoc """
+  GraphQL helper functions.
+  """
+
   alias Bridge.Repo
 
   # Borrowed from http://absinthe-graphql.org/guides/ecto-best-practices/

@@ -1,4 +1,8 @@
 defmodule Bridge.Web.Schema do
+  @moduledoc """
+  GraphQL schema.
+  """
+
   use Absinthe.Schema
   import_types Bridge.Web.Schema.Types
 
