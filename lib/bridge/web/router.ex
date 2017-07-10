@@ -17,7 +17,7 @@ defmodule Bridge.Web.Router do
     plug :authenticate_user
   end
 
-  pipeline :api do
+  pipeline :browser_api do
     plug :accepts, ["json"]
     plug :fetch_session
     plug :protect_from_forgery
@@ -33,13 +33,13 @@ defmodule Bridge.Web.Router do
     plug :authenticate_with_token
   end
 
-  scope "/graphql" do
+  # GraphQL API
+  scope "/" do
     pipe_through :graphql
-
-    forward "/", Absinthe.Plug,
-      schema: Bridge.Web.Schema
+    forward "/graphql", Absinthe.Plug, schema: Bridge.Web.Schema
   end
 
+  # Launcher-scoped routes
   scope "/", Bridge.Web, host: "launch." do
     pipe_through :browser # Use the default browser stack
 
@@ -48,6 +48,7 @@ defmodule Bridge.Web.Router do
     resources "/teams", TeamController, only: [:new, :create]
   end
 
+  # Team-scoped routes not requiring authentication
   scope "/", Bridge.Web do
     pipe_through :browser
 
@@ -55,14 +56,22 @@ defmodule Bridge.Web.Router do
     post "/login", SessionController, :create
   end
 
+  # GraphQL explorer
+  scope "/" do
+    pipe_through [:browser, :team]
+    forward "/graphiql", Absinthe.Plug.GraphiQL, schema: Bridge.Web.Schema
+  end
+
+  # Team-scoped routes requiring authentication
   scope "/", Bridge.Web do
     pipe_through [:browser, :team]
 
     get "/", ThreadController, :index
   end
 
+  # RESTful API endpoints authenticated via browser cookies
   scope "/api", Bridge.Web.API do
-    pipe_through :api
+    pipe_through :browser_api
 
     resources "/teams", TeamController, only: [:create]
     post "/signup/errors", SignupErrorsController, :index

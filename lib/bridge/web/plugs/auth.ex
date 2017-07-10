@@ -117,7 +117,7 @@ defmodule Bridge.Web.Auth do
   A plug for ensuring that a user is currently logged in to the particular team.
   """
   def authenticate_user(conn, _opts \\ []) do
-    if conn.assigns.current_user do
+    if conn.assigns[:current_user] do
       conn
     else
       conn
