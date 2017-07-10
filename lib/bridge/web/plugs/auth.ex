@@ -6,16 +6,16 @@ defmodule Bridge.Web.Auth do
   import Plug.Conn
   import Comeonin.Bcrypt, only: [checkpw: 2, dummy_checkpw: 0]
   import Phoenix.Controller
+  import Joken
 
+  alias Bridge.Repo
   alias Bridge.Web.Router.Helpers
   alias Bridge.Web.UrlHelpers
 
   @doc """
   A plug that looks up the team in scope and sets it in the connection assigns.
   """
-  def fetch_team(conn, opts) do
-    repo = Keyword.fetch!(opts, :repo)
-
+  def fetch_team(conn, _opts \\ []) do
     case conn.assigns[:subdomain] do
       "" ->
         conn
@@ -23,29 +23,31 @@ defmodule Bridge.Web.Auth do
         |> halt()
 
       subdomain ->
-        team = repo.get_by!(Bridge.Team, slug: subdomain)
+        team = Repo.get_by!(Bridge.Team, slug: subdomain)
         assign(conn, :team, team)
     end
   end
 
   @doc """
   A plug that looks up the currently logged in user for the current team
-  and assigns it to the current_user key. If team is not specified or user is
-  not logged in, sets the current_user to nil.
+  and assigns it to the `current_user` key. If team is not specified or user is
+  not logged in, sets the `current_user` to `nil`.
   """
-  def fetch_current_user(conn, opts) do
-    repo = Keyword.fetch!(opts, :repo)
-
+  def fetch_current_user_by_session(conn, _opts \\ []) do
     cond do
       conn.assigns[:team] == nil ->
         delete_current_user(conn)
+
+      # This is a backdoor that makes auth testing easier
+      user = conn.assigns[:current_user] ->
+        put_current_user(conn, user)
 
       sessions = get_session(conn, :sessions) ->
         team_id = Integer.to_string(conn.assigns.team.id)
 
         case decode_user_sessions(sessions) do
           %{^team_id => [user_id, _issued_at_ts]} ->
-            user = repo.get(Bridge.User, user_id)
+            user = Repo.get(Bridge.User, user_id)
             put_current_user(conn, user)
           _ ->
             delete_current_user(conn)
@@ -57,10 +59,38 @@ defmodule Bridge.Web.Auth do
   end
 
   @doc """
+  A plug that authenticates the current user via the `Authorization` bearer token.
+
+  - If team is not specified, halts and returns a 400 response.
+  - If no token is provided, halts and returns a 403 response.
+  - If token is expired, halts and returns a 403 response.
+  - If token is for a user not belonging to the team in scope, halts and
+    returns a 403 response.
+  - If token is valid, sets the `current_user` on the connection assigns and the
+    absinthe context.
+  """
+  def authenticate_with_token(conn, _opts \\ []) do
+    cond do
+      conn.assigns[:team] == nil ->
+        conn
+        |> delete_current_user()
+        |> send_resp(400, "")
+        |> halt()
+
+      # This is a backdoor that makes auth testing easier
+      user = conn.assigns[:current_user] ->
+        put_current_user(conn, user)
+
+      true ->
+        verify_bearer_token(conn)
+    end
+  end
+
+  @doc """
   A plug for ensuring that a user is currently logged in to the particular team.
   """
-  def authenticate_user(conn, _opts) do
-    if conn.assigns.current_user do
+  def authenticate_user(conn, _opts \\ []) do
+    if conn.assigns[:current_user] do
       conn
     else
       conn
@@ -92,9 +122,7 @@ defmodule Bridge.Web.Auth do
   If the user is found and password is valid, signs the user in and returns
   an :ok tuple. Otherwise, returns an :error tuple.
   """
-  def sign_in_with_credentials(conn, team, identifier, given_pass, opts) do
-    repo = Keyword.fetch!(opts, :repo)
-
+  def sign_in_with_credentials(conn, team, identifier, given_pass, _opts \\ []) do
     column = if Regex.match?(~r/@/, identifier) do
       :email
     else
@@ -102,7 +130,7 @@ defmodule Bridge.Web.Auth do
     end
 
     conditions = %{team_id: team.id} |> Map.put(column, identifier)
-    user = repo.get_by(Bridge.User, conditions)
+    user = Repo.get_by(Bridge.User, conditions)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->
@@ -112,6 +140,78 @@ defmodule Bridge.Web.Auth do
       true ->
         dummy_checkpw()
         {:error, :not_found, conn}
+    end
+  end
+
+  @doc """
+  Generates a JSON Web Token (JWT) for a particular user for use by front end
+  clients. Returns a Joken.Token struct.
+
+  Use the `generate_signed_jwt/1` function to generate a fully-signed
+  token in binary format.
+  """
+  def generate_jwt(user) do
+    token()
+    |> Map.put(:claims, %{sub: user.id})
+    |> with_signer(hs256(jwt_secret()))
+  end
+
+  @doc """
+  Generates a fully-signed JSON Web Token (JWT) for a particular user for use by
+  front end clients.
+  """
+  def generate_signed_jwt(user) do
+    user
+    |> generate_jwt
+    |> sign
+    |> get_compact
+  end
+
+  @doc """
+  Verifies a signed JSON Web Token (JWT).
+  """
+  def verify_signed_jwt(signed_token) do
+    signed_token
+    |> token
+    |> with_signer(hs256(jwt_secret()))
+    |> verify
+  end
+
+  @doc """
+  Returns the secret key base to use for signing JSON Web Tokens.
+  """
+  def jwt_secret do
+    Application.get_env(:bridge, Bridge.Web.Endpoint)[:secret_key_base]
+  end
+
+  defp verify_bearer_token(conn) do
+    case get_req_header(conn, "authorization") do
+      ["Bearer " <> token] ->
+        case verify_signed_jwt(token) do
+          %Joken.Token{claims: %{"sub" => user_id}} ->
+            user = Repo.get(Bridge.User, user_id)
+
+            if user.team_id == conn.assigns.team.id do
+              put_current_user(conn, user)
+            else
+              conn
+              |> delete_current_user()
+              |> send_resp(403, "")
+              |> halt()
+            end
+
+          _ ->
+            conn
+            |> delete_current_user()
+            |> send_resp(403, "")
+            |> halt()
+        end
+
+      _ ->
+        conn
+        |> delete_current_user()
+        |> send_resp(400, "")
+        |> halt()
     end
   end
 
@@ -157,7 +257,9 @@ defmodule Bridge.Web.Auth do
   end
 
   defp put_current_user(conn, user) do
-    assign(conn, :current_user, user)
+    conn
+    |> assign(:current_user, user)
+    |> put_private(:absinthe, %{context: %{current_user: user}})
   end
 
   defp now_timestamp do

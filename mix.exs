@@ -41,7 +41,12 @@ defmodule Bridge.Mixfile do
      {:credo, "~> 0.7", only: [:dev, :test]},
      {:comeonin, "~> 3.0"},
      {:timex, "~> 3.0"},
-     {:ex_doc, "~> 0.16"}]
+     {:ex_doc, "~> 0.16"},
+     {:absinthe, "~> 1.3"},
+     # Pointing at a fork of the library in order to use this functionality:
+     # https://github.com/absinthe-graphql/absinthe_plug/pull/92
+     {:absinthe_plug, "~> 1.3", git: "https://github.com/djreimer/absinthe_plug.git", ref: "71bbdbe"},
+     {:joken, "~> 1.5"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

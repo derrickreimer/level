@@ -39,7 +39,8 @@ defmodule Bridge.Web do
 
       import Bridge.Web.Auth, only: [
         fetch_team: 2,
-        fetch_current_user: 2,
+        fetch_current_user_by_session: 2,
+        authenticate_with_token: 2,
         authenticate_user: 2
       ]
 
@@ -80,7 +81,8 @@ defmodule Bridge.Web do
 
       import Bridge.Web.Auth, only: [
         fetch_team: 2,
-        fetch_current_user: 2,
+        fetch_current_user_by_session: 2,
+        authenticate_with_token: 2,
         authenticate_user: 2
       ]
 
