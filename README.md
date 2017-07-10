@@ -65,7 +65,7 @@ at http://launch.bridge.dev:4000:
 
 ```
 127.0.0.1  launch.bridge.dev    # required
-127.0.0.1  yourteam.bridge.dev  # need add entry for every team you create
+127.0.0.1  yourteam.bridge.dev  # need an entry like this for every team you create
 ```
 
 **Caveat**: The hosts file approach does not support wildcard subdomains, so you
