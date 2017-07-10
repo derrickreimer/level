@@ -59,7 +59,24 @@ defmodule Bridge.Web.Router do
   # GraphQL explorer
   scope "/" do
     pipe_through [:browser, :team]
-    forward "/graphiql", Absinthe.Plug.GraphiQL, schema: Bridge.Web.Schema
+    forward "/graphiql", Absinthe.Plug.GraphiQL,
+      schema: Bridge.Web.Schema,
+      default_headers: &__MODULE__.graphiql_headers/1,
+      default_url: &__MODULE__.graphiql_url/1
+  end
+
+  def graphiql_headers(conn) do
+    token = Bridge.Web.Auth.generate_signed_jwt(conn.assigns.current_user)
+    %{"Authorization" => "Bearer #{token}"}
+  end
+
+  def graphiql_url(conn) do
+    URI.to_string %URI{
+      scheme: Atom.to_string(conn.scheme),
+      port: conn.port,
+      host: conn.host,
+      path: "/graphql"
+    }
   end
 
   # Team-scoped routes requiring authentication
