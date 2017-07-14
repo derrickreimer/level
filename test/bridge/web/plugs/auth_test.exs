@@ -109,6 +109,23 @@ defmodule Bridge.Web.AuthTest do
       assert conn.halted
     end
 
+    test "sets the current user if token is expired", %{conn: conn} do
+      {:ok, %{team: team, user: user}} = insert_signup()
+
+      token = generate_expired_token(user)
+
+      conn =
+        conn
+        |> assign(:team, team)
+        |> put_req_header("authorization", "Bearer #{token}")
+        |> Auth.authenticate_with_token()
+
+      assert conn.assigns.current_user == nil
+      assert conn.status == 401
+      assert conn.resp_body == "Token expired"
+      assert conn.halted
+    end
+
     test "sets the current user if token is valid", %{conn: conn} do
       {:ok, %{team: team, user: user}} = insert_signup()
 
@@ -231,7 +248,51 @@ defmodule Bridge.Web.AuthTest do
     end
   end
 
+  describe "verify_signed_jwt/1" do
+    setup do
+      user = %Bridge.User{id: 999}
+      {:ok, %{user: user}}
+    end
+
+    test "returns errors if expired", %{user: user} do
+      token = generate_expired_token(user)
+
+      verified_token = Auth.verify_signed_jwt(token)
+      %Joken.Token{error: error} = verified_token
+      assert error == "Token expired"
+    end
+
+    test "returns errors if signature is bogus", %{user: user} do
+      token = String.slice(Auth.generate_signed_jwt(user), 0..-2)
+
+      verified_token = Auth.verify_signed_jwt(token)
+      %Joken.Token{error: error} = verified_token
+      assert error == "Invalid signature"
+    end
+
+    test "validates if non-expired", %{user: user} do
+      token = Auth.generate_signed_jwt(user)
+
+      verified_token = Auth.verify_signed_jwt(token)
+      %Joken.Token{error: error, errors: errors} = verified_token
+      assert errors == []
+      assert error == nil
+    end
+  end
+
   defp to_user_session(team, user, ts \\ 123) do
     Poison.encode!(%{Integer.to_string(team.id) => [user.id, ts]})
+  end
+
+  defp generate_expired_token(user) do
+    past = 1499951920
+
+    user
+    |> Auth.generate_jwt
+    |> Joken.with_exp(past + 1)
+    |> Joken.with_iat(past)
+    |> Joken.with_nbf(past - 1)
+    |> Joken.sign
+    |> Joken.get_compact
   end
 end
