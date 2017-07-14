@@ -62,10 +62,10 @@ defmodule Bridge.Web.Auth do
   A plug that authenticates the current user via the `Authorization` bearer token.
 
   - If team is not specified, halts and returns a 400 response.
-  - If no token is provided, halts and returns a 403 response.
-  - If token is expired, halts and returns a 403 response.
+  - If no token is provided, halts and returns a 401 response.
+  - If token is expired, halts and returns a 401 response.
   - If token is for a user not belonging to the team in scope, halts and
-    returns a 403 response.
+    returns a 401 response.
   - If token is valid, sets the `current_user` on the connection assigns and the
     absinthe context.
   """
@@ -151,8 +151,12 @@ defmodule Bridge.Web.Auth do
   token in binary format.
   """
   def generate_jwt(user) do
-    token()
-    |> Map.put(:claims, %{sub: user.id})
+    %Joken.Token{}
+    |> with_json_module(Poison)
+    |> with_exp(current_time() + (2 * 60 * 60)) # 2 hours from now
+    |> with_iat(current_time())
+    |> with_nbf(current_time() - 1) # 1 second ago
+    |> with_sub(user.id)
     |> with_signer(hs256(jwt_secret()))
   end
 
@@ -174,6 +178,9 @@ defmodule Bridge.Web.Auth do
     signed_token
     |> token
     |> with_signer(hs256(jwt_secret()))
+    |> with_validation("exp", &(&1 > current_time()), "Token expired")
+    |> with_validation("iat", &(&1 <= current_time()))
+    |> with_validation("nbf", &(&1 < current_time()))
     |> verify
   end
 
@@ -188,23 +195,20 @@ defmodule Bridge.Web.Auth do
     case get_req_header(conn, "authorization") do
       ["Bearer " <> token] ->
         case verify_signed_jwt(token) do
-          %Joken.Token{claims: %{"sub" => user_id}} ->
+          %Joken.Token{claims: %{"sub" => user_id}, error: nil} ->
             user = Repo.get(Bridge.User, user_id)
 
             if user.team_id == conn.assigns.team.id do
               put_current_user(conn, user)
             else
-              conn
-              |> delete_current_user()
-              |> send_resp(403, "")
-              |> halt()
+              send_unauthorized(conn, "")
             end
 
+          %Joken.Token{error: error} ->
+            send_unauthorized(conn, error)
+
           _ ->
-            conn
-            |> delete_current_user()
-            |> send_resp(403, "")
-            |> halt()
+            send_unauthorized(conn, "")
         end
 
       _ ->
@@ -213,6 +217,13 @@ defmodule Bridge.Web.Auth do
         |> send_resp(400, "")
         |> halt()
     end
+  end
+
+  defp send_unauthorized(conn, body) do
+    conn
+    |> delete_current_user()
+    |> send_resp(401, body)
+    |> halt()
   end
 
   defp put_user_session(conn, team, user) do
