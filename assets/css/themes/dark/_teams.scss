@@ -1,0 +1,40 @@
+.auth-form,
+.team-switcher {
+
+  &__footer {
+    color: $muted-text-color;
+  }
+}
+
+.auth-form {
+
+  &__form {
+    border-color: $default-border-color;
+  }
+}
+
+.team-switcher {
+
+  &__teams {
+
+    & > li > a {
+      background-color: $light-background-color;
+    }
+  }
+
+  &__avatar {
+    background-color: rgba(255,255,255,0.5);
+  }
+
+  &__details {
+    color: $default-text-color;
+  }
+
+  &__add {
+    display: inline-block;
+    padding-left: 42px;
+    line-height: 32px;
+    background: top left url("/images/dark/icon-plus.svg") no-repeat;
+    color: $muted-text-color;
+  }
+}

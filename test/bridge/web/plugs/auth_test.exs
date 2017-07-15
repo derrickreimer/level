@@ -280,6 +280,25 @@ defmodule Bridge.Web.AuthTest do
     end
   end
 
+  describe "signed_in_teams/1" do
+    test "returns an empty list if none logged in", %{conn: conn} do
+      assert Auth.signed_in_teams(conn) == []
+    end
+
+    test "returns a list of signed-in teams", %{conn: conn} do
+      {:ok, %{team: team, user: user}} = insert_signup()
+
+      conn =
+        conn
+        |> sign_in(team, user)
+        |> put_launch_host()
+        |> get("/")
+
+      [result] = Auth.signed_in_teams(conn)
+      assert result.id == team.id
+    end
+  end
+
   defp to_user_session(team, user, ts \\ 123) do
     Poison.encode!(%{Integer.to_string(team.id) => [user.id, ts]})
   end

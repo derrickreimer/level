@@ -1,0 +1,27 @@
+<%= if get_flash(@conn, :error) do %>
+  <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
+<% end %>
+
+<div class="team-switcher">
+  <h2 class="team-switcher__heading"><%= gettext "My Teams" %></h2>
+
+  <ul class="team-switcher__teams">
+    <%= for team <- @teams do %>
+      <li>
+        <a href="<%= threads_url(@conn, team) %>">
+          <div class="team-switcher__avatar"></div>
+          <div class="team-switcher__details">
+            <h3 class="team-switcher__name"><%= team.name %></h3>
+            <p class="team-switcher__url"><%= team_host(team) %></p>
+          </div>
+        </a>
+      </li>
+    <% end %>
+  </ul>
+
+  <div class="team-switcher__footer">
+    <a href="<%= team_search_url(@conn) %>" class="team-switcher__add">
+      Sign in to another team...
+    </a>
+  </div>
+</div>

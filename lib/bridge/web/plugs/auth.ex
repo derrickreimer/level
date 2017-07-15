@@ -191,6 +191,30 @@ defmodule Bridge.Web.Auth do
     Application.get_env(:bridge, Bridge.Web.Endpoint)[:secret_key_base]
   end
 
+  @doc """
+  Returns a list of teams currently signed-in via the browser session.
+  """
+  def signed_in_teams(conn) do
+    import Ecto.Query, only: [from: 2]
+
+    if sessions_json = get_session(conn, :sessions) do
+      case decode_user_sessions(sessions_json) do
+        nil -> []
+        sessions ->
+          team_ids = Map.keys(sessions)
+
+          Repo.all(
+            from t in Bridge.Team,
+              where: t.id in ^team_ids,
+              select: t,
+              order_by: [asc: t.name]
+          )
+      end
+    else
+      []
+    end
+  end
+
   defp verify_bearer_token(conn) do
     case get_req_header(conn, "authorization") do
       ["Bearer " <> token] ->
