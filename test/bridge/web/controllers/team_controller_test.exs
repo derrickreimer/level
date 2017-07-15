@@ -1,7 +1,7 @@
 defmodule Bridge.Web.TeamControllerTest do
   use Bridge.Web.ConnCase
 
-  describe "GET /teams" do
+  describe "GET /" do
     setup %{conn: conn} do
       conn =
         conn
@@ -17,10 +17,10 @@ defmodule Bridge.Web.TeamControllerTest do
         conn
         |> recycle()
         |> put_launch_host()
-        |> get("/teams")
+        |> get("/")
 
       assert conn.host == "launch.bridge.test"
-      assert redirected_to(conn, 302) =~ "/"
+      assert redirected_to(conn, 302) =~ "/teams/search"
     end
 
     test "renders the list of signed in teams", %{conn: conn} do
@@ -30,7 +30,7 @@ defmodule Bridge.Web.TeamControllerTest do
         conn
         |> sign_in(team, user)
         |> put_launch_host()
-        |> get("/teams")
+        |> get("/")
 
       body = html_response(conn, 200)
       assert body =~ "My Teams"

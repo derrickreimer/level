@@ -1,12 +1,12 @@
 defmodule Bridge.Web.TeamSearchControllerTest do
   use Bridge.Web.ConnCase
 
-  describe "GET /" do
+  describe "GET /teams/search" do
     test "includes the correct heading", %{conn: conn} do
       conn =
         conn
         |> put_launch_host()
-        |> get("/")
+        |> get("/teams/search")
 
       assert html_response(conn, 200) =~ "Sign in to Bridge"
     end
@@ -19,7 +19,7 @@ defmodule Bridge.Web.TeamSearchControllerTest do
       conn =
         conn
         |> put_launch_host()
-        |> post("/", %{"search" => %{"slug" => team.slug}})
+        |> post("/teams/search", %{"search" => %{"slug" => team.slug}})
 
       assert redirected_to(conn, 302) =~ "/login"
     end
@@ -28,7 +28,7 @@ defmodule Bridge.Web.TeamSearchControllerTest do
       conn =
         conn
         |> put_launch_host()
-        |> post("/", %{"search" => %{"slug" => "doesnotexist"}})
+        |> post("/teams/search", %{"search" => %{"slug" => "doesnotexist"}})
 
       assert html_response(conn, 200) =~ "We could not find your team"
     end

@@ -223,7 +223,7 @@ view model =
         , div [ class "auth-form__footer" ]
             [ p []
                 [ text "Already have an team? "
-                , a [ href "/" ] [ text "Sign in" ]
+                , a [ href "/teams/search" ] [ text "Sign in" ]
                 , text "."
                 ]
             ]

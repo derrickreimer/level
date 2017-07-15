@@ -43,9 +43,10 @@ defmodule Bridge.Web.Router do
   scope "/", Bridge.Web, host: "launch." do
     pipe_through :browser # Use the default browser stack
 
-    get "/", TeamSearchController, :new
-    post "/", TeamSearchController, :create
-    resources "/teams", TeamController, only: [:index, :new]
+    get "/", TeamController, :index
+    get "/teams/new", TeamController, :new
+    get "/teams/search", TeamSearchController, :new
+    post "/teams/search", TeamSearchController, :create
   end
 
   # Team-scoped routes not requiring authentication
