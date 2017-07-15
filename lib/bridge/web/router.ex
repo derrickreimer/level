@@ -45,7 +45,7 @@ defmodule Bridge.Web.Router do
 
     get "/", TeamSearchController, :new
     post "/", TeamSearchController, :create
-    resources "/teams", TeamController, only: [:new, :create]
+    resources "/teams", TeamController, only: [:index, :new]
   end
 
   # Team-scoped routes not requiring authentication

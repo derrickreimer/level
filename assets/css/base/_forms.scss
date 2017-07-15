@@ -18,7 +18,7 @@
   align-items: baseline;
 
   &__slug {
-    flex: 0 1; // the first 1 means this can auto-grow
+    flex: 0 1;
     min-width: 120px;
 
     input {
