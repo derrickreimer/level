@@ -27,3 +27,7 @@ config :bridge, Bridge.Repo,
 # Make tests run faster by reducing encryption rounds
 config :comeonin, :bcrypt_log_rounds, 4
 config :comeonin, :pbkdf2_rounds, 1
+
+# Mailer
+config :bridge, Bridge.Mailer,
+  adapter: Bamboo.LocalAdapter

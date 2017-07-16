@@ -27,6 +27,18 @@ config :bridge, Bridge.Repo,
   pool_size: String.to_integer(System.get_env("BRIDGE_POOL_SIZE") || "10"),
   ssl: true
 
+# Mailer
+config :bridge, Bridge.Mailer,
+  adapter: Bamboo.SMTPAdapter,
+  server: {:system, "BRIDGE_SMTP_HOST"},
+  port: {:system, "BRIDGE_SMTP_PORT"},
+  username: {:system, "BRIDGE_SMTP_USERNAME"},
+  password: {:system, "BRIDGE_SMTP_PASSWORD"},
+  tls: :if_available, # can be `:always` or `:never`
+  allowed_tls_versions: [:"tlsv1", :"tlsv1.1", :"tlsv1.2"], # or {":system", ALLOWED_TLS_VERSIONS"} w/ comma seprated values (e.g. "tlsv1.1,tlsv1.2")
+  ssl: true,
+  retries: 1
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key

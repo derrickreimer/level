@@ -46,7 +46,9 @@ defmodule Bridge.Mixfile do
      # Pointing at a fork of the library in order to use this functionality:
      # https://github.com/absinthe-graphql/absinthe_plug/pull/92
      {:absinthe_plug, "~> 1.3", git: "https://github.com/djreimer/absinthe_plug.git", ref: "71bbdbe"},
-     {:joken, "~> 1.5"}]
+     {:joken, "~> 1.5"},
+     {:bamboo, "~> 0.8"},
+     {:bamboo_smtp, "~> 1.4"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

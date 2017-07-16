@@ -31,6 +31,22 @@
     "BRIDGE_POOL_SIZE": {
       "description": "The maximum number of database connections each process may consume.",
       "value": "18"
+    },
+    "BRIDGE_SMTP_HOST": {
+      "description": "The hostname of the your SMTP provider.",
+      "value": ""
+    },
+    "BRIDGE_SMTP_PORT": {
+      "description": "The port number for your SMTP provider.",
+      "value": ""
+    },
+    "BRIDGE_SMTP_USERNAME": {
+      "description": "The username for your SMTP provider.",
+      "value": ""
+    },
+    "BRIDGE_SMTP_PASSWORD": {
+      "description": "The password for your SMTP provider.",
+      "value": ""
     }
   }
 }

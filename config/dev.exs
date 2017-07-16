@@ -41,3 +41,7 @@ config :bridge, Bridge.Repo,
   database: "bridge_dev",
   hostname: "localhost",
   pool_size: 10
+
+# Mailer
+config :bridge, Bridge.Mailer,
+  adapter: Bamboo.LocalAdapter
