@@ -13,8 +13,9 @@ defmodule Bridge.Web.Schema.Types do
     serialize &Timex.format!(&1, "{ISO:Extended:Z}")
   end
 
+  @desc "A user object"
   object :user do
-    field :id, :id
+    field :id, non_null(:id)
     field :email, non_null(:string)
     field :username, non_null(:string)
     field :first_name, :string
@@ -23,7 +24,7 @@ defmodule Bridge.Web.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
-    field :team, :team do
+    field :team, non_null(:team) do
       resolve fn user, _, _ ->
         batch({Helpers, :by_id, Bridge.Team}, user.team_id, fn batch_results ->
           {:ok, Map.get(batch_results, user.team_id)}
@@ -32,11 +33,34 @@ defmodule Bridge.Web.Schema.Types do
     end
   end
 
+  @desc "A team object"
   object :team do
-    field :id, :id
+    field :id, non_null(:id)
     field :name, non_null(:string)
     field :slug, non_null(:string)
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
+  end
+
+  @desc "An invitation to a team"
+  object :invitation do
+    field :id, non_null(:id)
+    field :invitor, non_null(:user)
+    field :email, non_null(:string)
+    field :inserted_at, non_null(:time)
+    field :updated_at, non_null(:time)
+  end
+
+  @desc "The response to creating an invitation"
+  object :create_invitation_payload do
+    field :success, :boolean
+    field :invitation, :invitation
+    field :errors, list_of(:error)
+  end
+
+  @desc "A validation error"
+  object :error do
+    field :attribute, non_null(:string)
+    field :message, non_null(:string)
   end
 end

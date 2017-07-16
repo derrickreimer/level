@@ -16,6 +16,6 @@ defmodule Bridge.Repo.Migrations.CreateInvitation do
 
     create index(:invitations, [:team_id])
     create index(:invitations, [:invitor_id])
-    create index(:invitations, [:token])
+    create unique_index(:invitations, [:token])
   end
 end

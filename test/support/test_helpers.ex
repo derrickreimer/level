@@ -11,6 +11,13 @@ defmodule Bridge.TestHelpers do
     }
   end
 
+  def valid_invitation_params(%{team: team}) do
+    %{
+      team_id: team.id,
+      email: "derrick@bridge.chat"
+    }
+  end
+
   def insert_signup(attrs \\ %{}) do
     random_string = Base.encode16(:crypto.strong_rand_bytes(8))
     username = "user#{random_string}"

@@ -224,7 +224,7 @@ CREATE INDEX invitations_team_id_index ON invitations USING btree (team_id);
 -- Name: invitations_token_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX invitations_token_index ON invitations USING btree (token);
+CREATE UNIQUE INDEX invitations_token_index ON invitations USING btree (token);
 
 
 --
