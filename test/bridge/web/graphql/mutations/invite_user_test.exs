@@ -1,5 +1,6 @@
-defmodule Bridge.Web.GraphQLTest do
+defmodule Bridge.Web.GraphQL.InviteUserTest do
   use Bridge.Web.ConnCase
+  import Bridge.Web.GraphQL.TestHelpers
 
   setup %{conn: conn} do
     {:ok, %{user: user, team: team}} = insert_signup()
@@ -7,49 +8,7 @@ defmodule Bridge.Web.GraphQLTest do
     {:ok, %{conn: conn, user: user, team: team}}
   end
 
-  test "querying viewer properties", %{conn: conn, user: user} do
-    query = """
-      {
-        viewer {
-          username
-        }
-      }
-    """
-
-    conn = post_graphql(conn, query)
-    assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "username" => user.username
-        }
-      }
-    }
-  end
-
-  test "querying viewer team relation", %{conn: conn, team: team} do
-    query = """
-      {
-        viewer {
-          team {
-            name
-          }
-        }
-      }
-    """
-
-    conn = post_graphql(conn, query)
-    assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "team" => %{
-            "name" => team.name
-          }
-        }
-      }
-    }
-  end
-
-  test "createInvitation mutation with valid data", %{conn: conn} do
+  test "creates an invitation with valid data", %{conn: conn} do
     email = "tiffany@bridge.chat"
 
     query = """
@@ -67,7 +26,10 @@ defmodule Bridge.Web.GraphQLTest do
       }
     """
 
-    conn = post_graphql(conn, query)
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
       "data" => %{
@@ -82,7 +44,7 @@ defmodule Bridge.Web.GraphQLTest do
     }
   end
 
-  test "createInvitation mutation with invalid data", %{conn: conn} do
+  test "returns validation errors when data is valid", %{conn: conn} do
     email = "notvalid"
 
     query = """
@@ -100,7 +62,10 @@ defmodule Bridge.Web.GraphQLTest do
       }
     """
 
-    conn = post_graphql(conn, query)
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
       "data" => %{
@@ -113,11 +78,5 @@ defmodule Bridge.Web.GraphQLTest do
         }
       }
     }
-  end
-
-  def post_graphql(conn, query) do
-    conn
-    |> put_req_header("content-type", "application/graphql")
-    |> post("/graphql", query)
   end
 end
