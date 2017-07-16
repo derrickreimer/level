@@ -13,7 +13,7 @@ defmodule Bridge.Web.GraphQL.InviteUserTest do
 
     query = """
       mutation {
-        createInvitation(email: "#{email}") {
+        inviteUser(email: "#{email}") {
           success
           invitation {
             email
@@ -33,7 +33,7 @@ defmodule Bridge.Web.GraphQL.InviteUserTest do
 
     assert json_response(conn, 200) == %{
       "data" => %{
-        "createInvitation" => %{
+        "inviteUser" => %{
           "success" => true,
           "invitation" => %{
             "email" => email
@@ -49,7 +49,7 @@ defmodule Bridge.Web.GraphQL.InviteUserTest do
 
     query = """
       mutation {
-        createInvitation(email: "#{email}") {
+        inviteUser(email: "#{email}") {
           success
           invitation {
             email
@@ -69,7 +69,7 @@ defmodule Bridge.Web.GraphQL.InviteUserTest do
 
     assert json_response(conn, 200) == %{
       "data" => %{
-        "createInvitation" => %{
+        "inviteUser" => %{
           "success" => false,
           "invitation" => nil,
           "errors" => [

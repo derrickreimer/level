@@ -17,7 +17,7 @@ defmodule Bridge.Web.Schema do
 
   mutation do
     @desc "Invite a person to a team via email"
-    field :create_invitation, type: :create_invitation_payload do
+    field :invite_user, type: :invite_user_payload do
       arg :email, non_null(:string)
 
       resolve &Bridge.Web.InvitationResolver.create/2

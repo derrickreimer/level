@@ -51,8 +51,8 @@ defmodule Bridge.Web.Schema.Types do
     field :updated_at, non_null(:time)
   end
 
-  @desc "The response to creating an invitation"
-  object :create_invitation_payload do
+  @desc "The response to inviting a user to a team"
+  object :invite_user_payload do
     field :success, :boolean
     field :invitation, :invitation
     field :errors, list_of(:error)
