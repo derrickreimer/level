@@ -13,7 +13,7 @@ defmodule Bridge.Web.Schema.Types do
     serialize &Timex.format!(&1, "{ISO:Extended:Z}")
   end
 
-  @desc "A user object"
+  @desc "A user represents a person belonging to a specific team."
   object :user do
     field :id, non_null(:id)
     field :email, non_null(:string)
@@ -33,7 +33,7 @@ defmodule Bridge.Web.Schema.Types do
     end
   end
 
-  @desc "A team object"
+  @desc "A team is the main organizational unit for a Bridge account."
   object :team do
     field :id, non_null(:id)
     field :name, non_null(:string)
@@ -42,7 +42,7 @@ defmodule Bridge.Web.Schema.Types do
     field :updated_at, non_null(:time)
   end
 
-  @desc "An invitation to a team"
+  @desc "An invitation is the means by which a new user joins an existing team."
   object :invitation do
     field :id, non_null(:id)
     field :invitor, non_null(:user)
@@ -51,14 +51,14 @@ defmodule Bridge.Web.Schema.Types do
     field :updated_at, non_null(:time)
   end
 
-  @desc "The response to inviting a user to a team"
+  @desc "The response to inviting a user to a team."
   object :invite_user_payload do
     field :success, :boolean
     field :invitation, :invitation
     field :errors, list_of(:error)
   end
 
-  @desc "A validation error"
+  @desc "A validation error."
   object :error do
     field :attribute, non_null(:string)
     field :message, non_null(:string)

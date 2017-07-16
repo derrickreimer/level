@@ -7,7 +7,7 @@ defmodule Bridge.Web.Schema do
   import_types Bridge.Web.Schema.Types
 
   query do
-    @desc "Get the currently signed in user"
+    @desc "The currently authenticated user."
     field :viewer, :user do
       resolve fn _, %{context: %{current_user: current_user}} ->
         {:ok, current_user}
@@ -16,7 +16,7 @@ defmodule Bridge.Web.Schema do
   end
 
   mutation do
-    @desc "Invite a person to a team via email"
+    @desc "Invite a person to a team via email."
     field :invite_user, type: :invite_user_payload do
       arg :email, non_null(:string)
 
