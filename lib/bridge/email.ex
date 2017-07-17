@@ -16,7 +16,7 @@ defmodule Bridge.Email do
 
     new_email()
     |> to(invitation.email)
-    |> from({"Bridge", "invitations@#{UrlHelpers.root_domain()}"})
+    |> from({"Bridge", "invitations@#{UrlHelpers.default_host()}"})
     |> subject("Your invitation to join the #{team.name} Bridge team")
     |> render("invitation_email.text", invitation: invitation,
                                        team: team,

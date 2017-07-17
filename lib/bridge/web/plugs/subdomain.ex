@@ -4,6 +4,7 @@ defmodule Bridge.Web.Subdomain do
   """
 
   import Plug.Conn
+  import Bridge.Web.UrlHelpers
 
   @doc """
   A plug that ensures that:
@@ -21,14 +22,14 @@ defmodule Bridge.Web.Subdomain do
         See https://github.com/djreimer/bridge#routing for more information.
         """
 
-      String.ends_with?(conn.host, root_domain()) ->
+      String.ends_with?(conn.host, default_host()) ->
         conn
 
       true ->
         raise """
         Bridge must be served from the hostname configured in your config/{env}.exs file.
 
-        Your configured host is #{root_domain()}, but this request came via #{conn.host}.
+        Your configured host is #{default_host()}, but this request came via #{conn.host}.
 
         This is required to ensure cookie-setting and subdomain routing functions properly.
         See https://github.com/djreimer/bridge#routing for more information.
@@ -41,13 +42,9 @@ defmodule Bridge.Web.Subdomain do
   """
   def extract_subdomain(conn, _opts \\ []) do
     subdomain = conn.host
-      |> String.trim_trailing(root_domain())
+      |> String.trim_trailing(default_host())
       |> String.trim_trailing(".")
 
     assign(conn, :subdomain, subdomain)
-  end
-
-  defp root_domain do
-    Application.get_env(:bridge, Bridge.Web.Endpoint)[:url][:host]
   end
 end
