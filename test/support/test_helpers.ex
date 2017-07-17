@@ -11,9 +11,10 @@ defmodule Bridge.TestHelpers do
     }
   end
 
-  def valid_invitation_params(%{team: team}) do
+  def valid_invitation_params(%{team: team, invitor: invitor}) do
     %{
       team_id: team.id,
+      invitor_id: invitor.id,
       email: "derrick@bridge.chat"
     }
   end

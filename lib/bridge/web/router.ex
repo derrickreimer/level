@@ -55,6 +55,7 @@ defmodule Bridge.Web.Router do
 
     get "/login", SessionController, :new
     post "/login", SessionController, :create
+    resources "/invitations", InvitationController
   end
 
   # GraphQL explorer

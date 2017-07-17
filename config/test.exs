@@ -30,4 +30,4 @@ config :comeonin, :pbkdf2_rounds, 1
 
 # Mailer
 config :bridge, Bridge.Mailer,
-  adapter: Bamboo.LocalAdapter
+  adapter: Bamboo.TestAdapter

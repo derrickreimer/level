@@ -7,6 +7,8 @@ defmodule Bridge.Invitation do
   import Ecto.Changeset
   import Bridge.Web.Gettext
 
+  alias Bridge.Repo
+
   schema "invitations" do
     field :state, :integer
     field :role, :integer
@@ -21,11 +23,31 @@ defmodule Bridge.Invitation do
   end
 
   @doc """
+  Create a new invitation and send the invitation email if successful.
+  """
+  def create(params) do
+    case Repo.insert(changeset(%__MODULE__{}, params)) do
+      {:ok, invitation} ->
+        invitation =
+          invitation
+          |> Repo.preload([:team, :invitor])
+
+        invitation
+        |> Bridge.Email.invitation_email()
+        |> Bridge.Mailer.deliver_later()
+
+        {:ok, invitation}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
   Builds a changeset based on the `struct` and `params`.
   """
   def changeset(struct, params \\ %{}) do
     # TODO: validate uniqueness of pending invitations
-    # TODO: encapsulate creation routine in a function, add mailer send
     # TODO: define state enum
     struct
     |> cast(params, [:invitor_id, :team_id, :email])

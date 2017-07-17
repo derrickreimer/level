@@ -4,20 +4,20 @@ defmodule Bridge.Web.InvitationResolver do
   """
 
   alias Bridge.Invitation
-  alias Bridge.Repo
 
   def create(args, info) do
+    user = info.context.current_user
+
     args =
       args
-      |> Map.put(:invitor_id, info.context.current_user.id)
-      |> Map.put(:team_id, info.context.current_user.team_id)
+      |> Map.put(:invitor_id, user.id)
+      |> Map.put(:team_id, user.team_id)
 
-    changeset = Invitation.changeset(%Invitation{}, args)
-
-    resp = case Repo.insert(changeset) do
+    resp = case Invitation.create(args) do
       {:ok, invitation} ->
         %{success: true, invitation: invitation, errors: []}
-      {:error, _changeset} ->
+
+      {:error, changeset} ->
         %{success: false, invitation: nil, errors: format_errors(changeset)}
     end
 
