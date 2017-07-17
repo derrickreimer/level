@@ -15,6 +15,7 @@
     margin: 24px 0;
     text-align: center;
     font-weight: $normal-weight;
+    color: $muted-text-color;
   }
 }
 
@@ -24,6 +25,7 @@
     padding: 24px;
     border: 1px solid;
     border-radius: 6px;
+    border-color: $default-border-color;
   }
 
   .form-field {
@@ -57,6 +59,7 @@
         padding: 12px;
         border-radius: 4px;
         text-decoration: none;
+        background-color: $light-background-color;
       }
     }
   }
@@ -66,11 +69,13 @@
     width: 62px;
     height: 62px;
     border-radius: 3px;
+    background-color: rgba(255,255,255,0.5);
   }
 
   &__details {
     flex: 1 1;
     padding: 6px 18px 0;
+    color: $default-text-color;
   }
 
   &__name {
@@ -83,5 +88,13 @@
     margin: 0;
     font-size: 16px;
     font-weight: normal;
+  }
+
+  &__add {
+    display: inline-block;
+    padding-left: 42px;
+    line-height: 32px;
+    background: top left url("/images/dark/icon-plus.svg") no-repeat;
+    color: $muted-text-color;
   }
 }

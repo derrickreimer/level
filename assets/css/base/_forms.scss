@@ -1,4 +1,27 @@
+.form-field {
+
+  &--error {
+
+    .text-field {
+      background-color: $error-color;
+
+      &::placeholder {
+        opacity: 0;
+        color: lighten($error-color, 30%);
+      }
+
+      &:hover,
+      &:active,
+      &:focus {
+        background-color: lighten($error-color, 5%);
+      }
+    }
+  }
+}
+
 .text-field {
+  @include shadow-on-focus;
+
   font-family: $system-font-stack;
   font-weight: $normal-weight;
   padding: 15px;
@@ -6,6 +29,18 @@
   border-radius: 3px;
   font-size: $default-font-size;
   transition: background-color 0.2s ease;
+  background-color: $input-background-color;
+  color: $input-text-color;
+
+  &::placeholder {
+    color: lighten($input-background-color, 20%);
+  }
+
+  &:hover,
+  &:active,
+  &:focus {
+    background-color: lighten($input-background-color, 5%);
+  }
 
   &--full {
     width: 100%;
@@ -16,6 +51,7 @@
   border-radius: 3px;
   display: flex;
   align-items: baseline;
+  background-color: darken($input-background-color, 20%);
 
   &__slug {
     flex: 0 1;
@@ -37,6 +73,7 @@
 }
 
 .form-errors {
+  color: $error-color;
   margin-top: 6px;
   font-weight: $bold-weight;
 }

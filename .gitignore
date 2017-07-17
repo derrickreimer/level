@@ -1,3 +1,6 @@
+# OS Noise
+.DS_Store
+
 # App artifacts
 /_build
 /db

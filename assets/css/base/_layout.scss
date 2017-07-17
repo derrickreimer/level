@@ -8,10 +8,13 @@ body {
   font-size: $default-font-size;
   -webkit-font-smoothing: antialiased;
   line-height: 1.4;
+  background-color: $background-color;
+  color: $default-text-color;
 }
 
 a {
   text-decoration: none;
+  color: $default-link-color;
 
   &:hover {
     text-decoration: underline;
@@ -22,4 +25,14 @@ a {
   padding: 18px;
   text-align: center;
   font-weight: $bold-weight;
+
+  &--info {
+    background-color: $success-color;
+    color: #fff;
+  }
+
+  &--error {
+    background-color: $error-color;
+    color: #fff;
+  }
 }
