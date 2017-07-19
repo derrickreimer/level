@@ -30,6 +30,28 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 SET search_path = public, pg_catalog;
 
+--
+-- Name: invitation_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE invitation_state AS ENUM (
+    'PENDING',
+    'ACCEPTED',
+    'REVOKED'
+);
+
+
+--
+-- Name: user_role; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE user_role AS ENUM (
+    'OWNER',
+    'ADMIN',
+    'MEMBER'
+);
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -43,8 +65,8 @@ CREATE TABLE invitations (
     team_id integer NOT NULL,
     invitor_id integer NOT NULL,
     acceptor_id integer,
-    state integer NOT NULL,
-    role integer NOT NULL,
+    state invitation_state DEFAULT 'PENDING'::invitation_state NOT NULL,
+    role user_role DEFAULT 'MEMBER'::user_role NOT NULL,
     email character varying(255) NOT NULL,
     token character varying(36) NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
@@ -225,6 +247,13 @@ CREATE INDEX invitations_team_id_index ON invitations USING btree (team_id);
 --
 
 CREATE UNIQUE INDEX invitations_token_index ON invitations USING btree (token);
+
+
+--
+-- Name: invitations_unique_pending_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX invitations_unique_pending_email ON invitations USING btree (lower((email)::text)) WHERE (state = 'PENDING'::invitation_state);
 
 
 --

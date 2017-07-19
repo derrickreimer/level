@@ -47,15 +47,14 @@ defmodule Bridge.Invitation do
   Builds a changeset based on the `struct` and `params`.
   """
   def changeset(struct, params \\ %{}) do
-    # TODO: validate uniqueness of pending invitations
-    # TODO: define state enum
     struct
     |> cast(params, [:invitor_id, :team_id, :email])
     |> validate_required([:email])
     |> validate_format(:email, Bridge.User.email_format, message: dgettext("errors", "is invalid"))
-    |> put_change(:state, 0)
-    |> put_change(:role, 0) # TODO: have the user specify this?
     |> put_change(:token, generate_token())
+    |> unique_constraint(:email, name: :invitations_unique_pending_email,
+        message: dgettext("errors", "already has an invitation"),
+        validation: :uniqueness)
   end
 
   defp generate_token do

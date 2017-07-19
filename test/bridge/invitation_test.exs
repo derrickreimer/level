@@ -10,14 +10,6 @@ defmodule Bridge.InvitationTest do
       {:ok, %{team: team, invitor: invitor}}
     end
 
-    test "sets the initial state", %{team: team, invitor: invitor} do
-      changeset = Invitation.changeset(%Invitation{},
-        valid_invitation_params(%{team: team, invitor: invitor}))
-      %{state: state} = changeset.changes
-
-      assert state == 0
-    end
-
     test "generates a unique token", %{team: team, invitor: invitor} do
       changeset = Invitation.changeset(%Invitation{},
         valid_invitation_params(%{team: team, invitor: invitor}))
@@ -39,5 +31,7 @@ defmodule Bridge.InvitationTest do
       assert {:email, {"can't be blank", validation: :required}}
         in changeset.errors
     end
+
+    # See InvitationRepoTest for more tests involving uniqueness constraints
   end
 end
