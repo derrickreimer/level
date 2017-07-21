@@ -15,15 +15,14 @@ defmodule Bridge.TestHelpers do
     %{
       team_id: team.id,
       invitor_id: invitor.id,
-      email: "derrick@bridge.chat"
+      email: "user#{random_string()}@bridge.chat"
     }
   end
 
   def insert_signup(attrs \\ %{}) do
-    random_string = Base.encode16(:crypto.strong_rand_bytes(8))
-    username = "user#{random_string}"
+    username = "user#{random_string()}"
     email = "#{username}@bridge.chat"
-    slug = "team#{random_string}"
+    slug = "team#{random_string()}"
 
     changes = Map.merge(%{
       slug: slug,
@@ -46,5 +45,9 @@ defmodule Bridge.TestHelpers do
 
   def put_team_host(conn, team) do
     %{conn | host: "#{team.slug}.bridge.test"}
+  end
+
+  defp random_string do
+    Base.encode16(:crypto.strong_rand_bytes(8))
   end
 end
