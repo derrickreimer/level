@@ -53,9 +53,13 @@ defmodule Bridge.Web.Router do
   scope "/", Bridge.Web do
     pipe_through :browser
 
+    # Authentication
     get "/login", SessionController, :new
     post "/login", SessionController, :create
+
+    # Invitations
     resources "/invitations", InvitationController
+    post "/invitations/:id/accept", AcceptInvitationController, :create
   end
 
   # GraphQL explorer

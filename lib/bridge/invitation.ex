@@ -4,9 +4,11 @@ defmodule Bridge.Invitation do
   """
 
   use Ecto.Schema
+
   import Ecto.Changeset
   import Bridge.Web.Gettext
 
+  alias Ecto.Multi
   alias Bridge.Repo
 
   schema "invitations" do
@@ -58,10 +60,26 @@ defmodule Bridge.Invitation do
   end
 
   @doc """
+  Builds a changeset to use when accepting an invitation.
+  """
+  def accept_changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:acceptor_id, :state])
+  end
+
+  @doc """
   Registers a user and marks the given invitation as accepted.
   """
-  def accept(invitation, changeset) do
-    # TODO
+  def accept(invitation, user_changeset) do
+    Repo.transaction(
+      Multi.new
+      |> Multi.insert(:user, user_changeset)
+      |> Multi.run(:invitation, fn %{user: user} ->
+        invitation
+        |> accept_changeset(%{acceptor_id: user.id, state: "ACCEPTED"})
+        |> Repo.update
+      end)
+    )
   end
 
   defp generate_token do

@@ -3,6 +3,7 @@ defmodule Bridge.InvitationRepoTest do
   use Bamboo.Test
 
   alias Bridge.Invitation
+  alias Bridge.User
 
   describe "create/1" do
     setup do
@@ -52,6 +53,33 @@ defmodule Bridge.InvitationRepoTest do
 
       assert {:email, {"already has an invitation", []}}
         in changeset.errors
+    end
+  end
+
+  describe "accept/2" do
+    setup do
+      {:ok, %{team: team, user: invitor}} = insert_signup()
+
+      params = valid_invitation_params(%{team: team, invitor: invitor})
+      {:ok, invitation} = Invitation.create(params)
+
+      {:ok, %{invitation: invitation}}
+    end
+
+    test "creates a user and flag invitation as accepted",
+      %{invitation: invitation} do
+      params =
+        valid_user_params()
+        |> Map.put(:team_id, invitation.team_id)
+
+      changeset = User.signup_changeset(%User{}, params)
+
+      {:ok, %{user: user, invitation: invitation}} =
+        Invitation.accept(invitation, changeset)
+
+      assert user.email == params.email
+      assert invitation.state == "ACCEPTED"
+      assert invitation.acceptor_id == user.id
     end
   end
 end

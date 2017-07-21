@@ -1,0 +1,38 @@
+<%= if get_flash(@conn, :error) do %>
+  <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
+<% end %>
+
+<div class="auth-form">
+  <h2 class="auth-form__heading"><%= gettext "Join the %{name} team", name: @invitation.team.name %></h2>
+
+  <%= form_for @changeset, accept_invitation_path(@conn, :create, @invitation), [class: "auth-form__form"], fn f -> %>
+    <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
+      <%= label f, :email, gettext("Email Address"), class: "form-label" %>
+      <%= text_input f, :email, class: "text-field text-field--full", autofocus: true %>
+      <%= error_tag f, :email %>
+    </div>
+
+    <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
+      <%= label f, :username, gettext("Username"), class: "form-label" %>
+      <%= text_input f, :username, class: "text-field text-field--full", autofocus: true %>
+      <%= error_tag f, :username %>
+    </div>
+
+    <div class="form-field <%= if f.errors[:password], do: "form-field--error" %>">
+      <%= label f, :password, gettext("Password"), class: "form-label" %>
+      <%= password_input f, :password, class: "text-field text-field--full" %>
+      <%= error_tag f, :password %>
+    </div>
+
+    <div class="form-controls">
+      <%= submit gettext("Join the team"), class: "button button--primary button--full" %>
+    </div>
+  <% end %>
+
+  <div class="auth-form__footer">
+    <p>
+      <%= gettext "You were invited by %{invitor}.", invitor: @invitation.invitor.email %><br>
+      <%= gettext "If you don’t recognize the sender, please disregard this invitation!" %>
+    </p>
+  </div>
+</div>
