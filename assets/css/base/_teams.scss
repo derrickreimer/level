@@ -5,7 +5,7 @@
   width: 380px;
 
   &__heading {
-    padding-bottom: 12px;
+    margin-bottom: 32px;
     font-size: 30px;
     font-weight: $normal-weight;
     text-align: center;
@@ -33,7 +33,7 @@
   }
 
   label {
-    padding-bottom: 8px;
+    padding-bottom: 6px;
     display: block;
     font-size: $default-font-size;
     font-weight: $bold-weight;
@@ -74,12 +74,12 @@
 
   &__details {
     flex: 1 1;
-    padding: 6px 18px 0;
+    padding: 8px 18px 0;
     color: $default-text-color;
   }
 
   &__name {
-    margin: 0 0 6px 0;
+    margin: 0;
     font-size: 16px;
     font-weight: bold;
   }
