@@ -10,8 +10,8 @@ defmodule Bridge.Invitation do
   alias Bridge.Repo
 
   schema "invitations" do
-    field :state, :integer
-    field :role, :integer
+    field :state, :string
+    field :role, :string
     field :email, :string
     field :token, :string
 
@@ -55,6 +55,13 @@ defmodule Bridge.Invitation do
     |> unique_constraint(:email, name: :invitations_unique_pending_email,
         message: dgettext("errors", "already has an invitation"),
         validation: :uniqueness)
+  end
+
+  @doc """
+  Registers a user and marks the given invitation as accepted.
+  """
+  def accept(invitation, changeset) do
+    # TODO
   end
 
   defp generate_token do
