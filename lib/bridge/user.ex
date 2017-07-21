@@ -5,6 +5,7 @@ defmodule Bridge.User do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Bridge.Web.Gettext
 
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
@@ -50,6 +51,19 @@ defmodule Bridge.User do
     |> put_pass_hash
     |> put_change(:state, 0)
     |> put_change(:role, 0)
+  end
+
+  @doc """
+  Applies user attribute validations to a changeset.
+  """
+  def validate_user_params(changeset) do
+    changeset
+    |> validate_required([:username, :email, :password])
+    |> validate_length(:email, min: 1, max: 254)
+    |> validate_length(:username, min: 3, max: 20)
+    |> validate_length(:password, min: 6)
+    |> validate_format(:username, username_format(), message: dgettext("errors", "must be lowercase and alphanumeric"))
+    |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
   end
 
   defp put_pass_hash(changeset) do

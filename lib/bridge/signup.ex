@@ -29,13 +29,9 @@ defmodule Bridge.Signup do
     |> cast(params, Map.keys(@types))
     |> validate_required([:slug, :team_name, :username, :email, :password])
     |> validate_length(:slug, min: 1, max: 20)
-    |> validate_length(:team_name, min: 1, max: 255)
-    |> validate_length(:email, min: 1, max: 254)
-    |> validate_length(:username, min: 3, max: 20)
-    |> validate_length(:password, min: 6)
     |> validate_format(:slug, Team.slug_format, message: dgettext("errors", "must be lowercase and alphanumeric"))
-    |> validate_format(:username, User.username_format, message: dgettext("errors", "must be lowercase and alphanumeric"))
-    |> validate_format(:email, User.email_format, message: dgettext("errors", "is invalid"))
+    |> validate_length(:team_name, min: 1, max: 255)
+    |> User.validate_user_params()
     |> validate_slug_uniqueness
   end
 
