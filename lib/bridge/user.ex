@@ -47,6 +47,7 @@ defmodule Bridge.User do
   def signup_changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:team_id, :email, :username, :time_zone, :password])
+    |> validate_user_params()
     |> put_default_time_zone
     |> put_pass_hash
     |> put_change(:state, 0)

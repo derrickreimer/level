@@ -81,5 +81,19 @@ defmodule Bridge.InvitationRepoTest do
       assert invitation.state == "ACCEPTED"
       assert invitation.acceptor_id == user.id
     end
+
+    test "handles invalid params", %{invitation: invitation} do
+      params =
+        valid_user_params()
+        |> Map.put(:team_id, invitation.team_id)
+        |> Map.put(:username, "i am not valid")
+
+      changeset = User.signup_changeset(%User{}, params)
+
+      {:error, failed_operation, _, _} =
+        Invitation.accept(invitation, changeset)
+
+      assert failed_operation == :user
+    end
   end
 end

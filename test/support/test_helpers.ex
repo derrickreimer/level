@@ -2,19 +2,23 @@ defmodule Bridge.TestHelpers do
   alias Bridge.Repo
 
   def valid_signup_params do
+    salt = random_string()
+
     %{
-      slug: "bridge",
+      slug: "team#{salt}",
       team_name: "Bridge, Inc.",
-      username: "derrick",
-      email: "derrick@bridge.chat",
+      username: "user#{salt}",
+      email: "user#{salt}@bridge.chat",
       password: "$ecret$"
     }
   end
 
   def valid_user_params do
+    salt = random_string()
+
     %{
-      username: "derrick2",
-      email: "derrick+2@bridge.chat",
+      username: "user#{salt}",
+      email: "user#{salt}@bridge.chat",
       password: "$ecret$"
     }
   end
@@ -28,9 +32,11 @@ defmodule Bridge.TestHelpers do
   end
 
   def insert_signup(attrs \\ %{}) do
-    username = "user#{random_string()}"
+    salt = random_string()
+
+    username = "user#{salt}"
     email = "#{username}@bridge.chat"
-    slug = "team#{random_string()}"
+    slug = "team#{salt}"
 
     changes = Map.merge(%{
       slug: slug,
@@ -57,5 +63,6 @@ defmodule Bridge.TestHelpers do
 
   defp random_string do
     Base.encode16(:crypto.strong_rand_bytes(8))
+    |> String.downcase
   end
 end
