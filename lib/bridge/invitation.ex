@@ -10,6 +10,7 @@ defmodule Bridge.Invitation do
 
   alias Ecto.Multi
   alias Bridge.Repo
+  alias Bridge.User
 
   schema "invitations" do
     field :state, :string
@@ -70,7 +71,14 @@ defmodule Bridge.Invitation do
   @doc """
   Registers a user and marks the given invitation as accepted.
   """
-  def accept(invitation, user_changeset) do
+  def accept(invitation, params \\ %{}) do
+    params =
+      params
+      |> Map.put(:team_id, invitation.team_id)
+      |> Map.put(:role, invitation.role)
+
+    user_changeset = User.signup_changeset(%User{}, params)
+
     Repo.transaction(
       Multi.new
       |> Multi.insert(:user, user_changeset)

@@ -52,6 +52,16 @@ CREATE TYPE user_role AS ENUM (
 );
 
 
+--
+-- Name: user_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE user_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
+);
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -143,8 +153,6 @@ ALTER SEQUENCE teams_id_seq OWNED BY teams.id;
 CREATE TABLE users (
     id integer NOT NULL,
     team_id integer NOT NULL,
-    state integer NOT NULL,
-    role integer NOT NULL,
     email character varying(255) NOT NULL,
     username character varying(20) NOT NULL,
     first_name character varying(255),
@@ -152,7 +160,9 @@ CREATE TABLE users (
     time_zone character varying(255) NOT NULL,
     password_hash character varying(255) NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    role user_role DEFAULT 'MEMBER'::user_role NOT NULL,
+    state user_state DEFAULT 'ACTIVE'::user_state NOT NULL
 );
 
 
@@ -320,5 +330,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331);
 

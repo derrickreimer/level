@@ -34,20 +34,6 @@ defmodule Bridge.UserTest do
       assert password_hash
       assert Comeonin.Bcrypt.checkpw(password, password_hash)
     end
-
-    test "sets the initial state" do
-      changeset = User.signup_changeset(%User{}, valid_signup_params())
-      %{state: state} = changeset.changes
-
-      assert state == 0
-    end
-
-    test "sets the initial role" do
-      changeset = User.signup_changeset(%User{}, valid_signup_params())
-      %{role: role} = changeset.changes
-
-      assert role == 0
-    end
   end
 
   describe "username_format/0" do

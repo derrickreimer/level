@@ -11,8 +11,8 @@ defmodule Bridge.User do
   alias Ecto.Changeset
 
   schema "users" do
-    field :state, :integer
-    field :role, :integer
+    field :state, :string # user_state
+    field :role, :string # user_role
     field :email, :string
     field :username, :string
     field :first_name, :string
@@ -46,12 +46,10 @@ defmodule Bridge.User do
   """
   def signup_changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:team_id, :email, :username, :time_zone, :password])
+    |> cast(params, [:team_id, :role, :email, :username, :time_zone, :password])
     |> validate_user_params()
     |> put_default_time_zone
     |> put_pass_hash
-    |> put_change(:state, 0)
-    |> put_change(:role, 0)
   end
 
   @doc """

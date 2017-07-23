@@ -3,7 +3,6 @@ defmodule Bridge.InvitationRepoTest do
   use Bamboo.Test
 
   alias Bridge.Invitation
-  alias Bridge.User
 
   describe "create/1" do
     setup do
@@ -68,14 +67,10 @@ defmodule Bridge.InvitationRepoTest do
 
     test "creates a user and flag invitation as accepted",
       %{invitation: invitation} do
-      params =
-        valid_user_params()
-        |> Map.put(:team_id, invitation.team_id)
-
-      changeset = User.signup_changeset(%User{}, params)
+      params = valid_user_params()
 
       {:ok, %{user: user, invitation: invitation}} =
-        Invitation.accept(invitation, changeset)
+        Invitation.accept(invitation, params)
 
       assert user.email == params.email
       assert invitation.state == "ACCEPTED"
@@ -85,13 +80,10 @@ defmodule Bridge.InvitationRepoTest do
     test "handles invalid params", %{invitation: invitation} do
       params =
         valid_user_params()
-        |> Map.put(:team_id, invitation.team_id)
         |> Map.put(:username, "i am not valid")
 
-      changeset = User.signup_changeset(%User{}, params)
-
       {:error, failed_operation, _, _} =
-        Invitation.accept(invitation, changeset)
+        Invitation.accept(invitation, params)
 
       assert failed_operation == :user
     end

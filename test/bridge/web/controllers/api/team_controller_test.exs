@@ -28,7 +28,7 @@ defmodule Bridge.Web.API.TeamControllerTest do
 
       assert user.email == email
       assert team.slug == slug
-      assert user.role == 0
+      assert user.role == "OWNER"
     end
 
     test "sign the user in", %{conn: conn, params: %{email: email}} do

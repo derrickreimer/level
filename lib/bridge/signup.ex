@@ -62,6 +62,7 @@ defmodule Bridge.Signup do
   defp user_params(changeset) do
     changeset.changes
     |> Map.take([:username, :email, :password, :time_zone])
+    |> Map.put(:role, "OWNER")
   end
 
   def validate_slug_uniqueness(changeset, _opts \\ []) do
