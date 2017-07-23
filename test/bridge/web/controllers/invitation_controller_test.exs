@@ -35,7 +35,7 @@ defmodule Bridge.Web.InvitationControllerTest do
     test "returns a 404 if invitation does not exist", %{conn: conn} do
       assert_raise(Ecto.NoResultsError, fn ->
         conn
-        |> get("/invitations/invalid")
+        |> get("/invitations/#{Ecto.UUID.generate()}")
       end)
     end
   end

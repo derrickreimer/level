@@ -12,7 +12,7 @@ defmodule Bridge.Repo.Migrations.CreateInvitation do
       add :state, :invitation_state, null: false, default: "PENDING"
       add :role, :user_role, null: false, default: "MEMBER"
       add :email, :string, null: false
-      add :token, :string, null: false, size: 36
+      add :token, :uuid, null: false
 
       timestamps()
     end

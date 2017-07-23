@@ -16,7 +16,7 @@ defmodule Bridge.Invitation do
     field :state, :string
     field :role, :string
     field :email, :string
-    field :token, :string
+    field :token, :binary_id
 
     belongs_to :team, Bridge.Team
     belongs_to :invitor, Bridge.User
@@ -72,12 +72,11 @@ defmodule Bridge.Invitation do
   Registers a user and marks the given invitation as accepted.
   """
   def accept(invitation, params \\ %{}) do
-    params =
-      params
-      |> Map.put(:team_id, invitation.team_id)
-      |> Map.put(:role, invitation.role)
-
-    user_changeset = User.signup_changeset(%User{}, params)
+    user_changeset =
+      %User{}
+      |> User.signup_changeset(params)
+      |> put_change(:team_id, invitation.team_id)
+      |> put_change(:role, invitation.role)
 
     Repo.transaction(
       Multi.new
@@ -91,7 +90,7 @@ defmodule Bridge.Invitation do
   end
 
   defp generate_token do
-    String.replace(Ecto.UUID.generate(), "-", "")
+    Ecto.UUID.generate()
   end
 end
 

@@ -78,7 +78,7 @@ CREATE TABLE invitations (
     state invitation_state DEFAULT 'PENDING'::invitation_state NOT NULL,
     role user_role DEFAULT 'MEMBER'::user_role NOT NULL,
     email character varying(255) NOT NULL,
-    token character varying(36) NOT NULL,
+    token uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
