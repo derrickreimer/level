@@ -63,6 +63,8 @@ defmodule Bridge.User do
     |> validate_length(:password, min: 6)
     |> validate_format(:username, username_format(), message: dgettext("errors", "must be lowercase and alphanumeric"))
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
+    |> unique_constraint(:email, name: :users_team_id_email_index)
+    |> unique_constraint(:username, name: :users_team_id_username_index)
   end
 
   defp put_pass_hash(changeset) do

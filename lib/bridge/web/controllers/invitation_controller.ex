@@ -14,7 +14,7 @@ defmodule Bridge.Web.InvitationController do
       |> Repo.preload([:team, :invitor])
 
     conn
-    |> assign(:changeset, User.signup_changeset(%Bridge.User{}))
+    |> assign(:changeset, User.signup_changeset(%Bridge.User{}, %{email: invitation.email}))
     |> assign(:invitation, invitation)
     |> render("show.html")
   end

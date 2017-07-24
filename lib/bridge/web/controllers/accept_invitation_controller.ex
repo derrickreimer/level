@@ -13,12 +13,21 @@ defmodule Bridge.Web.AcceptInvitationController do
       |> Repo.preload([:team, :invitor])
 
     case Invitation.accept(invitation, user_params) do
-      {:ok, %{user: _user}} ->
-        # sign the user in, redirect accordingly
+      {:ok, %{user: user}} ->
         conn
-      {:error, _, _, _} ->
-        # unexpected error occurred
+        |> Bridge.Web.Auth.sign_in(invitation.team, user)
+        |> redirect(to: thread_path(conn, :index))
+
+      {:error, :user, changeset, _} ->
         conn
+        |> assign(:changeset, changeset)
+        |> assign(:invitation, invitation)
+        |> render(Bridge.Web.InvitationView, "show.html")
+
+      _ ->
+        conn
+        |> put_flash(:error, "Oops! Something went wrong. Please try again.")
+        |> redirect(to: invitation_path(conn, :show, invitation))
     end
   end
 end
