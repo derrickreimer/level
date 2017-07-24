@@ -7,14 +7,11 @@ defmodule Bridge.Web.InvitationController do
   plug :fetch_team
 
   def show(conn, %{"id" => id}) do
-    # TODO: ensure it's not expired
-    invitation =
-      Invitation
-      |> Repo.get_by!(team_id: conn.assigns[:team].id, state: "PENDING", token: id)
-      |> Repo.preload([:team, :invitor])
+    invitation = Invitation.fetch_pending!(conn.assigns[:team], id)
+    changeset = User.signup_changeset(%Bridge.User{}, %{email: invitation.email})
 
     conn
-    |> assign(:changeset, User.signup_changeset(%Bridge.User{}, %{email: invitation.email}))
+    |> assign(:changeset, changeset)
     |> assign(:invitation, invitation)
     |> render("show.html")
   end

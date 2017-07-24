@@ -6,11 +6,7 @@ defmodule Bridge.Web.AcceptInvitationController do
   plug :fetch_team
 
   def create(conn, %{"id" => id, "user" => user_params}) do
-    # TODO: refactor this out into a plug
-    invitation =
-      Invitation
-      |> Repo.get_by!(team_id: conn.assigns[:team].id, state: "PENDING", token: id)
-      |> Repo.preload([:team, :invitor])
+    invitation = Invitation.fetch_pending!(conn.assigns[:team], id)
 
     case Invitation.accept(invitation, user_params) do
       {:ok, %{user: user}} ->

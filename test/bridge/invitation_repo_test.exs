@@ -24,13 +24,39 @@ defmodule Bridge.InvitationRepoTest do
     end
   end
 
+  describe "fetch_pending!/2" do
+    setup do
+      {:ok, %{team: team, user: user}} = insert_signup()
+      params = valid_invitation_params(%{team: team, invitor: user})
+      {:ok, invitation} = Invitation.create(params)
+      {:ok, %{team: team, invitation: invitation}}
+    end
+
+    test "returns pending invitation with a matching token",
+      %{invitation: invitation, team: team} do
+      assert Invitation.fetch_pending!(team, invitation.token).id ==
+        invitation.id
+    end
+
+    # test "raises a not found error if invitation is already accepted",
+    #   %{invitation: invitation, team: team} do
+    #   acceptor_params = valid_user_params()
+    #   Invitation.accept(invitation, acceptor_params)
+    #
+    #   assert_raised(Ecto.NotFoundError, fn ->
+    #     Invitation.fetch_pending!(team, invitation.token)
+    #   end)
+    # end
+  end
+
   describe "changeset/2" do
     setup do
       {:ok, %{team: team, user: invitor}} = insert_signup()
       {:ok, %{team: team, invitor: invitor}}
     end
 
-    test "validate uniqueness when pending and matching email case", %{team: team, invitor: invitor} do
+    test "validate uniqueness when pending and matching email case",
+      %{team: team, invitor: invitor} do
       params = valid_invitation_params(%{team: team, invitor: invitor})
       Invitation.create(params)
 
@@ -41,7 +67,8 @@ defmodule Bridge.InvitationRepoTest do
         in changeset.errors
     end
 
-    test "validate uniqueness when pending and non-matching email case", %{team: team, invitor: invitor} do
+    test "validate uniqueness when pending and non-matching email case",
+      %{team: team, invitor: invitor} do
       params = valid_invitation_params(%{team: team, invitor: invitor})
       Invitation.create(params)
 

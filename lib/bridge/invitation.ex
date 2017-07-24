@@ -47,6 +47,16 @@ defmodule Bridge.Invitation do
   end
 
   @doc """
+  Fetch a valid, pending invitation by team and token. If the invitation is not
+  found,
+  """
+  def fetch_pending!(team, token) do
+    __MODULE__
+    |> Repo.get_by!(team_id: team.id, state: "PENDING", token: token)
+    |> Repo.preload([:team, :invitor])
+  end
+
+  @doc """
   Builds a changeset based on the `struct` and `params`.
   """
   def changeset(struct, params \\ %{}) do
