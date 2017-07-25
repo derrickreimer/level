@@ -47,8 +47,8 @@ defmodule Bridge.Invitation do
   end
 
   @doc """
-  Fetch a valid, pending invitation by team and token. If the invitation is not
-  found,
+  Fetchs a valid, pending invitation by team and token. If the invitation is not
+  found, raises an Ecto exception.
   """
   def fetch_pending!(team, token) do
     __MODULE__
