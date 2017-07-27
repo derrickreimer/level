@@ -62,6 +62,41 @@ CREATE TYPE user_state AS ENUM (
 );
 
 
+--
+-- Name: next_global_id(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION next_global_id(OUT result bigint) RETURNS bigint
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    our_epoch bigint := 1501268767000;
+    seq_id bigint;
+    now_millis bigint;
+    shard_id int := 1;
+BEGIN
+    SELECT nextval('global_id_seq') % 1024 INTO seq_id;
+
+    SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000) INTO now_millis;
+    result := (now_millis - our_epoch) << 23;
+    result := result | (shard_id << 10);
+    result := result | (seq_id);
+END;
+$$;
+
+
+--
+-- Name: global_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE global_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -330,5 +365,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329);
 
