@@ -106,10 +106,10 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE invitations (
-    id integer NOT NULL,
-    team_id integer NOT NULL,
-    invitor_id integer NOT NULL,
-    acceptor_id integer,
+    id bigint DEFAULT next_global_id() NOT NULL,
+    team_id bigint NOT NULL,
+    invitor_id bigint NOT NULL,
+    acceptor_id bigint,
     state invitation_state DEFAULT 'PENDING'::invitation_state NOT NULL,
     role user_role DEFAULT 'MEMBER'::user_role NOT NULL,
     email character varying(255) NOT NULL,
@@ -117,25 +117,6 @@ CREATE TABLE invitations (
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
---
--- Name: invitations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE invitations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: invitations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE invitations_id_seq OWNED BY invitations.id;
 
 
 --
@@ -153,7 +134,7 @@ CREATE TABLE schema_migrations (
 --
 
 CREATE TABLE teams (
-    id integer NOT NULL,
+    id bigint DEFAULT next_global_id() NOT NULL,
     name character varying(255) NOT NULL,
     state integer NOT NULL,
     slug character varying(63) NOT NULL,
@@ -163,31 +144,12 @@ CREATE TABLE teams (
 
 
 --
--- Name: teams_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE teams_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: teams_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE teams_id_seq OWNED BY teams.id;
-
-
---
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE users (
-    id integer NOT NULL,
-    team_id integer NOT NULL,
+    id bigint DEFAULT next_global_id() NOT NULL,
+    team_id bigint NOT NULL,
     email character varying(255) NOT NULL,
     username character varying(20) NOT NULL,
     first_name character varying(255),
@@ -199,46 +161,6 @@ CREATE TABLE users (
     role user_role DEFAULT 'MEMBER'::user_role NOT NULL,
     state user_state DEFAULT 'ACTIVE'::user_state NOT NULL
 );
-
-
---
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE users_id_seq OWNED BY users.id;
-
-
---
--- Name: invitations id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY invitations ALTER COLUMN id SET DEFAULT nextval('invitations_id_seq'::regclass);
-
-
---
--- Name: teams id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY teams ALTER COLUMN id SET DEFAULT nextval('teams_id_seq'::regclass);
-
-
---
--- Name: users id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 
 
 --
@@ -365,5 +287,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335);
 
