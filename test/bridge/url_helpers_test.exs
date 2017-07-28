@@ -1,7 +1,7 @@
-defmodule Bridge.Web.UrlHelpersTest do
+defmodule BridgeWeb.UrlHelpersTest do
   use Bridge.DataCase, async: true
 
-  alias Bridge.Web.UrlHelpers
+  alias BridgeWeb.UrlHelpers
 
   describe "build_url_with_subdomain/3" do
     test "prepends the given subdomain to the default host" do

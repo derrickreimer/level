@@ -4,13 +4,13 @@ defmodule Bridge.ConnCaseHelpers do
 
   def sign_in(conn, team, user) do
     conn
-    |> Bridge.Web.Auth.sign_in(team, user)
+    |> BridgeWeb.Auth.sign_in(team, user)
     |> send_resp(:ok, "")
     |> Phoenix.ConnTest.recycle
   end
 
   def authenticate_with_jwt(conn, team, user) do
-    token = Bridge.Web.Auth.generate_signed_jwt(user)
+    token = BridgeWeb.Auth.generate_signed_jwt(user)
 
     conn
     |> put_team_host(team)

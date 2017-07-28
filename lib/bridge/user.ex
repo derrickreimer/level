@@ -5,7 +5,7 @@ defmodule Bridge.User do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import Bridge.Web.Gettext
+  import BridgeWeb.Gettext
 
   alias Comeonin.Bcrypt
   alias Ecto.Changeset

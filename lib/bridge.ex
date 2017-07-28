@@ -13,7 +13,7 @@ defmodule Bridge do
       # Start the Ecto repository
       supervisor(Bridge.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(Bridge.Web.Endpoint, []),
+      supervisor(BridgeWeb.Endpoint, []),
       # Start your own worker by calling: Bridge.Worker.start_link(arg1, arg2, arg3)
       # worker(Bridge.Worker, [arg1, arg2, arg3]),
     ]
