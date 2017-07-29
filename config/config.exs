@@ -7,7 +7,8 @@ use Mix.Config
 
 # General application configuration
 config :bridge,
-  ecto_repos: [Bridge.Repo]
+  ecto_repos: [Bridge.Repo],
+  mailer_host: System.get_env("BRIDGE_MAILER_HOST") || "bridge.dev"
 
 # Configures the endpoint
 config :bridge, BridgeWeb.Endpoint,

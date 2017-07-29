@@ -24,6 +24,10 @@
       "description": "The domain on which you are serving this application.",
       "value": ""
     },
+    "BRIDGE_MAILER_HOST": {
+      "description": "The domain via which to send transaction emails (typically the same as BRIDGE_HOST).",
+      "value": ""
+    },
     "BRIDGE_SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"

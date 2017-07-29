@@ -30,5 +30,9 @@ defmodule Bridge.EmailTest do
     test "includes the invitation url", %{email: email} do
       assert email.text_body =~ "http://acme.bridge.test:4001/invitations/xxx"
     end
+
+    test "sends from support", %{email: email} do
+      assert email.from == {"Bridge", "support@bridge.test"}
+    end
   end
 end
