@@ -10,10 +10,10 @@ config :bridge,
   ecto_repos: [Bridge.Repo]
 
 # Configures the endpoint
-config :bridge, Bridge.Web.Endpoint,
+config :bridge, BridgeWeb.Endpoint,
   url: [host: System.get_env("BRIDGE_HOST") || "bridge.dev"],
   secret_key_base: "88kKPFnN/WU+4j79qm1tucW43qkoNjH0Ju54I8X2+BpKzMqYbiq4yVwXuhf7HDzr",
-  render_errors: [view: Bridge.Web.ErrorView, accepts: ~w(html json)],
+  render_errors: [view: BridgeWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Bridge.PubSub,
            adapter: Phoenix.PubSub.PG2]
 

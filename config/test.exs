@@ -2,7 +2,7 @@ use Mix.Config
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :bridge, Bridge.Web.Endpoint,
+config :bridge, BridgeWeb.Endpoint,
   http: [port: 4001],
   url: [host: "bridge.test", port: 4001],
   server: false

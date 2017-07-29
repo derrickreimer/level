@@ -1,4 +1,4 @@
-defmodule Bridge.Web.GraphQL.TestHelpers do
+defmodule BridgeWeb.GraphQL.TestHelpers do
   import Plug.Conn
 
   def put_graphql_headers(conn) do

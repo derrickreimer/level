@@ -6,7 +6,7 @@ defmodule Bridge.Invitation do
   use Ecto.Schema
 
   import Ecto.Changeset
-  import Bridge.Web.Gettext
+  import BridgeWeb.Gettext
 
   alias Ecto.Multi
   alias Bridge.Repo
