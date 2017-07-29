@@ -5,7 +5,6 @@ defmodule Bridge.Email do
 
   import Bamboo.Email
   use Bamboo.Phoenix, view: BridgeWeb.EmailView
-  alias BridgeWeb.UrlHelpers
 
   @doc """
   The email sent when a user invites another user to join a Bridge team.
