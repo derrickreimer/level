@@ -42,12 +42,33 @@ CREATE TYPE invitation_state AS ENUM (
 
 
 --
+-- Name: message_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE message_state AS ENUM (
+    'DRAFT',
+    'SENT',
+    'DELETED'
+);
+
+
+--
 -- Name: team_state; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE team_state AS ENUM (
     'ACTIVE',
     'DISABLED'
+);
+
+
+--
+-- Name: thread_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE thread_state AS ENUM (
+    'SENT',
+    'DELETED'
 );
 
 
@@ -130,6 +151,23 @@ CREATE TABLE invitations (
 
 
 --
+-- Name: messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE messages (
+    id bigint DEFAULT next_global_id() NOT NULL,
+    team_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    thread_id bigint NOT NULL,
+    state message_state DEFAULT 'DRAFT'::message_state NOT NULL,
+    body text NOT NULL,
+    is_truncated boolean DEFAULT false NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -150,6 +188,21 @@ CREATE TABLE teams (
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     state team_state DEFAULT 'ACTIVE'::team_state NOT NULL
+);
+
+
+--
+-- Name: threads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE threads (
+    id bigint DEFAULT next_global_id() NOT NULL,
+    team_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    state thread_state DEFAULT 'SENT'::thread_state NOT NULL,
+    subject character varying(255) NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -182,6 +235,14 @@ ALTER TABLE ONLY invitations
 
 
 --
+-- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY messages
+    ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -195,6 +256,14 @@ ALTER TABLE ONLY schema_migrations
 
 ALTER TABLE ONLY teams
     ADD CONSTRAINT teams_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: threads threads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY threads
+    ADD CONSTRAINT threads_pkey PRIMARY KEY (id);
 
 
 --
@@ -234,10 +303,38 @@ CREATE UNIQUE INDEX invitations_unique_pending_email ON invitations USING btree 
 
 
 --
+-- Name: messages_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX messages_id_index ON messages USING btree (id);
+
+
+--
+-- Name: messages_thread_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX messages_thread_id_index ON messages USING btree (thread_id);
+
+
+--
 -- Name: teams_slug_index; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX teams_slug_index ON teams USING btree (slug);
+
+
+--
+-- Name: threads_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX threads_id_index ON threads USING btree (id);
+
+
+--
+-- Name: threads_team_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX threads_team_id_index ON threads USING btree (team_id);
 
 
 --
@@ -286,6 +383,46 @@ ALTER TABLE ONLY invitations
 
 
 --
+-- Name: messages messages_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY messages
+    ADD CONSTRAINT messages_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
+
+
+--
+-- Name: messages messages_thread_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY messages
+    ADD CONSTRAINT messages_thread_id_fkey FOREIGN KEY (thread_id) REFERENCES threads(id);
+
+
+--
+-- Name: messages messages_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY messages
+    ADD CONSTRAINT messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
+
+--
+-- Name: threads threads_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY threads
+    ADD CONSTRAINT threads_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES users(id);
+
+
+--
+-- Name: threads threads_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY threads
+    ADD CONSTRAINT threads_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
+
+
+--
 -- Name: users users_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -297,5 +434,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335), (20170729023453);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335), (20170729023453), (20170729045310), (20170813212405);
 
