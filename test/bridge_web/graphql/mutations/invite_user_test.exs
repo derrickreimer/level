@@ -8,7 +8,7 @@ defmodule BridgeWeb.GraphQL.InviteUserTest do
     {:ok, %{conn: conn, user: user, team: team}}
   end
 
-  test "creates an invitation with valid data", %{conn: conn} do
+  test "creates an invitation with valid data", %{conn: conn, user: user} do
     email = "tiffany@bridge.chat"
 
     query = """
@@ -17,6 +17,9 @@ defmodule BridgeWeb.GraphQL.InviteUserTest do
           success
           invitation {
             email
+            invitor {
+              email
+            }
           }
           errors {
             attribute
@@ -36,7 +39,10 @@ defmodule BridgeWeb.GraphQL.InviteUserTest do
         "inviteUser" => %{
           "success" => true,
           "invitation" => %{
-            "email" => email
+            "email" => email,
+            "invitor" => %{
+              "email" => user.email
+            }
           },
           "errors" => []
         }

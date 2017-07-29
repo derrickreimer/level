@@ -3,6 +3,17 @@ defmodule Bridge.TeamTest do
 
   alias Bridge.Team
 
+  describe "parse_state/1" do
+    test "parses valid states" do
+      assert {:ok, "ACTIVE"} == Team.parse_state("ACTIVE")
+      assert {:ok, "DISABLED"} == Team.parse_state("DISABLED")
+    end
+
+    test "errors out for invalid states" do
+      assert {:error, "State not recognized"} == Team.parse_state("FLOOPITY")
+    end
+  end
+
   describe "signup_changeset/2" do
     test "validates with valid data" do
       changeset = Team.signup_changeset(%Team{}, valid_signup_params())

@@ -3,6 +3,29 @@ defmodule Bridge.UserTest do
 
   alias Bridge.User
 
+  describe "parse_state/1" do
+    test "parses valid states" do
+      assert {:ok, "ACTIVE"} == User.parse_state("ACTIVE")
+      assert {:ok, "DISABLED"} == User.parse_state("DISABLED")
+    end
+
+    test "errors out for invalid states" do
+      assert {:error, "State not recognized"} == User.parse_state("FLOOPITY")
+    end
+  end
+
+  describe "parse_role/1" do
+    test "parses valid roles" do
+      assert {:ok, "MEMBER"} == User.parse_role("MEMBER")
+      assert {:ok, "OWNER"} == User.parse_role("OWNER")
+      assert {:ok, "ADMIN"} == User.parse_role("ADMIN")
+    end
+
+    test "errors out for invalid roles" do
+      assert {:error, "Role not recognized"} == User.parse_role("OOMPA")
+    end
+  end
+
   describe "signup_changeset/2" do
     test "validates with valid data" do
       changeset = User.signup_changeset(%User{}, valid_signup_params())

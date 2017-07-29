@@ -13,6 +13,7 @@ defmodule BridgeWeb.GraphQL.ViewerTest do
       {
         viewer {
           username
+          state
         }
       }
     """
@@ -25,7 +26,8 @@ defmodule BridgeWeb.GraphQL.ViewerTest do
     assert json_response(conn, 200) == %{
       "data" => %{
         "viewer" => %{
-          "username" => user.username
+          "username" => user.username,
+          "state" => user.state
         }
       }
     }

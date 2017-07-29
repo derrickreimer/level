@@ -10,9 +10,12 @@ defmodule Bridge.User do
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
 
+  @states ["ACTIVE", "DISABLED"]
+  @roles ["OWNER", "ADMIN", "MEMBER"]
+
   schema "users" do
-    field :state, :string # user_state
-    field :role, :string # user_role
+    field :state, :string, read_after_writes: true # user_state
+    field :role, :string, read_after_writes: true # user_role
     field :email, :string
     field :username, :string
     field :first_name, :string
@@ -23,6 +26,32 @@ defmodule Bridge.User do
     belongs_to :team, Bridge.Team
 
     timestamps()
+  end
+
+  @doc """
+  Parses an incoming state value and either returns an `{:ok, value}` tuple
+  with the parsed value, or an `{:error, reason}` tuple if the value is not
+  recognized.
+  """
+  def parse_state(value) do
+    if Enum.member?(@states, value) do
+      {:ok, value}
+    else
+      {:error, "State not recognized"}
+    end
+  end
+
+  @doc """
+  Parses an incoming role value and either returns an `{:ok, value}` tuple
+  with the parsed value, or an `{:error, reason}` tuple if the value is not
+  recognized.
+  """
+  def parse_role(value) do
+    if Enum.member?(@roles, value) do
+      {:ok, value}
+    else
+      {:error, "Role not recognized"}
+    end
   end
 
   @doc """
