@@ -12,7 +12,7 @@ defmodule Bridge.Team do
 
   schema "teams" do
     field :name, :string
-    field :state, :integer
+    field :state, :string
     field :slug, :string
 
     timestamps()
@@ -31,7 +31,6 @@ defmodule Bridge.Team do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:name, :slug])
-    |> put_change(:state, 0)
     |> unique_constraint(:slug)
   end
 
@@ -42,7 +41,6 @@ defmodule Bridge.Team do
   def signup_changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:name, :slug])
-    |> put_change(:state, 0)
   end
 end
 

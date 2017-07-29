@@ -42,6 +42,16 @@ CREATE TYPE invitation_state AS ENUM (
 
 
 --
+-- Name: team_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE team_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
+);
+
+
+--
 -- Name: user_role; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -136,10 +146,10 @@ CREATE TABLE schema_migrations (
 CREATE TABLE teams (
     id bigint DEFAULT next_global_id() NOT NULL,
     name character varying(255) NOT NULL,
-    state integer NOT NULL,
     slug character varying(63) NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    state team_state DEFAULT 'ACTIVE'::team_state NOT NULL
 );
 
 
@@ -287,5 +297,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335), (20170729023453);
 

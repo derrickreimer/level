@@ -8,13 +8,6 @@ defmodule Bridge.TeamTest do
       changeset = Team.signup_changeset(%Team{}, valid_signup_params())
       assert changeset.valid?
     end
-
-    test "sets the initial state" do
-      changeset = Team.signup_changeset(%Team{}, valid_signup_params())
-      %{state: state} = changeset.changes
-
-      assert state == 0
-    end
   end
 
   describe "slug_format/0" do
