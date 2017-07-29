@@ -3,18 +3,6 @@ defmodule Bridge.InvitationTest do
 
   alias Bridge.Invitation
 
-  describe "parse_state/1" do
-    test "parses valid states" do
-      assert {:ok, "PENDING"} == Invitation.parse_state("PENDING")
-      assert {:ok, "ACCEPTED"} == Invitation.parse_state("ACCEPTED")
-      assert {:ok, "REVOKED"} == Invitation.parse_state("REVOKED")
-    end
-
-    test "errors out for invalid states" do
-      assert {:error, "State not recognized"} == Invitation.parse_state("FLOOPITY")
-    end
-  end
-
   describe "changeset/2" do
     setup do
       team = %Bridge.Team{id: 1}

@@ -12,7 +12,7 @@ defmodule Bridge.Invitation do
   alias Bridge.Repo
   alias Bridge.User
 
-  @states ["PENDING", "ACCEPTED", "REVOKED"]
+  # @states ["PENDING", "ACCEPTED", "REVOKED"]
 
   schema "invitations" do
     field :state, :string, read_after_writes: true # invitation_state
@@ -25,19 +25,6 @@ defmodule Bridge.Invitation do
     belongs_to :acceptor, Bridge.User
 
     timestamps()
-  end
-
-  @doc """
-  Parses an incoming state value and either returns an `{:ok, value}` tuple
-  with the parsed value, or an `{:error, reason}` tuple if the value is not
-  recognized.
-  """
-  def parse_state(value) do
-    if Enum.member?(@states, value) do
-      {:ok, value}
-    else
-      {:error, "State not recognized"}
-    end
   end
 
   @doc """
