@@ -10,16 +10,14 @@ defmodule BridgeWeb.Schema.Enums do
   can have.
   """
   enum :user_state do
-    value :active,
-      as: "ACTIVE",
-      description: "The default state for a user."
+    @desc "The default state for a user."
+    value :active, as: "ACTIVE"
 
-    value :disabled,
-      as: "DISABLED",
-      description: """
-      The state when a user's membership has been revoked or the user has
-      opted-out of the team.
-      """
+    @desc """
+    The state when a user's membership has been revoked or the user has
+    opted-out of the team.
+    """
+    value :disabled, as: "DISABLED"
   end
 
   @desc """
@@ -27,20 +25,17 @@ defmodule BridgeWeb.Schema.Enums do
   can have.
   """
   enum :user_role do
-    value :member,
-      as: "MEMBER",
-      description: "The default, lowest level permissions for a user."
+    @desc "The default, lowest level permissions for a user."
+    value :member, as: "MEMBER"
 
-    value :admin,
-      as: "ADMIN",
-      description: """
-      Elevated permissions that allow the user to administrate the team,
-      but not manage billing and other vital functions.
-      """
+    @desc """
+    Elevated permissions that allow the user to administrate the team,
+    but not manage billing and other vital functions.
+    """
+    value :admin, as: "ADMIN"
 
-    value :owner,
-      as: "OWNER",
-      description: "The highest level of permissions a user can have."
+    @desc "The highest level of permissions a user can have."
+    value :owner, as: "OWNER"
   end
 
   @desc """
@@ -48,13 +43,11 @@ defmodule BridgeWeb.Schema.Enums do
   can have.
   """
   enum :team_state do
-    value :active,
-      as: "ACTIVE",
-      description: "The default state for a team."
+    @desc "The default state for a team."
+    value :active, as: "ACTIVE"
 
-    value :disabled,
-      as: "DISABLED",
-      description: "The state when a team has been shut down."
+    @desc "The state when a team has been shut down."
+    value :disabled, as: "DISABLED"
   end
 
   @desc """
@@ -62,16 +55,13 @@ defmodule BridgeWeb.Schema.Enums do
   `Invitation` object can have.
   """
   enum :invitation_state do
-    value :pending,
-      as: "PENDING",
-      description: "The default state for an invitation."
+    @desc "The default state for an invitation."
+    value :pending, as: "PENDING"
 
-    value :accepted,
-      as: "ACCEPTED",
-      description: "The state when the invitation has been accepted."
+    @desc "The state when the invitation has been accepted."
+    value :accepted, as: "ACCEPTED"
 
-    value :revoked,
-      as: "REVOKED",
-      description: "The state when an invitation has been revoked."
+    @desc "The state when an invitation has been revoked."
+    value :revoked, as: "REVOKED"
   end
 end
