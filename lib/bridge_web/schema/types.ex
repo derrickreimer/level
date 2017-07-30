@@ -59,32 +59,65 @@ defmodule BridgeWeb.Schema.Types do
 
   @desc "The response to inviting a user to a team."
   object :invite_user_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
     field :success, :boolean
-    field :invitation, :invitation
+
+    @desc "A list of validation errors."
     field :errors, list_of(:error)
+
+    @desc """
+    The newly-created invitation object. If the mutation was not successful,
+    this field will be null.
+    """
+    field :invitation, :invitation
   end
 
   @desc "A validation error."
   object :error do
+    @desc "The name of the invalid attribute."
     field :attribute, non_null(:string)
+
+    @desc "A human-friendly error message."
     field :message, non_null(:string)
   end
 
+  @desc "Data for pagination in a connection."
   object :page_info do
+    @desc "The cursor correspodning to the first node."
     field :start_cursor, :cursor
+
+    @desc "The cursor corresponding to the last node."
     field :end_cursor, :cursor
+
+    @desc "A boolean indicating whether there are more items going forward."
     field :has_next_page, non_null(:boolean)
+
+    @desc "A boolean indicating whether there are more items going backward."
     field :has_previous_page, non_null(:boolean)
   end
 
+  @desc "An edge in the user connection."
   object :user_edge do
+    @desc "The item at the edge of the node."
     field :node, :user
+
+    @desc "A cursor for use in pagination."
     field :cursor, non_null(:cursor)
   end
 
+  @desc "A list of users belonging to a team."
   object :user_connection do
+    @desc "A list of edges."
     field :edges, list_of(:user_edge)
+
+    @desc "Pagination data for the connection."
     field :page_info, non_null(:page_info)
+
+    @desc "The total count of items in the connection."
     field :total_count, non_null(:integer)
   end
 end
