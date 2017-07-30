@@ -31,26 +31,26 @@ defmodule Bridge.TestHelpers do
     }
   end
 
-  def insert_signup(attrs \\ %{}) do
-    salt = random_string()
-
-    username = "user#{salt}"
-    email = "#{username}@bridge.chat"
-    slug = "team#{salt}"
-
-    changes = Map.merge(%{
-      slug: slug,
-      team_name: "Some team",
-      username: username,
-      email: email,
-      password: "$ecret$",
-      time_zone: "America/Chicago"
-    }, attrs)
+  def insert_signup(params \\ %{}) do
+    params =
+      valid_signup_params()
+      |> Map.merge(params)
 
     %{}
-    |> Bridge.Signup.form_changeset(changes)
+    |> Bridge.Signup.form_changeset(params)
     |> Bridge.Signup.transaction()
     |> Repo.transaction()
+  end
+
+  def insert_member(team, params \\ %{}) do
+    params =
+      valid_user_params()
+      |> Map.put(:team_id, team.id)
+      |> Map.merge(params)
+
+    %Bridge.User{}
+    |> Bridge.User.signup_changeset(params)
+    |> Repo.insert()
   end
 
   def put_launch_host(conn) do
