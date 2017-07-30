@@ -20,6 +20,9 @@ defmodule BridgeWeb.GraphQL.TeamTest do
                 }
               }
               total_count
+              page_info {
+                hasPreviousPage
+              }
             }
           }
         }
@@ -41,7 +44,10 @@ defmodule BridgeWeb.GraphQL.TeamTest do
                   "id" => to_string(user.id)
                 }
               }],
-              "total_count" => 1
+              "total_count" => 1,
+              "page_info" => %{
+                "hasPreviousPage" => false
+              }
             }
           }
         }
