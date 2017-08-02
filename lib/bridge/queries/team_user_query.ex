@@ -24,14 +24,25 @@ defmodule Bridge.TeamUserQuery do
   - `first` - the number of rows to return.
   - `after` - the cursor.
   """
-  def run(team, args, context) do
-    args = Map.merge(@default_args, args)
+  def run(team, args, _context) do
+    base_query = from u in User,
+      where: u.team_id == ^team.id and u.state == "ACTIVE"
+
+    fetch_result(base_query, args)
+  end
+
+  def parse_args(args) do
+    Map.merge(@default_args, args)
+  end
+
+  def fetch_result(base_query, args) do
+    args = parse_args(args)
 
     cursor_field = order_field_for(args.order_by.field)
-    base_query = base_query(team, args, context)
     total_count = Repo.one(apply_count(base_query))
 
-    {:ok, nodes, has_previous_page, has_next_page} = fetch_nodes(base_query, args)
+    {:ok, nodes, has_previous_page, has_next_page} =
+      fetch_nodes(base_query, args)
 
     edges = build_edges(nodes, cursor_field)
 
@@ -49,10 +60,6 @@ defmodule Bridge.TeamUserQuery do
     }
 
     {:ok, payload}
-  end
-
-  def base_query(team, _args, _context) do
-    from u in User, where: u.team_id == ^team.id and u.state == "ACTIVE"
   end
 
   def fetch_nodes(query, args) do
