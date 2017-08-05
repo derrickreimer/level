@@ -9,6 +9,7 @@ defmodule Bridge.TeamUserQuery do
 
   @default_args %{
     first: 10,
+    before: nil,
     after: nil,
     order_by: %{
       field: "USERNAME",
@@ -21,8 +22,9 @@ defmodule Bridge.TeamUserQuery do
 
   Acceptable arguments include:
 
-  - `first` - the number of rows to return.
-  - `after` - the cursor.
+  - `first`    - the number of rows to return.
+  - `after`    - the cursor.
+  - `order_by` - the field and direction by which to order the results.
   """
   def run(team, args, _context) do
     base_query = from u in User,
@@ -38,13 +40,13 @@ defmodule Bridge.TeamUserQuery do
   def fetch_result(base_query, args) do
     args = parse_args(args)
 
-    cursor_field = order_field_for(args.order_by.field)
+    order_field = atomize_constant(args.order_by.field)
     total_count = Repo.one(apply_count(base_query))
 
     {:ok, nodes, has_previous_page, has_next_page} =
-      fetch_nodes(base_query, args)
+      fetch_nodes(base_query, order_field, args)
 
-    edges = build_edges(nodes, cursor_field)
+    edges = build_edges(nodes, order_field)
 
     page_info = %{
       start_cursor: start_cursor(edges),
@@ -62,12 +64,13 @@ defmodule Bridge.TeamUserQuery do
     {:ok, payload}
   end
 
-  def fetch_nodes(query, args) do
+  def fetch_nodes(query, order_field, args) do
     nodes = Repo.all(
       query
       |> apply_sort(args)
       |> apply_limit(args)
-      |> apply_cursor(args)
+      |> apply_before_cursor(order_field, args)
+      |> apply_after_cursor(order_field, args)
     )
 
     has_previous_page =
@@ -80,25 +83,21 @@ defmodule Bridge.TeamUserQuery do
     {:ok, Enum.take(nodes, args.first), has_previous_page, has_next_page}
   end
 
-  def build_edges(nodes, cursor_field) do
+  def build_edges(nodes, order_field) do
     Enum.map nodes, fn node ->
-      cursor = Map.get(node, cursor_field)
+      cursor = Map.get(node, order_field)
       %{node: node, cursor: cursor}
     end
   end
 
-  def start_cursor(edges) do
-    case List.first(edges) do
-      nil -> nil
-      edge -> edge.cursor
-    end
+  def start_cursor([]), do: nil
+  def start_cursor([edge | _]) do
+    edge.cursor
   end
 
+  def end_cursor([]), do: nil
   def end_cursor(edges) do
-    case List.last(edges) do
-      nil -> nil
-      edge -> edge.cursor
-    end
+    List.last(edges).cursor
   end
 
   defp apply_count(query) do
@@ -111,18 +110,24 @@ defmodule Bridge.TeamUserQuery do
   end
 
   defp apply_sort(query, %{order_by: %{field: field, direction: direction}}) do
-    from u in query,
-      order_by: [{^direction_for(direction), ^order_field_for(field)}]
+    field = atomize_constant(field)
+    direction = atomize_constant(direction)
+    from u in query, order_by: [{^direction, ^field}]
   end
 
-  # TODO: Genericize this to handle cursoring by order_by field
-  defp apply_cursor(query, %{after: cursor}) when is_nil(cursor), do: query
-  defp apply_cursor(query, %{after: cursor}) do
-    query
-    |> where([u], u.username > ^cursor)
+  defp apply_after_cursor(query, _, %{after: cursor}) when is_nil(cursor), do: query
+  defp apply_after_cursor(query, order_field, %{after: cursor}) do
+    query |> where([u], field(u, ^order_field) > ^cursor)
   end
 
-  defp order_field_for("USERNAME"),  do: :username
-  defp direction_for("ASC"), do: :asc
-  defp direction_for("DESC"), do: :desc
+  defp apply_before_cursor(query, _, %{before: cursor}) when is_nil(cursor), do: query
+  defp apply_before_cursor(query, order_field, %{before: cursor}) do
+    query |> where([u], field(u, ^order_field) < ^cursor)
+  end
+
+  defp atomize_constant(value) do
+    value
+    |> String.downcase()
+    |> String.to_atom()
+  end
 end

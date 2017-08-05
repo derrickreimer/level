@@ -42,6 +42,7 @@ defmodule BridgeWeb.Schema.Types do
 
     field :users, non_null(:user_connection) do
       arg :first, :integer
+      arg :before, :cursor
       arg :after, :cursor
       resolve &BridgeWeb.TeamResolver.users/3
     end
