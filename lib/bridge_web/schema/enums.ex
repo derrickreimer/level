@@ -64,4 +64,25 @@ defmodule BridgeWeb.Schema.Enums do
     @desc "The state when an invitation has been revoked."
     value :revoked, as: "REVOKED"
   end
+
+  @desc """
+  The `UserOrderField` scalar type represents the possible fields by which
+  users can be ordered.
+  """
+  enum :user_order_field do
+    @desc "Order by the username field."
+    value :username
+  end
+
+  @desc """
+  The `OrderDirection` scalar type represents the direction by which nodes
+  should be sorted in a connection.
+  """
+  enum :order_direction do
+    @desc "Sort in ascending order."
+    value :asc
+
+    @desc "Sort in descending order."
+    value :desc
+  end
 end
