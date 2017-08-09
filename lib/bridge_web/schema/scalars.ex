@@ -4,6 +4,7 @@ defmodule BridgeWeb.Schema.Scalars do
   """
 
   use Absinthe.Schema.Notation
+  alias BridgeWeb.Schema.Cursor
 
   @desc """
   The `Time` scalar type represents time values provided in the ISOz
@@ -17,7 +18,7 @@ defmodule BridgeWeb.Schema.Scalars do
 
   @desc "A cursor for pagination."
   scalar :cursor do
-    parse &Base.url_decode64(&1.value)
-    serialize &Base.url_encode64(&1)
+    parse &Cursor.parse(&1.value)
+    serialize &Cursor.serialize(&1)
   end
 end

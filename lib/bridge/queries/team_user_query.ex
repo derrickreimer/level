@@ -12,8 +12,8 @@ defmodule Bridge.TeamUserQuery do
     before: nil,
     after: nil,
     order_by: %{
-      field: "username",
-      direction: "asc"
+      field: :username,
+      direction: :asc
     }
   }
 
@@ -40,7 +40,7 @@ defmodule Bridge.TeamUserQuery do
   def fetch_result(base_query, args) do
     args = parse_args(args)
 
-    order_field = String.to_atom(args.order_by.field)
+    order_field = args.order_by.field
     total_count = Repo.one(apply_count(base_query))
 
     {:ok, nodes, has_previous_page, has_next_page} =
@@ -110,8 +110,6 @@ defmodule Bridge.TeamUserQuery do
   end
 
   defp apply_sort(query, %{order_by: %{field: field, direction: direction}}) do
-    field = String.to_atom(field)
-    direction = String.to_atom(direction)
     from u in query, order_by: [{^direction, ^field}]
   end
 
