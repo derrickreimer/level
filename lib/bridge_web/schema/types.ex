@@ -4,56 +4,10 @@ defmodule BridgeWeb.Schema.Types do
   """
 
   use Absinthe.Schema.Notation
-
   alias BridgeWeb.Schema.Helpers
 
-  @desc """
-  The `Time` scalar type represents time values provided in the ISOz
-  datetime format (that is, the ISO 8601 format without the timezone offset, e.g.,
-  "2015-06-24T04:50:34Z").
-  """
-  scalar :time, description: "ISOz time" do
-    parse &Timex.parse(&1.value, "{ISO:Extended:Z}")
-    serialize &Timex.format!(&1, "{ISO:Extended:Z}")
-  end
-
-  @desc """
-  The `UserState` enum type represents the possible states a `User` object
-  can have.
-  """
-  enum :user_state do
-    value :active, as: "ACTIVE", description: "The default state for a user."
-    value :disabled, as: "DISABLED", description: "The state when a user's membership has been revoked or the user has opted-out of the team."
-  end
-
-  @desc """
-  The `UserRole` enum type represents the possible roles a `User` object
-  can have.
-  """
-  enum :user_role do
-    value :member, as: "MEMBER", description: "The default, lowest level permissions for a user."
-    value :admin, as: "ADMIN", description: "Elevated permissions that allow the user to administrate the team, but not manage billing and other vital functions."
-    value :owner, as: "OWNER", description: "The highest level of permissions a user can have."
-  end
-
-  @desc """
-  The `TeamState` scalar type represents the possible states a `Team` object
-  can have.
-  """
-  enum :team_state do
-    value :active, as: "ACTIVE", description: "The default state for a team."
-    value :disabled, as: "DISABLED", description: "The state when a team has been shut down."
-  end
-
-  @desc """
-  The `InvitationState` scalar type represents the possible states a `Invitation` object
-  can have.
-  """
-  enum :invitation_state do
-    value :pending, as: "PENDING", description: "The default state for an invitation, before it has been accepted."
-    value :accepted, as: "ACCEPTED", description: "The state when the invitation has been accepted."
-    value :revoked, as: "REVOKED", description: "The state when an invitation has been revoked."
-  end
+  import_types BridgeWeb.Schema.Enums
+  import_types BridgeWeb.Schema.Scalars
 
   @desc "A `User` represents a person belonging to a specific `Team`."
   object :user do
@@ -85,6 +39,14 @@ defmodule BridgeWeb.Schema.Types do
     field :slug, non_null(:string)
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
+
+    field :users, non_null(:user_connection) do
+      arg :first, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :user_order
+      resolve &BridgeWeb.TeamResolver.users/3
+    end
   end
 
   @desc "An `Invitation` is the means by which a new user joins an existing `Team`."
@@ -99,14 +61,74 @@ defmodule BridgeWeb.Schema.Types do
 
   @desc "The response to inviting a user to a team."
   object :invite_user_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
     field :success, :boolean
-    field :invitation, :invitation
+
+    @desc "A list of validation errors."
     field :errors, list_of(:error)
+
+    @desc """
+    The newly-created invitation object. If the mutation was not successful,
+    this field will be null.
+    """
+    field :invitation, :invitation
   end
 
   @desc "A validation error."
   object :error do
+    @desc "The name of the invalid attribute."
     field :attribute, non_null(:string)
+
+    @desc "A human-friendly error message."
     field :message, non_null(:string)
+  end
+
+  @desc "Data for pagination in a connection."
+  object :page_info do
+    @desc "The cursor correspodning to the first node."
+    field :start_cursor, :cursor
+
+    @desc "The cursor corresponding to the last node."
+    field :end_cursor, :cursor
+
+    @desc "A boolean indicating whether there are more items going forward."
+    field :has_next_page, non_null(:boolean)
+
+    @desc "A boolean indicating whether there are more items going backward."
+    field :has_previous_page, non_null(:boolean)
+  end
+
+  @desc "An edge in the user connection."
+  object :user_edge do
+    @desc "The item at the edge of the node."
+    field :node, :user
+
+    @desc "A cursor for use in pagination."
+    field :cursor, non_null(:cursor)
+  end
+
+  @desc "A list of users belonging to a team."
+  object :user_connection do
+    @desc "A list of edges."
+    field :edges, list_of(:user_edge)
+
+    @desc "Pagination data for the connection."
+    field :page_info, non_null(:page_info)
+
+    @desc "The total count of items in the connection."
+    field :total_count, non_null(:integer)
+  end
+
+  @desc "The field and direction to sort users."
+  input_object :user_order do
+    @desc "The field by which to sort users."
+    field :field, non_null(:user_order_field)
+
+    @desc "The sort direction."
+    field :direction, non_null(:order_direction)
   end
 end

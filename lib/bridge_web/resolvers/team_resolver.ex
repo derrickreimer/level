@@ -3,7 +3,7 @@ defmodule BridgeWeb.TeamResolver do
   GraphQL query resolution for teams.
   """
 
-  def all(_args, _info) do
-    {:ok, Bridge.Repo.all(Bridge.Team)}
+  def users(team, args, _info) do
+    Bridge.Connections.users(team, args, %{})
   end
 end
