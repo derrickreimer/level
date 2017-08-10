@@ -6,6 +6,8 @@ defmodule Bridge.Mixfile do
      version: "0.0.1",
      elixir: "~> 1.2",
      elixirc_paths: elixirc_paths(Mix.env),
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: [coveralls: :test],
      compilers: [:phoenix, :gettext] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -48,7 +50,8 @@ defmodule Bridge.Mixfile do
      {:absinthe_plug, "~> 1.3", git: "https://github.com/djreimer/absinthe_plug.git", ref: "71bbdbe"},
      {:joken, "~> 1.5"},
      {:bamboo, "~> 0.8"},
-     {:bamboo_smtp, "~> 1.4"}]
+     {:bamboo_smtp, "~> 1.4"},
+     {:excoveralls, "~> 0.7", only: :test}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

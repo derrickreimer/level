@@ -1,0 +1,8 @@
+{
+  "skip_files": [
+    "test",
+    "lib/bridge_web.ex",
+    "lib/bridge_web/endpoint.ex",
+    "lib/bridge_web/gettext.ex"
+  ]
+}
