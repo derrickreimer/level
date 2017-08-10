@@ -1,4 +1,4 @@
-defmodule Bridge.TeamUserQuery do
+defmodule Bridge.Connections.Users do
   @moduledoc """
   Helpers for querying team users.
   """
@@ -25,7 +25,7 @@ defmodule Bridge.TeamUserQuery do
   - `after`    - the cursor.
   - `order_by` - the field and direction by which to order the results.
   """
-  def run(team, args, _context) do
+  def get(team, args, _context) do
     base_query = from u in User,
       where: u.team_id == ^team.id and u.state == "ACTIVE"
 

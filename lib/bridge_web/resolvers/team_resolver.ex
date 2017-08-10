@@ -4,6 +4,6 @@ defmodule BridgeWeb.TeamResolver do
   """
 
   def users(team, args, _info) do
-    Bridge.TeamUserQuery.run(team, args, %{})
+    Bridge.Connections.users(team, args, %{})
   end
 end
