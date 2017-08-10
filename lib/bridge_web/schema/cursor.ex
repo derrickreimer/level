@@ -1,4 +1,8 @@
 defmodule BridgeWeb.Schema.Cursor do
+  @moduledoc """
+  Parsing and serialization methods for GraphQL cursors.
+  """
+
   # defmacro is_datetime(value) do
   #   quote do: false #unquote(value) == %DateTime{}
   # end
