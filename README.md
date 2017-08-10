@@ -1,5 +1,9 @@
 # Bridge
 
+[![CircleCI](https://circleci.com/gh/djreimer/bridge.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/bridge)
+
+## One-Click Deployment
+
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/djreimer/bridge/tree/master)
 
 ## Development Environment
