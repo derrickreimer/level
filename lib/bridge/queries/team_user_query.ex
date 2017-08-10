@@ -30,7 +30,7 @@ defmodule Bridge.TeamUserQuery do
       where: u.team_id == ^team.id and u.state == "ACTIVE"
 
     args = parse_args(args)
-    Bridge.Pagination.fetch_result(base_query, args)
+    Bridge.Pagination.fetch_result(Bridge.Repo, base_query, args)
   end
 
   defp parse_args(args) do

@@ -3,15 +3,14 @@ defmodule Bridge.Pagination do
   A module for generating paginated query results.
   """
 
-  alias Bridge.Repo
   import Ecto.Query
 
-  def fetch_result(base_query, args) do
+  def fetch_result(repo, base_query, args) do
     order_field = args.order_by.field
-    total_count = Repo.one(apply_count(base_query))
+    total_count = repo.one(apply_count(base_query))
 
     {:ok, nodes, has_previous_page, has_next_page} =
-      fetch_nodes(base_query, order_field, args)
+      fetch_nodes(repo, base_query, order_field, args)
 
     edges = build_edges(nodes, order_field)
 
@@ -31,8 +30,8 @@ defmodule Bridge.Pagination do
     {:ok, payload}
   end
 
-  def fetch_nodes(query, order_field, args) do
-    nodes = Repo.all(
+  def fetch_nodes(repo, query, order_field, args) do
+    nodes = repo.all(
       query
       |> apply_sort(args)
       |> apply_limit(args)
@@ -41,7 +40,7 @@ defmodule Bridge.Pagination do
     )
 
     has_previous_page =
-      case Repo.one(from r in apply_sort(query, args), limit: 1) do
+      case repo.one(from r in apply_sort(query, args), limit: 1) do
         nil -> false
         node -> List.first(nodes).id != node.id
       end
