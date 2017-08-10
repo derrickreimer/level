@@ -1,6 +1,6 @@
 defmodule Bridge.Connections.Users do
   @moduledoc """
-  Helpers for querying team users.
+  Functions for querying users.
   """
 
   alias Bridge.User
@@ -17,23 +17,28 @@ defmodule Bridge.Connections.Users do
   }
 
   @doc """
-  Execute a query for users.
+  Execute a paginated query for users belonging to a given team.
 
-  Acceptable arguments include:
+  Acceptable `args` include:
 
   - `first`    - the number of rows to return.
   - `after`    - the cursor.
   - `order_by` - the field and direction by which to order the results.
   """
   def get(team, args, _context) do
-    base_query = from u in User,
-      where: u.team_id == ^team.id and u.state == "ACTIVE"
+    case validate_args(args) do
+      {:ok, args} ->
+        base_query = from u in User,
+          where: u.team_id == ^team.id and u.state == "ACTIVE"
 
-    args = parse_args(args)
-    Bridge.Pagination.fetch_result(Bridge.Repo, base_query, args)
+        Bridge.Pagination.fetch_result(Bridge.Repo, base_query, args)
+      error ->
+        error
+    end
   end
 
-  defp parse_args(args) do
-    Map.merge(@default_args, args)
+  defp validate_args(args) do
+    # TODO: return {:error, message} if args are not valid
+    {:ok, Map.merge(@default_args, args)}
   end
 end

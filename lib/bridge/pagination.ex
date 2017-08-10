@@ -1,9 +1,13 @@
 defmodule Bridge.Pagination do
   @moduledoc """
-  A module for generating paginated query results.
+  Functions for generating cursor-paginated, GraphQL-friendly query results.
   """
 
   import Ecto.Query
+
+  alias Bridge.Pagination.Edge
+  alias Bridge.Pagination.PageInfo
+  alias Bridge.Pagination.Result
 
   def fetch_result(repo, base_query, args) do
     order_field = args.order_by.field
@@ -14,20 +18,20 @@ defmodule Bridge.Pagination do
 
     edges = build_edges(nodes, order_field)
 
-    page_info = %{
+    page_info = %PageInfo{
       start_cursor: start_cursor(edges),
       end_cursor: end_cursor(edges),
       has_next_page: has_next_page,
       has_previous_page: has_previous_page
     }
 
-    payload = %{
+    result = %Result{
       total_count: total_count,
       edges: edges,
       page_info: page_info
     }
 
-    {:ok, payload}
+    {:ok, result}
   end
 
   def fetch_nodes(repo, query, order_field, args) do
@@ -52,7 +56,7 @@ defmodule Bridge.Pagination do
   defp build_edges(nodes, order_field) do
     Enum.map nodes, fn node ->
       cursor = Map.get(node, order_field)
-      %{node: node, cursor: cursor}
+      %Edge{node: node, cursor: cursor}
     end
   end
 

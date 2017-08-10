@@ -6,7 +6,7 @@ defmodule Bridge.Connections do
   @doc """
   Fetch users belonging to given team.
   """
-  def users(team, args, info) do
-    Bridge.Connections.Users.get(team, args, info)
+  def users(team, args, context \\ %{}) do
+    Bridge.Connections.Users.get(team, args, context)
   end
 end
