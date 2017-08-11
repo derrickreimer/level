@@ -33,3 +33,9 @@ jobs:
       - run:
           name: "Run Elixir test suite"
           command: mix test
+      - run:
+          name: "Run Elixir linting"
+          command: mix credo
+      - run:
+          name: "Run Coveralls"
+          command: mix coveralls
