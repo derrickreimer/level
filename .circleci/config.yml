@@ -18,8 +18,18 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
-      - run: mix local.hex --force
-      - run: mix local.rebar --force
-      - run: mix deps.get
-      - run: mix ecto.create
-      - run: mix test
+      - run:
+          name: "Install Hex"
+          command: mix local.hex --force
+      - run:
+          name: "Install Rebar"
+          command: mix local.rebar --force
+      - run:
+          name: "Install Elixir dependencies"
+          command: mix deps.get
+      - run:
+          name: "Create the test database"
+          command: mix ecto.create
+      - run:
+          name: "Run Elixir test suite"
+          command: mix test
