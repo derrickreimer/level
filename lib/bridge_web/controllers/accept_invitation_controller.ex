@@ -1,7 +1,7 @@
 defmodule BridgeWeb.AcceptInvitationController do
   use BridgeWeb, :controller
 
-  alias Bridge.Invitation
+  alias Bridge.Teams.Invitation
 
   plug :fetch_team
 

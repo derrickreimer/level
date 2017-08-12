@@ -3,7 +3,7 @@ defmodule BridgeWeb.InvitationResolver do
   GraphQL query resolution for invitations.
   """
 
-  alias Bridge.Invitation
+  alias Bridge.Teams.Invitation
 
   def create(args, info) do
     user = info.context.current_user

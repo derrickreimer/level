@@ -6,7 +6,7 @@ defmodule BridgeWeb.TeamSearchController do
   end
 
   def create(conn, %{"search" => %{"slug" => slug}}) do
-    case Bridge.Repo.get_by(Bridge.Team, %{slug: slug}) do
+    case Bridge.Repo.get_by(Bridge.Teams.Team, %{slug: slug}) do
       nil ->
         conn
         |> put_flash(:error, "We could not find your team")

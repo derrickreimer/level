@@ -1,4 +1,4 @@
-defmodule Bridge.Signup do
+defmodule Bridge.Teams.Registration do
   @moduledoc """
   This is a virtual model whose form changeset is designed to be bound to the
   new team sign up form.
@@ -9,8 +9,8 @@ defmodule Bridge.Signup do
   alias Ecto.Multi
 
   alias Bridge.Repo
-  alias Bridge.Team
-  alias Bridge.User
+  alias Bridge.Teams.Team
+  alias Bridge.Teams.User
 
   @types %{
     slug: :string,
@@ -24,7 +24,7 @@ defmodule Bridge.Signup do
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
-  def form_changeset(struct, params \\ %{}) do
+  def changeset(struct, params \\ %{}) do
     {struct, @types}
     |> cast(params, Map.keys(@types))
     |> validate_required([:slug, :team_name, :username, :email, :password])

@@ -23,7 +23,7 @@ defmodule BridgeWeb.Auth do
         |> halt()
 
       subdomain ->
-        team = Repo.get_by!(Bridge.Team, slug: subdomain)
+        team = Repo.get_by!(Bridge.Teams.Team, slug: subdomain)
         assign(conn, :team, team)
     end
   end
@@ -47,7 +47,7 @@ defmodule BridgeWeb.Auth do
 
         case decode_user_sessions(sessions) do
           %{^team_id => [user_id, _issued_at_ts]} ->
-            user = Repo.get(Bridge.User, user_id)
+            user = Repo.get(Bridge.Teams.User, user_id)
             put_current_user(conn, user)
           _ ->
             delete_current_user(conn)
@@ -130,7 +130,7 @@ defmodule BridgeWeb.Auth do
     end
 
     conditions = %{team_id: team.id} |> Map.put(column, identifier)
-    user = Repo.get_by(Bridge.User, conditions)
+    user = Repo.get_by(Bridge.Teams.User, conditions)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->
@@ -204,7 +204,7 @@ defmodule BridgeWeb.Auth do
           team_ids = Map.keys(sessions)
 
           Repo.all(
-            from t in Bridge.Team,
+            from t in Bridge.Teams.Team,
               where: t.id in ^team_ids,
               select: t,
               order_by: [asc: t.name]
@@ -220,7 +220,7 @@ defmodule BridgeWeb.Auth do
       ["Bearer " <> token] ->
         case verify_signed_jwt(token) do
           %Joken.Token{claims: %{"sub" => user_id}, error: nil} ->
-            user = Repo.get(Bridge.User, user_id)
+            user = Repo.get(Bridge.Teams.User, user_id)
 
             if user.team_id == conn.assigns.team.id do
               put_current_user(conn, user)

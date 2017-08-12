@@ -172,11 +172,11 @@ defmodule BridgeWeb.AuthTest do
 
   describe "sign_out/2" do
     test "signs out of the given team only", %{conn: conn} do
-      team1 = %Bridge.Team{id: 1}
-      team2 = %Bridge.Team{id: 2}
+      team1 = %Bridge.Teams.Team{id: 1}
+      team2 = %Bridge.Teams.Team{id: 2}
 
-      user1 = %Bridge.User{id: 1}
-      user2 = %Bridge.User{id: 2}
+      user1 = %Bridge.Teams.User{id: 1}
+      user2 = %Bridge.Teams.User{id: 2}
 
       conn =
         conn
@@ -236,7 +236,7 @@ defmodule BridgeWeb.AuthTest do
 
   describe "generate_signed_jwt/1" do
     setup do
-      user = %Bridge.User{id: 999}
+      user = %Bridge.Teams.User{id: 999}
       {:ok, %{user: user}}
     end
 
@@ -250,7 +250,7 @@ defmodule BridgeWeb.AuthTest do
 
   describe "verify_signed_jwt/1" do
     setup do
-      user = %Bridge.User{id: 999}
+      user = %Bridge.Teams.User{id: 999}
       {:ok, %{user: user}}
     end
 

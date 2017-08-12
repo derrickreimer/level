@@ -8,7 +8,7 @@ defmodule BridgeWeb.API.UserViewTest do
       {:ok, inserted_at, _} = DateTime.from_iso8601("2017-06-21T23:50:07Z")
       updated_at = inserted_at
 
-      user = %Bridge.User{
+      user = %Bridge.Teams.User{
         id: 999,
         email: "derrick@bridge.chat",
         username: "derrick",

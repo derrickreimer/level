@@ -1,4 +1,4 @@
-defmodule Bridge.User do
+defmodule Bridge.Teams.User do
   @moduledoc """
   A User always belongs to a team and has a specific role in the team.
   """
@@ -23,7 +23,7 @@ defmodule Bridge.User do
     field :time_zone, :string
     field :password, :string, virtual: true
     field :password_hash, :string
-    belongs_to :team, Bridge.Team
+    belongs_to :team, Bridge.Teams.Team
 
     timestamps()
   end

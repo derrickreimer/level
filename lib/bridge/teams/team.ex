@@ -1,4 +1,4 @@
-defmodule Bridge.Team do
+defmodule Bridge.Teams.Team do
   @moduledoc """
   A Team is the fundamental unit in Bridge. Think of a team like an "organization"
   or "company", just more concise and generically-named. All users must be
@@ -46,7 +46,7 @@ defmodule Bridge.Team do
   end
 end
 
-defimpl Phoenix.Param, for: Bridge.Team do
+defimpl Phoenix.Param, for: Bridge.Teams.Team do
   def to_param(%{slug: slug}) do
     slug
   end

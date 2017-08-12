@@ -1,7 +1,7 @@
 defmodule BridgeWeb.InvitationControllerTest do
   use BridgeWeb.ConnCase
 
-  alias Bridge.Invitation
+  alias Bridge.Teams.Invitation
 
   setup %{conn: conn} do
     {:ok, %{team: team, user: owner}} = insert_signup()

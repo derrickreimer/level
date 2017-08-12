@@ -4,10 +4,10 @@ defmodule Bridge.EmailTest do
 
   describe "invitation_email/1" do
     setup do
-      team = %Bridge.Team{name: "Acme", slug: "acme"}
-      invitor = %Bridge.User{email: "derrick@acme.com"}
+      team = %Bridge.Teams.Team{name: "Acme", slug: "acme"}
+      invitor = %Bridge.Teams.User{email: "derrick@acme.com"}
 
-      invitation = %Bridge.Invitation{
+      invitation = %Bridge.Teams.Invitation{
         team: team,
         invitor: invitor,
         email: "bob@acme.com",

@@ -1,8 +1,8 @@
-defmodule Bridge.InvitationRepoTest do
+defmodule Bridge.Teams.InvitationRepoTest do
   use Bridge.DataCase
   use Bamboo.Test
 
-  alias Bridge.Invitation
+  alias Bridge.Teams.Invitation
 
   describe "create/1" do
     setup do

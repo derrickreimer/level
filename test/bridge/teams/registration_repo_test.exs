@@ -1,13 +1,13 @@
-defmodule Bridge.SignupRepoTest do
+defmodule Bridge.Teams.RegistrationRepoTest do
   use Bridge.DataCase
 
-  alias Bridge.Signup
+  alias Bridge.Teams.Registration
 
   describe "form_changeset/2" do
     test "requires a unique slug" do
       insert_signup(%{slug: "foo"})
       params = Map.put(valid_signup_params(), :slug, "foo")
-      changeset = Signup.form_changeset(%{}, params)
+      changeset = Registration.changeset(%{}, params)
       assert {:slug, {"is already taken", validation: :uniqueness}}
         in changeset.errors
     end

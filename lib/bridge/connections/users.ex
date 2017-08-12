@@ -3,7 +3,7 @@ defmodule Bridge.Connections.Users do
   Functions for querying users.
   """
 
-  alias Bridge.User
+  alias Bridge.Teams.User
   import Ecto.Query
 
   @default_args %{

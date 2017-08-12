@@ -1,12 +1,13 @@
 defmodule BridgeWeb.API.TeamController do
   use BridgeWeb, :controller
-  alias Bridge.Signup
+
+  alias Bridge.Teams
 
   def create(conn, %{"signup" => signup_params}) do
-    changeset = Signup.form_changeset(%{}, signup_params)
+    changeset = Teams.registration_changeset(%{}, signup_params)
 
     if changeset.valid? do
-      case Repo.transaction(Signup.transaction(changeset)) do
+      case Teams.register(changeset) do
         {:ok, %{team: team, user: user}} ->
           conn
           |> BridgeWeb.Auth.sign_in(team, user)

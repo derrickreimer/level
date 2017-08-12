@@ -1,4 +1,4 @@
-defmodule Bridge.Invitation do
+defmodule Bridge.Teams.Invitation do
   @moduledoc """
   An Invitation is the means by which users are invited to join a Team.
   """
@@ -10,7 +10,7 @@ defmodule Bridge.Invitation do
 
   alias Ecto.Multi
   alias Bridge.Repo
-  alias Bridge.User
+  alias Bridge.Teams.User
 
   # @states ["PENDING", "ACCEPTED", "REVOKED"]
 
@@ -20,9 +20,9 @@ defmodule Bridge.Invitation do
     field :token, :binary_id # uuid
     field :email, :string
 
-    belongs_to :team, Bridge.Team
-    belongs_to :invitor, Bridge.User
-    belongs_to :acceptor, Bridge.User
+    belongs_to :team, Bridge.Teams.Team
+    belongs_to :invitor, Bridge.Teams.User
+    belongs_to :acceptor, Bridge.Teams.User
 
     timestamps()
   end
@@ -65,7 +65,7 @@ defmodule Bridge.Invitation do
     struct
     |> cast(params, [:invitor_id, :team_id, :email])
     |> validate_required([:email])
-    |> validate_format(:email, Bridge.User.email_format, message: dgettext("errors", "is invalid"))
+    |> validate_format(:email, Bridge.Teams.User.email_format, message: dgettext("errors", "is invalid"))
     |> put_change(:token, generate_token())
     |> unique_constraint(:email, name: :invitations_unique_pending_email,
         message: dgettext("errors", "already has an invitation"),
@@ -106,7 +106,7 @@ defmodule Bridge.Invitation do
   end
 end
 
-defimpl Phoenix.Param, for: Bridge.Invitation do
+defimpl Phoenix.Param, for: Bridge.Teams.Invitation do
   def to_param(%{token: token}) do
     token
   end
