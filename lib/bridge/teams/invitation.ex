@@ -28,27 +28,6 @@ defmodule Bridge.Teams.Invitation do
   end
 
   @doc """
-  Create a new invitation and send the invitation email if successful.
-  """
-  def create(params) do
-    case Repo.insert(changeset(%__MODULE__{}, params)) do
-      {:ok, invitation} ->
-        invitation =
-          invitation
-          |> Repo.preload([:team, :invitor])
-
-        invitation
-        |> Bridge.Email.invitation_email()
-        |> Bridge.Mailer.deliver_later()
-
-        {:ok, invitation}
-
-      error ->
-        error
-    end
-  end
-
-  @doc """
   Fetchs a valid, pending invitation by team and token. If the invitation is not
   found, raises an Ecto exception.
   """
