@@ -9,6 +9,7 @@ defmodule BridgeWeb.Auth do
   import Joken
 
   alias Bridge.Repo
+  alias Bridge.Teams
   alias BridgeWeb.Router.Helpers
   alias BridgeWeb.UrlHelpers
 
@@ -23,7 +24,7 @@ defmodule BridgeWeb.Auth do
         |> halt()
 
       subdomain ->
-        team = Repo.get_by!(Bridge.Teams.Team, slug: subdomain)
+        team = Teams.get_team_by_slug!(subdomain)
         assign(conn, :team, team)
     end
   end
@@ -47,7 +48,7 @@ defmodule BridgeWeb.Auth do
 
         case decode_user_sessions(sessions) do
           %{^team_id => [user_id, _issued_at_ts]} ->
-            user = Repo.get(Bridge.Teams.User, user_id)
+            user = Teams.get_user(user_id)
             put_current_user(conn, user)
           _ ->
             delete_current_user(conn)
@@ -123,14 +124,7 @@ defmodule BridgeWeb.Auth do
   an :ok tuple. Otherwise, returns an :error tuple.
   """
   def sign_in_with_credentials(conn, team, identifier, given_pass, _opts \\ []) do
-    column = if Regex.match?(~r/@/, identifier) do
-      :email
-    else
-      :username
-    end
-
-    conditions = %{team_id: team.id} |> Map.put(column, identifier)
-    user = Repo.get_by(Bridge.Teams.User, conditions)
+    user = Teams.get_user_by_identifier(team, identifier)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->

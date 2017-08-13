@@ -1,15 +1,53 @@
 defmodule Bridge.Teams do
   @moduledoc """
-  Teams are the fundamental organizational unit in Bridge. Think of a team like
+  A team is the fundamental organizational unit in Bridge. Think of a team like
   a "company" or "organization", just more concise and generically-named.
 
   All users must be related to a particular team, either as the the owner or
   some other role.
   """
 
+  alias Bridge.Teams.Team
+  alias Bridge.Teams.User
   alias Bridge.Teams.Registration
   alias Bridge.Teams.Invitation
   alias Bridge.Repo
+
+  @doc """
+  Fetches a team by slug and returns `nil` if not found.
+  """
+  def get_team_by_slug(slug) do
+    Repo.get_by(Team, %{slug: slug})
+  end
+
+  @doc """
+  Fetches a team by slug and raises an exception if not found.
+  """
+  def get_team_by_slug!(slug) do
+    Repo.get_by!(Team, %{slug: slug})
+  end
+
+  @doc """
+  Fetches a user by id and returns `nil` if not found.
+  """
+  def get_user(id) do
+    Repo.get(User, id)
+  end
+
+  @doc """
+  Fetches a user for a particular team by a identifier (either email or username),
+  and returns `nil` if not found.
+  """
+  def get_user_by_identifier(team, identifier) do
+    column = if Regex.match?(~r/@/, identifier) do
+      :email
+    else
+      :username
+    end
+
+    params = Map.put(%{team_id: team.id}, column, identifier)
+    Repo.get_by(User, params)
+  end
 
   @doc """
   Builds a changeset for performing user registration.

@@ -4,6 +4,57 @@ defmodule Bridge.TeamsTest do
 
   alias Bridge.Teams
 
+  describe "get_team_by_slug(!)/1" do
+    setup do
+      insert_signup()
+    end
+
+    test "returns the team if found", %{team: team} do
+      assert Teams.get_team_by_slug(team.slug).id == team.id
+      assert Teams.get_team_by_slug!(team.slug).id == team.id
+    end
+
+    test "handles when the team is not found" do
+      assert Teams.get_team_by_slug("doesnotexist") == nil
+
+      assert_raise(Ecto.NoResultsError, fn ->
+        Teams.get_team_by_slug!("doesnotexist")
+      end)
+    end
+  end
+
+  describe "get_user/1" do
+    setup do
+      insert_signup()
+    end
+
+    test "returns the user if found", %{user: user} do
+      assert Teams.get_user(user.id).id == user.id
+    end
+
+    test "handles when the user is not found" do
+      assert Teams.get_user(99999) == nil
+    end
+  end
+
+  describe "get_user_by_identifier/1" do
+    setup do
+      insert_signup()
+    end
+
+    test "looks up user by email address", %{team: team, user: user} do
+      assert Teams.get_user_by_identifier(team, user.email).id == user.id
+    end
+
+    test "looks up user by username", %{team: team, user: user} do
+      assert Teams.get_user_by_identifier(team, user.username).id == user.id
+    end
+
+    test "handles when the user is not found", %{team: team} do
+      assert Teams.get_user_by_identifier(team, "doesnotexist") == nil
+    end
+  end
+
   describe "create_invitation/1" do
     setup do
       {:ok, %{team: team, user: user}} = insert_signup()
