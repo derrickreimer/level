@@ -1,14 +1,14 @@
 defmodule BridgeWeb.AcceptInvitationController do
   use BridgeWeb, :controller
 
-  alias Bridge.Teams.Invitation
+  alias Bridge.Teams
 
   plug :fetch_team
 
   def create(conn, %{"id" => id, "user" => user_params}) do
-    invitation = Invitation.fetch_pending!(conn.assigns[:team], id)
+    invitation = Teams.get_pending_invitation!(conn.assigns[:team], id)
 
-    case Invitation.accept(invitation, user_params) do
+    case Teams.accept_invitation(invitation, user_params) do
       {:ok, %{user: user}} ->
         conn
         |> BridgeWeb.Auth.sign_in(invitation.team, user)

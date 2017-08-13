@@ -12,7 +12,7 @@ defmodule Bridge.Teams do
   alias Bridge.Repo
 
   @doc """
-  Generates a changeset for performing user registration.
+  Builds a changeset for performing user registration.
   """
   def registration_changeset(struct, params \\ %{}) do
     Registration.changeset(struct, params)
@@ -28,7 +28,7 @@ defmodule Bridge.Teams do
   end
 
   @doc """
-  Generates a changeset for creating an invitation.
+  Builds a changeset for creating an invitation.
   """
   def create_invitation_changeset(params \\ %{}) do
     Invitation.changeset(%Invitation{}, params)
@@ -53,5 +53,24 @@ defmodule Bridge.Teams do
       error ->
         error
     end
+  end
+
+  @doc """
+  Fetches a pending invitation by team and token, and raises an exception
+  if the record is not found.
+  """
+  def get_pending_invitation!(team, token) do
+    Invitation
+    |> Repo.get_by!(team_id: team.id, state: "PENDING", token: token)
+    |> Repo.preload([:team, :invitor])
+  end
+
+  @doc """
+  Registers a user and marks the given invitation as accepted.
+  """
+  def accept_invitation(invitation, params \\ %{}) do
+    invitation
+    |> Invitation.accept_transaction(params)
+    |> Repo.transaction()
   end
 end
