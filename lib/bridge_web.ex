@@ -35,7 +35,7 @@ defmodule BridgeWeb do
       import Ecto.Query
 
       import BridgeWeb.Router.Helpers
-      import BridgeWeb.Gettext
+      import Bridge.Gettext
 
       import BridgeWeb.Auth, only: [
         fetch_team: 2,
@@ -70,7 +70,7 @@ defmodule BridgeWeb do
 
       import BridgeWeb.Router.Helpers
       import BridgeWeb.ErrorHelpers
-      import BridgeWeb.Gettext
+      import Bridge.Gettext
       import BridgeWeb.UrlHelpers
     end
   end
@@ -100,7 +100,7 @@ defmodule BridgeWeb do
       alias Bridge.Repo
       import Ecto
       import Ecto.Query
-      import BridgeWeb.Gettext
+      import Bridge.Gettext
     end
   end
 

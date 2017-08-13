@@ -6,7 +6,7 @@ defmodule Bridge.Teams.Invitation do
   use Ecto.Schema
 
   import Ecto.Changeset
-  import BridgeWeb.Gettext
+  import Bridge.Gettext
 
   alias Ecto.Multi
   alias Bridge.Repo
