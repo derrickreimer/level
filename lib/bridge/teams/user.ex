@@ -5,7 +5,7 @@ defmodule Bridge.Teams.User do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import BridgeWeb.Gettext
+  import Bridge.Gettext
 
   alias Comeonin.Bcrypt
   alias Ecto.Changeset

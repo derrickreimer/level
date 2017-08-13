@@ -32,9 +32,9 @@ defmodule BridgeWeb.ErrorHelpers do
     #     dgettext "errors", "is invalid"
     #
     if count = opts[:count] do
-      Gettext.dngettext(BridgeWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Bridge.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(BridgeWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Bridge.Gettext, "errors", msg, opts)
     end
   end
 

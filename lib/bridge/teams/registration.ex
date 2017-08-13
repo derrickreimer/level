@@ -4,7 +4,7 @@ defmodule Bridge.Teams.Registration do
   new team sign up form.
   """
 
-  import BridgeWeb.Gettext
+  import Bridge.Gettext
   import Ecto.Changeset
   alias Ecto.Multi
 
