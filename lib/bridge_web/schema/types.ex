@@ -24,7 +24,7 @@ defmodule BridgeWeb.Schema.Types do
 
     field :team, non_null(:team) do
       resolve fn user, _, _ ->
-        batch({Helpers, :by_id, Bridge.Team}, user.team_id, fn batch_results ->
+        batch({Helpers, :by_id, Bridge.Teams.Team}, user.team_id, fn batch_results ->
           {:ok, Map.get(batch_results, user.team_id)}
         end)
       end

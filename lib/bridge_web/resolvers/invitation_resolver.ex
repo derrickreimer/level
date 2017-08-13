@@ -3,17 +3,18 @@ defmodule BridgeWeb.InvitationResolver do
   GraphQL query resolution for invitations.
   """
 
-  alias Bridge.Invitation
+  alias Bridge.Teams
 
   def create(args, info) do
     user = info.context.current_user
 
-    args =
+    changeset =
       args
       |> Map.put(:invitor_id, user.id)
       |> Map.put(:team_id, user.team_id)
+      |> Teams.create_invitation_changeset()
 
-    resp = case Invitation.create(args) do
+    resp = case Teams.create_invitation(changeset) do
       {:ok, invitation} ->
         %{success: true, invitation: invitation, errors: []}
 

@@ -1,7 +1,8 @@
 defmodule BridgeWeb.InvitationControllerTest do
   use BridgeWeb.ConnCase
 
-  alias Bridge.Invitation
+  # alias Bridge.Teams.Invitation
+  alias Bridge.Teams
 
   setup %{conn: conn} do
     {:ok, %{team: team, user: owner}} = insert_signup()
@@ -15,8 +16,12 @@ defmodule BridgeWeb.InvitationControllerTest do
 
   describe "GET /invitations/:id" do
     setup %{conn: conn, team: team, owner: owner} do
-      params = valid_invitation_params(%{team: team, invitor: owner})
-      {:ok, invitation} = Invitation.create(params)
+      changeset =
+        %{team: team, invitor: owner}
+        |> valid_invitation_params()
+        |> Teams.create_invitation_changeset()
+      
+      {:ok, invitation} = Teams.create_invitation(changeset)
       {:ok, %{conn: conn, team: team, invitor: owner, invitation: invitation}}
     end
 

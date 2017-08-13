@@ -6,8 +6,8 @@ defmodule BridgeWeb.API.TeamViewTest do
 
   describe "render/2 create.json" do
     test "includes the new team" do
-      user = %Bridge.User{email: "derrick@bridge.chat"}
-      team = %Bridge.Team{slug: "bridge"}
+      user = %Bridge.Teams.User{email: "derrick@bridge.chat"}
+      team = %Bridge.Teams.Team{slug: "bridge"}
       redirect_url = "foo.bar"
 
       assert TeamView.render("create.json", %{user: user, team: team, redirect_url: redirect_url}) ==
@@ -46,7 +46,7 @@ defmodule BridgeWeb.API.TeamViewTest do
       {:ok, inserted_at, _} = DateTime.from_iso8601("2017-06-21T23:50:07Z")
       updated_at = inserted_at
 
-      team = %Bridge.Team{
+      team = %Bridge.Teams.Team{
         id: 999,
         name: "Bridge",
         slug: "bridge",

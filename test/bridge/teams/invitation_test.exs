@@ -1,12 +1,12 @@
-defmodule Bridge.InvitationTest do
+defmodule Bridge.Teams.InvitationTest do
   use Bridge.DataCase, async: true
 
-  alias Bridge.Invitation
+  alias Bridge.Teams.Invitation
 
   describe "changeset/2" do
     setup do
-      team = %Bridge.Team{id: 1}
-      invitor = %Bridge.User{id: 1}
+      team = %Bridge.Teams.Team{id: 1}
+      invitor = %Bridge.Teams.User{id: 1}
       {:ok, %{team: team, invitor: invitor}}
     end
 

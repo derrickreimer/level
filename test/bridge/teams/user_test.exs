@@ -1,7 +1,7 @@
-defmodule Bridge.UserTest do
+defmodule Bridge.Teams.UserTest do
   use Bridge.DataCase, async: true
 
-  alias Bridge.User
+  alias Bridge.Teams.User
 
   describe "signup_changeset/2" do
     test "validates with valid data" do

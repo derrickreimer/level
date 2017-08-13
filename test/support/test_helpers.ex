@@ -37,9 +37,8 @@ defmodule Bridge.TestHelpers do
       |> Map.merge(params)
 
     %{}
-    |> Bridge.Signup.form_changeset(params)
-    |> Bridge.Signup.transaction()
-    |> Repo.transaction()
+    |> Bridge.Teams.registration_changeset(params)
+    |> Bridge.Teams.register()
   end
 
   def insert_member(team, params \\ %{}) do
@@ -48,8 +47,8 @@ defmodule Bridge.TestHelpers do
       |> Map.put(:team_id, team.id)
       |> Map.merge(params)
 
-    %Bridge.User{}
-    |> Bridge.User.signup_changeset(params)
+    %Bridge.Teams.User{}
+    |> Bridge.Teams.User.signup_changeset(params)
     |> Repo.insert()
   end
 

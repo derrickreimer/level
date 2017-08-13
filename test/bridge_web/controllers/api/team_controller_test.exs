@@ -17,13 +17,13 @@ defmodule BridgeWeb.API.TeamControllerTest do
     end
 
     test "creates new team", %{params: %{slug: slug}} do
-      assert Repo.get_by!(Bridge.Team, %{slug: slug})
+      assert Repo.get_by!(Bridge.Teams.Team, %{slug: slug})
     end
 
     test "creates new user as the owner of the team",
       %{params: %{slug: slug, email: email}} do
 
-      user = Repo.get_by!(Bridge.User, %{email: email})
+      user = Repo.get_by!(Bridge.Teams.User, %{email: email})
       team = user |> Ecto.assoc(:team) |> Repo.one
 
       assert user.email == email
@@ -32,14 +32,14 @@ defmodule BridgeWeb.API.TeamControllerTest do
     end
 
     test "sign the user in", %{conn: conn, params: %{email: email}} do
-      user = Repo.get_by!(Bridge.User, %{email: email})
+      user = Repo.get_by!(Bridge.Teams.User, %{email: email})
       assert conn.assigns.current_user.id == user.id
     end
 
     test "returns a created response",
       %{conn: conn, params: %{email: email}} do
 
-      user = Repo.get_by!(Bridge.User, %{email: email})
+      user = Repo.get_by!(Bridge.Teams.User, %{email: email})
       team = user |> Ecto.assoc(:team) |> Repo.one
 
       redirect_url = threads_url(conn, team)
@@ -52,8 +52,8 @@ defmodule BridgeWeb.API.TeamControllerTest do
   describe "POST /api/teams with invalid data" do
     setup %{conn: conn} do
       params = %{email: "foobar", slug: "boo", team_name: "Foo"}
-      user_count = count_all(Bridge.User)
-      team_count = count_all(Bridge.Team)
+      user_count = count_all(Bridge.Teams.User)
+      team_count = count_all(Bridge.Teams.Team)
 
       conn =
         conn
@@ -65,11 +65,11 @@ defmodule BridgeWeb.API.TeamControllerTest do
     end
 
     test "does not not create a new team", %{team_count: team_count} do
-      assert team_count == count_all(Bridge.Team)
+      assert team_count == count_all(Bridge.Teams.Team)
     end
 
     test "does not not create a new user", %{user_count: user_count} do
-      assert user_count == count_all(Bridge.User)
+      assert user_count == count_all(Bridge.Teams.User)
     end
 
     test "returns a 422 response", %{conn: conn} do
