@@ -13,6 +13,7 @@ defmodule BridgeWeb.GraphQL.ViewerTest do
       {
         viewer {
           username
+          recipient_id
           state
         }
       }
@@ -27,6 +28,7 @@ defmodule BridgeWeb.GraphQL.ViewerTest do
       "data" => %{
         "viewer" => %{
           "username" => user.username,
+          "recipient_id" => "u:#{user.id}",
           "state" => user.state
         }
       }

@@ -15,6 +15,13 @@ defmodule BridgeWeb.Schema.Types do
   @desc "A `User` represents a person belonging to a specific `Team`."
   object :user do
     field :id, non_null(:id)
+
+    field :recipient_id, non_null(:id) do
+      resolve fn user, _, _ ->
+        {:ok, Bridge.Threads.get_recipient_id(user)}
+      end
+    end
+
     field :state, non_null(:user_state)
     field :role, non_null(:user_role)
     field :email, non_null(:string)
