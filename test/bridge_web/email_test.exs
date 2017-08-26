@@ -1,4 +1,4 @@
-defmodule Bridge.EmailTest do
+defmodule BridgeWeb.EmailTest do
   use ExUnit.Case
   use Bamboo.Test
 
@@ -14,7 +14,7 @@ defmodule Bridge.EmailTest do
         token: "xxx"
       }
 
-      email = Bridge.Email.invitation_email(invitation)
+      email = BridgeWeb.Email.invitation_email(invitation)
       {:ok, %{email: email, invitation: invitation, team: team, invitor: invitor}}
     end
 

@@ -1,4 +1,4 @@
-defmodule Bridge.Email do
+defmodule BridgeWeb.Email do
   @moduledoc """
   Transactional emails sent by Bridge.
   """

@@ -83,7 +83,7 @@ defmodule Bridge.Teams do
           |> Repo.preload([:team, :invitor])
 
         invitation
-        |> Bridge.Email.invitation_email()
+        |> BridgeWeb.Email.invitation_email()
         |> Bridge.Mailer.deliver_later()
 
         {:ok, invitation}
