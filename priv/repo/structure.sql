@@ -116,6 +116,27 @@ END;
 $$;
 
 
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: drafts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE drafts (
+    id bigint DEFAULT next_global_id() NOT NULL,
+    team_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    recipients character varying(255)[] DEFAULT ARRAY[]::character varying[] NOT NULL,
+    subject character varying(255) DEFAULT ''::character varying NOT NULL,
+    body text DEFAULT ''::text NOT NULL,
+    is_truncated boolean DEFAULT false NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
 --
 -- Name: global_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
@@ -127,10 +148,6 @@ CREATE SEQUENCE global_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
-SET default_tablespace = '';
-
-SET default_with_oids = false;
 
 --
 -- Name: invitations; Type: TABLE; Schema: public; Owner: -
@@ -227,6 +244,14 @@ CREATE TABLE users (
 
 
 --
+-- Name: drafts drafts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY drafts
+    ADD CONSTRAINT drafts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: invitations invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -272,6 +297,20 @@ ALTER TABLE ONLY threads
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: drafts_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX drafts_id_index ON drafts USING btree (id);
+
+
+--
+-- Name: drafts_user_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX drafts_user_id_index ON drafts USING btree (user_id);
 
 
 --
@@ -359,6 +398,22 @@ CREATE UNIQUE INDEX users_team_id_username_index ON users USING btree (team_id, 
 
 
 --
+-- Name: drafts drafts_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY drafts
+    ADD CONSTRAINT drafts_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
+
+
+--
+-- Name: drafts drafts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY drafts
+    ADD CONSTRAINT drafts_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
+
+--
 -- Name: invitations invitations_acceptor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -434,5 +489,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335), (20170729023453), (20170729045310), (20170813212405);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335), (20170729023453), (20170729045310), (20170813212405), (20170822002819);
 
