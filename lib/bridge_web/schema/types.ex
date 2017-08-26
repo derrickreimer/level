@@ -59,6 +59,33 @@ defmodule BridgeWeb.Schema.Types do
     field :updated_at, non_null(:time)
   end
 
+  @desc "An `Draft` is an unsent thread that is still being composed."
+  object :draft do
+    field :id, non_null(:id)
+    field :recipients, list_of(:string)
+    field :subject, non_null(:string)
+    field :body, non_null(:string)
+    field :is_truncated, non_null(:boolean)
+    field :inserted_at, non_null(:time)
+    field :updated_at, non_null(:time)
+
+    field :user, non_null(:user) do
+      resolve fn draft, _, _ ->
+        batch({Helpers, :by_id, Bridge.Teams.User}, draft.user_id, fn batch_results ->
+          {:ok, Map.get(batch_results, draft.user_id)}
+        end)
+      end
+    end
+
+    field :team, non_null(:team) do
+      resolve fn draft, _, _ ->
+        batch({Helpers, :by_id, Bridge.Teams.Team}, draft.team_id, fn batch_results ->
+          {:ok, Map.get(batch_results, draft.team_id)}
+        end)
+      end
+    end
+  end
+
   @desc "The response to inviting a user to a team."
   object :invite_user_payload do
     @desc """
@@ -72,7 +99,7 @@ defmodule BridgeWeb.Schema.Types do
     field :errors, list_of(:error)
 
     @desc """
-    The newly-created invitation object. If the mutation was not successful,
+    The newly-created object. If the mutation was not successful,
     this field will be null.
     """
     field :invitation, :invitation
@@ -130,5 +157,24 @@ defmodule BridgeWeb.Schema.Types do
 
     @desc "The sort direction."
     field :direction, non_null(:order_direction)
+  end
+
+  @desc "The response to creating a thread draft."
+  object :create_draft_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, :boolean
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The newly-created object. If the mutation was not successful,
+    this field will be null.
+    """
+    field :draft, :draft
   end
 end

@@ -4,15 +4,26 @@ defmodule Bridge.Threads.Draft do
   """
 
   use Ecto.Schema
+  import Ecto.Changeset
 
   schema "drafts" do
     field :recipients, {:array, :string}, read_after_writes: true
-    field :subject, :string
-    field :body, :string
+    field :subject, :string, read_after_writes: true
+    field :body, :string, read_after_writes: true
     field :is_truncated, :boolean, read_after_writes: true
     belongs_to :team, Bridge.Teams.Team
     belongs_to :user, Bridge.Teams.User
 
     timestamps()
+  end
+
+  @doc """
+  Builds a changeset for creating a new draft.
+  """
+  def create_changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:team_id, :user_id, :recipients, :subject, :body])
+    |> validate_required([:team_id, :user_id, :recipients])
+    |> validate_length(:subject, max: 255)
   end
 end
