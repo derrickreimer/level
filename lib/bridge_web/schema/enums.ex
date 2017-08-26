@@ -75,6 +75,15 @@ defmodule BridgeWeb.Schema.Enums do
   end
 
   @desc """
+  The `DraftOrderField` scalar type represents the possible fields by which
+  drafts can be ordered.
+  """
+  enum :draft_order_field do
+    @desc "Order by the updated_at field."
+    value :updated_at
+  end
+
+  @desc """
   The `OrderDirection` scalar type represents the direction by which nodes
   should be sorted in a connection.
   """

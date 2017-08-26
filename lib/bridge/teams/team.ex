@@ -16,6 +16,7 @@ defmodule Bridge.Teams.Team do
     field :state, :string, read_after_writes: true # team_state
     field :name, :string
     field :slug, :string
+    has_many :users, Bridge.Teams.User
 
     timestamps()
   end

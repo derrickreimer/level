@@ -31,6 +31,16 @@ defmodule Bridge.TestHelpers do
     }
   end
 
+  def valid_draft_params(%{team: team, user: user}) do
+    %{
+      team_id: team.id,
+      user_id: user.id,
+      subject: "This is the subject",
+      body: "I am the body",
+      recipient_ids: []
+    }
+  end
+
   def insert_signup(params \\ %{}) do
     params =
       valid_signup_params()

@@ -22,5 +22,21 @@ defmodule BridgeWeb.Schema do
 
       resolve &BridgeWeb.InvitationResolver.create/2
     end
+
+    @desc "Create a new draft."
+    field :create_draft, type: :create_draft_payload do
+      arg :recipient_ids, list_of(:string)
+      arg :subject, non_null(:string)
+      arg :body, non_null(:string)
+
+      resolve &BridgeWeb.DraftResolver.create/2
+    end
+
+    @desc "Delete a draft."
+    field :delete_draft, type: :delete_draft_payload do
+      arg :id, :id
+
+      resolve &BridgeWeb.DraftResolver.destroy/2
+    end
   end
 end

@@ -3,6 +3,7 @@ defmodule BridgeWeb.InvitationResolver do
   GraphQL query resolution for invitations.
   """
 
+  import BridgeWeb.ResolverHelpers
   alias Bridge.Teams
 
   def create(args, info) do
@@ -23,15 +24,5 @@ defmodule BridgeWeb.InvitationResolver do
     end
 
     {:ok, resp}
-  end
-
-  def format_errors(%Ecto.Changeset{errors: errors}) do
-    Enum.map(errors, fn({attr, {msg, props}}) ->
-      message = Enum.reduce props, msg, fn {k, v}, acc ->
-        String.replace(acc, "%{#{k}}", to_string(v))
-      end
-
-      %{attribute: attr, message: message}
-    end)
   end
 end
