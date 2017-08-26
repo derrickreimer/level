@@ -84,4 +84,26 @@ defmodule Bridge.ThreadsTest do
       assert {:error, _} = Threads.create_draft(changeset)
     end
   end
+
+  describe "get_draft/1" do
+    setup do
+      {:ok, team_and_user} = insert_signup()
+
+      {:ok, draft} =
+        team_and_user
+        |> valid_draft_params()
+        |> Threads.create_draft_changeset()
+        |> Threads.create_draft()
+
+      {:ok, %{draft: draft}}
+    end
+
+    test "returns the draft if found", %{draft: draft} do
+      assert Threads.get_draft(draft.id).id == draft.id
+    end
+
+    test "handles when the draft is not found" do
+      assert Threads.get_draft(999) == nil
+    end
+  end
 end

@@ -34,7 +34,7 @@ defmodule BridgeWeb.Schema.Mutations do
     field :invitation, :invitation
   end
 
-  @desc "The response to creating a thread draft."
+  @desc "The response to creating a draft."
   object :create_draft_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
@@ -51,5 +51,18 @@ defmodule BridgeWeb.Schema.Mutations do
     this field will be null.
     """
     field :draft, :draft
+  end
+
+  @desc "The response to deleting a draft."
+  object :delete_draft_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, :boolean
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
   end
 end

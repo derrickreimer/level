@@ -25,4 +25,21 @@ defmodule BridgeWeb.DraftResolver do
 
     {:ok, resp}
   end
+
+  def destroy(%{id: id}, _info) do
+    resp = case Threads.delete_draft(id) do
+      {:ok, _} ->
+        %{
+          success: true,
+          errors: []
+        }
+      {:error, message} ->
+        %{
+          success: false,
+          errors: [%{attribute: "base", message: message}]
+        }
+    end
+
+    {:ok, resp}
+  end
 end
