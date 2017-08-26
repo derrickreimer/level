@@ -32,7 +32,7 @@ defmodule Bridge.ThreadsTest do
     end
 
     test "validates required params", %{team: team, user: user} do
-      for param <- [:user_id, :team_id, :recipients] do
+      for param <- [:user_id, :team_id, :recipient_ids] do
         params =
           %{user: user, team: team}
           |> valid_draft_params()

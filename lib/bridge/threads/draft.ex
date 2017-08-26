@@ -7,7 +7,7 @@ defmodule Bridge.Threads.Draft do
   import Ecto.Changeset
 
   schema "drafts" do
-    field :recipients, {:array, :string}, read_after_writes: true
+    field :recipient_ids, {:array, :string}, read_after_writes: true
     field :subject, :string, read_after_writes: true
     field :body, :string, read_after_writes: true
     field :is_truncated, :boolean, read_after_writes: true
@@ -22,8 +22,8 @@ defmodule Bridge.Threads.Draft do
   """
   def create_changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:team_id, :user_id, :recipients, :subject, :body])
-    |> validate_required([:team_id, :user_id, :recipients])
+    |> cast(params, [:team_id, :user_id, :recipient_ids, :subject, :body])
+    |> validate_required([:team_id, :user_id, :recipient_ids])
     |> validate_length(:subject, max: 255)
   end
 end

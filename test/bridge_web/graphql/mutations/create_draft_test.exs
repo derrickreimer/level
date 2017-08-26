@@ -15,12 +15,12 @@ defmodule BridgeWeb.GraphQL.CreateDraftTest do
 
     query = """
       mutation {
-        createDraft(recipients: [], subject: "#{subject}", body: "#{body}") {
+        createDraft(recipientIds: [], subject: "#{subject}", body: "#{body}") {
           success
           draft {
             subject
             body
-            recipients
+            recipientIds
             team {
               name
             }
@@ -48,7 +48,7 @@ defmodule BridgeWeb.GraphQL.CreateDraftTest do
           "draft" => %{
             "subject" => subject,
             "body" => body,
-            "recipients" => [],
+            "recipientIds" => [],
             "team" => %{
               "name" => team.name
             },
@@ -67,7 +67,7 @@ defmodule BridgeWeb.GraphQL.CreateDraftTest do
 
     query = """
       mutation {
-        createDraft(recipients: [], subject: "#{subject}", body: "") {
+        createDraft(recipientIds: [], subject: "#{subject}", body: "") {
           success
           draft {
             subject

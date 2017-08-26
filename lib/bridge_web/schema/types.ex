@@ -73,7 +73,7 @@ defmodule BridgeWeb.Schema.Types do
   @desc "An `Draft` is an unsent thread that is still being composed."
   object :draft do
     field :id, non_null(:id)
-    field :recipients, list_of(:string)
+    field :recipient_ids, list_of(:string)
     field :subject, non_null(:string)
     field :body, non_null(:string)
     field :is_truncated, non_null(:boolean)

@@ -25,7 +25,7 @@ defmodule BridgeWeb.Schema do
 
     @desc "Create a new thread draft."
     field :create_draft, type: :create_draft_payload do
-      arg :recipients, list_of(:string)
+      arg :recipient_ids, list_of(:string)
       arg :subject, non_null(:string)
       arg :body, non_null(:string)
 

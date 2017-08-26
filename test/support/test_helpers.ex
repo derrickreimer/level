@@ -37,7 +37,7 @@ defmodule Bridge.TestHelpers do
       user_id: user.id,
       subject: "This is the subject",
       body: "I am the body",
-      recipients: []
+      recipient_ids: []
     }
   end
 

@@ -128,7 +128,7 @@ CREATE TABLE drafts (
     id bigint DEFAULT next_global_id() NOT NULL,
     team_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    recipients character varying(255)[] DEFAULT ARRAY[]::character varying[] NOT NULL,
+    recipient_ids character varying(255)[] DEFAULT ARRAY[]::character varying[] NOT NULL,
     subject character varying(255) DEFAULT ''::character varying NOT NULL,
     body text DEFAULT ''::text NOT NULL,
     is_truncated boolean DEFAULT false NOT NULL,
