@@ -46,4 +46,12 @@ defmodule Bridge.Threads do
         end
     end
   end
+
+  @doc """
+  Generates the recipient ID for a resource able to be specified as a thread
+  recipient.
+  """
+  def get_recipient_id(%Bridge.Teams.User{id: id}) do
+    "u:#{id}"
+  end
 end

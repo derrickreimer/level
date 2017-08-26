@@ -106,4 +106,11 @@ defmodule Bridge.ThreadsTest do
       assert Threads.get_draft(999) == nil
     end
   end
+
+  describe "get_recipient_id/1" do
+    test "generates the ID for users" do
+      user = %Bridge.Teams.User{id: 999}
+      assert Threads.get_recipient_id(user) == "u:999"
+    end
+  end
 end
