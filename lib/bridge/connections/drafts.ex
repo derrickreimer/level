@@ -1,9 +1,9 @@
-defmodule Bridge.Connections.Users do
+defmodule Bridge.Connections.Drafts do
   @moduledoc """
-  Functions for querying users.
+  Functions for querying drafts.
   """
 
-  alias Bridge.Teams.User
+  alias Bridge.Threads.Draft
   import Ecto.Query
 
   @default_args %{
@@ -11,20 +11,18 @@ defmodule Bridge.Connections.Users do
     before: nil,
     after: nil,
     order_by: %{
-      field: :username,
-      direction: :asc
+      field: :updated_at,
+      direction: :desc
     }
   }
 
   @doc """
   Execute a paginated query for users belonging to a given team.
   """
-  def get(team, args, _context) do
+  def get(user, args, _context) do
     case validate_args(args) do
       {:ok, args} ->
-        base_query = from u in User,
-          where: u.team_id == ^team.id and u.state == "ACTIVE"
-
+        base_query = from d in Draft, where: d.user_id == ^user.id
         Bridge.Pagination.fetch_result(Bridge.Repo, base_query, args)
       error ->
         error

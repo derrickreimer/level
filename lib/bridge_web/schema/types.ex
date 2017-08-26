@@ -8,6 +8,9 @@ defmodule BridgeWeb.Schema.Types do
 
   import_types BridgeWeb.Schema.Enums
   import_types BridgeWeb.Schema.Scalars
+  import_types BridgeWeb.Schema.InputObjects
+  import_types BridgeWeb.Schema.Connections
+  import_types BridgeWeb.Schema.Mutations
 
   @desc "A `User` represents a person belonging to a specific `Team`."
   object :user do
@@ -28,6 +31,14 @@ defmodule BridgeWeb.Schema.Types do
           {:ok, Map.get(batch_results, user.team_id)}
         end)
       end
+    end
+
+    field :drafts, non_null(:draft_connection) do
+      arg :first, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :user_order
+      resolve &BridgeWeb.UserResolver.drafts/3
     end
   end
 
@@ -84,97 +95,5 @@ defmodule BridgeWeb.Schema.Types do
         end)
       end
     end
-  end
-
-  @desc "The response to inviting a user to a team."
-  object :invite_user_payload do
-    @desc """
-    A boolean indicating if the mutation was successful. If true, the errors
-    list will be empty. Otherwise, errors may contain objects describing why
-    the mutation failed.
-    """
-    field :success, :boolean
-
-    @desc "A list of validation errors."
-    field :errors, list_of(:error)
-
-    @desc """
-    The newly-created object. If the mutation was not successful,
-    this field will be null.
-    """
-    field :invitation, :invitation
-  end
-
-  @desc "A validation error."
-  object :error do
-    @desc "The name of the invalid attribute."
-    field :attribute, non_null(:string)
-
-    @desc "A human-friendly error message."
-    field :message, non_null(:string)
-  end
-
-  @desc "Data for pagination in a connection."
-  object :page_info do
-    @desc "The cursor correspodning to the first node."
-    field :start_cursor, :cursor
-
-    @desc "The cursor corresponding to the last node."
-    field :end_cursor, :cursor
-
-    @desc "A boolean indicating whether there are more items going forward."
-    field :has_next_page, non_null(:boolean)
-
-    @desc "A boolean indicating whether there are more items going backward."
-    field :has_previous_page, non_null(:boolean)
-  end
-
-  @desc "An edge in the user connection."
-  object :user_edge do
-    @desc "The item at the edge of the node."
-    field :node, :user
-
-    @desc "A cursor for use in pagination."
-    field :cursor, non_null(:cursor)
-  end
-
-  @desc "A list of users belonging to a team."
-  object :user_connection do
-    @desc "A list of edges."
-    field :edges, list_of(:user_edge)
-
-    @desc "Pagination data for the connection."
-    field :page_info, non_null(:page_info)
-
-    @desc "The total count of items in the connection."
-    field :total_count, non_null(:integer)
-  end
-
-  @desc "The field and direction to sort users."
-  input_object :user_order do
-    @desc "The field by which to sort users."
-    field :field, non_null(:user_order_field)
-
-    @desc "The sort direction."
-    field :direction, non_null(:order_direction)
-  end
-
-  @desc "The response to creating a thread draft."
-  object :create_draft_payload do
-    @desc """
-    A boolean indicating if the mutation was successful. If true, the errors
-    list will be empty. Otherwise, errors may contain objects describing why
-    the mutation failed.
-    """
-    field :success, :boolean
-
-    @desc "A list of validation errors."
-    field :errors, list_of(:error)
-
-    @desc """
-    The newly-created object. If the mutation was not successful,
-    this field will be null.
-    """
-    field :draft, :draft
   end
 end
