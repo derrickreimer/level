@@ -101,4 +101,9 @@ defmodule BridgeWeb.Router do
 
     resources "/user_tokens", UserTokenController, only: [:create]
   end
+
+  # Preview sent emails in development mode
+  if Mix.env == :dev do
+    forward "/sent_emails", Bamboo.EmailPreviewPlug
+  end
 end

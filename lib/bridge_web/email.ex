@@ -23,10 +23,10 @@ defmodule BridgeWeb.Email do
     |> from({"Bridge", support_address()})
     |> subject("Your invitation to join the #{team.name} Bridge team")
     |> put_html_layout({BridgeWeb.LayoutView, "plain_text_email.html"})
-    |> render("invitation_email.html", invitation: invitation,
-                                       team: team,
-                                       invitor: invitor,
-                                       invitation_url: invitation_url)
+    |> render(:invitation_email, invitation: invitation,
+                                 team: team,
+                                 invitor: invitor,
+                                 invitation_url: invitation_url)
   end
 
   def support_address do

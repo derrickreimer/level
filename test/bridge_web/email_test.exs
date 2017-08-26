@@ -25,10 +25,13 @@ defmodule BridgeWeb.EmailTest do
     test "includes the team name and invitor", %{email: email} do
       assert email.html_body =~ "join the Acme team"
       assert email.html_body =~ "by derrick@acme.com"
+      assert email.text_body =~ "join the Acme team"
+      assert email.text_body =~ "by derrick@acme.com"
     end
 
     test "includes the invitation url", %{email: email} do
       assert email.html_body =~ "http://acme.bridge.test:4001/invitations/xxx"
+      assert email.text_body =~ "http://acme.bridge.test:4001/invitations/xxx"
     end
 
     test "sends from support", %{email: email} do
