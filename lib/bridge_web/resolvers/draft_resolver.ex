@@ -15,14 +15,14 @@ defmodule BridgeWeb.DraftResolver do
       |> Map.put(:team_id, user.team_id)
       |> Threads.create_draft_changeset()
 
-      resp = case Threads.create_draft(changeset) do
-        {:ok, draft} ->
-          %{success: true, draft: draft, errors: []}
+    resp = case Threads.create_draft(changeset) do
+      {:ok, draft} ->
+        %{success: true, draft: draft, errors: []}
 
-        {:error, changeset} ->
-          %{success: false, draft: nil, errors: format_errors(changeset)}
-      end
+      {:error, changeset} ->
+        %{success: false, draft: nil, errors: format_errors(changeset)}
+    end
 
-      {:ok, resp}
+    {:ok, resp}
   end
 end
