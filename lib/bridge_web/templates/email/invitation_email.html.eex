@@ -1,0 +1,9 @@
+You have been invited by <%= @invitor.email %> to join the <%= @team.name %> team on Bridge.<br>
+<br>
+Follow this link to accept your invitation:<br>
+<%= link(@invitation_url, to: @invitation_url) %><br>
+<br>
+If you don't recognize who sent this invitation, feel free to ignore it!<br>
+<br>
+—<br>
+Sent by Bridge
