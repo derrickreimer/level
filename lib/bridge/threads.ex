@@ -47,8 +47,17 @@ defmodule Bridge.Threads do
   @doc """
   Updates a draft from a changeset.
   """
-  def update_draft(changeset) do
+  def update_draft(%Ecto.Changeset{} = changeset) do
     Repo.update(changeset)
+  end
+
+  @doc """
+  Updates a draft from a map of params.
+  """
+  def update_draft(draft, params \\ %{}) do
+    draft
+    |> update_draft_changeset(params)
+    |> Repo.update()
   end
 
   @doc """

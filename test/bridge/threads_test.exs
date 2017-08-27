@@ -175,6 +175,28 @@ defmodule Bridge.ThreadsTest do
     end
   end
 
+  describe "update_draft/2" do
+    setup do
+      {:ok, %{team: team, user: user}} = insert_signup()
+      {:ok, draft} = insert_draft(team, user)
+      {:ok, %{user: user, draft: draft}}
+    end
+
+    test "updates a draft if valid", %{draft: draft} do
+      {:ok, draft} = Threads.update_draft(draft, %{subject: "The new subject!"})
+      assert draft.subject == "The new subject!"
+    end
+
+    test "does not update if invalid", %{draft: draft} do
+      {:error, changeset} =
+        Threads.update_draft(draft, %{subject: String.duplicate("a", 256)})
+
+      assert changeset.errors ==
+        [subject: {"should be at most %{count} character(s)",
+          [count: 255, validation: :length, max: 255]}]
+    end
+  end
+
   describe "get_recipient_id/1" do
     test "generates the ID for users" do
       user = %Bridge.Teams.User{id: 999}

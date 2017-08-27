@@ -37,9 +37,7 @@ defmodule BridgeWeb.DraftResolver do
           %{success: false, draft: nil, errors: errors}
 
         draft ->
-          changeset = Threads.update_draft_changeset(draft, args)
-
-          case Threads.update_draft(changeset) do
+          case Threads.update_draft(draft, args) do
             {:ok, draft} ->
               %{success: true, draft: draft, errors: []}
 
