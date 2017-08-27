@@ -6,9 +6,7 @@ defmodule BridgeWeb.InvitationResolver do
   import BridgeWeb.ResolverHelpers
   alias Bridge.Teams
 
-  def create(args, info) do
-    user = info.context.current_user
-
+  def create(args, %{context: %{current_user: user}}) do
     changeset =
       args
       |> Map.put(:invitor_id, user.id)

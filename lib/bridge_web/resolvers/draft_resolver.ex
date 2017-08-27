@@ -7,9 +7,7 @@ defmodule BridgeWeb.DraftResolver do
   import Bridge.Gettext
   alias Bridge.Threads
 
-  def create(args, info) do
-    user = info.context.current_user
-
+  def create(args, %{context: %{current_user: user}}) do
     changeset =
       args
       |> Map.put(:user_id, user.id)
@@ -27,13 +25,15 @@ defmodule BridgeWeb.DraftResolver do
     {:ok, resp}
   end
 
-  def update(args, info) do
-    user = info.context.current_user
-
+  def update(args, %{context: %{current_user: user}}) do
     resp =
       case Threads.get_draft_for_user(user, args.id) do
         nil ->
-          errors = [%{attribute: "base", message: dgettext("errors", "Draft not found")}]
+          errors = [%{
+            attribute: "base",
+            message: dgettext("errors", "Draft not found")
+          }]
+
           %{success: false, draft: nil, errors: errors}
 
         draft ->
@@ -49,9 +49,7 @@ defmodule BridgeWeb.DraftResolver do
     {:ok, resp}
   end
 
-  def destroy(%{id: id}, info) do
-    user = info.context.current_user
-
+  def destroy(%{id: id}, %{context: %{current_user: user}}) do
     resp =
       case Threads.get_draft_for_user(user, id) do
         nil ->
