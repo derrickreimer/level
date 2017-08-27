@@ -7,8 +7,6 @@ defmodule Bridge.Threads do
   alias Bridge.Repo
   alias Bridge.Threads.Draft
 
-  import Bridge.Gettext
-
   @doc """
   Build a changeset for creating a new draft.
   """
@@ -61,20 +59,10 @@ defmodule Bridge.Threads do
   end
 
   @doc """
-  Deletes a draft by id.
+  Deletes a draft.
   """
-  def delete_draft(id) do
-    case get_draft(id) do
-      nil ->
-        {:error, dgettext("errors", "Draft not found")}
-      draft ->
-        case Repo.delete(draft) do
-          {:error, _} ->
-            {:error, dgettext("errors", "An unexpected error occurred")}
-          success ->
-            success
-        end
-    end
+  def delete_draft(draft) do
+    Repo.delete(draft)
   end
 
   @doc """

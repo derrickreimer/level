@@ -4,7 +4,6 @@ defmodule BridgeWeb.Schema.Mutations do
   """
 
   use Absinthe.Schema.Notation
-  alias BridgeWeb.Schema.Helpers
 
   @desc "A validation error."
   object :error do
