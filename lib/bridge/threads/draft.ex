@@ -24,6 +24,20 @@ defmodule Bridge.Threads.Draft do
     struct
     |> cast(params, [:team_id, :user_id, :recipient_ids, :subject, :body])
     |> validate_required([:team_id, :user_id, :recipient_ids])
+    |> apply_common_validations()
+  end
+
+  @doc """
+  Builds a changeset for updating a draft.
+  """
+  def update_changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:recipient_ids, :subject, :body])
+    |> apply_common_validations()
+  end
+
+  defp apply_common_validations(changeset) do
+    changeset
     |> validate_length(:subject, max: 255)
   end
 end

@@ -53,6 +53,24 @@ defmodule BridgeWeb.Schema.Mutations do
     field :draft, :draft
   end
 
+  @desc "The response to updating a draft."
+  object :update_draft_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, :boolean
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The current version of the object after the mutation.
+    """
+    field :draft, :draft
+  end
+
   @desc "The response to deleting a draft."
   object :delete_draft_payload do
     @desc """
