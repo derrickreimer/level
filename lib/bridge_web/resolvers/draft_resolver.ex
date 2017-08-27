@@ -49,19 +49,25 @@ defmodule BridgeWeb.DraftResolver do
     {:ok, resp}
   end
 
-  def destroy(%{id: id}, _info) do
-    resp = case Threads.delete_draft(id) do
-      {:ok, _} ->
-        %{
-          success: true,
-          errors: []
-        }
-      {:error, message} ->
-        %{
-          success: false,
-          errors: [%{attribute: "base", message: message}]
-        }
-    end
+  def destroy(%{id: id}, info) do
+    user = info.context.current_user
+
+    resp =
+      case Threads.get_draft_for_user(user, id) do
+        nil ->
+          errors = [%{attribute: "base", message: dgettext("errors", "Draft not found")}]
+          %{success: false, errors: errors}
+
+        draft ->
+          case Threads.delete_draft(draft) do
+            {:ok, _} ->
+              %{success: true, errors: []}
+            {:error, _} ->
+              message = dgettext("errors", "An unexpected error occurred")
+              errors = [%{attribute: "base", message: message}]
+              %{success: false, errors: errors}
+          end
+      end
 
     {:ok, resp}
   end

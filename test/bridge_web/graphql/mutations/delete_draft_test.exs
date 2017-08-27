@@ -11,9 +11,7 @@ defmodule BridgeWeb.GraphQL.DeleteDraftTest do
   end
 
   test "deletes the draft returning true", %{conn: conn, team: team, user: user} do
-    params = valid_draft_params(%{team: team, user: user})
-    changeset = Threads.create_draft_changeset(params)
-    {:ok, draft} = Threads.create_draft(changeset)
+    {:ok, draft} = insert_draft(team, user)
 
     query = """
       mutation {
@@ -44,10 +42,46 @@ defmodule BridgeWeb.GraphQL.DeleteDraftTest do
     assert Threads.get_draft(draft.id) == nil
   end
 
-  test "returns false if draft does not exist", %{conn: conn} do
+  test "returns errors if draft does not exist", %{conn: conn} do
     query = """
       mutation {
         deleteDraft(id: "9999") {
+          success
+          errors {
+            attribute
+            message
+          }
+        }
+      }
+    """
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", query)
+
+    assert json_response(conn, 200) == %{
+      "data" => %{
+        "deleteDraft" => %{
+          "success" => false,
+          "errors" => [%{
+            "attribute" => "base",
+            "message" => "Draft not found"
+          }]
+        }
+      }
+    }
+  end
+
+  test "returns errors if draft does not belong to authenticated user",
+    %{conn: conn, team: team} do
+
+    {:ok, %{user: other_user}} = insert_signup(%{team: team})
+    {:ok, draft} = insert_draft(team, other_user)
+
+    query = """
+      mutation {
+        deleteDraft(id: "#{draft.id}") {
           success
           errors {
             attribute
