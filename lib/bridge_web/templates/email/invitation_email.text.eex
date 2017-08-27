@@ -1,7 +1,7 @@
 You have been invited by <%= @invitor.email %> to join the <%= @team.name %> team on Bridge.
 
 Follow this link to accept your invitation:
-<%= build_url_with_subdomain(@team.slug, invitation_path(BridgeWeb.Endpoint, :show, @invitation)) %>
+<%= @invitation_url %>
 
 If you don't recognize who sent this invitation, feel free to ignore it!
 

@@ -1,4 +1,4 @@
-defmodule Bridge.EmailTest do
+defmodule BridgeWeb.EmailTest do
   use ExUnit.Case
   use Bamboo.Test
 
@@ -14,7 +14,7 @@ defmodule Bridge.EmailTest do
         token: "xxx"
       }
 
-      email = Bridge.Email.invitation_email(invitation)
+      email = BridgeWeb.Email.invitation_email(invitation)
       {:ok, %{email: email, invitation: invitation, team: team, invitor: invitor}}
     end
 
@@ -23,11 +23,14 @@ defmodule Bridge.EmailTest do
     end
 
     test "includes the team name and invitor", %{email: email} do
+      assert email.html_body =~ "join the Acme team"
+      assert email.html_body =~ "by derrick@acme.com"
       assert email.text_body =~ "join the Acme team"
       assert email.text_body =~ "by derrick@acme.com"
     end
 
     test "includes the invitation url", %{email: email} do
+      assert email.html_body =~ "http://acme.bridge.test:4001/invitations/xxx"
       assert email.text_body =~ "http://acme.bridge.test:4001/invitations/xxx"
     end
 

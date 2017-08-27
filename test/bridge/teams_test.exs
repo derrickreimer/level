@@ -65,7 +65,7 @@ defmodule Bridge.TeamsTest do
     test "sends an invitation email", %{params: params} do
       changeset = Teams.create_invitation_changeset(params)
       {:ok, invitation} = Teams.create_invitation(changeset)
-      assert_delivered_email Bridge.Email.invitation_email(invitation)
+      assert_delivered_email BridgeWeb.Email.invitation_email(invitation)
     end
 
     test "returns error when params are invalid", %{params: params} do
