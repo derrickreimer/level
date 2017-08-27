@@ -31,6 +31,36 @@ defmodule Bridge.Threads do
   end
 
   @doc """
+  Fetches a draft by id and returns nil if not found.
+  """
+  def get_draft_for_user(user, id) do
+    Repo.get_by(Draft, %{id: id, user_id: user.id})
+  end
+
+  @doc """
+  Build a changeset for updating a draft.
+  """
+  def update_draft_changeset(draft, params \\ %{}) do
+    Draft.update_changeset(draft, params)
+  end
+
+  @doc """
+  Updates a draft from a changeset.
+  """
+  def update_draft(%Ecto.Changeset{} = changeset) do
+    Repo.update(changeset)
+  end
+
+  @doc """
+  Updates a draft from a map of params.
+  """
+  def update_draft(draft, params \\ %{}) do
+    draft
+    |> update_draft_changeset(params)
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a draft by id.
   """
   def delete_draft(id) do

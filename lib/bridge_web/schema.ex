@@ -32,6 +32,16 @@ defmodule BridgeWeb.Schema do
       resolve &BridgeWeb.DraftResolver.create/2
     end
 
+    @desc "Update a draft."
+    field :update_draft, type: :update_draft_payload do
+      arg :id, :id
+      arg :recipient_ids, list_of(:string)
+      arg :subject, :string
+      arg :body, :string
+
+      resolve &BridgeWeb.DraftResolver.update/2
+    end
+
     @desc "Delete a draft."
     field :delete_draft, type: :delete_draft_payload do
       arg :id, :id

@@ -4,6 +4,7 @@ defmodule Bridge.TestHelpers do
   """
 
   alias Bridge.Repo
+  alias Bridge.Threads
 
   def valid_signup_params do
     salt = random_string()
@@ -64,6 +65,16 @@ defmodule Bridge.TestHelpers do
     %Bridge.Teams.User{}
     |> Bridge.Teams.User.signup_changeset(params)
     |> Repo.insert()
+  end
+
+  def insert_draft(team, user, params \\ %{}) do
+    params =
+      valid_draft_params(%{team: team, user: user})
+      |> Map.merge(params)
+
+    params
+    |> Threads.create_draft_changeset()
+    |> Threads.create_draft()
   end
 
   def put_launch_host(conn) do
