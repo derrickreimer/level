@@ -69,7 +69,8 @@ defmodule Bridge.TestHelpers do
 
   def insert_draft(team, user, params \\ %{}) do
     params =
-      valid_draft_params(%{team: team, user: user})
+      %{team: team, user: user}
+      |> valid_draft_params()
       |> Map.merge(params)
 
     params
