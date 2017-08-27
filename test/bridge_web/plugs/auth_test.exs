@@ -304,7 +304,7 @@ defmodule BridgeWeb.AuthTest do
   end
 
   defp generate_expired_token(user) do
-    past = 1499951920
+    past = 1_499_951_920
 
     user
     |> Auth.generate_jwt

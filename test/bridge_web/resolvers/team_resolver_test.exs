@@ -43,12 +43,12 @@ defmodule BridgeWeb.TeamResolverTest do
       assert page_info.has_next_page
       refute page_info.has_previous_page
 
-      {:ok, %{page_info: page_info}} = TeamResolver.users(team, %{first: 1, after: "aaa"}, %{})
+      {:ok, %{page_info: page_info2}} = TeamResolver.users(team, %{first: 1, after: "aaa"}, %{})
 
-      assert page_info.start_cursor == "bbb"
-      assert page_info.end_cursor == "bbb"
-      refute page_info.has_next_page
-      assert page_info.has_previous_page
+      assert page_info2.start_cursor == "bbb"
+      assert page_info2.end_cursor == "bbb"
+      refute page_info2.has_next_page
+      assert page_info2.has_previous_page
     end
   end
 end

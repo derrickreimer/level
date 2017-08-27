@@ -17,11 +17,11 @@ defmodule Bridge.Teams.InvitationRepoTest do
       changeset = Teams.create_invitation_changeset(params)
       Teams.create_invitation(changeset)
 
-      changeset = Invitation.changeset(%Invitation{}, params)
-      {:error, changeset} = Repo.insert(changeset)
+      changeset2 = Invitation.changeset(%Invitation{}, params)
+      {:error, error_changeset} = Repo.insert(changeset2)
 
       assert {:email, {"already has an invitation", []}}
-        in changeset.errors
+        in error_changeset.errors
     end
 
     test "validate uniqueness when pending and non-matching email case",
@@ -30,13 +30,13 @@ defmodule Bridge.Teams.InvitationRepoTest do
       changeset = Teams.create_invitation_changeset(params)
       Teams.create_invitation(changeset)
 
-      changeset = Invitation.changeset(%Invitation{},
+      changeset2 = Invitation.changeset(%Invitation{},
         %{params | email: String.upcase(params.email)})
 
-      {:error, changeset} = Repo.insert(changeset)
+      {:error, error_changeset} = Repo.insert(changeset2)
 
       assert {:email, {"already has an invitation", []}}
-        in changeset.errors
+        in error_changeset.errors
     end
   end
 end

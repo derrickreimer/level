@@ -1,4 +1,8 @@
 defmodule Bridge.ConnCaseHelpers do
+  @moduledoc """
+  Test helpers specifically for conn-based tests.
+  """
+
   import Bridge.TestHelpers
   import Plug.Conn
 

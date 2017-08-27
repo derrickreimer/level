@@ -11,7 +11,8 @@ defmodule BridgeWeb.SessionController do
 
   def create(conn, %{"session" => %{"username" => username,
                                     "password" => pass}}) do
-    case BridgeWeb.Auth.sign_in_with_credentials(conn, conn.assigns.team, username, pass, repo: Repo) do
+    case BridgeWeb.Auth.sign_in_with_credentials(
+      conn, conn.assigns.team, username, pass, repo: Repo) do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")

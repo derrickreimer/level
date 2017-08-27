@@ -1,4 +1,8 @@
 defmodule Bridge.TestHelpers do
+  @moduledoc """
+  Miscellaneous helper functions for tests.
+  """
+
   alias Bridge.Repo
 
   def valid_signup_params do
@@ -71,7 +75,9 @@ defmodule Bridge.TestHelpers do
   end
 
   defp random_string do
-    Base.encode16(:crypto.strong_rand_bytes(8))
+    8
+    |> :crypto.strong_rand_bytes()
+    |> Base.encode16()
     |> String.downcase
   end
 end

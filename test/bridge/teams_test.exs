@@ -33,7 +33,7 @@ defmodule Bridge.TeamsTest do
     end
 
     test "handles when the user is not found" do
-      assert Teams.get_user(99999) == nil
+      assert Teams.get_user(99_999) == nil
     end
   end
 
@@ -72,9 +72,9 @@ defmodule Bridge.TeamsTest do
       params = Map.put(params, :email, "invalid")
       changeset = Teams.create_invitation_changeset(params)
 
-      {:error, changeset} = Teams.create_invitation(changeset)
+      {:error, error_changeset} = Teams.create_invitation(changeset)
       assert {:email, {"is invalid", validation: :format}}
-        in changeset.errors
+        in error_changeset.errors
     end
   end
 

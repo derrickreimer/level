@@ -33,26 +33,26 @@ defmodule BridgeWeb.UrlHelpers do
   def build_url_with_subdomain(subdomain, path, config \\ nil) do
     config = config || default_url_config()
 
-    host = Keyword.get(config, :host)
+    base_host = Keyword.get(config, :host)
     scheme = Keyword.get(config, :scheme, "http")
     port = Keyword.get(config, :port)
 
     host = case subdomain do
-      nil -> host
-      val -> "#{val}.#{host}"
+      nil -> base_host
+      val -> "#{val}.#{base_host}"
     end
 
-    uri = %URI{
+    base_uri = %URI{
       scheme: scheme,
       host: host,
       path: path
     }
 
     uri = case port do
-      nil -> uri
-      80 -> uri
-      443 -> uri
-      port -> %{uri | port: port}
+      nil -> base_uri
+      80 -> base_uri
+      443 -> base_uri
+      port -> %{base_uri | port: port}
     end
 
     URI.to_string(uri)

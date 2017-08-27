@@ -19,7 +19,7 @@
         #
         # You can give explicit globs or simply directories.
         # In the latter case `**/*.{ex,exs}` will be used.
-        included: ["lib/", "src/", "apps/"],
+        included: ["lib/", "src/", "apps/", "test/"],
         excluded: [~r"/_build/", ~r"/deps/"]
       },
       #
@@ -33,7 +33,7 @@
       #
       # If you want to enforce a style guide and need a more traditional linting
       # experience, you can change `strict` to `true` below:
-      strict: false,
+      strict: true,
       #
       # If you want to use uncolored output by default, you can change `color`
       # to `false` below:
@@ -57,7 +57,7 @@
 
         # For some checks, like AliasUsage, you can only customize the priority
         # Priority values are: `low, normal, high, higher`
-        {Credo.Check.Design.AliasUsage, priority: :low},
+        {Credo.Check.Design.AliasUsage, false},
 
         # For others you can set parameters
 
@@ -74,7 +74,7 @@
 
         {Credo.Check.Readability.FunctionNames},
         {Credo.Check.Readability.LargeNumbers},
-        {Credo.Check.Readability.MaxLineLength, priority: :low, max_length: 80},
+        {Credo.Check.Readability.MaxLineLength, priority: :low, max_length: 100},
         {Credo.Check.Readability.ModuleAttributeNames},
         {Credo.Check.Readability.ModuleDoc},
         {Credo.Check.Readability.ModuleNames},
@@ -118,10 +118,10 @@
 
         # Controversial and experimental checks (opt-in, just remove `, false`)
         #
-        {Credo.Check.Refactor.ABCSize, false},
-        {Credo.Check.Refactor.AppendSingleItem, false},
+        {Credo.Check.Refactor.ABCSize},
+        {Credo.Check.Refactor.AppendSingleItem},
         {Credo.Check.Refactor.VariableRebinding, false},
-        {Credo.Check.Warning.MapGetUnsafePass, false},
+        {Credo.Check.Warning.MapGetUnsafePass},
 
         # Deprecated checks (these will be deleted after a grace period)
         {Credo.Check.Readability.Specs, false},
