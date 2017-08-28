@@ -17,8 +17,19 @@ defmodule Bridge.Threads do
   @doc """
   Create a new draft from a changeset.
   """
-  def create_draft(changeset) do
+  def create_draft(%Ecto.Changeset{} = changeset) do
     Repo.insert(changeset)
+  end
+
+  @doc """
+  Create a new draft from params.
+  """
+  def create_draft(user, params \\ %{}) do
+    params
+    |> Map.put(:user_id, user.id)
+    |> Map.put(:team_id, user.team_id)
+    |> create_draft_changeset()
+    |> create_draft()
   end
 
   @doc """
@@ -50,12 +61,12 @@ defmodule Bridge.Threads do
   end
 
   @doc """
-  Updates a draft from a map of params.
+  Updates a draft from params.
   """
   def update_draft(draft, params \\ %{}) do
     draft
     |> update_draft_changeset(params)
-    |> Repo.update()
+    |> update_draft()
   end
 
   @doc """
