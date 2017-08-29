@@ -1,0 +1,23 @@
+.sidebar {
+  position: fixed;
+  width: 250px;
+  top: 0;
+  bottom: 0;
+  background-color: $sidebar-color;
+
+  &--left {
+    left: 0;
+  }
+
+  &--right {
+    right: 0;
+  }
+}
+
+.main {
+  position: fixed;
+  left: 250px;
+  right: 250px;
+  top: 0;
+  bottom: 0;
+}
