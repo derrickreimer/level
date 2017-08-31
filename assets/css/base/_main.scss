@@ -21,3 +21,96 @@
   top: 0;
   bottom: 0;
 }
+
+.team-selector {
+
+  &__toggle {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: $default-text-color;
+
+    &:hover {
+      text-decoration: none;
+      background-color: $sidebar-hover;
+    }
+  }
+
+  &__avatar {
+    margin-right: 12px;
+    border-radius: $base-radius;
+    width: 40px;
+    height: 40px;
+    background-color: $input-background-color;
+  }
+
+  &__name {
+    font-size: 15px;
+    font-weight: bold;
+  }
+}
+
+.filters {
+  margin: 0 0 18px 0;
+
+  &__item {
+    position: relative;
+    display: block;
+    padding: 0 15px;
+    font-size: 14px;
+    line-height: 28px;
+    color: $default-text-color;
+
+    &:hover {
+      text-decoration: none;
+      background-color: $sidebar-hover;
+    }
+
+    $selected-radius: 5px;
+
+    &--selected {
+      margin: -$selected-radius 0;
+      padding-top: $selected-radius;
+      padding-bottom: $selected-radius;
+      background-color: $background-color;
+
+      &:hover {
+        background-color: $background-color;
+      }
+
+      // This is some strange hackery to get rounded corners on selected items.
+      &::before {
+        display: block;
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: $selected-radius;
+        background-color: $sidebar-color;
+        border-radius: 0 0 $selected-radius 0;
+      }
+
+      &::after {
+        display: block;
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: $selected-radius;
+        background-color: $sidebar-color;
+        border-radius: 0 $selected-radius 0 0;
+      }
+    }
+
+    // Correct radius of the hover-state right above and below selected items
+    & + &--selected {
+      border-radius: 0 0 $selected-radius 0;
+    }
+
+    &--selected + & {
+      border-radius: 0 $selected-radius 0 0;
+    }
+  }
+}
