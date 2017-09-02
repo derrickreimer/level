@@ -24,11 +24,11 @@
 
   font-family: $system-font-stack;
   font-weight: $normal-weight;
-  padding: 12px;
+  padding: $baseline;
   height: 40px;
-  font-size: 14px;
+  font-size: 15px;
   border: none;
-  border-radius: 3px;
+  border-radius: $base-radius;
   transition: background-color 0.2s ease;
   background-color: $input-background-color;
   color: $input-text-color;
@@ -52,10 +52,20 @@
     font-size: $default-font-size;
     height: auto;
   }
+
+  &--muted {
+    background-color: $input-muted-background-color;
+
+    &:hover,
+    &:active,
+    &:focus {
+      background-color: lighten($input-muted-background-color, 5%);
+    }
+  }
 }
 
 .slug-field {
-  border-radius: 3px;
+  border-radius: $base-radius;
   display: flex;
   align-items: baseline;
   background-color: darken($input-background-color, 20%);
@@ -65,7 +75,7 @@
     min-width: 120px;
 
     input {
-      border-radius: 3px 0 0 3px;
+      border-radius: $base-radius 0 0 $base-radius;
       width: 100%;
       // text-align: right;
     }
@@ -80,6 +90,7 @@
 }
 
 .textarea {
+  padding: 10px $baseline;
   line-height: 1.5;
 }
 

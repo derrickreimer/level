@@ -26,7 +26,7 @@
 .identity-menu {
 
   &__toggle {
-    padding: 12px;
+    padding: $baseline;
     display: flex;
     align-items: center;
     text-decoration: none;
@@ -39,7 +39,7 @@
   }
 
   &__avatar {
-    margin-right: 12px;
+    margin-right: $baseline;
     border-radius: $base-radius;
     width: 40px;
     height: 40px;
@@ -58,9 +58,11 @@
   &__item {
     position: relative;
     display: block;
-    padding: 0 15px;
-    font-size: 14px;
-    line-height: 30px;
+    margin-left: $baseline / 2;
+    padding: 0 10px;
+    border-radius: 3px 0 0 3px;
+    font-size: 15px;
+    line-height: 32px;
     color: $default-text-color;
 
     &:hover {
@@ -68,68 +70,31 @@
       background-color: $sidebar-hover;
     }
 
-    $selected-radius: 5px;
-
     &--selected {
-      margin: -$selected-radius 0;
-      padding-top: $selected-radius;
-      padding-bottom: $selected-radius;
+      // font-weight: bold;
       background-color: $background-color;
 
       &:hover {
         background-color: $background-color;
       }
-
-      // This is some strange hackery to get rounded corners on selected items.
-      &::before {
-        display: block;
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: $selected-radius;
-        background-color: $sidebar-color;
-        border-radius: 0 0 $selected-radius 0;
-      }
-
-      &::after {
-        display: block;
-        content: "";
-        position: absolute;
-        left: 0;
-        width: 100%;
-        height: $selected-radius;
-        background-color: $sidebar-color;
-        border-radius: 0 $selected-radius 0 0;
-      }
-    }
-
-    // Correct radius of the hover-state right above and below selected items
-    & + &--selected {
-      border-radius: 0 0 $selected-radius 0;
-    }
-
-    &--selected + & {
-      border-radius: 0 $selected-radius 0 0;
     }
   }
 }
 
 .search-bar {
-  padding: 12px;
+  padding: $baseline;
 }
 
 .search-field {
   width: 350px;
 }
 
-.draft-composer {
+.draft {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 12px;
+  padding: $baseline;
 
   &__row {
     display: flex;
@@ -142,31 +107,32 @@
   &__subject {
     flex: 1 1 auto;
     margin-right: 1px;
+  }
 
-    input {
-      border-radius: 3px 0 0 0;
-      width: 100%;
-    }
+  &__subject-field {
+    border-radius: 3px 0 0 0;
+    width: 100%;
   }
 
   &__recipients {
     flex: 1 1 auto;
+  }
 
-    input {
-      border-radius: 0 3px 0 0;
-      width: 100%;
-    }
+  &__recipients-field {
+    border-radius: 0 3px 0 0;
+    width: 100%;
   }
 
   &__body {
-    margin-bottom: 12px;
+    margin-bottom: $baseline;
     width: 100%;
     line-height: 0;
+  }
 
-    textarea {
-      border-radius: 0 0 3px 3px;
-      width: 100%;
-      height: 80px;
-    }
+  &__body-field {
+    border-radius: 0 0 3px 3px;
+    width: 100%;
+    height: 80px;
+    resize: none; // we'll handle the auto-resize, not to worry
   }
 }

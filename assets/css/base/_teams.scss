@@ -22,18 +22,18 @@
 .auth-form {
 
   &__form {
-    padding: 24px;
+    padding: $baseline * 2;
     border: 1px solid;
-    border-radius: 6px;
+    border-radius: $base-radius * 2;
     border-color: $default-border-color;
   }
 
   .form-field {
-    margin-bottom: 24px;
+    margin-bottom: $baseline * 2;
   }
 
   label {
-    padding-bottom: 6px;
+    padding-bottom: $baseline / 2;
     display: block;
     font-size: $default-font-size;
     font-weight: $bold-weight;
@@ -48,7 +48,7 @@
     list-style-type: none;
 
     & > li {
-      padding-bottom: 12px;
+      padding-bottom: $baseline;
 
       &:last-child {
         padding-bottom: 0;
@@ -56,8 +56,8 @@
 
       & > a {
         display: flex;
-        padding: 12px;
-        border-radius: 4px;
+        padding: $baseline;
+        border-radius: $base-radius * 1.3;
         text-decoration: none;
         background-color: $light-background-color;
       }
@@ -68,7 +68,7 @@
     flex: none;
     width: 62px;
     height: 62px;
-    border-radius: 3px;
+    border-radius: $base-radius;
     background-color: rgba(255,255,255,0.5);
   }
 
