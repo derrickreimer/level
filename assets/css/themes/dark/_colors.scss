@@ -10,10 +10,14 @@ $muted-text-color: #9096a2;
 $default-link-color: #4990e2;
 $default-border-color: #534b54;
 
-// States
+// Generic states
 $error-color: #db5461;
 $success-color: #8ed081;
 $highlight-color: #f0a202;
+
+// User states
+$available-color: #8ed081;
+$focus-color: #f0a202;
 
 // Forms
 $input-background-color: #6f687c;

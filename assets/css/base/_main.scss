@@ -1,6 +1,10 @@
+#app {
+  font-size: 15px;
+}
+
 .sidebar {
   position: fixed;
-  width: 250px;
+  width: $sidebar-width;
   top: 0;
   bottom: 0;
   background-color: $sidebar-color;
@@ -16,8 +20,8 @@
 
 .main {
   position: fixed;
-  left: 250px;
-  right: 250px;
+  left: $sidebar-width;
+  right: $sidebar-width;
   top: 0;
   bottom: 0;
 }
@@ -40,13 +44,12 @@
   &__avatar {
     margin-right: $baseline;
     border-radius: $base-radius;
-    width: 40px;
-    height: 40px;
+    width: $large-avatar-size;
+    height: $large-avatar-size;
     background-color: $input-background-color;
   }
 
   &__name {
-    font-size: 15px;
     font-weight: bold;
   }
 }
@@ -60,8 +63,7 @@
     margin-left: $baseline / 2;
     padding: 0 10px;
     border-radius: 3px 0 0 3px;
-    font-size: 15px;
-    line-height: 28px;
+    // line-height: 28px;
     color: $default-text-color;
 
     &:hover {
@@ -141,9 +143,8 @@
 
   &__item {
     display: flex;
-    padding: $baseline;
+    padding: (5 * $baseline / 6) $baseline;
     border-top: 1px solid $input-muted-background-color;
-    font-size: 15px;
     color: $muted-text-color;
 
     &:last-child {
@@ -200,5 +201,40 @@
     border: 1px solid $highlight-color;
     border-radius: 50px;
     word-wrap: nowrap;
+  }
+}
+
+.users-list {
+  &__item {
+    display: block;
+    padding: 0 $baseline;
+    color: $default-text-color;
+
+    &:hover {
+      text-decoration: none;
+      background-color: $sidebar-hover;
+    }
+  }
+
+  &__name {
+    vertical-align: middle;
+  }
+}
+
+.state-indicator {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin-right: $baseline / 2;
+
+  &--available {
+    border-radius: 50px; //$base-radius;
+    background-color: $available-color;
+  }
+
+  &--focus {
+    border-radius: 50px;
+    border: 3px solid $focus-color;
   }
 }
