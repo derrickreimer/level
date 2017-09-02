@@ -1,7 +1,7 @@
 .auth-form,
 .team-switcher {
   margin: 0 auto;
-  padding: 100px 0 0 0;
+  padding: 100px 0 0;
   width: 380px;
 
   &__heading {
@@ -67,7 +67,7 @@
     width: 62px;
     height: 62px;
     border-radius: $base-radius;
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(255, 255, 255, 0.5);
   }
 
   &__details {

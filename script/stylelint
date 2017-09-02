@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd assets
+node_modules/stylelint/bin/stylelint.js "css/**/*.scss" --fix
