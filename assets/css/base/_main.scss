@@ -144,23 +144,33 @@
     padding: $baseline;
     border-top: 1px solid $input-muted-background-color;
     font-size: 15px;
+    color: $muted-text-color;
 
     &:last-child {
       border-bottom: 1px solid $input-muted-background-color;
+    }
+
+    &--highlighted {
+      border-left: 3px solid $highlight-color;
     }
   }
 
   &__selector {
     flex: 0 1 auto;
     margin-right: $baseline;
+    padding: 2px 0;
   }
 
   &__metadata {
     flex: 1 1 auto;
+    cursor: pointer;
   }
 
-  &__timing {
+  &__aside {
     flex: 0 1 auto;
+  }
+
+  &__item-head {
   }
 
   &__subject {
@@ -168,7 +178,27 @@
     color: #fff;
   }
 
+  &__dash {
+    margin: 0 $baseline / 2;
+    color: $muted-text-color;
+  }
+
+  &__recipients {
+    color: #fff;
+  }
+
   &__preview {
-    opacity: 0.5;
+  }
+
+  &__unread {
+    display: inline-block;
+    margin-right: $baseline;
+    padding: 0 $baseline;
+    font-size: 13px;
+    font-weight: bold;
+    color: $highlight-color;
+    border: 1px solid $highlight-color;
+    border-radius: 50px;
+    word-wrap: nowrap;
   }
 }
