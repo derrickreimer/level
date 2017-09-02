@@ -61,7 +61,7 @@
     padding: 0 10px;
     border-radius: 3px 0 0 3px;
     font-size: 15px;
-    line-height: 32px;
+    line-height: 28px;
     color: $default-text-color;
 
     &:hover {
@@ -133,5 +133,42 @@
     width: 100%;
     height: 80px;
     resize: none; // we'll handle the auto-resize, not to worry
+  }
+}
+
+.threads {
+  padding: 0 $baseline;
+
+  &__item {
+    display: flex;
+    padding: $baseline;
+    border-top: 1px solid $input-muted-background-color;
+    font-size: 15px;
+
+    &:last-child {
+      border-bottom: 1px solid $input-muted-background-color;
+    }
+  }
+
+  &__selector {
+    flex: 0 1 auto;
+    margin-right: $baseline;
+  }
+
+  &__metadata {
+    flex: 1 1 auto;
+  }
+
+  &__timing {
+    flex: 0 1 auto;
+  }
+
+  &__subject {
+    font-weight: bold;
+    color: #fff;
+  }
+
+  &__preview {
+    opacity: 0.5;
   }
 }

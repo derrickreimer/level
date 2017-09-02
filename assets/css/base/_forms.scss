@@ -101,3 +101,23 @@
 .form-controls {
   margin-top: 32px;
 }
+
+label.checkbox {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  border-radius: $base-radius;
+  background-color: $input-muted-background-color;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+  }
+
+  &__indicator {
+
+  }
+}
