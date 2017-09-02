@@ -213,7 +213,7 @@ view model =
             , div [ class "form-controls" ]
                 [ button
                     [ type_ "submit"
-                    , class "button button--primary button--full"
+                    , class "button button--primary button--full button--large"
                     , onClick Submit
                     , disabled (model.formState == Submitting)
                     ]
@@ -247,7 +247,7 @@ textField field errors =
         , input
             [ id field.name
             , type_ field.type_
-            , class "text-field text-field--full"
+            , class "text-field text-field--full text-field--large"
             , name field.name
             , value field.value
             , onInput field.onInput
@@ -267,7 +267,7 @@ slugField field errors =
                 [ input
                     [ id field.name
                     , type_ field.type_
-                    , class "text-field"
+                    , class "text-field text-field--large"
                     , name field.name
                     , value field.value
                     , onInput field.onInput

@@ -22,7 +22,8 @@
   bottom: 0;
 }
 
-.team-selector {
+.team-selector,
+.identity-menu {
 
   &__toggle {
     padding: 12px;
@@ -59,7 +60,7 @@
     display: block;
     padding: 0 15px;
     font-size: 14px;
-    line-height: 28px;
+    line-height: 30px;
     color: $default-text-color;
 
     &:hover {
@@ -111,6 +112,61 @@
 
     &--selected + & {
       border-radius: 0 $selected-radius 0 0;
+    }
+  }
+}
+
+.search-bar {
+  padding: 12px;
+}
+
+.search-field {
+  width: 350px;
+}
+
+.draft-composer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px;
+
+  &__row {
+    display: flex;
+
+    & + & {
+      margin-top: 1px;
+    }
+  }
+
+  &__subject {
+    flex: 1 1 auto;
+    margin-right: 1px;
+
+    input {
+      border-radius: 3px 0 0 0;
+      width: 100%;
+    }
+  }
+
+  &__recipients {
+    flex: 1 1 auto;
+
+    input {
+      border-radius: 0 3px 0 0;
+      width: 100%;
+    }
+  }
+
+  &__body {
+    margin-bottom: 12px;
+    width: 100%;
+    line-height: 0;
+
+    textarea {
+      border-radius: 0 0 3px 3px;
+      width: 100%;
+      height: 80px;
     }
   }
 }

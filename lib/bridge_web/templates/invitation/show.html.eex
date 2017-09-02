@@ -8,24 +8,24 @@
   <%= form_for @changeset, accept_invitation_path(@conn, :create, @invitation), [class: "auth-form__form"], fn f -> %>
     <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
       <%= label f, :email, gettext("Email Address"), class: "form-label" %>
-      <%= text_input f, :email, class: "text-field text-field--full", autofocus: true %>
+      <%= text_input f, :email, class: "text-field text-field--full text-field--large", autofocus: true %>
       <%= error_tag f, :email %>
     </div>
 
     <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
       <%= label f, :username, gettext("Username"), class: "form-label" %>
-      <%= text_input f, :username, class: "text-field text-field--full", autofocus: true %>
+      <%= text_input f, :username, class: "text-field text-field--full text-field--large", autofocus: true %>
       <%= error_tag f, :username %>
     </div>
 
     <div class="form-field <%= if f.errors[:password], do: "form-field--error" %>">
       <%= label f, :password, gettext("Password"), class: "form-label" %>
-      <%= password_input f, :password, class: "text-field text-field--full" %>
+      <%= password_input f, :password, class: "text-field text-field--full text-field--large" %>
       <%= error_tag f, :password %>
     </div>
 
     <div class="form-controls">
-      <%= submit gettext("Join the team"), class: "button button--primary button--full" %>
+      <%= submit gettext("Join the team"), class: "button button--primary button--full button--large" %>
     </div>
   <% end %>
 

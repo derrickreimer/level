@@ -24,10 +24,11 @@
 
   font-family: $system-font-stack;
   font-weight: $normal-weight;
-  padding: 15px;
+  padding: 12px;
+  height: 40px;
+  font-size: 14px;
   border: none;
   border-radius: 3px;
-  font-size: $default-font-size;
   transition: background-color 0.2s ease;
   background-color: $input-background-color;
   color: $input-text-color;
@@ -44,6 +45,12 @@
 
   &--full {
     width: 100%;
+  }
+
+  &--large {
+    padding: 15px;
+    font-size: $default-font-size;
+    height: auto;
   }
 }
 
@@ -70,6 +77,10 @@
     padding-right: 15px;
     width: 100%;
   }
+}
+
+.textarea {
+  line-height: 1.5;
 }
 
 .form-errors {
