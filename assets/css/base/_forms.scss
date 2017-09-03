@@ -1,7 +1,5 @@
 .form-field {
-
   &--error {
-
     .text-field {
       background-color: $error-color;
 
@@ -24,10 +22,11 @@
 
   font-family: $system-font-stack;
   font-weight: $normal-weight;
-  padding: 15px;
+  padding: $baseline;
+  height: 40px;
+  font-size: 15px;
   border: none;
-  border-radius: 3px;
-  font-size: $default-font-size;
+  border-radius: $base-radius;
   transition: background-color 0.2s ease;
   background-color: $input-background-color;
   color: $input-text-color;
@@ -45,10 +44,26 @@
   &--full {
     width: 100%;
   }
+
+  &--large {
+    padding: 15px;
+    font-size: $default-font-size;
+    height: auto;
+  }
+
+  &--muted {
+    background-color: $input-muted-background-color;
+
+    &:hover,
+    &:active,
+    &:focus {
+      background-color: lighten($input-muted-background-color, 5%);
+    }
+  }
 }
 
 .slug-field {
-  border-radius: 3px;
+  border-radius: $base-radius;
   display: flex;
   align-items: baseline;
   background-color: darken($input-background-color, 20%);
@@ -58,7 +73,7 @@
     min-width: 120px;
 
     input {
-      border-radius: 3px 0 0 3px;
+      border-radius: $base-radius 0 0 $base-radius;
       width: 100%;
       // text-align: right;
     }
@@ -72,6 +87,11 @@
   }
 }
 
+.textarea {
+  padding: 10px $baseline;
+  line-height: 1.5;
+}
+
 .form-errors {
   color: $error-color;
   margin-top: 6px;
@@ -80,4 +100,24 @@
 
 .form-controls {
   margin-top: 32px;
+}
+
+label.checkbox {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  border-radius: $base-radius;
+  background-color: $input-muted-background-color;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+  }
+
+  &__indicator {
+
+  }
 }

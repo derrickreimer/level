@@ -1,12 +1,12 @@
 .auth-form,
 .team-switcher {
   margin: 0 auto;
-  padding: 100px 0 0 0;
+  padding: 100px 0 0;
   width: 380px;
 
   &__heading {
     margin-bottom: 32px;
-    font-size: 30px;
+    font-size: 36px;
     font-weight: $normal-weight;
     text-align: center;
   }
@@ -20,20 +20,19 @@
 }
 
 .auth-form {
-
   &__form {
-    padding: 24px;
+    padding: $baseline * 2;
     border: 1px solid;
-    border-radius: 6px;
+    border-radius: $base-radius * 2;
     border-color: $default-border-color;
   }
 
   .form-field {
-    margin-bottom: 24px;
+    margin-bottom: $baseline * 2;
   }
 
   label {
-    padding-bottom: 6px;
+    padding-bottom: $baseline / 2;
     display: block;
     font-size: $default-font-size;
     font-weight: $bold-weight;
@@ -41,14 +40,13 @@
 }
 
 .team-switcher {
-
   &__teams {
     margin: 0;
     padding: 0;
     list-style-type: none;
 
     & > li {
-      padding-bottom: 12px;
+      padding-bottom: $baseline;
 
       &:last-child {
         padding-bottom: 0;
@@ -56,8 +54,8 @@
 
       & > a {
         display: flex;
-        padding: 12px;
-        border-radius: 4px;
+        padding: $baseline;
+        border-radius: $base-radius * 1.3;
         text-decoration: none;
         background-color: $light-background-color;
       }
@@ -68,13 +66,13 @@
     flex: none;
     width: 62px;
     height: 62px;
-    border-radius: 3px;
-    background-color: rgba(255,255,255,0.5);
+    border-radius: $base-radius;
+    background-color: rgba(255, 255, 255, 0.5);
   }
 
   &__details {
     flex: 1 1;
-    padding: 8px 18px 0;
+    padding: 6px 18px 0;
     color: $default-text-color;
   }
 

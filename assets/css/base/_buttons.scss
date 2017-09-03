@@ -1,13 +1,18 @@
 .button {
   @include shadow-on-focus;
 
-  padding: 15px;
+  padding: 12px;
   border: none;
   border-radius: 3px;
   font-family: $system-font-stack;
   font-weight: $bold-weight;
-  font-size: $default-font-size;
+  font-size: 15px;
   cursor: pointer;
+
+  &--large {
+    padding: 15px;
+    font-size: $default-font-size;
+  }
 
   &--full {
     width: 100%;

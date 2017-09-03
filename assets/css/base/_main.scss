@@ -1,0 +1,244 @@
+#app {
+  font-size: 15px;
+}
+
+.sidebar {
+  position: fixed;
+  width: $sidebar-width;
+  top: 0;
+  bottom: 0;
+  background-color: $sidebar-color;
+
+  &--left {
+    left: 0;
+  }
+
+  &--right {
+    right: 0;
+  }
+}
+
+.main {
+  position: fixed;
+  left: $sidebar-width;
+  right: $sidebar-width;
+  top: 0;
+  bottom: 0;
+}
+
+.team-selector,
+.identity-menu {
+  &__toggle {
+    padding: $baseline;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: $default-text-color;
+
+    &:hover {
+      text-decoration: none;
+      background-color: $sidebar-hover;
+    }
+  }
+
+  &__avatar {
+    margin-right: $baseline;
+    border-radius: $base-radius;
+    width: $large-avatar-size;
+    height: $large-avatar-size;
+    background-color: $input-background-color;
+  }
+
+  &__name {
+    font-weight: bold;
+  }
+}
+
+.filters {
+  margin: 0 0 18px;
+
+  &__item {
+    position: relative;
+    display: block;
+    padding: 0 $baseline;
+    color: $default-text-color;
+
+    &:hover {
+      text-decoration: none;
+      background-color: $sidebar-hover;
+    }
+
+    &--selected {
+      font-weight: bold;
+      background-color: $background-color;
+
+      &:hover {
+        background-color: $background-color;
+      }
+    }
+  }
+}
+
+.search-bar {
+  padding: $baseline;
+}
+
+.search-field {
+  width: 350px;
+}
+
+.draft {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: $baseline;
+
+  &__row {
+    display: flex;
+
+    & + & {
+      margin-top: 1px;
+    }
+  }
+
+  &__subject {
+    flex: 1 1 auto;
+    margin-right: 1px;
+  }
+
+  &__subject-field {
+    border-radius: 3px 0 0;
+    width: 100%;
+  }
+
+  &__recipients {
+    flex: 1 1 auto;
+  }
+
+  &__recipients-field {
+    border-radius: 0 3px 0 0;
+    width: 100%;
+  }
+
+  &__body {
+    margin-bottom: $baseline;
+    width: 100%;
+    line-height: 0;
+  }
+
+  &__body-field {
+    border-radius: 0 0 3px 3px;
+    width: 100%;
+    height: 80px;
+    resize: none; // we'll handle the auto-resize, not to worry
+  }
+}
+
+.threads {
+  padding: 0 $baseline;
+
+  &__item {
+    display: flex;
+    padding: (2 * $baseline / 3) $baseline;
+    border-top: 1px solid $input-muted-background-color;
+    color: $muted-text-color;
+
+    &:last-child {
+      border-bottom: 1px solid $input-muted-background-color;
+    }
+
+    &--highlighted {
+      box-shadow: inset 3px 0 $highlight-color;
+    }
+  }
+
+  &__selector {
+    flex: 0 1 auto;
+    margin-right: $baseline;
+    padding: 2px 0;
+  }
+
+  &__metadata {
+    flex: 1 1 auto;
+    cursor: pointer;
+  }
+
+  &__aside {
+    flex: 0 1 auto;
+  }
+
+  &__item-head {
+  }
+
+  &__subject {
+    font-weight: bold;
+    color: #fff;
+  }
+
+  &__dash {
+    margin: 0 $baseline / 2;
+    color: $muted-text-color;
+  }
+
+  &__recipients {
+    color: #fff;
+  }
+
+  &__preview {
+  }
+
+  &__unread {
+    display: inline-block;
+    margin-right: $baseline;
+    padding: 0 $baseline;
+    font-size: 13px;
+    font-weight: bold;
+    color: $highlight-color;
+    border: 1px solid $highlight-color;
+    border-radius: 50px;
+    word-wrap: nowrap;
+  }
+}
+
+.users-list {
+  &__item {
+    display: block;
+    padding: 0 $baseline;
+    color: $default-text-color;
+
+    &:hover {
+      text-decoration: none;
+      background-color: $sidebar-hover;
+    }
+
+    &--offline {
+      color: $offline-text-color;
+    }
+  }
+
+  &__name {
+    vertical-align: middle;
+  }
+}
+
+.state-indicator {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin-right: $baseline / 2;
+  border-radius: 50px;
+
+  &--available {
+    background-color: $available-color;
+  }
+
+  &--focus {
+    border: 3px solid $focus-color;
+  }
+
+  &--offline {
+    border: 3px solid $offline-color;
+  }
+}

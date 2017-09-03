@@ -10,7 +10,7 @@
       <%= label f, :slug, gettext("Team"), class: "form-label" %>
       <div class="slug-field">
         <div class="slug-field__slug">
-          <%= text_input f, :slug, class: "text-field", autofocus: true %>
+          <%= text_input f, :slug, class: "text-field text-field--large", autofocus: true %>
         </div>
         <div class="slug-field__domain">
           .bridge.chat
@@ -19,7 +19,7 @@
     </div>
 
     <div class="form-controls">
-      <%= submit gettext("Find my team"), class: "button button--primary button--full" %>
+      <%= submit gettext("Find my team"), class: "button button--primary button--full button--large" %>
     </div>
   <% end %>
 

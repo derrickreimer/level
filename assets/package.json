@@ -19,6 +19,8 @@
     "elm-brunch": "^0.8.0",
     "javascript-brunch": "~2.0.0",
     "sass-brunch": "^2.10.4",
+    "stylelint": "~8.0.0",
+    "stylelint-config-standard": "~17.0.0",
     "uglify-js-brunch": "~2.0.1"
   }
 }
