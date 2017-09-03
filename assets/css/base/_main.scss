@@ -60,10 +60,7 @@
   &__item {
     position: relative;
     display: block;
-    margin-left: $baseline / 2;
-    padding: 0 10px;
-    border-radius: 3px 0 0 3px;
-    // line-height: 28px;
+    padding: 0 $baseline;
     color: $default-text-color;
 
     &:hover {
@@ -72,7 +69,7 @@
     }
 
     &--selected {
-      // font-weight: bold;
+      font-weight: bold;
       background-color: $background-color;
 
       &:hover {
@@ -143,7 +140,7 @@
 
   &__item {
     display: flex;
-    padding: (5 * $baseline / 6) $baseline;
+    padding: (2 * $baseline / 3) $baseline;
     border-top: 1px solid $input-muted-background-color;
     color: $muted-text-color;
 
@@ -152,7 +149,7 @@
     }
 
     &--highlighted {
-      border-left: 3px solid $highlight-color;
+      box-shadow: inset 3px 0 $highlight-color;
     }
   }
 

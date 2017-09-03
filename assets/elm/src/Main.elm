@@ -108,7 +108,7 @@ view model =
                     , div [ class "threads__aside" ]
                         [ span [] [ text "12:00pm" ] ]
                     ]
-                , div [ class "threads__item threads__item--highlighted" ]
+                , div [ class "threads__item" ]
                     [ div [ class "threads__selector" ]
                         [ label [ class "checkbox" ]
                             [ input [ type_ "checkbox" ] []
