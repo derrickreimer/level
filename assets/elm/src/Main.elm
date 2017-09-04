@@ -4,12 +4,13 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.beginnerProgram
-        { model = model
+    Html.programWithFlags
+        { init = init
         , view = view
         , update = update
+        , subscriptions = subscriptions
         }
 
 
@@ -18,13 +19,41 @@ main =
 
 
 type alias Model =
-    { team_name : String
+    { team : Team
+    , currentUser : User
     }
 
 
-model : Model
-model =
-    { team_name = "" }
+type alias Team =
+    { name : String
+    }
+
+
+type alias User =
+    { username : String
+    }
+
+
+type alias Flags =
+    { teamName : String
+    , username : String
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( (initialState flags), Cmd.none )
+
+
+initialState : Flags -> Model
+initialState flags =
+    { team =
+        { name = flags.teamName
+        }
+    , currentUser =
+        { username = flags.username
+        }
+    }
 
 
 
@@ -35,11 +64,20 @@ type Msg
     = Bootstrapped
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Bootstrapped ->
-            model
+            ( model, Cmd.none )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
 
 
@@ -53,7 +91,7 @@ view model =
             [ div [ class "team-selector" ]
                 [ a [ class "team-selector__toggle", href "#" ]
                     [ div [ class "team-selector__avatar" ] []
-                    , div [ class "team-selector__name" ] [ text "My Company" ]
+                    , div [ class "team-selector__name" ] [ text model.team.name ]
                     ]
                 ]
             , div [ class "filters" ]
@@ -72,7 +110,7 @@ view model =
             [ div [ class "identity-menu" ]
                 [ a [ class "identity-menu__toggle", href "#" ]
                     [ div [ class "identity-menu__avatar" ] []
-                    , div [ class "identity-menu__name" ] [ text "Derrick Reimer" ]
+                    , div [ class "identity-menu__name" ] [ text model.currentUser.username ]
                     ]
                 ]
             , div [ class "users-list" ]

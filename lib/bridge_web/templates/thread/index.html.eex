@@ -1,3 +1,6 @@
 <script type="text/javascript">
-  var app = Elm.Main.fullscreen();
+  var app = Elm.Main.fullscreen({
+    teamName: '<%= @team.name %>',
+    username: '<%= @current_user.username %>'
+  });
 </script>
