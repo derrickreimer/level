@@ -202,25 +202,42 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "auth-form" ]
-        [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
-        , div [ class "auth-form__form" ]
-            [ textField (FormField "text" "team_name" "Team Name" model.team_name TeamNameChanged TeamNameBlurred) (errorsFor "team_name" model.errors)
-            , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
-            , textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
-            , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
-            , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
-            , div [ class "form-controls" ]
-                [ button
-                    [ type_ "submit"
-                    , class "button button--primary button--full button--large"
-                    , onClick Submit
-                    , disabled (model.formState == Submitting)
-                    ]
-                    [ text "Sign up" ]
+    div [ class "signup-form" ]
+        [ div [ class "signup-form__header" ]
+            [ h1 [] [ text "Join Bridge" ]
+            , p [] [ text "Bridge is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
+            ]
+        , div [ class "signup-form__section" ]
+            [ div [ class "signup-form__section-header" ]
+                [ span [ class "signup-form__section-number" ] [ text "1" ]
+                , text "Tell us about yourself!"
+                ]
+            , div [ class "signup-form__section-body" ]
+                [ textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
+                , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
+                , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
                 ]
             ]
-        , div [ class "auth-form__footer" ]
+        , div [ class "signup-form__section" ]
+            [ div [ class "signup-form__section-header" ]
+                [ span [ class "signup-form__section-number" ] [ text "2" ]
+                , text "Configure your team"
+                ]
+            , div [ class "signup-form__section-body" ]
+                [ textField (FormField "text" "team_name" "Team Name" model.team_name TeamNameChanged TeamNameBlurred) (errorsFor "team_name" model.errors)
+                , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
+                ]
+            ]
+        , div [ class "signup-form__controls" ]
+            [ button
+                [ type_ "submit"
+                , class "button button--primary button--full button--large"
+                , onClick Submit
+                , disabled (model.formState == Submitting)
+                ]
+                [ text "Sign up" ]
+            ]
+        , div [ class "signup-form__footer" ]
             [ p []
                 [ text "Already have an team? "
                 , a [ href "/teams/search" ] [ text "Sign in" ]

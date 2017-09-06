@@ -19,7 +19,8 @@
   }
 }
 
-.auth-form {
+.auth-form,
+.signup-form {
   &__form {
     padding: $baseline * 2;
     border: 1px solid;
@@ -31,7 +32,7 @@
     margin-bottom: $baseline * 2;
   }
 
-  label {
+  .form-label {
     padding-bottom: $baseline / 2;
     display: block;
     font-size: $default-font-size;
@@ -93,6 +94,82 @@
     padding-left: 42px;
     line-height: 32px;
     background: top left url("/images/dark/icon-plus.svg") no-repeat;
+    color: $muted-text-color;
+  }
+}
+
+.signup-form {
+  margin: 100px auto;
+  max-width: 475px;
+
+  $number-width: 44px;
+  $inner-padding: $baseline * 1.5;
+
+  &__header {
+    margin-bottom: $baseline * 4;
+
+    h1 {
+      font-size: 42px;
+      font-weight: normal;
+    }
+
+    p {
+      font-size: 20px;
+      line-height: 1.5;
+      color: $muted-text-color;
+    }
+  }
+
+  &__section {
+    margin-bottom: $baseline * 2;
+  }
+
+  &__section-header {
+    margin-bottom: $baseline * 2;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  &__section-body {
+    padding: $baseline ($number-width / 2 + $inner-padding);
+    margin: 0 $number-width / 2;
+    border-left: 1px solid $default-border-color;
+  }
+
+  &__section-number {
+    display: inline-block;
+    margin-right: $inner-padding;
+    width: $number-width;
+    height: $number-width;
+    border-radius: 99px;
+    text-align: center;
+    color: #f0a202;
+    border: 1px solid #f0a202;
+  }
+
+  &__controls {
+    position: relative;
+    margin-top: -$baseline * 2;
+    padding: 0 $number-width + $inner-padding;
+
+    &::before {
+      display: block;
+      position: absolute;
+      content: "";
+      width: $baseline * 2;
+      height: $baseline * 2;
+      left: $number-width / 2;
+      top: 0;
+      border-radius: 0 0 0 $base-radius * 2;
+      border-left: 1px solid $default-border-color;
+      border-bottom: 1px solid $default-border-color;
+    }
+  }
+
+  &__footer {
+    margin: 24px 0;
+    text-align: center;
+    font-weight: $normal-weight;
     color: $muted-text-color;
   }
 }
