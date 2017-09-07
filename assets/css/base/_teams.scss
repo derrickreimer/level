@@ -106,7 +106,7 @@
   $inner-padding: $baseline * 1.5;
 
   &__header {
-    margin-bottom: $baseline * 4;
+    margin: ($baseline * 4) ($number-width / 2);
 
     h1 {
       font-size: 42px;
