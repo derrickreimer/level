@@ -100,7 +100,8 @@
 
 .signup-form {
   margin: 100px auto;
-  max-width: 475px;
+  padding: $baseline;
+  max-width: 500px;
 
   $number-width: 44px;
   $inner-padding: $baseline * 1.5;
