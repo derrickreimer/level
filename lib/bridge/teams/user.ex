@@ -62,6 +62,8 @@ defmodule Bridge.Teams.User do
     changeset
     |> validate_required([:username, :email, :password])
     |> validate_length(:email, min: 1, max: 254)
+    |> validate_length(:first_name, min: 1, max: 255)
+    |> validate_length(:last_name, min: 1, max: 255)
     |> validate_length(:username, min: 3, max: 20)
     |> validate_length(:password, min: 6)
     |> validate_format(:username, username_format(), message: dgettext("errors", "must be lowercase and alphanumeric"))

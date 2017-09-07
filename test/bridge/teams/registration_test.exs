@@ -16,6 +16,20 @@ defmodule Bridge.Teams.RegistrationTest do
         in changeset.errors
     end
 
+    test "requires a first name" do
+      params = Map.put(valid_signup_params(), :first_name, "")
+      changeset = Registration.changeset(%{}, params)
+      assert {:first_name, {"can't be blank", validation: :required}}
+        in changeset.errors
+    end
+
+    test "requires a last name" do
+      params = Map.put(valid_signup_params(), :last_name, "")
+      changeset = Registration.changeset(%{}, params)
+      assert {:last_name, {"can't be blank", validation: :required}}
+        in changeset.errors
+    end
+
     test "requires a username" do
       params = Map.put(valid_signup_params(), :username, "")
       changeset = Registration.changeset(%{}, params)
@@ -37,10 +51,17 @@ defmodule Bridge.Teams.RegistrationTest do
         in changeset.errors
     end
 
-    test "requires a username no longer than 20 chars" do
-      params = Map.put(valid_signup_params(), :username, String.duplicate("a", 21))
+    test "requires a first name no longer than 255 chars" do
+      params = Map.put(valid_signup_params(), :first_name, String.duplicate("a", 256))
       changeset = Registration.changeset(%{}, params)
-      assert {:username, {"should be at most %{count} character(s)", count: 20, validation: :length, max: 20}}
+      assert {:first_name, {"should be at most %{count} character(s)", count: 255, validation: :length, max: 255}}
+        in changeset.errors
+    end
+
+    test "requires a last name no longer than 255 chars" do
+      params = Map.put(valid_signup_params(), :last_name, String.duplicate("a", 256))
+      changeset = Registration.changeset(%{}, params)
+      assert {:last_name, {"should be at most %{count} character(s)", count: 255, validation: :length, max: 255}}
         in changeset.errors
     end
 
