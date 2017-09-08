@@ -60,7 +60,7 @@ defmodule Bridge.Teams.User do
   """
   def validate_user_params(changeset) do
     changeset
-    |> validate_required([:username, :email, :password])
+    |> validate_required([:first_name, :last_name, :username, :email, :password])
     |> validate_length(:email, min: 1, max: 254)
     |> validate_length(:first_name, min: 1, max: 255)
     |> validate_length(:last_name, min: 1, max: 255)

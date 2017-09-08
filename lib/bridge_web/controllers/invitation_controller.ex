@@ -8,7 +8,7 @@ defmodule BridgeWeb.InvitationController do
 
   def show(conn, %{"id" => id}) do
     invitation = Teams.get_pending_invitation!(conn.assigns[:team], id)
-    changeset = User.signup_changeset(%Bridge.Teams.User{}, %{email: invitation.email})
+    changeset = User.signup_changeset(%User{}, %{email: invitation.email})
 
     conn
     |> assign(:changeset, changeset)
