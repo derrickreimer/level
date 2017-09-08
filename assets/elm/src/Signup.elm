@@ -233,8 +233,10 @@ view model =
                 , text "Tell us about yourself!"
                 ]
             , div [ class "signup-form__section-body" ]
-                [ textField (FormField "text" "first_name" "First Name" model.first_name FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
-                , textField (FormField "text" "last_name" "Last Name" model.last_name LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
+                [ div [ class "inline-field-group" ]
+                    [ textField (FormField "text" "first_name" "First Name" model.first_name FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
+                    , textField (FormField "text" "last_name" "Last Name" model.last_name LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
+                    ]
                 , textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
                 , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
                 , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)

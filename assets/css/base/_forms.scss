@@ -121,3 +121,21 @@ label.checkbox {
 
   }
 }
+
+.inline-field-group {
+  display: flex;
+
+  .form-field {
+    flex: 1 1;
+    margin-left: $baseline / 2;
+    margin-right: $baseline / 2;
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
