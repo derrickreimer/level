@@ -49,7 +49,7 @@ defmodule Bridge.Teams.User do
   """
   def signup_changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:team_id, :role, :email, :username, :time_zone, :password])
+    |> cast(params, [:team_id, :role, :email, :first_name, :last_name, :username, :time_zone, :password])
     |> validate_user_params()
     |> put_default_time_zone
     |> put_pass_hash
