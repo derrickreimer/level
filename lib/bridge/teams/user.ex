@@ -49,7 +49,7 @@ defmodule Bridge.Teams.User do
   """
   def signup_changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:team_id, :role, :email, :username, :time_zone, :password])
+    |> cast(params, [:team_id, :role, :email, :first_name, :last_name, :username, :time_zone, :password])
     |> validate_user_params()
     |> put_default_time_zone
     |> put_pass_hash
@@ -62,6 +62,8 @@ defmodule Bridge.Teams.User do
     changeset
     |> validate_required([:username, :email, :password])
     |> validate_length(:email, min: 1, max: 254)
+    |> validate_length(:first_name, min: 1, max: 255)
+    |> validate_length(:last_name, min: 1, max: 255)
     |> validate_length(:username, min: 3, max: 20)
     |> validate_length(:password, min: 6)
     |> validate_format(:username, username_format(), message: dgettext("errors", "must be lowercase and alphanumeric"))

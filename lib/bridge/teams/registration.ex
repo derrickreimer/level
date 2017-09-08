@@ -15,6 +15,8 @@ defmodule Bridge.Teams.Registration do
   @types %{
     slug: :string,
     team_name: :string,
+    first_name: :string,
+    last_name: :string,
     username: :string,
     email: :string,
     password: :string,
@@ -27,7 +29,7 @@ defmodule Bridge.Teams.Registration do
   def changeset(struct, params \\ %{}) do
     {struct, @types}
     |> cast(params, Map.keys(@types))
-    |> validate_required([:slug, :team_name, :username, :email, :password])
+    |> validate_required([:slug, :team_name, :first_name, :last_name, :username, :email, :password])
     |> validate_length(:slug, min: 1, max: 20)
     |> validate_format(:slug, Team.slug_format, message: dgettext("errors", "must be lowercase and alphanumeric"))
     |> validate_length(:team_name, min: 1, max: 255)
@@ -61,7 +63,7 @@ defmodule Bridge.Teams.Registration do
 
   defp user_params(changeset) do
     changeset.changes
-    |> Map.take([:username, :email, :password, :time_zone])
+    |> Map.take([:first_name, :last_name, :username, :email, :password, :time_zone])
     |> Map.put(:role, "OWNER")
   end
 

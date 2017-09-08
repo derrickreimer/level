@@ -13,6 +13,8 @@ defmodule Bridge.TestHelpers do
       slug: "team#{salt}",
       team_name: "Bridge, Inc.",
       username: "user#{salt}",
+      first_name: "Jane",
+      last_name: "Doe",
       email: "user#{salt}@bridge.chat",
       password: "$ecret$"
     }
@@ -22,6 +24,8 @@ defmodule Bridge.TestHelpers do
     salt = random_string()
 
     %{
+      first_name: "Jane",
+      last_name: "Doe",
       username: "user#{salt}",
       email: "user#{salt}@bridge.chat",
       password: "$ecret$"

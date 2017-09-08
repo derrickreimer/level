@@ -29,6 +29,8 @@ type alias Model =
     { csrf_token : String
     , team_name : String
     , slug : String
+    , first_name : String
+    , last_name : String
     , username : String
     , email : String
     , password : String
@@ -58,6 +60,8 @@ initialState flags =
     { csrf_token = flags.csrf_token
     , team_name = ""
     , slug = ""
+    , first_name = ""
+    , last_name = ""
     , username = ""
     , email = ""
     , password = ""
@@ -75,11 +79,15 @@ type Msg
     = TeamNameChanged String
     | SlugChanged String
     | UsernameChanged String
+    | FirstNameChanged String
+    | LastNameChanged String
     | EmailChanged String
     | PasswordChanged String
     | TeamNameBlurred
     | SlugBlurred
     | UsernameBlurred
+    | FirstNameBlurred
+    | LastNameBlurred
     | EmailBlurred
     | PasswordBlurred
     | Submit
@@ -98,6 +106,12 @@ update msg model =
         SlugChanged val ->
             ( { model | slug = val }, Cmd.none )
 
+        FirstNameChanged val ->
+            ( { model | first_name = val }, Cmd.none )
+
+        LastNameChanged val ->
+            ( { model | last_name = val }, Cmd.none )
+
         UsernameChanged val ->
             ( { model | username = val }, Cmd.none )
 
@@ -112,6 +126,12 @@ update msg model =
 
         SlugBlurred ->
             validateIfPresent model "slug" model.slug
+
+        FirstNameBlurred ->
+            validateIfPresent model "first_name" model.first_name
+
+        LastNameBlurred ->
+            validateIfPresent model "last_name" model.last_name
 
         UsernameBlurred ->
             validateIfPresent model "username" model.username
@@ -202,25 +222,46 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "auth-form" ]
-        [ h2 [ class "auth-form__heading" ] [ text "Sign up for Bridge" ]
-        , div [ class "auth-form__form" ]
-            [ textField (FormField "text" "team_name" "Team Name" model.team_name TeamNameChanged TeamNameBlurred) (errorsFor "team_name" model.errors)
-            , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
-            , textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
-            , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
-            , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
-            , div [ class "form-controls" ]
-                [ button
-                    [ type_ "submit"
-                    , class "button button--primary button--full button--large"
-                    , onClick Submit
-                    , disabled (model.formState == Submitting)
+    div [ class "signup-form" ]
+        [ div [ class "signup-form__header" ]
+            [ h1 [] [ text "Join Bridge" ]
+            , p [] [ text "Bridge is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
+            ]
+        , div [ class "signup-form__section" ]
+            [ div [ class "signup-form__section-header" ]
+                [ span [ class "signup-form__section-number" ] [ text "1" ]
+                , text "Tell us about yourself!"
+                ]
+            , div [ class "signup-form__section-body" ]
+                [ div [ class "inline-field-group" ]
+                    [ textField (FormField "text" "first_name" "First Name" model.first_name FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
+                    , textField (FormField "text" "last_name" "Last Name" model.last_name LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
                     ]
-                    [ text "Sign up" ]
+                , textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
+                , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
+                , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
                 ]
             ]
-        , div [ class "auth-form__footer" ]
+        , div [ class "signup-form__section" ]
+            [ div [ class "signup-form__section-header" ]
+                [ span [ class "signup-form__section-number" ] [ text "2" ]
+                , text "Configure your team"
+                ]
+            , div [ class "signup-form__section-body" ]
+                [ textField (FormField "text" "team_name" "Team Name" model.team_name TeamNameChanged TeamNameBlurred) (errorsFor "team_name" model.errors)
+                , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
+                ]
+            ]
+        , div [ class "signup-form__controls" ]
+            [ button
+                [ type_ "submit"
+                , class "button button--primary button--full button--large"
+                , onClick Submit
+                , disabled (model.formState == Submitting)
+                ]
+                [ text "Sign up" ]
+            ]
+        , div [ class "signup-form__footer" ]
             [ p []
                 [ text "Already have an team? "
                 , a [ href "/teams/search" ] [ text "Sign in" ]
@@ -352,6 +393,8 @@ buildBody model =
               , Encode.object
                     [ ( "team_name", Encode.string model.team_name )
                     , ( "slug", Encode.string model.slug )
+                    , ( "first_name", Encode.string model.first_name )
+                    , ( "last_name", Encode.string model.last_name )
                     , ( "username", Encode.string model.username )
                     , ( "email", Encode.string model.email )
                     , ( "password", Encode.string model.password )
