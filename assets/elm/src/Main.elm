@@ -30,13 +30,15 @@ type alias Team =
 
 
 type alias User =
-    { username : String
+    { firstName : String
+    , lastName : String
     }
 
 
 type alias Flags =
     { teamName : String
-    , username : String
+    , firstName : String
+    , lastName : String
     }
 
 
@@ -51,9 +53,15 @@ initialState flags =
         { name = flags.teamName
         }
     , currentUser =
-        { username = flags.username
+        { firstName = flags.firstName
+        , lastName = flags.lastName
         }
     }
+
+
+displayName : User -> String
+displayName user =
+    user.firstName ++ " " ++ user.lastName
 
 
 
@@ -110,7 +118,7 @@ view model =
             [ div [ class "identity-menu" ]
                 [ a [ class "identity-menu__toggle", href "#" ]
                     [ div [ class "identity-menu__avatar" ] []
-                    , div [ class "identity-menu__name" ] [ text model.currentUser.username ]
+                    , div [ class "identity-menu__name" ] [ text (displayName model.currentUser) ]
                     ]
                 ]
             , div [ class "users-list" ]

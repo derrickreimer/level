@@ -52,7 +52,8 @@ decoders =
                                 "username": "derrick",
                                 "inserted_at": "2017-07-01T10:00:00Z",
                                 "updated_at": "2017-07-01T10:00:00Z"
-                              }
+                              },
+                              "redirect_url": "http://example.com"
                             }
                             """
 
@@ -60,7 +61,7 @@ decoders =
                             payload
                                 |> Decode.decodeString Signup.successDecoder
                     in
-                        Expect.equal (Ok "foo") result
+                        Expect.equal (Ok "http://example.com") result
             ]
         , describe "Signup.errorDecoder"
             [ test "extracts a list of validation errors" <|

@@ -1,6 +1,7 @@
 <script type="text/javascript">
   var app = Elm.Main.fullscreen({
     teamName: '<%= @team.name %>',
-    username: '<%= @current_user.username %>'
+    firstName: '<%= @current_user.first_name %>',
+    lastName: '<%= @current_user.last_name %>'
   });
 </script>
