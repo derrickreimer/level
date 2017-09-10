@@ -1,8 +1,8 @@
-defmodule Bridge.Mixfile do
+defmodule Neuron.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :bridge,
+    [app: :neuron,
      version: "0.0.1",
      elixir: "~> 1.2",
      elixirc_paths: elixirc_paths(Mix.env),
@@ -20,7 +20,7 @@ defmodule Bridge.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {Bridge, []},
+    [mod: {Neuron, []},
      extra_applications: [:logger, :runtime_tools]]
   end
 
@@ -70,7 +70,7 @@ defmodule Bridge.Mixfile do
 
   defp docs do
     [
-      source_url: "https://github.com/djreimer/bridge",
+      source_url: "https://github.com/djreimer/neuron",
       extras: ["README.md"]
     ]
   end

@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Test Suites",
-    "repository": "https://github.com/djreimer/bridge.git",
+    "repository": "https://github.com/djreimer/neuron.git",
     "license": "Apache-2.0",
     "source-directories": [
         "..",

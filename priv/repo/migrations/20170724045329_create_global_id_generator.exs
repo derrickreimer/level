@@ -1,4 +1,4 @@
-defmodule Bridge.Repo.Migrations.CreateGlobalIdGenerator do
+defmodule Neuron.Repo.Migrations.CreateGlobalIdGenerator do
   use Ecto.Migration
 
   def up do

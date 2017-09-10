@@ -1,4 +1,4 @@
-defmodule Bridge.Repo.Migrations.CreateTeam do
+defmodule Neuron.Repo.Migrations.CreateTeam do
   use Ecto.Migration
 
   def change do

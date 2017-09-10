@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="csrf_token" content="<%= Plug.CSRFProtection.get_csrf_token() %>">
+
+    <title>Neuron</title>
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/themes/dark.css") %>">
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
+  </head>
+
+  <body>
+    <%= render @view_module, @view_template, assigns %>
+  </body>
+</html>

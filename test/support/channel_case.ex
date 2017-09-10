@@ -1,4 +1,4 @@
-defmodule BridgeWeb.ChannelCase do
+defmodule NeuronWeb.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -20,22 +20,22 @@ defmodule BridgeWeb.ChannelCase do
       # Import conveniences for testing with channels
       use Phoenix.ChannelTest
 
-      alias Bridge.Repo
+      alias Neuron.Repo
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
 
 
       # The default endpoint for testing
-      @endpoint BridgeWeb.Endpoint
+      @endpoint NeuronWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Bridge.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Neuron.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Bridge.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Neuron.Repo, {:shared, self()})
     end
 
     :ok

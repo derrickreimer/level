@@ -16,7 +16,7 @@ msgid "has already been taken"
 msgstr ""
 
 ## From Ecto.Changeset.put_change/3
-#: lib/bridge/signup.ex:38
+#: lib/neuron/signup.ex:38
 msgid "is invalid"
 msgstr ""
 
@@ -90,10 +90,10 @@ msgstr ""
 msgid "must be equal to %{number}"
 msgstr ""
 
-#: lib/bridge/signup.ex:75
+#: lib/neuron/signup.ex:75
 msgid "is already taken"
 msgstr ""
 
-#: lib/bridge/signup.ex:36 lib/bridge/signup.ex:37
+#: lib/neuron/signup.ex:36 lib/neuron/signup.ex:37
 msgid "must be lowercase and alphanumeric"
 msgstr ""

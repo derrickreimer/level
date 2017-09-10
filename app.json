@@ -1,7 +1,7 @@
 {
-  "name": "Bridge",
-  "description": "Asychronous communication, solved",
-  "repository": "https://github.com/djreimer/bridge",
+  "name": "Neuron",
+  "description": "Smarter communication platform for teams that value focus",
+  "repository": "https://github.com/djreimer/neuron",
   "keywords": ["chat", "elixir", "phoenix"],
   "addons": [
     {
@@ -20,35 +20,35 @@
     }
   ],
   "env": {
-    "BRIDGE_HOST": {
+    "NEURON_HOST": {
       "description": "The domain on which you are serving this application.",
       "value": ""
     },
-    "BRIDGE_MAILER_HOST": {
-      "description": "The domain via which to send transaction emails (typically the same as BRIDGE_HOST).",
+    "NEURON_MAILER_HOST": {
+      "description": "The domain via which to send transaction emails (typically the same as NEURON_HOST).",
       "value": ""
     },
-    "BRIDGE_SECRET_KEY_BASE": {
+    "NEURON_SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
-    "BRIDGE_POOL_SIZE": {
+    "NEURON_POOL_SIZE": {
       "description": "The maximum number of database connections each process may consume.",
       "value": "18"
     },
-    "BRIDGE_SMTP_HOST": {
+    "NEURON_SMTP_HOST": {
       "description": "The hostname of the your SMTP provider.",
       "value": ""
     },
-    "BRIDGE_SMTP_PORT": {
+    "NEURON_SMTP_PORT": {
       "description": "The port number for your SMTP provider.",
       "value": ""
     },
-    "BRIDGE_SMTP_USERNAME": {
+    "NEURON_SMTP_USERNAME": {
       "description": "The username for your SMTP provider.",
       "value": ""
     },
-    "BRIDGE_SMTP_PASSWORD": {
+    "NEURON_SMTP_PASSWORD": {
       "description": "The password for your SMTP provider.",
       "value": ""
     }
