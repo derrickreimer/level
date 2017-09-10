@@ -6,16 +6,16 @@
 use Mix.Config
 
 # General application configuration
-config :bridge,
-  ecto_repos: [Bridge.Repo],
-  mailer_host: System.get_env("BRIDGE_MAILER_HOST") || "bridge.dev"
+config :neuron,
+  ecto_repos: [Neuron.Repo],
+  mailer_host: System.get_env("NEURON_MAILER_HOST") || "neuron.dev"
 
 # Configures the endpoint
-config :bridge, BridgeWeb.Endpoint,
-  url: [host: System.get_env("BRIDGE_HOST") || "bridge.dev"],
+config :neuron, NeuronWeb.Endpoint,
+  url: [host: System.get_env("NEURON_HOST") || "neuron.dev"],
   secret_key_base: "88kKPFnN/WU+4j79qm1tucW43qkoNjH0Ju54I8X2+BpKzMqYbiq4yVwXuhf7HDzr",
-  render_errors: [view: BridgeWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Bridge.PubSub,
+  render_errors: [view: NeuronWeb.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: Neuron.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger

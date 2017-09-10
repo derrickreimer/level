@@ -1,4 +1,4 @@
-defmodule Bridge.Repo.Migrations.CreateInvitation do
+defmodule Neuron.Repo.Migrations.CreateInvitation do
   use Ecto.Migration
 
   def up do

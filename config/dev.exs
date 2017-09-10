@@ -6,7 +6,7 @@ use Mix.Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with brunch.io to recompile .js and .css sources.
-config :bridge, BridgeWeb.Endpoint,
+config :neuron, NeuronWeb.Endpoint,
   http: [port: 4000],
   url: [port: 4000],
   debug_errors: true,
@@ -17,13 +17,13 @@ config :bridge, BridgeWeb.Endpoint,
 
 
 # Watch static and templates for browser reloading.
-config :bridge, BridgeWeb.Endpoint,
+config :neuron, NeuronWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
-      ~r{lib/bridge/web/views/.*(ex)$},
-      ~r{lib/bridge/web/templates/.*(eex)$}
+      ~r{lib/neuron/web/views/.*(ex)$},
+      ~r{lib/neuron/web/templates/.*(eex)$}
     ]
   ]
 
@@ -35,14 +35,14 @@ config :logger, :console, format: "[$level] $message\n"
 config :phoenix, :stacktrace_depth, 20
 
 # Configure your database
-config :bridge, Bridge.Repo,
+config :neuron, Neuron.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: System.get_env("BRIDGE_DB_USERNAME") || "postgres",
-  password: System.get_env("BRIDGE_DB_PASSWORD") || "postgres",
-  database: "bridge_dev",
+  username: System.get_env("NEURON_DB_USERNAME") || "postgres",
+  password: System.get_env("NEURON_DB_PASSWORD") || "postgres",
+  database: "neuron_dev",
   hostname: "localhost",
   pool_size: 10
 
 # Mailer
-config :bridge, Bridge.Mailer,
+config :neuron, Neuron.Mailer,
   adapter: Bamboo.LocalAdapter

@@ -1,4 +1,4 @@
-defmodule Bridge.Repo.Migrations.CreateDraft do
+defmodule Neuron.Repo.Migrations.CreateDraft do
   use Ecto.Migration
 
   def change do

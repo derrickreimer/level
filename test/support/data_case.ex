@@ -1,4 +1,4 @@
-defmodule Bridge.DataCase do
+defmodule Neuron.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,21 +16,21 @@ defmodule Bridge.DataCase do
 
   using do
     quote do
-      alias Bridge.Repo
+      alias Neuron.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Bridge.DataCase
-      import Bridge.TestHelpers
+      import Neuron.DataCase
+      import Neuron.TestHelpers
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Bridge.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Neuron.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Bridge.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Neuron.Repo, {:shared, self()})
     end
 
     :ok

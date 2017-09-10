@@ -1,21 +1,21 @@
-defmodule Bridge.TestHelpers do
+defmodule Neuron.TestHelpers do
   @moduledoc """
   Miscellaneous helper functions for tests.
   """
 
-  alias Bridge.Repo
-  alias Bridge.Threads
+  alias Neuron.Repo
+  alias Neuron.Threads
 
   def valid_signup_params do
     salt = random_string()
 
     %{
       slug: "team#{salt}",
-      team_name: "Bridge, Inc.",
+      team_name: "Neuron, Inc.",
       username: "user#{salt}",
       first_name: "Jane",
       last_name: "Doe",
-      email: "user#{salt}@bridge.chat",
+      email: "user#{salt}@neuron.chat",
       password: "$ecret$"
     }
   end
@@ -27,7 +27,7 @@ defmodule Bridge.TestHelpers do
       first_name: "Jane",
       last_name: "Doe",
       username: "user#{salt}",
-      email: "user#{salt}@bridge.chat",
+      email: "user#{salt}@neuron.chat",
       password: "$ecret$"
     }
   end
@@ -36,7 +36,7 @@ defmodule Bridge.TestHelpers do
     %{
       team_id: team.id,
       invitor_id: invitor.id,
-      email: "user#{random_string()}@bridge.chat"
+      email: "user#{random_string()}@neuron.chat"
     }
   end
 
@@ -56,8 +56,8 @@ defmodule Bridge.TestHelpers do
       |> Map.merge(params)
 
     %{}
-    |> Bridge.Teams.registration_changeset(params)
-    |> Bridge.Teams.register()
+    |> Neuron.Teams.registration_changeset(params)
+    |> Neuron.Teams.register()
   end
 
   def insert_member(team, params \\ %{}) do
@@ -66,8 +66,8 @@ defmodule Bridge.TestHelpers do
       |> Map.put(:team_id, team.id)
       |> Map.merge(params)
 
-    %Bridge.Teams.User{}
-    |> Bridge.Teams.User.signup_changeset(params)
+    %Neuron.Teams.User{}
+    |> Neuron.Teams.User.signup_changeset(params)
     |> Repo.insert()
   end
 
@@ -83,11 +83,11 @@ defmodule Bridge.TestHelpers do
   end
 
   def put_launch_host(conn) do
-    %{conn | host: "launch.bridge.test"}
+    %{conn | host: "launch.neuron.test"}
   end
 
   def put_team_host(conn, team) do
-    %{conn | host: "#{team.slug}.bridge.test"}
+    %{conn | host: "#{team.slug}.neuron.test"}
   end
 
   defp random_string do

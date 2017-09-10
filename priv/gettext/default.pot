@@ -10,42 +10,42 @@
 msgid ""
 msgstr ""
 
-#: lib/bridge/web/templates/session/new.html.eex:20
+#: lib/neuron/web/templates/session/new.html.eex:20
 msgid "Email Address"
 msgstr ""
 
-#: lib/bridge/web/templates/session/new.html.eex:26
+#: lib/neuron/web/templates/session/new.html.eex:26
 msgid "Password"
 msgstr ""
 
-#: lib/bridge/web/templates/session/new.html.eex:32
+#: lib/neuron/web/templates/session/new.html.eex:32
 msgid "Sign in"
 msgstr ""
 
-#: lib/bridge/web/templates/generic_session/new.html.eex:25
-#: lib/bridge/web/templates/session/new.html.eex:39
+#: lib/neuron/web/templates/generic_session/new.html.eex:25
+#: lib/neuron/web/templates/session/new.html.eex:39
 msgid "Sign up"
 msgstr ""
 
-#: lib/bridge/web/controllers/team_controller.ex:21
+#: lib/neuron/web/controllers/team_controller.ex:21
 msgid "Uh oh, something went wrong. Please try again."
 msgstr ""
 
-#: lib/bridge/web/templates/generic_session/new.html.eex:6
-#: lib/bridge/web/templates/session/new.html.eex:6
-msgid "Sign in to Bridge"
+#: lib/neuron/web/templates/generic_session/new.html.eex:6
+#: lib/neuron/web/templates/session/new.html.eex:6
+msgid "Sign in to Neuron"
 msgstr ""
 
-#: lib/bridge/web/templates/generic_session/new.html.eex:20
+#: lib/neuron/web/templates/generic_session/new.html.eex:20
 msgid "Find my team"
 msgstr ""
 
-#: lib/bridge/web/templates/generic_session/new.html.eex:10
-#: lib/bridge/web/templates/session/new.html.eex:10
+#: lib/neuron/web/templates/generic_session/new.html.eex:10
+#: lib/neuron/web/templates/session/new.html.eex:10
 msgid "Team"
 msgstr ""
 
-#: lib/bridge/web/templates/generic_session/new.html.eex:25
-#: lib/bridge/web/templates/session/new.html.eex:38
+#: lib/neuron/web/templates/generic_session/new.html.eex:25
+#: lib/neuron/web/templates/session/new.html.eex:38
 msgid "Want to create a team instead?"
 msgstr ""

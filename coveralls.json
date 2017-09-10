@@ -1,8 +1,8 @@
 {
   "skip_files": [
     "test",
-    "lib/bridge_web.ex",
-    "lib/bridge_web/endpoint.ex",
-    "lib/bridge_web/gettext.ex"
+    "lib/neuron_web.ex",
+    "lib/neuron_web/endpoint.ex",
+    "lib/neuron_web/gettext.ex"
   ]
 }

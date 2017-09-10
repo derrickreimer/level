@@ -1,20 +1,20 @@
-defmodule Bridge.ConnCaseHelpers do
+defmodule Neuron.ConnCaseHelpers do
   @moduledoc """
   Test helpers specifically for conn-based tests.
   """
 
-  import Bridge.TestHelpers
+  import Neuron.TestHelpers
   import Plug.Conn
 
   def sign_in(conn, team, user) do
     conn
-    |> BridgeWeb.Auth.sign_in(team, user)
+    |> NeuronWeb.Auth.sign_in(team, user)
     |> send_resp(:ok, "")
     |> Phoenix.ConnTest.recycle
   end
 
   def authenticate_with_jwt(conn, team, user) do
-    token = BridgeWeb.Auth.generate_signed_jwt(user)
+    token = NeuronWeb.Auth.generate_signed_jwt(user)
 
     conn
     |> put_team_host(team)

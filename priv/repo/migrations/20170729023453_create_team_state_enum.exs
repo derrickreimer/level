@@ -1,4 +1,4 @@
-defmodule Bridge.Repo.Migrations.CreateTeamStateEnum do
+defmodule Neuron.Repo.Migrations.CreateTeamStateEnum do
   use Ecto.Migration
 
   def up do

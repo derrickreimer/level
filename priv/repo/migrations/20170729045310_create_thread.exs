@@ -1,4 +1,4 @@
-defmodule Bridge.Repo.Migrations.CreateThread do
+defmodule Neuron.Repo.Migrations.CreateThread do
   use Ecto.Migration
 
   def up do
