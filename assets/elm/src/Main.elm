@@ -2,6 +2,8 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Http
+import Json.Decode as Decode
 
 
 main : Program Flags Model Msg
@@ -43,7 +45,11 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( (initialState flags), Cmd.none )
+    let
+        model =
+            initialState flags
+    in
+        ( model, (bootstrap model) )
 
 
 initialState : Flags -> Model
@@ -64,14 +70,59 @@ displayName user =
 
 
 type Msg
-    = Bootstrapped
+    = Bootstrapped (Result Http.Error String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Bootstrapped ->
+        Bootstrapped (Ok _) ->
             ( model, Cmd.none )
+
+        Bootstrapped (Err _) ->
+            ( model, Cmd.none )
+
+
+bootstrap : Model -> Cmd Msg
+bootstrap model =
+    let
+        body =
+            """
+              {
+                viewer {
+                  id
+                  username
+                  firstName
+                  lastName
+                  team {
+                    id
+                    name
+                  }
+                }
+              }
+            """
+
+        -- TODO: replace with real decoder
+        decoder =
+            Decode.at [ "data", "viewer", "id" ] Decode.string
+
+        request =
+            graphqlRequest model.apiToken body decoder
+    in
+        Http.send Bootstrapped request
+
+
+graphqlRequest : String -> String -> Decode.Decoder a -> Http.Request a
+graphqlRequest token body decoder =
+    Http.request
+        { method = "POST"
+        , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+        , url = "/graphql"
+        , body = Http.stringBody "application/graphql" body
+        , expect = Http.expectJson decoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 
