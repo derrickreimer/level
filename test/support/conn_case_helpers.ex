@@ -1,20 +1,20 @@
-defmodule Neuron.ConnCaseHelpers do
+defmodule Sprinkle.ConnCaseHelpers do
   @moduledoc """
   Test helpers specifically for conn-based tests.
   """
 
-  import Neuron.TestHelpers
+  import Sprinkle.TestHelpers
   import Plug.Conn
 
   def sign_in(conn, team, user) do
     conn
-    |> NeuronWeb.Auth.sign_in(team, user)
+    |> SprinkleWeb.Auth.sign_in(team, user)
     |> send_resp(:ok, "")
     |> Phoenix.ConnTest.recycle
   end
 
   def authenticate_with_jwt(conn, team, user) do
-    token = NeuronWeb.Auth.generate_signed_jwt(user)
+    token = SprinkleWeb.Auth.generate_signed_jwt(user)
 
     conn
     |> put_team_host(team)

@@ -1,4 +1,4 @@
-defmodule Neuron.DataCase do
+defmodule Sprinkle.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,21 +16,21 @@ defmodule Neuron.DataCase do
 
   using do
     quote do
-      alias Neuron.Repo
+      alias Sprinkle.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Neuron.DataCase
-      import Neuron.TestHelpers
+      import Sprinkle.DataCase
+      import Sprinkle.TestHelpers
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Neuron.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Sprinkle.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Neuron.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Sprinkle.Repo, {:shared, self()})
     end
 
     :ok

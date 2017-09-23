@@ -1,13 +1,13 @@
 use Mix.Config
 
-config :neuron,
-  mailer_host: "neuron.test"
+config :sprinkle,
+  mailer_host: "sprinkle.test"
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :neuron, NeuronWeb.Endpoint,
+config :sprinkle, SprinkleWeb.Endpoint,
   http: [port: 4001],
-  url: [host: "neuron.test", port: 4001],
+  url: [host: "sprinkle.test", port: 4001],
   server: false
 
 # Print only warnings and errors during test
@@ -19,11 +19,11 @@ config :logger, level: :warn
 #   compile_time_purge_level: :debug
 
 # Configure your database
-config :neuron, Neuron.Repo,
+config :sprinkle, Sprinkle.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "neuron_test",
+  database: "sprinkle_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
@@ -32,5 +32,5 @@ config :comeonin, :bcrypt_log_rounds, 4
 config :comeonin, :pbkdf2_rounds, 1
 
 # Mailer
-config :neuron, Neuron.Mailer,
+config :sprinkle, Sprinkle.Mailer,
   adapter: Bamboo.TestAdapter

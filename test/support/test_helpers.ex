@@ -1,21 +1,21 @@
-defmodule Neuron.TestHelpers do
+defmodule Sprinkle.TestHelpers do
   @moduledoc """
   Miscellaneous helper functions for tests.
   """
 
-  alias Neuron.Repo
-  alias Neuron.Threads
+  alias Sprinkle.Repo
+  alias Sprinkle.Threads
 
   def valid_signup_params do
     salt = random_string()
 
     %{
       slug: "team#{salt}",
-      team_name: "Neuron, Inc.",
+      team_name: "Sprinkle, Inc.",
       username: "user#{salt}",
       first_name: "Jane",
       last_name: "Doe",
-      email: "user#{salt}@neuron.chat",
+      email: "user#{salt}@sprinkle.chat",
       password: "$ecret$"
     }
   end
@@ -27,7 +27,7 @@ defmodule Neuron.TestHelpers do
       first_name: "Jane",
       last_name: "Doe",
       username: "user#{salt}",
-      email: "user#{salt}@neuron.chat",
+      email: "user#{salt}@sprinkle.chat",
       password: "$ecret$"
     }
   end
@@ -36,7 +36,7 @@ defmodule Neuron.TestHelpers do
     %{
       team_id: team.id,
       invitor_id: invitor.id,
-      email: "user#{random_string()}@neuron.chat"
+      email: "user#{random_string()}@sprinkle.chat"
     }
   end
 
@@ -56,8 +56,8 @@ defmodule Neuron.TestHelpers do
       |> Map.merge(params)
 
     %{}
-    |> Neuron.Teams.registration_changeset(params)
-    |> Neuron.Teams.register()
+    |> Sprinkle.Teams.registration_changeset(params)
+    |> Sprinkle.Teams.register()
   end
 
   def insert_member(team, params \\ %{}) do
@@ -66,8 +66,8 @@ defmodule Neuron.TestHelpers do
       |> Map.put(:team_id, team.id)
       |> Map.merge(params)
 
-    %Neuron.Teams.User{}
-    |> Neuron.Teams.User.signup_changeset(params)
+    %Sprinkle.Teams.User{}
+    |> Sprinkle.Teams.User.signup_changeset(params)
     |> Repo.insert()
   end
 
@@ -83,11 +83,11 @@ defmodule Neuron.TestHelpers do
   end
 
   def put_launch_host(conn) do
-    %{conn | host: "launch.neuron.test"}
+    %{conn | host: "launch.sprinkle.test"}
   end
 
   def put_team_host(conn, team) do
-    %{conn | host: "#{team.slug}.neuron.test"}
+    %{conn | host: "#{team.slug}.sprinkle.test"}
   end
 
   defp random_string do

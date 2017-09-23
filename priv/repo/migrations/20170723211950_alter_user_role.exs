@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.AlterUserRole do
+defmodule Sprinkle.Repo.Migrations.AlterUserRole do
   use Ecto.Migration
 
   def up do

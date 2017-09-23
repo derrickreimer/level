@@ -4,7 +4,7 @@ set -e
 
 cat <<"EOF"
 * * * * * * * * * * * * * * * * * * * * * *
-*         Neuron Bootstrap Script         *
+*         Sprinkle Bootstrap Script         *
 * * * * * * * * * * * * * * * * * * * * * *
 EOF
 

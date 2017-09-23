@@ -1,8 +1,8 @@
-defmodule Neuron.Mixfile do
+defmodule Sprinkle.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :neuron,
+    [app: :sprinkle,
      version: "0.0.1",
      elixir: "~> 1.2",
      elixirc_paths: elixirc_paths(Mix.env),
@@ -20,7 +20,7 @@ defmodule Neuron.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {Neuron, []},
+    [mod: {Sprinkle, []},
      extra_applications: [:logger, :runtime_tools]]
   end
 
@@ -70,7 +70,7 @@ defmodule Neuron.Mixfile do
 
   defp docs do
     [
-      source_url: "https://github.com/djreimer/neuron",
+      source_url: "https://github.com/djreimer/sprinkle",
       extras: ["README.md"]
     ]
   end

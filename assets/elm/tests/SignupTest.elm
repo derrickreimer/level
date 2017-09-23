@@ -48,7 +48,7 @@ decoders =
                               },
                               "user": {
                                 "id": 888,
-                                "email": "derrick@neuron.chat",
+                                "email": "derrick@sprinkle.chat",
                                 "username": "derrick",
                                 "inserted_at": "2017-07-01T10:00:00Z",
                                 "updated_at": "2017-07-01T10:00:00Z"

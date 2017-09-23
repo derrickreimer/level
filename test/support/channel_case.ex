@@ -1,4 +1,4 @@
-defmodule NeuronWeb.ChannelCase do
+defmodule SprinkleWeb.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -20,22 +20,22 @@ defmodule NeuronWeb.ChannelCase do
       # Import conveniences for testing with channels
       use Phoenix.ChannelTest
 
-      alias Neuron.Repo
+      alias Sprinkle.Repo
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
 
 
       # The default endpoint for testing
-      @endpoint NeuronWeb.Endpoint
+      @endpoint SprinkleWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Neuron.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Sprinkle.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Neuron.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Sprinkle.Repo, {:shared, self()})
     end
 
     :ok

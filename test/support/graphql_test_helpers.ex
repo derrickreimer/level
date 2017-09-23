@@ -1,4 +1,4 @@
-defmodule NeuronWeb.GraphQL.TestHelpers do
+defmodule SprinkleWeb.GraphQL.TestHelpers do
   @moduledoc """
   Test helpers for GraphQL test.
   """

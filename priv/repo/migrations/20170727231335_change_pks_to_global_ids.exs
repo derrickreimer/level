@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.ChangePksToGlobalIds do
+defmodule Sprinkle.Repo.Migrations.ChangePksToGlobalIds do
   use Ecto.Migration
 
   def change do

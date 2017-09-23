@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.CreateTeam do
+defmodule Sprinkle.Repo.Migrations.CreateTeam do
   use Ecto.Migration
 
   def change do

@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
-    "summary": "Front-end application for Neuron",
-    "repository": "https://github.com/djreimer/neuron.git",
+    "summary": "Front-end application for Sprinkle",
+    "repository": "https://github.com/djreimer/sprinkle.git",
     "license": "Apache-2.0",
     "source-directories": [
         "."

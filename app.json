@@ -1,7 +1,7 @@
 {
-  "name": "Neuron",
+  "name": "Sprinkle",
   "description": "Smarter communication platform for teams that value focus",
-  "repository": "https://github.com/djreimer/neuron",
+  "repository": "https://github.com/djreimer/sprinkle",
   "keywords": ["chat", "elixir", "phoenix"],
   "addons": [
     {
@@ -20,35 +20,35 @@
     }
   ],
   "env": {
-    "NEURON_HOST": {
+    "SPRINKLE_HOST": {
       "description": "The domain on which you are serving this application.",
       "value": ""
     },
-    "NEURON_MAILER_HOST": {
-      "description": "The domain via which to send transaction emails (typically the same as NEURON_HOST).",
+    "SPRINKLE_MAILER_HOST": {
+      "description": "The domain via which to send transaction emails (typically the same as SPRINKLE_HOST).",
       "value": ""
     },
-    "NEURON_SECRET_KEY_BASE": {
+    "SPRINKLE_SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
-    "NEURON_POOL_SIZE": {
+    "SPRINKLE_POOL_SIZE": {
       "description": "The maximum number of database connections each process may consume.",
       "value": "18"
     },
-    "NEURON_SMTP_HOST": {
+    "SPRINKLE_SMTP_HOST": {
       "description": "The hostname of the your SMTP provider.",
       "value": ""
     },
-    "NEURON_SMTP_PORT": {
+    "SPRINKLE_SMTP_PORT": {
       "description": "The port number for your SMTP provider.",
       "value": ""
     },
-    "NEURON_SMTP_USERNAME": {
+    "SPRINKLE_SMTP_USERNAME": {
       "description": "The username for your SMTP provider.",
       "value": ""
     },
-    "NEURON_SMTP_PASSWORD": {
+    "SPRINKLE_SMTP_PASSWORD": {
       "description": "The password for your SMTP provider.",
       "value": ""
     }

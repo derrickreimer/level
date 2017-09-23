@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.CreateDraft do
+defmodule Sprinkle.Repo.Migrations.CreateDraft do
   use Ecto.Migration
 
   def change do

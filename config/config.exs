@@ -6,16 +6,16 @@
 use Mix.Config
 
 # General application configuration
-config :neuron,
-  ecto_repos: [Neuron.Repo],
-  mailer_host: System.get_env("NEURON_MAILER_HOST") || "neuron.dev"
+config :sprinkle,
+  ecto_repos: [Sprinkle.Repo],
+  mailer_host: System.get_env("SPRINKLE_MAILER_HOST") || "sprinkle.dev"
 
 # Configures the endpoint
-config :neuron, NeuronWeb.Endpoint,
-  url: [host: System.get_env("NEURON_HOST") || "neuron.dev"],
+config :sprinkle, SprinkleWeb.Endpoint,
+  url: [host: System.get_env("SPRINKLE_HOST") || "sprinkle.dev"],
   secret_key_base: "88kKPFnN/WU+4j79qm1tucW43qkoNjH0Ju54I8X2+BpKzMqYbiq4yVwXuhf7HDzr",
-  render_errors: [view: NeuronWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Neuron.PubSub,
+  render_errors: [view: SprinkleWeb.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: Sprinkle.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger

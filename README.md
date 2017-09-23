@@ -1,10 +1,10 @@
-# Neuron
+# Sprinkle
 
-[![CircleCI](https://circleci.com/gh/djreimer/neuron.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/neuron)
+[![CircleCI](https://circleci.com/gh/djreimer/sprinkle.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/sprinkle)
 
 ## One-Click Deployment
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/djreimer/neuron/tree/master)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/djreimer/sprinkle/tree/master)
 
 ## Development Environment
 
@@ -20,17 +20,17 @@ Run the bootstrap script to install the remaining dependencies and create your
 development database:
 
 ```
-cd neuron
+cd sprinkle
 script/bootstrap
 ```
 
 If your local PostgreSQL install does not have a default `postgres` user,
-define the `NEURON_DB_USERNAME` and `NEURON_DB_PASSWORD` environment variables
+define the `SPRINKLE_DB_USERNAME` and `SPRINKLE_DB_PASSWORD` environment variables
 first in your shell environment:
 
 ```
-export NEURON_DB_USERNAME=xxx
-export NEURON_DB_PASSWORD=yyy
+export SPRINKLE_DB_USERNAME=xxx
+export SPRINKLE_DB_PASSWORD=yyy
 ```
 
 Then run the bootstrap script again.
@@ -62,14 +62,14 @@ dependency in the `tests` directory (the tests maintain their own set of depende
 
 ### Routing
 
-Neuron uses subdomains to keep track of which team you are viewing. There are a variety
+Sprinkle uses subdomains to keep track of which team you are viewing. There are a variety
 of different techniques for configuring a local TLD to point at localhost. One option is to
 edit your `/etc/hosts` file with something like this to make the Phoenix app available
-at http://launch.neuron.dev:4000:
+at http://launch.sprinkle.dev:4000:
 
 ```
-127.0.0.1  launch.neuron.dev    # required
-127.0.0.1  yourteam.neuron.dev  # need an entry like this for every team you create
+127.0.0.1  launch.sprinkle.dev    # required
+127.0.0.1  yourteam.sprinkle.dev  # need an entry like this for every team you create
 ```
 
 **Caveat**: The hosts file approach does not support wildcard subdomains, so you

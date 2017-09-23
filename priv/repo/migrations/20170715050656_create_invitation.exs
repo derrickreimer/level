@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.CreateInvitation do
+defmodule Sprinkle.Repo.Migrations.CreateInvitation do
   use Ecto.Migration
 
   def up do

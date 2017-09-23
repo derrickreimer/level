@@ -1,4 +1,4 @@
 ExUnit.start
 
-Ecto.Adapters.SQL.Sandbox.mode(Neuron.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Sprinkle.Repo, :manual)
 

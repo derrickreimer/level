@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.CreateMessage do
+defmodule Sprinkle.Repo.Migrations.CreateMessage do
   use Ecto.Migration
 
   def up do

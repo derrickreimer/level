@@ -1,4 +1,4 @@
-defmodule NeuronWeb.ConnCase do
+defmodule SprinkleWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -20,26 +20,26 @@ defmodule NeuronWeb.ConnCase do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
 
-      alias Neuron.Repo
+      alias Sprinkle.Repo
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
 
-      import NeuronWeb.Router.Helpers
-      import NeuronWeb.UrlHelpers
-      import Neuron.TestHelpers
-      import Neuron.ConnCaseHelpers
+      import SprinkleWeb.Router.Helpers
+      import SprinkleWeb.UrlHelpers
+      import Sprinkle.TestHelpers
+      import Sprinkle.ConnCaseHelpers
 
       # The default endpoint for testing
-      @endpoint NeuronWeb.Endpoint
+      @endpoint SprinkleWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Neuron.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Sprinkle.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Neuron.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Sprinkle.Repo, {:shared, self()})
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

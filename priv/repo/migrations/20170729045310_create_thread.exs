@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.CreateThread do
+defmodule Sprinkle.Repo.Migrations.CreateThread do
   use Ecto.Migration
 
   def up do

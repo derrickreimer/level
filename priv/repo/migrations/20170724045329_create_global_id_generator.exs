@@ -1,4 +1,4 @@
-defmodule Neuron.Repo.Migrations.CreateGlobalIdGenerator do
+defmodule Sprinkle.Repo.Migrations.CreateGlobalIdGenerator do
   use Ecto.Migration
 
   def up do

@@ -1,8 +1,8 @@
 {
   "skip_files": [
     "test",
-    "lib/neuron_web.ex",
-    "lib/neuron_web/endpoint.ex",
-    "lib/neuron_web/gettext.ex"
+    "lib/sprinkle_web.ex",
+    "lib/sprinkle_web/endpoint.ex",
+    "lib/sprinkle_web/gettext.ex"
   ]
 }
