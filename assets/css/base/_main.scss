@@ -47,10 +47,21 @@
     width: $large-avatar-size;
     height: $large-avatar-size;
     background-color: $input-background-color;
+
+    &--placeholder {
+      @include loading-pulse;
+    }
   }
 
   &__name {
     font-weight: bold;
+  }
+
+  &__loading-placeholder {
+    @include loading-pulse;
+    width: 120px;
+    height: $default-font-size;
+    border-radius: $base-radius;
   }
 }
 

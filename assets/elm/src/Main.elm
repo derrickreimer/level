@@ -19,8 +19,9 @@ main =
 
 
 type alias Model =
-    { team : Team
-    , currentUser : User
+    { apiToken : String
+    , currentTeam : Maybe Team
+    , currentUser : Maybe User
     }
 
 
@@ -36,9 +37,7 @@ type alias User =
 
 
 type alias Flags =
-    { teamName : String
-    , firstName : String
-    , lastName : String
+    { apiToken : String
     }
 
 
@@ -49,13 +48,9 @@ init flags =
 
 initialState : Flags -> Model
 initialState flags =
-    { team =
-        { name = flags.teamName
-        }
-    , currentUser =
-        { firstName = flags.firstName
-        , lastName = flags.lastName
-        }
+    { apiToken = flags.apiToken
+    , currentUser = Nothing
+    , currentTeam = Nothing
     }
 
 
@@ -96,45 +91,12 @@ view : Model -> Html Msg
 view model =
     div [ id "app" ]
         [ div [ class "sidebar sidebar--left" ]
-            [ div [ class "team-selector" ]
-                [ a [ class "team-selector__toggle", href "#" ]
-                    [ div [ class "team-selector__avatar" ] []
-                    , div [ class "team-selector__name" ] [ text model.team.name ]
-                    ]
-                ]
-            , div [ class "filters" ]
-                [ a [ class "filters__item", href "#" ]
-                    [ span [ class "filters__item-name" ] [ text "Inbox" ]
-                    ]
-                , a [ class "filters__item", href "#" ]
-                    [ span [ class "filters__item-name" ] [ text "Everything" ]
-                    ]
-                , a [ class "filters__item filters__item--selected", href "#" ]
-                    [ span [ class "filters__item-name" ] [ text "Drafts" ]
-                    ]
-                ]
+            [ teamSelector model.currentTeam
+            , filters model
             ]
         , div [ class "sidebar sidebar--right" ]
-            [ div [ class "identity-menu" ]
-                [ a [ class "identity-menu__toggle", href "#" ]
-                    [ div [ class "identity-menu__avatar" ] []
-                    , div [ class "identity-menu__name" ] [ text (displayName model.currentUser) ]
-                    ]
-                ]
-            , div [ class "users-list" ]
-                [ a [ class "users-list__item", href "#" ]
-                    [ span [ class "state-indicator state-indicator--available" ] []
-                    , span [ class "users-list__name" ] [ text "Tiffany Reimer" ]
-                    ]
-                , a [ class "users-list__item", href "#" ]
-                    [ span [ class "state-indicator state-indicator--focus" ] []
-                    , span [ class "users-list__name" ] [ text "Kelli Lowe" ]
-                    ]
-                , a [ class "users-list__item users-list__item--offline", href "#" ]
-                    [ span [ class "state-indicator state-indicator--offline" ] []
-                    , span [ class "users-list__name" ] [ text "Joe Slacker" ]
-                    ]
-                ]
+            [ identityMenu model.currentUser
+            , usersList model
             ]
         , div [ class "main" ]
             [ div [ class "search-bar" ]
@@ -196,5 +158,82 @@ view model =
                     [ button [ class "button button--primary" ] [ text "Start New Thread" ]
                     ]
                 ]
+            ]
+        ]
+
+
+teamSelector : Maybe Team -> Html Msg
+teamSelector maybeTeam =
+    case maybeTeam of
+        Nothing ->
+            div [ class "team-selector" ]
+                [ a [ class "team-selector__toggle", href "#" ]
+                    [ div [ class "team-selector__avatar team-selector__avatar--placeholder" ] []
+                    , div [ class "team-selector__name team-selector__name" ]
+                        [ div [ class "team-selector__loading-placeholder" ] []
+                        ]
+                    ]
+                ]
+
+        Just team ->
+            div [ class "team-selector" ]
+                [ a [ class "team-selector__toggle", href "#" ]
+                    [ div [ class "team-selector__avatar" ] []
+                    , div [ class "team-selector__name" ] [ text team.name ]
+                    ]
+                ]
+
+
+identityMenu : Maybe User -> Html Msg
+identityMenu maybeUser =
+    case maybeUser of
+        Nothing ->
+            div [ class "identity-menu" ]
+                [ a [ class "identity-menu__toggle", href "#" ]
+                    [ div [ class "identity-menu__avatar identity-menu__avatar--placeholder" ] []
+                    , div [ class "identity-menu__name" ]
+                        [ div [ class "team-selector__loading-placeholder" ] []
+                        ]
+                    ]
+                ]
+
+        Just user ->
+            div [ class "identity-menu" ]
+                [ a [ class "identity-menu__toggle", href "#" ]
+                    [ div [ class "identity-menu__avatar" ] []
+                    , div [ class "identity-menu__name" ] [ text (displayName user) ]
+                    ]
+                ]
+
+
+filters : Model -> Html Msg
+filters model =
+    div [ class "filters" ]
+        [ a [ class "filters__item", href "#" ]
+            [ span [ class "filters__item-name" ] [ text "Inbox" ]
+            ]
+        , a [ class "filters__item", href "#" ]
+            [ span [ class "filters__item-name" ] [ text "Everything" ]
+            ]
+        , a [ class "filters__item filters__item--selected", href "#" ]
+            [ span [ class "filters__item-name" ] [ text "Drafts" ]
+            ]
+        ]
+
+
+usersList : Model -> Html Msg
+usersList model =
+    div [ class "users-list" ]
+        [ a [ class "users-list__item", href "#" ]
+            [ span [ class "state-indicator state-indicator--available" ] []
+            , span [ class "users-list__name" ] [ text "Tiffany Reimer" ]
+            ]
+        , a [ class "users-list__item", href "#" ]
+            [ span [ class "state-indicator state-indicator--focus" ] []
+            , span [ class "users-list__name" ] [ text "Kelli Lowe" ]
+            ]
+        , a [ class "users-list__item users-list__item--offline", href "#" ]
+            [ span [ class "state-indicator state-indicator--offline" ] []
+            , span [ class "users-list__name" ] [ text "Joe Slacker" ]
             ]
         ]
