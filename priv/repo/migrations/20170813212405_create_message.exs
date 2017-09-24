@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.CreateMessage do
+defmodule Level.Repo.Migrations.CreateMessage do
   use Ecto.Migration
 
   def up do

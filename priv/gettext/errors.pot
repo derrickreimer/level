@@ -16,7 +16,7 @@ msgid "has already been taken"
 msgstr ""
 
 ## From Ecto.Changeset.put_change/3
-#: lib/sprinkle/signup.ex:38
+#: lib/level/signup.ex:38
 msgid "is invalid"
 msgstr ""
 
@@ -90,10 +90,10 @@ msgstr ""
 msgid "must be equal to %{number}"
 msgstr ""
 
-#: lib/sprinkle/signup.ex:75
+#: lib/level/signup.ex:75
 msgid "is already taken"
 msgstr ""
 
-#: lib/sprinkle/signup.ex:36 lib/sprinkle/signup.ex:37
+#: lib/level/signup.ex:36 lib/level/signup.ex:37
 msgid "must be lowercase and alphanumeric"
 msgstr ""

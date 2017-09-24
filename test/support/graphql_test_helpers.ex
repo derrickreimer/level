@@ -1,4 +1,4 @@
-defmodule SprinkleWeb.GraphQL.TestHelpers do
+defmodule LevelWeb.GraphQL.TestHelpers do
   @moduledoc """
   Test helpers for GraphQL test.
   """

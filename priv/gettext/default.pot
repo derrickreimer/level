@@ -10,42 +10,42 @@
 msgid ""
 msgstr ""
 
-#: lib/sprinkle/web/templates/session/new.html.eex:20
+#: lib/level/web/templates/session/new.html.eex:20
 msgid "Email Address"
 msgstr ""
 
-#: lib/sprinkle/web/templates/session/new.html.eex:26
+#: lib/level/web/templates/session/new.html.eex:26
 msgid "Password"
 msgstr ""
 
-#: lib/sprinkle/web/templates/session/new.html.eex:32
+#: lib/level/web/templates/session/new.html.eex:32
 msgid "Sign in"
 msgstr ""
 
-#: lib/sprinkle/web/templates/generic_session/new.html.eex:25
-#: lib/sprinkle/web/templates/session/new.html.eex:39
+#: lib/level/web/templates/generic_session/new.html.eex:25
+#: lib/level/web/templates/session/new.html.eex:39
 msgid "Sign up"
 msgstr ""
 
-#: lib/sprinkle/web/controllers/team_controller.ex:21
+#: lib/level/web/controllers/team_controller.ex:21
 msgid "Uh oh, something went wrong. Please try again."
 msgstr ""
 
-#: lib/sprinkle/web/templates/generic_session/new.html.eex:6
-#: lib/sprinkle/web/templates/session/new.html.eex:6
-msgid "Sign in to Sprinkle"
+#: lib/level/web/templates/generic_session/new.html.eex:6
+#: lib/level/web/templates/session/new.html.eex:6
+msgid "Sign in to Level"
 msgstr ""
 
-#: lib/sprinkle/web/templates/generic_session/new.html.eex:20
+#: lib/level/web/templates/generic_session/new.html.eex:20
 msgid "Find my team"
 msgstr ""
 
-#: lib/sprinkle/web/templates/generic_session/new.html.eex:10
-#: lib/sprinkle/web/templates/session/new.html.eex:10
+#: lib/level/web/templates/generic_session/new.html.eex:10
+#: lib/level/web/templates/session/new.html.eex:10
 msgid "Team"
 msgstr ""
 
-#: lib/sprinkle/web/templates/generic_session/new.html.eex:25
-#: lib/sprinkle/web/templates/session/new.html.eex:38
+#: lib/level/web/templates/generic_session/new.html.eex:25
+#: lib/level/web/templates/session/new.html.eex:38
 msgid "Want to create a team instead?"
 msgstr ""

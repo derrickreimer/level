@@ -1,4 +1,4 @@
-defmodule SprinkleWeb.ChannelCase do
+defmodule LevelWeb.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -20,22 +20,22 @@ defmodule SprinkleWeb.ChannelCase do
       # Import conveniences for testing with channels
       use Phoenix.ChannelTest
 
-      alias Sprinkle.Repo
+      alias Level.Repo
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
 
 
       # The default endpoint for testing
-      @endpoint SprinkleWeb.Endpoint
+      @endpoint LevelWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Sprinkle.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Level.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Sprinkle.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Level.Repo, {:shared, self()})
     end
 
     :ok

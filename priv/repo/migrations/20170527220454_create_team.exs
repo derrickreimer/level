@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.CreateTeam do
+defmodule Level.Repo.Migrations.CreateTeam do
   use Ecto.Migration
 
   def change do

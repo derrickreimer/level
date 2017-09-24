@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.AlterUserRole do
+defmodule Level.Repo.Migrations.AlterUserRole do
   use Ecto.Migration
 
   def up do

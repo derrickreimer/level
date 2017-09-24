@@ -1,13 +1,13 @@
 use Mix.Config
 
-config :sprinkle,
-  mailer_host: "sprinkle.test"
+config :level,
+  mailer_host: "level.test"
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :sprinkle, SprinkleWeb.Endpoint,
+config :level, LevelWeb.Endpoint,
   http: [port: 4001],
-  url: [host: "sprinkle.test", port: 4001],
+  url: [host: "level.test", port: 4001],
   server: false
 
 # Print only warnings and errors during test
@@ -19,11 +19,11 @@ config :logger, level: :warn
 #   compile_time_purge_level: :debug
 
 # Configure your database
-config :sprinkle, Sprinkle.Repo,
+config :level, Level.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "sprinkle_test",
+  database: "level_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
@@ -32,5 +32,5 @@ config :comeonin, :bcrypt_log_rounds, 4
 config :comeonin, :pbkdf2_rounds, 1
 
 # Mailer
-config :sprinkle, Sprinkle.Mailer,
+config :level, Level.Mailer,
   adapter: Bamboo.TestAdapter

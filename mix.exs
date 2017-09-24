@@ -1,8 +1,8 @@
-defmodule Sprinkle.Mixfile do
+defmodule Level.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :sprinkle,
+    [app: :level,
      version: "0.0.1",
      elixir: "~> 1.2",
      elixirc_paths: elixirc_paths(Mix.env),
@@ -20,7 +20,7 @@ defmodule Sprinkle.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {Sprinkle, []},
+    [mod: {Level, []},
      extra_applications: [:logger, :runtime_tools]]
   end
 
@@ -70,7 +70,7 @@ defmodule Sprinkle.Mixfile do
 
   defp docs do
     [
-      source_url: "https://github.com/djreimer/sprinkle",
+      source_url: "https://github.com/djreimer/level",
       extras: ["README.md"]
     ]
   end

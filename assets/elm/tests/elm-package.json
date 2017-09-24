@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Test Suites",
-    "repository": "https://github.com/djreimer/sprinkle.git",
+    "repository": "https://github.com/djreimer/level.git",
     "license": "Apache-2.0",
     "source-directories": [
         "..",

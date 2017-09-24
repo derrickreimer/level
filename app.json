@@ -1,7 +1,7 @@
 {
-  "name": "Sprinkle",
+  "name": "Level",
   "description": "Smarter communication platform for teams that value focus",
-  "repository": "https://github.com/djreimer/sprinkle",
+  "repository": "https://github.com/djreimer/level",
   "keywords": ["chat", "elixir", "phoenix"],
   "addons": [
     {
@@ -20,35 +20,35 @@
     }
   ],
   "env": {
-    "SPRINKLE_HOST": {
+    "LEVEL_HOST": {
       "description": "The domain on which you are serving this application.",
       "value": ""
     },
-    "SPRINKLE_MAILER_HOST": {
-      "description": "The domain via which to send transaction emails (typically the same as SPRINKLE_HOST).",
+    "LEVEL_MAILER_HOST": {
+      "description": "The domain via which to send transaction emails (typically the same as LEVEL_HOST).",
       "value": ""
     },
-    "SPRINKLE_SECRET_KEY_BASE": {
+    "LEVEL_SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
-    "SPRINKLE_POOL_SIZE": {
+    "LEVEL_POOL_SIZE": {
       "description": "The maximum number of database connections each process may consume.",
       "value": "18"
     },
-    "SPRINKLE_SMTP_HOST": {
+    "LEVEL_SMTP_HOST": {
       "description": "The hostname of the your SMTP provider.",
       "value": ""
     },
-    "SPRINKLE_SMTP_PORT": {
+    "LEVEL_SMTP_PORT": {
       "description": "The port number for your SMTP provider.",
       "value": ""
     },
-    "SPRINKLE_SMTP_USERNAME": {
+    "LEVEL_SMTP_USERNAME": {
       "description": "The username for your SMTP provider.",
       "value": ""
     },
-    "SPRINKLE_SMTP_PASSWORD": {
+    "LEVEL_SMTP_PASSWORD": {
       "description": "The password for your SMTP provider.",
       "value": ""
     }

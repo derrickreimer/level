@@ -1,4 +1,4 @@
-defmodule SprinkleWeb.ConnCase do
+defmodule LevelWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -20,26 +20,26 @@ defmodule SprinkleWeb.ConnCase do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
 
-      alias Sprinkle.Repo
+      alias Level.Repo
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
 
-      import SprinkleWeb.Router.Helpers
-      import SprinkleWeb.UrlHelpers
-      import Sprinkle.TestHelpers
-      import Sprinkle.ConnCaseHelpers
+      import LevelWeb.Router.Helpers
+      import LevelWeb.UrlHelpers
+      import Level.TestHelpers
+      import Level.ConnCaseHelpers
 
       # The default endpoint for testing
-      @endpoint SprinkleWeb.Endpoint
+      @endpoint LevelWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Sprinkle.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Level.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Sprinkle.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Level.Repo, {:shared, self()})
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

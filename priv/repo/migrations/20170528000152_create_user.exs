@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.CreateUser do
+defmodule Level.Repo.Migrations.CreateUser do
   use Ecto.Migration
 
   def change do

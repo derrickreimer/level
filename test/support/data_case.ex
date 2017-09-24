@@ -1,4 +1,4 @@
-defmodule Sprinkle.DataCase do
+defmodule Level.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,21 +16,21 @@ defmodule Sprinkle.DataCase do
 
   using do
     quote do
-      alias Sprinkle.Repo
+      alias Level.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Sprinkle.DataCase
-      import Sprinkle.TestHelpers
+      import Level.DataCase
+      import Level.TestHelpers
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Sprinkle.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Level.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Sprinkle.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Level.Repo, {:shared, self()})
     end
 
     :ok

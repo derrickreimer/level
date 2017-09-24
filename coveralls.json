@@ -1,8 +1,8 @@
 {
   "skip_files": [
     "test",
-    "lib/sprinkle_web.ex",
-    "lib/sprinkle_web/endpoint.ex",
-    "lib/sprinkle_web/gettext.ex"
+    "lib/level_web.ex",
+    "lib/level_web/endpoint.ex",
+    "lib/level_web/gettext.ex"
   ]
 }

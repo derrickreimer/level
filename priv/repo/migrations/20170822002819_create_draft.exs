@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.CreateDraft do
+defmodule Level.Repo.Migrations.CreateDraft do
   use Ecto.Migration
 
   def change do

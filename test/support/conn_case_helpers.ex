@@ -1,20 +1,20 @@
-defmodule Sprinkle.ConnCaseHelpers do
+defmodule Level.ConnCaseHelpers do
   @moduledoc """
   Test helpers specifically for conn-based tests.
   """
 
-  import Sprinkle.TestHelpers
+  import Level.TestHelpers
   import Plug.Conn
 
   def sign_in(conn, team, user) do
     conn
-    |> SprinkleWeb.Auth.sign_in(team, user)
+    |> LevelWeb.Auth.sign_in(team, user)
     |> send_resp(:ok, "")
     |> Phoenix.ConnTest.recycle
   end
 
   def authenticate_with_jwt(conn, team, user) do
-    token = SprinkleWeb.Auth.generate_signed_jwt(user)
+    token = LevelWeb.Auth.generate_signed_jwt(user)
 
     conn
     |> put_team_host(team)

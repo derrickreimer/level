@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.CreateUserStateEnum do
+defmodule Level.Repo.Migrations.CreateUserStateEnum do
   use Ecto.Migration
 
   def up do

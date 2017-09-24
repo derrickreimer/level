@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.CreateThread do
+defmodule Level.Repo.Migrations.CreateThread do
   use Ecto.Migration
 
   def up do

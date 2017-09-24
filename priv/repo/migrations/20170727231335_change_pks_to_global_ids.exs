@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.ChangePksToGlobalIds do
+defmodule Level.Repo.Migrations.ChangePksToGlobalIds do
   use Ecto.Migration
 
   def change do

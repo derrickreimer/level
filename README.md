@@ -1,10 +1,12 @@
-# Sprinkle
+# Level
 
-[![CircleCI](https://circleci.com/gh/djreimer/sprinkle.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/sprinkle)
+Smarter communication for teams that value focus.
+
+[![CircleCI](https://circleci.com/gh/djreimer/level.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/level)
 
 ## One-Click Deployment
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/djreimer/sprinkle/tree/master)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/djreimer/level/tree/master)
 
 ## Development Environment
 
@@ -20,17 +22,17 @@ Run the bootstrap script to install the remaining dependencies and create your
 development database:
 
 ```
-cd sprinkle
+cd level
 script/bootstrap
 ```
 
 If your local PostgreSQL install does not have a default `postgres` user,
-define the `SPRINKLE_DB_USERNAME` and `SPRINKLE_DB_PASSWORD` environment variables
+define the `LEVEL_DB_USERNAME` and `LEVEL_DB_PASSWORD` environment variables
 first in your shell environment:
 
 ```
-export SPRINKLE_DB_USERNAME=xxx
-export SPRINKLE_DB_PASSWORD=yyy
+export LEVEL_DB_USERNAME=xxx
+export LEVEL_DB_PASSWORD=yyy
 ```
 
 Then run the bootstrap script again.
@@ -62,14 +64,14 @@ dependency in the `tests` directory (the tests maintain their own set of depende
 
 ### Routing
 
-Sprinkle uses subdomains to keep track of which team you are viewing. There are a variety
+Level uses subdomains to keep track of which team you are viewing. There are a variety
 of different techniques for configuring a local TLD to point at localhost. One option is to
 edit your `/etc/hosts` file with something like this to make the Phoenix app available
-at http://launch.sprinkle.dev:4000:
+at http://launch.level.dev:4000:
 
 ```
-127.0.0.1  launch.sprinkle.dev    # required
-127.0.0.1  yourteam.sprinkle.dev  # need an entry like this for every team you create
+127.0.0.1  launch.level.dev    # required
+127.0.0.1  yourteam.level.dev  # need an entry like this for every team you create
 ```
 
 **Caveat**: The hosts file approach does not support wildcard subdomains, so you

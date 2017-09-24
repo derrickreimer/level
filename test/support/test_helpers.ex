@@ -1,21 +1,21 @@
-defmodule Sprinkle.TestHelpers do
+defmodule Level.TestHelpers do
   @moduledoc """
   Miscellaneous helper functions for tests.
   """
 
-  alias Sprinkle.Repo
-  alias Sprinkle.Threads
+  alias Level.Repo
+  alias Level.Threads
 
   def valid_signup_params do
     salt = random_string()
 
     %{
       slug: "team#{salt}",
-      team_name: "Sprinkle, Inc.",
+      team_name: "Level, Inc.",
       username: "user#{salt}",
       first_name: "Jane",
       last_name: "Doe",
-      email: "user#{salt}@sprinkle.chat",
+      email: "user#{salt}@level.live",
       password: "$ecret$"
     }
   end
@@ -27,7 +27,7 @@ defmodule Sprinkle.TestHelpers do
       first_name: "Jane",
       last_name: "Doe",
       username: "user#{salt}",
-      email: "user#{salt}@sprinkle.chat",
+      email: "user#{salt}@level.live",
       password: "$ecret$"
     }
   end
@@ -36,7 +36,7 @@ defmodule Sprinkle.TestHelpers do
     %{
       team_id: team.id,
       invitor_id: invitor.id,
-      email: "user#{random_string()}@sprinkle.chat"
+      email: "user#{random_string()}@level.live"
     }
   end
 
@@ -56,8 +56,8 @@ defmodule Sprinkle.TestHelpers do
       |> Map.merge(params)
 
     %{}
-    |> Sprinkle.Teams.registration_changeset(params)
-    |> Sprinkle.Teams.register()
+    |> Level.Teams.registration_changeset(params)
+    |> Level.Teams.register()
   end
 
   def insert_member(team, params \\ %{}) do
@@ -66,8 +66,8 @@ defmodule Sprinkle.TestHelpers do
       |> Map.put(:team_id, team.id)
       |> Map.merge(params)
 
-    %Sprinkle.Teams.User{}
-    |> Sprinkle.Teams.User.signup_changeset(params)
+    %Level.Teams.User{}
+    |> Level.Teams.User.signup_changeset(params)
     |> Repo.insert()
   end
 
@@ -83,11 +83,11 @@ defmodule Sprinkle.TestHelpers do
   end
 
   def put_launch_host(conn) do
-    %{conn | host: "launch.sprinkle.test"}
+    %{conn | host: "launch.level.test"}
   end
 
   def put_team_host(conn, team) do
-    %{conn | host: "#{team.slug}.sprinkle.test"}
+    %{conn | host: "#{team.slug}.level.test"}
   end
 
   defp random_string do

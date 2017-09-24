@@ -1,4 +1,4 @@
-defmodule Sprinkle.Repo.Migrations.CreateGlobalIdGenerator do
+defmodule Level.Repo.Migrations.CreateGlobalIdGenerator do
   use Ecto.Migration
 
   def up do
