@@ -5,3 +5,23 @@
     box-shadow: 0 2px 30px rgba(0, 0, 0, 0.3);
   }
 }
+
+@keyframes loading-pulse {
+  0% {
+    background-color: $input-background-color;
+  }
+  50% {
+    background-color: $input-muted-background-color;
+  }
+  100% {
+    background-color: $input-background-color;
+  }
+}
+
+@mixin loading-pulse {
+  background-color: $input-background-color;
+  animation-name: loading-pulse;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}

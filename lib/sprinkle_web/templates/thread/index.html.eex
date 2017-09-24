@@ -1,7 +1,5 @@
 <script type="text/javascript">
   var app = Elm.Main.fullscreen({
-    teamName: '<%= @team.name %>',
-    firstName: '<%= @current_user.first_name %>',
-    lastName: '<%= @current_user.last_name %>'
+    apiToken: '<%= @api_token %>'
   });
 </script>

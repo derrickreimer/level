@@ -2,6 +2,9 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Http
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 
 
 main : Program Flags Model Msg
@@ -19,8 +22,9 @@ main =
 
 
 type alias Model =
-    { team : Team
-    , currentUser : User
+    { apiToken : String
+    , currentTeam : Maybe Team
+    , currentUser : Maybe User
     }
 
 
@@ -36,26 +40,24 @@ type alias User =
 
 
 type alias Flags =
-    { teamName : String
-    , firstName : String
-    , lastName : String
+    { apiToken : String
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( (initialState flags), Cmd.none )
+    let
+        model =
+            initialState flags
+    in
+        ( model, (bootstrap model) )
 
 
 initialState : Flags -> Model
 initialState flags =
-    { team =
-        { name = flags.teamName
-        }
-    , currentUser =
-        { firstName = flags.firstName
-        , lastName = flags.lastName
-        }
+    { apiToken = flags.apiToken
+    , currentUser = Nothing
+    , currentTeam = Nothing
     }
 
 
@@ -69,14 +71,94 @@ displayName user =
 
 
 type Msg
-    = Bootstrapped
+    = Bootstrapped (Result Http.Error BootstrapViewer)
+
+
+type alias BootstrapTeam =
+    { id : String
+    , name : String
+    }
+
+
+type alias BootstrapViewer =
+    { id : String
+    , firstName : String
+    , lastName : String
+    , team : BootstrapTeam
+    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Bootstrapped ->
+        Bootstrapped (Ok response) ->
+            let
+                currentUser =
+                    User response.firstName response.lastName
+
+                currentTeam =
+                    Team response.team.name
+            in
+                ( { model | currentUser = Just currentUser, currentTeam = Just currentTeam }, Cmd.none )
+
+        Bootstrapped (Err _) ->
             ( model, Cmd.none )
+
+
+graphqlRequest : String -> String -> Decode.Decoder a -> Http.Request a
+graphqlRequest token body decoder =
+    Http.request
+        { method = "POST"
+        , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+        , url = "/graphql"
+        , body = Http.stringBody "application/graphql" body
+        , expect = Http.expectJson decoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
+bootstrap : Model -> Cmd Msg
+bootstrap model =
+    let
+        body =
+            """
+              {
+                viewer {
+                  id
+                  username
+                  firstName
+                  lastName
+                  team {
+                    id
+                    name
+                  }
+                }
+              }
+            """
+    in
+        Http.send Bootstrapped (graphqlRequest model.apiToken body bootstrapDecoder)
+
+
+bootstrapTeamDecoder : Decode.Decoder BootstrapTeam
+bootstrapTeamDecoder =
+    Pipeline.decode BootstrapTeam
+        |> Pipeline.required "id" Decode.string
+        |> Pipeline.required "name" Decode.string
+
+
+bootstrapViewerDecoder : Decode.Decoder BootstrapViewer
+bootstrapViewerDecoder =
+    Pipeline.decode BootstrapViewer
+        |> Pipeline.required "id" Decode.string
+        |> Pipeline.required "firstName" Decode.string
+        |> Pipeline.required "lastName" Decode.string
+        |> Pipeline.custom (Decode.at [ "team" ] bootstrapTeamDecoder)
+
+
+bootstrapDecoder : Decode.Decoder BootstrapViewer
+bootstrapDecoder =
+    Decode.at [ "data", "viewer" ] bootstrapViewerDecoder
 
 
 
@@ -96,45 +178,12 @@ view : Model -> Html Msg
 view model =
     div [ id "app" ]
         [ div [ class "sidebar sidebar--left" ]
-            [ div [ class "team-selector" ]
-                [ a [ class "team-selector__toggle", href "#" ]
-                    [ div [ class "team-selector__avatar" ] []
-                    , div [ class "team-selector__name" ] [ text model.team.name ]
-                    ]
-                ]
-            , div [ class "filters" ]
-                [ a [ class "filters__item", href "#" ]
-                    [ span [ class "filters__item-name" ] [ text "Inbox" ]
-                    ]
-                , a [ class "filters__item", href "#" ]
-                    [ span [ class "filters__item-name" ] [ text "Everything" ]
-                    ]
-                , a [ class "filters__item filters__item--selected", href "#" ]
-                    [ span [ class "filters__item-name" ] [ text "Drafts" ]
-                    ]
-                ]
+            [ teamSelector model.currentTeam
+            , filters model
             ]
         , div [ class "sidebar sidebar--right" ]
-            [ div [ class "identity-menu" ]
-                [ a [ class "identity-menu__toggle", href "#" ]
-                    [ div [ class "identity-menu__avatar" ] []
-                    , div [ class "identity-menu__name" ] [ text (displayName model.currentUser) ]
-                    ]
-                ]
-            , div [ class "users-list" ]
-                [ a [ class "users-list__item", href "#" ]
-                    [ span [ class "state-indicator state-indicator--available" ] []
-                    , span [ class "users-list__name" ] [ text "Tiffany Reimer" ]
-                    ]
-                , a [ class "users-list__item", href "#" ]
-                    [ span [ class "state-indicator state-indicator--focus" ] []
-                    , span [ class "users-list__name" ] [ text "Kelli Lowe" ]
-                    ]
-                , a [ class "users-list__item users-list__item--offline", href "#" ]
-                    [ span [ class "state-indicator state-indicator--offline" ] []
-                    , span [ class "users-list__name" ] [ text "Joe Slacker" ]
-                    ]
-                ]
+            [ identityMenu model.currentUser
+            , usersList model
             ]
         , div [ class "main" ]
             [ div [ class "search-bar" ]
@@ -196,5 +245,82 @@ view model =
                     [ button [ class "button button--primary" ] [ text "Start New Thread" ]
                     ]
                 ]
+            ]
+        ]
+
+
+teamSelector : Maybe Team -> Html Msg
+teamSelector maybeTeam =
+    case maybeTeam of
+        Nothing ->
+            div [ class "team-selector" ]
+                [ a [ class "team-selector__toggle", href "#" ]
+                    [ div [ class "team-selector__avatar team-selector__avatar--placeholder" ] []
+                    , div [ class "team-selector__name team-selector__name" ]
+                        [ div [ class "team-selector__loading-placeholder" ] []
+                        ]
+                    ]
+                ]
+
+        Just team ->
+            div [ class "team-selector" ]
+                [ a [ class "team-selector__toggle", href "#" ]
+                    [ div [ class "team-selector__avatar" ] []
+                    , div [ class "team-selector__name" ] [ text team.name ]
+                    ]
+                ]
+
+
+identityMenu : Maybe User -> Html Msg
+identityMenu maybeUser =
+    case maybeUser of
+        Nothing ->
+            div [ class "identity-menu" ]
+                [ a [ class "identity-menu__toggle", href "#" ]
+                    [ div [ class "identity-menu__avatar identity-menu__avatar--placeholder" ] []
+                    , div [ class "identity-menu__name" ]
+                        [ div [ class "team-selector__loading-placeholder" ] []
+                        ]
+                    ]
+                ]
+
+        Just user ->
+            div [ class "identity-menu" ]
+                [ a [ class "identity-menu__toggle", href "#" ]
+                    [ div [ class "identity-menu__avatar" ] []
+                    , div [ class "identity-menu__name" ] [ text (displayName user) ]
+                    ]
+                ]
+
+
+filters : Model -> Html Msg
+filters model =
+    div [ class "filters" ]
+        [ a [ class "filters__item", href "#" ]
+            [ span [ class "filters__item-name" ] [ text "Inbox" ]
+            ]
+        , a [ class "filters__item", href "#" ]
+            [ span [ class "filters__item-name" ] [ text "Everything" ]
+            ]
+        , a [ class "filters__item filters__item--selected", href "#" ]
+            [ span [ class "filters__item-name" ] [ text "Drafts" ]
+            ]
+        ]
+
+
+usersList : Model -> Html Msg
+usersList model =
+    div [ class "users-list" ]
+        [ a [ class "users-list__item", href "#" ]
+            [ span [ class "state-indicator state-indicator--available" ] []
+            , span [ class "users-list__name" ] [ text "Tiffany Reimer" ]
+            ]
+        , a [ class "users-list__item", href "#" ]
+            [ span [ class "state-indicator state-indicator--focus" ] []
+            , span [ class "users-list__name" ] [ text "Kelli Lowe" ]
+            ]
+        , a [ class "users-list__item users-list__item--offline", href "#" ]
+            [ span [ class "state-indicator state-indicator--offline" ] []
+            , span [ class "users-list__name" ] [ text "Joe Slacker" ]
             ]
         ]
