@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 
 
 main : Program Flags Model Msg
@@ -70,17 +71,51 @@ displayName user =
 
 
 type Msg
-    = Bootstrapped (Result Http.Error String)
+    = Bootstrapped (Result Http.Error BootstrapViewer)
+
+
+type alias BootstrapTeam =
+    { id : String
+    , name : String
+    }
+
+
+type alias BootstrapViewer =
+    { id : String
+    , firstName : String
+    , lastName : String
+    , team : BootstrapTeam
+    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Bootstrapped (Ok _) ->
-            ( model, Cmd.none )
+        Bootstrapped (Ok response) ->
+            let
+                currentUser =
+                    User response.firstName response.lastName
+
+                currentTeam =
+                    Team response.team.name
+            in
+                ( { model | currentUser = Just currentUser, currentTeam = Just currentTeam }, Cmd.none )
 
         Bootstrapped (Err _) ->
             ( model, Cmd.none )
+
+
+graphqlRequest : String -> String -> Decode.Decoder a -> Http.Request a
+graphqlRequest token body decoder =
+    Http.request
+        { method = "POST"
+        , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+        , url = "/graphql"
+        , body = Http.stringBody "application/graphql" body
+        , expect = Http.expectJson decoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 bootstrap : Model -> Cmd Msg
@@ -101,28 +136,29 @@ bootstrap model =
                 }
               }
             """
-
-        -- TODO: replace with real decoder
-        decoder =
-            Decode.at [ "data", "viewer", "id" ] Decode.string
-
-        request =
-            graphqlRequest model.apiToken body decoder
     in
-        Http.send Bootstrapped request
+        Http.send Bootstrapped (graphqlRequest model.apiToken body bootstrapDecoder)
 
 
-graphqlRequest : String -> String -> Decode.Decoder a -> Http.Request a
-graphqlRequest token body decoder =
-    Http.request
-        { method = "POST"
-        , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
-        , url = "/graphql"
-        , body = Http.stringBody "application/graphql" body
-        , expect = Http.expectJson decoder
-        , timeout = Nothing
-        , withCredentials = False
-        }
+bootstrapTeamDecoder : Decode.Decoder BootstrapTeam
+bootstrapTeamDecoder =
+    Pipeline.decode BootstrapTeam
+        |> Pipeline.required "id" Decode.string
+        |> Pipeline.required "name" Decode.string
+
+
+bootstrapViewerDecoder : Decode.Decoder BootstrapViewer
+bootstrapViewerDecoder =
+    Pipeline.decode BootstrapViewer
+        |> Pipeline.required "id" Decode.string
+        |> Pipeline.required "firstName" Decode.string
+        |> Pipeline.required "lastName" Decode.string
+        |> Pipeline.custom (Decode.at [ "team" ] bootstrapTeamDecoder)
+
+
+bootstrapDecoder : Decode.Decoder BootstrapViewer
+bootstrapDecoder =
+    Decode.at [ "data", "viewer" ] bootstrapViewerDecoder
 
 
 
