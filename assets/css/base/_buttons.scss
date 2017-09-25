@@ -9,6 +9,10 @@
   font-size: 15px;
   cursor: pointer;
 
+  & + & {
+    margin-left: $baseline;
+  }
+
   &--large {
     padding: 15px;
     font-size: $default-font-size;
@@ -24,7 +28,7 @@
     background-image: linear-gradient(0deg, darken($button-primary-color, 8%), $button-primary-color);
     color: $button-primary-text-color;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: lighten($button-primary-color, 5%);
       background-image: linear-gradient(0deg, darken($button-primary-color, 6%), lighten($button-primary-color, 2%));
     }
@@ -39,6 +43,23 @@
       background-color: lighten($button-primary-color, 15%);
       background-image: linear-gradient(0deg, lighten($button-primary-color, 8%), lighten($button-primary-color, 15%));
       color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  &--secondary {
+    transition: border-color 0.2s ease, color 0.2s ease;
+    border: 1px solid $button-secondary-border-color;
+    background: transparent;
+    color: $muted-text-color;
+
+    &:hover:not(:disabled) {
+      border-color: $button-secondary-active-border-color;
+      color: $default-text-color;
+    }
+
+    &:disabled,
+    &--disabled {
+      opacity: 0.5;
     }
   }
 }
