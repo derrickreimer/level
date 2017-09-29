@@ -4,9 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onBlur)
 import Http
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
+import Query.Bootstrap as Bootstrap
 import Mutation.CreateDraft as CreateDraft
 
 
@@ -55,13 +53,6 @@ type alias Flags =
     }
 
 
-type alias GraphQLRequest =
-    { token : String
-    , query : String
-    , variables : Maybe Encode.Value
-    }
-
-
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
@@ -95,25 +86,11 @@ isDraftInvalid draft =
 
 
 type Msg
-    = Bootstrapped (Result Http.Error BootstrapViewer)
+    = Bootstrapped (Result Http.Error Bootstrap.Response)
     | DraftSubjectChanged String
     | DraftBodyChanged String
     | DraftSaveClicked
     | DraftSubmitted (Result Http.Error Bool)
-
-
-type alias BootstrapTeam =
-    { id : String
-    , name : String
-    }
-
-
-type alias BootstrapViewer =
-    { id : String
-    , firstName : String
-    , lastName : String
-    , team : BootstrapTeam
-    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -162,77 +139,9 @@ update msg model =
             ( model, Cmd.none )
 
 
-graphqlPayload : GraphQLRequest -> Encode.Value
-graphqlPayload request =
-    case request.variables of
-        Nothing ->
-            Encode.object
-                [ ( "query", Encode.string request.query ) ]
-
-        Just variables ->
-            Encode.object
-                [ ( "query", Encode.string request.query )
-                , ( "variables", variables )
-                ]
-
-
-graphqlRequest : GraphQLRequest -> Decode.Decoder a -> Http.Request a
-graphqlRequest request decoder =
-    Http.request
-        { method = "POST"
-        , headers = [ Http.header "Authorization" ("Bearer " ++ request.token) ]
-        , url = "/graphql"
-        , body = Http.stringBody "application/json" (Encode.encode 0 (graphqlPayload request))
-        , expect = Http.expectJson decoder
-        , timeout = Nothing
-        , withCredentials = False
-        }
-
-
 bootstrap : Model -> Cmd Msg
 bootstrap model =
-    let
-        query =
-            """
-              {
-                viewer {
-                  id
-                  username
-                  firstName
-                  lastName
-                  team {
-                    id
-                    name
-                  }
-                }
-              }
-            """
-
-        request =
-            GraphQLRequest model.apiToken query Nothing
-    in
-        Http.send Bootstrapped (graphqlRequest request bootstrapDecoder)
-
-
-bootstrapTeamDecoder : Decode.Decoder BootstrapTeam
-bootstrapTeamDecoder =
-    Pipeline.decode BootstrapTeam
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "name" Decode.string
-
-
-bootstrapViewerDecoder : Decode.Decoder BootstrapViewer
-bootstrapViewerDecoder =
-    Pipeline.decode BootstrapViewer
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "firstName" Decode.string
-        |> Pipeline.required "lastName" Decode.string
-        |> Pipeline.custom (Decode.at [ "team" ] bootstrapTeamDecoder)
-
-
-bootstrapDecoder : Decode.Decoder BootstrapViewer
-bootstrapDecoder =
-    Decode.at [ "data", "viewer" ] bootstrapViewerDecoder
+    Http.send Bootstrapped (Bootstrap.request model.apiToken)
 
 
 saveDraft : Model -> Cmd Msg

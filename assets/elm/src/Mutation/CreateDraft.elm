@@ -49,11 +49,6 @@ variables params =
         ]
 
 
-payload : Params -> GraphQL.Payload
-payload params =
-    GraphQL.Payload query (Just (variables params))
-
-
 decoder : Decode.Decoder Bool
 decoder =
     Decode.at [ "data", "createDraft", "success" ] Decode.bool
@@ -61,4 +56,4 @@ decoder =
 
 request : String -> Params -> Http.Request Bool
 request apiToken params =
-    GraphQL.request apiToken (payload params) decoder
+    GraphQL.request apiToken query (Just (variables params)) decoder

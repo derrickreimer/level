@@ -1,38 +1,36 @@
-module GraphQL exposing (Payload, encodePayload, request)
+module GraphQL exposing (payload, request)
 
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 
 
-type alias Payload =
-    { query : String
-    , variables : Maybe Encode.Value
-    }
-
-
-encodePayload : Payload -> Encode.Value
-encodePayload payload =
-    case payload.variables of
+payload : String -> Maybe Encode.Value -> Encode.Value
+payload query maybeVariables =
+    case maybeVariables of
         Nothing ->
             Encode.object
-                [ ( "query", Encode.string payload.query ) ]
+                [ ( "query", Encode.string query ) ]
 
         Just variables ->
             Encode.object
-                [ ( "query", Encode.string payload.query )
+                [ ( "query", Encode.string query )
                 , ( "variables", variables )
                 ]
 
 
-request : String -> Payload -> Decode.Decoder a -> Http.Request a
-request apiToken payload decoder =
-    Http.request
-        { method = "POST"
-        , headers = [ Http.header "Authorization" ("Bearer " ++ apiToken) ]
-        , url = "/graphql"
-        , body = Http.stringBody "application/json" (Encode.encode 0 (encodePayload payload))
-        , expect = Http.expectJson decoder
-        , timeout = Nothing
-        , withCredentials = False
-        }
+request : String -> String -> Maybe Encode.Value -> Decode.Decoder a -> Http.Request a
+request apiToken query maybeVariables decoder =
+    let
+        body =
+            Encode.encode 0 (payload query maybeVariables)
+    in
+        Http.request
+            { method = "POST"
+            , headers = [ Http.header "Authorization" ("Bearer " ++ apiToken) ]
+            , url = "/graphql"
+            , body = Http.stringBody "application/json" body
+            , expect = Http.expectJson decoder
+            , timeout = Nothing
+            , withCredentials = False
+            }
