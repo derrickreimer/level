@@ -7,6 +7,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Mutation.CreateDraft as CreateDraft
 
 
 main : Program Flags Model Msg
@@ -236,46 +237,7 @@ bootstrapDecoder =
 
 saveDraft : Model -> Cmd Msg
 saveDraft model =
-    let
-        query =
-            """
-              mutation CreateDraft(
-                $subject: String!,
-                $body: String!,
-                $recipientIds: [String!]
-              ) {
-                createDraft(
-                  subject: $subject,
-                  body: $body,
-                  recipientIds: $recipientIds
-                ) {
-                  draft {
-                    id
-                    subject
-                  }
-                  success
-                  errors {
-                    attribute
-                    message
-                  }
-                }
-              }
-            """
-
-        variables =
-            Encode.object
-                [ ( "subject", Encode.string model.draft.subject )
-                , ( "body", Encode.string model.draft.body )
-                , ( "recipientIds", Encode.list (List.map (\a -> Encode.string a) model.draft.recipientIds) )
-                ]
-
-        request =
-            GraphQLRequest model.apiToken query (Just variables)
-
-        decoder =
-            Decode.at [ "data", "createDraft", "success" ] Decode.bool
-    in
-        Http.send DraftSubmitted (graphqlRequest request decoder)
+    Http.send DraftSubmitted (CreateDraft.request model.apiToken model.draft)
 
 
 
@@ -428,13 +390,13 @@ identityMenu maybeUser =
 filters : Model -> Html Msg
 filters model =
     div [ class "filters" ]
-        [ a [ class "filters__item", href "#" ]
+        [ a [ class "filters__item filters__item--selected", href "#" ]
             [ span [ class "filters__item-name" ] [ text "Inbox" ]
             ]
         , a [ class "filters__item", href "#" ]
             [ span [ class "filters__item-name" ] [ text "Everything" ]
             ]
-        , a [ class "filters__item filters__item--selected", href "#" ]
+        , a [ class "filters__item", href "#" ]
             [ span [ class "filters__item-name" ] [ text "Drafts" ]
             ]
         ]
