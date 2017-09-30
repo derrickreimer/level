@@ -6,6 +6,23 @@
   }
 }
 
+
+@mixin no-shadow-on-focus {
+  &:active,
+  &:focus {
+    outline: 0;
+    box-shadow: none;
+  }
+}
+
+@mixin outline-on-focus {
+  &:active,
+  &:focus {
+    outline: 0;
+    box-shadow: inset 0 0 0 2px $button-primary-color;
+  }
+}
+
 @keyframes loading-pulse {
   0% {
     background-color: $input-background-color;

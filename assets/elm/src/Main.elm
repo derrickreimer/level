@@ -2,9 +2,10 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onInput, onClick, onBlur)
 import Http
-import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
+import Query.Bootstrap as Bootstrap
+import Mutation.CreateDraft as CreateDraft
 
 
 main : Program Flags Model Msg
@@ -25,6 +26,14 @@ type alias Model =
     { apiToken : String
     , currentTeam : Maybe Team
     , currentUser : Maybe User
+    , draft : Draft
+    }
+
+
+type alias Draft =
+    { subject : String
+    , body : String
+    , recipientIds : List String
     }
 
 
@@ -58,6 +67,7 @@ initialState flags =
     { apiToken = flags.apiToken
     , currentUser = Nothing
     , currentTeam = Nothing
+    , draft = Draft "" "" []
     }
 
 
@@ -66,26 +76,21 @@ displayName user =
     user.firstName ++ " " ++ user.lastName
 
 
+isDraftInvalid : Draft -> Bool
+isDraftInvalid draft =
+    (String.length draft.subject == 0) || (String.length draft.body == 0)
+
+
 
 -- UPDATE
 
 
 type Msg
-    = Bootstrapped (Result Http.Error BootstrapViewer)
-
-
-type alias BootstrapTeam =
-    { id : String
-    , name : String
-    }
-
-
-type alias BootstrapViewer =
-    { id : String
-    , firstName : String
-    , lastName : String
-    , team : BootstrapTeam
-    }
+    = Bootstrapped (Result Http.Error Bootstrap.Response)
+    | DraftSubjectChanged String
+    | DraftBodyChanged String
+    | DraftSaveClicked
+    | DraftSubmitted (Result Http.Error Bool)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,61 +109,44 @@ update msg model =
         Bootstrapped (Err _) ->
             ( model, Cmd.none )
 
+        DraftSubjectChanged subject ->
+            let
+                draft =
+                    model.draft
 
-graphqlRequest : String -> String -> Decode.Decoder a -> Http.Request a
-graphqlRequest token body decoder =
-    Http.request
-        { method = "POST"
-        , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
-        , url = "/graphql"
-        , body = Http.stringBody "application/graphql" body
-        , expect = Http.expectJson decoder
-        , timeout = Nothing
-        , withCredentials = False
-        }
+                updatedDraft =
+                    { draft | subject = subject }
+            in
+                ( { model | draft = updatedDraft }, Cmd.none )
+
+        DraftBodyChanged body ->
+            let
+                draft =
+                    model.draft
+
+                updatedDraft =
+                    { draft | body = body }
+            in
+                ( { model | draft = updatedDraft }, Cmd.none )
+
+        DraftSaveClicked ->
+            ( model, saveDraft model )
+
+        DraftSubmitted (Ok response) ->
+            ( model, Cmd.none )
+
+        DraftSubmitted (Err _) ->
+            ( model, Cmd.none )
 
 
 bootstrap : Model -> Cmd Msg
 bootstrap model =
-    let
-        body =
-            """
-              {
-                viewer {
-                  id
-                  username
-                  firstName
-                  lastName
-                  team {
-                    id
-                    name
-                  }
-                }
-              }
-            """
-    in
-        Http.send Bootstrapped (graphqlRequest model.apiToken body bootstrapDecoder)
+    Http.send Bootstrapped (Bootstrap.request model.apiToken)
 
 
-bootstrapTeamDecoder : Decode.Decoder BootstrapTeam
-bootstrapTeamDecoder =
-    Pipeline.decode BootstrapTeam
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "name" Decode.string
-
-
-bootstrapViewerDecoder : Decode.Decoder BootstrapViewer
-bootstrapViewerDecoder =
-    Pipeline.decode BootstrapViewer
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "firstName" Decode.string
-        |> Pipeline.required "lastName" Decode.string
-        |> Pipeline.custom (Decode.at [ "team" ] bootstrapTeamDecoder)
-
-
-bootstrapDecoder : Decode.Decoder BootstrapViewer
-bootstrapDecoder =
-    Decode.at [ "data", "viewer" ] bootstrapViewerDecoder
+saveDraft : Model -> Cmd Msg
+saveDraft model =
+    Http.send DraftSubmitted (CreateDraft.request model.apiToken model.draft)
 
 
 
@@ -231,7 +219,14 @@ view model =
             , div [ class "draft" ]
                 [ div [ class "draft__row" ]
                     [ div [ class "draft__subject" ]
-                        [ input [ type_ "text", class "text-field text-field--muted draft__subject-field", placeholder "Subject" ] []
+                        [ input
+                            [ type_ "text"
+                            , class "text-field text-field--muted draft__subject-field"
+                            , placeholder "Subject"
+                            , value model.draft.subject
+                            , onInput DraftSubjectChanged
+                            ]
+                            []
                         ]
                     , div [ class "draft__recipients" ]
                         [ input [ type_ "text", class "text-field text-field--muted draft__recipients-field", placeholder "Recipients" ] []
@@ -239,10 +234,18 @@ view model =
                     ]
                 , div [ class "draft__row" ]
                     [ div [ class "draft__body" ]
-                        [ textarea [ class "text-field text-field--muted textarea draft__body-field", placeholder "Message" ] [] ]
+                        [ textarea
+                            [ class "text-field text-field--muted textarea draft__body-field"
+                            , placeholder "Message"
+                            , value model.draft.body
+                            , onInput DraftBodyChanged
+                            ]
+                            []
+                        ]
                     ]
                 , div [ class "draft__row" ]
-                    [ button [ class "button button--primary" ] [ text "Start New Thread" ]
+                    [ button [ class "button button--primary", disabled (isDraftInvalid model.draft) ] [ text "Start New Thread" ]
+                    , button [ class "button button--secondary", onClick DraftSaveClicked ] [ text "Save Draft" ]
                     ]
                 ]
             ]
@@ -296,13 +299,13 @@ identityMenu maybeUser =
 filters : Model -> Html Msg
 filters model =
     div [ class "filters" ]
-        [ a [ class "filters__item", href "#" ]
+        [ a [ class "filters__item filters__item--selected", href "#" ]
             [ span [ class "filters__item-name" ] [ text "Inbox" ]
             ]
         , a [ class "filters__item", href "#" ]
             [ span [ class "filters__item-name" ] [ text "Everything" ]
             ]
-        , a [ class "filters__item filters__item--selected", href "#" ]
+        , a [ class "filters__item", href "#" ]
             [ span [ class "filters__item-name" ] [ text "Drafts" ]
             ]
         ]

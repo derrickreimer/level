@@ -29,3 +29,5 @@ $input-text-color: #fff;
 // Buttons
 $button-primary-color: #1e85fc;
 $button-primary-text-color: #fff;
+$button-secondary-border-color: #4c4653;
+$button-secondary-active-border-color: lighten($button-secondary-border-color, 10%);

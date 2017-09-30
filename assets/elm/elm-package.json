@@ -4,7 +4,8 @@
     "repository": "https://github.com/djreimer/level.git",
     "license": "Apache-2.0",
     "source-directories": [
-        "."
+        ".",
+        "src"
     ],
     "exposed-modules": [],
     "dependencies": {
