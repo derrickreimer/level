@@ -167,7 +167,10 @@ view model =
     div [ id "app" ]
         [ div [ class "sidebar sidebar--left" ]
             [ spaceSelector model.currentSpace
-            , filters model
+            , div [ class "sidebar-button" ]
+                [ button [ class "button button--primary button--short" ] [ text "New Conversation" ]
+                ]
+            , sideNav model
             ]
         , div [ class "sidebar sidebar--right" ]
             [ identityMenu model.currentUser
@@ -214,38 +217,6 @@ view model =
                         [ span [ class "threads__unread" ] [ text "2 unread" ]
                         , span [ class "threads__timestamp" ] [ text "12:00pm" ]
                         ]
-                    ]
-                ]
-            , div [ class "draft" ]
-                [ div [ class "draft__row" ]
-                    [ div [ class "draft__subject" ]
-                        [ input
-                            [ type_ "text"
-                            , class "text-field text-field--muted draft__subject-field"
-                            , placeholder "Subject"
-                            , value model.draft.subject
-                            , onInput DraftSubjectChanged
-                            ]
-                            []
-                        ]
-                    , div [ class "draft__recipients" ]
-                        [ input [ type_ "text", class "text-field text-field--muted draft__recipients-field", placeholder "Recipients" ] []
-                        ]
-                    ]
-                , div [ class "draft__row" ]
-                    [ div [ class "draft__body" ]
-                        [ textarea
-                            [ class "text-field text-field--muted textarea draft__body-field"
-                            , placeholder "Message"
-                            , value model.draft.body
-                            , onInput DraftBodyChanged
-                            ]
-                            []
-                        ]
-                    ]
-                , div [ class "draft__row" ]
-                    [ button [ class "button button--primary", disabled (isDraftInvalid model.draft) ] [ text "Start New Thread" ]
-                    , button [ class "button button--secondary", onClick DraftSaveClicked ] [ text "Save Draft" ]
                     ]
                 ]
             ]
@@ -296,17 +267,32 @@ identityMenu maybeUser =
                 ]
 
 
-filters : Model -> Html Msg
-filters model =
-    div [ class "filters" ]
-        [ a [ class "filters__item filters__item--selected", href "#" ]
-            [ span [ class "filters__item-name" ] [ text "Inbox" ]
+sideNav : Model -> Html Msg
+sideNav model =
+    div [ class "side-nav-container" ]
+        [ h3 [ class "side-nav-heading" ] [ text "Conversations" ]
+        , div [ class "side-nav" ]
+            [ a [ class "side-nav__item", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "Inbox" ]
+                ]
+            , a [ class "side-nav__item", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "Everything" ]
+                ]
+            , a [ class "side-nav__item side-nav__item--selected", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
+                ]
             ]
-        , a [ class "filters__item", href "#" ]
-            [ span [ class "filters__item-name" ] [ text "Everything" ]
-            ]
-        , a [ class "filters__item", href "#" ]
-            [ span [ class "filters__item-name" ] [ text "Drafts" ]
+        , h3 [ class "side-nav-heading" ] [ text "Rooms" ]
+        , div [ class "side-nav" ]
+            [ a [ class "side-nav__item side-nav__item--room", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "Development" ]
+                ]
+            , a [ class "side-nav__item side-nav__item--room", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "Marketing" ]
+                ]
+            , a [ class "side-nav__item side-nav__item--room", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "Support" ]
+                ]
             ]
         ]
 

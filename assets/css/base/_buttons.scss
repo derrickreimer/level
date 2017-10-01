@@ -13,9 +13,13 @@
     margin-left: $baseline;
   }
 
+  &--short {
+    padding-top: $baseline * 0.8;
+    padding-bottom: $baseline * 0.8;
+  }
+
   &--large {
     padding: 15px;
-    font-size: $default-font-size;
   }
 
   &--full {
@@ -48,12 +52,12 @@
 
   &--secondary {
     transition: border-color 0.2s ease, color 0.2s ease;
-    border: 1px solid transparent; //$button-secondary-border-color;
+    // border: 1px solid $button-secondary-border-color;
     background: transparent;
     color: $muted-text-color;
 
     &:hover:not(:disabled) {
-      border-color: transparent; //$button-secondary-active-border-color;
+      // border-color: $button-secondary-active-border-color;
       color: $default-text-color;
     }
 
