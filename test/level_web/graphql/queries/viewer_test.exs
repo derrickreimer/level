@@ -3,9 +3,9 @@ defmodule LevelWeb.GraphQL.ViewerTest do
   import LevelWeb.GraphQL.TestHelpers
 
   setup %{conn: conn} do
-    {:ok, %{user: user, team: team}} = insert_signup()
-    conn = authenticate_with_jwt(conn, team, user)
-    {:ok, %{conn: conn, user: user, team: team}}
+    {:ok, %{user: user, space: space}} = insert_signup()
+    conn = authenticate_with_jwt(conn, space, user)
+    {:ok, %{conn: conn, user: user, space: space}}
   end
 
   test "has fields", %{conn: conn, user: user} do
@@ -35,11 +35,11 @@ defmodule LevelWeb.GraphQL.ViewerTest do
     }
   end
 
-  test "has a team connection", %{conn: conn, team: team} do
+  test "has a space connection", %{conn: conn, space: space} do
     query = """
       {
         viewer {
-          team {
+          space {
             name
           }
         }
@@ -54,8 +54,8 @@ defmodule LevelWeb.GraphQL.ViewerTest do
     assert json_response(conn, 200) == %{
       "data" => %{
         "viewer" => %{
-          "team" => %{
-            "name" => team.name
+          "space" => %{
+            "name" => space.name
           }
         }
       }

@@ -1,4 +1,4 @@
-module Query.Bootstrap exposing (request, Team, Response)
+module Query.Bootstrap exposing (request, Space, Response)
 
 import Http
 import Json.Decode as Decode
@@ -6,7 +6,7 @@ import Json.Decode.Pipeline as Pipeline
 import GraphQL
 
 
-type alias Team =
+type alias Space =
     { id : String
     , name : String
     }
@@ -16,7 +16,7 @@ type alias Response =
     { id : String
     , firstName : String
     , lastName : String
-    , team : Team
+    , space : Space
     }
 
 
@@ -29,7 +29,7 @@ query =
           username
           firstName
           lastName
-          team {
+          space {
             id
             name
           }
@@ -38,9 +38,9 @@ query =
     """
 
 
-teamDecoder : Decode.Decoder Team
-teamDecoder =
-    Pipeline.decode Team
+spaceDecoder : Decode.Decoder Space
+spaceDecoder =
+    Pipeline.decode Space
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
 
@@ -52,7 +52,7 @@ decoder =
             |> Pipeline.required "id" Decode.string
             |> Pipeline.required "firstName" Decode.string
             |> Pipeline.required "lastName" Decode.string
-            |> Pipeline.custom (Decode.at [ "team" ] teamDecoder)
+            |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
         )
 
 

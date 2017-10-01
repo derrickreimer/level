@@ -5,9 +5,9 @@ defmodule Level.ThreadsTest do
 
   describe "create_draft_changeset/1" do
     setup do
-      user = %Level.Teams.User{id: 999}
-      team = %Level.Teams.Team{id: 888}
-      {:ok, %{team: team, user: user}}
+      user = %Level.Spaces.User{id: 999}
+      space = %Level.Spaces.Space{id: 888}
+      {:ok, %{space: space, user: user}}
     end
 
     test "builds a changeset" do
@@ -15,15 +15,15 @@ defmodule Level.ThreadsTest do
       assert %{subject: "Foo"} == changeset.changes
     end
 
-    test "validates given valid data", %{team: team, user: user} do
-      params = valid_draft_params(%{user: user, team: team})
+    test "validates given valid data", %{space: space, user: user} do
+      params = valid_draft_params(%{user: user, space: space})
       changeset = Threads.create_draft_changeset(params)
       assert changeset.valid?
     end
 
-    test "allows an empty string body", %{team: team, user: user} do
+    test "allows an empty string body", %{space: space, user: user} do
       params =
-        %{user: user, team: team}
+        %{user: user, space: space}
         |> valid_draft_params()
         |> Map.put(:body, "")
 
@@ -31,10 +31,10 @@ defmodule Level.ThreadsTest do
       assert changeset.valid?
     end
 
-    test "validates required params", %{team: team, user: user} do
-      for param <- [:user_id, :team_id, :recipient_ids] do
+    test "validates required params", %{space: space, user: user} do
+      for param <- [:user_id, :space_id, :recipient_ids] do
         params =
-          %{user: user, team: team}
+          %{user: user, space: space}
           |> valid_draft_params()
           |> Map.put(param, nil)
 
@@ -45,9 +45,9 @@ defmodule Level.ThreadsTest do
       end
     end
 
-    test "requires subject be under 255 chars", %{team: team, user: user} do
+    test "requires subject be under 255 chars", %{space: space, user: user} do
       params =
-        %{user: user, team: team}
+        %{user: user, space: space}
         |> valid_draft_params()
         |> Map.put(:subject, String.duplicate("a", 256))
 
@@ -64,9 +64,9 @@ defmodule Level.ThreadsTest do
       insert_signup()
     end
 
-    test "inserts a draft if valid", team_and_user do
+    test "inserts a draft if valid", space_and_user do
       params =
-        team_and_user
+        space_and_user
         |> valid_draft_params()
 
       changeset = Threads.create_draft_changeset(params)
@@ -74,9 +74,9 @@ defmodule Level.ThreadsTest do
       assert draft.subject == params.subject
     end
 
-    test "returns error tuple if not valid", team_and_user do
+    test "returns error tuple if not valid", space_and_user do
       params =
-        team_and_user
+        space_and_user
         |> valid_draft_params()
         |> Map.put(:subject, String.duplicate("a", 256))
 
@@ -87,8 +87,8 @@ defmodule Level.ThreadsTest do
 
   describe "get_draft/1" do
     setup do
-      {:ok, %{team: team, user: user}} = insert_signup()
-      {:ok, draft} = insert_draft(team, user)
+      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, draft} = insert_draft(space, user)
       {:ok, %{draft: draft}}
     end
 
@@ -103,8 +103,8 @@ defmodule Level.ThreadsTest do
 
   describe "get_draft_for_user/1" do
     setup do
-      {:ok, %{team: team, user: user}} = insert_signup()
-      {:ok, draft} = insert_draft(team, user)
+      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, draft} = insert_draft(space, user)
       {:ok, %{user: user, draft: draft}}
     end
 
@@ -113,7 +113,7 @@ defmodule Level.ThreadsTest do
     end
 
     test "handles when the draft does not belong to the user", %{draft: draft} do
-      assert Threads.get_draft_for_user(%Level.Teams.User{id: 999}, draft.id) == nil
+      assert Threads.get_draft_for_user(%Level.Spaces.User{id: 999}, draft.id) == nil
     end
 
     test "handles when the draft is not found", %{user: user} do
@@ -155,8 +155,8 @@ defmodule Level.ThreadsTest do
 
   describe "update_draft/1" do
     setup do
-      {:ok, %{team: team, user: user}} = insert_signup()
-      {:ok, draft} = insert_draft(team, user)
+      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, draft} = insert_draft(space, user)
       {:ok, %{user: user, draft: draft}}
     end
 
@@ -177,8 +177,8 @@ defmodule Level.ThreadsTest do
 
   describe "update_draft/2" do
     setup do
-      {:ok, %{team: team, user: user}} = insert_signup()
-      {:ok, draft} = insert_draft(team, user)
+      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, draft} = insert_draft(space, user)
       {:ok, %{user: user, draft: draft}}
     end
 
@@ -199,7 +199,7 @@ defmodule Level.ThreadsTest do
 
   describe "get_recipient_id/1" do
     test "generates the ID for users" do
-      user = %Level.Teams.User{id: 999}
+      user = %Level.Spaces.User{id: 999}
       assert Threads.get_recipient_id(user) == "u:999"
     end
   end

@@ -9,34 +9,34 @@ defmodule LevelWeb.Auth do
   import Joken
 
   alias Level.Repo
-  alias Level.Teams
+  alias Level.Spaces
   alias LevelWeb.Router.Helpers
   alias LevelWeb.UrlHelpers
 
   @doc """
-  A plug that looks up the team in scope and sets it in the connection assigns.
+  A plug that looks up the space in scope and sets it in the connection assigns.
   """
-  def fetch_team(conn, _opts \\ []) do
+  def fetch_space(conn, _opts \\ []) do
     case conn.assigns[:subdomain] do
       "" ->
         conn
-        |> redirect(external: UrlHelpers.team_search_url(conn))
+        |> redirect(external: UrlHelpers.space_search_url(conn))
         |> halt()
 
       subdomain ->
-        team = Teams.get_team_by_slug!(subdomain)
-        assign(conn, :team, team)
+        space = Spaces.get_space_by_slug!(subdomain)
+        assign(conn, :space, space)
     end
   end
 
   @doc """
-  A plug that looks up the currently logged in user for the current team
-  and assigns it to the `current_user` key. If team is not specified or user is
+  A plug that looks up the currently logged in user for the current space
+  and assigns it to the `current_user` key. If space is not specified or user is
   not logged in, sets the `current_user` to `nil`.
   """
   def fetch_current_user_by_session(conn, _opts \\ []) do
     cond do
-      conn.assigns[:team] == nil ->
+      conn.assigns[:space] == nil ->
         delete_current_user(conn)
 
       # This is a backdoor that makes auth testing easier
@@ -44,11 +44,11 @@ defmodule LevelWeb.Auth do
         put_current_user(conn, user)
 
       sessions = get_session(conn, :sessions) ->
-        team_id = Integer.to_string(conn.assigns.team.id)
+        space_id = Integer.to_string(conn.assigns.space.id)
 
         case decode_user_sessions(sessions) do
-          %{^team_id => [user_id, _issued_at_ts]} ->
-            user = Teams.get_user(user_id)
+          %{^space_id => [user_id, _issued_at_ts]} ->
+            user = Spaces.get_user(user_id)
             put_current_user(conn, user)
           _ ->
             delete_current_user(conn)
@@ -62,17 +62,17 @@ defmodule LevelWeb.Auth do
   @doc """
   A plug that authenticates the current user via the `Authorization` bearer token.
 
-  - If team is not specified, halts and returns a 400 response.
+  - If space is not specified, halts and returns a 400 response.
   - If no token is provided, halts and returns a 401 response.
   - If token is expired, halts and returns a 401 response.
-  - If token is for a user not belonging to the team in scope, halts and
+  - If token is for a user not belonging to the space in scope, halts and
     returns a 401 response.
   - If token is valid, sets the `current_user` on the connection assigns and the
     absinthe context.
   """
   def authenticate_with_token(conn, _opts \\ []) do
     cond do
-      conn.assigns[:team] == nil ->
+      conn.assigns[:space] == nil ->
         conn
         |> delete_current_user()
         |> send_resp(400, "")
@@ -88,7 +88,7 @@ defmodule LevelWeb.Auth do
   end
 
   @doc """
-  A plug for ensuring that a user is currently logged in to the particular team.
+  A plug for ensuring that a user is currently logged in to the particular space.
   """
   def authenticate_user(conn, _opts \\ []) do
     if conn.assigns[:current_user] do
@@ -101,34 +101,34 @@ defmodule LevelWeb.Auth do
   end
 
   @doc """
-  Signs a user in to a particular team.
+  Signs a user in to a particular space.
   """
-  def sign_in(conn, team, user) do
+  def sign_in(conn, space, user) do
     conn
     |> put_current_user(user)
-    |> put_user_session(team, user)
+    |> put_user_session(space, user)
   end
 
   @doc """
-  Signs a user out of a particular team.
+  Signs a user out of a particular space.
   """
-  def sign_out(conn, team) do
+  def sign_out(conn, space) do
     conn
-    |> delete_user_session(team)
+    |> delete_user_session(space)
   end
 
   @doc """
-  Looks up the user for a given team by identifier (either username or email
+  Looks up the user for a given space by identifier (either username or email
   address) and compares the given password with the password hash.
   If the user is found and password is valid, signs the user in and returns
   an :ok tuple. Otherwise, returns an :error tuple.
   """
-  def sign_in_with_credentials(conn, team, identifier, given_pass, _opts \\ []) do
-    user = Teams.get_user_by_identifier(team, identifier)
+  def sign_in_with_credentials(conn, space, identifier, given_pass, _opts \\ []) do
+    user = Spaces.get_user_by_identifier(space, identifier)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->
-        {:ok, sign_in(conn, team, user)}
+        {:ok, sign_in(conn, space, user)}
       user ->
         {:error, :unauthorized, conn}
       true ->
@@ -186,20 +186,20 @@ defmodule LevelWeb.Auth do
   end
 
   @doc """
-  Returns a list of teams currently signed-in via the browser session.
+  Returns a list of spaces currently signed-in via the browser session.
   """
-  def signed_in_teams(conn) do
+  def signed_in_spaces(conn) do
     import Ecto.Query, only: [from: 2]
 
     if sessions_json = get_session(conn, :sessions) do
       case decode_user_sessions(sessions_json) do
         nil -> []
         sessions ->
-          team_ids = Map.keys(sessions)
+          space_ids = Map.keys(sessions)
 
           Repo.all(
-            from t in Level.Teams.Team,
-              where: t.id in ^team_ids,
+            from t in Level.Spaces.Space,
+              where: t.id in ^space_ids,
               select: t,
               order_by: [asc: t.name]
           )
@@ -214,9 +214,9 @@ defmodule LevelWeb.Auth do
       ["Bearer " <> token] ->
         case verify_signed_jwt(token) do
           %Joken.Token{claims: %{"sub" => user_id}, error: nil} ->
-            user = Repo.get(Level.Teams.User, user_id)
+            user = Repo.get(Level.Spaces.User, user_id)
 
-            if user.team_id == conn.assigns.team.id do
+            if user.space_id == conn.assigns.space.id do
               put_current_user(conn, user)
             else
               send_unauthorized(conn, "")
@@ -244,27 +244,27 @@ defmodule LevelWeb.Auth do
     |> halt()
   end
 
-  defp put_user_session(conn, team, user) do
-    team_id = Integer.to_string(team.id)
+  defp put_user_session(conn, space, user) do
+    space_id = Integer.to_string(space.id)
 
     sessions =
       conn
       |> get_session(:sessions)
       |> decode_user_sessions()
-      |> Map.put(team_id, [user.id, now_timestamp()])
+      |> Map.put(space_id, [user.id, now_timestamp()])
       |> encode_user_sessions()
 
     put_session(conn, :sessions, sessions)
   end
 
-  defp delete_user_session(conn, team) do
-    team_id = Integer.to_string(team.id)
+  defp delete_user_session(conn, space) do
+    space_id = Integer.to_string(space.id)
 
     sessions =
       conn
       |> get_session(:sessions)
       |> decode_user_sessions()
-      |> Map.delete(team_id)
+      |> Map.delete(space_id)
       |> encode_user_sessions()
 
     put_session(conn, :sessions, sessions)

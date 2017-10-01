@@ -3,9 +3,9 @@ defmodule LevelWeb.GraphQL.InviteUserTest do
   import LevelWeb.GraphQL.TestHelpers
 
   setup %{conn: conn} do
-    {:ok, %{user: user, team: team}} = insert_signup()
-    conn = authenticate_with_jwt(conn, team, user)
-    {:ok, %{conn: conn, user: user, team: team}}
+    {:ok, %{user: user, space: space}} = insert_signup()
+    conn = authenticate_with_jwt(conn, space, user)
+    {:ok, %{conn: conn, user: user, space: space}}
   end
 
   test "creates an invitation with valid data", %{conn: conn, user: user} do

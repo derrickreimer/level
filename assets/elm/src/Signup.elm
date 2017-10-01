@@ -27,7 +27,7 @@ main =
 
 type alias Model =
     { csrf_token : String
-    , team_name : String
+    , space_name : String
     , slug : String
     , first_name : String
     , last_name : String
@@ -58,7 +58,7 @@ init flags =
 initialState : Flags -> Model
 initialState flags =
     { csrf_token = flags.csrf_token
-    , team_name = ""
+    , space_name = ""
     , slug = ""
     , first_name = ""
     , last_name = ""
@@ -76,14 +76,14 @@ initialState flags =
 
 
 type Msg
-    = TeamNameChanged String
+    = SpaceNameChanged String
     | SlugChanged String
     | UsernameChanged String
     | FirstNameChanged String
     | LastNameChanged String
     | EmailChanged String
     | PasswordChanged String
-    | TeamNameBlurred
+    | SpaceNameBlurred
     | SlugBlurred
     | UsernameBlurred
     | FirstNameBlurred
@@ -100,8 +100,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        TeamNameChanged val ->
-            ( { model | team_name = val, slug = (slugify val) }, Cmd.none )
+        SpaceNameChanged val ->
+            ( { model | space_name = val, slug = (slugify val) }, Cmd.none )
 
         SlugChanged val ->
             ( { model | slug = val }, Cmd.none )
@@ -121,8 +121,8 @@ update msg model =
         PasswordChanged val ->
             ( { model | password = val }, Cmd.none )
 
-        TeamNameBlurred ->
-            validateIfPresent model "team_name" model.team_name
+        SpaceNameBlurred ->
+            validateIfPresent model "space_name" model.space_name
 
         SlugBlurred ->
             validateIfPresent model "slug" model.slug
@@ -189,8 +189,8 @@ validateIfPresent model attribute value =
 
 
 slugify : String -> String
-slugify teamName =
-    teamName
+slugify spaceName =
+    spaceName
         |> String.toLower
         |> (Regex.replace Regex.All (regex "[^a-z0-9]+") (\_ -> "-"))
         |> (Regex.replace Regex.All (regex "(^-|-$)") (\_ -> ""))
@@ -245,10 +245,10 @@ view model =
         , div [ class "signup-form__section" ]
             [ div [ class "signup-form__section-header" ]
                 [ span [ class "signup-form__section-number" ] [ text "2" ]
-                , text "Configure your team"
+                , text "Configure your space"
                 ]
             , div [ class "signup-form__section-body" ]
-                [ textField (FormField "text" "team_name" "Team Name" model.team_name TeamNameChanged TeamNameBlurred) (errorsFor "team_name" model.errors)
+                [ textField (FormField "text" "space_name" "Space Name" model.space_name SpaceNameChanged SpaceNameBlurred) (errorsFor "space_name" model.errors)
                 , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
                 ]
             ]
@@ -263,8 +263,8 @@ view model =
             ]
         , div [ class "signup-form__footer" ]
             [ p []
-                [ text "Already have an team? "
-                , a [ href "/teams/search" ] [ text "Sign in" ]
+                [ text "Already have a space? "
+                , a [ href "/spaces/search" ] [ text "Sign in" ]
                 , text "."
                 ]
             ]
@@ -364,7 +364,7 @@ validate attribute model =
 
 buildSubmitRequest : Model -> Http.Request String
 buildSubmitRequest model =
-    postWithCsrfToken model.csrf_token "/api/teams" (buildBody model) successDecoder
+    postWithCsrfToken model.csrf_token "/api/spaces" (buildBody model) successDecoder
 
 
 buildValidationRequest : Model -> Http.Request (List ValidationError)
@@ -391,7 +391,7 @@ buildBody model =
         (Encode.object
             [ ( "signup"
               , Encode.object
-                    [ ( "team_name", Encode.string model.team_name )
+                    [ ( "space_name", Encode.string model.space_name )
                     , ( "slug", Encode.string model.slug )
                     , ( "first_name", Encode.string model.first_name )
                     , ( "last_name", Encode.string model.last_name )

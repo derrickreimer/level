@@ -1,27 +1,27 @@
 defmodule LevelWeb.AcceptInvitationControllerTest do
   use LevelWeb.ConnCase
 
-  alias Level.Teams
+  alias Level.Spaces
 
   setup %{conn: conn} do
-    {:ok, %{team: team, user: owner}} = insert_signup()
+    {:ok, %{space: space, user: owner}} = insert_signup()
 
     conn =
       conn
-      |> put_team_host(team)
+      |> put_space_host(space)
 
-    {:ok, %{conn: conn, team: team, owner: owner}}
+    {:ok, %{conn: conn, space: space, owner: owner}}
   end
 
   describe "POST /invitations/:id/accept" do
-    setup %{conn: conn, team: team, owner: owner} do
+    setup %{conn: conn, space: space, owner: owner} do
       changeset =
-        %{team: team, invitor: owner}
+        %{space: space, invitor: owner}
         |> valid_invitation_params()
-        |> Teams.create_invitation_changeset()
+        |> Spaces.create_invitation_changeset()
 
-      {:ok, invitation} = Teams.create_invitation(changeset)
-      {:ok, %{conn: conn, team: team, invitor: owner, invitation: invitation}}
+      {:ok, invitation} = Spaces.create_invitation(changeset)
+      {:ok, %{conn: conn, space: space, invitor: owner, invitation: invitation}}
     end
 
     test "signs in and redirects the user",

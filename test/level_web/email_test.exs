@@ -4,28 +4,28 @@ defmodule LevelWeb.EmailTest do
 
   describe "invitation_email/1" do
     setup do
-      team = %Level.Teams.Team{name: "Acme", slug: "acme"}
-      invitor = %Level.Teams.User{email: "derrick@acme.com"}
+      space = %Level.Spaces.Space{name: "Acme", slug: "acme"}
+      invitor = %Level.Spaces.User{email: "derrick@acme.com"}
 
-      invitation = %Level.Teams.Invitation{
-        team: team,
+      invitation = %Level.Spaces.Invitation{
+        space: space,
         invitor: invitor,
         email: "bob@acme.com",
         token: "xxx"
       }
 
       email = LevelWeb.Email.invitation_email(invitation)
-      {:ok, %{email: email, invitation: invitation, team: team, invitor: invitor}}
+      {:ok, %{email: email, invitation: invitation, space: space, invitor: invitor}}
     end
 
     test "sent to the invitee", %{email: email} do
       assert email.to == "bob@acme.com"
     end
 
-    test "includes the team name and invitor", %{email: email} do
-      assert email.html_body =~ "join the Acme team"
+    test "includes the space name and invitor", %{email: email} do
+      assert email.html_body =~ "join the Acme space"
       assert email.html_body =~ "by derrick@acme.com"
-      assert email.text_body =~ "join the Acme team"
+      assert email.text_body =~ "join the Acme space"
       assert email.text_body =~ "by derrick@acme.com"
     end
 

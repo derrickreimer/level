@@ -39,7 +39,7 @@ decoders =
                         payload =
                             """
                             {
-                              "team": {
+                              "space": {
                                 "id": 999,
                                 "name": "Foo",
                                 "slug": "foo",

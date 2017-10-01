@@ -3,13 +3,13 @@ defmodule LevelWeb.GraphQL.CreateDraftTest do
   import LevelWeb.GraphQL.TestHelpers
 
   setup %{conn: conn} do
-    {:ok, %{user: user, team: team}} = insert_signup()
-    conn = authenticate_with_jwt(conn, team, user)
-    {:ok, %{conn: conn, user: user, team: team}}
+    {:ok, %{user: user, space: space}} = insert_signup()
+    conn = authenticate_with_jwt(conn, space, user)
+    {:ok, %{conn: conn, user: user, space: space}}
   end
 
   test "creates a draft with valid data",
-    %{conn: conn, team: team, user: user} do
+    %{conn: conn, space: space, user: user} do
     subject = "Foo"
     body = "The body"
 
@@ -21,7 +21,7 @@ defmodule LevelWeb.GraphQL.CreateDraftTest do
             subject
             body
             recipientIds
-            team {
+            space {
               name
             }
             user {
@@ -49,8 +49,8 @@ defmodule LevelWeb.GraphQL.CreateDraftTest do
             "subject" => subject,
             "body" => body,
             "recipientIds" => [],
-            "team" => %{
-              "name" => team.name
+            "space" => %{
+              "name" => space.name
             },
             "user" => %{
               "email" => user.email

@@ -1,13 +1,13 @@
 defmodule LevelWeb.InvitationController do
   use LevelWeb, :controller
 
-  alias Level.Teams
-  alias Level.Teams.User
+  alias Level.Spaces
+  alias Level.Spaces.User
 
-  plug :fetch_team
+  plug :fetch_space
 
   def show(conn, %{"id" => id}) do
-    invitation = Teams.get_pending_invitation!(conn.assigns[:team], id)
+    invitation = Spaces.get_pending_invitation!(conn.assigns[:space], id)
     changeset = User.signup_changeset(%User{}, %{email: invitation.email})
 
     conn

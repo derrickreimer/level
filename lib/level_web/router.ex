@@ -11,8 +11,8 @@ defmodule LevelWeb.Router do
     plug :extract_subdomain
   end
 
-  pipeline :team do
-    plug :fetch_team
+  pipeline :space do
+    plug :fetch_space
     plug :fetch_current_user_by_session
     plug :authenticate_user
   end
@@ -29,7 +29,7 @@ defmodule LevelWeb.Router do
   pipeline :graphql do
     plug :validate_host
     plug :extract_subdomain
-    plug :fetch_team
+    plug :fetch_space
     plug :authenticate_with_token
   end
 
@@ -43,13 +43,13 @@ defmodule LevelWeb.Router do
   scope "/", LevelWeb, host: "launch." do
     pipe_through :browser # Use the default browser stack
 
-    get "/", TeamController, :index
-    get "/teams/new", TeamController, :new
-    get "/teams/search", TeamSearchController, :new
-    post "/teams/search", TeamSearchController, :create
+    get "/", SpaceController, :index
+    get "/spaces/new", SpaceController, :new
+    get "/spaces/search", SpaceSearchController, :new
+    post "/spaces/search", SpaceSearchController, :create
   end
 
-  # Team-scoped routes not requiring authentication
+  # Space-scoped routes not requiring authentication
   scope "/", LevelWeb do
     pipe_through :browser
 
@@ -64,7 +64,7 @@ defmodule LevelWeb.Router do
 
   # GraphQL explorer
   scope "/" do
-    pipe_through [:browser, :team]
+    pipe_through [:browser, :space]
     forward "/graphiql", Absinthe.Plug.GraphiQL,
       schema: LevelWeb.Schema,
       default_headers: &__MODULE__.graphiql_headers/1,
@@ -85,9 +85,9 @@ defmodule LevelWeb.Router do
     }
   end
 
-  # Team-scoped routes requiring authentication
+  # Space-scoped routes requiring authentication
   scope "/", LevelWeb do
-    pipe_through [:browser, :team]
+    pipe_through [:browser, :space]
 
     get "/", ThreadController, :index
   end
@@ -96,7 +96,7 @@ defmodule LevelWeb.Router do
   scope "/api", LevelWeb.API do
     pipe_through :browser_api
 
-    resources "/teams", TeamController, only: [:create]
+    resources "/spaces", SpaceController, only: [:create]
     post "/signup/errors", SignupErrorsController, :index
 
     resources "/user_tokens", UserTokenController, only: [:create]

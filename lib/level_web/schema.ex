@@ -16,7 +16,7 @@ defmodule LevelWeb.Schema do
   end
 
   mutation do
-    @desc "Invite a person to a team via email."
+    @desc "Invite a person to a space via email."
     field :invite_user, type: :invite_user_payload do
       arg :email, non_null(:string)
 

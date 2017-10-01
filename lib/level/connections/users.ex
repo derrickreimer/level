@@ -3,7 +3,7 @@ defmodule Level.Connections.Users do
   Functions for querying users.
   """
 
-  alias Level.Teams.User
+  alias Level.Spaces.User
   import Ecto.Query
 
   @default_args %{
@@ -17,13 +17,13 @@ defmodule Level.Connections.Users do
   }
 
   @doc """
-  Execute a paginated query for users belonging to a given team.
+  Execute a paginated query for users belonging to a given space.
   """
-  def get(team, args, _context) do
+  def get(space, args, _context) do
     case validate_args(args) do
       {:ok, args} ->
         base_query = from u in User,
-          where: u.team_id == ^team.id and u.state == "ACTIVE"
+          where: u.space_id == ^space.id and u.state == "ACTIVE"
 
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
       error ->

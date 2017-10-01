@@ -1,39 +1,39 @@
 defmodule LevelWeb.InvitationControllerTest do
   use LevelWeb.ConnCase
 
-  # alias Level.Teams.Invitation
-  alias Level.Teams
+  # alias Level.Spaces.Invitation
+  alias Level.Spaces
 
   setup %{conn: conn} do
-    {:ok, %{team: team, user: owner}} = insert_signup()
+    {:ok, %{space: space, user: owner}} = insert_signup()
 
     conn =
       conn
-      |> put_team_host(team)
+      |> put_space_host(space)
 
-    {:ok, %{conn: conn, team: team, owner: owner}}
+    {:ok, %{conn: conn, space: space, owner: owner}}
   end
 
   describe "GET /invitations/:id" do
-    setup %{conn: conn, team: team, owner: owner} do
+    setup %{conn: conn, space: space, owner: owner} do
       changeset =
-        %{team: team, invitor: owner}
+        %{space: space, invitor: owner}
         |> valid_invitation_params()
-        |> Teams.create_invitation_changeset()
-      
-      {:ok, invitation} = Teams.create_invitation(changeset)
-      {:ok, %{conn: conn, team: team, invitor: owner, invitation: invitation}}
+        |> Spaces.create_invitation_changeset()
+
+      {:ok, invitation} = Spaces.create_invitation(changeset)
+      {:ok, %{conn: conn, space: space, invitor: owner, invitation: invitation}}
     end
 
     test "displays the correct copy",
-      %{conn: conn, team: team, invitor: invitor, invitation: invitation} do
+      %{conn: conn, space: space, invitor: invitor, invitation: invitation} do
 
       conn =
         conn
         |> get("/invitations/#{invitation.token}")
 
       response = html_response(conn, 200)
-      assert response =~ "Join the #{team.name} team"
+      assert response =~ "Join the #{space.name} space"
       assert response =~ "You were invited by #{invitor.email}"
     end
 

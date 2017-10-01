@@ -4,10 +4,10 @@ defmodule Level.Connections do
   """
 
   @doc """
-  Fetch users belonging to given team.
+  Fetch users belonging to given space.
   """
-  def users(team, args, context \\ %{}) do
-    Level.Connections.Users.get(team, args, context)
+  def users(space, args, context \\ %{}) do
+    Level.Connections.Users.get(space, args, context)
   end
 
   @doc """

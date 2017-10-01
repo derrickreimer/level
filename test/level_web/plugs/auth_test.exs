@@ -12,34 +12,34 @@ defmodule LevelWeb.AuthTest do
     {:ok, %{conn: conn}}
   end
 
-  describe "fetch_team/2" do
-    test "assigns the team to the connection if found", %{conn: conn} do
-      {:ok, %{team: team}} = insert_signup()
+  describe "fetch_space/2" do
+    test "assigns the space to the connection if found", %{conn: conn} do
+      {:ok, %{space: space}} = insert_signup()
 
-      team_conn =
+      space_conn =
         conn
-        |> assign(:subdomain, team.slug)
-        |> Auth.fetch_team()
+        |> assign(:subdomain, space.slug)
+        |> Auth.fetch_space()
 
-      assert team_conn.assigns.team.id == team.id
+      assert space_conn.assigns.space.id == space.id
     end
 
-    test "raise a 404 if team is not found", %{conn: conn} do
+    test "raise a 404 if space is not found", %{conn: conn} do
       assert_raise Ecto.NoResultsError, fn ->
         conn
         |> assign(:subdomain, "doesnotexist")
-        |> Auth.fetch_team()
+        |> Auth.fetch_space()
       end
     end
   end
 
   describe "fetch_current_user_by_session/2" do
-    test "does not attach a current user when team is not specified",
+    test "does not attach a current user when space is not specified",
       %{conn: conn} do
 
       conn =
         conn
-        |> assign(:team, nil)
+        |> assign(:space, nil)
         |> Auth.fetch_current_user_by_session()
 
       assert conn.assigns.current_user == nil
@@ -50,12 +50,12 @@ defmodule LevelWeb.AuthTest do
       assert conn.assigns.current_user == nil
     end
 
-    test "sets the current user to nil if a team is assigned but no sessions",
+    test "sets the current user to nil if a space is assigned but no sessions",
       %{conn: conn} do
 
       conn =
         conn
-        |> assign(:team, "team")
+        |> assign(:space, "space")
         |> put_session(:sessions, nil)
         |> Auth.fetch_current_user_by_session()
 
@@ -63,12 +63,12 @@ defmodule LevelWeb.AuthTest do
     end
 
     test "sets the current user if logged in", %{conn: conn} do
-      {:ok, %{team: team, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = insert_signup()
 
       conn =
         conn
-        |> assign(:team, team)
-        |> put_session(:sessions, to_user_session(team, user))
+        |> assign(:space, space)
+        |> put_session(:sessions, to_user_session(space, user))
         |> Auth.fetch_current_user_by_session()
 
       assert conn.assigns.current_user.id == user.id
@@ -76,12 +76,12 @@ defmodule LevelWeb.AuthTest do
   end
 
   describe "authenticate_with_token/2" do
-    test "does not attach a current user when team is not specified",
+    test "does not attach a current user when space is not specified",
       %{conn: conn} do
 
       conn =
         conn
-        |> assign(:team, nil)
+        |> assign(:space, nil)
         |> Auth.authenticate_with_token()
 
       assert conn.assigns.current_user == nil
@@ -96,12 +96,12 @@ defmodule LevelWeb.AuthTest do
       assert conn.halted
     end
 
-    test "sets the current user to nil if a team is assigned but no token",
+    test "sets the current user to nil if a space is assigned but no token",
       %{conn: conn} do
 
       conn =
         conn
-        |> assign(:team, "team")
+        |> assign(:space, "space")
         |> Auth.authenticate_with_token()
 
       assert conn.assigns.current_user == nil
@@ -110,13 +110,13 @@ defmodule LevelWeb.AuthTest do
     end
 
     test "sets the current user if token is expired", %{conn: conn} do
-      {:ok, %{team: team, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = insert_signup()
 
       token = generate_expired_token(user)
 
       conn =
         conn
-        |> assign(:team, team)
+        |> assign(:space, space)
         |> put_req_header("authorization", "Bearer #{token}")
         |> Auth.authenticate_with_token()
 
@@ -127,13 +127,13 @@ defmodule LevelWeb.AuthTest do
     end
 
     test "sets the current user if token is valid", %{conn: conn} do
-      {:ok, %{team: team, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = insert_signup()
 
       token = Auth.generate_signed_jwt(user)
 
       conn =
         conn
-        |> assign(:team, team)
+        |> assign(:space, space)
         |> put_req_header("authorization", "Bearer #{token}")
         |> Auth.authenticate_with_token()
 
@@ -145,23 +145,23 @@ defmodule LevelWeb.AuthTest do
 
   describe "sign_in/3" do
     setup %{conn: conn} do
-      {:ok, %{team: team, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = insert_signup()
 
       conn =
         conn
-        |> Auth.sign_in(team, user)
+        |> Auth.sign_in(space, user)
 
-      {:ok, %{conn: conn, team: team, user: user}}
+      {:ok, %{conn: conn, space: space, user: user}}
     end
 
     test "sets the current user", %{conn: conn, user: user} do
       assert conn.assigns.current_user.id == user.id
     end
 
-    test "sets the user session", %{conn: conn, team: team, user: user} do
-      team_id = Integer.to_string(team.id)
+    test "sets the user session", %{conn: conn, space: space, user: user} do
+      space_id = Integer.to_string(space.id)
 
-      %{^team_id => [user_id | _]} =
+      %{^space_id => [user_id | _]} =
         conn
         |> get_session(:sessions)
         |> Poison.decode!
@@ -171,18 +171,18 @@ defmodule LevelWeb.AuthTest do
   end
 
   describe "sign_out/2" do
-    test "signs out of the given team only", %{conn: conn} do
-      team1 = %Level.Teams.Team{id: 1}
-      team2 = %Level.Teams.Team{id: 2}
+    test "signs out of the given space only", %{conn: conn} do
+      space1 = %Level.Spaces.Space{id: 1}
+      space2 = %Level.Spaces.Space{id: 2}
 
-      user1 = %Level.Teams.User{id: 1}
-      user2 = %Level.Teams.User{id: 2}
+      user1 = %Level.Spaces.User{id: 1}
+      user2 = %Level.Spaces.User{id: 2}
 
       conn =
         conn
-        |> Auth.sign_in(team1, user1)
-        |> Auth.sign_in(team2, user2)
-        |> Auth.sign_out(team1)
+        |> Auth.sign_in(space1, user1)
+        |> Auth.sign_in(space2, user2)
+        |> Auth.sign_out(space1)
 
       sessions =
         conn
@@ -197,46 +197,46 @@ defmodule LevelWeb.AuthTest do
   describe "sign_in_with_credentials/5" do
     setup %{conn: conn} do
       password = "$ecret$"
-      {:ok, %{team: team, user: user}} = insert_signup(%{password: password})
-      {:ok, %{conn: conn, team: team, user: user, password: password}}
+      {:ok, %{space: space, user: user}} = insert_signup(%{password: password})
+      {:ok, %{conn: conn, space: space, user: user, password: password}}
     end
 
     test "signs in user with username credentials",
-      %{conn: conn, team: team, user: user, password: password} do
+      %{conn: conn, space: space, user: user, password: password} do
 
       {:ok, conn} =
-        Auth.sign_in_with_credentials(conn, team, user.username, password)
+        Auth.sign_in_with_credentials(conn, space, user.username, password)
 
       assert conn.assigns.current_user.id == user.id
     end
 
     test "signs in user with email credentials",
-      %{conn: conn, team: team, user: user, password: password} do
+      %{conn: conn, space: space, user: user, password: password} do
 
       {:ok, conn} =
-        Auth.sign_in_with_credentials(conn, team, user.email, password)
+        Auth.sign_in_with_credentials(conn, space, user.email, password)
 
       assert conn.assigns.current_user.id == user.id
     end
 
     test "returns unauthorized if password does not match",
-      %{conn: conn, team: team, user: user} do
+      %{conn: conn, space: space, user: user} do
 
       {:error, :unauthorized, _conn} =
-        Auth.sign_in_with_credentials(conn, team, user.email, "wrongo")
+        Auth.sign_in_with_credentials(conn, space, user.email, "wrongo")
     end
 
     test "returns unauthorized if user is not found",
-      %{conn: conn, team: team} do
+      %{conn: conn, space: space} do
 
       {:error, :not_found, _conn} =
-        Auth.sign_in_with_credentials(conn, team, "foo@bar.co", "wrongo")
+        Auth.sign_in_with_credentials(conn, space, "foo@bar.co", "wrongo")
     end
   end
 
   describe "generate_signed_jwt/1" do
     setup do
-      user = %Level.Teams.User{id: 999}
+      user = %Level.Spaces.User{id: 999}
       {:ok, %{user: user}}
     end
 
@@ -250,7 +250,7 @@ defmodule LevelWeb.AuthTest do
 
   describe "verify_signed_jwt/1" do
     setup do
-      user = %Level.Teams.User{id: 999}
+      user = %Level.Spaces.User{id: 999}
       {:ok, %{user: user}}
     end
 
@@ -280,27 +280,27 @@ defmodule LevelWeb.AuthTest do
     end
   end
 
-  describe "signed_in_teams/1" do
+  describe "signed_in_spaces/1" do
     test "returns an empty list if none logged in", %{conn: conn} do
-      assert Auth.signed_in_teams(conn) == []
+      assert Auth.signed_in_spaces(conn) == []
     end
 
-    test "returns a list of signed-in teams", %{conn: conn} do
-      {:ok, %{team: team, user: user}} = insert_signup()
+    test "returns a list of signed-in spaces", %{conn: conn} do
+      {:ok, %{space: space, user: user}} = insert_signup()
 
       conn =
         conn
-        |> sign_in(team, user)
+        |> sign_in(space, user)
         |> put_launch_host()
         |> get("/")
 
-      [result] = Auth.signed_in_teams(conn)
-      assert result.id == team.id
+      [result] = Auth.signed_in_spaces(conn)
+      assert result.id == space.id
     end
   end
 
-  defp to_user_session(team, user, ts \\ 123) do
-    Poison.encode!(%{Integer.to_string(team.id) => [user.id, ts]})
+  defp to_user_session(space, user, ts \\ 123) do
+    Poison.encode!(%{Integer.to_string(space.id) => [user.id, ts]})
   end
 
   defp generate_expired_token(user) do

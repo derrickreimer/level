@@ -9,16 +9,16 @@ defmodule Level.ConnectionsTest do
       insert_signup()
     end
 
-    test "returns edges", %{team: team, user: user} do
+    test "returns edges", %{space: space, user: user} do
       {:ok, %Result{edges: [first_edge | _]}} =
-        Connections.users(team, %{first: 1})
+        Connections.users(space, %{first: 1})
 
       assert first_edge.node.id == user.id
     end
 
-    test "returns total count", %{team: team} do
+    test "returns total count", %{space: space} do
       {:ok, %Result{total_count: total_count}} =
-        Connections.users(team, %{first: 1})
+        Connections.users(space, %{first: 1})
 
       assert total_count == 1
     end

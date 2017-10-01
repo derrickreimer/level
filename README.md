@@ -64,18 +64,18 @@ dependency in the `tests` directory (the tests maintain their own set of depende
 
 ### Routing
 
-Level uses subdomains to keep track of which team you are viewing. There are a variety
+Level uses subdomains to keep track of which space you are viewing. There are a variety
 of different techniques for configuring a local TLD to point at localhost. One option is to
 edit your `/etc/hosts` file with something like this to make the Phoenix app available
 at http://launch.level.dev:4000:
 
 ```
 127.0.0.1  launch.level.dev    # required
-127.0.0.1  yourteam.level.dev  # need an entry like this for every team you create
+127.0.0.1  yourspace.level.dev  # need an entry like this for every space you create
 ```
 
 **Caveat**: The hosts file approach does not support wildcard subdomains, so you
-will have to add a new entry every time you create a new team. That's a pain.
+will have to add a new entry every time you create a new space. That's a pain.
 
 Dnsmasq is a handy utility that can be used to forward all `.dev` requests to localhost.
 [Follow these instructions](http://asciithoughts.com/posts/2014/02/23/setting-up-a-wildcard-dns-domain-on-mac-os-x/) to set it up on macOS.
