@@ -51,7 +51,7 @@
     border-radius: $base-radius;
     width: $large-avatar-size;
     height: $large-avatar-size;
-    background-color: $input-background-color;
+    background-color: $default-avatar-color;
 
     &--placeholder {
       @include loading-pulse;
@@ -174,11 +174,11 @@
   &__item {
     display: flex;
     padding: (2 * $baseline / 3) $baseline;
-    border-top: 1px solid $input-muted-background-color;
+    border-top: 1px solid $item-list-border-color;
     color: $muted-text-color;
 
     &:last-child {
-      border-bottom: 1px solid $input-muted-background-color;
+      border-bottom: 1px solid $item-list-border-color;
     }
 
     &--highlighted {

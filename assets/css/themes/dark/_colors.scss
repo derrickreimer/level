@@ -1,33 +1,65 @@
+// ------ COLOR DEFINITIONS ------
+
+// Darks and grays
+$licorice: #151116;
+$dark-purple: #2d232e;
+$quartz: #4e4554; // #4c4653; (4e is a little more purple)
+$lavendar-gray: #c7cad0;
+$gray-blue: #9096a2;
+$old-lavendar: #6f687c;
+$dark-liver: #534b54;
+
+// Blues
+$united-nations-blue: #4990e2;
+$dodger-blue: #1e85fc;
+
+// Reds
+$dark-terra-cotta: #db5461;
+
+// Greens
+$pistachio: #8ed081;
+
+// Oranges
+$vivid-orange-peel: #f0a202;
+
+
+// ------ SEMANTIC DEFINITIONS ------
+
 // Backgrounds
-$background-color: #2d232e;
-$light-background-color: #4e4554;
-$sidebar-color: #151116;
+$background-color: $dark-purple;
+$light-background-color: $quartz;
+$sidebar-color: $licorice;
 $sidebar-hover: rgba(255, 255, 255, 0.04);
+$default-avatar-color: $old-lavendar;
+
+// Borders
+$default-border-color: $dark-liver;
+$item-list-border-color: $quartz;
 
 // Text
-$default-text-color: #c7cad0;
-$muted-text-color: #9096a2;
-$offline-text-color: #6f687c;
-$default-link-color: #4990e2;
-$default-border-color: #534b54;
+$default-text-color: $lavendar-gray;
+$muted-text-color: $gray-blue;
+$offline-text-color: $old-lavendar;
+$default-link-color: $united-nations-blue;
 
 // Generic states
-$error-color: #db5461;
-$success-color: #8ed081;
-$highlight-color: #f0a202;
+$error-color: $dark-terra-cotta;
+$success-color: $pistachio;
+$highlight-color: $vivid-orange-peel;
 
 // User states
-$available-color: #8ed081;
-$focus-color: #f0a202;
-$offline-color: #4e4554;
+$available-color: $pistachio;
+$focus-color: $vivid-orange-peel;
+$offline-color: $quartz;
 
 // Forms
-$input-background-color: #6f687c;
-$input-muted-background-color: #4c4653;
+$input-background-color: $old-lavendar;
+$input-muted-background-color: $quartz;
 $input-text-color: #fff;
 
 // Buttons
-$button-primary-color: #1e85fc;
+$button-primary-color: $dodger-blue;
 $button-primary-text-color: #fff;
-$button-secondary-border-color: #4c4653;
-$button-secondary-active-border-color: lighten($button-secondary-border-color, 10%);
+
+$button-secondary-border-color: $quartz;
+$button-secondary-active-border-color: lighten($quartz, 10%);
