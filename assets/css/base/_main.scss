@@ -1,5 +1,5 @@
 #app {
-  font-size: 15px;
+  font-size: $default-font-size;
 }
 
 .sidebar {
@@ -16,6 +16,11 @@
   &--right {
     right: 0;
   }
+}
+
+.sidebar-button {
+  margin: $baseline 0;
+  padding: 0 $baseline;
 }
 
 .main {
@@ -65,13 +70,21 @@
   }
 }
 
-.filters {
+.side-nav-heading {
+  margin: 0 0 0 $baseline;
+  padding: $baseline / 2 0;
+  font-size: 15px;
+  font-weight: normal;
+  color: $muted-text-color;
+}
+
+.side-nav {
   margin: 0 0 18px;
 
   &__item {
     position: relative;
     display: block;
-    padding: 1px $baseline;
+    padding: 1px $baseline * 2;
     color: $default-text-color;
 
     &:hover {
@@ -86,6 +99,12 @@
       &:hover {
         background-color: $background-color;
       }
+    }
+
+    &--room:before {
+      content: "#";
+      padding-right: $baseline / 2;
+      opacity: 0.5;
     }
   }
 }
