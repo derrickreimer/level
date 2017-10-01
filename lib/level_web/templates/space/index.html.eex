@@ -2,25 +2,25 @@
   <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="team-switcher">
-  <h2 class="team-switcher__heading"><%= gettext "My Spaces" %></h2>
+<div class="space-switcher">
+  <h2 class="space-switcher__heading"><%= gettext "My Spaces" %></h2>
 
-  <ul class="team-switcher__teams">
+  <ul class="space-switcher__spaces">
     <%= for space <- @spaces do %>
       <li>
         <a href="<%= threads_url(@conn, space) %>">
-          <div class="team-switcher__avatar"></div>
-          <div class="team-switcher__details">
-            <h3 class="team-switcher__name"><%= space.name %></h3>
-            <p class="team-switcher__url"><%= space_host(space) %></p>
+          <div class="space-switcher__avatar"></div>
+          <div class="space-switcher__details">
+            <h3 class="space-switcher__name"><%= space.name %></h3>
+            <p class="space-switcher__url"><%= space_host(space) %></p>
           </div>
         </a>
       </li>
     <% end %>
   </ul>
 
-  <div class="team-switcher__footer">
-    <a href="<%= space_search_url(@conn) %>" class="team-switcher__add">
+  <div class="space-switcher__footer">
+    <a href="<%= space_search_url(@conn) %>" class="space-switcher__add">
       Sign in to another space...
     </a>
   </div>

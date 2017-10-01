@@ -10,42 +10,71 @@
 msgid ""
 msgstr ""
 
-#: lib/level/web/templates/session/new.html.eex:20
+#: lib/level_web/templates/invitation/show.html.eex:10
+#: lib/level_web/templates/session/new.html.eex:10
 msgid "Email Address"
 msgstr ""
 
-#: lib/level/web/templates/session/new.html.eex:26
+#: lib/level_web/templates/invitation/show.html.eex:36
+#: lib/level_web/templates/session/new.html.eex:16
 msgid "Password"
 msgstr ""
 
-#: lib/level/web/templates/session/new.html.eex:32
+#: lib/level_web/templates/session/new.html.eex:22
 msgid "Sign in"
 msgstr ""
 
-#: lib/level/web/templates/generic_session/new.html.eex:25
-#: lib/level/web/templates/session/new.html.eex:39
+#: lib/level_web/templates/session/new.html.eex:29
+#: lib/level_web/templates/space_search/new.html.eex:29
 msgid "Sign up"
 msgstr ""
 
-#: lib/level/web/controllers/team_controller.ex:21
-msgid "Uh oh, something went wrong. Please try again."
-msgstr ""
-
-#: lib/level/web/templates/generic_session/new.html.eex:6
-#: lib/level/web/templates/session/new.html.eex:6
+#: lib/level_web/templates/session/new.html.eex:6
+#: lib/level_web/templates/space_search/new.html.eex:6
 msgid "Sign in to Level"
 msgstr ""
 
-#: lib/level/web/templates/generic_session/new.html.eex:20
-msgid "Find my team"
+#: lib/level_web/templates/space_search/new.html.eex:22
+msgid "Find my space"
 msgstr ""
 
-#: lib/level/web/templates/generic_session/new.html.eex:10
-#: lib/level/web/templates/session/new.html.eex:10
-msgid "Team"
+#: lib/level_web/templates/invitation/show.html.eex:17
+msgid "First Name"
 msgstr ""
 
-#: lib/level/web/templates/generic_session/new.html.eex:25
-#: lib/level/web/templates/session/new.html.eex:38
-msgid "Want to create a team instead?"
+#: lib/level_web/templates/invitation/show.html.eex:49
+msgid "If you don’t recognize the sender, please disregard this invitation!"
+msgstr ""
+
+#: lib/level_web/templates/invitation/show.html.eex:6
+msgid "Join the %{name} space"
+msgstr ""
+
+#: lib/level_web/templates/invitation/show.html.eex:42
+msgid "Join the space"
+msgstr ""
+
+#: lib/level_web/templates/invitation/show.html.eex:23
+msgid "Last Name"
+msgstr ""
+
+#: lib/level_web/templates/space/index.html.eex:6
+msgid "My Spaces"
+msgstr ""
+
+#: lib/level_web/templates/space_search/new.html.eex:10
+msgid "Space"
+msgstr ""
+
+#: lib/level_web/templates/invitation/show.html.eex:30
+msgid "Username"
+msgstr ""
+
+#: lib/level_web/templates/session/new.html.eex:28
+#: lib/level_web/templates/space_search/new.html.eex:28
+msgid "Want to create a space instead?"
+msgstr ""
+
+#: lib/level_web/templates/invitation/show.html.eex:48
+msgid "You were invited by %{invitor}."
 msgstr ""

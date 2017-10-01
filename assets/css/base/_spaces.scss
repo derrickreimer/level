@@ -1,5 +1,5 @@
 .auth-form,
-.team-switcher {
+.space-switcher {
   margin: 0 auto;
   padding: 100px 0 0;
   width: 380px;
@@ -40,8 +40,8 @@
   }
 }
 
-.team-switcher {
-  &__teams {
+.space-switcher {
+  &__spaces {
     margin: 0;
     padding: 0;
     list-style-type: none;
