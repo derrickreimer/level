@@ -2,7 +2,6 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick, onBlur)
 import Http
 import Query.Bootstrap as Bootstrap
 import Mutation.CreateDraft as CreateDraft
@@ -167,9 +166,6 @@ view model =
     div [ id "app" ]
         [ div [ class "sidebar sidebar--left" ]
             [ spaceSelector model.currentSpace
-            , div [ class "sidebar-button" ]
-                [ button [ class "button button--primary button--short" ] [ text "New Conversation" ]
-                ]
             , sideNav model
             ]
         , div [ class "sidebar sidebar--right" ]
@@ -272,13 +268,13 @@ sideNav model =
     div [ class "side-nav-container" ]
         [ h3 [ class "side-nav-heading" ] [ text "Conversations" ]
         , div [ class "side-nav" ]
-            [ a [ class "side-nav__item", href "#" ]
+            [ a [ class "side-nav__item side-nav__item--selected", href "#" ]
                 [ span [ class "side-nav__item-name" ] [ text "Inbox" ]
                 ]
             , a [ class "side-nav__item", href "#" ]
                 [ span [ class "side-nav__item-name" ] [ text "Everything" ]
                 ]
-            , a [ class "side-nav__item side-nav__item--selected", href "#" ]
+            , a [ class "side-nav__item", href "#" ]
                 [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
                 ]
             ]
@@ -294,22 +290,37 @@ sideNav model =
                 [ span [ class "side-nav__item-name" ] [ text "Support" ]
                 ]
             ]
+        , h3 [ class "side-nav-heading" ] [ text "Integrations" ]
+        , div [ class "side-nav" ]
+            [ a [ class "side-nav__item", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "GitHub" ]
+                ]
+            , a [ class "side-nav__item", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "Honeybadger" ]
+                ]
+            , a [ class "side-nav__item", href "#" ]
+                [ span [ class "side-nav__item-name" ] [ text "New Relic" ]
+                ]
+            ]
         ]
 
 
 usersList : Model -> Html Msg
 usersList model =
-    div [ class "users-list" ]
-        [ a [ class "users-list__item", href "#" ]
-            [ span [ class "state-indicator state-indicator--available" ] []
-            , span [ class "users-list__name" ] [ text "Tiffany Reimer" ]
-            ]
-        , a [ class "users-list__item", href "#" ]
-            [ span [ class "state-indicator state-indicator--focus" ] []
-            , span [ class "users-list__name" ] [ text "Kelli Lowe" ]
-            ]
-        , a [ class "users-list__item users-list__item--offline", href "#" ]
-            [ span [ class "state-indicator state-indicator--offline" ] []
-            , span [ class "users-list__name" ] [ text "Joe Slacker" ]
+    div [ class "side-nav-container" ]
+        [ h3 [ class "side-nav-heading" ] [ text "Everyone" ]
+        , div [ class "users-list" ]
+            [ a [ class "users-list__item", href "#" ]
+                [ span [ class "state-indicator state-indicator--available" ] []
+                , span [ class "users-list__name" ] [ text "Tiffany Reimer" ]
+                ]
+            , a [ class "users-list__item", href "#" ]
+                [ span [ class "state-indicator state-indicator--focus" ] []
+                , span [ class "users-list__name" ] [ text "Kelli Lowe" ]
+                ]
+            , a [ class "users-list__item users-list__item--offline", href "#" ]
+                [ span [ class "state-indicator state-indicator--offline" ] []
+                , span [ class "users-list__name" ] [ text "Joe Slacker" ]
+                ]
             ]
         ]

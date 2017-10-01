@@ -59,7 +59,7 @@
   }
 
   &__name {
-    font-weight: bold;
+    font-weight: $bold-weight;
   }
 
   &__loading-placeholder {
@@ -69,6 +69,10 @@
     border-radius: $base-radius;
   }
 }
+
+// .space-selector__name {
+//   font-size: $default-font-size + 2px;
+// }
 
 .side-nav-heading {
   margin: 0 0 0 $baseline;
@@ -84,7 +88,9 @@
   &__item {
     position: relative;
     display: block;
-    padding: 1px $baseline * 2;
+    margin: 0 0 0 $baseline;
+    padding: 1px $baseline;
+    border-radius: $base-radius 0 0 $base-radius;
     color: $default-text-color;
 
     &:hover {
