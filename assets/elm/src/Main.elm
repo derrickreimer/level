@@ -24,7 +24,7 @@ main =
 
 type alias Model =
     { apiToken : String
-    , currentTeam : Maybe Team
+    , currentSpace : Maybe Space
     , currentUser : Maybe User
     , draft : Draft
     }
@@ -37,7 +37,7 @@ type alias Draft =
     }
 
 
-type alias Team =
+type alias Space =
     { name : String
     }
 
@@ -66,7 +66,7 @@ initialState : Flags -> Model
 initialState flags =
     { apiToken = flags.apiToken
     , currentUser = Nothing
-    , currentTeam = Nothing
+    , currentSpace = Nothing
     , draft = Draft "" "" []
     }
 
@@ -101,10 +101,10 @@ update msg model =
                 currentUser =
                     User response.firstName response.lastName
 
-                currentTeam =
-                    Team response.team.name
+                currentSpace =
+                    Space response.space.name
             in
-                ( { model | currentUser = Just currentUser, currentTeam = Just currentTeam }, Cmd.none )
+                ( { model | currentUser = Just currentUser, currentSpace = Just currentSpace }, Cmd.none )
 
         Bootstrapped (Err _) ->
             ( model, Cmd.none )
@@ -166,7 +166,7 @@ view : Model -> Html Msg
 view model =
     div [ id "app" ]
         [ div [ class "sidebar sidebar--left" ]
-            [ teamSelector model.currentTeam
+            [ spaceSelector model.currentSpace
             , filters model
             ]
         , div [ class "sidebar sidebar--right" ]
@@ -252,24 +252,24 @@ view model =
         ]
 
 
-teamSelector : Maybe Team -> Html Msg
-teamSelector maybeTeam =
-    case maybeTeam of
+spaceSelector : Maybe Space -> Html Msg
+spaceSelector maybeSpace =
+    case maybeSpace of
         Nothing ->
-            div [ class "team-selector" ]
-                [ a [ class "team-selector__toggle", href "#" ]
-                    [ div [ class "team-selector__avatar team-selector__avatar--placeholder" ] []
-                    , div [ class "team-selector__name team-selector__name" ]
-                        [ div [ class "team-selector__loading-placeholder" ] []
+            div [ class "space-selector" ]
+                [ a [ class "space-selector__toggle", href "#" ]
+                    [ div [ class "space-selector__avatar space-selector__avatar--placeholder" ] []
+                    , div [ class "space-selector__name space-selector__name" ]
+                        [ div [ class "space-selector__loading-placeholder" ] []
                         ]
                     ]
                 ]
 
-        Just team ->
-            div [ class "team-selector" ]
-                [ a [ class "team-selector__toggle", href "#" ]
-                    [ div [ class "team-selector__avatar" ] []
-                    , div [ class "team-selector__name" ] [ text team.name ]
+        Just space ->
+            div [ class "space-selector" ]
+                [ a [ class "space-selector__toggle", href "#" ]
+                    [ div [ class "space-selector__avatar" ] []
+                    , div [ class "space-selector__name" ] [ text space.name ]
                     ]
                 ]
 
@@ -282,7 +282,7 @@ identityMenu maybeUser =
                 [ a [ class "identity-menu__toggle", href "#" ]
                     [ div [ class "identity-menu__avatar identity-menu__avatar--placeholder" ] []
                     , div [ class "identity-menu__name" ]
-                        [ div [ class "team-selector__loading-placeholder" ] []
+                        [ div [ class "space-selector__loading-placeholder" ] []
                         ]
                     ]
                 ]

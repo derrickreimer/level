@@ -25,7 +25,7 @@
 
   <div class="auth-form__footer">
     <p>
-      <%= gettext "Want to create a team instead?" %>
+      <%= gettext "Want to create a space instead?" %>
       <%= link gettext("Sign up"), to: signup_url(@conn) %>.
     </p>
   </div>

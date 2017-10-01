@@ -3,7 +3,7 @@ defmodule LevelWeb.API.UserTokenControllerTest do
 
   describe "POST /api/user_tokens" do
     setup %{conn: conn} do
-      {:ok, %{team: team, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = insert_signup()
 
       conn =
         conn
@@ -11,16 +11,16 @@ defmodule LevelWeb.API.UserTokenControllerTest do
         |> put_launch_host()
         |> get("/")
 
-      {:ok, %{conn: conn, team: team, user: user}}
+      {:ok, %{conn: conn, space: space, user: user}}
     end
 
     test "generates a JWT for signed in user",
-      %{conn: conn, team: team, user: user} do
+      %{conn: conn, space: space, user: user} do
 
       conn =
         conn
-        |> sign_in(team, user)
-        |> put_team_host(team)
+        |> sign_in(space, user)
+        |> put_space_host(space)
         |> put_req_header("content-type", "application/json")
         |> post("/api/user_tokens")
 
@@ -29,11 +29,11 @@ defmodule LevelWeb.API.UserTokenControllerTest do
       assert decoded_token.claims["sub"] == user.id
     end
 
-    test "responds with unauthorized is user is not signed in", %{team: team} do
+    test "responds with unauthorized is user is not signed in", %{space: space} do
 
       conn =
         build_conn()
-        |> put_team_host(team)
+        |> put_space_host(space)
         |> put_req_header("content-type", "application/json")
         |> assign(:current_user, nil)
         |> post("/api/user_tokens")

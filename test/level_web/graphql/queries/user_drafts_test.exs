@@ -5,13 +5,13 @@ defmodule LevelWeb.GraphQL.UserDraftsTest do
   alias Level.Threads
 
   setup %{conn: conn} do
-    {:ok, %{user: user, team: team}} = insert_signup()
-    conn = authenticate_with_jwt(conn, team, user)
-    {:ok, %{conn: conn, user: user, team: team}}
+    {:ok, %{user: user, space: space}} = insert_signup()
+    conn = authenticate_with_jwt(conn, space, user)
+    {:ok, %{conn: conn, user: user, space: space}}
   end
 
   test "returns drafts belonging to the user",
-    %{conn: conn, user: user, team: team} do
+    %{conn: conn, user: user, space: space} do
     query = """
       {
         viewer {
@@ -28,7 +28,7 @@ defmodule LevelWeb.GraphQL.UserDraftsTest do
       }
     """
 
-    params = valid_draft_params(%{team: team, user: user})
+    params = valid_draft_params(%{space: space, user: user})
     changeset = Threads.create_draft_changeset(params)
     {:ok, draft} = Threads.create_draft(changeset)
 

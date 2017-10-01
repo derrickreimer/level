@@ -1,7 +1,7 @@
 defmodule LevelWeb.SessionController do
   use LevelWeb, :controller
 
-  plug :fetch_team
+  plug :fetch_space
   plug :fetch_current_user_by_session
   plug :redirect_if_signed_in
 
@@ -12,7 +12,7 @@ defmodule LevelWeb.SessionController do
   def create(conn, %{"session" => %{"username" => username,
                                     "password" => pass}}) do
     case LevelWeb.Auth.sign_in_with_credentials(
-      conn, conn.assigns.team, username, pass, repo: Repo) do
+      conn, conn.assigns.space, username, pass, repo: Repo) do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")

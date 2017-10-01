@@ -6,18 +6,18 @@ defmodule Level.ConnCaseHelpers do
   import Level.TestHelpers
   import Plug.Conn
 
-  def sign_in(conn, team, user) do
+  def sign_in(conn, space, user) do
     conn
-    |> LevelWeb.Auth.sign_in(team, user)
+    |> LevelWeb.Auth.sign_in(space, user)
     |> send_resp(:ok, "")
     |> Phoenix.ConnTest.recycle
   end
 
-  def authenticate_with_jwt(conn, team, user) do
+  def authenticate_with_jwt(conn, space, user) do
     token = LevelWeb.Auth.generate_signed_jwt(user)
 
     conn
-    |> put_team_host(team)
+    |> put_space_host(space)
     |> put_req_header("authorization", "Bearer #{token}")
   end
 

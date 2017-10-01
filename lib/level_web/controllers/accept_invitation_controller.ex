@@ -1,17 +1,17 @@
 defmodule LevelWeb.AcceptInvitationController do
   use LevelWeb, :controller
 
-  alias Level.Teams
+  alias Level.Spaces
 
-  plug :fetch_team
+  plug :fetch_space
 
   def create(conn, %{"id" => id, "user" => user_params}) do
-    invitation = Teams.get_pending_invitation!(conn.assigns[:team], id)
+    invitation = Spaces.get_pending_invitation!(conn.assigns[:space], id)
 
-    case Teams.accept_invitation(invitation, user_params) do
+    case Spaces.accept_invitation(invitation, user_params) do
       {:ok, %{user: user}} ->
         conn
-        |> LevelWeb.Auth.sign_in(invitation.team, user)
+        |> LevelWeb.Auth.sign_in(invitation.space, user)
         |> redirect(to: thread_path(conn, :index))
 
       {:error, :user, changeset, _} ->

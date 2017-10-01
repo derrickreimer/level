@@ -42,33 +42,12 @@ CREATE TYPE invitation_state AS ENUM (
 
 
 --
--- Name: message_state; Type: TYPE; Schema: public; Owner: -
+-- Name: space_state; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE message_state AS ENUM (
-    'DRAFT',
-    'SENT',
-    'DELETED'
-);
-
-
---
--- Name: team_state; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE team_state AS ENUM (
+CREATE TYPE space_state AS ENUM (
     'ACTIVE',
     'DISABLED'
-);
-
-
---
--- Name: thread_state; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE thread_state AS ENUM (
-    'SENT',
-    'DELETED'
 );
 
 
@@ -126,10 +105,10 @@ SET default_with_oids = false;
 
 CREATE TABLE drafts (
     id bigint DEFAULT next_global_id() NOT NULL,
-    team_id bigint NOT NULL,
+    space_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    recipient_ids character varying(255)[] DEFAULT ARRAY[]::character varying[] NOT NULL,
-    subject character varying(255) DEFAULT ''::character varying NOT NULL,
+    recipient_ids text[] DEFAULT ARRAY[]::text[] NOT NULL,
+    subject text DEFAULT ''::text NOT NULL,
     body text DEFAULT ''::text NOT NULL,
     is_truncated boolean DEFAULT false NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
@@ -155,30 +134,13 @@ CREATE SEQUENCE global_id_seq
 
 CREATE TABLE invitations (
     id bigint DEFAULT next_global_id() NOT NULL,
-    team_id bigint NOT NULL,
+    space_id bigint NOT NULL,
     invitor_id bigint NOT NULL,
     acceptor_id bigint,
     state invitation_state DEFAULT 'PENDING'::invitation_state NOT NULL,
     role user_role DEFAULT 'MEMBER'::user_role NOT NULL,
-    email character varying(255) NOT NULL,
+    email text NOT NULL,
     token uuid NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: messages; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE messages (
-    id bigint DEFAULT next_global_id() NOT NULL,
-    team_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    thread_id bigint NOT NULL,
-    state message_state DEFAULT 'DRAFT'::message_state NOT NULL,
-    body text NOT NULL,
-    is_truncated boolean DEFAULT false NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -195,29 +157,14 @@ CREATE TABLE schema_migrations (
 
 
 --
--- Name: teams; Type: TABLE; Schema: public; Owner: -
+-- Name: spaces; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE teams (
+CREATE TABLE spaces (
     id bigint DEFAULT next_global_id() NOT NULL,
-    name character varying(255) NOT NULL,
-    slug character varying(63) NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    state team_state DEFAULT 'ACTIVE'::team_state NOT NULL
-);
-
-
---
--- Name: threads; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE threads (
-    id bigint DEFAULT next_global_id() NOT NULL,
-    team_id bigint NOT NULL,
-    creator_id bigint NOT NULL,
-    state thread_state DEFAULT 'SENT'::thread_state NOT NULL,
-    subject character varying(255) NOT NULL,
+    state space_state DEFAULT 'ACTIVE'::space_state NOT NULL,
+    name text NOT NULL,
+    slug text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -229,17 +176,17 @@ CREATE TABLE threads (
 
 CREATE TABLE users (
     id bigint DEFAULT next_global_id() NOT NULL,
-    team_id bigint NOT NULL,
-    email character varying(255) NOT NULL,
-    username character varying(20) NOT NULL,
-    first_name character varying(255),
-    last_name character varying(255),
-    time_zone character varying(255) NOT NULL,
-    password_hash character varying(255) NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    space_id bigint NOT NULL,
+    state user_state DEFAULT 'ACTIVE'::user_state NOT NULL,
     role user_role DEFAULT 'MEMBER'::user_role NOT NULL,
-    state user_state DEFAULT 'ACTIVE'::user_state NOT NULL
+    email text NOT NULL,
+    username text NOT NULL,
+    first_name text,
+    last_name text,
+    time_zone text NOT NULL,
+    password_hash text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -260,14 +207,6 @@ ALTER TABLE ONLY invitations
 
 
 --
--- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY messages
-    ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
-
-
---
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -276,19 +215,11 @@ ALTER TABLE ONLY schema_migrations
 
 
 --
--- Name: teams teams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: spaces spaces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY teams
-    ADD CONSTRAINT teams_pkey PRIMARY KEY (id);
-
-
---
--- Name: threads threads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY threads
-    ADD CONSTRAINT threads_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY spaces
+    ADD CONSTRAINT spaces_pkey PRIMARY KEY (id);
 
 
 --
@@ -321,10 +252,10 @@ CREATE INDEX invitations_invitor_id_index ON invitations USING btree (invitor_id
 
 
 --
--- Name: invitations_team_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: invitations_space_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX invitations_team_id_index ON invitations USING btree (team_id);
+CREATE INDEX invitations_space_id_index ON invitations USING btree (space_id);
 
 
 --
@@ -338,71 +269,43 @@ CREATE UNIQUE INDEX invitations_token_index ON invitations USING btree (token);
 -- Name: invitations_unique_pending_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX invitations_unique_pending_email ON invitations USING btree (lower((email)::text)) WHERE (state = 'PENDING'::invitation_state);
+CREATE UNIQUE INDEX invitations_unique_pending_email ON invitations USING btree (lower(email)) WHERE (state = 'PENDING'::invitation_state);
 
 
 --
--- Name: messages_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: spaces_slug_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX messages_id_index ON messages USING btree (id);
-
-
---
--- Name: messages_thread_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX messages_thread_id_index ON messages USING btree (thread_id);
+CREATE UNIQUE INDEX spaces_slug_index ON spaces USING btree (slug);
 
 
 --
--- Name: teams_slug_index; Type: INDEX; Schema: public; Owner: -
+-- Name: users_space_id_email_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX teams_slug_index ON teams USING btree (slug);
-
-
---
--- Name: threads_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX threads_id_index ON threads USING btree (id);
+CREATE UNIQUE INDEX users_space_id_email_index ON users USING btree (space_id, email);
 
 
 --
--- Name: threads_team_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: users_space_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX threads_team_id_index ON threads USING btree (team_id);
-
-
---
--- Name: users_team_id_email_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX users_team_id_email_index ON users USING btree (team_id, email);
+CREATE INDEX users_space_id_index ON users USING btree (space_id);
 
 
 --
--- Name: users_team_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: users_space_id_username_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX users_team_id_index ON users USING btree (team_id);
-
-
---
--- Name: users_team_id_username_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX users_team_id_username_index ON users USING btree (team_id, username);
+CREATE UNIQUE INDEX users_space_id_username_index ON users USING btree (space_id, username);
 
 
 --
--- Name: drafts drafts_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: drafts drafts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY drafts
-    ADD CONSTRAINT drafts_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
+    ADD CONSTRAINT drafts_space_id_fkey FOREIGN KEY (space_id) REFERENCES spaces(id);
 
 
 --
@@ -430,64 +333,24 @@ ALTER TABLE ONLY invitations
 
 
 --
--- Name: invitations invitations_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: invitations invitations_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY invitations
-    ADD CONSTRAINT invitations_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
+    ADD CONSTRAINT invitations_space_id_fkey FOREIGN KEY (space_id) REFERENCES spaces(id);
 
 
 --
--- Name: messages messages_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY messages
-    ADD CONSTRAINT messages_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
-
-
---
--- Name: messages messages_thread_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY messages
-    ADD CONSTRAINT messages_thread_id_fkey FOREIGN KEY (thread_id) REFERENCES threads(id);
-
-
---
--- Name: messages messages_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY messages
-    ADD CONSTRAINT messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
-
-
---
--- Name: threads threads_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY threads
-    ADD CONSTRAINT threads_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES users(id);
-
-
---
--- Name: threads threads_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY threads
-    ADD CONSTRAINT threads_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
-
-
---
--- Name: users users_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: users users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
-    ADD CONSTRAINT users_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
+    ADD CONSTRAINT users_space_id_fkey FOREIGN KEY (space_id) REFERENCES spaces(id);
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20170723211950), (20170723212331), (20170724045329), (20170727231335), (20170729023453), (20170729045310), (20170813212405), (20170822002819);
+INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819);
 

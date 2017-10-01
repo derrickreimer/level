@@ -17,7 +17,7 @@ defmodule Level.Connections.Drafts do
   }
 
   @doc """
-  Execute a paginated query for users belonging to a given team.
+  Execute a paginated query for users belonging to a given space.
   """
   def get(user, args, _context) do
     case validate_args(args) do

@@ -5,13 +5,13 @@ defmodule LevelWeb.GraphQL.DeleteDraftTest do
   alias Level.Threads
 
   setup %{conn: conn} do
-    {:ok, %{user: user, team: team}} = insert_signup()
-    conn = authenticate_with_jwt(conn, team, user)
-    {:ok, %{conn: conn, user: user, team: team}}
+    {:ok, %{user: user, space: space}} = insert_signup()
+    conn = authenticate_with_jwt(conn, space, user)
+    {:ok, %{conn: conn, user: user, space: space}}
   end
 
-  test "deletes the draft returning true", %{conn: conn, team: team, user: user} do
-    {:ok, draft} = insert_draft(team, user)
+  test "deletes the draft returning true", %{conn: conn, space: space, user: user} do
+    {:ok, draft} = insert_draft(space, user)
 
     query = """
       mutation {
@@ -74,10 +74,10 @@ defmodule LevelWeb.GraphQL.DeleteDraftTest do
   end
 
   test "returns errors if draft does not belong to authenticated user",
-    %{conn: conn, team: team} do
+    %{conn: conn, space: space} do
 
-    {:ok, %{user: other_user}} = insert_signup(%{team: team})
-    {:ok, draft} = insert_draft(team, other_user)
+    {:ok, %{user: other_user}} = insert_signup(%{space: space})
+    {:ok, draft} = insert_draft(space, other_user)
 
     query = """
       mutation {

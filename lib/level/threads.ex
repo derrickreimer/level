@@ -27,7 +27,7 @@ defmodule Level.Threads do
   def create_draft(user, params \\ %{}) do
     params
     |> Map.put(:user_id, user.id)
-    |> Map.put(:team_id, user.team_id)
+    |> Map.put(:space_id, user.space_id)
     |> create_draft_changeset()
     |> create_draft()
   end
@@ -80,7 +80,7 @@ defmodule Level.Threads do
   Generates the recipient ID for a resource able to be specified as a thread
   recipient.
   """
-  def get_recipient_id(%Level.Teams.User{id: id}) do
+  def get_recipient_id(%Level.Spaces.User{id: id}) do
     "u:#{id}"
   end
 end

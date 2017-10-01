@@ -12,7 +12,7 @@ defmodule LevelWeb.Schema.Types do
   import_types LevelWeb.Schema.Connections
   import_types LevelWeb.Schema.Mutations
 
-  @desc "A `User` represents a person belonging to a specific `Team`."
+  @desc "A `User` represents a person belonging to a specific `Space`."
   object :user do
     field :id, non_null(:id)
 
@@ -32,10 +32,10 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
-    field :team, non_null(:team) do
+    field :space, non_null(:space) do
       resolve fn user, _, _ ->
-        batch({Helpers, :by_id, Level.Teams.Team}, user.team_id, fn batch_results ->
-          {:ok, Map.get(batch_results, user.team_id)}
+        batch({Helpers, :by_id, Level.Spaces.Space}, user.space_id, fn batch_results ->
+          {:ok, Map.get(batch_results, user.space_id)}
         end)
       end
     end
@@ -49,10 +49,10 @@ defmodule LevelWeb.Schema.Types do
     end
   end
 
-  @desc "A `Team` is the main organizational unit for a Level account."
-  object :team do
+  @desc "A `Space` is the main organizational unit for a Level account."
+  object :space do
     field :id, non_null(:id)
-    field :state, non_null(:team_state)
+    field :state, non_null(:space_state)
     field :name, non_null(:string)
     field :slug, non_null(:string)
     field :inserted_at, non_null(:time)
@@ -63,11 +63,11 @@ defmodule LevelWeb.Schema.Types do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :user_order
-      resolve &LevelWeb.TeamResolver.users/3
+      resolve &LevelWeb.SpaceResolver.users/3
     end
   end
 
-  @desc "An `Invitation` is the means by which a new user joins an existing `Team`."
+  @desc "An `Invitation` is the means by which a new user joins an existing `Space`."
   object :invitation do
     field :id, non_null(:id)
     field :state, non_null(:invitation_state)
@@ -89,16 +89,16 @@ defmodule LevelWeb.Schema.Types do
 
     field :user, non_null(:user) do
       resolve fn draft, _, _ ->
-        batch({Helpers, :by_id, Level.Teams.User}, draft.user_id, fn batch_results ->
+        batch({Helpers, :by_id, Level.Spaces.User}, draft.user_id, fn batch_results ->
           {:ok, Map.get(batch_results, draft.user_id)}
         end)
       end
     end
 
-    field :team, non_null(:team) do
+    field :space, non_null(:space) do
       resolve fn draft, _, _ ->
-        batch({Helpers, :by_id, Level.Teams.Team}, draft.team_id, fn batch_results ->
-          {:ok, Map.get(batch_results, draft.team_id)}
+        batch({Helpers, :by_id, Level.Spaces.Space}, draft.space_id, fn batch_results ->
+          {:ok, Map.get(batch_results, draft.space_id)}
         end)
       end
     end

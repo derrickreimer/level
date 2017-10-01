@@ -14,7 +14,7 @@ defmodule LevelWeb.Schema.Mutations do
     field :message, non_null(:string)
   end
 
-  @desc "The response to inviting a user to a team."
+  @desc "The response to inviting a user to a space."
   object :invite_user_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors

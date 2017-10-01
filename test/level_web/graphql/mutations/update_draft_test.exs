@@ -3,12 +3,12 @@ defmodule LevelWeb.GraphQL.UpdateDraftTest do
   import LevelWeb.GraphQL.TestHelpers
 
   setup %{conn: conn} do
-    {:ok, %{user: user, team: team}} = insert_signup()
-    conn = authenticate_with_jwt(conn, team, user)
+    {:ok, %{user: user, space: space}} = insert_signup()
+    conn = authenticate_with_jwt(conn, space, user)
 
-    {:ok, draft} = insert_draft(team, user)
+    {:ok, draft} = insert_draft(space, user)
 
-    {:ok, %{conn: conn, user: user, team: team, draft: draft}}
+    {:ok, %{conn: conn, user: user, space: space, draft: draft}}
   end
 
   test "updates a draft when given valid data", %{conn: conn, draft: draft} do
@@ -51,10 +51,10 @@ defmodule LevelWeb.GraphQL.UpdateDraftTest do
   end
 
   test "returns errors when draft does not belong to the authenticated user",
-    %{conn: conn, team: team} do
+    %{conn: conn, space: space} do
 
-    {:ok, %{user: other_user}} = insert_signup(%{team_id: team.id})
-    {:ok, non_owned_draft} = insert_draft(team, other_user)
+    {:ok, %{user: other_user}} = insert_signup(%{space_id: space.id})
+    {:ok, non_owned_draft} = insert_draft(space, other_user)
 
     query = """
       mutation {

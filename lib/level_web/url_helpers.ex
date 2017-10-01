@@ -9,24 +9,24 @@ defmodule LevelWeb.UrlHelpers do
   def signup_url(conn) do
     URI.to_string %{build_uri_from_conn(conn) |
       host: "launch.#{default_host()}",
-      path: Helpers.team_path(conn, :new)}
+      path: Helpers.space_path(conn, :new)}
   end
 
-  def team_login_url(conn, team) do
+  def space_login_url(conn, space) do
     URI.to_string %{build_uri_from_conn(conn) |
-      host: "#{team.slug}.#{default_host()}",
+      host: "#{space.slug}.#{default_host()}",
       path: Helpers.session_path(conn, :new)}
   end
 
-  def team_search_url(conn) do
+  def space_search_url(conn) do
     URI.to_string %{build_uri_from_conn(conn) |
       host: "launch.#{default_host()}",
-      path: Helpers.team_search_path(conn, :new)}
+      path: Helpers.space_search_path(conn, :new)}
   end
 
-  def threads_url(conn, team) do
+  def threads_url(conn, space) do
     URI.to_string %{build_uri_from_conn(conn) |
-      host: "#{team.slug}.#{default_host()}",
+      host: "#{space.slug}.#{default_host()}",
       path: Helpers.thread_path(conn, :index)}
   end
 

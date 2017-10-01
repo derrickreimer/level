@@ -1,10 +1,10 @@
 defmodule LevelWeb.API.SignupErrorsController do
   use LevelWeb, :controller
 
-  alias Level.Teams
+  alias Level.Spaces
 
   def index(conn, %{"signup" => params}) do
-    changeset = Teams.registration_changeset(%{}, params)
+    changeset = Spaces.registration_changeset(%{}, params)
     render conn, "show.json", %{changeset: changeset}
   end
 end

@@ -1,4 +1,4 @@
-You have been invited by <%= @invitor.email %> to join the <%= @team.name %> team on Level.<br>
+You have been invited by <%= @invitor.email %> to join the <%= @space.name %> space on Level.<br>
 <br>
 Follow this link to accept your invitation:<br>
 <%= link(@invitation_url, to: @invitation_url) %><br>

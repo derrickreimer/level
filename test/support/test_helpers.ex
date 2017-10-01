@@ -10,8 +10,8 @@ defmodule Level.TestHelpers do
     salt = random_string()
 
     %{
-      slug: "team#{salt}",
-      team_name: "Level, Inc.",
+      slug: "#{salt}",
+      space_name: "Level, Inc.",
       username: "user#{salt}",
       first_name: "Jane",
       last_name: "Doe",
@@ -32,17 +32,17 @@ defmodule Level.TestHelpers do
     }
   end
 
-  def valid_invitation_params(%{team: team, invitor: invitor}) do
+  def valid_invitation_params(%{space: space, invitor: invitor}) do
     %{
-      team_id: team.id,
+      space_id: space.id,
       invitor_id: invitor.id,
       email: "user#{random_string()}@level.live"
     }
   end
 
-  def valid_draft_params(%{team: team, user: user}) do
+  def valid_draft_params(%{space: space, user: user}) do
     %{
-      team_id: team.id,
+      space_id: space.id,
       user_id: user.id,
       subject: "This is the subject",
       body: "I am the body",
@@ -56,24 +56,24 @@ defmodule Level.TestHelpers do
       |> Map.merge(params)
 
     %{}
-    |> Level.Teams.registration_changeset(params)
-    |> Level.Teams.register()
+    |> Level.Spaces.registration_changeset(params)
+    |> Level.Spaces.register()
   end
 
-  def insert_member(team, params \\ %{}) do
+  def insert_member(space, params \\ %{}) do
     params =
       valid_user_params()
-      |> Map.put(:team_id, team.id)
+      |> Map.put(:space_id, space.id)
       |> Map.merge(params)
 
-    %Level.Teams.User{}
-    |> Level.Teams.User.signup_changeset(params)
+    %Level.Spaces.User{}
+    |> Level.Spaces.User.signup_changeset(params)
     |> Repo.insert()
   end
 
-  def insert_draft(team, user, params \\ %{}) do
+  def insert_draft(space, user, params \\ %{}) do
     params =
-      %{team: team, user: user}
+      %{space: space, user: user}
       |> valid_draft_params()
       |> Map.merge(params)
 
@@ -86,8 +86,8 @@ defmodule Level.TestHelpers do
     %{conn | host: "launch.level.test"}
   end
 
-  def put_team_host(conn, team) do
-    %{conn | host: "#{team.slug}.level.test"}
+  def put_space_host(conn, space) do
+    %{conn | host: "#{space.slug}.level.test"}
   end
 
   defp random_string do

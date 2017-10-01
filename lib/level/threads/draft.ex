@@ -11,8 +11,8 @@ defmodule Level.Threads.Draft do
     field :subject, :string, read_after_writes: true
     field :body, :string, read_after_writes: true
     field :is_truncated, :boolean, read_after_writes: true
-    belongs_to :team, Level.Teams.Team
-    belongs_to :user, Level.Teams.User
+    belongs_to :space, Level.Spaces.Space
+    belongs_to :user, Level.Spaces.User
 
     timestamps()
   end
@@ -22,8 +22,8 @@ defmodule Level.Threads.Draft do
   """
   def create_changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:team_id, :user_id, :recipient_ids, :subject, :body])
-    |> validate_required([:team_id, :user_id, :recipient_ids])
+    |> cast(params, [:space_id, :user_id, :recipient_ids, :subject, :body])
+    |> validate_required([:space_id, :user_id, :recipient_ids])
     |> apply_common_validations()
   end
 

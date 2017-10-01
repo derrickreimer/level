@@ -15,7 +15,7 @@ defmodule LevelWeb.Schema.Enums do
 
     @desc """
     The state when a user's membership has been revoked or the user has
-    opted-out of the team.
+    opted-out of the space.
     """
     value :disabled, as: "DISABLED"
   end
@@ -29,7 +29,7 @@ defmodule LevelWeb.Schema.Enums do
     value :member, as: "MEMBER"
 
     @desc """
-    Elevated permissions that allow the user to administrate the team,
+    Elevated permissions that allow the user to administrate the space,
     but not manage billing and other vital functions.
     """
     value :admin, as: "ADMIN"
@@ -39,14 +39,14 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   @desc """
-  The `TeamState` scalar type represents the possible states a `Team` object
+  The `SpaceState` scalar type represents the possible states a `Space` object
   can have.
   """
-  enum :team_state do
-    @desc "The default state for a team."
+  enum :space_state do
+    @desc "The default state for a space."
     value :active, as: "ACTIVE"
 
-    @desc "The state when a team has been shut down."
+    @desc "The state when a space has been shut down."
     value :disabled, as: "DISABLED"
   end
 

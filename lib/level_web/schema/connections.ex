@@ -29,7 +29,7 @@ defmodule LevelWeb.Schema.Connections do
     field :cursor, non_null(:cursor)
   end
 
-  @desc "A list of users belonging to a team."
+  @desc "A list of users belonging to a space."
   object :user_connection do
     @desc "A list of edges."
     field :edges, list_of(:user_edge)

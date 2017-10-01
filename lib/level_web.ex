@@ -38,7 +38,7 @@ defmodule LevelWeb do
       import Level.Gettext
 
       import LevelWeb.Auth, only: [
-        fetch_team: 2,
+        fetch_space: 2,
         fetch_current_user_by_session: 2,
         authenticate_with_token: 2,
         authenticate_user: 2
@@ -80,7 +80,7 @@ defmodule LevelWeb do
       use Phoenix.Router
 
       import LevelWeb.Auth, only: [
-        fetch_team: 2,
+        fetch_space: 2,
         fetch_current_user_by_session: 2,
         authenticate_with_token: 2,
         authenticate_user: 2
