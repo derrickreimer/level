@@ -7,11 +7,21 @@ defmodule Level.Rooms do
 
   alias Level.Repo
   alias Level.Rooms.Room
+  alias Level.Rooms.RoomSubscription
+  alias Ecto.Multi
 
   @doc """
-  Builds a changeset for creating a new room.
+  Creates a new room and subscribes the creator to the room. If successful,
+  returns a tuple of the form `{:ok, %{room: room, room_subscription: room_subscription}}`.
   """
-  def create_room_changeset(user, params \\ %{}) do
+  def create_room(user, params \\ %{}) do
+    user
+    |> create_room_operation(params)
+    |> Repo.transaction()
+  end
+
+  # Builds a changeset for creating a new room.
+  defp create_room_changeset(user, params \\ %{}) do
     params_with_relations =
       params
       |> Map.put(:creator_id, user.id)
@@ -20,12 +30,23 @@ defmodule Level.Rooms do
     Room.create_changeset(%Room{}, params_with_relations)
   end
 
-  @doc """
-  Creates a new room.
-  """
-  def create_room(user, params \\ %{}) do
-    user
-    |> create_room_changeset(params)
-    |> Repo.insert()
+  # Builds a changeset for creating a new room subscription.
+  defp create_room_subscription_changeset(room, user) do
+    RoomSubscription.create_changeset(%RoomSubscription{},
+      %{space_id: user.space_id, user_id: user.id, room_id: room.id})
+  end
+
+  # Builds an operation to create a new room. Specifically, this operation
+  # inserts a new record in the rooms table and, provided that succeeds,
+  # inserts a new record into the room subscriptions table for the user that
+  # created the room.
+  defp create_room_operation(user, params \\ %{}) do
+    Multi.new
+    |> Multi.insert(:room, create_room_changeset(user, params))
+    |> Multi.run(:room_subscription, fn %{room: room} ->
+      room
+      |> create_room_subscription_changeset(user)
+      |> Repo.insert()
+    end)
   end
 end
