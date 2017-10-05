@@ -157,6 +157,20 @@ CREATE TABLE invitations (
 
 
 --
+-- Name: room_subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE room_subscriptions (
+    id bigint DEFAULT next_global_id() NOT NULL,
+    space_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    room_id bigint NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: rooms; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -234,6 +248,14 @@ ALTER TABLE ONLY invitations
 
 
 --
+-- Name: room_subscriptions room_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_subscriptions
+    ADD CONSTRAINT room_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -305,6 +327,20 @@ CREATE UNIQUE INDEX invitations_token_index ON invitations USING btree (token);
 --
 
 CREATE UNIQUE INDEX invitations_unique_pending_email ON invitations USING btree (lower(email)) WHERE (state = 'PENDING'::invitation_state);
+
+
+--
+-- Name: room_subscriptions_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX room_subscriptions_id_index ON room_subscriptions USING btree (id);
+
+
+--
+-- Name: room_subscriptions_user_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX room_subscriptions_user_id_index ON room_subscriptions USING btree (user_id);
 
 
 --
@@ -397,6 +433,30 @@ ALTER TABLE ONLY invitations
 
 
 --
+-- Name: room_subscriptions room_subscriptions_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_subscriptions
+    ADD CONSTRAINT room_subscriptions_room_id_fkey FOREIGN KEY (room_id) REFERENCES rooms(id);
+
+
+--
+-- Name: room_subscriptions room_subscriptions_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_subscriptions
+    ADD CONSTRAINT room_subscriptions_space_id_fkey FOREIGN KEY (space_id) REFERENCES spaces(id);
+
+
+--
+-- Name: room_subscriptions room_subscriptions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_subscriptions
+    ADD CONSTRAINT room_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
+
+--
 -- Name: rooms rooms_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -424,5 +484,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526);
+INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147);
 
