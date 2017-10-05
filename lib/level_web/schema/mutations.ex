@@ -82,4 +82,23 @@ defmodule LevelWeb.Schema.Mutations do
     @desc "A list of validation errors."
     field :errors, list_of(:error)
   end
+
+  @desc "The response to creating a room."
+  object :create_room_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, :boolean
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The newly-created object. If the mutation was not successful,
+    this field will be null.
+    """
+    field :room, :room
+  end
 end

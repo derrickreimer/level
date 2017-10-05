@@ -103,4 +103,30 @@ defmodule LevelWeb.Schema.Types do
       end
     end
   end
+
+  @desc "An `Room` is a chat room for a particular group of users."
+  object :room do
+    field :id, non_null(:id)
+    field :name, non_null(:string)
+    field :description, non_null(:string)
+    field :is_private, non_null(:boolean)
+    field :inserted_at, non_null(:time)
+    field :updated_at, non_null(:time)
+
+    field :creator, non_null(:user) do
+      resolve fn room, _, _ ->
+        batch({Helpers, :by_id, Level.Spaces.User}, room.creator_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room.creator_id)}
+        end)
+      end
+    end
+
+    field :space, non_null(:space) do
+      resolve fn room, _, _ ->
+        batch({Helpers, :by_id, Level.Spaces.Space}, room.space_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room.space_id)}
+        end)
+      end
+    end
+  end
 end
