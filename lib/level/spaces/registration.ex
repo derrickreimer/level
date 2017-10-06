@@ -44,22 +44,30 @@ defmodule Level.Spaces.Registration do
   """
   def transaction(changeset) do
     space_changeset = Space.signup_changeset(%Space{}, space_params(changeset))
-    user_changeset = User.signup_changeset(%User{}, user_params(changeset))
 
     Multi.new
     |> Multi.insert(:space, space_changeset)
-    |> Multi.run(:user, fn %{space: space} ->
-      user_changeset
+    |> Multi.run(:user, create_user_operation(user_params(changeset)))
+    |> Multi.run(:default_room, create_default_room_operation())
+  end
+
+  defp create_user_operation(user_params) do
+    fn %{space: space} ->
+      %User{}
+      |> User.signup_changeset(user_params)
       |> put_change(:space_id, space.id)
-      |> Repo.insert
-    end)
-    |> Multi.run(:default_room, fn %{user: user} ->
+      |> Repo.insert()
+    end
+  end
+
+  defp create_default_room_operation do
+    fn %{user: user} ->
       Rooms.create_room(user, %{
         name: "Everyone",
         description: gettext("This room is for chatter across the entire space."),
         is_private: false
       })
-    end)
+    end
   end
 
   defp space_params(changeset) do
