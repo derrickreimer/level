@@ -11,6 +11,7 @@ defmodule Level.Spaces.Registration do
   alias Level.Repo
   alias Level.Spaces.Space
   alias Level.Spaces.User
+  alias Level.Rooms
 
   @types %{
     slug: :string,
@@ -43,15 +44,30 @@ defmodule Level.Spaces.Registration do
   """
   def transaction(changeset) do
     space_changeset = Space.signup_changeset(%Space{}, space_params(changeset))
-    user_changeset = User.signup_changeset(%User{}, user_params(changeset))
 
     Multi.new
     |> Multi.insert(:space, space_changeset)
-    |> Multi.run(:user, fn %{space: space} ->
-      user_changeset
+    |> Multi.run(:user, create_user_operation(user_params(changeset)))
+    |> Multi.run(:default_room, create_default_room_operation())
+  end
+
+  defp create_user_operation(user_params) do
+    fn %{space: space} ->
+      %User{}
+      |> User.signup_changeset(user_params)
       |> put_change(:space_id, space.id)
-      |> Repo.insert
-    end)
+      |> Repo.insert()
+    end
+  end
+
+  defp create_default_room_operation do
+    fn %{user: user} ->
+      Rooms.create_room(user, %{
+        name: gettext("Everyone"),
+        description: gettext("This room is for chatter across the entire space."),
+        subscriber_policy: "MANDATORY"
+      })
+    end
   end
 
   defp space_params(changeset) do

@@ -27,10 +27,7 @@ defmodule Level.ConnectionsTest do
   describe "room_subscriptions/3" do
     setup do
       {:ok, %{user: user}} = insert_signup()
-
-      {:ok, %{room_subscription: room_subscription}} =
-        Level.Rooms.create_room(user, valid_room_params())
-
+      room_subscription = Level.Repo.get_by(Level.Rooms.RoomSubscription, user_id: user.id)
       {:ok, %{room_subscription: room_subscription, user: user}}
     end
 

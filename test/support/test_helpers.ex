@@ -54,7 +54,7 @@ defmodule Level.TestHelpers do
     %{
       name: "room#{random_string()}",
       description: "This is a room",
-      is_private: false
+      subscriber_policy: "PUBLIC"
     }
   end
 

@@ -55,6 +55,38 @@ defmodule Level.SpacesTest do
     end
   end
 
+  describe "register/1" do
+    setup do
+      params = valid_signup_params()
+      changeset = Spaces.registration_changeset(%{}, params)
+      {:ok, %{changeset: changeset}}
+    end
+
+    test "inserts a new user", %{changeset: changeset} do
+      {:ok, %{user: user}} = Spaces.register(changeset)
+      assert user.email == changeset.changes.email
+      assert user.role == "OWNER"
+    end
+
+    test "inserts a new space", %{changeset: changeset} do
+      {:ok, %{user: user, space: space}} = Spaces.register(changeset)
+      assert space.slug == changeset.changes.slug
+      assert user.space_id == space.id
+    end
+
+    test "inserts a new 'Everyone' room", %{changeset: changeset} do
+      {:ok, %{default_room: %{room: room}, space: space, user: user}} = Spaces.register(changeset)
+
+      assert room.name == "Everyone"
+      assert room.space_id == space.id
+      assert room.subscriber_policy == "MANDATORY"
+
+      user_with_subscriptions = Repo.preload(user, :room_subscriptions)
+      [subscription | _] = user_with_subscriptions.room_subscriptions
+      assert subscription.room_id == room.id
+    end
+  end
+
   describe "create_invitation/1" do
     setup do
       {:ok, %{space: space, user: user}} = insert_signup()

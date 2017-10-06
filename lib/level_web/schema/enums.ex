@@ -84,6 +84,21 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   @desc """
+  This type represents the policy the governs how users are allowed to subscribe
+  to rooms.
+  """
+  enum :room_subscriber_policy do
+    @desc "All users must be subscribed to the room."
+    value :mandatory, as: "MANDATORY"
+
+    @desc "The room is visible to all users, and users may freely choose to subscribe."
+    value :public, as: "PUBLIC"
+
+    @desc "The room may only be subscribed to by invitation."
+    value :invite_only, as: "INVITE_ONLY"
+  end
+
+  @desc """
   The `RoomSubscriptionOrderField` scalar type represents the possible fields
   by which room subscriptions can be ordered.
   """
