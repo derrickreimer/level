@@ -355,6 +355,13 @@ CREATE INDEX room_subscriptions_room_id_index ON room_subscriptions USING btree 
 
 
 --
+-- Name: room_subscriptions_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX room_subscriptions_unique ON room_subscriptions USING btree (user_id, room_id);
+
+
+--
 -- Name: room_subscriptions_user_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -502,5 +509,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016);
+INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345);
 
