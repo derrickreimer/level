@@ -79,6 +79,7 @@ defmodule Level.SpacesTest do
 
       assert room.name == "Everyone"
       assert room.space_id == space.id
+      assert room.subscriber_policy == "MANDATORY"
 
       user_with_subscriptions = Repo.preload(user, :room_subscriptions)
       [subscription | _] = user_with_subscriptions.room_subscriptions

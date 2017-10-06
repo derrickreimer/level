@@ -63,9 +63,9 @@ defmodule Level.Spaces.Registration do
   defp create_default_room_operation do
     fn %{user: user} ->
       Rooms.create_room(user, %{
-        name: "Everyone",
+        name: gettext("Everyone"),
         description: gettext("This room is for chatter across the entire space."),
-        is_private: false
+        subscriber_policy: "MANDATORY"
       })
     end
   end

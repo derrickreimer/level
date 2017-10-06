@@ -10,15 +10,16 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
       mutation CreateRoom(
         $name: String!,
         $description: String,
-        $isPrivate: Boolean!
+        $subscriberPolicy: RoomSubscriberPolicy!
       ) {
         createRoom(
           name: $name,
           description: $description,
-          isPrivate: $isPrivate
+          subscriberPolicy: $subscriberPolicy
         ) {
           room {
             name
+            subscriberPolicy
           }
           success
           errors {
@@ -38,7 +39,7 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
     variables = %{
       name: "Development",
       description: "A cool room",
-      isPrivate: true
+      subscriberPolicy: "INVITE_ONLY"
     }
 
     conn =
@@ -51,7 +52,8 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
         "createRoom" => %{
           "success" => true,
           "room" => %{
-            "name" => variables.name
+            "name" => variables.name,
+            "subscriberPolicy" => "INVITE_ONLY"
           },
           "errors" => []
         }

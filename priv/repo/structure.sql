@@ -52,6 +52,17 @@ CREATE TYPE room_state AS ENUM (
 
 
 --
+-- Name: room_subscriber_policy; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE room_subscriber_policy AS ENUM (
+    'MANDATORY',
+    'PUBLIC',
+    'INVITE_ONLY'
+);
+
+
+--
 -- Name: space_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -181,9 +192,9 @@ CREATE TABLE rooms (
     state room_state DEFAULT 'ACTIVE'::room_state NOT NULL,
     name text NOT NULL,
     description text DEFAULT ''::text NOT NULL,
-    is_private boolean DEFAULT false NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    subscriber_policy room_subscriber_policy DEFAULT 'PUBLIC'::room_subscriber_policy
 );
 
 
@@ -337,6 +348,13 @@ CREATE INDEX room_subscriptions_id_index ON room_subscriptions USING btree (id);
 
 
 --
+-- Name: room_subscriptions_room_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX room_subscriptions_room_id_index ON room_subscriptions USING btree (room_id);
+
+
+--
 -- Name: room_subscriptions_user_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -484,5 +502,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147);
+INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016);
 

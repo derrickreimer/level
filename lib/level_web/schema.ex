@@ -53,7 +53,7 @@ defmodule LevelWeb.Schema do
     field :create_room, type: :create_room_payload do
       arg :name, non_null(:string)
       arg :description, :string
-      arg :is_private, :boolean
+      arg :subscriber_policy, :room_subscriber_policy
 
       resolve &LevelWeb.RoomResolver.create/2
     end

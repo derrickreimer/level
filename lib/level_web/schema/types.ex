@@ -117,7 +117,7 @@ defmodule LevelWeb.Schema.Types do
     field :id, non_null(:id)
     field :name, non_null(:string)
     field :description, non_null(:string)
-    field :is_private, non_null(:boolean)
+    field :subscriber_policy, non_null(:room_subscriber_policy)
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
