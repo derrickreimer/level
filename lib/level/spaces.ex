@@ -57,7 +57,7 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Performs user registration and space creation, given a changeset.
+  Performs user registration from a given changeset.
   """
   def register(changeset) do
     changeset

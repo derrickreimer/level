@@ -2,16 +2,13 @@ defmodule LevelWeb.GraphQL.RoomSubscriptionsTest do
   use LevelWeb.ConnCase
   import LevelWeb.GraphQL.TestHelpers
 
-  alias Level.Rooms
-
   setup %{conn: conn} do
     {:ok, %{user: user, space: space}} = insert_signup()
     conn = authenticate_with_jwt(conn, space, user)
     {:ok, %{conn: conn, user: user, space: space}}
   end
 
-  test "returns room subscriptions for the user",
-    %{conn: conn, user: user} do
+  test "returns room subscriptions for the user", %{conn: conn} do
     query = """
       {
         viewer {
@@ -19,7 +16,6 @@ defmodule LevelWeb.GraphQL.RoomSubscriptionsTest do
             edges {
               node {
                 room {
-                  id
                   name
                 }
               }
@@ -29,9 +25,6 @@ defmodule LevelWeb.GraphQL.RoomSubscriptionsTest do
         }
       }
     """
-
-    params = valid_room_params()
-    {:ok, %{room: room}} = Rooms.create_room(user, params)
 
     conn =
       conn
@@ -45,8 +38,7 @@ defmodule LevelWeb.GraphQL.RoomSubscriptionsTest do
             "edges" => [%{
               "node" => %{
                 "room" => %{
-                  "id" => to_string(room.id),
-                  "name" => room.name
+                  "name" => "Everyone"
                 }
               }
             }],

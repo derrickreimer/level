@@ -11,6 +11,7 @@ defmodule Level.Spaces.Registration do
   alias Level.Repo
   alias Level.Spaces.Space
   alias Level.Spaces.User
+  alias Level.Rooms
 
   @types %{
     slug: :string,
@@ -51,6 +52,13 @@ defmodule Level.Spaces.Registration do
       user_changeset
       |> put_change(:space_id, space.id)
       |> Repo.insert
+    end)
+    |> Multi.run(:default_room, fn %{user: user} ->
+      Rooms.create_room(user, %{
+        name: "Everyone",
+        description: gettext("This room is for chatter across the entire space."),
+        is_private: false
+      })
     end)
   end
 
