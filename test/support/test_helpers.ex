@@ -50,6 +50,14 @@ defmodule Level.TestHelpers do
     }
   end
 
+  def valid_room_params do
+    %{
+      name: "room#{random_string()}",
+      description: "This is a room",
+      is_private: false
+    }
+  end
+
   def insert_signup(params \\ %{}) do
     params =
       valid_signup_params()

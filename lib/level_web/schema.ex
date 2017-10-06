@@ -48,5 +48,14 @@ defmodule LevelWeb.Schema do
 
       resolve &LevelWeb.DraftResolver.destroy/2
     end
+
+    @desc "Create a new room."
+    field :create_room, type: :create_room_payload do
+      arg :name, non_null(:string)
+      arg :description, :string
+      arg :is_private, :boolean
+
+      resolve &LevelWeb.RoomResolver.create/2
+    end
   end
 end
