@@ -47,6 +47,14 @@ defmodule LevelWeb.Schema.Types do
       arg :order_by, :user_order
       resolve &LevelWeb.UserResolver.drafts/3
     end
+
+    field :room_subscriptions, non_null(:room_subscription_connection) do
+      arg :first, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :room_subscription_order
+      resolve &LevelWeb.UserResolver.room_subscriptions/3
+    end
   end
 
   @desc "A `Space` is the main organizational unit for a Level account."
@@ -104,7 +112,7 @@ defmodule LevelWeb.Schema.Types do
     end
   end
 
-  @desc "An `Room` is a chat room for a particular group of users."
+  @desc "A `Room` is a chat room for a particular group of users."
   object :room do
     field :id, non_null(:id)
     field :name, non_null(:string)
@@ -125,6 +133,35 @@ defmodule LevelWeb.Schema.Types do
       resolve fn room, _, _ ->
         batch({Helpers, :by_id, Level.Spaces.Space}, room.space_id, fn batch_results ->
           {:ok, Map.get(batch_results, room.space_id)}
+        end)
+      end
+    end
+  end
+
+  @desc "A `RoomSubscription` represents a user's membership in a `Room`."
+  object :room_subscription do
+    field :id, non_null(:id)
+
+    field :user, non_null(:user) do
+      resolve fn room_subscription, _, _ ->
+        batch({Helpers, :by_id, Level.Spaces.User}, room_subscription.user_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room_subscription.user_id)}
+        end)
+      end
+    end
+
+    field :space, non_null(:space) do
+      resolve fn room_subscription, _, _ ->
+        batch({Helpers, :by_id, Level.Spaces.Space}, room_subscription.space_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room_subscription.space_id)}
+        end)
+      end
+    end
+
+    field :room, non_null(:room) do
+      resolve fn room_subscription, _, _ ->
+        batch({Helpers, :by_id, Level.Rooms.Room}, room_subscription.room_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room_subscription.room_id)}
         end)
       end
     end
