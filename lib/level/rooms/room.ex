@@ -13,6 +13,7 @@ defmodule Level.Rooms.Room do
     field :is_private, :boolean, read_after_writes: true
     belongs_to :space, Level.Spaces.Space
     belongs_to :creator, Level.Spaces.User
+    has_many :room_subscriptions, Level.Rooms.RoomSubscription
 
     timestamps()
   end

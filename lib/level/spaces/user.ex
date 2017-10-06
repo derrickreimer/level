@@ -24,6 +24,7 @@ defmodule Level.Spaces.User do
     field :password, :string, virtual: true
     field :password_hash, :string
     belongs_to :space, Level.Spaces.Space
+    has_many :room_subscriptions, Level.Rooms.RoomSubscription
 
     timestamps()
   end
