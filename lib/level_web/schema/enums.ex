@@ -84,6 +84,15 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   @desc """
+  The `RoomSubscriptionOrderField` scalar type represents the possible fields
+  by which room subscriptions can be ordered.
+  """
+  enum :room_subscription_order_field do
+    @desc "Order by the inserted_at field."
+    value :inserted_at
+  end
+
+  @desc """
   The `OrderDirection` scalar type represents the direction by which nodes
   should be sorted in a connection.
   """

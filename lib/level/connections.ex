@@ -16,4 +16,11 @@ defmodule Level.Connections do
   def drafts(user, args, context \\ %{}) do
     Level.Connections.Drafts.get(user, args, context)
   end
+
+  @doc """
+  Fetch room subscriptions belonging to a given user.
+  """
+  def room_subscriptions(user, args, context \\ %{}) do
+    Level.Connections.RoomSubscriptions.get(user, args, context)
+  end
 end
