@@ -12,6 +12,7 @@ defmodule Level.Spaces.Invitation do
   alias Level.Repo
   alias Level.Spaces.Space
   alias Level.Spaces.User
+  alias Level.Rooms
 
   # @states ["PENDING", "ACCEPTED", "REVOKED"]
 
@@ -53,7 +54,7 @@ defmodule Level.Spaces.Invitation do
   @doc """
   Builds a transaction to execute when accepting an invitation.
   """
-  def accept_transaction(invitation, params) do
+  def accept_operation(invitation, params) do
     user_changeset =
       %User{}
       |> User.signup_changeset(params)
@@ -62,11 +63,22 @@ defmodule Level.Spaces.Invitation do
 
     Multi.new
     |> Multi.insert(:user, user_changeset)
-    |> Multi.run(:invitation, fn %{user: user} ->
+    |> Multi.run(:invitation, mark_accepted_operation(invitation))
+    |> Multi.run(:room_subscriptions, subscribe_to_rooms_operation())
+  end
+
+  defp mark_accepted_operation(invitation) do
+    fn %{user: user} ->
       invitation
       |> accept_changeset(%{acceptor_id: user.id, state: "ACCEPTED"})
       |> Repo.update()
-    end)
+    end
+  end
+
+  defp subscribe_to_rooms_operation do
+    fn %{user: user} ->
+      {:ok, Rooms.subscribe_to_mandatory_rooms(user)}
+    end
   end
 
   defp generate_token do

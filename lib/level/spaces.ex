@@ -61,7 +61,7 @@ defmodule Level.Spaces do
   """
   def register(changeset) do
     changeset
-    |> Registration.transaction()
+    |> Registration.create_operation()
     |> Repo.transaction()
   end
 
@@ -108,7 +108,7 @@ defmodule Level.Spaces do
   """
   def accept_invitation(invitation, params \\ %{}) do
     invitation
-    |> Invitation.accept_transaction(params)
+    |> Invitation.accept_operation(params)
     |> Repo.transaction()
   end
 end

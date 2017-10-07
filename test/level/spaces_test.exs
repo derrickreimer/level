@@ -3,6 +3,7 @@ defmodule Level.SpacesTest do
   use Bamboo.Test
 
   alias Level.Spaces
+  alias Level.Rooms
 
   describe "get_space_by_slug(!)/1" do
     setup do
@@ -140,13 +141,17 @@ defmodule Level.SpacesTest do
 
   describe "accept_invitation/2" do
     setup do
-      {:ok, %{space: space, user: invitor}} = insert_signup()
+      {:ok, %{
+        space: space,
+        user: invitor,
+        default_room: %{room: room}
+      }} = insert_signup()
 
       params = valid_invitation_params(%{space: space, invitor: invitor})
       changeset = Spaces.create_invitation_changeset(params)
       {:ok, invitation} = Spaces.create_invitation(changeset)
 
-      {:ok, %{invitation: invitation}}
+      {:ok, %{invitation: invitation, default_room: room}}
     end
 
     test "creates a user and flag invitation as accepted",
@@ -159,6 +164,16 @@ defmodule Level.SpacesTest do
       assert user.email == params.email
       assert invitation.state == "ACCEPTED"
       assert invitation.acceptor_id == user.id
+    end
+
+    test "subscribes the user to all mandatory rooms",
+      %{invitation: invitation, default_room: room} do
+      params = valid_user_params()
+
+      {:ok, %{user: user}} =
+        Spaces.accept_invitation(invitation, params)
+
+      assert Rooms.get_room_subscription(room, user) != nil
     end
 
     test "handles invalid params", %{invitation: invitation} do
