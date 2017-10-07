@@ -58,8 +58,8 @@ defmodule Level.RoomsTest do
 
       # TODO: implement a helper method for adding a user like this
       {:ok, another_user} =
-        %Level.Spaces.User{}
-        |> Level.Spaces.User.signup_changeset(valid_user_params())
+        %Spaces.User{}
+        |> Spaces.User.signup_changeset(valid_user_params())
         |> put_change(:space_id, space.id)
         |> put_change(:role, "MEMBER")
         |> Repo.insert()

@@ -29,15 +29,20 @@ defmodule Level.Rooms do
   end
 
   @doc """
-  Subscribes a given user to all rooms designated as mandatory.
+  Fetches all mandatory rooms for a given user and returns a list.
   """
-  def subscribe_to_mandatory_rooms(user) do
-    mandatory_rooms = Repo.all(Room,
+  def get_mandatory_rooms(%Level.Spaces.User{} = user) do
+    Repo.all(Room,
       space_id: user.space_id,
       subscriber_policy: "MANDATORY"
     )
+  end
 
-    for room <- mandatory_rooms do
+  @doc """
+  Subscribes a given user to all rooms designated as mandatory.
+  """
+  def subscribe_to_mandatory_rooms(user) do
+    for room <- get_mandatory_rooms(user) do
       subscribe_to_room(room, user)
     end
   end
@@ -58,9 +63,15 @@ defmodule Level.Rooms do
   defp create_room_operation(user, params) do
     Multi.new
     |> Multi.insert(:room, create_room_changeset(user, params))
-    |> Multi.run(:room_subscription, fn %{room: room} ->
+    |> Multi.run(:room_subscription, create_room_subscription_operation(user))
+  end
+
+  # Returns a function that creates a room subscription.
+  # For use in an `Ecto.Multi` pipeline.
+  defp create_room_subscription_operation(user) do
+    fn %{room: room} ->
       subscribe_to_room(room, user)
-    end)
+    end
   end
 
   # Builds a changeset for creating a new room.

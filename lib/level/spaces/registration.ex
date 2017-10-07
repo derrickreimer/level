@@ -39,10 +39,10 @@ defmodule Level.Spaces.Registration do
   end
 
   @doc """
-  Builds an Ecto.Multi operation that will take a changeset and persist the
+  Builds an `Ecto.Multi` operation that will take a changeset and persist the
   new space and user to the database when passed to `Repo.transaction`.
   """
-  def transaction(changeset) do
+  def create_operation(changeset) do
     space_changeset = Space.signup_changeset(%Space{}, space_params(changeset))
 
     Multi.new
