@@ -20,6 +20,37 @@ defmodule Level.Rooms do
     |> Repo.transaction()
   end
 
+  @doc """
+  Fetches the subscription to a room for a particular user. If no subscription
+  exists, returns nil.
+  """
+  def get_room_subscription(room, user) do
+    Repo.get_by(RoomSubscription, room_id: room.id, user_id: user.id)
+  end
+
+  @doc """
+  Subscribes a given user to all rooms designated as mandatory.
+  """
+  def subscribe_to_mandatory_rooms(user) do
+    mandatory_rooms = Repo.all(Room,
+      space_id: user.space_id,
+      subscriber_policy: "MANDATORY"
+    )
+
+    for room <- mandatory_rooms do
+      subscribe_to_room(room, user)
+    end
+  end
+
+  @doc """
+  Subscribes a given user to a given room.
+  """
+  def subscribe_to_room(room, user) do
+    room
+    |> create_room_subscription_changeset(user)
+    |> Repo.insert()
+  end
+
   # Builds an operation to create a new room. Specifically, this operation
   # inserts a new record in the rooms table and, provided that succeeds,
   # inserts a new record into the room subscriptions table for the user that
@@ -28,9 +59,7 @@ defmodule Level.Rooms do
     Multi.new
     |> Multi.insert(:room, create_room_changeset(user, params))
     |> Multi.run(:room_subscription, fn %{room: room} ->
-      room
-      |> create_room_subscription_changeset(user)
-      |> Repo.insert()
+      subscribe_to_room(room, user)
     end)
   end
 

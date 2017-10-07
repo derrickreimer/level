@@ -12,6 +12,7 @@ defmodule Level.Spaces.Invitation do
   alias Level.Repo
   alias Level.Spaces.Space
   alias Level.Spaces.User
+  alias Level.Rooms
 
   # @states ["PENDING", "ACCEPTED", "REVOKED"]
 
@@ -66,6 +67,9 @@ defmodule Level.Spaces.Invitation do
       invitation
       |> accept_changeset(%{acceptor_id: user.id, state: "ACCEPTED"})
       |> Repo.update()
+    end)
+    |> Multi.run(:room_subscriptions, fn %{user: user} ->
+      {:ok, Rooms.subscribe_to_mandatory_rooms(user)}
     end)
   end
 
