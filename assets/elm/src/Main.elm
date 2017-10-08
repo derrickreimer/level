@@ -26,6 +26,7 @@ type alias Model =
     , currentSpace : Maybe Space
     , currentUser : Maybe User
     , draft : Draft
+    , roomSubscriptions : Maybe Bootstrap.RoomSubscriptionConnection
     }
 
 
@@ -67,6 +68,7 @@ initialState flags =
     , currentUser = Nothing
     , currentSpace = Nothing
     , draft = Draft "" "" []
+    , roomSubscriptions = Nothing
     }
 
 
@@ -103,7 +105,13 @@ update msg model =
                 currentSpace =
                     Space response.space.name
             in
-                ( { model | currentUser = Just currentUser, currentSpace = Just currentSpace }, Cmd.none )
+                ( { model
+                    | currentUser = Just currentUser
+                    , currentSpace = Just currentSpace
+                    , roomSubscriptions = Just response.roomSubscriptions
+                  }
+                , Cmd.none
+                )
 
         Bootstrapped (Err _) ->
             ( model, Cmd.none )
