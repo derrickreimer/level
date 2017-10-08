@@ -287,17 +287,7 @@ sideNav model =
                 ]
             ]
         , h3 [ class "side-nav-heading" ] [ text "Rooms" ]
-        , div [ class "side-nav" ]
-            [ a [ class "side-nav__item side-nav__item--room", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Development" ]
-                ]
-            , a [ class "side-nav__item side-nav__item--room", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Marketing" ]
-                ]
-            , a [ class "side-nav__item side-nav__item--room", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Support" ]
-                ]
-            ]
+        , roomSubscriptionsList model
         , h3 [ class "side-nav-heading" ] [ text "Integrations" ]
         , div [ class "side-nav" ]
             [ a [ class "side-nav__item", href "#" ]
@@ -331,4 +321,21 @@ usersList model =
                 , span [ class "users-list__name" ] [ text "Joe Slacker" ]
                 ]
             ]
+        ]
+
+
+roomSubscriptionsList : Model -> Html Msg
+roomSubscriptionsList model =
+    case model.roomSubscriptions of
+        Nothing ->
+            div [ class "side-nav" ] []
+
+        Just connection ->
+            div [ class "side-nav" ] (List.map roomSubscriptionItem connection.edges)
+
+
+roomSubscriptionItem : Bootstrap.RoomSubscriptionEdge -> Html Msg
+roomSubscriptionItem edge =
+    a [ class "side-nav__item side-nav__item--room", href "#" ]
+        [ span [ class "side-nav__item-name" ] [ text edge.node.room.name ]
         ]

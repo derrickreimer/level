@@ -1,4 +1,4 @@
-module Query.Bootstrap exposing (request, Space, Response, RoomSubscriptionConnection)
+module Query.Bootstrap exposing (request, Space, Response, RoomSubscriptionConnection, RoomSubscriptionEdge)
 
 import Http
 import Json.Decode as Decode
