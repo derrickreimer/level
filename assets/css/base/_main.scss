@@ -52,13 +52,14 @@
     width: $large-avatar-size;
     height: $large-avatar-size;
     background-color: $default-avatar-color;
+    flex: 0 0 auto;
 
     &--placeholder {
       @include loading-pulse;
     }
   }
 
-  &__name {
+  &__content {
     font-weight: $bold-weight;
   }
 
@@ -107,20 +108,28 @@
       }
     }
 
-    &--room:before {
-      content: "#";
-      padding-right: $baseline / 2;
-      opacity: 0.5;
-    }
+    // &--room:before {
+    //   content: "#";
+    //   padding-right: $baseline / 2;
+    //   opacity: 0.5;
+    // }
   }
 }
 
-.search-bar {
+.top-nav {
   padding: $baseline;
+  display: flex;
+  justify-content: space-between;
 }
 
 .search-field {
-  width: 350px;
+  // width: 350px;
+  flex: 0 1 350px;
+}
+
+.new-conversation-button {
+  flex: 0 1 auto;
+  // align-self: flex-end;
 }
 
 .draft {

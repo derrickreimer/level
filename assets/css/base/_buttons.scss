@@ -1,12 +1,14 @@
 .button {
   @include shadow-on-focus;
 
-  padding: 12px;
+  padding-left: 12px;
+  padding-right: 12px;
   border: none;
   border-radius: 3px;
   font-family: $system-font-stack;
   font-weight: $bold-weight;
   font-size: 15px;
+  height: 40px;
   cursor: pointer;
 
   & + & {
