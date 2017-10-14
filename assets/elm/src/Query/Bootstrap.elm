@@ -1,36 +1,11 @@
-module Query.Bootstrap exposing (request, Space, Response, RoomSubscriptionConnection, RoomSubscriptionEdge)
+module Query.Bootstrap exposing (request, Response)
 
+import Data.Room exposing (RoomSubscriptionConnection, roomSubscriptionConnectionDecoder)
+import Data.Space exposing (Space, spaceDecoder)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import GraphQL
-
-
-type alias Space =
-    { id : String
-    , name : String
-    }
-
-
-type alias RoomSubscriptionConnection =
-    { edges : List RoomSubscriptionEdge
-    }
-
-
-type alias RoomSubscriptionEdge =
-    { node : RoomSubscription
-    }
-
-
-type alias RoomSubscription =
-    { room : Room
-    }
-
-
-type alias Room =
-    { id : String
-    , name : String
-    }
 
 
 type alias Response =
@@ -68,38 +43,6 @@ query =
         }
       }
     """
-
-
-spaceDecoder : Decode.Decoder Space
-spaceDecoder =
-    Pipeline.decode Space
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "name" Decode.string
-
-
-roomSubscriptionConnectionDecoder : Decode.Decoder RoomSubscriptionConnection
-roomSubscriptionConnectionDecoder =
-    Pipeline.decode RoomSubscriptionConnection
-        |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list roomSubscriptionEdgeDecoder))
-
-
-roomSubscriptionEdgeDecoder : Decode.Decoder RoomSubscriptionEdge
-roomSubscriptionEdgeDecoder =
-    Pipeline.decode RoomSubscriptionEdge
-        |> Pipeline.custom (Decode.at [ "node" ] roomSubscriptionDecoder)
-
-
-roomSubscriptionDecoder : Decode.Decoder RoomSubscription
-roomSubscriptionDecoder =
-    Pipeline.decode RoomSubscription
-        |> Pipeline.custom (Decode.at [ "room" ] roomDecoder)
-
-
-roomDecoder : Decode.Decoder Room
-roomDecoder =
-    Pipeline.decode Room
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "name" Decode.string
 
 
 decoder : Decode.Decoder Response

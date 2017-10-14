@@ -3,6 +3,8 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
+import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
+import Data.Space exposing (Space)
 import Query.Bootstrap as Bootstrap
 import Mutation.CreateDraft as CreateDraft
 
@@ -26,7 +28,7 @@ type alias Model =
     , currentSpace : Maybe Space
     , currentUser : Maybe User
     , draft : Draft
-    , roomSubscriptions : Maybe Bootstrap.RoomSubscriptionConnection
+    , roomSubscriptions : Maybe RoomSubscriptionConnection
     }
 
 
@@ -34,11 +36,6 @@ type alias Draft =
     { subject : String
     , body : String
     , recipientIds : List String
-    }
-
-
-type alias Space =
-    { name : String
     }
 
 
@@ -103,7 +100,7 @@ update msg model =
                     User response.firstName response.lastName
 
                 currentSpace =
-                    Space response.space.name
+                    Space response.space.id response.space.name
             in
                 ( { model
                     | currentUser = Just currentUser
@@ -338,7 +335,7 @@ roomSubscriptionsList model =
             div [ class "side-nav" ] (List.map roomSubscriptionItem connection.edges)
 
 
-roomSubscriptionItem : Bootstrap.RoomSubscriptionEdge -> Html Msg
+roomSubscriptionItem : RoomSubscriptionEdge -> Html Msg
 roomSubscriptionItem edge =
     a [ class "side-nav__item side-nav__item--room", href "#" ]
         [ span [ class "side-nav__item-name" ] [ text edge.node.room.name ]

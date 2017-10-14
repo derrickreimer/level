@@ -45,7 +45,7 @@ variables params =
     Encode.object
         [ ( "subject", Encode.string params.subject )
         , ( "body", Encode.string params.body )
-        , ( "recipientIds", Encode.list (List.map (\a -> Encode.string a) params.recipientIds) )
+        , ( "recipientIds", Encode.list (List.map Encode.string params.recipientIds) )
         ]
 
 
