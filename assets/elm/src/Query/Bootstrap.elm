@@ -2,6 +2,7 @@ module Query.Bootstrap exposing (request, Response)
 
 import Data.Room exposing (RoomSubscriptionConnection, roomSubscriptionConnectionDecoder)
 import Data.Space exposing (Space, spaceDecoder)
+import Data.User exposing (User, userDecoder)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -9,9 +10,7 @@ import GraphQL
 
 
 type alias Response =
-    { id : String
-    , firstName : String
-    , lastName : String
+    { user : User
     , space : Space
     , roomSubscriptions : RoomSubscriptionConnection
     }
@@ -49,9 +48,7 @@ decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data", "viewer" ] <|
         (Pipeline.decode Response
-            |> Pipeline.required "id" Decode.string
-            |> Pipeline.required "firstName" Decode.string
-            |> Pipeline.required "lastName" Decode.string
+            |> Pipeline.custom userDecoder
             |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
             |> Pipeline.custom (Decode.at [ "roomSubscriptions" ] roomSubscriptionConnectionDecoder)
         )

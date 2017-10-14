@@ -4,6 +4,7 @@ import Expect exposing (Expectation)
 import Data.Room as Room
 import Test exposing (..)
 import Json.Decode exposing (decodeString)
+import TestHelpers exposing (success)
 
 
 {-| Tests for JSON decoders.
@@ -97,19 +98,3 @@ decoders =
                         Expect.equal False (success result)
             ]
         ]
-
-
-{-| Determines if a given result is successful.
-
-    success (Ok _) == True
-    success (Err _) == False
-
--}
-success : Result a b -> Bool
-success result =
-    case result of
-        Ok _ ->
-            True
-
-        Err _ ->
-            False

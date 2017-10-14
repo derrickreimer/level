@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Http
 import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
+import Data.User exposing (User)
 import Query.Bootstrap as Bootstrap
 import Mutation.CreateDraft as CreateDraft
 
@@ -36,12 +37,6 @@ type alias Draft =
     { subject : String
     , body : String
     , recipientIds : List String
-    }
-
-
-type alias User =
-    { firstName : String
-    , lastName : String
     }
 
 
@@ -95,20 +90,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Bootstrapped (Ok response) ->
-            let
-                currentUser =
-                    User response.firstName response.lastName
-
-                currentSpace =
-                    Space response.space.id response.space.name
-            in
-                ( { model
-                    | currentUser = Just currentUser
-                    , currentSpace = Just currentSpace
-                    , roomSubscriptions = Just response.roomSubscriptions
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | currentUser = Just response.user
+                , currentSpace = Just response.space
+                , roomSubscriptions = Just response.roomSubscriptions
+              }
+            , Cmd.none
+            )
 
         Bootstrapped (Err _) ->
             ( model, Cmd.none )

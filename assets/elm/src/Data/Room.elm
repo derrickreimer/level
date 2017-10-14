@@ -12,6 +12,9 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 
 
+-- TYPES
+
+
 type alias RoomSubscriptionConnection =
     { edges : List RoomSubscriptionEdge
     }
@@ -31,6 +34,10 @@ type alias Room =
     { id : String
     , name : String
     }
+
+
+
+-- DECODERS
 
 
 roomSubscriptionConnectionDecoder : Decode.Decoder RoomSubscriptionConnection

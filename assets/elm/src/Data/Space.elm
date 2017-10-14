@@ -4,10 +4,17 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 
 
+-- TYPES
+
+
 type alias Space =
     { id : String
     , name : String
     }
+
+
+
+-- DECODERS
 
 
 spaceDecoder : Decode.Decoder Space
