@@ -6,7 +6,9 @@
     "source-directories": [
         "..",
         ".",
-        "../src/"
+        "../src",
+        "../src/Mutation",
+        "../src/Query"
     ],
     "exposed-modules": [],
     "dependencies": {
