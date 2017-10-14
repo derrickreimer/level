@@ -5,6 +5,7 @@ module Data.Room
         , RoomSubscription
         , Room
         , roomSubscriptionConnectionDecoder
+        , roomDecoder
         )
 
 import Json.Decode as Decode
