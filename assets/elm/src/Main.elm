@@ -56,6 +56,15 @@ type alias Flags =
     }
 
 
+{-| Initialize the model and kick off page navigation.
+The flow goes like this:
+
+1.  Build the initial model, which begins life as a `PageNotLoaded` type.
+2.  Parse the route from the location and navigate to the page.
+3.  Bootstrap the application state first, then perform the queries
+    required for the specific route.
+
+-}
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     flags
@@ -63,14 +72,11 @@ init flags location =
         |> navigateTo (Route.fromLocation location)
 
 
+{-| Build the initial model, before running the page "bootstrap" query.
+-}
 buildInitialModel : Flags -> Model
 buildInitialModel flags =
     PageNotLoaded (Session flags.apiToken)
-
-
-displayName : User -> String
-displayName user =
-    user.firstName ++ " " ++ user.lastName
 
 
 
@@ -102,7 +108,8 @@ update msg model =
                     in
                         navigateTo maybeRoute (PageLoaded session appState)
 
-                _ ->
+                PageLoaded _ _ ->
+                    -- Disregard bootstrapping when page is already loaded
                     ( model, Cmd.none )
 
         Bootstrapped maybeRoute (Err _) ->
@@ -120,8 +127,12 @@ navigateTo maybeRoute model =
         PageNotLoaded session ->
             ( model, bootstrap session maybeRoute )
 
-        PageLoaded _ _ ->
-            ( model, Cmd.none )
+        PageLoaded session appState ->
+            let
+                newState =
+                    { appState | isTransitioning = True }
+            in
+                ( PageLoaded session newState, Cmd.none )
 
 
 
@@ -287,3 +298,17 @@ roomSubscriptionItem edge =
     a [ class "side-nav__item side-nav__item--room", href "#" ]
         [ span [ class "side-nav__item-name" ] [ text edge.node.room.name ]
         ]
+
+
+
+-- UTILS
+
+
+{-| Generate the display name for a given user.
+
+    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
+
+-}
+displayName : User -> String
+displayName user =
+    user.firstName ++ " " ++ user.lastName
