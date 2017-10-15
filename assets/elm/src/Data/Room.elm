@@ -6,10 +6,12 @@ module Data.Room
         , Room
         , roomSubscriptionConnectionDecoder
         , roomDecoder
+        , slugParser
         )
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import UrlParser
 
 
 -- TYPES
@@ -63,3 +65,12 @@ roomDecoder =
     Pipeline.decode Room
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
+
+
+
+-- ROUTING
+
+
+slugParser : UrlParser.Parser (String -> a) a
+slugParser =
+    UrlParser.string
