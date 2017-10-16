@@ -30,7 +30,4 @@ route =
 
 fromLocation : Location -> Maybe Route
 fromLocation location =
-    if String.isEmpty location.hash then
-        Just Conversations
-    else
-        parsePath route location
+    parsePath route location

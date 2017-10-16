@@ -1,0 +1,5 @@
+<script type="text/javascript">
+  var app = Elm.Main.fullscreen({
+    apiToken: '<%= @api_token %>'
+  });
+</script>
