@@ -7,6 +7,7 @@ import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
 import Data.User exposing (User)
 import Page.Room
+import Page.Conversations
 import Query.Bootstrap as Bootstrap
 import Navigation
 import Route exposing (Route)
@@ -48,6 +49,7 @@ type alias AppState =
 type Page
     = Blank
     | NotFound
+    | Conversations -- TODO: add a model to this type
     | Room Page.Room.Model
 
 
@@ -57,7 +59,6 @@ type alias Flags =
 
 
 {-| Initialize the model and kick off page navigation.
-The flow goes like this:
 
 1.  Build the initial model, which begins life as a `PageNotLoaded` type.
 2.  Parse the route from the location and navigate to the page.
@@ -86,6 +87,7 @@ buildInitialModel flags =
 type Msg
     = UrlChanged Navigation.Location
     | Bootstrapped (Maybe Route) (Result Http.Error Bootstrap.Response)
+    | ConversationsMsg Page.Conversations.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -115,6 +117,10 @@ update msg model =
         Bootstrapped maybeRoute (Err _) ->
             ( model, Cmd.none )
 
+        ConversationsMsg _ ->
+            -- TODO: implement this
+            ( model, Cmd.none )
+
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
 bootstrap session maybeRoute =
@@ -128,11 +134,17 @@ navigateTo maybeRoute model =
             ( model, bootstrap session maybeRoute )
 
         PageLoaded session appState ->
-            let
-                newState =
-                    { appState | isTransitioning = True }
-            in
-                ( PageLoaded session newState, Cmd.none )
+            case maybeRoute of
+                Nothing ->
+                    ( PageLoaded session { appState | page = NotFound }, Cmd.none )
+
+                Just Route.Conversations ->
+                    -- TODO: implement this
+                    ( PageLoaded session { appState | page = Conversations }, Cmd.none )
+
+                Just (Route.Room slug) ->
+                    -- TODO: implement this
+                    ( model, Cmd.none )
 
 
 
@@ -169,48 +181,29 @@ view model =
                         [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] []
                         , button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
                         ]
-                    , div [ class "threads" ]
-                        [ div [ class "threads__item threads__item--highlighted" ]
-                            [ div [ class "threads__selector" ]
-                                [ label [ class "checkbox" ]
-                                    [ input [ type_ "checkbox" ] []
-                                    , span [ class "checkbox__indicator" ] []
-                                    ]
-                                ]
-                            , div [ class "threads__metadata" ]
-                                [ div [ class "threads__item-head" ]
-                                    [ span [ class "threads__subject" ] [ text "DynamoDB Brainstorming" ]
-                                    , span [ class "threads__dash" ] [ text "—" ]
-                                    , span [ class "threads__recipients" ] [ text "Developers" ]
-                                    ]
-                                , div [ class "threads__preview" ] [ text "derrick: Have we evaluated all our options here?" ]
-                                ]
-                            , div [ class "threads__aside" ]
-                                [ span [] [ text "12:00pm" ] ]
-                            ]
-                        , div [ class "threads__item" ]
-                            [ div [ class "threads__selector" ]
-                                [ label [ class "checkbox" ]
-                                    [ input [ type_ "checkbox" ] []
-                                    , span [ class "checkbox__indicator" ] []
-                                    ]
-                                ]
-                            , div [ class "threads__metadata" ]
-                                [ div [ class "threads__item-head" ]
-                                    [ span [ class "threads__subject" ] [ text "ID-pocalypse 2017" ]
-                                    , span [ class "threads__dash" ] [ text "—" ]
-                                    , span [ class "threads__recipients" ] [ text "Developers (+ 2 others)" ]
-                                    ]
-                                , div [ class "threads__preview" ] [ text "derrick: Have we evaluated all our options here?" ]
-                                ]
-                            , div [ class "threads__aside" ]
-                                [ span [ class "threads__unread" ] [ text "2 unread" ]
-                                , span [ class "threads__timestamp" ] [ text "12:00pm" ]
-                                ]
-                            ]
-                        ]
+                    , pageContent appState.page
                     ]
                 ]
+
+
+pageContent : Page -> Html Msg
+pageContent page =
+    case page of
+        Conversations ->
+            Page.Conversations.view
+                |> Html.map ConversationsMsg
+
+        Room model ->
+            -- TODO: implement this
+            div [] [ text "Viewing a room" ]
+
+        Blank ->
+            -- TODO: implement this
+            div [] []
+
+        NotFound ->
+            -- TODO: implement this
+            div [] [ text "Not Found" ]
 
 
 spaceSelector : Space -> Html Msg
