@@ -6,6 +6,7 @@ import Http
 import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
 import Data.User exposing (User)
+import Data.Session exposing (Session)
 import Page.Room
 import Page.Conversations
 import Query.Bootstrap as Bootstrap
@@ -30,11 +31,6 @@ main =
 type Model
     = PageNotLoaded Session
     | PageLoaded Session AppState
-
-
-type alias Session =
-    { apiToken : String
-    }
 
 
 type alias AppState =
