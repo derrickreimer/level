@@ -35,6 +35,7 @@ type alias RoomSubscription =
 type alias Room =
     { id : String
     , name : String
+    , description : String
     }
 
 
@@ -65,6 +66,7 @@ roomDecoder =
     Pipeline.decode Room
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
+        |> Pipeline.required "description" Decode.string
 
 
 

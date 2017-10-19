@@ -35,6 +35,7 @@ query =
                 room {
                   id
                   name
+                  description
                 }
               }
             }
