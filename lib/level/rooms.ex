@@ -10,6 +10,37 @@ defmodule Level.Rooms do
   alias Level.Rooms.RoomSubscription
   alias Ecto.Multi
 
+  import Level.Gettext
+
+  @doc """
+  Fetches a room for a given user by id.
+
+  ## Examples
+
+      # When the room exists and the user can access, return it.
+      get_room(%User{...}, "999")
+      => {:ok, %{room: %Level.Rooms.Room{...}}}
+
+      # Otherwise, return an error.
+      get_room(%User{...}, "idontexist")
+      => {:error, %{message: "Room not found", code: "NOT_FOUND"}}
+  """
+  def get_room(%Level.Spaces.User{} = user, id) do
+    case Repo.get_by(Room, id: id, space_id: user.space_id, state: "ACTIVE") do
+      %Room{subscriber_policy: "INVITE_ONLY"} = room ->
+        case get_room_subscription(room, user) do
+          nil ->
+            not_found(dgettext("errors", "Room not found"))
+          _ ->
+            {:ok, room}
+        end
+      nil ->
+        not_found(dgettext("errors", "Room not found"))
+      room ->
+        {:ok, room}
+    end
+  end
+
   @doc """
   Creates a new room and subscribes the creator to the room. If successful,
   returns a tuple of the form `{:ok, %{room: room, room_subscription: room_subscription}}`.
@@ -88,5 +119,9 @@ defmodule Level.Rooms do
   defp create_room_subscription_changeset(room, user) do
     RoomSubscription.create_changeset(%RoomSubscription{},
       %{space_id: user.space_id, user_id: user.id, room_id: room.id})
+  end
+
+  defp not_found(message) do
+    {:error, %{message: message, code: "NOT_FOUND"}}
   end
 end
