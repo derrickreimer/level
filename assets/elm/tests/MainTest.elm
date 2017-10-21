@@ -13,7 +13,8 @@ utils =
             \firstName lastName ->
                 let
                     user =
-                        { firstName = firstName
+                        { id = "999"
+                        , firstName = firstName
                         , lastName = lastName
                         }
                 in

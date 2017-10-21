@@ -6,9 +6,11 @@ import List
 import Regex
 import Signup
 import Test exposing (..)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (decodeString)
 
 
+{-| Tests for utility functions.
+-}
 utils : Test
 utils =
     describe "Signup.slugify"
@@ -29,6 +31,8 @@ utils =
         ]
 
 
+{-| Tests for JSON decoders.
+-}
 decoders : Test
 decoders =
     describe "decoders"
@@ -36,30 +40,29 @@ decoders =
             [ test "extracts the slug from JSON payload" <|
                 \_ ->
                     let
-                        payload =
+                        json =
                             """
                             {
-                              "space": {
-                                "id": 999,
-                                "name": "Foo",
-                                "slug": "foo",
-                                "inserted_at": "2017-07-01T10:00:00Z",
-                                "updated_at": "2017-07-01T10:00:00Z"
-                              },
-                              "user": {
-                                "id": 888,
-                                "email": "derrick@level.live",
-                                "username": "derrick",
-                                "inserted_at": "2017-07-01T10:00:00Z",
-                                "updated_at": "2017-07-01T10:00:00Z"
-                              },
-                              "redirect_url": "http://example.com"
+                                "space": {
+                                    "id": 999,
+                                    "name": "Foo",
+                                    "slug": "foo",
+                                    "inserted_at": "2017-07-01T10:00:00Z",
+                                    "updated_at": "2017-07-01T10:00:00Z"
+                                },
+                                "user": {
+                                    "id": 888,
+                                    "email": "derrick@level.live",
+                                    "username": "derrick",
+                                    "inserted_at": "2017-07-01T10:00:00Z",
+                                    "updated_at": "2017-07-01T10:00:00Z"
+                                },
+                                "redirect_url": "http://example.com"
                             }
                             """
 
                         result =
-                            payload
-                                |> Decode.decodeString Signup.successDecoder
+                            decodeString Signup.successDecoder json
                     in
                         Expect.equal (Ok "http://example.com") result
             ]
@@ -67,22 +70,21 @@ decoders =
             [ test "extracts a list of validation errors" <|
                 \_ ->
                     let
-                        payload =
+                        json =
                             """
                             {
-                              "errors": [
-                                {
-                                  "attribute": "email",
-                                  "message": "is required",
-                                  "properties": { "validation": "required" }
-                                }
-                              ]
+                                "errors": [
+                                    {
+                                        "attribute": "email",
+                                        "message": "is required",
+                                        "properties": { "validation": "required" }
+                                    }
+                                ]
                             }
                             """
 
                         result =
-                            payload
-                                |> Decode.decodeString Signup.errorDecoder
+                            decodeString Signup.errorDecoder json
 
                         expected =
                             [ { attribute = "email"
@@ -95,11 +97,23 @@ decoders =
         ]
 
 
+{-| Determines if a given string is lowercase.
+
+    isLower "yep" == True
+    isLower "Nope" == False
+
+-}
 isLower : String -> Bool
 isLower str =
     String.toLower str == str
 
 
+{-| Determines if a given string is alphanumeric/dashes.
+
+    isAlphanumeric "foo-bar-123" == True
+    isAlphanumeric "withemphasis!" == False
+
+-}
 isAlphanumeric : String -> Bool
 isAlphanumeric str =
     str
@@ -107,6 +121,13 @@ isAlphanumeric str =
         |> not
 
 
+{-| Determines if a given subdomain slug is valid for URLs.
+
+    isValidUrl "FOO" == False
+    isValidUrl "yay~~" == False
+    isValidUrl "level" == True
+
+-}
 isValidUrl : String -> Bool
 isValidUrl str =
     List.all

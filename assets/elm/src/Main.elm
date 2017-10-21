@@ -3,13 +3,20 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
+import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
+import Data.Space exposing (Space)
+import Data.User exposing (User)
+import Data.Session exposing (Session)
+import Page.Room
+import Page.Conversations
 import Query.Bootstrap as Bootstrap
-import Mutation.CreateDraft as CreateDraft
+import Navigation
+import Route exposing (Route)
 
 
 main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    Navigation.programWithFlags UrlChanged
         { init = init
         , view = view
         , update = update
@@ -21,30 +28,25 @@ main =
 -- MODEL
 
 
-type alias Model =
-    { apiToken : String
-    , currentSpace : Maybe Space
-    , currentUser : Maybe User
-    , draft : Draft
+type Model
+    = PageNotLoaded Session
+    | PageLoaded Session AppState
+
+
+type alias AppState =
+    { currentSpace : Space
+    , currentUser : User
+    , roomSubscriptions : RoomSubscriptionConnection
+    , page : Page
+    , isTransitioning : Bool
     }
 
 
-type alias Draft =
-    { subject : String
-    , body : String
-    , recipientIds : List String
-    }
-
-
-type alias Space =
-    { name : String
-    }
-
-
-type alias User =
-    { firstName : String
-    , lastName : String
-    }
+type Page
+    = Blank
+    | NotFound
+    | Conversations -- TODO: add a model to this type
+    | Room Page.Room.Model
 
 
 type alias Flags =
@@ -52,32 +54,26 @@ type alias Flags =
     }
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    let
-        model =
-            initialState flags
-    in
-        ( model, (bootstrap model) )
+{-| Initialize the model and kick off page navigation.
+
+1.  Build the initial model, which begins life as a `PageNotLoaded` type.
+2.  Parse the route from the location and navigate to the page.
+3.  Bootstrap the application state first, then perform the queries
+    required for the specific route.
+
+-}
+init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
+init flags location =
+    flags
+        |> buildInitialModel
+        |> navigateTo (Route.fromLocation location)
 
 
-initialState : Flags -> Model
-initialState flags =
-    { apiToken = flags.apiToken
-    , currentUser = Nothing
-    , currentSpace = Nothing
-    , draft = Draft "" "" []
-    }
-
-
-displayName : User -> String
-displayName user =
-    user.firstName ++ " " ++ user.lastName
-
-
-isDraftInvalid : Draft -> Bool
-isDraftInvalid draft =
-    (String.length draft.subject == 0) || (String.length draft.body == 0)
+{-| Build the initial model, before running the page "bootstrap" query.
+-}
+buildInitialModel : Flags -> Model
+buildInitialModel flags =
+    PageNotLoaded (Session flags.apiToken)
 
 
 
@@ -85,67 +81,66 @@ isDraftInvalid draft =
 
 
 type Msg
-    = Bootstrapped (Result Http.Error Bootstrap.Response)
-    | DraftSubjectChanged String
-    | DraftBodyChanged String
-    | DraftSaveClicked
-    | DraftSubmitted (Result Http.Error Bool)
+    = UrlChanged Navigation.Location
+    | Bootstrapped (Maybe Route) (Result Http.Error Bootstrap.Response)
+    | ConversationsMsg Page.Conversations.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Bootstrapped (Ok response) ->
-            let
-                currentUser =
-                    User response.firstName response.lastName
-
-                currentSpace =
-                    Space response.space.name
-            in
-                ( { model | currentUser = Just currentUser, currentSpace = Just currentSpace }, Cmd.none )
-
-        Bootstrapped (Err _) ->
+        UrlChanged location ->
             ( model, Cmd.none )
 
-        DraftSubjectChanged subject ->
-            let
-                draft =
-                    model.draft
+        Bootstrapped maybeRoute (Ok response) ->
+            case model of
+                PageNotLoaded session ->
+                    let
+                        appState =
+                            { currentUser = response.user
+                            , currentSpace = response.space
+                            , roomSubscriptions = response.roomSubscriptions
+                            , page = Blank
+                            , isTransitioning = False
+                            }
+                    in
+                        navigateTo maybeRoute (PageLoaded session appState)
 
-                updatedDraft =
-                    { draft | subject = subject }
-            in
-                ( { model | draft = updatedDraft }, Cmd.none )
+                PageLoaded _ _ ->
+                    -- Disregard bootstrapping when page is already loaded
+                    ( model, Cmd.none )
 
-        DraftBodyChanged body ->
-            let
-                draft =
-                    model.draft
-
-                updatedDraft =
-                    { draft | body = body }
-            in
-                ( { model | draft = updatedDraft }, Cmd.none )
-
-        DraftSaveClicked ->
-            ( model, saveDraft model )
-
-        DraftSubmitted (Ok response) ->
+        Bootstrapped maybeRoute (Err _) ->
             ( model, Cmd.none )
 
-        DraftSubmitted (Err _) ->
+        ConversationsMsg _ ->
+            -- TODO: implement this
             ( model, Cmd.none )
 
 
-bootstrap : Model -> Cmd Msg
-bootstrap model =
-    Http.send Bootstrapped (Bootstrap.request model.apiToken)
+bootstrap : Session -> Maybe Route -> Cmd Msg
+bootstrap session maybeRoute =
+    Http.send (Bootstrapped maybeRoute) (Bootstrap.request session.apiToken)
 
 
-saveDraft : Model -> Cmd Msg
-saveDraft model =
-    Http.send DraftSubmitted (CreateDraft.request model.apiToken model.draft)
+navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
+navigateTo maybeRoute model =
+    case model of
+        PageNotLoaded session ->
+            ( model, bootstrap session maybeRoute )
+
+        PageLoaded session appState ->
+            case maybeRoute of
+                Nothing ->
+                    ( PageLoaded session { appState | page = NotFound }, Cmd.none )
+
+                Just Route.Conversations ->
+                    -- TODO: implement this
+                    ( PageLoaded session { appState | page = Conversations }, Cmd.none )
+
+                Just (Route.Room slug) ->
+                    -- TODO: implement this
+                    ( model, Cmd.none )
 
 
 
@@ -163,108 +158,74 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ id "app" ]
-        [ div [ class "sidebar sidebar--left" ]
-            [ spaceSelector model.currentSpace
-            , sideNav model
-            ]
-        , div [ class "sidebar sidebar--right" ]
-            [ identityMenu model.currentUser
-            , usersList model
-            ]
-        , div [ class "main" ]
-            [ div [ class "search-bar" ]
-                [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] [] ]
-            , div [ class "threads" ]
-                [ div [ class "threads__item threads__item--highlighted" ]
-                    [ div [ class "threads__selector" ]
-                        [ label [ class "checkbox" ]
-                            [ input [ type_ "checkbox" ] []
-                            , span [ class "checkbox__indicator" ] []
-                            ]
-                        ]
-                    , div [ class "threads__metadata" ]
-                        [ div [ class "threads__item-head" ]
-                            [ span [ class "threads__subject" ] [ text "DynamoDB Brainstorming" ]
-                            , span [ class "threads__dash" ] [ text "—" ]
-                            , span [ class "threads__recipients" ] [ text "Developers" ]
-                            ]
-                        , div [ class "threads__preview" ] [ text "derrick: Have we evaluated all our options here?" ]
-                        ]
-                    , div [ class "threads__aside" ]
-                        [ span [] [ text "12:00pm" ] ]
+    case model of
+        PageNotLoaded _ ->
+            div [ id "app" ] [ text "Loading..." ]
+
+        PageLoaded _ appState ->
+            div [ id "app" ]
+                [ div [ class "sidebar sidebar--left" ]
+                    [ spaceSelector appState.currentSpace
+                    , sideNav appState
                     ]
-                , div [ class "threads__item" ]
-                    [ div [ class "threads__selector" ]
-                        [ label [ class "checkbox" ]
-                            [ input [ type_ "checkbox" ] []
-                            , span [ class "checkbox__indicator" ] []
-                            ]
-                        ]
-                    , div [ class "threads__metadata" ]
-                        [ div [ class "threads__item-head" ]
-                            [ span [ class "threads__subject" ] [ text "ID-pocalypse 2017" ]
-                            , span [ class "threads__dash" ] [ text "—" ]
-                            , span [ class "threads__recipients" ] [ text "Developers (+ 2 others)" ]
-                            ]
-                        , div [ class "threads__preview" ] [ text "derrick: Have we evaluated all our options here?" ]
-                        ]
-                    , div [ class "threads__aside" ]
-                        [ span [ class "threads__unread" ] [ text "2 unread" ]
-                        , span [ class "threads__timestamp" ] [ text "12:00pm" ]
-                        ]
+                , div [ class "sidebar sidebar--right" ]
+                    [ identityMenu appState.currentUser
+                    , usersList appState
                     ]
+                , div [ class "main" ]
+                    [ div [ class "top-nav" ]
+                        [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] []
+                        , button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
+                        ]
+                    , pageContent appState.page
+                    ]
+                ]
+
+
+pageContent : Page -> Html Msg
+pageContent page =
+    case page of
+        Conversations ->
+            Page.Conversations.view
+                |> Html.map ConversationsMsg
+
+        Room model ->
+            -- TODO: implement this
+            div [] [ text "Viewing a room" ]
+
+        Blank ->
+            -- TODO: implement this
+            div [] []
+
+        NotFound ->
+            -- TODO: implement this
+            div [] [ text "Not Found" ]
+
+
+spaceSelector : Space -> Html Msg
+spaceSelector space =
+    div [ class "space-selector" ]
+        [ a [ class "space-selector__toggle", href "#" ]
+            [ div [ class "space-selector__avatar" ] []
+            , div [ class "space-selector__content" ] [ text space.name ]
+            ]
+        ]
+
+
+identityMenu : User -> Html Msg
+identityMenu user =
+    div [ class "identity-menu" ]
+        [ a [ class "identity-menu__toggle", href "#" ]
+            [ div [ class "identity-menu__avatar" ] []
+            , div [ class "identity-menu__content" ]
+                [ div [ class "identity-menu__name" ] [ text (displayName user) ]
                 ]
             ]
         ]
 
 
-spaceSelector : Maybe Space -> Html Msg
-spaceSelector maybeSpace =
-    case maybeSpace of
-        Nothing ->
-            div [ class "space-selector" ]
-                [ a [ class "space-selector__toggle", href "#" ]
-                    [ div [ class "space-selector__avatar space-selector__avatar--placeholder" ] []
-                    , div [ class "space-selector__name space-selector__name" ]
-                        [ div [ class "space-selector__loading-placeholder" ] []
-                        ]
-                    ]
-                ]
-
-        Just space ->
-            div [ class "space-selector" ]
-                [ a [ class "space-selector__toggle", href "#" ]
-                    [ div [ class "space-selector__avatar" ] []
-                    , div [ class "space-selector__name" ] [ text space.name ]
-                    ]
-                ]
-
-
-identityMenu : Maybe User -> Html Msg
-identityMenu maybeUser =
-    case maybeUser of
-        Nothing ->
-            div [ class "identity-menu" ]
-                [ a [ class "identity-menu__toggle", href "#" ]
-                    [ div [ class "identity-menu__avatar identity-menu__avatar--placeholder" ] []
-                    , div [ class "identity-menu__name" ]
-                        [ div [ class "space-selector__loading-placeholder" ] []
-                        ]
-                    ]
-                ]
-
-        Just user ->
-            div [ class "identity-menu" ]
-                [ a [ class "identity-menu__toggle", href "#" ]
-                    [ div [ class "identity-menu__avatar" ] []
-                    , div [ class "identity-menu__name" ] [ text (displayName user) ]
-                    ]
-                ]
-
-
-sideNav : Model -> Html Msg
-sideNav model =
+sideNav : AppState -> Html Msg
+sideNav appState =
     div [ class "side-nav-container" ]
         [ h3 [ class "side-nav-heading" ] [ text "Conversations" ]
         , div [ class "side-nav" ]
@@ -279,17 +240,7 @@ sideNav model =
                 ]
             ]
         , h3 [ class "side-nav-heading" ] [ text "Rooms" ]
-        , div [ class "side-nav" ]
-            [ a [ class "side-nav__item side-nav__item--room", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Development" ]
-                ]
-            , a [ class "side-nav__item side-nav__item--room", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Marketing" ]
-                ]
-            , a [ class "side-nav__item side-nav__item--room", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Support" ]
-                ]
-            ]
+        , roomSubscriptionsList appState
         , h3 [ class "side-nav-heading" ] [ text "Integrations" ]
         , div [ class "side-nav" ]
             [ a [ class "side-nav__item", href "#" ]
@@ -305,8 +256,8 @@ sideNav model =
         ]
 
 
-usersList : Model -> Html Msg
-usersList model =
+usersList : AppState -> Html Msg
+usersList appState =
     div [ class "side-nav-container" ]
         [ h3 [ class "side-nav-heading" ] [ text "Everyone" ]
         , div [ class "users-list" ]
@@ -324,3 +275,29 @@ usersList model =
                 ]
             ]
         ]
+
+
+roomSubscriptionsList : AppState -> Html Msg
+roomSubscriptionsList appState =
+    div [ class "side-nav" ] (List.map roomSubscriptionItem appState.roomSubscriptions.edges)
+
+
+roomSubscriptionItem : RoomSubscriptionEdge -> Html Msg
+roomSubscriptionItem edge =
+    a [ class "side-nav__item side-nav__item--room", href "#" ]
+        [ span [ class "side-nav__item-name" ] [ text edge.node.room.name ]
+        ]
+
+
+
+-- UTILS
+
+
+{-| Generate the display name for a given user.
+
+    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
+
+-}
+displayName : User -> String
+displayName user =
+    user.firstName ++ " " ++ user.lastName
