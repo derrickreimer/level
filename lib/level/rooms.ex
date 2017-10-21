@@ -17,11 +17,11 @@ defmodule Level.Rooms do
 
   ## Examples
 
-      # When the room exists and the user can access, return it.
+      # When the room exists and the user can access, returns it.
       get_room(%User{...}, "999")
       => {:ok, %{room: %Level.Rooms.Room{...}}}
 
-      # Otherwise, return an error.
+      # Otherwise, returns an error.
       get_room(%User{...}, "idontexist")
       => {:error, %{message: "Room not found", code: "NOT_FOUND"}}
   """
@@ -53,6 +53,16 @@ defmodule Level.Rooms do
 
   @doc """
   Transitions a given room to a deleted state.
+
+  ## Examples
+
+      # If operation succeeds, returns success.
+      delete_room(%Room{...})
+      => {:ok, %Room{...}}
+
+      # Otherwise, returns an error.
+      delete_room(%Room{...})
+      => {:error, %Ecto.Changeset{...}}
   """
   def delete_room(room) do
     Repo.update(Ecto.Changeset.change(room, state: "DELETED"))
