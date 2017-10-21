@@ -10,6 +10,37 @@ defmodule Level.Rooms do
   alias Level.Rooms.RoomSubscription
   alias Ecto.Multi
 
+  import Level.Gettext
+
+  @doc """
+  Fetches a room for a given user by id.
+
+  ## Examples
+
+      # When the room exists and the user can access, returns it.
+      get_room(%User{...}, "999")
+      => {:ok, %{room: %Level.Rooms.Room{...}}}
+
+      # Otherwise, returns an error.
+      get_room(%User{...}, "idontexist")
+      => {:error, %{message: "Room not found", code: "NOT_FOUND"}}
+  """
+  def get_room(%Level.Spaces.User{} = user, id) do
+    case Repo.get_by(Room, id: id, space_id: user.space_id, state: "ACTIVE") do
+      %Room{subscriber_policy: "INVITE_ONLY"} = room ->
+        case get_room_subscription(room, user) do
+          {:error, _} ->
+            not_found(dgettext("errors", "Room not found"))
+          {:ok, _} ->
+            {:ok, room}
+        end
+      nil ->
+        not_found(dgettext("errors", "Room not found"))
+      room ->
+        {:ok, room}
+    end
+  end
+
   @doc """
   Creates a new room and subscribes the creator to the room. If successful,
   returns a tuple of the form `{:ok, %{room: room, room_subscription: room_subscription}}`.
@@ -21,11 +52,58 @@ defmodule Level.Rooms do
   end
 
   @doc """
-  Fetches the subscription to a room for a particular user. If no subscription
-  exists, returns nil.
+  Transitions a given room to a deleted state.
+
+  ## Examples
+
+      # If operation succeeds, returns success.
+      delete_room(%Room{...})
+      => {:ok, %Room{...}}
+
+      # Otherwise, returns an error.
+      delete_room(%Room{...})
+      => {:error, %Ecto.Changeset{...}}
+  """
+  def delete_room(room) do
+    Repo.update(Ecto.Changeset.change(room, state: "DELETED"))
+  end
+
+  @doc """
+  Deletes a given room subscription.
+
+  ## Examples
+
+      # If operation succeeds, returns success.
+      delete_room_subscription(%RoomSubscription{...})
+      => {:ok, %RoomSubscription{...}}
+
+      # Otherwise, returns an error.
+      delete_room_subscription(%RoomSubscription{...})
+      => {:error, %Ecto.Changeset{...}}
+  """
+  def delete_room_subscription(%RoomSubscription{} = subscription) do
+    Repo.delete(subscription)
+  end
+
+  @doc """
+  Fetches the subscription to a room for a particular user.
+
+  ## Examples
+
+      # If user is subscribed to the room, returns success.
+      get_room_subscription(room, user)
+      => {:ok, %RoomSubscription{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %{message: "...", code: "NOT_FOUND"}}
   """
   def get_room_subscription(room, user) do
-    Repo.get_by(RoomSubscription, room_id: room.id, user_id: user.id)
+    case Repo.get_by(RoomSubscription, room_id: room.id, user_id: user.id) do
+      nil ->
+        not_found(dgettext("errors", "User is not subscribed to the room"))
+      subscription ->
+        {:ok, subscription}
+    end
   end
 
   @doc """
@@ -88,5 +166,10 @@ defmodule Level.Rooms do
   defp create_room_subscription_changeset(room, user) do
     RoomSubscription.create_changeset(%RoomSubscription{},
       %{space_id: user.space_id, user_id: user.id, room_id: room.id})
+  end
+
+  # Builds a "not found" response with a given message
+  defp not_found(message) do
+    {:error, %{message: message, code: "NOT_FOUND"}}
   end
 end

@@ -55,6 +55,12 @@ defmodule LevelWeb.Schema.Types do
       arg :order_by, :room_subscription_order
       resolve &LevelWeb.UserResolver.room_subscriptions/3
     end
+
+    @desc "Fetch a room by id"
+    field :room, :room do
+      arg :id, non_null(:id)
+      resolve &LevelWeb.UserResolver.room/3
+    end
   end
 
   @desc "A `Space` is the main organizational unit for a Level account."

@@ -3,6 +3,8 @@ defmodule LevelWeb.UserResolver do
   GraphQL query resolution for users.
   """
 
+  alias Level.Rooms
+
   @doc """
   Fetches draft connection data based on the given query args.
   """
@@ -15,5 +17,12 @@ defmodule LevelWeb.UserResolver do
   """
   def room_subscriptions(user, args, _info) do
     Level.Connections.room_subscriptions(user, args, %{})
+  end
+
+  @doc """
+  Fetches a room by id.
+  """
+  def room(user, args, _info) do
+    Rooms.get_room(user, args[:id])
   end
 end
