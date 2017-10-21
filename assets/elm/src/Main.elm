@@ -10,8 +10,10 @@ import Data.Session exposing (Session)
 import Page.Room
 import Page.Conversations
 import Query.Bootstrap as Bootstrap
+import Query.Room
 import Navigation
 import Route exposing (Route)
+import Task
 
 
 main : Program Flags Model Msg
@@ -84,6 +86,7 @@ type Msg
     = UrlChanged Navigation.Location
     | Bootstrapped (Maybe Route) (Result Http.Error Bootstrap.Response)
     | ConversationsMsg Page.Conversations.Msg
+    | RoomLoaded String (Result Http.Error Query.Room.Response)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -117,6 +120,17 @@ update msg model =
             -- TODO: implement this
             ( model, Cmd.none )
 
+        RoomLoaded slug (Ok response) ->
+            case model of
+                PageNotLoaded _ ->
+                    ( model, Cmd.none )
+
+                PageLoaded session appState ->
+                    ( PageLoaded session { appState | page = Room response, isTransitioning = False }, Cmd.none )
+
+        RoomLoaded slug (Err _) ->
+            ( model, Cmd.none )
+
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
 bootstrap session maybeRoute =
@@ -125,22 +139,27 @@ bootstrap session maybeRoute =
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
-    case model of
-        PageNotLoaded session ->
-            ( model, bootstrap session maybeRoute )
+    let
+        transition session appState toMsg task =
+            ( PageLoaded session { appState | isTransitioning = True }, Task.attempt toMsg task )
+    in
+        case model of
+            PageNotLoaded session ->
+                ( model, bootstrap session maybeRoute )
 
-        PageLoaded session appState ->
-            case maybeRoute of
-                Nothing ->
-                    ( PageLoaded session { appState | page = NotFound }, Cmd.none )
+            PageLoaded session appState ->
+                case maybeRoute of
+                    Nothing ->
+                        ( PageLoaded session { appState | page = NotFound }, Cmd.none )
 
-                Just Route.Conversations ->
-                    -- TODO: implement this
-                    ( PageLoaded session { appState | page = Conversations }, Cmd.none )
+                    Just Route.Conversations ->
+                        -- TODO: implement this
+                        ( PageLoaded session { appState | page = Conversations }, Cmd.none )
 
-                Just (Route.Room slug) ->
-                    -- TODO: implement this
-                    ( model, Cmd.none )
+                    Just (Route.Room slug) ->
+                        -- TODO: implement this
+                        -- ( PageLoaded session { appState | page = Room }, Cmd.none )
+                        transition session appState (RoomLoaded slug) (Page.Room.makeRequest session slug)
 
 
 
@@ -191,7 +210,7 @@ pageContent page =
 
         Room model ->
             -- TODO: implement this
-            div [] [ text "Viewing a room" ]
+            div [] [ text model.room.name ]
 
         Blank ->
             -- TODO: implement this
