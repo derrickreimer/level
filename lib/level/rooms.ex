@@ -69,6 +69,23 @@ defmodule Level.Rooms do
   end
 
   @doc """
+  Deletes a given room subscription.
+
+  ## Examples
+
+      # If operation succeeds, returns success.
+      delete_room_subscription(%RoomSubscription{...})
+      => {:ok, %RoomSubscription{...}}
+
+      # Otherwise, returns an error.
+      delete_room_subscription(%RoomSubscription{...})
+      => {:error, %Ecto.Changeset{...}}
+  """
+  def delete_room_subscription(%RoomSubscription{} = subscription) do
+    Repo.delete(subscription)
+  end
+
+  @doc """
   Fetches the subscription to a room for a particular user. If no subscription
   exists, returns nil.
   """

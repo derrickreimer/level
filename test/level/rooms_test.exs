@@ -70,9 +70,7 @@ defmodule Level.RoomsTest do
 
   describe "get_room/2" do
     setup do
-      {:ok, %{user: user}} = insert_signup()
-      {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
-      {:ok, %{user: user, room: room}}
+      create_user_and_room()
     end
 
     test "returns the room if the user has access", %{user: user, room: room} do
@@ -99,23 +97,39 @@ defmodule Level.RoomsTest do
 
     test "returns an error if the room is invite-only and user doesn't have access",
       %{user: user, room: room} do
-      # TODO: Implement a #leave_room function and use that here
       # TODO: Implement an #update_policy function and use that here
       Repo.update(Ecto.Changeset.change(room, subscriber_policy: "INVITE_ONLY"))
-      Repo.delete_all(Rooms.RoomSubscription)
+      subscription = Rooms.get_room_subscription(room, user)
+      Rooms.delete_room_subscription(subscription)
       assert {:error, _} = Rooms.get_room(user, room.id)
     end
   end
 
   describe "delete_room/1" do
     setup do
-      {:ok, %{user: user}} = insert_signup()
-      {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
-      {:ok, %{user: user, room: room}}
+      create_user_and_room()
     end
 
     test "sets state to deleted", %{room: room} do
       assert {:ok, %Rooms.Room{state: "DELETED"}} = Rooms.delete_room(room)
     end
+  end
+
+  describe "delete_room_subscription/1" do
+    setup do
+      create_user_and_room()
+    end
+
+    test "deletes the room subscription record", %{user: user, room: room} do
+      subscription = Rooms.get_room_subscription(room, user)
+      {:ok, _} = Rooms.delete_room_subscription(subscription)
+      assert Rooms.get_room_subscription(room, user) == nil
+    end
+  end
+
+  defp create_user_and_room do
+    {:ok, %{user: user}} = insert_signup()
+    {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
+    {:ok, %{user: user, room: room}}
   end
 end
