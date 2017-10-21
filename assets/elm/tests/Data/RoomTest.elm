@@ -20,7 +20,8 @@ decoders =
                             """
                             {
                                 "id": "9999",
-                                "name": "Drip"
+                                "name": "Everyone",
+                                "description": "All the things"
                             }
                             """
 
@@ -29,7 +30,8 @@ decoders =
 
                         expected =
                             { id = "9999"
-                            , name = "Drip"
+                            , name = "Everyone"
+                            , description = "All the things"
                             }
                     in
                         Expect.equal (Ok expected) result
@@ -59,7 +61,8 @@ decoders =
                                     "node": {
                                         "room": {
                                             "id": "123",
-                                            "name": "Everyone"
+                                            "name": "Everyone",
+                                            "description": "All the things"
                                         }
                                     }
                                 }]
@@ -75,6 +78,7 @@ decoders =
                                         { room =
                                             { id = "123"
                                             , name = "Everyone"
+                                            , description = "All the things"
                                             }
                                         }
                                   }
