@@ -29,9 +29,9 @@ defmodule Level.Rooms do
     case Repo.get_by(Room, id: id, space_id: user.space_id, state: "ACTIVE") do
       %Room{subscriber_policy: "INVITE_ONLY"} = room ->
         case get_room_subscription(room, user) do
-          nil ->
+          {:error, _} ->
             not_found(dgettext("errors", "Room not found"))
-          _ ->
+          {:ok, _} ->
             {:ok, room}
         end
       nil ->
@@ -86,11 +86,24 @@ defmodule Level.Rooms do
   end
 
   @doc """
-  Fetches the subscription to a room for a particular user. If no subscription
-  exists, returns nil.
+  Fetches the subscription to a room for a particular user.
+
+  ## Examples
+
+      # If user is subscribed to the room, returns success.
+      get_room_subscription(room, user)
+      => {:ok, %RoomSubscription{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %{message: "...", code: "NOT_FOUND"}}
   """
   def get_room_subscription(room, user) do
-    Repo.get_by(RoomSubscription, room_id: room.id, user_id: user.id)
+    case Repo.get_by(RoomSubscription, room_id: room.id, user_id: user.id) do
+      nil ->
+        not_found(dgettext("errors", "User is not subscribed to the room"))
+      subscription ->
+        {:ok, subscription}
+    end
   end
 
   @doc """

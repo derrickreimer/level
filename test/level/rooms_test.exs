@@ -47,7 +47,7 @@ defmodule Level.RoomsTest do
     test "returns the subscription if user is subscribed to the room",
       %{user: user} do
       {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
-      subscription = Rooms.get_room_subscription(room, user)
+      {:ok, subscription} = Rooms.get_room_subscription(room, user)
       assert subscription.room_id == room.id
       assert subscription.user_id == user.id
     end
@@ -64,7 +64,7 @@ defmodule Level.RoomsTest do
         |> put_change(:role, "MEMBER")
         |> Repo.insert()
 
-      assert Rooms.get_room_subscription(room, another_user) == nil
+      assert {:error, _} = Rooms.get_room_subscription(room, another_user)
     end
   end
 
@@ -99,7 +99,7 @@ defmodule Level.RoomsTest do
       %{user: user, room: room} do
       # TODO: Implement an #update_policy function and use that here
       Repo.update(Ecto.Changeset.change(room, subscriber_policy: "INVITE_ONLY"))
-      subscription = Rooms.get_room_subscription(room, user)
+      {:ok, subscription} = Rooms.get_room_subscription(room, user)
       Rooms.delete_room_subscription(subscription)
       assert {:error, _} = Rooms.get_room(user, room.id)
     end
@@ -121,9 +121,9 @@ defmodule Level.RoomsTest do
     end
 
     test "deletes the room subscription record", %{user: user, room: room} do
-      subscription = Rooms.get_room_subscription(room, user)
+      {:ok, subscription} = Rooms.get_room_subscription(room, user)
       {:ok, _} = Rooms.delete_room_subscription(subscription)
-      assert Rooms.get_room_subscription(room, user) == nil
+      assert {:error, _} = Rooms.get_room_subscription(room, user)
     end
   end
 
