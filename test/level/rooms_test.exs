@@ -87,8 +87,7 @@ defmodule Level.RoomsTest do
     end
 
     test "returns an error if room has been deleted", %{user: user, room: room} do
-      # TODO: Implement a #delete_room function and use that here
-      Repo.update(Ecto.Changeset.change(room, state: "DELETED"))
+      Rooms.delete_room(room)
       assert {:error, _} = Rooms.get_room(user, room.id)
     end
 
@@ -105,6 +104,18 @@ defmodule Level.RoomsTest do
       Repo.update(Ecto.Changeset.change(room, subscriber_policy: "INVITE_ONLY"))
       Repo.delete_all(Rooms.RoomSubscription)
       assert {:error, _} = Rooms.get_room(user, room.id)
+    end
+  end
+
+  describe "delete_room/1" do
+    setup do
+      {:ok, %{user: user}} = insert_signup()
+      {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
+      {:ok, %{user: user, room: room}}
+    end
+
+    test "sets state to deleted", %{room: room} do
+      assert {:ok, %Rooms.Room{state: "DELETED"}} = Rooms.delete_room(room)
     end
   end
 end

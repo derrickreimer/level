@@ -52,6 +52,13 @@ defmodule Level.Rooms do
   end
 
   @doc """
+  Transitions a given room to a deleted state.
+  """
+  def delete_room(room) do
+    Repo.update(Ecto.Changeset.change(room, state: "DELETED"))
+  end
+
+  @doc """
   Fetches the subscription to a room for a particular user. If no subscription
   exists, returns nil.
   """
@@ -121,6 +128,7 @@ defmodule Level.Rooms do
       %{space_id: user.space_id, user_id: user.id, room_id: room.id})
   end
 
+  # Builds a "not found" response with a given message
   defp not_found(message) do
     {:error, %{message: message, code: "NOT_FOUND"}}
   end
