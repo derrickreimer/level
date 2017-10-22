@@ -141,7 +141,9 @@ navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
         transition session appState toMsg task =
-            ( PageLoaded session { appState | isTransitioning = True }, Task.attempt toMsg task )
+            ( PageLoaded session { appState | isTransitioning = True }
+            , Task.attempt toMsg task
+            )
     in
         case model of
             PageNotLoaded session ->
@@ -157,9 +159,7 @@ navigateTo maybeRoute model =
                         ( PageLoaded session { appState | page = Conversations }, Cmd.none )
 
                     Just (Route.Room slug) ->
-                        -- TODO: implement this
-                        -- ( PageLoaded session { appState | page = Room }, Cmd.none )
-                        transition session appState (RoomLoaded slug) (Page.Room.makeRequest session slug)
+                        transition session appState (RoomLoaded slug) (Page.Room.fetchRoom session slug)
 
 
 

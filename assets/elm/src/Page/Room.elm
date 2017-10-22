@@ -1,4 +1,4 @@
-module Page.Room exposing (Model, makeRequest)
+module Page.Room exposing (Model, fetchRoom)
 
 {-| Viewing an particular room.
 -}
@@ -18,13 +18,12 @@ type alias Model =
     }
 
 
-
--- init : Session -> String ->
-
-
-makeRequest : Session -> String -> Task Http.Error Query.Room.Response
-makeRequest session slug =
-    Http.toTask (Query.Room.request session.apiToken (Query.Room.Params slug))
+{-| Build a task to fetch a room by slug.
+-}
+fetchRoom : Session -> String -> Task Http.Error Query.Room.Response
+fetchRoom session slug =
+    Query.Room.request session.apiToken (Query.Room.Params slug)
+        |> Http.toTask
 
 
 
