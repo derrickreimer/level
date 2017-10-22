@@ -7,7 +7,7 @@ import Data.Room as Room
 import Navigation exposing (Location)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
-import UrlParser as Url exposing ((</>), Parser, oneOf, parsePath, s, string)
+import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string)
 
 
 -- ROUTING --
@@ -41,7 +41,7 @@ routeToString page =
                 Room slug ->
                     [ "rooms", slug ]
     in
-        "/" ++ String.join "/" pieces
+        "#/" ++ String.join "/" pieces
 
 
 
@@ -55,4 +55,7 @@ href route =
 
 fromLocation : Location -> Maybe Route
 fromLocation location =
-    parsePath route location
+    if String.isEmpty location.hash then
+        Just Conversations
+    else
+        parseHash route location

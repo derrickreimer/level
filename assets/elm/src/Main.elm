@@ -94,7 +94,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UrlChanged location ->
-            ( model, Cmd.none )
+            navigateTo (Route.fromLocation location) model
 
         BootstrapLoaded maybeRoute (Ok response) ->
             case model of
