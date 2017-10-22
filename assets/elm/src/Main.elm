@@ -31,8 +31,8 @@ main =
 
 
 type Model
-    = PageNotLoaded Session
-    | PageLoaded Session AppState
+    = NotBootstrapped Session
+    | Bootstrapped Session AppState
 
 
 type alias AppState =
@@ -58,7 +58,7 @@ type alias Flags =
 
 {-| Initialize the model and kick off page navigation.
 
-1.  Build the initial model, which begins life as a `PageNotLoaded` type.
+1.  Build the initial model, which begins life as a `NotBootstrapped` type.
 2.  Parse the route from the location and navigate to the page.
 3.  Bootstrap the application state first, then perform the queries
     required for the specific route.
@@ -75,7 +75,7 @@ init flags location =
 -}
 buildInitialModel : Flags -> Model
 buildInitialModel flags =
-    PageNotLoaded (Session flags.apiToken)
+    NotBootstrapped (Session flags.apiToken)
 
 
 
@@ -84,7 +84,7 @@ buildInitialModel flags =
 
 type Msg
     = UrlChanged Navigation.Location
-    | Bootstrapped (Maybe Route) (Result Http.Error Bootstrap.Response)
+    | BootstrapLoaded (Maybe Route) (Result Http.Error Bootstrap.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
 
@@ -95,9 +95,9 @@ update msg model =
         UrlChanged location ->
             ( model, Cmd.none )
 
-        Bootstrapped maybeRoute (Ok response) ->
+        BootstrapLoaded maybeRoute (Ok response) ->
             case model of
-                PageNotLoaded session ->
+                NotBootstrapped session ->
                     let
                         appState =
                             { currentUser = response.user
@@ -107,13 +107,13 @@ update msg model =
                             , isTransitioning = False
                             }
                     in
-                        navigateTo maybeRoute (PageLoaded session appState)
+                        navigateTo maybeRoute (Bootstrapped session appState)
 
-                PageLoaded _ _ ->
+                Bootstrapped _ _ ->
                     -- Disregard bootstrapping when page is already loaded
                     ( model, Cmd.none )
 
-        Bootstrapped maybeRoute (Err _) ->
+        BootstrapLoaded maybeRoute (Err _) ->
             ( model, Cmd.none )
 
         ConversationsMsg _ ->
@@ -122,11 +122,11 @@ update msg model =
 
         RoomLoaded slug (Ok response) ->
             case model of
-                PageNotLoaded _ ->
+                NotBootstrapped _ ->
                     ( model, Cmd.none )
 
-                PageLoaded session appState ->
-                    ( PageLoaded session { appState | page = Room response, isTransitioning = False }, Cmd.none )
+                Bootstrapped session appState ->
+                    ( Bootstrapped session { appState | page = Room response, isTransitioning = False }, Cmd.none )
 
         RoomLoaded slug (Err _) ->
             ( model, Cmd.none )
@@ -134,29 +134,29 @@ update msg model =
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
 bootstrap session maybeRoute =
-    Http.send (Bootstrapped maybeRoute) (Bootstrap.request session.apiToken)
+    Http.send (BootstrapLoaded maybeRoute) (Bootstrap.request session.apiToken)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
         transition session appState toMsg task =
-            ( PageLoaded session { appState | isTransitioning = True }
+            ( Bootstrapped session { appState | isTransitioning = True }
             , Task.attempt toMsg task
             )
     in
         case model of
-            PageNotLoaded session ->
+            NotBootstrapped session ->
                 ( model, bootstrap session maybeRoute )
 
-            PageLoaded session appState ->
+            Bootstrapped session appState ->
                 case maybeRoute of
                     Nothing ->
-                        ( PageLoaded session { appState | page = NotFound }, Cmd.none )
+                        ( Bootstrapped session { appState | page = NotFound }, Cmd.none )
 
                     Just Route.Conversations ->
                         -- TODO: implement this
-                        ( PageLoaded session { appState | page = Conversations }, Cmd.none )
+                        ( Bootstrapped session { appState | page = Conversations }, Cmd.none )
 
                     Just (Route.Room slug) ->
                         transition session appState (RoomLoaded slug) (Page.Room.fetchRoom session slug)
@@ -178,10 +178,10 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     case model of
-        PageNotLoaded _ ->
+        NotBootstrapped _ ->
             div [ id "app" ] [ text "Loading..." ]
 
-        PageLoaded _ appState ->
+        Bootstrapped _ appState ->
             div [ id "app" ]
                 [ div [ class "sidebar sidebar--left" ]
                     [ spaceSelector appState.currentSpace
