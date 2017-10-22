@@ -249,14 +249,28 @@ identityMenu user =
         ]
 
 
+inboxLink : Page -> Html Msg
+inboxLink page =
+    let
+        selectedClass =
+            case page of
+                Conversations ->
+                    "side-nav__item--selected"
+
+                _ ->
+                    ""
+    in
+        a [ class ("side-nav__item " ++ selectedClass), Route.href Route.Conversations ]
+            [ span [ class "side-nav__item-name" ] [ text "Inbox" ]
+            ]
+
+
 sideNav : AppState -> Html Msg
 sideNav appState =
     div [ class "side-nav-container" ]
         [ h3 [ class "side-nav-heading" ] [ text "Conversations" ]
         , div [ class "side-nav" ]
-            [ a [ class "side-nav__item side-nav__item--selected", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Inbox" ]
-                ]
+            [ inboxLink appState.page
             , a [ class "side-nav__item", href "#" ]
                 [ span [ class "side-nav__item-name" ] [ text "Everything" ]
                 ]
@@ -304,16 +318,27 @@ usersList appState =
 
 roomSubscriptionsList : AppState -> Html Msg
 roomSubscriptionsList appState =
-    div [ class "side-nav" ] (List.map roomSubscriptionItem appState.roomSubscriptions.edges)
+    div [ class "side-nav" ] (List.map (roomSubscriptionItem appState.page) appState.roomSubscriptions.edges)
 
 
-roomSubscriptionItem : RoomSubscriptionEdge -> Html Msg
-roomSubscriptionItem edge =
+roomSubscriptionItem : Page -> RoomSubscriptionEdge -> Html Msg
+roomSubscriptionItem page edge =
     let
         room =
             edge.node.room
+
+        selectedClass =
+            case page of
+                Room model ->
+                    if model.room.id == room.id then
+                        "side-nav__item--selected"
+                    else
+                        ""
+
+                _ ->
+                    ""
     in
-        a [ class "side-nav__item side-nav__item--room", Route.href (Route.Room room.id) ]
+        a [ class ("side-nav__item side-nav__item--room " ++ selectedClass), Route.href (Route.Room room.id) ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             ]
 
