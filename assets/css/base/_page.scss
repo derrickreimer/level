@@ -1,0 +1,17 @@
+.page-head {
+  margin: 0 $baseline;
+  padding: 6px $baseline;
+  border-top: 1px solid $item-list-border-color;
+  border-bottom: 1px solid $item-list-border-color;
+
+  &__name {
+    margin: 0;
+    font-size: 20px;
+    font-weight: $bold-weight;
+  }
+
+  &__description {
+    margin: 0 0 4px;
+    color: $muted-text-color;
+  }
+}

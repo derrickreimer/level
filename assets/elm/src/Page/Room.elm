@@ -6,6 +6,7 @@ module Page.Room exposing (Model, Msg, fetchRoom, view)
 import Task exposing (Task)
 import Http
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
 import Query.Room
@@ -41,4 +42,7 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    div [] [ text model.room.name ]
+    div [ class "page-head" ]
+        [ h2 [ class "page-head__name" ] [ text model.room.name ]
+        , p [ class "page-head__description" ] [ text model.room.description ]
+        ]
