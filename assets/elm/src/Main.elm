@@ -123,7 +123,12 @@ update msg model =
                     ( model, Cmd.none )
 
                 Bootstrapped session appState ->
-                    ( Bootstrapped session { appState | page = Room response, isTransitioning = False }, Cmd.none )
+                    case response of
+                        Query.Room.Ok pageModel ->
+                            ( Bootstrapped session { appState | page = Room pageModel, isTransitioning = False }, Cmd.none )
+
+                        Query.Room.NotFound ->
+                            ( model, Cmd.none )
 
         RoomLoaded slug (Err _) ->
             ( model, Cmd.none )
