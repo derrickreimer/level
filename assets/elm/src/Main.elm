@@ -125,10 +125,22 @@ update msg model =
                 Bootstrapped session appState ->
                     case response of
                         Query.Room.Found data ->
-                            ( Bootstrapped session { appState | page = Room data, isTransitioning = False }, Cmd.none )
+                            ( Bootstrapped session
+                                { appState
+                                    | page = Room data
+                                    , isTransitioning = False
+                                }
+                            , Cmd.none
+                            )
 
                         Query.Room.NotFound ->
-                            ( model, Cmd.none )
+                            ( Bootstrapped session
+                                { appState
+                                    | page = NotFound
+                                    , isTransitioning = False
+                                }
+                            , Cmd.none
+                            )
 
         RoomLoaded slug (Err _) ->
             ( model, Cmd.none )
@@ -228,8 +240,10 @@ pageContent page =
             div [] []
 
         NotFound ->
-            -- TODO: implement this
-            div [] [ text "Not Found" ]
+            div [ class "blank-slate" ]
+                [ h2 [ class "blank-slate__heading" ]
+                    [ text "Hmm, we couldn't find what you were looking for." ]
+                ]
 
 
 spaceSelector : Space -> Html Msg
