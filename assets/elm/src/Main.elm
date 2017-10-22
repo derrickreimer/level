@@ -124,8 +124,8 @@ update msg model =
 
                 Bootstrapped session appState ->
                     case response of
-                        Query.Room.Ok pageModel ->
-                            ( Bootstrapped session { appState | page = Room pageModel, isTransitioning = False }, Cmd.none )
+                        Query.Room.Found data ->
+                            ( Bootstrapped session { appState | page = Room data, isTransitioning = False }, Cmd.none )
 
                         Query.Room.NotFound ->
                             ( model, Cmd.none )

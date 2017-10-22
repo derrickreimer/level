@@ -9,23 +9,27 @@ import Json.Decode exposing (decodeString)
 decoders : Test
 decoders =
     describe "decoders"
-        [ describe "Query.Room.okDecoder"
-            [ test "parses valid response" <|
+        [ describe "Query.Room.decoder"
+            [ test "handles response where room is found" <|
                 \_ ->
                     let
                         json =
                             """
                             {
-                                "room": {
-                                    "id": "9999",
-                                    "name": "Everyone",
-                                    "description": "All the things"
+                                "data": {
+                                    "viewer": {
+                                        "room": {
+                                            "id": "9999",
+                                            "name": "Everyone",
+                                            "description": "All the things"
+                                        }
+                                    }
                                 }
                             }
                             """
 
                         result =
-                            decodeString Room.okDecoder json
+                            decodeString Room.decoder json
 
                         expected =
                             { room =
@@ -36,20 +40,22 @@ decoders =
                             }
                     in
                         Expect.equal (Ok (Room.Ok expected)) result
-            ]
-        , describe "Query.Room.notFoundDecoder"
-            [ test "parses not found response" <|
+            , test "handles response when room is not found" <|
                 \_ ->
                     let
                         json =
                             """
                             {
-                                "room": null
+                                "data": {
+                                    "viewer": {
+                                        "room": null
+                                    }
+                                }
                             }
                             """
 
                         result =
-                            decodeString Room.notFoundDecoder json
+                            decodeString Room.decoder json
                     in
                         Expect.equal (Ok Room.NotFound) result
             ]

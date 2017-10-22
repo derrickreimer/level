@@ -1,4 +1,4 @@
-module Query.Room exposing (Params, Response(..), okDecoder, notFoundDecoder, request)
+module Query.Room exposing (Params, Response(..), decoder, request)
 
 import Http
 import Json.Encode as Encode
@@ -13,12 +13,12 @@ type alias Params =
     }
 
 
-type alias OkResponse =
+type alias Data =
     { room : Room }
 
 
 type Response
-    = Ok OkResponse
+    = Found Data
     | NotFound
 
 
@@ -46,10 +46,10 @@ variables params =
         ]
 
 
-okDecoder : Decode.Decoder Response
-okDecoder =
-    Decode.map Ok
-        (Pipeline.decode OkResponse
+foundDecoder : Decode.Decoder Response
+foundDecoder =
+    Decode.map Found
+        (Pipeline.decode Data
             |> Pipeline.custom (Decode.at [ "room" ] roomDecoder)
         )
 
@@ -62,7 +62,7 @@ notFoundDecoder =
 decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data", "viewer" ] <|
-        okDecoder
+        Decode.oneOf [ foundDecoder, notFoundDecoder ]
 
 
 request : String -> Params -> Http.Request Response
