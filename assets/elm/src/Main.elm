@@ -85,8 +85,9 @@ buildInitialModel flags =
 type Msg
     = UrlChanged Navigation.Location
     | BootstrapLoaded (Maybe Route) (Result Http.Error Bootstrap.Response)
-    | ConversationsMsg Page.Conversations.Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
+    | ConversationsMsg Page.Conversations.Msg
+    | RoomMsg Page.Room.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -116,10 +117,6 @@ update msg model =
         BootstrapLoaded maybeRoute (Err _) ->
             ( model, Cmd.none )
 
-        ConversationsMsg _ ->
-            -- TODO: implement this
-            ( model, Cmd.none )
-
         RoomLoaded slug (Ok response) ->
             case model of
                 NotBootstrapped _ ->
@@ -129,6 +126,14 @@ update msg model =
                     ( Bootstrapped session { appState | page = Room response, isTransitioning = False }, Cmd.none )
 
         RoomLoaded slug (Err _) ->
+            ( model, Cmd.none )
+
+        ConversationsMsg _ ->
+            -- TODO: implement this
+            ( model, Cmd.none )
+
+        RoomMsg _ ->
+            -- TODO: implement this
             ( model, Cmd.none )
 
 
@@ -209,8 +214,9 @@ pageContent page =
                 |> Html.map ConversationsMsg
 
         Room model ->
-            -- TODO: implement this
-            div [] [ text model.room.name ]
+            model
+                |> Page.Room.view
+                |> Html.map RoomMsg
 
         Blank ->
             -- TODO: implement this

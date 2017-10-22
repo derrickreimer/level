@@ -1,10 +1,11 @@
-module Page.Room exposing (Model, fetchRoom)
+module Page.Room exposing (Model, Msg, fetchRoom, view)
 
 {-| Viewing an particular room.
 -}
 
 import Task exposing (Task)
 import Http
+import Html exposing (..)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
 import Query.Room
@@ -28,4 +29,16 @@ fetchRoom session slug =
 
 
 -- UPDATE
+
+
+type Msg
+    = Undefined
+
+
+
 -- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    div [] [ text model.room.name ]
