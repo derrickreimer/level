@@ -1,10 +1,12 @@
-module Route exposing (..)
+module Route exposing (Route(..), route, href, fromLocation)
 
 {-| Routing logic for the application.
 -}
 
 import Data.Room as Room
 import Navigation exposing (Location)
+import Html exposing (Attribute)
+import Html.Attributes as Attr
 import UrlParser as Url exposing ((</>), Parser, oneOf, parsePath, s, string)
 
 
@@ -25,7 +27,30 @@ route =
 
 
 
+-- INTERNAL --
+
+
+routeToString : Route -> String
+routeToString page =
+    let
+        pieces =
+            case page of
+                Conversations ->
+                    []
+
+                Room slug ->
+                    [ "rooms", slug ]
+    in
+        "/" ++ String.join "/" pieces
+
+
+
 -- PUBLIC HELPERS
+
+
+href : Route -> Attribute msg
+href route =
+    Attr.href (routeToString route)
 
 
 fromLocation : Location -> Maybe Route
