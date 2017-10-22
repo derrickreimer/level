@@ -303,9 +303,13 @@ roomSubscriptionsList appState =
 
 roomSubscriptionItem : RoomSubscriptionEdge -> Html Msg
 roomSubscriptionItem edge =
-    a [ class "side-nav__item side-nav__item--room", href "#" ]
-        [ span [ class "side-nav__item-name" ] [ text edge.node.room.name ]
-        ]
+    let
+        room =
+            edge.node.room
+    in
+        a [ class "side-nav__item side-nav__item--room", Route.href (Route.Room room.id) ]
+            [ span [ class "side-nav__item-name" ] [ text room.name ]
+            ]
 
 
 
