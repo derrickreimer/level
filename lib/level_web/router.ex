@@ -67,8 +67,8 @@ defmodule LevelWeb.Router do
     pipe_through [:browser, :space]
     forward "/graphiql", Absinthe.Plug.GraphiQL,
       schema: LevelWeb.Schema,
-      default_headers: &__MODULE__.graphiql_headers/1,
-      default_url: &__MODULE__.graphiql_url/1
+      default_headers: {__MODULE__, :graphiql_headers},
+      default_url: {__MODULE__, :graphiql_url}
   end
 
   def graphiql_headers(conn) do

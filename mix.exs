@@ -44,10 +44,11 @@ defmodule Level.Mixfile do
      {:comeonin, "~> 3.0"},
      {:timex, "~> 3.0"},
      {:ex_doc, "~> 0.16"},
-     {:absinthe, "~> 1.3"},
-     # Pointing at a fork of the library in order to use this functionality:
+     {:absinthe, "~> 1.4.0-rc.3"},
+     # Pointing at pre-release version in order to use this functionality:
      # https://github.com/absinthe-graphql/absinthe_plug/pull/92
-     {:absinthe_plug, "~> 1.3", git: "https://github.com/djreimer/absinthe_plug.git", ref: "71bbdbe"},
+     # TODO: Remove this as soon as next stable release is shipped.
+     {:absinthe_plug, "~> 1.4.0-rc.1", git: "https://github.com/absinthe-graphql/absinthe_plug.git", ref: "4160d76"},
      {:joken, "~> 1.5"},
      {:bamboo, "~> 0.8"},
      {:bamboo_smtp, "~> 1.4"},
