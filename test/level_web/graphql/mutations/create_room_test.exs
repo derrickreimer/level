@@ -10,7 +10,7 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
       mutation CreateRoom(
         $name: String!,
         $description: String,
-        $subscriberPolicy: RoomSubscriberPolicy!
+        $subscriberPolicy: RoomSubscriberPolicy
       ) {
         createRoom(
           name: $name,
