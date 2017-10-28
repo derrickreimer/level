@@ -19,11 +19,13 @@ defmodule Level.Rooms do
   ## Examples
 
       # When the room exists and the user can access, returns it.
-      get_room(%User{...}, "999")
-      => {:ok, %{room: %Level.Rooms.Room{...}}}
+      # Note: this does not guarantee that the user is actually _subscribed_
+      # to the room, only that the user has permisson to see it.
+      get_room(user, "999")
+      => {:ok, %Room{...}}
 
       # Otherwise, returns an error.
-      get_room(%User{...}, "idontexist")
+      get_room(user, "idontexist")
       => {:error, %{message: "Room not found", code: "NOT_FOUND"}}
   """
   def get_room(%Level.Spaces.User{} = user, id) do
@@ -45,6 +47,16 @@ defmodule Level.Rooms do
   @doc """
   Creates a new room and subscribes the creator to the room. If successful,
   returns a tuple of the form `{:ok, %{room: room, room_subscription: room_subscription}}`.
+
+  ## Examples
+
+      # If operation succeeds, returns a success tuple containing the newly-created
+      # room and subscription for the user who created the room.
+      create_room(user, %{name: "Development", ...})
+      => {:ok, %{room: room, room_subscription: room_subscription}}
+
+      # Otherwise, returns an error.
+      => {:error, failed_operation, failed_value, changes_so_far}
   """
   def create_room(user, params \\ %{}) do
     user
@@ -62,7 +74,6 @@ defmodule Level.Rooms do
       => {:ok, %Room{...}}
 
       # Otherwise, returns an error.
-      delete_room(%Room{...})
       => {:error, %Ecto.Changeset{...}}
   """
   def delete_room(room) do
@@ -79,7 +90,6 @@ defmodule Level.Rooms do
       => {:ok, %RoomSubscription{...}}
 
       # Otherwise, returns an error.
-      delete_room_subscription(%RoomSubscription{...})
       => {:error, %Ecto.Changeset{...}}
   """
   def delete_room_subscription(%RoomSubscription{} = subscription) do
