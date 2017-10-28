@@ -8,6 +8,7 @@ defmodule Level.Rooms do
   alias Level.Repo
   alias Level.Rooms.Room
   alias Level.Rooms.RoomSubscription
+  alias Level.Rooms.Message
   alias Ecto.Multi
 
   import Level.Gettext
@@ -134,6 +135,24 @@ defmodule Level.Rooms do
     |> Repo.insert()
   end
 
+  @doc """
+  Posts a new message to a given room.
+
+  ## Examples
+
+      # If the message is valid, returns success.
+      create_message(room, user, %{body: "Hello world"})
+      => {:ok, %Message{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %Ecto.Changeset{...}}
+  """
+  def create_message(room, user, params \\ %{}) do
+    room
+    |> create_room_message_changeset(user, params)
+    |> Repo.insert()
+  end
+
   # Builds an operation to create a new room. Specifically, this operation
   # inserts a new record in the rooms table and, provided that succeeds,
   # inserts a new record into the room subscriptions table for the user that
@@ -166,6 +185,17 @@ defmodule Level.Rooms do
   defp create_room_subscription_changeset(room, user) do
     RoomSubscription.create_changeset(%RoomSubscription{},
       %{space_id: user.space_id, user_id: user.id, room_id: room.id})
+  end
+
+  # Builds a changeset for creating a room message.
+  defp create_room_message_changeset(room, user, params) do
+    params_with_relations =
+      params
+      |> Map.put(:space_id, user.space_id)
+      |> Map.put(:user_id, user.id)
+      |> Map.put(:room_id, room.id)
+
+    Message.create_changeset(%Message{}, params_with_relations)
   end
 
   # Builds a "not found" response with a given message
