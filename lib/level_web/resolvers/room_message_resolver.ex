@@ -18,8 +18,9 @@ defmodule LevelWeb.RoomMessageResolver do
           end
 
         {:ok, resp}
-      error ->
-        error
+
+      # Display a top level error if the room is not found
+      error -> error
     end
   end
 end
