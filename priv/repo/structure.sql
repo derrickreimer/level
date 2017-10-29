@@ -168,6 +168,21 @@ CREATE TABLE invitations (
 
 
 --
+-- Name: room_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE room_messages (
+    id bigint DEFAULT next_global_id() NOT NULL,
+    space_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    room_id bigint NOT NULL,
+    body text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: room_subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -259,6 +274,14 @@ ALTER TABLE ONLY invitations
 
 
 --
+-- Name: room_messages room_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_messages
+    ADD CONSTRAINT room_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: room_subscriptions room_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -338,6 +361,20 @@ CREATE UNIQUE INDEX invitations_token_index ON invitations USING btree (token);
 --
 
 CREATE UNIQUE INDEX invitations_unique_pending_email ON invitations USING btree (lower(email)) WHERE (state = 'PENDING'::invitation_state);
+
+
+--
+-- Name: room_messages_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX room_messages_id_index ON room_messages USING btree (id);
+
+
+--
+-- Name: room_messages_room_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX room_messages_room_id_index ON room_messages USING btree (room_id);
 
 
 --
@@ -458,6 +495,30 @@ ALTER TABLE ONLY invitations
 
 
 --
+-- Name: room_messages room_messages_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_messages
+    ADD CONSTRAINT room_messages_room_id_fkey FOREIGN KEY (room_id) REFERENCES rooms(id);
+
+
+--
+-- Name: room_messages room_messages_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_messages
+    ADD CONSTRAINT room_messages_space_id_fkey FOREIGN KEY (space_id) REFERENCES spaces(id);
+
+
+--
+-- Name: room_messages room_messages_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_messages
+    ADD CONSTRAINT room_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
+
+--
 -- Name: room_subscriptions room_subscriptions_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -509,5 +570,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345);
+INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345), (20171028185025);
 

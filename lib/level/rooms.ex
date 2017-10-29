@@ -8,6 +8,7 @@ defmodule Level.Rooms do
   alias Level.Repo
   alias Level.Rooms.Room
   alias Level.Rooms.RoomSubscription
+  alias Level.Rooms.Message
   alias Ecto.Multi
 
   import Level.Gettext
@@ -18,11 +19,13 @@ defmodule Level.Rooms do
   ## Examples
 
       # When the room exists and the user can access, returns it.
-      get_room(%User{...}, "999")
-      => {:ok, %{room: %Level.Rooms.Room{...}}}
+      # Note: this does not guarantee that the user is actually _subscribed_
+      # to the room, only that the user has permisson to see it.
+      get_room(user, "999")
+      => {:ok, %Room{...}}
 
       # Otherwise, returns an error.
-      get_room(%User{...}, "idontexist")
+      get_room(user, "idontexist")
       => {:error, %{message: "Room not found", code: "NOT_FOUND"}}
   """
   def get_room(%Level.Spaces.User{} = user, id) do
@@ -44,6 +47,16 @@ defmodule Level.Rooms do
   @doc """
   Creates a new room and subscribes the creator to the room. If successful,
   returns a tuple of the form `{:ok, %{room: room, room_subscription: room_subscription}}`.
+
+  ## Examples
+
+      # If operation succeeds, returns a success tuple containing the newly-created
+      # room and subscription for the user who created the room.
+      create_room(user, %{name: "Development", ...})
+      => {:ok, %{room: room, room_subscription: room_subscription}}
+
+      # Otherwise, returns an error.
+      => {:error, failed_operation, failed_value, changes_so_far}
   """
   def create_room(user, params \\ %{}) do
     user
@@ -61,7 +74,6 @@ defmodule Level.Rooms do
       => {:ok, %Room{...}}
 
       # Otherwise, returns an error.
-      delete_room(%Room{...})
       => {:error, %Ecto.Changeset{...}}
   """
   def delete_room(room) do
@@ -78,7 +90,6 @@ defmodule Level.Rooms do
       => {:ok, %RoomSubscription{...}}
 
       # Otherwise, returns an error.
-      delete_room_subscription(%RoomSubscription{...})
       => {:error, %Ecto.Changeset{...}}
   """
   def delete_room_subscription(%RoomSubscription{} = subscription) do
@@ -134,6 +145,24 @@ defmodule Level.Rooms do
     |> Repo.insert()
   end
 
+  @doc """
+  Posts a new message to a given room.
+
+  ## Examples
+
+      # If the message is valid, returns success.
+      create_message(room, user, %{body: "Hello world"})
+      => {:ok, %Message{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %Ecto.Changeset{...}}
+  """
+  def create_message(room, user, params \\ %{}) do
+    room
+    |> create_room_message_changeset(user, params)
+    |> Repo.insert()
+  end
+
   # Builds an operation to create a new room. Specifically, this operation
   # inserts a new record in the rooms table and, provided that succeeds,
   # inserts a new record into the room subscriptions table for the user that
@@ -166,6 +195,17 @@ defmodule Level.Rooms do
   defp create_room_subscription_changeset(room, user) do
     RoomSubscription.create_changeset(%RoomSubscription{},
       %{space_id: user.space_id, user_id: user.id, room_id: room.id})
+  end
+
+  # Builds a changeset for creating a room message.
+  defp create_room_message_changeset(room, user, params) do
+    params_with_relations =
+      params
+      |> Map.put(:space_id, user.space_id)
+      |> Map.put(:user_id, user.id)
+      |> Map.put(:room_id, room.id)
+
+    Message.create_changeset(%Message{}, params_with_relations)
   end
 
   # Builds a "not found" response with a given message

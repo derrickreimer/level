@@ -58,6 +58,12 @@ defmodule Level.TestHelpers do
     }
   end
 
+  def valid_room_message_params do
+    %{
+      body: "Hello world"
+    }
+  end
+
   def insert_signup(params \\ %{}) do
     params =
       valid_signup_params()

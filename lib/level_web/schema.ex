@@ -57,5 +57,13 @@ defmodule LevelWeb.Schema do
 
       resolve &LevelWeb.RoomResolver.create/2
     end
+
+    @desc "Post a message to a room."
+    field :create_room_message, type: :create_room_message_payload do
+      arg :room_id, non_null(:id)
+      arg :body, non_null(:string)
+
+      resolve &LevelWeb.RoomMessageResolver.create/2
+    end
   end
 end

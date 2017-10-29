@@ -12,7 +12,7 @@ defmodule LevelWeb.Schema.Types do
   import_types LevelWeb.Schema.Connections
   import_types LevelWeb.Schema.Mutations
 
-  @desc "A `User` represents a person belonging to a specific `Space`."
+  @desc "A user represents a person belonging to a specific space."
   object :user do
     field :id, non_null(:id)
 
@@ -63,7 +63,7 @@ defmodule LevelWeb.Schema.Types do
     end
   end
 
-  @desc "A `Space` is the main organizational unit for a Level account."
+  @desc "A space is the main organizational unit, typically representing a company or organization."
   object :space do
     field :id, non_null(:id)
     field :state, non_null(:space_state)
@@ -81,7 +81,7 @@ defmodule LevelWeb.Schema.Types do
     end
   end
 
-  @desc "An `Invitation` is the means by which a new user joins an existing `Space`."
+  @desc "An invitation is the means by which a new user joins an existing space."
   object :invitation do
     field :id, non_null(:id)
     field :state, non_null(:invitation_state)
@@ -91,7 +91,7 @@ defmodule LevelWeb.Schema.Types do
     field :updated_at, non_null(:time)
   end
 
-  @desc "An `Draft` is an unsent thread that is still being composed."
+  @desc "An draft is an unsent thread that is still being composed."
   object :draft do
     field :id, non_null(:id)
     field :recipient_ids, list_of(:string)
@@ -118,7 +118,7 @@ defmodule LevelWeb.Schema.Types do
     end
   end
 
-  @desc "A `Room` is a chat room for a particular group of users."
+  @desc "A room is a long-running thread for a particular team or group of users."
   object :room do
     field :id, non_null(:id)
     field :name, non_null(:string)
@@ -144,7 +144,7 @@ defmodule LevelWeb.Schema.Types do
     end
   end
 
-  @desc "A `RoomSubscription` represents a user's membership in a `Room`."
+  @desc "A room subscription represents a user's membership in a room."
   object :room_subscription do
     field :id, non_null(:id)
 
@@ -168,6 +168,35 @@ defmodule LevelWeb.Schema.Types do
       resolve fn room_subscription, _, _ ->
         batch({Helpers, :by_id, Level.Rooms.Room}, room_subscription.room_id, fn batch_results ->
           {:ok, Map.get(batch_results, room_subscription.room_id)}
+        end)
+      end
+    end
+  end
+
+  @desc "A room message is message posted to a room."
+  object :room_message do
+    field :body, non_null(:string)
+
+    field :space, non_null(:space) do
+      resolve fn room_message, _, _ ->
+        batch({Helpers, :by_id, Level.Spaces.Space}, room_message.space_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room_message.space_id)}
+        end)
+      end
+    end
+
+    field :room, non_null(:room) do
+      resolve fn room_message, _, _ ->
+        batch({Helpers, :by_id, Level.Rooms.Room}, room_message.room_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room_message.room_id)}
+        end)
+      end
+    end
+
+    field :user, non_null(:user) do
+      resolve fn room_subscription, _, _ ->
+        batch({Helpers, :by_id, Level.Spaces.User}, room_subscription.user_id, fn batch_results ->
+          {:ok, Map.get(batch_results, room_subscription.user_id)}
         end)
       end
     end

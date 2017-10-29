@@ -127,6 +127,34 @@ defmodule Level.RoomsTest do
     end
   end
 
+  describe "create_message/3" do
+    setup do
+      create_user_and_room()
+    end
+
+    test "creates a message given valid params", %{room: room, user: user} do
+      params = valid_room_message_params()
+      {:ok, message} = Rooms.create_message(room, user, params)
+      assert message.user_id == user.id
+      assert message.room_id == room.id
+      assert message.body == params.body
+    end
+
+    test "returns an error with changeset if invalid",
+      %{room: room, user: user} do
+
+      params =
+        valid_room_message_params()
+        |> Map.put(:body, nil)
+
+      {:error, changeset} = Rooms.create_message(room, user, params)
+
+      assert %Ecto.Changeset{
+        errors: [body: {"can't be blank", [validation: :required]}]
+      } = changeset
+    end
+  end
+
   defp create_user_and_room do
     {:ok, %{user: user}} = insert_signup()
     {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
