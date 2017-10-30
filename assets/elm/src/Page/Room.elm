@@ -42,7 +42,16 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    div [ class "page-head" ]
-        [ h2 [ class "page-head__name" ] [ text model.room.name ]
-        , p [ class "page-head__description" ] [ text model.room.description ]
+    div [ class "room" ]
+        [ div [ class "page-head" ]
+            [ h2 [ class "page-head__name" ] [ text model.room.name ]
+            , p [ class "page-head__description" ] [ text model.room.description ]
+            ]
+        , div [ class "composer" ]
+            [ div [ class "composer__body" ]
+                [ textarea [ class "text-field text-field--muted textarea composer__body-field" ] []
+                ]
+            , div [ class "composer__controls" ]
+                [ button [ class "button button--primary" ] [ text "Send Message" ] ]
+            ]
         ]
