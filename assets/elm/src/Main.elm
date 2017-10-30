@@ -90,68 +90,90 @@ type Msg
     | RoomMsg Page.Room.Msg
 
 
+getSession : Model -> Session
+getSession model =
+    case model of
+        NotBootstrapped session ->
+            session
+
+        Bootstrapped session _ ->
+            session
+
+
+getPage : Model -> Page
+getPage model =
+    case model of
+        NotBootstrapped _ ->
+            Blank
+
+        Bootstrapped _ model ->
+            model.page
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        UrlChanged location ->
-            navigateTo (Route.fromLocation location) model
+    let
+        page =
+            getPage model
+    in
+        case ( msg, page ) of
+            ( UrlChanged location, _ ) ->
+                navigateTo (Route.fromLocation location) model
 
-        BootstrapLoaded maybeRoute (Ok response) ->
-            case model of
-                NotBootstrapped session ->
-                    let
-                        appState =
-                            { currentUser = response.user
-                            , currentSpace = response.space
-                            , roomSubscriptions = response.roomSubscriptions
-                            , page = Blank
-                            , isTransitioning = False
-                            }
-                    in
-                        navigateTo maybeRoute (Bootstrapped session appState)
+            ( BootstrapLoaded maybeRoute (Ok response), _ ) ->
+                let
+                    appState =
+                        { currentUser = response.user
+                        , currentSpace = response.space
+                        , roomSubscriptions = response.roomSubscriptions
+                        , page = Blank
+                        , isTransitioning = False
+                        }
+                in
+                    navigateTo maybeRoute (Bootstrapped (getSession model) appState)
 
-                Bootstrapped _ _ ->
-                    -- Disregard bootstrapping when page is already loaded
-                    ( model, Cmd.none )
+            ( BootstrapLoaded maybeRoute (Err _), _ ) ->
+                ( model, Cmd.none )
 
-        BootstrapLoaded maybeRoute (Err _) ->
-            ( model, Cmd.none )
+            ( RoomLoaded slug (Ok response), _ ) ->
+                case model of
+                    NotBootstrapped _ ->
+                        ( model, Cmd.none )
 
-        RoomLoaded slug (Ok response) ->
-            case model of
-                NotBootstrapped _ ->
-                    ( model, Cmd.none )
+                    Bootstrapped session appState ->
+                        case response of
+                            Query.Room.Found data ->
+                                ( Bootstrapped session
+                                    { appState
+                                        | page = Room (Page.Room.buildModel data)
+                                        , isTransitioning = False
+                                    }
+                                , Cmd.none
+                                )
 
-                Bootstrapped session appState ->
-                    case response of
-                        Query.Room.Found data ->
-                            ( Bootstrapped session
-                                { appState
-                                    | page = Room data
-                                    , isTransitioning = False
-                                }
-                            , Cmd.none
-                            )
+                            Query.Room.NotFound ->
+                                ( Bootstrapped session
+                                    { appState
+                                        | page = NotFound
+                                        , isTransitioning = False
+                                    }
+                                , Cmd.none
+                                )
 
-                        Query.Room.NotFound ->
-                            ( Bootstrapped session
-                                { appState
-                                    | page = NotFound
-                                    , isTransitioning = False
-                                }
-                            , Cmd.none
-                            )
+            ( RoomLoaded slug (Err _), _ ) ->
+                ( model, Cmd.none )
 
-        RoomLoaded slug (Err _) ->
-            ( model, Cmd.none )
+            ( ConversationsMsg _, _ ) ->
+                -- TODO: implement this
+                ( model, Cmd.none )
 
-        ConversationsMsg _ ->
-            -- TODO: implement this
-            ( model, Cmd.none )
+            ( RoomMsg msg, Room pageModel ) ->
+                -- TODO: implement this
+                ( model, Cmd.none )
 
-        RoomMsg _ ->
-            -- TODO: implement this
-            ( model, Cmd.none )
+            ( _, _ ) ->
+                -- Disregard incoming messages that arrived for the wrong page
+                ( model, Cmd.none )
 
 
 bootstrap : Session -> Maybe Route -> Cmd Msg

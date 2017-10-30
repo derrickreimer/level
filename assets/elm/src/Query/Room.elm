@@ -1,4 +1,4 @@
-module Query.Room exposing (Params, Response(..), decoder, request)
+module Query.Room exposing (Params, Response(..), Data, decoder, request)
 
 import Http
 import Json.Encode as Encode

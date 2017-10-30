@@ -1,4 +1,4 @@
-module Page.Room exposing (Model, Msg, fetchRoom, view)
+module Page.Room exposing (Model, Msg, fetchRoom, buildModel, view)
 
 {-| Viewing an particular room.
 -}
@@ -6,6 +6,7 @@ module Page.Room exposing (Model, Msg, fetchRoom, view)
 import Task exposing (Task)
 import Http
 import Html exposing (..)
+import Html.Events exposing (onInput)
 import Html.Attributes exposing (..)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
@@ -15,12 +16,18 @@ import Query.Room
 -- MODEL
 
 
-type alias Model =
-    { room : Room
+type alias Composer =
+    { body : String
     }
 
 
-{-| Build a task to fetch a room by slug.
+type alias Model =
+    { room : Room
+    , composer : Composer
+    }
+
+
+{-| Builds a Task to fetch a room by slug.
 -}
 fetchRoom : Session -> String -> Task Http.Error Query.Room.Response
 fetchRoom session slug =
@@ -28,12 +35,19 @@ fetchRoom session slug =
         |> Http.toTask
 
 
+{-| Builds a model for this page based on the response from initial page request.
+-}
+buildModel : Query.Room.Data -> Model
+buildModel data =
+    Model data.room (Composer "")
+
+
 
 -- UPDATE
 
 
 type Msg
-    = Undefined
+    = ComposerBodyChanged String
 
 
 
@@ -49,7 +63,11 @@ view model =
             ]
         , div [ class "composer" ]
             [ div [ class "composer__body" ]
-                [ textarea [ class "text-field text-field--muted textarea composer__body-field" ] []
+                [ textarea
+                    [ class "text-field text-field--muted textarea composer__body-field"
+                    , onInput ComposerBodyChanged
+                    ]
+                    [ text model.composer.body ]
                 ]
             , div [ class "composer__controls" ]
                 [ button [ class "button button--primary" ] [ text "Send Message" ] ]
