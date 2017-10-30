@@ -109,10 +109,14 @@ getPage model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        page =
-            getPage model
+        toPage toModel toMsg subUpdate subMsg subModel =
+            let
+                ( newModel, newCmd ) =
+                    subUpdate subMsg subModel
+            in
+                ( { model | page = toModel newModel }, Cmd.map toMsg newCmd )
     in
-        case ( msg, page ) of
+        case ( msg, model.page ) of
             ( UrlChanged location, _ ) ->
                 navigateTo (Route.fromLocation location) model
 
@@ -148,8 +152,11 @@ update msg model =
                 ( model, Cmd.none )
 
             ( RoomMsg msg, Room pageModel ) ->
-                -- TODO: implement this
-                ( model, Cmd.none )
+                let
+                    ( newPageModel, cmd ) =
+                        Page.Room.update msg pageModel
+                in
+                    ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page

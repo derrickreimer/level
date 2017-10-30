@@ -1,4 +1,4 @@
-module Page.Room exposing (Model, Msg, fetchRoom, buildModel, view)
+module Page.Room exposing (Model, Msg, fetchRoom, buildModel, view, update)
 
 {-| Viewing an particular room.
 -}
@@ -16,14 +16,9 @@ import Query.Room
 -- MODEL
 
 
-type alias Composer =
-    { body : String
-    }
-
-
 type alias Model =
     { room : Room
-    , composer : Composer
+    , composerBody : String
     }
 
 
@@ -39,7 +34,7 @@ fetchRoom session slug =
 -}
 buildModel : Query.Room.Data -> Model
 buildModel data =
-    Model data.room (Composer "")
+    Model data.room ""
 
 
 
@@ -48,6 +43,13 @@ buildModel data =
 
 type Msg
     = ComposerBodyChanged String
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        ComposerBodyChanged newBody ->
+            ( { model | composerBody = newBody }, Cmd.none )
 
 
 
@@ -67,9 +69,20 @@ view model =
                     [ class "text-field text-field--muted textarea composer__body-field"
                     , onInput ComposerBodyChanged
                     ]
-                    [ text model.composer.body ]
+                    [ text model.composerBody ]
                 ]
             , div [ class "composer__controls" ]
-                [ button [ class "button button--primary" ] [ text "Send Message" ] ]
+                [ button [ class "button button--primary", disabled (isSendDisabled model) ] [ text "Send Message" ] ]
             ]
         ]
+
+
+{-| Determines if the "Send Message" button should be disabled.
+
+    isSendDisabled { composer = { body = "" } } == True
+    isSendDisabled { composer = { body = "I have some text" } } == False
+
+-}
+isSendDisabled : Model -> Bool
+isSendDisabled model =
+    model.composerBody == ""
