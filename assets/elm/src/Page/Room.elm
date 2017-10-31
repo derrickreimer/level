@@ -11,6 +11,7 @@ import Html.Attributes exposing (..)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
 import Query.Room
+import Mutation.CreateRoomMessage as CreateRoomMessage
 
 
 -- MODEL
@@ -44,15 +45,27 @@ buildModel data =
 type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
+    | MessageSubmitResponse (Result Http.Error Bool)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Msg -> Session -> Model -> ( Model, Cmd Msg )
+update msg session model =
     case msg of
         ComposerBodyChanged newBody ->
             ( { model | composerBody = newBody }, Cmd.none )
 
         MessageSubmitted ->
+            let
+                params =
+                    CreateRoomMessage.Params model.room model.composerBody
+            in
+                ( model, Http.send MessageSubmitResponse (CreateRoomMessage.request session.apiToken params) )
+
+        MessageSubmitResponse (Ok success) ->
+            -- TODO: implement this
+            ( model, Cmd.none )
+
+        MessageSubmitResponse (Err _) ->
             -- TODO: implement this
             ( model, Cmd.none )
 

@@ -154,7 +154,7 @@ update msg model =
             ( RoomMsg msg, Room pageModel ) ->
                 let
                     ( newPageModel, cmd ) =
-                        Page.Room.update msg pageModel
+                        Page.Room.update msg model.session pageModel
                 in
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
