@@ -6,7 +6,7 @@ module Page.Room exposing (Model, Msg, fetchRoom, buildModel, view, update)
 import Task exposing (Task)
 import Http
 import Html exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (..)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
@@ -43,6 +43,7 @@ buildModel data =
 
 type Msg
     = ComposerBodyChanged String
+    | MessageSubmitted
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -50,6 +51,10 @@ update msg model =
     case msg of
         ComposerBodyChanged newBody ->
             ( { model | composerBody = newBody }, Cmd.none )
+
+        MessageSubmitted ->
+            -- TODO: implement this
+            ( model, Cmd.none )
 
 
 
@@ -72,7 +77,13 @@ view model =
                     [ text model.composerBody ]
                 ]
             , div [ class "composer__controls" ]
-                [ button [ class "button button--primary", disabled (isSendDisabled model) ] [ text "Send Message" ] ]
+                [ button
+                    [ class "button button--primary"
+                    , disabled (isSendDisabled model)
+                    , onClick MessageSubmitted
+                    ]
+                    [ text "Send Message" ]
+                ]
             ]
         ]
 

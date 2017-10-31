@@ -175,7 +175,7 @@
   }
 
   &__body-field {
-    @include no-shadow-on-focus;
+    // @include no-shadow-on-focus;
     border-radius: 3px;
     width: 100%;
     height: 70px;
