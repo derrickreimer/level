@@ -1,4 +1,4 @@
-module TestHelpers exposing (success)
+module TestHelpers exposing (success, roomFixture)
 
 {-| A collection of helper functions for tests.
 
@@ -8,6 +8,9 @@ module TestHelpers exposing (success)
 @docs success
 
 -}
+
+import Data.Room
+
 
 -- UTILITIES
 
@@ -26,3 +29,12 @@ success result =
 
         Err _ ->
             False
+
+
+
+-- FIXTURES
+
+
+roomFixture : Data.Room.Room
+roomFixture =
+    Data.Room.Room "999" "Everyone" "The cool room."

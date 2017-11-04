@@ -39,7 +39,7 @@ decoders =
                                 }
                             }
                     in
-                        Expect.equal (Ok (Room.Ok expected)) result
+                        Expect.equal (Ok (Room.Found expected)) result
             , test "handles response when room is not found" <|
                 \_ ->
                     let

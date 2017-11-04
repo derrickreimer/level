@@ -1,4 +1,4 @@
-module Query.Bootstrap exposing (request, Response)
+module Query.AppState exposing (request, Response)
 
 import Data.Room exposing (RoomSubscriptionConnection, roomSubscriptionConnectionDecoder)
 import Data.Space exposing (Space, spaceDecoder)

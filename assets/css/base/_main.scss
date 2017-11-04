@@ -132,7 +132,7 @@
   // align-self: flex-end;
 }
 
-.draft {
+.composer {
   position: absolute;
   left: 0;
   right: 0;
@@ -175,10 +175,10 @@
   }
 
   &__body-field {
-    @include no-shadow-on-focus;
-    border-radius: 0 0 3px 3px;
+    // @include no-shadow-on-focus;
+    border-radius: 3px;
     width: 100%;
-    height: 80px;
+    height: 70px;
     resize: none; // we'll handle the auto-resize, not to worry
   }
 }

@@ -9,7 +9,7 @@ import Data.User exposing (User)
 import Data.Session exposing (Session)
 import Page.Room
 import Page.Conversations
-import Query.Bootstrap as Bootstrap
+import Query.AppState
 import Query.Room
 import Navigation
 import Route exposing (Route)
@@ -30,17 +30,23 @@ main =
 -- MODEL
 
 
-type Model
-    = NotBootstrapped Session
-    | Bootstrapped Session AppState
+type Lazy a
+    = NotLoaded
+    | Loaded a
+
+
+type alias Model =
+    { session : Session
+    , appState : Lazy AppState
+    , page : Page
+    , isTransitioning : Bool
+    }
 
 
 type alias AppState =
-    { currentSpace : Space
-    , currentUser : User
+    { space : Space
+    , user : User
     , roomSubscriptions : RoomSubscriptionConnection
-    , page : Page
-    , isTransitioning : Bool
     }
 
 
@@ -75,7 +81,7 @@ init flags location =
 -}
 buildInitialModel : Flags -> Model
 buildInitialModel flags =
-    NotBootstrapped (Session flags.apiToken)
+    Model (Session flags.apiToken) NotLoaded Blank True
 
 
 
@@ -84,104 +90,107 @@ buildInitialModel flags =
 
 type Msg
     = UrlChanged Navigation.Location
-    | BootstrapLoaded (Maybe Route) (Result Http.Error Bootstrap.Response)
+    | AppStateLoaded (Maybe Route) (Result Http.Error Query.AppState.Response)
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
 
 
+getSession : Model -> Session
+getSession model =
+    model.session
+
+
+getPage : Model -> Page
+getPage model =
+    model.page
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        UrlChanged location ->
-            navigateTo (Route.fromLocation location) model
+    let
+        toPage toModel toMsg subUpdate subMsg subModel =
+            let
+                ( newModel, newCmd ) =
+                    subUpdate subMsg subModel
+            in
+                ( { model | page = toModel newModel }, Cmd.map toMsg newCmd )
+    in
+        case ( msg, model.page ) of
+            ( UrlChanged location, _ ) ->
+                navigateTo (Route.fromLocation location) model
 
-        BootstrapLoaded maybeRoute (Ok response) ->
-            case model of
-                NotBootstrapped session ->
-                    let
-                        appState =
-                            { currentUser = response.user
-                            , currentSpace = response.space
-                            , roomSubscriptions = response.roomSubscriptions
-                            , page = Blank
+            ( AppStateLoaded maybeRoute (Ok response), _ ) ->
+                navigateTo maybeRoute { model | appState = Loaded response }
+
+            ( AppStateLoaded maybeRoute (Err _), _ ) ->
+                ( model, Cmd.none )
+
+            ( RoomLoaded slug (Ok response), _ ) ->
+                case response of
+                    Query.Room.Found data ->
+                        ( { model
+                            | page = Room (Page.Room.buildModel data)
                             , isTransitioning = False
-                            }
-                    in
-                        navigateTo maybeRoute (Bootstrapped session appState)
+                          }
+                        , Cmd.none
+                        )
 
-                Bootstrapped _ _ ->
-                    -- Disregard bootstrapping when page is already loaded
-                    ( model, Cmd.none )
+                    Query.Room.NotFound ->
+                        ( { model
+                            | page = NotFound
+                            , isTransitioning = False
+                          }
+                        , Cmd.none
+                        )
 
-        BootstrapLoaded maybeRoute (Err _) ->
-            ( model, Cmd.none )
+            ( RoomLoaded slug (Err _), _ ) ->
+                ( model, Cmd.none )
 
-        RoomLoaded slug (Ok response) ->
-            case model of
-                NotBootstrapped _ ->
-                    ( model, Cmd.none )
+            ( ConversationsMsg _, _ ) ->
+                -- TODO: implement this
+                ( model, Cmd.none )
 
-                Bootstrapped session appState ->
-                    case response of
-                        Query.Room.Found data ->
-                            ( Bootstrapped session
-                                { appState
-                                    | page = Room data
-                                    , isTransitioning = False
-                                }
-                            , Cmd.none
-                            )
+            ( RoomMsg msg, Room pageModel ) ->
+                let
+                    ( newPageModel, cmd ) =
+                        Page.Room.update msg model.session pageModel
+                in
+                    ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
-                        Query.Room.NotFound ->
-                            ( Bootstrapped session
-                                { appState
-                                    | page = NotFound
-                                    , isTransitioning = False
-                                }
-                            , Cmd.none
-                            )
-
-        RoomLoaded slug (Err _) ->
-            ( model, Cmd.none )
-
-        ConversationsMsg _ ->
-            -- TODO: implement this
-            ( model, Cmd.none )
-
-        RoomMsg _ ->
-            -- TODO: implement this
-            ( model, Cmd.none )
+            ( _, _ ) ->
+                -- Disregard incoming messages that arrived for the wrong page
+                ( model, Cmd.none )
 
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
 bootstrap session maybeRoute =
-    Http.send (BootstrapLoaded maybeRoute) (Bootstrap.request session.apiToken)
+    Http.send (AppStateLoaded maybeRoute) (Query.AppState.request session.apiToken)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
-        transition session appState toMsg task =
-            ( Bootstrapped session { appState | isTransitioning = True }
+        transition model toMsg task =
+            ( { model | isTransitioning = True }
             , Task.attempt toMsg task
             )
     in
-        case model of
-            NotBootstrapped session ->
-                ( model, bootstrap session maybeRoute )
+        case model.appState of
+            NotLoaded ->
+                ( model, bootstrap model.session maybeRoute )
 
-            Bootstrapped session appState ->
+            Loaded _ ->
                 case maybeRoute of
                     Nothing ->
-                        ( Bootstrapped session { appState | page = NotFound }, Cmd.none )
+                        ( { model | page = NotFound }, Cmd.none )
 
                     Just Route.Conversations ->
                         -- TODO: implement this
-                        ( Bootstrapped session { appState | page = Conversations }, Cmd.none )
+                        ( { model | page = Conversations }, Cmd.none )
 
                     Just (Route.Room slug) ->
-                        transition session appState (RoomLoaded slug) (Page.Room.fetchRoom session slug)
+                        transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
 
 
 
@@ -199,18 +208,18 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        NotBootstrapped _ ->
+    case model.appState of
+        NotLoaded ->
             div [ id "app" ] [ text "Loading..." ]
 
-        Bootstrapped _ appState ->
+        Loaded appState ->
             div [ id "app" ]
                 [ div [ class "sidebar sidebar--left" ]
-                    [ spaceSelector appState.currentSpace
-                    , sideNav appState
+                    [ spaceSelector appState.space
+                    , sideNav model.page appState
                     ]
                 , div [ class "sidebar sidebar--right" ]
-                    [ identityMenu appState.currentUser
+                    [ identityMenu appState.user
                     , usersList appState
                     ]
                 , div [ class "main" ]
@@ -218,7 +227,7 @@ view model =
                         [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] []
                         , button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
                         ]
-                    , pageContent appState.page
+                    , pageContent model.page
                     ]
                 ]
 
@@ -284,12 +293,12 @@ inboxLink page =
             ]
 
 
-sideNav : AppState -> Html Msg
-sideNav appState =
+sideNav : Page -> AppState -> Html Msg
+sideNav page appState =
     div [ class "side-nav-container" ]
         [ h3 [ class "side-nav-heading" ] [ text "Conversations" ]
         , div [ class "side-nav" ]
-            [ inboxLink appState.page
+            [ inboxLink page
             , a [ class "side-nav__item", href "#" ]
                 [ span [ class "side-nav__item-name" ] [ text "Everything" ]
                 ]
@@ -298,7 +307,7 @@ sideNav appState =
                 ]
             ]
         , h3 [ class "side-nav-heading" ] [ text "Rooms" ]
-        , roomSubscriptionsList appState
+        , roomSubscriptionsList page appState
         , h3 [ class "side-nav-heading" ] [ text "Integrations" ]
         , div [ class "side-nav" ]
             [ a [ class "side-nav__item", href "#" ]
@@ -335,9 +344,9 @@ usersList appState =
         ]
 
 
-roomSubscriptionsList : AppState -> Html Msg
-roomSubscriptionsList appState =
-    div [ class "side-nav" ] (List.map (roomSubscriptionItem appState.page) appState.roomSubscriptions.edges)
+roomSubscriptionsList : Page -> AppState -> Html Msg
+roomSubscriptionsList page appState =
+    div [ class "side-nav" ] (List.map (roomSubscriptionItem page) appState.roomSubscriptions.edges)
 
 
 roomSubscriptionItem : Page -> RoomSubscriptionEdge -> Html Msg
