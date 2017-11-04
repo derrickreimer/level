@@ -4,13 +4,16 @@ module Data.Room
         , RoomSubscriptionEdge
         , RoomSubscription
         , Room
+        , RoomMessageConnection
         , roomSubscriptionConnectionDecoder
         , roomDecoder
+        , roomMessageConnectionDecoder
         , slugParser
         )
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Data.User exposing (User, userDecoder)
 import UrlParser
 
 
@@ -29,6 +32,23 @@ type alias RoomSubscriptionEdge =
 
 type alias RoomSubscription =
     { room : Room
+    }
+
+
+type alias RoomMessageConnection =
+    { edges : List RoomMessageEdge
+    }
+
+
+type alias RoomMessageEdge =
+    { node : RoomMessage
+    }
+
+
+type alias RoomMessage =
+    { id : String
+    , body : String
+    , user : User
     }
 
 
@@ -67,6 +87,26 @@ roomDecoder =
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
         |> Pipeline.required "description" Decode.string
+
+
+roomMessageConnectionDecoder : Decode.Decoder RoomMessageConnection
+roomMessageConnectionDecoder =
+    Pipeline.decode RoomMessageConnection
+        |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list roomMessageEdgeDecoder))
+
+
+roomMessageEdgeDecoder : Decode.Decoder RoomMessageEdge
+roomMessageEdgeDecoder =
+    Pipeline.decode RoomMessageEdge
+        |> Pipeline.custom (Decode.at [ "node" ] roomMessageDecoder)
+
+
+roomMessageDecoder : Decode.Decoder RoomMessage
+roomMessageDecoder =
+    Pipeline.decode RoomMessage
+        |> Pipeline.required "id" Decode.string
+        |> Pipeline.required "body" Decode.string
+        |> Pipeline.custom (Decode.at [ "user" ] userDecoder)
 
 
 

@@ -16,15 +16,28 @@ decoders =
                         json =
                             """
                             {
-                                "data": {
-                                    "viewer": {
-                                        "room": {
-                                            "id": "9999",
-                                            "name": "Everyone",
-                                            "description": "All the things"
+                              "data": {
+                                "viewer": {
+                                  "room": {
+                                    "id": "9999",
+                                    "name": "Everyone",
+                                    "description": "All the things",
+                                    "messages": {
+                                      "edges": [{
+                                        "node": {
+                                          "id": "8888",
+                                          "body": "Hello world",
+                                          "user": {
+                                            "id": "7777",
+                                            "firstName": "Derrick",
+                                            "lastName": "Reimer"
+                                          }
                                         }
+                                      }]
                                     }
+                                  }
                                 }
+                              }
                             }
                             """
 
@@ -37,6 +50,20 @@ decoders =
                                 , name = "Everyone"
                                 , description = "All the things"
                                 }
+                            , messages =
+                                { edges =
+                                    [ { node =
+                                            { id = "8888"
+                                            , body = "Hello world"
+                                            , user =
+                                                { id = "7777"
+                                                , firstName = "Derrick"
+                                                , lastName = "Reimer"
+                                                }
+                                            }
+                                      }
+                                    ]
+                                }
                             }
                     in
                         Expect.equal (Ok (Room.Found expected)) result
@@ -46,11 +73,11 @@ decoders =
                         json =
                             """
                             {
-                                "data": {
-                                    "viewer": {
-                                        "room": null
-                                    }
+                              "data": {
+                                "viewer": {
+                                  "room": null
                                 }
+                              }
                             }
                             """
 
