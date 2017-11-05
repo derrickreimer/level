@@ -271,7 +271,7 @@ identityMenu user =
         [ a [ class "identity-menu__toggle", href "#" ]
             [ div [ class "identity-menu__avatar" ] []
             , div [ class "identity-menu__content" ]
-                [ div [ class "identity-menu__name" ] [ text (displayName user) ]
+                [ div [ class "identity-menu__name" ] [ text (Data.User.displayName user) ]
                 ]
             ]
         ]
@@ -369,17 +369,3 @@ roomSubscriptionItem page edge =
         a [ class ("side-nav__item side-nav__item--room " ++ selectedClass), Route.href (Route.Room room.id) ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             ]
-
-
-
--- UTILS
-
-
-{-| Generate the display name for a given user.
-
-    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
-
--}
-displayName : User -> String
-displayName user =
-    user.firstName ++ " " ++ user.lastName

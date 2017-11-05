@@ -5,6 +5,7 @@ module Data.Room
         , RoomSubscription
         , Room
         , RoomMessageConnection
+        , RoomMessageEdge
         , roomSubscriptionConnectionDecoder
         , roomDecoder
         , roomMessageConnectionDecoder

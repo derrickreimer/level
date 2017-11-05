@@ -4,7 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
-import Data.Room exposing (Room, RoomMessageConnection, roomDecoder, roomMessageConnectionDecoder)
+import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, roomDecoder, roomMessageConnectionDecoder)
 import GraphQL
 
 

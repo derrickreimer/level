@@ -8,7 +8,8 @@ import Http
 import Html exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (..)
-import Data.Room exposing (Room)
+import Data.User exposing (User)
+import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge)
 import Data.Session exposing (Session)
 import Query.Room
 import Mutation.CreateRoomMessage as CreateRoomMessage
@@ -19,6 +20,7 @@ import Mutation.CreateRoomMessage as CreateRoomMessage
 
 type alias Model =
     { room : Room
+    , messages : RoomMessageConnection
     , composerBody : String
     }
 
@@ -35,7 +37,7 @@ fetchRoom session slug =
 -}
 buildModel : Query.Room.Data -> Model
 buildModel data =
-    Model data.room ""
+    Model data.room data.messages ""
 
 
 
@@ -81,6 +83,7 @@ view model =
             [ h2 [ class "page-head__name" ] [ text model.room.name ]
             , p [ class "page-head__description" ] [ text model.room.description ]
             ]
+        , renderMessages model.messages
         , div [ class "composer" ]
             [ div [ class "composer__body" ]
                 [ textarea
@@ -101,10 +104,30 @@ view model =
         ]
 
 
+renderMessages : RoomMessageConnection -> Html Msg
+renderMessages connection =
+    div [ class "messages" ] (List.map renderMessage (List.reverse connection.edges))
+
+
+renderMessage : RoomMessageEdge -> Html Msg
+renderMessage edge =
+    div [ class "message" ]
+        [ div [ class "message__avatar" ] []
+        , div [ class "message__contents" ]
+            [ div [ class "message__head" ]
+                [ span [ class "message__name" ] [ text (Data.User.displayName edge.node.user) ]
+                , span [ class "message__middot" ] [ text "·" ]
+                , span [ class "message__timestamp" ] [ text "10:15am" ]
+                ]
+            , div [ class "message__body" ] [ text edge.node.body ]
+            ]
+        ]
+
+
 {-| Determines if the "Send Message" button should be disabled.
 
-    isSendDisabled { composer = { body = "" } } == True
-    isSendDisabled { composer = { body = "I have some text" } } == False
+    isSendDisabled { composerBody = "" } == True
+    isSendDisabled { composerBody = "I have some text" } == False
 
 -}
 isSendDisabled : Model -> Bool
