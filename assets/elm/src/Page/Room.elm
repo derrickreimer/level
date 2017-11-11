@@ -78,7 +78,7 @@ update msg session model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "room" ]
+    div [ class "main main--room" ]
         [ div [ class "page-head" ]
             [ h2 [ class "page-head__name" ] [ text model.room.name ]
             , p [ class "page-head__description" ] [ text model.room.description ]

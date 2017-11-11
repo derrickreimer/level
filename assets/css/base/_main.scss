@@ -1,21 +1,59 @@
+// --- GRID SYSTEM ---
+
+#app {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  display: grid;
+  grid-gap: 0 0;
+  grid-template-columns: $sidebar-width auto $sidebar-width;
+  grid-template-rows: 64px auto;
+  grid-template-areas:
+    "space-selector top-nav identity-menu"
+    "left-sidebar main right-sidebar";
+  justify-content: stretch;
+}
+
+.space-selector {
+  grid-area: space-selector;
+}
+
+.top-nav {
+  grid-area: top-nav;
+}
+
+.identity-menu {
+  grid-area: identity-menu;
+}
+
+.sidebar {
+
+  &--left {
+    grid-area: left-sidebar;
+  }
+
+  &--right {
+    grid-area: right-sidebar;
+  }
+}
+
+.main {
+  grid-area: main;
+}
+
+
+// --- STYLES ----
+
+
 #app {
   font-size: $default-font-size;
 }
 
 .sidebar {
-  position: fixed;
-  width: $sidebar-width;
-  top: 0;
-  bottom: 0;
   background-color: $sidebar-color;
-
-  &--left {
-    left: 0;
-  }
-
-  &--right {
-    right: 0;
-  }
 }
 
 .sidebar-button {
@@ -23,16 +61,10 @@
   padding: 0 $baseline;
 }
 
-.main {
-  position: fixed;
-  left: $sidebar-width;
-  right: $sidebar-width;
-  top: 0;
-  bottom: 0;
-}
-
 .space-selector,
 .identity-menu {
+  background-color: $sidebar-color;
+
   &__toggle {
     padding: $baseline;
     display: flex;
@@ -130,57 +162,6 @@
 .new-conversation-button {
   flex: 0 1 auto;
   // align-self: flex-end;
-}
-
-.composer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: $baseline;
-
-  &__row {
-    display: flex;
-
-    & + & {
-      margin-top: 1px;
-    }
-  }
-
-  &__subject {
-    flex: 1 1 auto;
-    margin-right: 1px;
-  }
-
-  &__subject-field {
-    @include no-shadow-on-focus;
-    border-radius: 3px 0 0;
-    width: 100%;
-  }
-
-  &__recipients {
-    flex: 1 1 auto;
-  }
-
-  &__recipients-field {
-    @include no-shadow-on-focus;
-    border-radius: 0 3px 0 0;
-    width: 100%;
-  }
-
-  &__body {
-    margin-bottom: $baseline;
-    width: 100%;
-    line-height: 0;
-  }
-
-  &__body-field {
-    // @include no-shadow-on-focus;
-    border-radius: 3px;
-    width: 100%;
-    height: 70px;
-    resize: none; // we'll handle the auto-resize, not to worry
-  }
 }
 
 .threads {

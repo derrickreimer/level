@@ -214,21 +214,19 @@ view model =
 
         Loaded appState ->
             div [ id "app" ]
-                [ div [ class "sidebar sidebar--left" ]
-                    [ spaceSelector appState.space
-                    , sideNav model.page appState
+                [ spaceSelector appState.space
+                , div [ class "top-nav" ]
+                    [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] []
+                    , button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
+                    ]
+                , identityMenu appState.user
+                , div [ class "sidebar sidebar--left" ]
+                    [ sideNav model.page appState
                     ]
                 , div [ class "sidebar sidebar--right" ]
-                    [ identityMenu appState.user
-                    , usersList appState
+                    [ usersList appState
                     ]
-                , div [ class "main" ]
-                    [ div [ class "top-nav" ]
-                        [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] []
-                        , button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
-                        ]
-                    , pageContent model.page
-                    ]
+                , pageContent model.page
                 ]
 
 
