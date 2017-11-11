@@ -5,8 +5,9 @@ module Page.Room exposing (Model, Msg, fetchRoom, buildModel, view, update)
 
 import Task exposing (Task)
 import Http
+import Json.Decode as Json
 import Html exposing (..)
-import Html.Events exposing (onInput, onClick)
+import Html.Events exposing (on, onInput, onClick, keyCode)
 import Html.Attributes exposing (..)
 import Data.User exposing (User)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
@@ -91,6 +92,18 @@ update msg session model =
 -- VIEW
 
 
+onEnter : Msg -> Attribute Msg
+onEnter msg =
+    let
+        isEnter code =
+            if code == 13 then
+                Json.succeed msg
+            else
+                Json.fail "not ENTER"
+    in
+        on "keydown" (Json.andThen isEnter keyCode)
+
+
 view : Model -> Html Msg
 view model =
     div [ id "main", class "main main--room" ]
@@ -104,6 +117,7 @@ view model =
                 [ textarea
                     [ class "text-field text-field--muted textarea composer__body-field"
                     , onInput ComposerBodyChanged
+                    , onEnter MessageSubmitted
                     , readonly (isComposerReadOnly model)
                     , value model.composerBody
                     ]
