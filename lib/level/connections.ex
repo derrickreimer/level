@@ -23,4 +23,11 @@ defmodule Level.Connections do
   def room_subscriptions(user, args, context \\ %{}) do
     Level.Connections.RoomSubscriptions.get(user, args, context)
   end
+
+  @doc """
+  Fetch messages for a room.
+  """
+  def room_messages(room, args, context \\ %{}) do
+    Level.Connections.RoomMessages.get(room, args, context)
+  end
 end

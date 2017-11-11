@@ -1,0 +1,72 @@
+.main--room {
+  display: grid;
+  grid-gap: 0 0;
+  grid-template-rows: 89px auto 146px;
+  grid-template-columns: auto;
+  grid-template-areas:
+    "page-head"
+    "page-content"
+    "composer";
+  justify-content: stretch;
+  align-content: stretch;
+  min-height: 0;
+
+  & > .page-head {
+    grid-area: page-head;
+  }
+
+  & > .messages {
+    grid-area: page-content;
+  }
+
+  & > .composer {
+    grid-area: composer;
+  }
+}
+
+.composer {
+  padding: $baseline $baseline * 2;
+
+  &__row {
+    display: flex;
+
+    & + & {
+      margin-top: 1px;
+    }
+  }
+
+  &__subject {
+    flex: 1 1 auto;
+    margin-right: 1px;
+  }
+
+  &__subject-field {
+    @include no-shadow-on-focus;
+    border-radius: 3px 0 0;
+    width: 100%;
+  }
+
+  &__recipients {
+    flex: 1 1 auto;
+  }
+
+  &__recipients-field {
+    @include no-shadow-on-focus;
+    border-radius: 0 3px 0 0;
+    width: 100%;
+  }
+
+  &__body {
+    margin-bottom: $baseline;
+    width: 100%;
+    line-height: 0;
+  }
+
+  &__body-field {
+    // @include no-shadow-on-focus;
+    border-radius: 3px;
+    width: 100%;
+    height: 70px;
+    resize: none; // we'll handle the auto-resize, not to worry
+  }
+}

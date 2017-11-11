@@ -1,0 +1,27 @@
+#app {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  display: grid;
+  grid-gap: 0 0;
+  grid-template-columns: $sidebar-width auto $sidebar-width;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "left-sidebar main right-sidebar";
+  justify-content: stretch;
+}
+
+#sidebar-left {
+  grid-area: left-sidebar;
+}
+
+#sidebar-right {
+  grid-area: right-sidebar;
+}
+
+#main {
+  grid-area: main;
+}

@@ -3,36 +3,17 @@
 }
 
 .sidebar {
-  position: fixed;
-  width: $sidebar-width;
-  top: 0;
-  bottom: 0;
   background-color: $sidebar-color;
 
-  &--left {
-    left: 0;
+  &__button-container {
+    padding: $baseline;
   }
-
-  &--right {
-    right: 0;
-  }
-}
-
-.sidebar-button {
-  margin: $baseline 0;
-  padding: 0 $baseline;
-}
-
-.main {
-  position: fixed;
-  left: $sidebar-width;
-  right: $sidebar-width;
-  top: 0;
-  bottom: 0;
 }
 
 .space-selector,
 .identity-menu {
+  background-color: $sidebar-color;
+
   &__toggle {
     padding: $baseline;
     display: flex;
@@ -128,125 +109,7 @@
 }
 
 .new-conversation-button {
-  flex: 0 1 auto;
-  // align-self: flex-end;
-}
-
-.composer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: $baseline;
-
-  &__row {
-    display: flex;
-
-    & + & {
-      margin-top: 1px;
-    }
-  }
-
-  &__subject {
-    flex: 1 1 auto;
-    margin-right: 1px;
-  }
-
-  &__subject-field {
-    @include no-shadow-on-focus;
-    border-radius: 3px 0 0;
-    width: 100%;
-  }
-
-  &__recipients {
-    flex: 1 1 auto;
-  }
-
-  &__recipients-field {
-    @include no-shadow-on-focus;
-    border-radius: 0 3px 0 0;
-    width: 100%;
-  }
-
-  &__body {
-    margin-bottom: $baseline;
-    width: 100%;
-    line-height: 0;
-  }
-
-  &__body-field {
-    // @include no-shadow-on-focus;
-    border-radius: 3px;
-    width: 100%;
-    height: 70px;
-    resize: none; // we'll handle the auto-resize, not to worry
-  }
-}
-
-.threads {
-  padding: 0 $baseline;
-
-  &__item {
-    display: flex;
-    padding: (2 * $baseline / 3) $baseline;
-    border-top: 1px solid $item-list-border-color;
-    color: $muted-text-color;
-
-    &:last-child {
-      border-bottom: 1px solid $item-list-border-color;
-    }
-
-    &--highlighted {
-      box-shadow: inset 3px 0 $highlight-color;
-    }
-  }
-
-  &__selector {
-    flex: 0 1 auto;
-    margin-right: $baseline;
-    padding: 2px 0;
-  }
-
-  &__metadata {
-    flex: 1 1 auto;
-    cursor: pointer;
-  }
-
-  &__aside {
-    flex: 0 1 auto;
-  }
-
-  &__item-head {
-  }
-
-  &__subject {
-    font-weight: bold;
-    color: #fff;
-  }
-
-  &__dash {
-    margin: 0 $baseline / 2;
-    color: $muted-text-color;
-  }
-
-  &__recipients {
-    color: #fff;
-  }
-
-  &__preview {
-  }
-
-  &__unread {
-    display: inline-block;
-    margin-right: $baseline;
-    padding: 0 $baseline;
-    font-size: 13px;
-    font-weight: bold;
-    color: $highlight-color;
-    border: 1px solid $highlight-color;
-    border-radius: 50px;
-    word-wrap: nowrap;
-  }
+  height: 34px;
 }
 
 .users-list {

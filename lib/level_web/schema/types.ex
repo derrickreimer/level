@@ -127,6 +127,14 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
+    field :messages, non_null(:room_message_connection) do
+      arg :first, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :room_message_order
+      resolve &LevelWeb.RoomResolver.messages/3
+    end
+
     field :creator, non_null(:user) do
       resolve fn room, _, _ ->
         batch({Helpers, :by_id, Level.Spaces.User}, room.creator_id, fn batch_results ->
@@ -175,6 +183,7 @@ defmodule LevelWeb.Schema.Types do
 
   @desc "A room message is message posted to a room."
   object :room_message do
+    field :id, non_null(:id)
     field :body, non_null(:string)
 
     field :space, non_null(:space) do

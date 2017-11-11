@@ -214,21 +214,18 @@ view model =
 
         Loaded appState ->
             div [ id "app" ]
-                [ div [ class "sidebar sidebar--left" ]
+                [ div [ id "sidebar-left", class "sidebar" ]
                     [ spaceSelector appState.space
+                    , div [ class "sidebar__button-container" ]
+                        [ button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
+                        ]
                     , sideNav model.page appState
                     ]
-                , div [ class "sidebar sidebar--right" ]
+                , div [ id "sidebar-right", class "sidebar" ]
                     [ identityMenu appState.user
                     , usersList appState
                     ]
-                , div [ class "main" ]
-                    [ div [ class "top-nav" ]
-                        [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] []
-                        , button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
-                        ]
-                    , pageContent model.page
-                    ]
+                , pageContent model.page
                 ]
 
 
@@ -271,7 +268,7 @@ identityMenu user =
         [ a [ class "identity-menu__toggle", href "#" ]
             [ div [ class "identity-menu__avatar" ] []
             , div [ class "identity-menu__content" ]
-                [ div [ class "identity-menu__name" ] [ text (displayName user) ]
+                [ div [ class "identity-menu__name" ] [ text (Data.User.displayName user) ]
                 ]
             ]
         ]
@@ -296,8 +293,7 @@ inboxLink page =
 sideNav : Page -> AppState -> Html Msg
 sideNav page appState =
     div [ class "side-nav-container" ]
-        [ h3 [ class "side-nav-heading" ] [ text "Conversations" ]
-        , div [ class "side-nav" ]
+        [ div [ class "side-nav" ]
             [ inboxLink page
             , a [ class "side-nav__item", href "#" ]
                 [ span [ class "side-nav__item-name" ] [ text "Everything" ]
@@ -306,20 +302,7 @@ sideNav page appState =
                 [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
                 ]
             ]
-        , h3 [ class "side-nav-heading" ] [ text "Rooms" ]
         , roomSubscriptionsList page appState
-        , h3 [ class "side-nav-heading" ] [ text "Integrations" ]
-        , div [ class "side-nav" ]
-            [ a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "GitHub" ]
-                ]
-            , a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Honeybadger" ]
-                ]
-            , a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "New Relic" ]
-                ]
-            ]
         ]
 
 
@@ -369,17 +352,3 @@ roomSubscriptionItem page edge =
         a [ class ("side-nav__item side-nav__item--room " ++ selectedClass), Route.href (Route.Room room.id) ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             ]
-
-
-
--- UTILS
-
-
-{-| Generate the display name for a given user.
-
-    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
-
--}
-displayName : User -> String
-displayName user =
-    user.firstName ++ " " ++ user.lastName
