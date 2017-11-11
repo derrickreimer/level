@@ -1,0 +1,65 @@
+.convos {
+  padding: $baseline;
+
+  &__item {
+    display: flex;
+    padding: (2 * $baseline / 3) $baseline;
+    border-top: 1px solid $item-list-border-color;
+    color: $muted-text-color;
+
+    &:last-child {
+      border-bottom: 1px solid $item-list-border-color;
+    }
+
+    &--highlighted {
+      box-shadow: inset 3px 0 $highlight-color;
+    }
+  }
+
+  &__selector {
+    flex: 0 1 auto;
+    margin-right: $baseline;
+    padding: 2px 0;
+  }
+
+  &__metadata {
+    flex: 1 1 auto;
+    cursor: pointer;
+  }
+
+  &__aside {
+    flex: 0 1 auto;
+  }
+
+  &__item-head {
+  }
+
+  &__subject {
+    font-weight: bold;
+    color: #fff;
+  }
+
+  &__dash {
+    margin: 0 $baseline / 2;
+    color: $muted-text-color;
+  }
+
+  &__recipients {
+    color: #fff;
+  }
+
+  &__preview {
+  }
+
+  &__unread {
+    display: inline-block;
+    margin-right: $baseline;
+    padding: 0 $baseline;
+    font-size: 13px;
+    font-weight: bold;
+    color: $highlight-color;
+    border: 1px solid $highlight-color;
+    border-radius: 50px;
+    word-wrap: nowrap;
+  }
+}

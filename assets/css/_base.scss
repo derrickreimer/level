@@ -1,13 +1,24 @@
+// RESET
 @import "normalize";
+
+// BASE DEFINITIONS
 @import "base/fonts";
 @import "base/variables";
 @import "base/mixins";
+
+// SHARED COMPONENTS
 @import "base/layout";
+@import "base/page";
+@import "base/grid";
 @import "base/forms";
 @import "base/buttons";
-@import "base/spaces";
 @import "base/main";
+@import "base/spaces";
 @import "base/messages";
-@import "base/page";
+
+// PAGES
+@import "base/conversations";
 @import "base/room";
+
+// OVERRIDES
 @import "base/elm_controls";

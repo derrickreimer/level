@@ -1,7 +1,7 @@
 .main--room {
   display: grid;
   grid-gap: 0 0;
-  grid-template-rows: 78px auto 146px;
+  grid-template-rows: 89px auto 146px;
   grid-template-columns: auto;
   grid-template-areas:
     "page-head"
@@ -25,7 +25,7 @@
 }
 
 .composer {
-  padding: $baseline;
+  padding: $baseline $baseline * 2;
 
   &__row {
     display: flex;

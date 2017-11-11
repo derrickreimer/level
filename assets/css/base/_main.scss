@@ -1,64 +1,13 @@
-// --- GRID SYSTEM ---
-
-#app {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-
-  display: grid;
-  grid-gap: 0 0;
-  grid-template-columns: $sidebar-width auto $sidebar-width;
-  grid-template-rows: 64px auto;
-  grid-template-areas:
-    "space-selector top-nav identity-menu"
-    "left-sidebar main right-sidebar";
-  justify-content: stretch;
-}
-
-.space-selector {
-  grid-area: space-selector;
-}
-
-.top-nav {
-  grid-area: top-nav;
-}
-
-.identity-menu {
-  grid-area: identity-menu;
-}
-
-.sidebar {
-
-  &--left {
-    grid-area: left-sidebar;
-  }
-
-  &--right {
-    grid-area: right-sidebar;
-  }
-}
-
-.main {
-  grid-area: main;
-}
-
-
-// --- STYLES ----
-
-
 #app {
   font-size: $default-font-size;
 }
 
 .sidebar {
   background-color: $sidebar-color;
-}
 
-.sidebar-button {
-  margin: $baseline 0;
-  padding: 0 $baseline;
+  &__button-container {
+    padding: $baseline;
+  }
 }
 
 .space-selector,
@@ -160,74 +109,7 @@
 }
 
 .new-conversation-button {
-  flex: 0 1 auto;
-  // align-self: flex-end;
-}
-
-.threads {
-  padding: 0 $baseline;
-
-  &__item {
-    display: flex;
-    padding: (2 * $baseline / 3) $baseline;
-    border-top: 1px solid $item-list-border-color;
-    color: $muted-text-color;
-
-    &:last-child {
-      border-bottom: 1px solid $item-list-border-color;
-    }
-
-    &--highlighted {
-      box-shadow: inset 3px 0 $highlight-color;
-    }
-  }
-
-  &__selector {
-    flex: 0 1 auto;
-    margin-right: $baseline;
-    padding: 2px 0;
-  }
-
-  &__metadata {
-    flex: 1 1 auto;
-    cursor: pointer;
-  }
-
-  &__aside {
-    flex: 0 1 auto;
-  }
-
-  &__item-head {
-  }
-
-  &__subject {
-    font-weight: bold;
-    color: #fff;
-  }
-
-  &__dash {
-    margin: 0 $baseline / 2;
-    color: $muted-text-color;
-  }
-
-  &__recipients {
-    color: #fff;
-  }
-
-  &__preview {
-  }
-
-  &__unread {
-    display: inline-block;
-    margin-right: $baseline;
-    padding: 0 $baseline;
-    font-size: 13px;
-    font-weight: bold;
-    color: $highlight-color;
-    border: 1px solid $highlight-color;
-    border-radius: 50px;
-    word-wrap: nowrap;
-  }
+  height: 34px;
 }
 
 .users-list {

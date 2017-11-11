@@ -214,17 +214,16 @@ view model =
 
         Loaded appState ->
             div [ id "app" ]
-                [ spaceSelector appState.space
-                , div [ class "top-nav" ]
-                    [ input [ type_ "text", class "text-field text-field--muted search-field", placeholder "Search" ] []
-                    , button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
+                [ div [ id "sidebar-left", class "sidebar" ]
+                    [ spaceSelector appState.space
+                    , div [ class "sidebar__button-container" ]
+                        [ button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
+                        ]
+                    , sideNav model.page appState
                     ]
-                , identityMenu appState.user
-                , div [ class "sidebar sidebar--left" ]
-                    [ sideNav model.page appState
-                    ]
-                , div [ class "sidebar sidebar--right" ]
-                    [ usersList appState
+                , div [ id "sidebar-right", class "sidebar" ]
+                    [ identityMenu appState.user
+                    , usersList appState
                     ]
                 , pageContent model.page
                 ]
@@ -294,8 +293,7 @@ inboxLink page =
 sideNav : Page -> AppState -> Html Msg
 sideNav page appState =
     div [ class "side-nav-container" ]
-        [ h3 [ class "side-nav-heading" ] [ text "Conversations" ]
-        , div [ class "side-nav" ]
+        [ div [ class "side-nav" ]
             [ inboxLink page
             , a [ class "side-nav__item", href "#" ]
                 [ span [ class "side-nav__item-name" ] [ text "Everything" ]
@@ -304,20 +302,7 @@ sideNav page appState =
                 [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
                 ]
             ]
-        , h3 [ class "side-nav-heading" ] [ text "Rooms" ]
         , roomSubscriptionsList page appState
-        , h3 [ class "side-nav-heading" ] [ text "Integrations" ]
-        , div [ class "side-nav" ]
-            [ a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "GitHub" ]
-                ]
-            , a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Honeybadger" ]
-                ]
-            , a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "New Relic" ]
-                ]
-            ]
         ]
 
 

@@ -1,17 +1,16 @@
 .page-head {
-  margin: 0 $baseline;
-  padding: 6px $baseline;
-  border-top: 1px solid $item-list-border-color;
+  padding: $baseline $baseline * 2;
   border-bottom: 1px solid $item-list-border-color;
+  // box-shadow: 0 2px 24px rgba(0,0,0,0.3);
 
   &__name {
     margin: 0;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: $bold-weight;
   }
 
   &__description {
-    margin: 0 0 4px;
+    margin: 0;
     color: $muted-text-color;
   }
 }
