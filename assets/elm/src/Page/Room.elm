@@ -1,4 +1,4 @@
-module Page.Room exposing (Model, Msg, fetchRoom, buildModel, view, update)
+module Page.Room exposing (Model, Msg, fetchRoom, buildModel, loaded, view, update)
 
 {-| Viewing an particular room.
 -}
@@ -9,6 +9,8 @@ import Json.Decode as Json
 import Html exposing (..)
 import Html.Events exposing (on, onInput, onClick, keyCode)
 import Html.Attributes exposing (..)
+import Dom exposing (focus)
+import Dom.Scroll exposing (toBottom)
 import Data.User exposing (User)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
@@ -42,6 +44,13 @@ buildModel data =
     Model data.room data.messages "" False
 
 
+{-| Builds the task to perform post-page load.
+-}
+loaded : Cmd Msg
+loaded =
+    Cmd.batch [ scrollToBottom, focusOnComposer ]
+
+
 
 -- UPDATE
 
@@ -50,6 +59,7 @@ type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
     | MessageSubmitResponse (Result Http.Error RoomMessage)
+    | NoOp
 
 
 update : Msg -> Session -> Model -> ( Model, Cmd Msg )
@@ -80,12 +90,29 @@ update msg session model =
                     , composerBody = ""
                     , messages = newMessages
                   }
-                , Cmd.none
+                , scrollToBottom
                 )
 
         MessageSubmitResponse (Err _) ->
             -- TODO: implement this
             ( model, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
+
+
+{-| Scroll the messages container to the most recent message.
+-}
+scrollToBottom : Cmd Msg
+scrollToBottom =
+    Task.attempt (always NoOp) <| toBottom "messages"
+
+
+{-| Set focus to the composer body textarea.
+-}
+focusOnComposer : Cmd Msg
+focusOnComposer =
+    Task.attempt (always NoOp) <| focus "composer-body-field"
 
 
 
@@ -115,7 +142,8 @@ view model =
         , div [ class "composer" ]
             [ div [ class "composer__body" ]
                 [ textarea
-                    [ class "text-field text-field--muted textarea composer__body-field"
+                    [ id "composer-body-field"
+                    , class "text-field text-field--muted textarea composer__body-field"
                     , onInput ComposerBodyChanged
                     , onEnter MessageSubmitted
                     , readonly (isComposerReadOnly model)
@@ -137,7 +165,7 @@ view model =
 
 renderMessages : RoomMessageConnection -> Html Msg
 renderMessages connection =
-    div [ class "messages" ] (List.map renderMessage (List.reverse connection.edges))
+    div [ id "messages", class "messages" ] (List.map renderMessage (List.reverse connection.edges))
 
 
 renderMessage : RoomMessageEdge -> Html Msg
