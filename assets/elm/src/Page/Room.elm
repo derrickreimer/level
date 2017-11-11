@@ -9,7 +9,7 @@ import Html exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (..)
 import Data.User exposing (User)
-import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge)
+import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
 import Query.Room
 import Mutation.CreateRoomMessage as CreateRoomMessage
@@ -22,6 +22,7 @@ type alias Model =
     { room : Room
     , messages : RoomMessageConnection
     , composerBody : String
+    , isSubmittingMessage : Bool
     }
 
 
@@ -37,7 +38,7 @@ fetchRoom session slug =
 -}
 buildModel : Query.Room.Data -> Model
 buildModel data =
-    Model data.room data.messages ""
+    Model data.room data.messages "" False
 
 
 
@@ -47,7 +48,7 @@ buildModel data =
 type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
-    | MessageSubmitResponse (Result Http.Error Bool)
+    | MessageSubmitResponse (Result Http.Error RoomMessage)
 
 
 update : Msg -> Session -> Model -> ( Model, Cmd Msg )
@@ -60,12 +61,26 @@ update msg session model =
             let
                 params =
                     CreateRoomMessage.Params model.room model.composerBody
-            in
-                ( model, Http.send MessageSubmitResponse (CreateRoomMessage.request session.apiToken params) )
 
-        MessageSubmitResponse (Ok success) ->
-            -- TODO: implement this
-            ( model, Cmd.none )
+                request =
+                    CreateRoomMessage.request session.apiToken params
+            in
+                ( { model | isSubmittingMessage = True }
+                , Http.send MessageSubmitResponse request
+                )
+
+        MessageSubmitResponse (Ok message) ->
+            let
+                newMessages =
+                    RoomMessageConnection (RoomMessageEdge message :: model.messages.edges)
+            in
+                ( { model
+                    | isSubmittingMessage = False
+                    , composerBody = ""
+                    , messages = newMessages
+                  }
+                , Cmd.none
+                )
 
         MessageSubmitResponse (Err _) ->
             -- TODO: implement this
@@ -89,8 +104,10 @@ view model =
                 [ textarea
                     [ class "text-field text-field--muted textarea composer__body-field"
                     , onInput ComposerBodyChanged
+                    , readonly (isComposerReadOnly model)
+                    , value model.composerBody
                     ]
-                    [ text model.composerBody ]
+                    []
                 ]
             , div [ class "composer__controls" ]
                 [ button
@@ -128,8 +145,21 @@ renderMessage edge =
 
     isSendDisabled { composerBody = "" } == True
     isSendDisabled { composerBody = "I have some text" } == False
+    isSendDisabled { isSubmittingMessage = True } == False
 
 -}
 isSendDisabled : Model -> Bool
 isSendDisabled model =
-    model.composerBody == ""
+    model.composerBody == "" || (isComposerReadOnly model)
+
+
+{-| Determines if the composer textarea should be read-only.
+
+    isSendDisabled { composerBody = "" } == True
+    isSendDisabled { composerBody = "I have some text" } == False
+    isSendDisabled { isSubmittingMessage = True } == False
+
+-}
+isComposerReadOnly : Model -> Bool
+isComposerReadOnly model =
+    model.isSubmittingMessage == True

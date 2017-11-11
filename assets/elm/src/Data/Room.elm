@@ -6,9 +6,11 @@ module Data.Room
         , Room
         , RoomMessageConnection
         , RoomMessageEdge
+        , RoomMessage
         , roomSubscriptionConnectionDecoder
         , roomDecoder
         , roomMessageConnectionDecoder
+        , roomMessageDecoder
         , slugParser
         )
 
