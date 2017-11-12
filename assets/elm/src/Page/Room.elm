@@ -78,9 +78,12 @@ update msg session model =
                 request =
                     CreateRoomMessage.request session.apiToken params
             in
-                ( { model | isSubmittingMessage = True }
-                , Http.send MessageSubmitResponse request
-                )
+                if isSendDisabled model then
+                    ( model, Cmd.none )
+                else
+                    ( { model | isSubmittingMessage = True }
+                    , Http.send MessageSubmitResponse request
+                    )
 
         MessageSubmitResponse (Ok message) ->
             let
