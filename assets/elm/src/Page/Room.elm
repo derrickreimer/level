@@ -209,7 +209,7 @@ isComposerReadOnly model =
     model.isSubmittingMessage == True
 
 
-{-| Converts a Time into a human-friendly time string.
+{-| Converts a Time into a human-friendly HH:MMam time string.
 
     isSendDisabled 1510444158581 == "11:10am"
 
@@ -225,14 +225,6 @@ formatTime time =
 
         minute =
             Date.minute date
-                |> toString
-                |> formatMinute
-
-        hourString =
-            if hour == 0 then
-                "12"
-            else
-                toString <| hour % 12
 
         meridian =
             if hour < 12 then
@@ -240,12 +232,34 @@ formatTime time =
             else
                 "pm"
     in
-        hourString ++ ":" ++ minute ++ " " ++ meridian
+        (formatHour hour) ++ ":" ++ (formatMinute minute) ++ " " ++ meridian
 
 
-formatMinute : String -> String
-formatMinute value =
-    if String.length value == 1 then
-        "0" ++ value
+{-| Convert hour value to 12-hour time string.
+
+    formatHour 0 == "12"
+    formatHour 1 == "1"
+    formatHour 14 == "2"
+
+-}
+formatHour : Int -> String
+formatHour value =
+    if value == 0 then
+        "12"
     else
-        value
+        toString <| value % 12
+
+
+{-| Convert minute value to a string for using in HH:MM timestamps.
+
+    formatMinute 0 == "00"
+    formatMinute 9 == "09"
+    formatMinute 14 == "14"
+
+-}
+formatMinute : Int -> String
+formatMinute value =
+    if value < 10 then
+        "0" ++ (toString value)
+    else
+        toString value
