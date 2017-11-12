@@ -124,25 +124,23 @@ focusOnComposer =
 onEnter : Msg -> Attribute Msg
 onEnter msg =
     let
-        isEnter code shiftKey =
-            code == 13 && shiftKey == False
-
-        shiftKey =
-            Decode.field "shiftKey" Decode.bool
-
         options =
             { defaultOptions | preventDefault = True }
 
-        decoder =
-            Decode.map2 isEnter Html.Events.keyCode shiftKey
+        codeAndShift : Decode.Decoder ( Int, Bool )
+        codeAndShift =
+            Decode.map2 (\a b -> ( a, b ))
+                Html.Events.keyCode
+                (Decode.field "shiftKey" Decode.bool)
 
-        decodeValue bool =
-            if bool then
+        isEnter : ( Int, Bool ) -> Decode.Decoder Msg
+        isEnter ( code, shiftKey ) =
+            if code == 13 && shiftKey == False then
                 Decode.succeed msg
             else
                 Decode.fail "not ENTER"
     in
-        onWithOptions "keydown" options (Decode.andThen decodeValue decoder)
+        onWithOptions "keydown" options (Decode.andThen isEnter codeAndShift)
 
 
 view : Model -> Html Msg
