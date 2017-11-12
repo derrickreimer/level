@@ -50,7 +50,8 @@ decoders =
                                         "id": "8888",
                                         "firstName": "Derrick",
                                         "lastName": "Reimer"
-                                      }
+                                      },
+                                      "insertedAtTs": 1510444158581
                                     },
                                     "success": true,
                                     "errors": []
@@ -65,6 +66,7 @@ decoders =
                         expected =
                             { id = "9999"
                             , body = "Hello world"
+                            , insertedAt = 1510444158581.0
                             , user =
                                 { id = "8888"
                                 , firstName = "Derrick"

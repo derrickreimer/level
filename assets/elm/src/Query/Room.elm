@@ -40,6 +40,7 @@ query =
                 node {
                   id
                   body
+                  insertedAtTs
                   user {
                     id
                     firstName

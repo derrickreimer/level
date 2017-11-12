@@ -11,6 +11,8 @@ import Html.Events exposing (on, onInput, onClick, keyCode)
 import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll exposing (toBottom)
+import Date
+import Time exposing (Time)
 import Data.User exposing (User)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
@@ -176,7 +178,7 @@ renderMessage edge =
             [ div [ class "message__head" ]
                 [ span [ class "message__name" ] [ text (Data.User.displayName edge.node.user) ]
                 , span [ class "message__middot" ] [ text "·" ]
-                , span [ class "message__timestamp" ] [ text "10:15am" ]
+                , span [ class "message__timestamp" ] [ text (formatTime edge.node.insertedAt) ]
                 ]
             , div [ class "message__body" ] [ text edge.node.body ]
             ]
@@ -205,3 +207,45 @@ isSendDisabled model =
 isComposerReadOnly : Model -> Bool
 isComposerReadOnly model =
     model.isSubmittingMessage == True
+
+
+{-| Converts a Time into a human-friendly time string.
+
+    isSendDisabled 1510444158581 == "11:10am"
+
+-}
+formatTime : Time -> String
+formatTime time =
+    let
+        date =
+            Date.fromTime time
+
+        hour =
+            Date.hour date
+
+        minute =
+            Date.minute date
+                |> toString
+                |> formatMinute
+
+        hourString =
+            if hour == 0 then
+                "12"
+            else
+                toString <| hour % 12
+
+        meridian =
+            if hour < 12 then
+                "am"
+            else
+                "pm"
+    in
+        hourString ++ ":" ++ minute ++ meridian
+
+
+formatMinute : String -> String
+formatMinute value =
+    if String.length value == 1 then
+        "0" ++ value
+    else
+        value

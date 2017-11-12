@@ -16,6 +16,7 @@ module Data.Room
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Time exposing (Time)
 import Data.User exposing (User, userDecoder)
 import UrlParser
 
@@ -52,6 +53,7 @@ type alias RoomMessage =
     { id : String
     , body : String
     , user : User
+    , insertedAt : Time
     }
 
 
@@ -110,6 +112,7 @@ roomMessageDecoder =
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "body" Decode.string
         |> Pipeline.custom (Decode.at [ "user" ] userDecoder)
+        |> Pipeline.required "insertedAtTs" Decode.float
 
 
 

@@ -27,6 +27,7 @@ decoders =
                                         "node": {
                                           "id": "8888",
                                           "body": "Hello world",
+                                          "insertedAtTs": 1510444158581,
                                           "user": {
                                             "id": "7777",
                                             "firstName": "Derrick",
@@ -55,6 +56,7 @@ decoders =
                                     [ { node =
                                             { id = "8888"
                                             , body = "Hello world"
+                                            , insertedAt = 1510444158581
                                             , user =
                                                 { id = "7777"
                                                 , firstName = "Derrick"

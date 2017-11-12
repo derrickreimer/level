@@ -27,6 +27,7 @@ query =
           roomMessage {
             id
             body
+            insertedAtTs
             user {
               id
               firstName
