@@ -7,7 +7,7 @@ import Task exposing (Task)
 import Http
 import Json.Decode as Json
 import Html exposing (..)
-import Html.Events exposing (on, onInput, onClick, keyCode)
+import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick, keyCode)
 import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll exposing (toBottom)
@@ -130,7 +130,7 @@ onEnter msg =
             else
                 Json.fail "not ENTER"
     in
-        on "keydown" (Json.andThen isEnter keyCode)
+        onWithOptions "keydown" { defaultOptions | preventDefault = True } (Json.andThen isEnter keyCode)
 
 
 view : Model -> Html Msg
