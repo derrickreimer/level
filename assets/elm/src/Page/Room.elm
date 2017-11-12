@@ -5,9 +5,9 @@ module Page.Room exposing (Model, Msg, fetchRoom, buildModel, loaded, view, upda
 
 import Task exposing (Task)
 import Http
-import Json.Decode as Json
+import Json.Decode as Decode
 import Html exposing (..)
-import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick, keyCode)
+import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick)
 import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll exposing (toBottom)
@@ -124,13 +124,25 @@ focusOnComposer =
 onEnter : Msg -> Attribute Msg
 onEnter msg =
     let
-        isEnter code =
-            if code == 13 then
-                Json.succeed msg
+        isEnter code shiftKey =
+            code == 13 && shiftKey == False
+
+        shiftKey =
+            Decode.field "shiftKey" Decode.bool
+
+        options =
+            { defaultOptions | preventDefault = True }
+
+        decoder =
+            Decode.map2 isEnter Html.Events.keyCode shiftKey
+
+        decodeValue bool =
+            if bool then
+                Decode.succeed msg
             else
-                Json.fail "not ENTER"
+                Decode.fail "not ENTER"
     in
-        onWithOptions "keydown" { defaultOptions | preventDefault = True } (Json.andThen isEnter keyCode)
+        onWithOptions "keydown" options (Decode.andThen decodeValue decoder)
 
 
 view : Model -> Html Msg
