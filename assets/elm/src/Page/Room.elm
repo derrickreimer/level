@@ -240,7 +240,7 @@ formatTime time =
             else
                 "pm"
     in
-        hourString ++ ":" ++ minute ++ meridian
+        hourString ++ ":" ++ minute ++ " " ++ meridian
 
 
 formatMinute : String -> String
