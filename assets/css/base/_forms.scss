@@ -60,6 +60,17 @@
       background-color: lighten($input-muted-background-color, 5%);
     }
   }
+
+  &[readonly] {
+    color: $muted-text-color;
+    background-color: $input-muted-background-color;
+
+    &:hover,
+    &:active,
+    &:focus {
+      background-color: $input-muted-background-color;
+    }
+  }
 }
 
 .slug-field {

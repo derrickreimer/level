@@ -185,6 +185,12 @@ defmodule LevelWeb.Schema.Types do
   object :room_message do
     field :id, non_null(:id)
     field :body, non_null(:string)
+    field :inserted_at, non_null(:time)
+    field :inserted_at_ts, non_null(:timestamp) do
+      resolve fn room_message, _, _ ->
+        {:ok, room_message.inserted_at}
+      end
+    end
 
     field :space, non_null(:space) do
       resolve fn room_message, _, _ ->

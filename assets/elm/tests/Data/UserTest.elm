@@ -1,6 +1,7 @@
 module Data.UserTest exposing (..)
 
 import Expect exposing (Expectation)
+import Fuzz exposing (string)
 import Data.User as User
 import Test exposing (..)
 import Json.Decode exposing (decodeString)
@@ -19,9 +20,9 @@ decoders =
                         json =
                             """
                             {
-                                "id": "9999",
-                                "firstName": "Derrick",
-                                "lastName": "Reimer"
+                              "id": "9999",
+                              "firstName": "Derrick",
+                              "lastName": "Reimer"
                             }
                             """
 
@@ -41,7 +42,7 @@ decoders =
                         json =
                             """
                             {
-                                "id": "9999"
+                              "id": "9999"
                             }
                             """
 
@@ -50,4 +51,22 @@ decoders =
                     in
                         Expect.equal False (success result)
             ]
+        ]
+
+
+{-| Tests for utility functions.
+-}
+utils : Test
+utils =
+    describe "User.displayName"
+        [ fuzz2 string string "joins the first and last name" <|
+            \firstName lastName ->
+                let
+                    user =
+                        { id = "999"
+                        , firstName = firstName
+                        , lastName = lastName
+                        }
+                in
+                    Expect.equal (firstName ++ " " ++ lastName) (User.displayName user)
         ]

@@ -35,7 +35,7 @@
   }
 
   &__subject {
-    font-weight: bold;
+    font-weight: $bold-weight;
     color: #fff;
   }
 
@@ -56,7 +56,7 @@
     margin-right: $baseline;
     padding: 0 $baseline;
     font-size: 13px;
-    font-weight: bold;
+    font-weight: $bold-weight;
     color: $highlight-color;
     border: 1px solid $highlight-color;
     border-radius: 50px;

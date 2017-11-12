@@ -29,6 +29,7 @@ defmodule LevelWeb.GraphQL.RoomMessagesTest do
                     firstName
                     lastName
                   }
+                  insertedAtTs
                 }
               }
               total_count
@@ -59,7 +60,8 @@ defmodule LevelWeb.GraphQL.RoomMessagesTest do
                   "user" => %{
                     "firstName" => user.first_name,
                     "lastName" => user.last_name
-                  }
+                  },
+                  "insertedAtTs" => DateTime.to_unix(Timex.to_datetime(message.inserted_at), :millisecond)
                 }
               }],
               "total_count" => 1

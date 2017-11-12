@@ -133,7 +133,7 @@ update msg model =
                             | page = Room (Page.Room.buildModel data)
                             , isTransitioning = False
                           }
-                        , Cmd.none
+                        , Cmd.map RoomMsg Page.Room.loaded
                         )
 
                     Query.Room.NotFound ->

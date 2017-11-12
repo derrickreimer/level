@@ -81,7 +81,7 @@
     }
 
     &--selected {
-      font-weight: bold;
+      font-weight: $bold-weight;
       background-color: $background-color;
 
       &:hover {

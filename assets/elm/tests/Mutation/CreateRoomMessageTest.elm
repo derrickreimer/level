@@ -40,23 +40,40 @@ decoders =
                     let
                         json =
                             """
-                            {
+                              {
                                 "data": {
-                                    "createRoomMessage": {
-                                        "roomMessage": {
-                                            "id": "9999",
-                                            "body": "Hello world"
-                                        },
-                                        "success": true,
-                                        "errors": []
-                                    }
+                                  "createRoomMessage": {
+                                    "roomMessage": {
+                                      "id": "9999",
+                                      "body": "Hello world",
+                                      "user": {
+                                        "id": "8888",
+                                        "firstName": "Derrick",
+                                        "lastName": "Reimer"
+                                      },
+                                      "insertedAtTs": 1510444158581
+                                    },
+                                    "success": true,
+                                    "errors": []
+                                  }
                                 }
-                            }
+                              }
                             """
 
                         result =
                             decodeString CreateRoomMessage.decoder json
+
+                        expected =
+                            { id = "9999"
+                            , body = "Hello world"
+                            , insertedAt = 1510444158581.0
+                            , user =
+                                { id = "8888"
+                                , firstName = "Derrick"
+                                , lastName = "Reimer"
+                                }
+                            }
                     in
-                        Expect.equal (Ok True) result
+                        Expect.equal (Ok expected) result
             ]
         ]
