@@ -25,6 +25,7 @@ defmodule LevelWeb.ChannelCase do
       import Ecto.Changeset
       import Ecto.Query
 
+      import Level.TestHelpers
 
       # The default endpoint for testing
       @endpoint LevelWeb.Endpoint

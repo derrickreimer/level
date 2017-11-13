@@ -119,5 +119,10 @@ defmodule LevelWeb.Schema.Mutations do
     this field will be null.
     """
     field :room_message, :room_message
+
+    @desc """
+    The room to which the message was posted.
+    """
+    field :room, :room
   end
 end

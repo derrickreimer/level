@@ -66,4 +66,19 @@ defmodule LevelWeb.Schema do
       resolve &LevelWeb.RoomMessageResolver.create/2
     end
   end
+
+  subscription do
+    @desc "Triggered when a room message is posted."
+    field :room_message_created, :create_room_message_payload do
+      arg :room_id, non_null(:id)
+
+      config fn args, _ ->
+        {:ok, topic: args.room_id}
+      end
+
+      trigger :create_room_message, topic: fn payload ->
+        payload.room.id
+      end
+    end
+  end
 end
