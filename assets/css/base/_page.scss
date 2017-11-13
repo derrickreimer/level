@@ -1,6 +1,8 @@
 .page-head {
   padding: $baseline $baseline * 2;
-  border-bottom: 1px solid $item-list-border-color;
+  // border-bottom: 1px solid $item-list-border-color;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.30);
+  z-index: 1000;
 
   &__name {
     margin: 0;
