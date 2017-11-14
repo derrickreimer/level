@@ -1,7 +1,7 @@
 defmodule LevelWeb.UserSocket do
   use Phoenix.Socket
   use Absinthe.Phoenix.Socket,
-    schema: Level.Schema
+    schema: LevelWeb.Schema
 
   ## Channels
   # channel "room:*", Level.RoomChannel
