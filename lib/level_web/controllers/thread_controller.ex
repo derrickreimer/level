@@ -4,6 +4,6 @@ defmodule LevelWeb.ThreadController do
   def index(conn, _params) do
     user = conn.assigns[:current_user]
     api_token = LevelWeb.Auth.generate_signed_jwt(user)
-    render conn, "index.html", api_token: api_token
+    render conn, "index.html", api_token: api_token, module: "main"
   end
 end

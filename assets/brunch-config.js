@@ -63,7 +63,7 @@ exports.config = {
       elmFolder: 'elm',
       mainModules: ['src/Main.elm', 'src/Signup.elm'],
       outputFolder: '../../priv/static/js',
-      outputFile: 'bundle.js',
+      outputFile: 'elm-bundle.js',
       makeParameters: ['--warn']
     }
   },

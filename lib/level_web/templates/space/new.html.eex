@@ -1,5 +1,0 @@
-<script type="text/javascript">
-  var app = Elm.Signup.fullscreen({
-    csrf_token: "<%= Plug.CSRFProtection.get_csrf_token() %>"
-  });
-</script>

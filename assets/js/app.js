@@ -11,11 +11,27 @@
 //
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
-import "phoenix_html"
+import "phoenix_html";
 
 // Import local files
 //
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-// import socket from "./socket"
+import * as Main from "./modules/main";
+import * as Signup from "./modules/signup";
+
+const MODULE = document.head.querySelector("meta[name='module']").content;
+
+switch (MODULE) {
+  case "main":
+    Main.initialize();
+    break;
+
+  case "signup":
+    Signup.initialize();
+    break;
+
+  default:
+    break;
+}
