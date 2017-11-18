@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -74,7 +74,10 @@ init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     flags
         |> buildInitialModel
-        |> navigateTo (Route.fromLocation location)
+        |> assembleBatch
+            [ navigateTo (Route.fromLocation location)
+            , setupSockets
+            ]
 
 
 {-| Build the initial model, before running the page "bootstrap" query.
@@ -82,6 +85,22 @@ init flags location =
 buildInitialModel : Flags -> Model
 buildInitialModel flags =
     Model (Session flags.apiToken) NotLoaded Blank True
+
+
+{-| Take a list of functions that accept a model and return a ( Model, Cmd Msg )
+tuple, call them in succession, and return a ( Model, Cmd Msg ), where the
+command is a batch of accumulated commands.
+-}
+assembleBatch : List (Model -> ( Model, Cmd Msg )) -> Model -> ( Model, Cmd Msg )
+assembleBatch transforms model =
+    let
+        reducer : (Model -> ( Model, Cmd Msg )) -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
+        reducer transform ( model, cmds ) =
+            transform model
+                |> Tuple.mapSecond (\cmd -> cmd :: cmds)
+    in
+        List.foldr reducer ( model, [] ) transforms
+            |> Tuple.mapSecond Cmd.batch
 
 
 
@@ -94,6 +113,8 @@ type Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
+    | SendFrame String
+    | FrameReceived String
 
 
 getSession : Model -> Session
@@ -104,6 +125,9 @@ getSession model =
 getPage : Model -> Page
 getPage model =
     model.page
+
+
+port sendFrame : String -> Cmd msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -158,6 +182,9 @@ update msg model =
                 in
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
+            ( SendFrame payload, _ ) ->
+                ( model, sendFrame payload )
+
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
@@ -193,13 +220,34 @@ navigateTo maybeRoute model =
                         transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
 
 
+setupSockets : Model -> ( Model, Cmd Msg )
+setupSockets model =
+    let
+        -- TODO: replace this with a generic subscription
+        operation =
+            """
+              subscription {
+                roomMessageCreated(roomId: "51077027888890883") {
+                  roomMessage {
+                    body
+                  }
+                }
+              }
+            """
+    in
+        ( model, sendFrame operation )
+
+
 
 -- SUBSCRIPTIONS
 
 
+port receiveFrame : (String -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    receiveFrame FrameReceived
 
 
 
