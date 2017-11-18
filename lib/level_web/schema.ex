@@ -3,6 +3,8 @@ defmodule LevelWeb.Schema do
   GraphQL schema.
   """
 
+  alias Level.Rooms
+
   use Absinthe.Schema
   import_types LevelWeb.Schema.Types
 
@@ -72,8 +74,14 @@ defmodule LevelWeb.Schema do
     field :room_message_created, :create_room_message_payload do
       arg :room_id, non_null(:id)
 
-      config fn args, _ ->
-        {:ok, topic: args.room_id}
+      config fn %{room_id: room_id}, %{context: %{current_user: user}} ->
+        with {:ok, room} <- Rooms.get_room(user, room_id),
+             {:ok, _} <- Rooms.get_room_subscription(room, user)
+        do
+          {:ok, topic: room_id}
+        else
+          err -> err
+        end
       end
 
       trigger :create_room_message, topic: fn payload ->
