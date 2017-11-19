@@ -1,13 +1,15 @@
-import { socket } from "../socket";
+import { createSocket } from "../socket";
+import { getApiToken } from "../token";
 import * as AbsintheSocket from "@absinthe/socket";
 
 const logEvent = eventName => (...args) => console.log(eventName, ...args);
-const getApiToken = () => document.head.querySelector("meta[name='api_token']").content;
 
 export function initialize() {
-  var app = Elm.Main.fullscreen({
+  let app = Elm.Main.fullscreen({
     apiToken: getApiToken()
   });
+
+  let socket = createSocket();
 
   app.ports.sendFrame.subscribe((operation) => {
     const notifier = AbsintheSocket.send(socket, {

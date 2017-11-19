@@ -1,8 +1,9 @@
 import * as AbsintheSocket from "@absinthe/socket";
-import {Socket as PhoenixSocket} from "phoenix";
+import { Socket as PhoenixSocket } from "phoenix";
+import { getApiToken } from "./token";
 
 const ADDRESS = "ws://" + window.location.host + "/socket";
 
-export const socket = AbsintheSocket.create(
-  new PhoenixSocket(ADDRESS)
+export const createSocket = () => AbsintheSocket.create(
+  new PhoenixSocket(ADDRESS, {params: {token: getApiToken()}})
 );
