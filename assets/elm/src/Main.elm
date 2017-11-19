@@ -91,10 +91,12 @@ buildInitialModel flags =
 tuple, call them in succession, and return a ( Model, Cmd Msg ), where the
 command is a batch of accumulated commands.
 -}
-assembleBatch : List (Model -> ( Model, Cmd Msg )) -> Model -> ( Model, Cmd Msg )
+assembleBatch :
+    List (Model -> ( Model, Cmd Msg ))
+    -> Model
+    -> ( Model, Cmd Msg )
 assembleBatch transforms model =
     let
-        reducer : (Model -> ( Model, Cmd Msg )) -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
         reducer transform ( model, cmds ) =
             transform model
                 |> Tuple.mapSecond (\cmd -> cmd :: cmds)
