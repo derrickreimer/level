@@ -138,6 +138,32 @@ defmodule LevelWeb.Auth do
   end
 
   @doc """
+  Verifies the signed token and fetches the user record from the database
+  if the token is valid. Otherwise, returns an error.
+
+  ## Examples
+
+      get_user_by_token(valid_token)
+      => %{:ok, %{user: user}}
+
+      get_user_by_token(expired_token)
+      => %{:error, "the error message goes here"}
+  """
+  def get_user_by_token(token) do
+    case verify_signed_jwt(token) do
+      %Joken.Token{claims: %{"sub" => user_id}, error: nil} ->
+        user = Repo.get(Level.Spaces.User, user_id)
+        {:ok, %{user: user}}
+
+      %Joken.Token{error: error} ->
+        {:error, error}
+
+      _ ->
+        {:error, ""}
+    end
+  end
+
+  @doc """
   Generates a JSON Web Token (JWT) for a particular user for use by front end
   clients. Returns a Joken.Token struct.
 
@@ -212,21 +238,16 @@ defmodule LevelWeb.Auth do
   defp verify_bearer_token(conn) do
     case get_req_header(conn, "authorization") do
       ["Bearer " <> token] ->
-        case verify_signed_jwt(token) do
-          %Joken.Token{claims: %{"sub" => user_id}, error: nil} ->
-            user = Repo.get(Level.Spaces.User, user_id)
-
+        case get_user_by_token(token) do
+          {:ok, %{user: user}} ->
             if user.space_id == conn.assigns.space.id do
               put_current_user(conn, user)
             else
               send_unauthorized(conn, "")
             end
 
-          %Joken.Token{error: error} ->
-            send_unauthorized(conn, error)
-
-          _ ->
-            send_unauthorized(conn, "")
+          {:error, message} ->
+            send_unauthorized(conn, message)
         end
 
       _ ->
