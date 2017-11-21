@@ -14,6 +14,7 @@ import Query.Room
 import Navigation
 import Route exposing (Route)
 import Task
+import Json.Decode as Decode
 
 
 main : Program Flags Model Msg
@@ -116,7 +117,8 @@ type Msg
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
     | SendFrame String
-    | FrameReceived String
+    | StartFrameReceived Decode.Value
+    | ResultFrameReceived Decode.Value
 
 
 getSession : Model -> Session
@@ -187,6 +189,14 @@ update msg model =
             ( SendFrame payload, _ ) ->
                 ( model, sendFrame payload )
 
+            ( StartFrameReceived value, _ ) ->
+                -- TODO: implement this
+                ( model, Cmd.none )
+
+            ( ResultFrameReceived value, _ ) ->
+                -- TODO: implement this
+                ( model, Cmd.none )
+
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
@@ -244,12 +254,18 @@ setupSockets model =
 -- SUBSCRIPTIONS
 
 
-port receiveFrame : (String -> msg) -> Sub msg
+port startFrames : (Decode.Value -> msg) -> Sub msg
+
+
+port resultFrames : (Decode.Value -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    receiveFrame FrameReceived
+    Sub.batch
+        [ startFrames StartFrameReceived
+        , resultFrames ResultFrameReceived
+        ]
 
 
 
