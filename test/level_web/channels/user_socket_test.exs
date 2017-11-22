@@ -14,7 +14,7 @@ defmodule LevelWeb.UserSocketTest do
       %{absinthe_socket: absinthe_socket} do
       {:ok, %{user: user}} = insert_signup()
       token = LevelWeb.Auth.generate_signed_jwt(user)
-      params = %{"token" => token}
+      params = %{"Authorization" => "Bearer #{token}"}
 
       {:ok, %Phoenix.Socket{assigns: %{
         absinthe: %{opts: [context: %{current_user: current_user}]}}
@@ -24,7 +24,7 @@ defmodule LevelWeb.UserSocketTest do
     end
 
     test "returns error if the token is invalid", %{absinthe_socket: absinthe_socket} do
-      assert LevelWeb.UserSocket.connect(%{"token" => "foo"}, absinthe_socket) == :error
+      assert LevelWeb.UserSocket.connect(%{"Authorization" => "foo"}, absinthe_socket) == :error
     end
   end
 end

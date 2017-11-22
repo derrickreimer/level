@@ -14,17 +14,17 @@ defmodule LevelWeb.UserSocket do
 
   # transport :longpoll, Phoenix.Transports.LongPoll
 
-  def connect(%{"token" => token}, socket) do
-    case Auth.get_user_by_token(token) do
-      {:ok, %{user: user}} ->
-        socket = Absinthe.Phoenix.Socket.put_opts(socket, context: %{
-          current_user: user
-        })
+  def connect(%{"Authorization" => auth}, socket) do
+    with "Bearer " <> token <- auth,
+         {:ok, %{user: user}} <- Auth.get_user_by_token(token)
+    do
+      socket = Absinthe.Phoenix.Socket.put_opts(socket, context: %{
+        current_user: user
+      })
 
-        {:ok, socket}
-
-      _ ->
-        :error
+      {:ok, socket}
+    else
+      _ -> :error
     end
   end
 

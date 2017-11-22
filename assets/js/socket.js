@@ -5,5 +5,5 @@ import { getApiToken } from "./token";
 const ADDRESS = "ws://" + window.location.host + "/socket";
 
 export const createSocket = () => AbsintheSocket.create(
-  new PhoenixSocket(ADDRESS, {params: {token: getApiToken()}})
+  new PhoenixSocket(ADDRESS, {params: {Authorization: "Bearer " + getApiToken()}})
 );
