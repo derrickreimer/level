@@ -4,9 +4,9 @@ defmodule LevelWeb.GraphQL.RoomMessageCreatedTest do
 
   @operation """
     subscription RoomMessageCreated(
-      $roomId: ID!
+      $userId: ID!
     ) {
-      roomMessageCreated(roomId: $roomId) {
+      roomMessageCreated(userId: $userId) {
         roomMessage {
           body
         }
@@ -35,7 +35,7 @@ defmodule LevelWeb.GraphQL.RoomMessageCreatedTest do
     # Register the subscription
     ref = push socket, "doc", %{
       "query" => @operation,
-      "variables" => %{"roomId" => to_string(room.id)}
+      "variables" => %{"userId" => to_string(user.id)}
     }
     assert_reply ref, :ok, %{subscriptionId: subscription_ref}, 1000
 
@@ -102,40 +102,21 @@ defmodule LevelWeb.GraphQL.RoomMessageCreatedTest do
     }
   end
 
-  test "rejects subscription if user is not subscribed to room",
+  test "rejects subscription if user not authenticated",
     %{socket: socket, space: space} do
 
     # Insert another member
     {:ok, another_user} = insert_member(space, valid_user_params())
 
-    # Create a room that the original user is not subscribed to
-    {:ok, %{room: room}} = Level.Rooms.create_room(another_user, valid_room_params())
-
     # Register the subscription
     ref = push socket, "doc", %{
       "query" => @operation,
-      "variables" => %{"roomId" => to_string(room.id)}
+      "variables" => %{"userId" => to_string(another_user.id)}
     }
     assert_reply ref, :error, %{
       errors: [%{
         locations: [%{column: 0, line: 4}],
-        message: %{code: "NOT_FOUND", message: "User is not subscribed to the room"}
-      }]
-    }, 1000
-  end
-
-  test "rejects subscription if room does not exist",
-    %{socket: socket} do
-
-    # Register the subscription
-    ref = push socket, "doc", %{
-      "query" => @operation,
-      "variables" => %{"roomId" => "99999"}
-    }
-    assert_reply ref, :error, %{
-      errors: [%{
-        locations: [%{column: 0, line: 4}],
-        message: %{code: "NOT_FOUND", message: "Room not found"}
+        message: "User is not authenticated"
       }]
     }, 1000
   end

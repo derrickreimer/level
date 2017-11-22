@@ -12,6 +12,7 @@ defmodule Level.Rooms do
   alias Ecto.Multi
 
   import Level.Gettext
+  import Ecto.Query, only: [from: 2]
 
   @doc """
   Fetches a room for a given user by id.
@@ -158,9 +159,30 @@ defmodule Level.Rooms do
       => {:error, %Ecto.Changeset{...}}
   """
   def create_message(room, user, params \\ %{}) do
-    room
-    |> create_room_message_changeset(user, params)
-    |> Repo.insert()
+    with {:ok, message} <- room
+      |> create_room_message_changeset(user, params)
+      |> Repo.insert()
+    do
+      # Broadcast the room message created message to all user topics
+      # TODO: Does this logic belong somewhere else?
+      members = Repo.all(
+        from s in "room_subscriptions",
+          where: s.room_id == ^room.id,
+          select: s.user_id
+      )
+
+      topics = Enum.map(members, fn(id) ->
+        {:room_message_created, to_string(id)}
+      end)
+
+      payload = %{success: true, room: room, room_message: message, errors: []}
+
+      Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
+
+      {:ok, message}
+    else
+      err -> err
+    end
   end
 
   # Builds an operation to create a new room. Specifically, this operation

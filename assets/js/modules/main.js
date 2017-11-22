@@ -11,10 +11,8 @@ export function initialize() {
 
   const socket = createSocket();
 
-  app.ports.sendFrame.subscribe((operation) => {
-    const notifier = AbsintheSocket.send(socket, {
-      operation
-    });
+  app.ports.sendFrame.subscribe((doc) => {
+    const notifier = AbsintheSocket.send(socket, doc);
 
     const observedNotifier = AbsintheSocket.observe(socket, notifier, {
       onAbort: logEvent("abort"),

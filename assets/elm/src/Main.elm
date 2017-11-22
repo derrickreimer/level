@@ -14,6 +14,7 @@ import Query.Room
 import Navigation
 import Route exposing (Route)
 import Task
+import Json.Encode as Encode
 import Json.Decode as Decode
 
 
@@ -63,6 +64,12 @@ type alias Flags =
     }
 
 
+type alias Frame =
+    { operation : String
+    , variables : Maybe Encode.Value
+    }
+
+
 {-| Initialize the model and kick off page navigation.
 
 1.  Build the initial model, which begins life as a `NotBootstrapped` type.
@@ -75,10 +82,7 @@ init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     flags
         |> buildInitialModel
-        |> assembleBatch
-            [ navigateTo (Route.fromLocation location)
-            , setupSockets
-            ]
+        |> navigateTo (Route.fromLocation location)
 
 
 {-| Build the initial model, before running the page "bootstrap" query.
@@ -116,7 +120,7 @@ type Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
-    | SendFrame String
+    | SendFrame Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
 
@@ -131,7 +135,7 @@ getPage model =
     model.page
 
 
-port sendFrame : String -> Cmd msg
+port sendFrame : Frame -> Cmd msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -149,7 +153,8 @@ update msg model =
                 navigateTo (Route.fromLocation location) model
 
             ( AppStateLoaded maybeRoute (Ok response), _ ) ->
-                navigateTo maybeRoute { model | appState = Loaded response }
+                { model | appState = Loaded response }
+                    |> assembleBatch [ navigateTo maybeRoute, setupSockets ]
 
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
@@ -186,8 +191,8 @@ update msg model =
                 in
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
-            ( SendFrame payload, _ ) ->
-                ( model, sendFrame payload )
+            ( SendFrame frame, _ ) ->
+                ( model, sendFrame frame )
 
             ( StartFrameReceived value, _ ) ->
                 -- TODO: implement this
@@ -234,20 +239,39 @@ navigateTo maybeRoute model =
 
 setupSockets : Model -> ( Model, Cmd Msg )
 setupSockets model =
-    let
-        -- TODO: replace this with a generic subscription
-        operation =
-            """
-              subscription {
-                roomMessageCreated(roomId: "51077027888890883") {
-                  roomMessage {
-                    body
-                  }
-                }
-              }
-            """
-    in
-        ( model, sendFrame operation )
+    case model.appState of
+        NotLoaded ->
+            ( model, Cmd.none )
+
+        Loaded state ->
+            let
+                operation =
+                    """
+                      subscription RoomMessageCreated(
+                        $userId: ID!
+                      ) {
+                        roomMessageCreated(userId: $userId) {
+                          room {
+                            id
+                          }
+                          roomMessage {
+                            id
+                            body
+                            insertedAtTs
+                            user {
+                              id
+                              firstName
+                              lastName
+                            }
+                          }
+                        }
+                      }
+                    """
+
+                variables =
+                    Just (Encode.object [ ( "userId", Encode.string state.user.id ) ])
+            in
+                ( model, sendFrame <| Frame operation variables )
 
 
 
