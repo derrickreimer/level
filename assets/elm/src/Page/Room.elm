@@ -257,7 +257,7 @@ formatTime time =
 -}
 formatHour : Int -> String
 formatHour value =
-    if value == 0 then
+    if value == 0 || value == 12 then
         "12"
     else
         toString <| value % 12
