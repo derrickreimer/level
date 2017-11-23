@@ -11,6 +11,7 @@ import Page.Room
 import Page.Conversations
 import Query.AppState
 import Query.Room
+import Subscription.RoomMessageCreated
 import Navigation
 import Route exposing (Route)
 import Task
@@ -246,30 +247,10 @@ setupSockets model =
         Loaded state ->
             let
                 operation =
-                    """
-                      subscription RoomMessageCreated(
-                        $userId: ID!
-                      ) {
-                        roomMessageCreated(userId: $userId) {
-                          room {
-                            id
-                          }
-                          roomMessage {
-                            id
-                            body
-                            insertedAtTs
-                            user {
-                              id
-                              firstName
-                              lastName
-                            }
-                          }
-                        }
-                      }
-                    """
+                    Subscription.RoomMessageCreated.operation
 
                 variables =
-                    Just (Encode.object [ ( "userId", Encode.string state.user.id ) ])
+                    Just (Subscription.RoomMessageCreated.variables { user = state.user })
             in
                 ( model, sendFrame <| Frame operation variables )
 
