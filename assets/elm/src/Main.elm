@@ -196,12 +196,19 @@ update msg model =
                 ( model, sendFrame frame )
 
             ( StartFrameReceived value, _ ) ->
-                -- TODO: implement this
                 ( model, Cmd.none )
 
             ( ResultFrameReceived value, _ ) ->
-                -- TODO: implement this
-                ( model, Cmd.none )
+                let
+                    message =
+                        decodeMessage value
+                in
+                    case message of
+                        RoomMessageCreated result ->
+                            ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
 
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
@@ -423,3 +430,30 @@ roomSubscriptionItem page edge =
         a [ class ("side-nav__item side-nav__item--room " ++ selectedClass), Route.href (Route.Room room.id) ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             ]
+
+
+
+-- MESSAGE DECODERS
+
+
+type Message
+    = RoomMessageCreated Subscription.RoomMessageCreated.Result
+    | UnknownMessage
+
+
+decodeMessage : Decode.Value -> Message
+decodeMessage value =
+    Decode.decodeValue messageDecoder value
+        |> Result.withDefault UnknownMessage
+
+
+messageDecoder : Decode.Decoder Message
+messageDecoder =
+    Decode.oneOf
+        [ roomMessageCreatedDecoder
+        ]
+
+
+roomMessageCreatedDecoder : Decode.Decoder Message
+roomMessageCreatedDecoder =
+    Decode.map RoomMessageCreated Subscription.RoomMessageCreated.decoder

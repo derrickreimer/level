@@ -1,4 +1,4 @@
-module Subscription.RoomMessageCreated exposing (Params, operation, variables, decoder)
+module Subscription.RoomMessageCreated exposing (Params, Result, operation, variables, decoder)
 
 import Data.User exposing (User)
 import Data.Room exposing (RoomMessage, roomMessageDecoder)
