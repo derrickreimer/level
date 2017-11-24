@@ -44,7 +44,7 @@ decoders =
                             """
                               {
                                 "data": {
-                                  "createRoomMessage": {
+                                  "roomMessageCreated": {
                                     "room": {
                                       "id": "888"
                                     },

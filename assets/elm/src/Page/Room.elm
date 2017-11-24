@@ -1,4 +1,14 @@
-module Page.Room exposing (Model, Msg, fetchRoom, buildModel, loaded, view, update)
+module Page.Room
+    exposing
+        ( Model
+        , Msg
+        , fetchRoom
+        , buildModel
+        , loaded
+        , view
+        , update
+        , receiveMessage
+        )
 
 {-| Viewing an particular room.
 -}
@@ -53,6 +63,17 @@ loaded =
     Cmd.batch [ scrollToBottom, focusOnComposer ]
 
 
+{-| Append a new message to the room message connection when it is received.
+-}
+receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
+receiveMessage message model =
+    let
+        newMessages =
+            RoomMessageConnection (RoomMessageEdge message :: model.messages.edges)
+    in
+        ( { model | messages = newMessages }, scrollToBottom )
+
+
 
 -- UPDATE
 
@@ -86,17 +107,12 @@ update msg session model =
                     )
 
         MessageSubmitResponse (Ok message) ->
-            let
-                newMessages =
-                    RoomMessageConnection (RoomMessageEdge message :: model.messages.edges)
-            in
-                ( { model
-                    | isSubmittingMessage = False
-                    , composerBody = ""
-                    , messages = newMessages
-                  }
-                , scrollToBottom
-                )
+            ( { model
+                | isSubmittingMessage = False
+                , composerBody = ""
+              }
+            , Cmd.none
+            )
 
         MessageSubmitResponse (Err _) ->
             -- TODO: implement this

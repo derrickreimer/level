@@ -52,7 +52,7 @@ variables params =
 
 decoder : Decode.Decoder Result
 decoder =
-    Decode.at [ "data", "createRoomMessage" ] <|
+    Decode.at [ "data", "roomMessageCreated" ] <|
         (Pipeline.decode Result
             |> Pipeline.custom (Decode.at [ "room", "id" ] Decode.string)
             |> Pipeline.required "roomMessage" roomMessageDecoder

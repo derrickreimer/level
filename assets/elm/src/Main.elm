@@ -198,17 +198,25 @@ update msg model =
             ( StartFrameReceived value, _ ) ->
                 ( model, Cmd.none )
 
-            ( ResultFrameReceived value, _ ) ->
-                let
-                    message =
-                        decodeMessage value
-                in
-                    case message of
-                        RoomMessageCreated result ->
-                            ( model, Cmd.none )
+            ( ResultFrameReceived value, page ) ->
+                case decodeMessage value of
+                    RoomMessageCreated result ->
+                        case page of
+                            Room pageModel ->
+                                if pageModel.room.id == result.roomId then
+                                    let
+                                        ( newPageModel, cmd ) =
+                                            Page.Room.receiveMessage result.roomMessage pageModel
+                                    in
+                                        ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
+                                else
+                                    ( model, Cmd.none )
 
-                        _ ->
-                            ( model, Cmd.none )
+                            _ ->
+                                ( model, Cmd.none )
+
+                    UnknownMessage ->
+                        ( model, Cmd.none )
 
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
