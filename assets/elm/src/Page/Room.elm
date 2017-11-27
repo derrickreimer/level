@@ -20,7 +20,7 @@ import Html exposing (..)
 import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick)
 import Html.Attributes exposing (..)
 import Dom exposing (focus)
-import Dom.Scroll exposing (toBottom)
+import Dom.Scroll
 import Date
 import Time exposing (Time)
 import Data.User exposing (User)
@@ -126,7 +126,7 @@ update msg session model =
 -}
 scrollToBottom : Cmd Msg
 scrollToBottom =
-    Task.attempt (always NoOp) <| toBottom "messages"
+    Task.attempt (always NoOp) <| Dom.Scroll.toBottom "messages"
 
 
 {-| Set focus to the composer body textarea.
