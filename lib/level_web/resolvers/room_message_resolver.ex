@@ -12,7 +12,7 @@ defmodule LevelWeb.RoomMessageResolver do
         resp =
           case Rooms.create_message(room, user, args) do
             {:ok, message} ->
-              %{success: true, room: room, room_message: message, errors: []}
+              Rooms.message_created_payload(room, message)
             {:error, changeset} ->
               %{success: false, room: room, room_message: nil, errors: format_errors(changeset)}
           end

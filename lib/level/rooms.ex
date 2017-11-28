@@ -175,7 +175,7 @@ defmodule Level.Rooms do
         {:room_message_created, to_string(id)}
       end)
 
-      payload = %{success: true, room: room, room_message: message, errors: []}
+      payload = message_created_payload(room, message)
 
       Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
 
@@ -183,6 +183,13 @@ defmodule Level.Rooms do
     else
       err -> err
     end
+  end
+
+  @doc """
+  Builds a payload (to return via GraphQL) when a message is successfully created.
+  """
+  def message_created_payload(room, message) do
+    %{success: true, room: room, room_message: message, errors: []}
   end
 
   # Builds an operation to create a new room. Specifically, this operation
