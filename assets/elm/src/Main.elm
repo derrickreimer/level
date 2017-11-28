@@ -1,4 +1,4 @@
-port module Main exposing (..)
+module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -17,6 +17,7 @@ import Route exposing (Route)
 import Task
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Ports exposing (Frame, sendFrame, startFrames, resultFrames)
 
 
 main : Program Flags Model Msg
@@ -62,12 +63,6 @@ type Page
 
 type alias Flags =
     { apiToken : String
-    }
-
-
-type alias Frame =
-    { operation : String
-    , variables : Maybe Encode.Value
     }
 
 
@@ -134,9 +129,6 @@ getSession model =
 getPage : Model -> Page
 getPage model =
     model.page
-
-
-port sendFrame : Frame -> Cmd msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -272,12 +264,6 @@ setupSockets model =
 
 
 -- SUBSCRIPTIONS
-
-
-port startFrames : (Decode.Value -> msg) -> Sub msg
-
-
-port resultFrames : (Decode.Value -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg

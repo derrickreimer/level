@@ -60,7 +60,7 @@ buildModel data =
 -}
 loaded : Cmd Msg
 loaded =
-    Cmd.batch [ scrollToBottom, focusOnComposer ]
+    Cmd.batch [ scrollToBottom "messages", focusOnComposer ]
 
 
 {-| Append a new message to the room message connection when it is received.
@@ -71,7 +71,7 @@ receiveMessage message model =
         newMessages =
             RoomMessageConnection (RoomMessageEdge message :: model.messages.edges)
     in
-        ( { model | messages = newMessages }, scrollToBottom )
+        ( { model | messages = newMessages }, scrollToBottom "messages" )
 
 
 
@@ -124,9 +124,9 @@ update msg session model =
 
 {-| Scroll the messages container to the most recent message.
 -}
-scrollToBottom : Cmd Msg
-scrollToBottom =
-    Task.attempt (always NoOp) <| Dom.Scroll.toBottom "messages"
+scrollToBottom : String -> Cmd Msg
+scrollToBottom id =
+    Task.attempt (always NoOp) <| Dom.Scroll.toBottom id
 
 
 {-| Set focus to the composer body textarea.
