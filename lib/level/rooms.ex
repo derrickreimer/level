@@ -163,15 +163,13 @@ defmodule Level.Rooms do
       |> create_room_message_changeset(user, params)
       |> Repo.insert()
     do
-      # Broadcast the room message created message to all user topics
-      # TODO: Does this logic belong somewhere else?
-      members = Repo.all(
+      room_member_ids = Repo.all(
         from s in "room_subscriptions",
           where: s.room_id == ^room.id,
           select: s.user_id
       )
 
-      topics = Enum.map(members, fn(id) ->
+      topics = Enum.map(room_member_ids, fn(id) ->
         {:room_message_created, to_string(id)}
       end)
 
