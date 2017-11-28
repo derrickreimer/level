@@ -1,4 +1,14 @@
-module Page.Room exposing (Model, Msg, fetchRoom, buildModel, loaded, view, update)
+module Page.Room
+    exposing
+        ( Model
+        , Msg
+        , fetchRoom
+        , buildModel
+        , loaded
+        , view
+        , update
+        , receiveMessage
+        )
 
 {-| Viewing an particular room.
 -}
@@ -10,7 +20,7 @@ import Html exposing (..)
 import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick)
 import Html.Attributes exposing (..)
 import Dom exposing (focus)
-import Dom.Scroll exposing (toBottom)
+import Dom.Scroll
 import Date
 import Time exposing (Time)
 import Data.User exposing (User)
@@ -50,7 +60,18 @@ buildModel data =
 -}
 loaded : Cmd Msg
 loaded =
-    Cmd.batch [ scrollToBottom, focusOnComposer ]
+    Cmd.batch [ scrollToBottom "messages", focusOnComposer ]
+
+
+{-| Append a new message to the room message connection when it is received.
+-}
+receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
+receiveMessage message model =
+    let
+        newMessages =
+            RoomMessageConnection (RoomMessageEdge message :: model.messages.edges)
+    in
+        ( { model | messages = newMessages }, scrollToBottom "messages" )
 
 
 
@@ -86,17 +107,12 @@ update msg session model =
                     )
 
         MessageSubmitResponse (Ok message) ->
-            let
-                newMessages =
-                    RoomMessageConnection (RoomMessageEdge message :: model.messages.edges)
-            in
-                ( { model
-                    | isSubmittingMessage = False
-                    , composerBody = ""
-                    , messages = newMessages
-                  }
-                , scrollToBottom
-                )
+            ( { model
+                | isSubmittingMessage = False
+                , composerBody = ""
+              }
+            , Cmd.none
+            )
 
         MessageSubmitResponse (Err _) ->
             -- TODO: implement this
@@ -108,9 +124,9 @@ update msg session model =
 
 {-| Scroll the messages container to the most recent message.
 -}
-scrollToBottom : Cmd Msg
-scrollToBottom =
-    Task.attempt (always NoOp) <| toBottom "messages"
+scrollToBottom : String -> Cmd Msg
+scrollToBottom id =
+    Task.attempt (always NoOp) <| Dom.Scroll.toBottom id
 
 
 {-| Set focus to the composer body textarea.
@@ -257,7 +273,7 @@ formatTime time =
 -}
 formatHour : Int -> String
 formatHour value =
-    if value == 0 then
+    if value == 0 || value == 12 then
         "12"
     else
         toString <| value % 12

@@ -155,6 +155,21 @@ defmodule Level.RoomsTest do
     end
   end
 
+  describe "message_created_payload/2" do
+    setup do
+      {:ok, %{room: %Rooms.Room{}, message: %Rooms.Message{}}}
+    end
+
+    test "builds a GraphQL payload", %{room: room, message: message} do
+      assert Rooms.message_created_payload(room, message) == %{
+        success: true,
+        room: room,
+        room_message: message,
+        errors: []
+      }
+    end
+  end
+
   defp create_user_and_room do
     {:ok, %{user: user}} = insert_signup()
     {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())

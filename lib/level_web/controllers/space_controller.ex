@@ -14,6 +14,6 @@ defmodule LevelWeb.SpaceController do
   end
 
   def new(conn, _params) do
-    render conn, "new.html"
+    render conn, "new.html", module: "signup"
   end
 end

@@ -15,6 +15,9 @@ defmodule LevelWeb.GraphQL.CreateRoomMessageTest do
           roomId: $roomId,
           body: $body
         ) {
+          room {
+            id
+          }
           roomMessage {
             body
           }
@@ -48,6 +51,9 @@ defmodule LevelWeb.GraphQL.CreateRoomMessageTest do
       "data" => %{
         "createRoomMessage" => %{
           "success" => true,
+          "room" => %{
+            "id" => to_string(room.id)
+          },
           "roomMessage" => %{
             "body" => variables.body
           },
@@ -74,6 +80,9 @@ defmodule LevelWeb.GraphQL.CreateRoomMessageTest do
       "data" => %{
         "createRoomMessage" => %{
           "success" => false,
+          "room" => %{
+            "id" => to_string(room.id)
+          },
           "roomMessage" => nil,
           "errors" => [
             %{"attribute" => "body", "message" => "can't be blank"}

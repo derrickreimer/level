@@ -11,9 +11,13 @@ import Page.Room
 import Page.Conversations
 import Query.AppState
 import Query.Room
+import Subscription.RoomMessageCreated
 import Navigation
 import Route exposing (Route)
 import Task
+import Json.Encode as Encode
+import Json.Decode as Decode
+import Ports exposing (Frame, sendFrame, startFrames, resultFrames)
 
 
 main : Program Flags Model Msg
@@ -84,6 +88,24 @@ buildInitialModel flags =
     Model (Session flags.apiToken) NotLoaded Blank True
 
 
+{-| Take a list of functions that accept a model and return a ( Model, Cmd Msg )
+tuple, call them in succession, and return a ( Model, Cmd Msg ), where the
+command is a batch of accumulated commands.
+-}
+assembleBatch :
+    List (Model -> ( Model, Cmd Msg ))
+    -> Model
+    -> ( Model, Cmd Msg )
+assembleBatch transforms model =
+    let
+        reducer transform ( model, cmds ) =
+            transform model
+                |> Tuple.mapSecond (\cmd -> cmd :: cmds)
+    in
+        List.foldr reducer ( model, [] ) transforms
+            |> Tuple.mapSecond Cmd.batch
+
+
 
 -- UPDATE
 
@@ -94,6 +116,9 @@ type Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
+    | SendFrame Frame
+    | StartFrameReceived Decode.Value
+    | ResultFrameReceived Decode.Value
 
 
 getSession : Model -> Session
@@ -121,7 +146,8 @@ update msg model =
                 navigateTo (Route.fromLocation location) model
 
             ( AppStateLoaded maybeRoute (Ok response), _ ) ->
-                navigateTo maybeRoute { model | appState = Loaded response }
+                { model | appState = Loaded response }
+                    |> assembleBatch [ navigateTo maybeRoute, setupSockets ]
 
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
@@ -158,6 +184,32 @@ update msg model =
                 in
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
+            ( SendFrame frame, _ ) ->
+                ( model, sendFrame frame )
+
+            ( StartFrameReceived value, _ ) ->
+                ( model, Cmd.none )
+
+            ( ResultFrameReceived value, page ) ->
+                case decodeMessage value of
+                    RoomMessageCreated result ->
+                        case page of
+                            Room pageModel ->
+                                if pageModel.room.id == result.roomId then
+                                    let
+                                        ( newPageModel, cmd ) =
+                                            Page.Room.receiveMessage result.roomMessage pageModel
+                                    in
+                                        ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
+                                else
+                                    ( model, Cmd.none )
+
+                            _ ->
+                                ( model, Cmd.none )
+
+                    UnknownMessage ->
+                        ( model, Cmd.none )
+
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
@@ -193,13 +245,33 @@ navigateTo maybeRoute model =
                         transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
 
 
+setupSockets : Model -> ( Model, Cmd Msg )
+setupSockets model =
+    case model.appState of
+        NotLoaded ->
+            ( model, Cmd.none )
+
+        Loaded state ->
+            let
+                operation =
+                    Subscription.RoomMessageCreated.operation
+
+                variables =
+                    Just (Subscription.RoomMessageCreated.variables { user = state.user })
+            in
+                ( model, sendFrame <| Frame operation variables )
+
+
 
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ startFrames StartFrameReceived
+        , resultFrames ResultFrameReceived
+        ]
 
 
 
@@ -352,3 +424,30 @@ roomSubscriptionItem page edge =
         a [ class ("side-nav__item side-nav__item--room " ++ selectedClass), Route.href (Route.Room room.id) ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             ]
+
+
+
+-- MESSAGE DECODERS
+
+
+type Message
+    = RoomMessageCreated Subscription.RoomMessageCreated.Result
+    | UnknownMessage
+
+
+decodeMessage : Decode.Value -> Message
+decodeMessage value =
+    Decode.decodeValue messageDecoder value
+        |> Result.withDefault UnknownMessage
+
+
+messageDecoder : Decode.Decoder Message
+messageDecoder =
+    Decode.oneOf
+        [ roomMessageCreatedDecoder
+        ]
+
+
+roomMessageCreatedDecoder : Decode.Decoder Message
+roomMessageCreatedDecoder =
+    Decode.map RoomMessageCreated Subscription.RoomMessageCreated.decoder

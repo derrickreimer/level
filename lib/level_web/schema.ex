@@ -66,4 +66,23 @@ defmodule LevelWeb.Schema do
       resolve &LevelWeb.RoomMessageResolver.create/2
     end
   end
+
+  subscription do
+    @desc "Triggered when a room message is posted."
+    field :room_message_created, :create_room_message_payload do
+      arg :user_id, non_null(:id)
+
+      config fn %{user_id: user_id}, %{context: %{current_user: user}} ->
+        if user_id == to_string(user.id) do
+          {:ok, topic: user_id}
+        else
+          {:error, "User is not authenticated"}
+        end
+      end
+
+      # trigger :create_room_message, topic: fn payload ->
+      #   payload.room.id
+      # end
+    end
+  end
 end

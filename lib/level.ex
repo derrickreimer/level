@@ -14,6 +14,7 @@ defmodule Level do
       supervisor(Level.Repo, []),
       # Start the endpoint when the application starts
       supervisor(LevelWeb.Endpoint, []),
+      supervisor(Absinthe.Subscription, [LevelWeb.Endpoint]),
       # Start your own worker by calling: Level.Worker.start_link(arg1, arg2, arg3)
       # worker(Level.Worker, [arg1, arg2, arg3]),
     ]

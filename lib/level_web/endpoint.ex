@@ -1,5 +1,6 @@
 defmodule LevelWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :level
+  use Absinthe.Phoenix.Endpoint
 
   socket "/socket", LevelWeb.UserSocket
 

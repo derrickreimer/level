@@ -8,13 +8,21 @@
     <meta name="author" content="">
     <meta name="csrf_token" content="<%= Plug.CSRFProtection.get_csrf_token() %>">
 
+    <%= if assigns[:api_token] do %>
+      <meta name="api_token" content="<%= @api_token %>">
+    <% end %>
+
+    <%= if assigns[:module] do %>
+      <meta name="module" content="<%= @module %>">
+    <% end %>
+
     <title>Level</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/themes/dark.css") %>">
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
-    <script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
   </head>
 
   <body>
     <%= render @view_module, @view_template, assigns %>
+    <script src="<%= static_path(@conn, "/js/elm-bundle.js") %>"></script>
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>
