@@ -1,4 +1,6 @@
 defmodule LevelWeb.SessionController do
+  @moduledoc false
+
   use LevelWeb, :controller
 
   plug :fetch_space

@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.Enums do
-  @moduledoc """
-  GraphQL enum type definitions.
-  """
+  @moduledoc false
 
   use Absinthe.Schema.Notation
 

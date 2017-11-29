@@ -1,4 +1,6 @@
 defmodule LevelWeb.API.UserTokenController do
+  @moduledoc false
+
   use LevelWeb, :controller
 
   alias LevelWeb.Auth

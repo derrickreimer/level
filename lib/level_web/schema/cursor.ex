@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.Cursor do
-  @moduledoc """
-  Parsing and serialization methods for GraphQL cursors.
-  """
+  @moduledoc false
 
   # defmacro is_datetime(value) do
   #   quote do: false #unquote(value) == %DateTime{}

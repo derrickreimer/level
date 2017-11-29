@@ -1,4 +1,6 @@
 defmodule LevelWeb.RoomController do
+  @moduledoc false
+
   use LevelWeb, :controller
 
   def show(conn, _params) do

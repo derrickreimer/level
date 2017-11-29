@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.InputObjects do
-  @moduledoc """
-  GraphQL input object definitions.
-  """
+  @moduledoc false
 
   use Absinthe.Schema.Notation
 

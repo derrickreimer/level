@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.Types do
-  @moduledoc """
-  GraphQL type definitions.
-  """
+  @moduledoc false
 
   use Absinthe.Schema.Notation
   alias LevelWeb.Schema.Helpers

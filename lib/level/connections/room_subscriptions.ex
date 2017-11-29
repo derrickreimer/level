@@ -1,7 +1,5 @@
 defmodule Level.Connections.RoomSubscriptions do
-  @moduledoc """
-  Functions for querying room subscriptions.
-  """
+  @moduledoc false
 
   alias Level.Rooms.RoomSubscription
   import Ecto.Query

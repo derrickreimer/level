@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.Helpers do
-  @moduledoc """
-  GraphQL helper functions.
-  """
+  @moduledoc false
 
   alias Level.Repo
 

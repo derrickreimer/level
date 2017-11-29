@@ -1,4 +1,6 @@
 defmodule LevelWeb.API.SignupErrorsView do
+  @moduledoc false
+
   use LevelWeb, :view
 
   def render("show.json", %{changeset: changeset}) do

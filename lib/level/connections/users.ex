@@ -1,7 +1,5 @@
 defmodule Level.Connections.Users do
-  @moduledoc """
-  Functions for querying users.
-  """
+  @moduledoc false
 
   alias Level.Spaces.User
   import Ecto.Query

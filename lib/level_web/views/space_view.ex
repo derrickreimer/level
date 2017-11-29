@@ -1,4 +1,6 @@
 defmodule LevelWeb.SpaceView do
+  @moduledoc false
+
   use LevelWeb, :view
 
   def space_host(space) do

@@ -1,4 +1,6 @@
 defmodule LevelWeb.API.SpaceController do
+  @moduledoc false
+
   use LevelWeb, :controller
 
   alias Level.Spaces

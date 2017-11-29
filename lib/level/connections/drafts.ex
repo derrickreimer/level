@@ -1,7 +1,5 @@
 defmodule Level.Connections.Drafts do
-  @moduledoc """
-  Functions for querying drafts.
-  """
+  @moduledoc false
 
   alias Level.Threads.Draft
   import Ecto.Query

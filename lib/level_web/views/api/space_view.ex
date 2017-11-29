@@ -1,4 +1,6 @@
 defmodule LevelWeb.API.SpaceView do
+  @moduledoc false
+
   use LevelWeb, :view
 
   alias LevelWeb.API.UserView

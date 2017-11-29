@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.Scalars do
-  @moduledoc """
-  GraphQL scalar type definitions.
-  """
+  @moduledoc false
 
   use Absinthe.Schema.Notation
   alias LevelWeb.Schema.Cursor

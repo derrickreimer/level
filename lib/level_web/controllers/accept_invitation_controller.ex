@@ -1,4 +1,6 @@
 defmodule LevelWeb.AcceptInvitationController do
+  @moduledoc false
+
   use LevelWeb, :controller
 
   alias Level.Spaces

@@ -1,7 +1,5 @@
 defmodule Level.Pagination.Edge do
-  @moduledoc """
-  A GraphQL-friendly struct representing an edge in a connection.
-  """
+  @moduledoc false
 
   defstruct [:node, :cursor]
 end

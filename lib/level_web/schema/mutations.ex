@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.Mutations do
-  @moduledoc """
-  GraphQL type definitions for mutations.
-  """
+  @moduledoc false
 
   use Absinthe.Schema.Notation
 

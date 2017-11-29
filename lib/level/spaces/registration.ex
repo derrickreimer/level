@@ -1,8 +1,5 @@
 defmodule Level.Spaces.Registration do
-  @moduledoc """
-  This is a virtual model whose form changeset is designed to be bound to the
-  new space sign up form.
-  """
+  @moduledoc false
 
   import Level.Gettext
   import Ecto.Changeset

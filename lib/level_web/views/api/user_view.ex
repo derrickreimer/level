@@ -1,4 +1,6 @@
 defmodule LevelWeb.API.UserView do
+  @moduledoc false
+
   use LevelWeb, :view
 
   def user_json(user) do

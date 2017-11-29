@@ -1,10 +1,12 @@
 defmodule Level.Mixfile do
   use Mix.Project
 
+  @version "0.0.1"
+
   def project do
     [app: :level,
-     version: "0.0.1",
-     elixir: "~> 1.2",
+     version: @version,
+     elixir: "~> 1.4",
      elixirc_paths: elixirc_paths(Mix.env),
      test_coverage: [tool: ExCoveralls],
      preferred_cli_env: [coveralls: :test],
@@ -13,6 +15,7 @@ defmodule Level.Mixfile do
      start_permanent: Mix.env == :prod,
      aliases: aliases(),
      deps: deps(),
+     name: "Level",
      docs: docs()]
   end
 
@@ -43,7 +46,7 @@ defmodule Level.Mixfile do
      {:credo, "~> 0.7", only: [:dev, :test]},
      {:comeonin, "~> 3.0"},
      {:timex, "~> 3.0"},
-     {:ex_doc, "~> 0.16"},
+     {:ex_doc, "~> 0.18.1"},
      {:absinthe, "~> 1.4.0"},
      {:absinthe_plug, "~> 1.4.0"},
      {:absinthe_phoenix, "~> 1.4.0"},
@@ -70,7 +73,56 @@ defmodule Level.Mixfile do
   defp docs do
     [
       source_url: "https://github.com/djreimer/level",
-      extras: ["README.md"]
+      extras: ["README.md"],
+      groups_for_modules: groups_for_modules()
+    ]
+  end
+
+  defp groups_for_modules do
+    [
+      "Contexts": [
+        Level.Connections,
+        Level.Mailer,
+        Level.Pagination,
+        Level.Rooms,
+        Level.Spaces,
+        Level.Threads
+      ],
+      "Repo and Schemas": [
+        Level.Repo,
+        Level.Rooms.Message,
+        Level.Rooms.RoomSubscription,
+        Level.Rooms.Room,
+        Level.Spaces.Invitation,
+        Level.Spaces.Space,
+        Level.Spaces.User,
+        Level.Threads.Draft
+      ],
+      "Plugs": [
+        LevelWeb.Auth,
+        LevelWeb.Subdomain
+      ],
+      "GraphQL Resolvers": [
+        LevelWeb.DraftResolver,
+        LevelWeb.InvitationResolver,
+        LevelWeb.RoomMessageResolver,
+        LevelWeb.RoomResolver,
+        LevelWeb.SpaceResolver,
+        LevelWeb.UserResolver
+      ],
+      "Transactional Email": [
+        Level.Mailer,
+        LevelWeb.Email
+      ],
+      "I18n": [
+        Level.Gettext
+      ],
+      "Helpers": [
+        LevelWeb.ErrorHelpers,
+        LevelWeb.ResolverHelpers,
+        LevelWeb.Router.Helpers,
+        LevelWeb.UrlHelpers
+      ]
     ]
   end
 end

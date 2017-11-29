@@ -1,7 +1,5 @@
 defmodule Level.Connections.RoomMessages do
-  @moduledoc """
-  Functions for querying room messages.
-  """
+  @moduledoc false
 
   alias Level.Rooms.Message
   import Ecto.Query

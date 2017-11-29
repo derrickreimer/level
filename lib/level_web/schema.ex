@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema do
-  @moduledoc """
-  GraphQL schema.
-  """
+  @moduledoc false
 
   use Absinthe.Schema
   import_types LevelWeb.Schema.Types

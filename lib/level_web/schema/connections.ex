@@ -1,7 +1,5 @@
 defmodule LevelWeb.Schema.Connections do
-  @moduledoc """
-  GraphQL type definitions for connections.
-  """
+  @moduledoc false
 
   use Absinthe.Schema.Notation
 

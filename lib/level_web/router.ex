@@ -1,4 +1,6 @@
 defmodule LevelWeb.Router do
+  @moduledoc false
+
   use LevelWeb, :router
 
   pipeline :browser do

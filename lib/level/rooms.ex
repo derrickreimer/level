@@ -46,8 +46,7 @@ defmodule Level.Rooms do
   end
 
   @doc """
-  Creates a new room and subscribes the creator to the room. If successful,
-  returns a tuple of the form `{:ok, %{room: room, room_subscription: room_subscription}}`.
+  Creates a new room and subscribes the creator to the room.
 
   ## Examples
 

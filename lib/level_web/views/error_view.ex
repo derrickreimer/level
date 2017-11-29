@@ -1,4 +1,6 @@
 defmodule LevelWeb.ErrorView do
+  @moduledoc false
+
   use LevelWeb, :view
 
   def render("404.html", _assigns) do
