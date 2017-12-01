@@ -1,8 +1,6 @@
-# Level
+# Level [![CircleCI](https://circleci.com/gh/djreimer/level.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/level)
 
 Smarter communication for teams that value focus.
-
-[![CircleCI](https://circleci.com/gh/djreimer/level.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/level)
 
 ## One-Click Deployment
 
