@@ -11,7 +11,7 @@ defmodule Level.Connections do
       users(space, %{limit: 2})
       => {:ok, %Level.Pagination.Result{
         edges: [%User{...}],
-        page_info: %{...},
+        page_info: %PageInfo{...},
         total_count: 10
       }}
   """
@@ -27,7 +27,7 @@ defmodule Level.Connections do
       drafts(user, %{limit: 2})
       => {:ok, %Level.Pagination.Result{
         edges: [%Draft{...}],
-        page_info: %{...},
+        page_info: %PageInfo{...},
         total_count: 10
       }}
   """
@@ -43,7 +43,7 @@ defmodule Level.Connections do
       room_subscriptions(user, %{limit: 2})
       => {:ok, %Level.Pagination.Result{
         edges: [%RoomSubscription{...}],
-        page_info: %{...},
+        page_info: %PageInfo{...},
         total_count: 10
       }}
   """
@@ -59,7 +59,7 @@ defmodule Level.Connections do
       room_messages(room, %{limit: 2})
       => {:ok, %Level.Pagination.Result{
         edges: [%Rooms.Message{...}],
-        page_info: %{...},
+        page_info: %PageInfo{...},
         total_count: 10
       }}
   """

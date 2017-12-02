@@ -9,6 +9,24 @@ defmodule Level.Pagination do
   alias Level.Pagination.PageInfo
   alias Level.Pagination.Result
 
+
+  @doc """
+  Builds a pagination result that is compatible with GraphQL connections queries.
+
+  ## Examples
+
+      base_query = from u in User,
+        where: u.space_id == ^space.id and u.state == "ACTIVE"
+
+      args = %{limit: 10, after: 1000001}
+
+      fetch_result(Level.Repo, base_query, args)
+      => {:ok, %Pagination.Result{
+        edges: [%User{...}],
+        page_info: %PageInfo{...},
+        total_count: 10
+      }}
+  """
   def fetch_result(repo, base_query, args) do
     order_field = args.order_by.field
     total_count = repo.one(apply_count(base_query))
@@ -34,7 +52,7 @@ defmodule Level.Pagination do
     {:ok, result}
   end
 
-  def fetch_nodes(repo, query, order_field, args) do
+  defp fetch_nodes(repo, query, order_field, args) do
     nodes = repo.all(
       query
       |> apply_sort(args)
