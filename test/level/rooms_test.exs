@@ -170,9 +170,33 @@ defmodule Level.RoomsTest do
     end
   end
 
+  describe "subscribe_to_room/2" do
+    setup do
+      {:ok, %{user: owner, room: room, space: space}} = create_user_and_room()
+      {:ok, another_user} = insert_member(space)
+      {:ok, %{owner: owner, room: room, user: another_user}}
+    end
+
+    test "creates a room subscription if not already subscribed",
+      %{room: room, user: user} do
+
+      {:ok, subscription} = Rooms.subscribe_to_room(room, user)
+      assert subscription.user_id == user.id
+      assert subscription.room_id == room.id
+    end
+
+    test "returns an error if already subscribed",
+      %{room: room, owner: owner} do
+      {:error, %Ecto.Changeset{errors: errors}} =
+        Rooms.subscribe_to_room(room, owner)
+
+      assert errors == [user_id: {"is already subscribed to this room", []}]
+    end
+  end
+
   defp create_user_and_room do
-    {:ok, %{user: user}} = insert_signup()
+    {:ok, %{user: user, space: space}} = insert_signup()
     {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
-    {:ok, %{user: user, room: room}}
+    {:ok, %{user: user, room: room, space: space}}
   end
 end

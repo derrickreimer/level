@@ -138,6 +138,18 @@ defmodule Level.Rooms do
 
   @doc """
   Subscribes a given user to a given room.
+
+  ## Examples
+
+      # If successful, returns success.
+      subscribe_to_room(room, user)
+      => {:ok, %RoomSubscription{...}}
+
+      # If user is already subscribed, returns changeset with errors.
+      subscribe_to_room(room, user_already_in_room)
+      => {:error, %Ecto.Changeset{
+        errors: [user_id: {"is already subscribed to this room", []}]
+      }}
   """
   def subscribe_to_room(room, user) do
     room

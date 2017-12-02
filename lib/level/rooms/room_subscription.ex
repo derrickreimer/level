@@ -3,6 +3,7 @@ defmodule Level.Rooms.RoomSubscription do
   The Ecto schema for the room subscriptions table.
   """
 
+  import Level.Gettext
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -17,5 +18,8 @@ defmodule Level.Rooms.RoomSubscription do
   def create_changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:space_id, :user_id, :room_id])
+    |> unique_constraint(:user_id,
+      name: :room_subscriptions_unique,
+      message: dgettext("errors", "is already subscribed to this room"))
   end
 end
