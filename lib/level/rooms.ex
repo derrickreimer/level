@@ -174,6 +174,13 @@ defmodule Level.Rooms do
       |> create_room_message_changeset(user, params)
       |> Repo.insert()
     do
+      # Figure out all the users that need to receive a notification
+      # that this message was created and broadcast the message to those
+      # individual topics.
+      #
+      # TODO: Is this the ideal pattern to employ? Should this happen
+      # in an asynchronous process? Should we have more aggressive caching
+      # on room member ids? Is there a better way to structure topics?
       room_member_ids = Repo.all(
         from s in "room_subscriptions",
           where: s.room_id == ^room.id,
@@ -195,7 +202,18 @@ defmodule Level.Rooms do
   end
 
   @doc """
-  Builds a payload (to return via GraphQL) when a message is successfully created.
+  Builds a payload (to return via GraphQL) when a message is successfully
+  created.
+
+  ## Examples
+
+      message_created_payload(room, message)
+      => %{
+        success: true,
+        room: room,
+        room_message: message,
+        errors: []
+      }
   """
   def message_created_payload(room, message) do
     %{success: true, room: room, room_message: message, errors: []}
