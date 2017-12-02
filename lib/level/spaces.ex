@@ -21,22 +21,45 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Fetches a space by slug and raises an exception if not found.
+  Fetches a space by slug.
+
+  ## Examples
+
+      # If found, returns the space.
+      get_space_by_slug!("level")
+      => %Space{slug: "level", ...}
+
+      # Otherwise, raises an `Ecto.NoResultsError` exception.
   """
   def get_space_by_slug!(slug) do
     Repo.get_by!(Space, %{slug: slug})
   end
 
   @doc """
-  Fetches a user by id and returns `nil` if not found.
+  Fetches a user by id.
+
+  ## Examples
+
+      # If found, returns the user.
+      get_user(123)
+      => %User{id: 123, ...}
+
+      # Otherwise, returns `nil`.
   """
   def get_user(id) do
     Repo.get(User, id)
   end
 
   @doc """
-  Fetches a user for a particular space by a identifier (either email or username),
-  and returns `nil` if not found.
+  Fetches a user by space and identifier (either email or username).
+
+  ## Examples
+
+      # If found, returns the user.
+      get_user_by_identifier(space, "derrick@level.com")
+      => %User{...}
+
+      # Otherwise, returns `nil`.
   """
   def get_user_by_identifier(space, identifier) do
     column = if Regex.match?(~r/@/, identifier) do
@@ -58,6 +81,15 @@ defmodule Level.Spaces do
 
   @doc """
   Performs user registration from a given changeset.
+
+  ## Examples
+
+      # If successful, returns the newly created records.
+      register(%Ecto.Changeset{...})
+      => {:ok, %{default_room: %{room: room}, space: space, user: user}}
+
+      # Otherwise, returns an error.
+      => {:error, failed_operation, failed_value, changes_so_far}
   """
   def register(changeset) do
     changeset
@@ -94,8 +126,15 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Fetches a pending invitation by space and token, and raises an exception
-  if the record is not found.
+  Fetches a pending invitation by space and token.
+
+  ## Examples
+
+      # If found, returns the invitation with preloaded space and invitor.
+      get_pending_invitation!(space, "xxxxxxx")
+      => %Invitation{space: %Space{...}, invitor: %User{...}, ...}
+
+      # Otherwise, raises an `Ecto.NoResultsError` exception.
   """
   def get_pending_invitation!(space, token) do
     Invitation
@@ -105,6 +144,15 @@ defmodule Level.Spaces do
 
   @doc """
   Registers a user and marks the given invitation as accepted.
+
+  ## Examples
+
+      # If successful, returns the user and invitation.
+      accept_invitation(invitation, %{email: "...", password: "..."})
+      => {:ok, %{user: user, invitation: invitation}}
+
+      # Otherwise, returns an error.
+      => {:error, failed_operation, failed_value, changes_so_far}
   """
   def accept_invitation(invitation, params \\ %{}) do
     invitation
