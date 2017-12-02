@@ -18,7 +18,14 @@ defmodule Level.Pagination do
       base_query = from u in User,
         where: u.space_id == ^space.id and u.state == "ACTIVE"
 
-      args = %{limit: 10, after: 1000001}
+      args = %{
+        first: 10,
+        after: 1000001,
+        order_by: %{
+          field: :inserted_at,
+          direction: :desc
+        }
+      }
 
       fetch_result(Level.Repo, base_query, args)
       => {:ok, %Pagination.Result{
