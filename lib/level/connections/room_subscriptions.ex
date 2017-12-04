@@ -5,7 +5,8 @@ defmodule Level.Connections.RoomSubscriptions do
   import Ecto.Query
 
   @default_args %{
-    first: 10,
+    first: nil,
+    last: nil,
     before: nil,
     after: nil,
     order_by: %{

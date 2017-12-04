@@ -35,30 +35,49 @@ defmodule Level.Pagination do
       }}
   """
   def fetch_result(repo, base_query, args) do
-    {normalized_args, is_flipped} = normalize(args)
+    case validate(args) do
+      {:ok, _} ->
+        {normalized_args, is_flipped} = normalize(args)
 
-    order_field = normalized_args.order_by.field
-    total_count = repo.one(apply_count(base_query))
+        order_field = normalized_args.order_by.field
+        total_count = repo.one(apply_count(base_query))
 
-    {:ok, nodes, has_previous_page, has_next_page} =
-      fetch_nodes(repo, base_query, order_field, normalized_args)
+        {:ok, nodes, has_previous_page, has_next_page} =
+          fetch_nodes(repo, base_query, order_field, normalized_args)
 
-    edges = build_edges(nodes, order_field)
+        edges = build_edges(nodes, order_field)
 
-    page_info = %PageInfo{
-      start_cursor: start_cursor(edges),
-      end_cursor: end_cursor(edges),
-      has_next_page: has_next_page,
-      has_previous_page: has_previous_page
-    }
+        page_info = %PageInfo{
+          start_cursor: start_cursor(edges),
+          end_cursor: end_cursor(edges),
+          has_next_page: has_next_page,
+          has_previous_page: has_previous_page
+        }
 
-    result = %Result{
-      total_count: total_count,
-      edges: edges,
-      page_info: page_info
-    }
+        result = %Result{
+          total_count: total_count,
+          edges: edges,
+          page_info: page_info
+        }
 
-    {:ok, prepare_result(result, is_flipped)}
+        {:ok, prepare_result(result, is_flipped)}
+
+      error ->
+        error
+    end
+  end
+
+  defp validate(%{first: nil, last: nil}) do
+    {:error, "first or last is required"}
+  end
+  defp validate(%{first: first, last: last}) when is_integer(first) and is_integer(last) do
+    {:error, "first and last cannot both be set"}
+  end
+  defp validate(%{order_by: nil}) do
+    {:error, "order_by is required"}
+  end
+  defp validate(args) do
+    {:ok, args}
   end
 
   # If we are doing backwards pagination, then flip the sort direction and
