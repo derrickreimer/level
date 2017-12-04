@@ -36,7 +36,7 @@ defmodule Level.PaginationTest do
       args = %{
         first: 2,
         before: nil,
-        after: hd(users).inserted_at,
+        after: Enum.at(users, 0).inserted_at,
         order_by: %{
           field: :inserted_at,
           direction: :asc
@@ -46,7 +46,7 @@ defmodule Level.PaginationTest do
       {:ok, %Result{edges: edges, page_info: _page_info}} =
         Pagination.fetch_result(Level.Repo, base_query, args)
 
-      assert map_edge_ids(edges) == map_ids(Enum.take(tl(users), 2))
+      assert map_edge_ids(edges) == map_ids(Enum.slice(users, 1..2))
     end
 
     test "honors the last param", %{users: users, base_query: base_query} do
@@ -64,6 +64,23 @@ defmodule Level.PaginationTest do
         Pagination.fetch_result(Level.Repo, base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.slice(users, 2..3))
+    end
+
+    test "honors the last param with cursor", %{users: users, base_query: base_query} do
+      args = %{
+        last: 2,
+        before: Enum.at(users, 3).inserted_at,
+        after: nil,
+        order_by: %{
+          field: :inserted_at,
+          direction: :asc
+        }
+      }
+
+      {:ok, %Result{edges: edges, page_info: _page_info}} =
+        Pagination.fetch_result(Level.Repo, base_query, args)
+
+      assert map_edge_ids(edges) == map_ids(Enum.slice(users, 1..2))
     end
   end
 

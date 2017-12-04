@@ -75,6 +75,7 @@ defmodule Level.Pagination do
 
     flipped_args =
       args
+      |> Map.put(:before, Map.get(args, :after))
       |> Map.put(:after, before)
       |> Map.put(:first, last)
       |> Map.put(:flipped, true)
@@ -108,21 +109,29 @@ defmodule Level.Pagination do
   end
 
   defp fetch_nodes(repo, query, order_field, args) do
+    sorted_query = apply_sort(query, args)
+
     nodes = repo.all(
-      query
-      |> apply_sort(args)
+      sorted_query
       |> apply_limit(args)
       |> apply_before_cursor(order_field, args)
       |> apply_after_cursor(order_field, args)
     )
 
-    has_previous_page =
-      case repo.one(from r in apply_sort(query, args), limit: 1) do
-        nil -> false
-        node -> List.first(nodes).id != node.id
+    {has_previous_page, has_next_page} =
+      case nodes do
+        [] -> {false, false}
+        _ ->
+          has_previous_page =
+            case repo.one(from r in sorted_query, limit: 1) do
+              nil -> false
+              node -> hd(nodes).id != node.id
+            end
+
+          has_next_page = length(nodes) > args.first
+          {has_previous_page, has_next_page}
       end
 
-    has_next_page = length(nodes) > args.first
     {:ok, Enum.take(nodes, args.first), has_previous_page, has_next_page}
   end
 
@@ -157,12 +166,22 @@ defmodule Level.Pagination do
   end
 
   defp apply_after_cursor(query, _, %{after: cursor}) when is_nil(cursor), do: query
-  defp apply_after_cursor(query, order_field, %{after: cursor}) do
-    query |> where([r], field(r, ^order_field) > ^cursor)
+  defp apply_after_cursor(query, order_field, %{after: cursor, order_by: %{direction: direction}}) do
+    case direction do
+      :asc ->
+        where(query, [r], field(r, ^order_field) > ^cursor)
+      :desc ->
+        where(query, [r], field(r, ^order_field) < ^cursor)
+    end
   end
 
   defp apply_before_cursor(query, _, %{before: cursor}) when is_nil(cursor), do: query
-  defp apply_before_cursor(query, order_field, %{before: cursor}) do
-    query |> where([r], field(r, ^order_field) < ^cursor)
+  defp apply_before_cursor(query, order_field, %{before: cursor, order_by: %{direction: direction}}) do
+    case direction do
+      :asc ->
+        where(query, [r], field(r, ^order_field) < ^cursor)
+      :desc ->
+        where(query, [r], field(r, ^order_field) > ^cursor)
+    end
   end
 end
