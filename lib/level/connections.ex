@@ -8,7 +8,7 @@ defmodule Level.Connections do
 
   ## Examples
 
-      users(space, %{limit: 2})
+      users(space, args)
       => {:ok, %Level.Pagination.Result{
         edges: [%User{...}],
         page_info: %PageInfo{...},
@@ -24,7 +24,7 @@ defmodule Level.Connections do
 
   ## Examples
 
-      drafts(user, %{limit: 2})
+      drafts(user, args)
       => {:ok, %Level.Pagination.Result{
         edges: [%Draft{...}],
         page_info: %PageInfo{...},
@@ -40,7 +40,7 @@ defmodule Level.Connections do
 
   ## Examples
 
-      room_subscriptions(user, %{limit: 2})
+      room_subscriptions(user, args)
       => {:ok, %Level.Pagination.Result{
         edges: [%RoomSubscription{...}],
         page_info: %PageInfo{...},
@@ -56,7 +56,7 @@ defmodule Level.Connections do
 
   ## Examples
 
-      room_messages(room, %{limit: 2})
+      room_messages(room, args)
       => {:ok, %Level.Pagination.Result{
         edges: [%Rooms.Message{...}],
         page_info: %PageInfo{...},

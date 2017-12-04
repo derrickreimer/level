@@ -40,6 +40,7 @@ defmodule LevelWeb.Schema.Types do
 
     field :drafts, non_null(:draft_connection) do
       arg :first, :integer
+      arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :user_order
@@ -48,6 +49,7 @@ defmodule LevelWeb.Schema.Types do
 
     field :room_subscriptions, non_null(:room_subscription_connection) do
       arg :first, :integer
+      arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :room_subscription_order
@@ -72,6 +74,7 @@ defmodule LevelWeb.Schema.Types do
 
     field :users, non_null(:user_connection) do
       arg :first, :integer
+      arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :user_order
@@ -127,6 +130,7 @@ defmodule LevelWeb.Schema.Types do
 
     field :messages, non_null(:room_message_connection) do
       arg :first, :integer
+      arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :room_message_order

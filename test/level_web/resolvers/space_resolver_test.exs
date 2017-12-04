@@ -11,13 +11,13 @@ defmodule LevelWeb.SpaceResolverTest do
 
     test "includes a total count", %{space: space} do
       insert_member(space)
-      {:ok, %{total_count: count}} = SpaceResolver.users(space, %{}, %{})
+      {:ok, %{total_count: count}} = SpaceResolver.users(space, %{first: 10}, %{})
       assert count == 2
     end
 
     test "includes edges", %{space: space} do
       insert_member(space, %{username: "bbb"})
-      {:ok, %{edges: edges}} = SpaceResolver.users(space, %{}, %{})
+      {:ok, %{edges: edges}} = SpaceResolver.users(space, %{first: 10}, %{})
 
       nodes = Enum.map(edges, &(&1.node))
       cursors = Enum.map(edges, &(&1.cursor))
@@ -28,7 +28,7 @@ defmodule LevelWeb.SpaceResolverTest do
 
     test "includes page info", %{space: space} do
       insert_member(space, %{username: "bbb"})
-      {:ok, %{page_info: page_info}} = SpaceResolver.users(space, %{}, %{})
+      {:ok, %{page_info: page_info}} = SpaceResolver.users(space, %{first: 10}, %{})
 
       assert page_info.start_cursor == "aaa"
       assert page_info.end_cursor == "bbb"
