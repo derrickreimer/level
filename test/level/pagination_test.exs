@@ -43,15 +43,32 @@ defmodule Level.PaginationTest do
         }
       }
 
-      {:ok, %Result{edges: edges, page_info: page_info}} =
+      {:ok, %Result{edges: edges, page_info: _page_info}} =
         Pagination.fetch_result(Level.Repo, base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.take(tl(users), 2))
     end
+
+    test "honors the last param", %{users: users, base_query: base_query} do
+      args = %{
+        last: 2,
+        before: nil,
+        after: nil,
+        order_by: %{
+          field: :inserted_at,
+          direction: :asc
+        }
+      }
+
+      {:ok, %Result{edges: edges, page_info: _page_info}} =
+        Pagination.fetch_result(Level.Repo, base_query, args)
+
+      assert map_edge_ids(edges) == map_ids(Enum.slice(users, 2..3))
+    end
   end
 
   defp create_members(space, count, list \\ [])
-  defp create_members(space, count, list) when count < 1, do: list
+  defp create_members(_space, count, list) when count < 1, do: list
   defp create_members(space, count, list) do
     {:ok, user} = insert_member(space)
     create_members(space, count - 1, [user | list])

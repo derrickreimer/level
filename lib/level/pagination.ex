@@ -35,11 +35,13 @@ defmodule Level.Pagination do
       }}
   """
   def fetch_result(repo, base_query, args) do
-    order_field = args.order_by.field
+    {normalized_args, is_flipped} = normalize(args)
+
+    order_field = normalized_args.order_by.field
     total_count = repo.one(apply_count(base_query))
 
     {:ok, nodes, has_previous_page, has_next_page} =
-      fetch_nodes(repo, base_query, order_field, args)
+      fetch_nodes(repo, base_query, order_field, normalized_args)
 
     edges = build_edges(nodes, order_field)
 
@@ -56,7 +58,53 @@ defmodule Level.Pagination do
       page_info: page_info
     }
 
-    {:ok, result}
+    {:ok, prepare_result(result, is_flipped)}
+  end
+
+  # If we are doing backwards pagination, then flip the sort direction and
+  # set `after` to `before` and `first` to `last`. This way we can use all the
+  # same logic that transforms the paginated request into `LIMIT` and `OFFSET`
+  # in SQL. Returns a tuple of `{args, is_flipped}`.
+  defp normalize(%{last: last} = args) when is_nil(last) do
+    {args, false}
+  end
+  defp normalize(%{before: before, last: last, order_by: order_by} = args) do
+    flipped_order_by =
+      order_by
+      |> Map.put(:direction, flip(order_by.direction))
+
+    flipped_args =
+      args
+      |> Map.put(:after, before)
+      |> Map.put(:first, last)
+      |> Map.put(:flipped, true)
+      |> Map.put(:order_by, flipped_order_by)
+
+    {flipped_args, true}
+  end
+  defp normalize(args) do
+    {args, false}
+  end
+
+  defp flip(direction) do
+    case direction do
+      :desc -> :asc
+      :asc -> :desc
+    end
+  end
+
+  defp prepare_result(result, false), do: result
+  defp prepare_result(%Result{page_info: page_info} = result, _) do
+    edges = Enum.reverse(result.edges)
+
+    page_info = %PageInfo{
+      start_cursor: page_info.end_cursor,
+      end_cursor: page_info.start_cursor,
+      has_next_page: page_info.has_previous_page,
+      has_previous_page: page_info.has_next_page
+    }
+
+    %Result{result | edges: edges, page_info: page_info}
   end
 
   defp fetch_nodes(repo, query, order_field, args) do
