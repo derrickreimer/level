@@ -15,7 +15,6 @@ import Subscription.RoomMessageCreated
 import Navigation
 import Route exposing (Route)
 import Task
-import Json.Encode as Encode
 import Json.Decode as Decode
 import Ports exposing (Frame, sendFrame, startFrames, resultFrames)
 
