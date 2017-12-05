@@ -20,6 +20,9 @@ defmodule LevelWeb.GraphQL.UserDraftsTest do
               node {
                 id
                 subject
+                user {
+                  id
+                }
               }
             }
             total_count
@@ -44,7 +47,10 @@ defmodule LevelWeb.GraphQL.UserDraftsTest do
             "edges" => [%{
               "node" => %{
                 "id" => to_string(draft.id),
-                "subject" => draft.subject
+                "subject" => draft.subject,
+                "user" => %{
+                  "id" => to_string(user.id)
+                }
               }
             }],
             "total_count" => 1

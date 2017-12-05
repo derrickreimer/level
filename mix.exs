@@ -47,7 +47,7 @@ defmodule Level.Mixfile do
      {:comeonin, "~> 3.0"},
      {:timex, "~> 3.0"},
      {:ex_doc, "~> 0.18.1"},
-     {:absinthe, "~> 1.4.0"},
+     {:absinthe, "~> 1.4.5"},
      {:absinthe_plug, "~> 1.4.0"},
      {:absinthe_phoenix, "~> 1.4.0"},
      {:dataloader, "~> 1.0.0"},

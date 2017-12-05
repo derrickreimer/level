@@ -159,4 +159,18 @@ defmodule Level.Spaces do
     |> Invitation.accept_operation(params)
     |> Repo.transaction()
   end
+
+  @doc """
+  The Ecto data source for use by dataloader.
+  """
+  def data do
+    Dataloader.Ecto.new(Repo, query: &query/2)
+  end
+
+  @doc """
+  The query function for dataloader data.
+  """
+  def query(queryable, _params) do
+    queryable
+  end
 end

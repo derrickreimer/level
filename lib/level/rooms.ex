@@ -219,6 +219,20 @@ defmodule Level.Rooms do
     %{success: true, room: room, room_message: message, errors: []}
   end
 
+  @doc """
+  The Ecto data source for use by dataloader.
+  """
+  def data do
+    Dataloader.Ecto.new(Repo, query: &query/2)
+  end
+
+  @doc """
+  The query function for dataloader data.
+  """
+  def query(queryable, _params) do
+    queryable
+  end
+
   # Builds an operation to create a new room. Specifically, this operation
   # inserts a new record in the rooms table and, provided that succeeds,
   # inserts a new record into the room subscriptions table for the user that

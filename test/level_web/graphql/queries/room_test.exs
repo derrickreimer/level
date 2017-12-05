@@ -26,6 +26,9 @@ defmodule LevelWeb.GraphQL.RoomTest do
             id
             name
             description
+            creator {
+              id
+            }
           }
         }
       }
@@ -46,7 +49,10 @@ defmodule LevelWeb.GraphQL.RoomTest do
           "room" => %{
             "id" => to_string(room.id),
             "name" => room.name,
-            "description" => room.description
+            "description" => room.description,
+            "creator" => %{
+              "id" => to_string(user.id)
+            }
           }
         }
       }

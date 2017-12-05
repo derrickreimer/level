@@ -2,7 +2,9 @@ defmodule LevelWeb.Schema.Types do
   @moduledoc false
 
   use Absinthe.Schema.Notation
-  alias LevelWeb.Schema.Helpers
+  import Absinthe.Resolution.Helpers
+  alias Level.Spaces
+  alias Level.Rooms
 
   import_types LevelWeb.Schema.Enums
   import_types LevelWeb.Schema.Scalars
@@ -30,13 +32,7 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
-    field :space, non_null(:space) do
-      resolve fn user, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.Space}, user.space_id, fn batch_results ->
-          {:ok, Map.get(batch_results, user.space_id)}
-        end)
-      end
-    end
+    field :space, non_null(:space), resolve: dataloader(Spaces)
 
     field :drafts, non_null(:draft_connection) do
       arg :first, :integer
@@ -102,21 +98,8 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
-    field :user, non_null(:user) do
-      resolve fn draft, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.User}, draft.user_id, fn batch_results ->
-          {:ok, Map.get(batch_results, draft.user_id)}
-        end)
-      end
-    end
-
-    field :space, non_null(:space) do
-      resolve fn draft, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.Space}, draft.space_id, fn batch_results ->
-          {:ok, Map.get(batch_results, draft.space_id)}
-        end)
-      end
-    end
+    field :user, non_null(:user), resolve: dataloader(Spaces)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
   end
 
   @desc "A room is a long-running thread for a particular team or group of users."
@@ -137,50 +120,16 @@ defmodule LevelWeb.Schema.Types do
       resolve &LevelWeb.RoomResolver.messages/3
     end
 
-    field :creator, non_null(:user) do
-      resolve fn room, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.User}, room.creator_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room.creator_id)}
-        end)
-      end
-    end
-
-    field :space, non_null(:space) do
-      resolve fn room, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.Space}, room.space_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room.space_id)}
-        end)
-      end
-    end
+    field :creator, non_null(:user), resolve: dataloader(Spaces)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
   end
 
   @desc "A room subscription represents a user's membership in a room."
   object :room_subscription do
     field :id, non_null(:id)
-
-    field :user, non_null(:user) do
-      resolve fn room_subscription, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.User}, room_subscription.user_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room_subscription.user_id)}
-        end)
-      end
-    end
-
-    field :space, non_null(:space) do
-      resolve fn room_subscription, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.Space}, room_subscription.space_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room_subscription.space_id)}
-        end)
-      end
-    end
-
-    field :room, non_null(:room) do
-      resolve fn room_subscription, _, _ ->
-        batch({Helpers, :by_id, Level.Rooms.Room}, room_subscription.room_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room_subscription.room_id)}
-        end)
-      end
-    end
+    field :user, non_null(:user), resolve: dataloader(Spaces)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
+    field :room, non_null(:room), resolve: dataloader(Spaces)
   end
 
   @desc "A room message is message posted to a room."
@@ -194,28 +143,8 @@ defmodule LevelWeb.Schema.Types do
       end
     end
 
-    field :space, non_null(:space) do
-      resolve fn room_message, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.Space}, room_message.space_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room_message.space_id)}
-        end)
-      end
-    end
-
-    field :room, non_null(:room) do
-      resolve fn room_message, _, _ ->
-        batch({Helpers, :by_id, Level.Rooms.Room}, room_message.room_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room_message.room_id)}
-        end)
-      end
-    end
-
-    field :user, non_null(:user) do
-      resolve fn room_subscription, _, _ ->
-        batch({Helpers, :by_id, Level.Spaces.User}, room_subscription.user_id, fn batch_results ->
-          {:ok, Map.get(batch_results, room_subscription.user_id)}
-        end)
-      end
-    end
+    field :space, non_null(:space), resolve: dataloader(Spaces)
+    field :room, non_null(:room), resolve: dataloader(Rooms)
+    field :user, non_null(:user), resolve: dataloader(Spaces)
   end
 end

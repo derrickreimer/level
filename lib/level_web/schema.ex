@@ -4,6 +4,22 @@ defmodule LevelWeb.Schema do
   use Absinthe.Schema
   import_types LevelWeb.Schema.Types
 
+  alias Level.Spaces
+  alias Level.Rooms
+
+  def context(ctx) do
+    loader =
+      Dataloader.new
+      |> Dataloader.add_source(Spaces, Spaces.data())
+      |> Dataloader.add_source(Rooms, Rooms.data())
+
+    Map.put(ctx, :loader, loader)
+  end
+
+  def plugins do
+    [Absinthe.Middleware.Dataloader] ++ Absinthe.Plugin.defaults()
+  end
+
   query do
     @desc "The currently authenticated user."
     field :viewer, :user do
