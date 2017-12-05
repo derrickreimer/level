@@ -50,6 +50,7 @@ defmodule Level.Mixfile do
      {:absinthe, "~> 1.4.0"},
      {:absinthe_plug, "~> 1.4.0"},
      {:absinthe_phoenix, "~> 1.4.0"},
+     {:dataloader, "~> 1.0.0"},
      {:joken, "~> 1.5"},
      {:bamboo, "~> 0.8"},
      {:bamboo_smtp, "~> 1.4"},
