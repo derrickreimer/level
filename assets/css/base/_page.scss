@@ -1,11 +1,11 @@
 .page-head {
   padding: $baseline $baseline * 2;
   // border-bottom: 1px solid $item-list-border-color;
-  // box-shadow: 0 2px 15px rgba(0,0,0,0.30);
+  box-shadow: 0 2px 15px rgba(0,0,0,0.40);
   // box-shadow: 0 1px rgba(255,255,255,0.1);
-  box-shadow: 0 1px rgba(0,0,0,0.7);
+  // box-shadow: 0 1px rgba(0,0,0,0.7);
   // box-shadow: 0 2px 12px rgba(0,0,0,0.30);
-  // background-color: darken($background-color, 4%);
+  // background-color: darken($background-color, 5%);
   z-index: 1000;
 
   &__name {
