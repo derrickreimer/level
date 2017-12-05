@@ -12,7 +12,8 @@ defmodule LevelWeb.UserSocket do
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket,
-    timeout: 45_000
+    timeout: 45_000,
+    check_origin: false # TODO: investigate if this is the right move
 
   # transport :longpoll, Phoenix.Transports.LongPoll
 
