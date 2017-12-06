@@ -16,12 +16,15 @@
 
 #sidebar-left {
   grid-area: left-sidebar;
+  height: 100vh;
 }
 
 #sidebar-right {
   grid-area: right-sidebar;
+  height: 100vh;
 }
 
 #main {
   grid-area: main;
+  height: 100vh;
 }
