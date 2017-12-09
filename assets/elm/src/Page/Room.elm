@@ -8,6 +8,7 @@ module Page.Room
         , view
         , update
         , receiveMessage
+        , subscriptions
         )
 
 {-| Viewing an particular room.
@@ -22,7 +23,7 @@ import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll
 import Date
-import Time exposing (Time)
+import Time exposing (Time, second)
 import Data.User exposing (User)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
@@ -82,6 +83,7 @@ type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
     | MessageSubmitResponse (Result Http.Error RoomMessage)
+    | Tick Time
     | NoOp
 
 
@@ -118,6 +120,11 @@ update msg session model =
             -- TODO: implement this
             ( model, Cmd.none )
 
+        Tick _ ->
+            -- TODO: check scroll position of messages to determine if more
+            -- messages need to get fetched.
+            ( model, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -134,6 +141,15 @@ scrollToBottom id =
 focusOnComposer : Cmd Msg
 focusOnComposer =
     Task.attempt (always NoOp) <| focus "composer-body-field"
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Time.every second Tick
 
 
 

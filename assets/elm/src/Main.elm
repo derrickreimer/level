@@ -87,15 +87,12 @@ buildInitialModel flags =
     Model (Session flags.apiToken) NotLoaded Blank True
 
 
-{-| Take a list of functions that accept a model and return a ( Model, Cmd Msg )
-tuple, call them in succession, and return a ( Model, Cmd Msg ), where the
-command is a batch of accumulated commands.
+{-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
+succession. Returns a ( model, Cmd msg ), where the Cmd is a batch of accumulated
+commands and the model is the original model with all mutations applied to it.
 -}
-assembleBatch :
-    List (Model -> ( Model, Cmd Msg ))
-    -> Model
-    -> ( Model, Cmd Msg )
-assembleBatch transforms model =
+commandPipeline : List (model -> ( model, Cmd msg )) -> model -> ( model, Cmd msg )
+commandPipeline transforms model =
     let
         reducer transform ( model, cmds ) =
             transform model
@@ -146,7 +143,7 @@ update msg model =
 
             ( AppStateLoaded maybeRoute (Ok response), _ ) ->
                 { model | appState = Loaded response }
-                    |> assembleBatch [ navigateTo maybeRoute, setupSockets ]
+                    |> commandPipeline [ navigateTo maybeRoute, setupSockets ]
 
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
@@ -270,7 +267,18 @@ subscriptions model =
     Sub.batch
         [ startFrames StartFrameReceived
         , resultFrames ResultFrameReceived
+        , pageSubscription model
         ]
+
+
+pageSubscription : Model -> Sub Msg
+pageSubscription model =
+    case model.page of
+        Room model ->
+            Sub.map RoomMsg <| Page.Room.subscriptions model
+
+        _ ->
+            Sub.none
 
 
 
