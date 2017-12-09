@@ -16,7 +16,7 @@ import Navigation
 import Route exposing (Route)
 import Task
 import Json.Decode as Decode
-import Ports exposing (Frame, sendFrame, startFrames, resultFrames)
+import Ports
 
 
 main : Program Flags Model Msg
@@ -112,7 +112,7 @@ type Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
-    | SendFrame Frame
+    | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
 
@@ -181,7 +181,7 @@ update msg model =
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
             ( SendFrame frame, _ ) ->
-                ( model, sendFrame frame )
+                ( model, Ports.sendFrame frame )
 
             ( StartFrameReceived value, _ ) ->
                 ( model, Cmd.none )
@@ -255,7 +255,7 @@ setupSockets model =
                 variables =
                     Just (Subscription.RoomMessageCreated.variables { user = state.user })
             in
-                ( model, sendFrame <| Frame operation variables )
+                ( model, Ports.sendFrame <| Ports.Frame operation variables )
 
 
 
@@ -265,8 +265,8 @@ setupSockets model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ startFrames StartFrameReceived
-        , resultFrames ResultFrameReceived
+        [ Ports.startFrames StartFrameReceived
+        , Ports.resultFrames ResultFrameReceived
         , pageSubscription model
         ]
 

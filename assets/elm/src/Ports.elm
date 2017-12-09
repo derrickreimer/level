@@ -13,6 +13,9 @@ port startFrames : (Decode.Value -> msg) -> Sub msg
 port resultFrames : (Decode.Value -> msg) -> Sub msg
 
 
+port scrollPosition : (Decode.Value -> msg) -> Sub msg
+
+
 
 -- OUTBOUND
 
@@ -24,3 +27,6 @@ type alias Frame =
 
 
 port sendFrame : Frame -> Cmd msg
+
+
+port getScrollPosition : String -> Cmd msg

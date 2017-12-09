@@ -29,6 +29,7 @@ import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMes
 import Data.Session exposing (Session)
 import Query.Room
 import Mutation.CreateRoomMessage as CreateRoomMessage
+import Ports
 
 
 -- MODEL
@@ -84,6 +85,7 @@ type Msg
     | MessageSubmitted
     | MessageSubmitResponse (Result Http.Error RoomMessage)
     | Tick Time
+    | ScrollPositionReceived Decode.Value
     | NoOp
 
 
@@ -121,6 +123,9 @@ update msg session model =
             ( model, Cmd.none )
 
         Tick _ ->
+            ( model, Ports.getScrollPosition "messages" )
+
+        ScrollPositionReceived value ->
             -- TODO: check scroll position of messages to determine if more
             -- messages need to get fetched.
             ( model, Cmd.none )
@@ -149,7 +154,10 @@ focusOnComposer =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every second Tick
+    Sub.batch
+        [ Time.every second Tick
+        , Ports.scrollPosition ScrollPositionReceived
+        ]
 
 
 
