@@ -28,6 +28,7 @@ import Data.User exposing (User)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
 import Query.Room
+import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports
 
@@ -91,6 +92,7 @@ type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
     | MessageSubmitResponse (Result Http.Error RoomMessage)
+    | MessagesFetched (Result Http.Error Query.RoomMessages.Response)
     | Tick Time
     | ScrollPositionReceived Decode.Value
     | NoOp
@@ -142,15 +144,50 @@ update msg session model =
                         case position.id of
                             "messages" ->
                                 if position.fromTop <= 200 then
-                                    ( { model | isFetchingMessages = True }, Cmd.none )
+                                    fetchPreviousMessages session model
                                 else
-                                    ( { model | isFetchingMessages = False }, Cmd.none )
+                                    ( model, Cmd.none )
 
                             _ ->
                                 ( model, Cmd.none )
 
                     Err _ ->
                         ( model, Cmd.none )
+
+        MessagesFetched (Ok response) ->
+            case response of
+                Query.RoomMessages.Found { messages } ->
+                    let
+                        edges =
+                            model.messages.edges
+
+                        pageInfo =
+                            model.messages.pageInfo
+
+                        newEdges =
+                            List.append edges messages.edges
+
+                        newPageInfo =
+                            { pageInfo
+                                | hasNextPage = messages.pageInfo.hasNextPage
+                                , endCursor = messages.pageInfo.endCursor
+                            }
+
+                        newConnection =
+                            RoomMessageConnection newEdges newPageInfo
+                    in
+                        ( { model
+                            | messages = newConnection
+                            , isFetchingMessages = False
+                          }
+                        , Cmd.none
+                        )
+
+                Query.RoomMessages.NotFound ->
+                    ( { model | isFetchingMessages = False }, Cmd.none )
+
+        MessagesFetched (Err _) ->
+            ( { model | isFetchingMessages = False }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -168,6 +205,24 @@ scrollToBottom id =
 focusOnComposer : Cmd Msg
 focusOnComposer =
     Task.attempt (always NoOp) <| focus "composer-body-field"
+
+
+fetchPreviousMessages : Session -> Model -> ( Model, Cmd Msg )
+fetchPreviousMessages session model =
+    if model.messages.pageInfo.hasNextPage == True && model.isFetchingMessages == False then
+        let
+            params =
+                Query.RoomMessages.Params
+                    model.room.id
+                    model.messages.pageInfo.endCursor
+                    20
+
+            request =
+                Query.RoomMessages.request session.apiToken params
+        in
+            ( { model | isFetchingMessages = True }, Http.send MessagesFetched request )
+    else
+        ( model, Cmd.none )
 
 
 
