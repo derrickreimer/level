@@ -18,6 +18,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Time exposing (Time)
 import Data.User exposing (User, userDecoder)
+import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import UrlParser
 
 
@@ -41,6 +42,7 @@ type alias RoomSubscription =
 
 type alias RoomMessageConnection =
     { edges : List RoomMessageEdge
+    , pageInfo : PageInfo
     }
 
 
@@ -98,6 +100,7 @@ roomMessageConnectionDecoder : Decode.Decoder RoomMessageConnection
 roomMessageConnectionDecoder =
     Pipeline.decode RoomMessageConnection
         |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list roomMessageEdgeDecoder))
+        |> Pipeline.custom (Decode.at [ "pageInfo" ] pageInfoDecoder)
 
 
 roomMessageEdgeDecoder : Decode.Decoder RoomMessageEdge

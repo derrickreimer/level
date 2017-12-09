@@ -71,8 +71,14 @@ loaded =
 receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
 receiveMessage message model =
     let
+        pageInfo =
+            model.messages.pageInfo
+
+        edges =
+            RoomMessageEdge message :: model.messages.edges
+
         newMessages =
-            RoomMessageConnection (RoomMessageEdge message :: model.messages.edges)
+            RoomMessageConnection edges pageInfo
     in
         ( { model | messages = newMessages }, scrollToBottom "messages" )
 

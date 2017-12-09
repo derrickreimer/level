@@ -36,6 +36,12 @@ query =
             name
             description
             messages(first: 20) {
+              pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+              }
               edges {
                 node {
                   id
@@ -47,6 +53,7 @@ query =
                     lastName
                   }
                 }
+                cursor
               }
             }
           }
