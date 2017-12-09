@@ -7,6 +7,21 @@ import Json.Decode as Decode
 -- INBOUND
 
 
+type alias ScrollPosition =
+    { id : String
+    , fromTop : Int
+    , fromBottom : Int
+    }
+
+
+scrollPositionDecoder : Decode.Decoder ScrollPosition
+scrollPositionDecoder =
+    Decode.map3 ScrollPosition
+        (Decode.field "id" Decode.string)
+        (Decode.field "fromTop" Decode.int)
+        (Decode.field "fromBottom" Decode.int)
+
+
 port startFrames : (Decode.Value -> msg) -> Sub msg
 
 

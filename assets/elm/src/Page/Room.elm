@@ -40,6 +40,7 @@ type alias Model =
     , messages : RoomMessageConnection
     , composerBody : String
     , isSubmittingMessage : Bool
+    , isFetchingMessages : Bool
     }
 
 
@@ -55,7 +56,7 @@ fetchRoom session slug =
 -}
 buildModel : Query.Room.Data -> Model
 buildModel data =
-    Model data.room data.messages "" False
+    Model data.room data.messages "" False False
 
 
 {-| Builds the task to perform post-page load.
@@ -126,9 +127,24 @@ update msg session model =
             ( model, Ports.getScrollPosition "messages" )
 
         ScrollPositionReceived value ->
-            -- TODO: check scroll position of messages to determine if more
-            -- messages need to get fetched.
-            ( model, Cmd.none )
+            let
+                result =
+                    Decode.decodeValue Ports.scrollPositionDecoder value
+            in
+                case result of
+                    Ok position ->
+                        case position.id of
+                            "messages" ->
+                                if position.fromTop <= 200 then
+                                    ( { model | isFetchingMessages = True }, Cmd.none )
+                                else
+                                    ( { model | isFetchingMessages = False }, Cmd.none )
+
+                            _ ->
+                                ( model, Cmd.none )
+
+                    Err _ ->
+                        ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
