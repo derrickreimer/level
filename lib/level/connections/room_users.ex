@@ -24,7 +24,7 @@ defmodule Level.Connections.RoomUsers do
       {:ok, args} ->
         base_query = from u in User,
           join: s in RoomSubscription,
-          where: s.room_id == ^room.id
+          on: s.user_id == u.id and s.room_id == ^room.id
 
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
       error ->
