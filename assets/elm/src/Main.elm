@@ -16,7 +16,7 @@ import Navigation
 import Route exposing (Route)
 import Task
 import Json.Decode as Decode
-import Ports exposing (Frame, sendFrame, startFrames, resultFrames)
+import Ports
 
 
 main : Program Flags Model Msg
@@ -87,15 +87,12 @@ buildInitialModel flags =
     Model (Session flags.apiToken) NotLoaded Blank True
 
 
-{-| Take a list of functions that accept a model and return a ( Model, Cmd Msg )
-tuple, call them in succession, and return a ( Model, Cmd Msg ), where the
-command is a batch of accumulated commands.
+{-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
+succession. Returns a ( model, Cmd msg ), where the Cmd is a batch of accumulated
+commands and the model is the original model with all mutations applied to it.
 -}
-assembleBatch :
-    List (Model -> ( Model, Cmd Msg ))
-    -> Model
-    -> ( Model, Cmd Msg )
-assembleBatch transforms model =
+commandPipeline : List (model -> ( model, Cmd msg )) -> model -> ( model, Cmd msg )
+commandPipeline transforms model =
     let
         reducer transform ( model, cmds ) =
             transform model
@@ -115,7 +112,7 @@ type Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
-    | SendFrame Frame
+    | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
 
@@ -146,7 +143,7 @@ update msg model =
 
             ( AppStateLoaded maybeRoute (Ok response), _ ) ->
                 { model | appState = Loaded response }
-                    |> assembleBatch [ navigateTo maybeRoute, setupSockets ]
+                    |> commandPipeline [ navigateTo maybeRoute, setupSockets ]
 
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
@@ -184,7 +181,7 @@ update msg model =
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
             ( SendFrame frame, _ ) ->
-                ( model, sendFrame frame )
+                ( model, Ports.sendFrame frame )
 
             ( StartFrameReceived value, _ ) ->
                 ( model, Cmd.none )
@@ -258,7 +255,7 @@ setupSockets model =
                 variables =
                     Just (Subscription.RoomMessageCreated.variables { user = state.user })
             in
-                ( model, sendFrame <| Frame operation variables )
+                ( model, Ports.sendFrame <| Ports.Frame operation variables )
 
 
 
@@ -268,9 +265,20 @@ setupSockets model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ startFrames StartFrameReceived
-        , resultFrames ResultFrameReceived
+        [ Ports.startFrames StartFrameReceived
+        , Ports.resultFrames ResultFrameReceived
+        , pageSubscription model
         ]
+
+
+pageSubscription : Model -> Sub Msg
+pageSubscription model =
+    case model.page of
+        Room model ->
+            Sub.map RoomMsg <| Page.Room.subscriptions model
+
+        _ ->
+            Sub.none
 
 
 

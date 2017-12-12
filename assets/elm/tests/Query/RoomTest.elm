@@ -23,6 +23,12 @@ decoders =
                                     "name": "Everyone",
                                     "description": "All the things",
                                     "messages": {
+                                      "pageInfo": {
+                                        "hasPreviousPage": false,
+                                        "hasNextPage": true,
+                                        "startCursor": "xxx",
+                                        "endCursor": "yyy"
+                                      },
                                       "edges": [{
                                         "node": {
                                           "id": "8888",
@@ -65,6 +71,12 @@ decoders =
                                             }
                                       }
                                     ]
+                                , pageInfo =
+                                    { hasPreviousPage = False
+                                    , hasNextPage = True
+                                    , startCursor = "xxx"
+                                    , endCursor = "yyy"
+                                    }
                                 }
                             }
                     in

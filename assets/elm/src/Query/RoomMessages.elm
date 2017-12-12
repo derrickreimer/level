@@ -1,21 +1,22 @@
-module Query.Room exposing (Params, Response(..), Data, decoder, request)
+module Query.RoomMessages exposing (Params, Response(..), Data, decoder, request)
 
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
-import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, roomDecoder, roomMessageConnectionDecoder)
+import Data.Room exposing (RoomMessageConnection, RoomMessageEdge, roomMessageConnectionDecoder)
 import GraphQL
 
 
 type alias Params =
-    { id : String
+    { roomId : String
+    , afterCursor : String
+    , limit : Int
     }
 
 
 type alias Data =
-    { room : Room
-    , messages : RoomMessageConnection
+    { messages : RoomMessageConnection
     }
 
 
@@ -27,15 +28,14 @@ type Response
 query : String
 query =
     """
-      query GetRoom(
-        $id: ID!
+      query GetRoomMessages(
+        $roomId: ID!
+        $afterCursor: Cursor
+        $limit: Int
       ) {
         viewer {
-          room(id: $id) {
-            id
-            name
-            description
-            messages(first: 20) {
+          room(id: $roomId) {
+            messages(first: $limit, after: $afterCursor) {
               pageInfo {
                 hasPreviousPage
                 hasNextPage
@@ -65,7 +65,9 @@ query =
 variables : Params -> Encode.Value
 variables params =
     Encode.object
-        [ ( "id", Encode.string params.id )
+        [ ( "roomId", Encode.string params.roomId )
+        , ( "afterCursor", Encode.string params.afterCursor )
+        , ( "limit", Encode.int params.limit )
         ]
 
 
@@ -73,7 +75,6 @@ foundDecoder : Decode.Decoder Response
 foundDecoder =
     Decode.map Found
         (Pipeline.decode Data
-            |> Pipeline.custom (Decode.at [ "room" ] roomDecoder)
             |> Pipeline.custom (Decode.at [ "room", "messages" ] roomMessageConnectionDecoder)
         )
 
