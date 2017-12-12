@@ -26,4 +26,8 @@ defmodule LevelWeb.RoomResolver do
   def messages(room, args, _info) do
     Level.Connections.room_messages(room, args, %{})
   end
+
+  def users(room, args, _info) do
+    Level.Connections.room_users(room, args, %{})
+  end
 end

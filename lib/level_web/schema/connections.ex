@@ -101,4 +101,25 @@ defmodule LevelWeb.Schema.Connections do
     @desc "The total count of items in the connection."
     field :total_count, non_null(:integer)
   end
+
+  @desc "An edge in the room user connection."
+  object :room_user_edge do
+    @desc "The item at the edge of the node."
+    field :node, :user
+
+    @desc "A cursor for use in pagination."
+    field :cursor, non_null(:cursor)
+  end
+
+  @desc "A list of users in a room."
+  object :room_user_connection do
+    @desc "A list of edges."
+    field :edges, list_of(:room_user_edge)
+
+    @desc "Pagination data for the connection."
+    field :page_info, non_null(:page_info)
+
+    @desc "The total count of items in the connection."
+    field :total_count, non_null(:integer)
+  end
 end

@@ -120,6 +120,15 @@ defmodule LevelWeb.Schema.Types do
       resolve &LevelWeb.RoomResolver.messages/3
     end
 
+    field :users, non_null(:room_user_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :user_order
+      resolve &LevelWeb.RoomResolver.users/3
+    end
+
     field :creator, non_null(:user), resolve: dataloader(Spaces)
     field :space, non_null(:space), resolve: dataloader(Spaces)
   end

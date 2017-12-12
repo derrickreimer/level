@@ -45,4 +45,24 @@ defmodule Level.ConnectionsTest do
       assert total_count == 1
     end
   end
+
+  describe "room_users/3" do
+    setup do
+      insert_signup()
+    end
+
+    test "returns edges", %{user: user, default_room: %{room: room}} do
+      {:ok, %Result{edges: [first_edge | _]}} =
+        Connections.room_users(room, %{first: 1})
+
+      assert first_edge.node.id == user.id
+    end
+
+    test "returns total count", %{user: user, default_room: %{room: room}} do
+      {:ok, %Result{total_count: total_count}} =
+        Connections.room_users(room, %{first: 1})
+
+      assert total_count == 1
+    end
+  end
 end

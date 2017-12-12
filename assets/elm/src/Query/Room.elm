@@ -5,6 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, roomDecoder, roomMessageConnectionDecoder)
+import Data.User exposing (UserConnection, userConnectionDecoder)
 import GraphQL
 
 
@@ -16,6 +17,7 @@ type alias Params =
 type alias Data =
     { room : Room
     , messages : RoomMessageConnection
+    , users : UserConnection
     }
 
 
@@ -35,6 +37,22 @@ query =
             id
             name
             description
+            users(first: 10) {
+              pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+              }
+              edges {
+                node {
+                  id
+                  firstName
+                  lastName
+                }
+                cursor
+              }
+            }
             messages(first: 20) {
               pageInfo {
                 hasPreviousPage
@@ -75,6 +93,7 @@ foundDecoder =
         (Pipeline.decode Data
             |> Pipeline.custom (Decode.at [ "room" ] roomDecoder)
             |> Pipeline.custom (Decode.at [ "room", "messages" ] roomMessageConnectionDecoder)
+            |> Pipeline.custom (Decode.at [ "room", "users" ] userConnectionDecoder)
         )
 
 

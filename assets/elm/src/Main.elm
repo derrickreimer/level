@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Http
 import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
-import Data.User exposing (User)
+import Data.User exposing (User, UserEdge, displayName)
 import Data.Session exposing (Session)
 import Page.Room
 import Page.Conversations
@@ -302,7 +302,7 @@ view model =
                     ]
                 , div [ id "sidebar-right", class "sidebar" ]
                     [ identityMenu appState.user
-                    , usersList appState
+                    , rightSidebar model
                     ]
                 , pageContent model.page
                 ]
@@ -385,24 +385,24 @@ sideNav page appState =
         ]
 
 
-usersList : AppState -> Html Msg
-usersList appState =
-    div [ class "side-nav-container" ]
-        [ h3 [ class "side-nav-heading" ] [ text "Everyone" ]
-        , div [ class "users-list" ]
-            [ a [ class "users-list__item", href "#" ]
-                [ span [ class "state-indicator state-indicator--available" ] []
-                , span [ class "users-list__name" ] [ text "Tiffany Reimer" ]
+rightSidebar : Model -> Html Msg
+rightSidebar model =
+    case model.page of
+        Room pageModel ->
+            div [ class "side-nav-container" ]
+                [ h3 [ class "side-nav-heading" ] [ text "Members" ]
+                , div [ class "users-list" ] (List.map (userItem model.page) pageModel.users.edges)
                 ]
-            , a [ class "users-list__item", href "#" ]
-                [ span [ class "state-indicator state-indicator--focus" ] []
-                , span [ class "users-list__name" ] [ text "Kelli Lowe" ]
-                ]
-            , a [ class "users-list__item users-list__item--offline", href "#" ]
-                [ span [ class "state-indicator state-indicator--offline" ] []
-                , span [ class "users-list__name" ] [ text "Joe Slacker" ]
-                ]
-            ]
+
+        _ ->
+            div [ class "side-nav-container" ] []
+
+
+userItem : Page -> UserEdge -> Html Msg
+userItem page edge =
+    a [ class "users-list__item", href "#" ]
+        [ span [ class "state-indicator state-indicator--available" ] []
+        , span [ class "users-list__name" ] [ text (displayName edge.node) ]
         ]
 
 
