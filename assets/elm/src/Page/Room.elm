@@ -24,7 +24,7 @@ import Dom exposing (focus)
 import Dom.Scroll
 import Date
 import Time exposing (Time, second)
-import Data.User exposing (User)
+import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
 import Query.Room
@@ -39,6 +39,7 @@ import Ports
 type alias Model =
     { room : Room
     , messages : RoomMessageConnection
+    , users : UserConnection
     , composerBody : String
     , isSubmittingMessage : Bool
     , isFetchingMessages : Bool
@@ -57,7 +58,7 @@ fetchRoom session slug =
 -}
 buildModel : Query.Room.Data -> Model
 buildModel data =
-    Model data.room data.messages "" False False
+    Model data.room data.messages data.users "" False False
 
 
 {-| Builds the task to perform post-page load.
