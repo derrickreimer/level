@@ -26,6 +26,13 @@ defmodule LevelWeb.GraphQL.RoomTest do
             id
             name
             description
+            users(first: 1) {
+              edges {
+                node {
+                  id
+                }
+              }
+            }
             creator {
               id
             }
@@ -52,6 +59,13 @@ defmodule LevelWeb.GraphQL.RoomTest do
             "description" => room.description,
             "creator" => %{
               "id" => to_string(user.id)
+            },
+            "users" => %{
+              "edges" => [%{
+                "node" => %{
+                  "id" => to_string(user.id)
+                }
+              }]
             }
           }
         }

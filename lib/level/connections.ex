@@ -66,4 +66,20 @@ defmodule Level.Connections do
   def room_messages(room, args, context \\ %{}) do
     Level.Connections.RoomMessages.get(room, args, context)
   end
+
+  @doc """
+  Fetch users in a room.
+
+  ## Examples
+
+      room_users(room, args)
+      => {:ok, %Level.Pagination.Result{
+        edges: [%Spaces.User{...}],
+        page_info: %PageInfo{...},
+        total_count: 10
+      }}
+  """
+  def room_users(room, args, context \\ %{}) do
+    Level.Connections.RoomUsers.get(room, args, context)
+  end
 end
