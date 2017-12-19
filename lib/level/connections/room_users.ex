@@ -11,8 +11,8 @@ defmodule Level.Connections.RoomUsers do
     before: nil,
     after: nil,
     order_by: %{
-      field: :username,
-      direction: :desc
+      field: :last_name,
+      direction: :asc
     }
   }
 

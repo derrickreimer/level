@@ -70,6 +70,9 @@ defmodule LevelWeb.Schema.Enums do
   enum :user_order_field do
     @desc "Order by the username field."
     value :username
+
+    @desc "Order by the last name field."
+    value :last_name
   end
 
   @desc """
