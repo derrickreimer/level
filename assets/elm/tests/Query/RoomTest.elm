@@ -22,6 +22,22 @@ decoders =
                                     "id": "9999",
                                     "name": "Everyone",
                                     "description": "All the things",
+                                    "users": {
+                                      "pageInfo": {
+                                        "hasPreviousPage": false,
+                                        "hasNextPage": false,
+                                        "startCursor": "xxx",
+                                        "endCursor": "xxx"
+                                      },
+                                      "edges": [{
+                                        "node": {
+                                          "id": "9999",
+                                          "firstName": "Derrick",
+                                          "lastName": "Reimer"
+                                        },
+                                        "cursor": "xxx"
+                                      }]
+                                    },
                                     "messages": {
                                       "pageInfo": {
                                         "hasPreviousPage": false,
@@ -57,6 +73,22 @@ decoders =
                                 , name = "Everyone"
                                 , description = "All the things"
                                 }
+                            , users =
+                                { edges =
+                                    [ { node =
+                                            { id = "9999"
+                                            , firstName = "Derrick"
+                                            , lastName = "Reimer"
+                                            }
+                                      }
+                                    ]
+                                , pageInfo =
+                                    { hasPreviousPage = False
+                                    , hasNextPage = False
+                                    , startCursor = Just "xxx"
+                                    , endCursor = Just "xxx"
+                                    }
+                                }
                             , messages =
                                 { edges =
                                     [ { node =
@@ -74,8 +106,88 @@ decoders =
                                 , pageInfo =
                                     { hasPreviousPage = False
                                     , hasNextPage = True
-                                    , startCursor = "xxx"
-                                    , endCursor = "yyy"
+                                    , startCursor = Just "xxx"
+                                    , endCursor = Just "yyy"
+                                    }
+                                }
+                            }
+                    in
+                        Expect.equal (Ok (Room.Found expected)) result
+            , test "handles response where there are no messages" <|
+                \_ ->
+                    let
+                        json =
+                            """
+                            {
+                              "data": {
+                                "viewer": {
+                                  "room": {
+                                    "id": "9999",
+                                    "name": "Everyone",
+                                    "description": "All the things",
+                                    "users": {
+                                      "pageInfo": {
+                                        "hasPreviousPage": false,
+                                        "hasNextPage": false,
+                                        "startCursor": "xxx",
+                                        "endCursor": "xxx"
+                                      },
+                                      "edges": [{
+                                        "node": {
+                                          "id": "9999",
+                                          "firstName": "Derrick",
+                                          "lastName": "Reimer"
+                                        },
+                                        "cursor": "xxx"
+                                      }]
+                                    },
+                                    "messages": {
+                                      "pageInfo": {
+                                        "hasPreviousPage": false,
+                                        "hasNextPage": false,
+                                        "startCursor": null,
+                                        "endCursor": null
+                                      },
+                                      "edges": []
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                            """
+
+                        result =
+                            decodeString Room.decoder json
+
+                        expected =
+                            { room =
+                                { id = "9999"
+                                , name = "Everyone"
+                                , description = "All the things"
+                                }
+                            , users =
+                                { edges =
+                                    [ { node =
+                                            { id = "9999"
+                                            , firstName = "Derrick"
+                                            , lastName = "Reimer"
+                                            }
+                                      }
+                                    ]
+                                , pageInfo =
+                                    { hasPreviousPage = False
+                                    , hasNextPage = False
+                                    , startCursor = Just "xxx"
+                                    , endCursor = Just "xxx"
+                                    }
+                                }
+                            , messages =
+                                { edges = []
+                                , pageInfo =
+                                    { hasPreviousPage = False
+                                    , hasNextPage = False
+                                    , startCursor = Nothing
+                                    , endCursor = Nothing
                                     }
                                 }
                             }

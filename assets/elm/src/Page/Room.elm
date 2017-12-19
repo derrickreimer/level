@@ -210,20 +210,25 @@ focusOnComposer =
 
 fetchPreviousMessages : Session -> Model -> ( Model, Cmd Msg )
 fetchPreviousMessages session model =
-    if model.messages.pageInfo.hasNextPage == True && model.isFetchingMessages == False then
-        let
-            params =
-                Query.RoomMessages.Params
-                    model.room.id
-                    model.messages.pageInfo.endCursor
-                    20
+    case model.messages.pageInfo.endCursor of
+        Just endCursor ->
+            if model.messages.pageInfo.hasNextPage == True && model.isFetchingMessages == False then
+                let
+                    params =
+                        Query.RoomMessages.Params
+                            model.room.id
+                            endCursor
+                            20
 
-            request =
-                Query.RoomMessages.request session.apiToken params
-        in
-            ( { model | isFetchingMessages = True }, Http.send MessagesFetched request )
-    else
-        ( model, Cmd.none )
+                    request =
+                        Query.RoomMessages.request session.apiToken params
+                in
+                    ( { model | isFetchingMessages = True }, Http.send MessagesFetched request )
+            else
+                ( model, Cmd.none )
+
+        Nothing ->
+            ( model, Cmd.none )
 
 
 

@@ -10,8 +10,8 @@ import Json.Decode.Pipeline as Pipeline
 type alias PageInfo =
     { hasPreviousPage : Bool
     , hasNextPage : Bool
-    , startCursor : String
-    , endCursor : String
+    , startCursor : Maybe String
+    , endCursor : Maybe String
     }
 
 
@@ -24,5 +24,5 @@ pageInfoDecoder =
     Pipeline.decode PageInfo
         |> Pipeline.required "hasPreviousPage" Decode.bool
         |> Pipeline.required "hasNextPage" Decode.bool
-        |> Pipeline.required "startCursor" Decode.string
-        |> Pipeline.required "endCursor" Decode.string
+        |> Pipeline.required "startCursor" (Decode.maybe Decode.string)
+        |> Pipeline.required "endCursor" (Decode.maybe Decode.string)
