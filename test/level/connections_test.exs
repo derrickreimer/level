@@ -58,7 +58,7 @@ defmodule Level.ConnectionsTest do
       assert first_edge.node.id == user.id
     end
 
-    test "returns total count", %{user: user, default_room: %{room: room}} do
+    test "returns total count", %{default_room: %{room: room}} do
       {:ok, %Result{total_count: total_count}} =
         Connections.room_users(room, %{first: 1})
 

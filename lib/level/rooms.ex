@@ -121,9 +121,9 @@ defmodule Level.Rooms do
   Fetches all mandatory rooms for a given user and returns a list.
   """
   def get_mandatory_rooms(%Level.Spaces.User{space_id: space_id}) do
-    Repo.all(Room,
-      space_id: space_id,
-      subscriber_policy: "MANDATORY"
+    Repo.all(
+      from r in Room,
+        where: r.space_id == ^space_id and r.subscriber_policy == "MANDATORY"
     )
   end
 

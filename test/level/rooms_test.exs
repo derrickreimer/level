@@ -194,6 +194,21 @@ defmodule Level.RoomsTest do
     end
   end
 
+  describe "get_mandatory_rooms/1" do
+    setup do
+      {:ok, %{user: user, default_room: %{room: room}}} = insert_signup()
+      {:ok, %{default_room: %{room: room_in_other_space}}} = insert_signup()
+      {:ok, %{user: user, room: room, room_in_other_space: room_in_other_space}}
+    end
+
+    test "returns mandatory rooms in the user's space",
+      %{user: user, room: room, room_in_other_space: room_in_other_space} do
+      room_ids = Enum.map(Rooms.get_mandatory_rooms(user), fn item -> item.id end)
+      assert Enum.member?(room_ids, room.id)
+      refute Enum.member?(room_ids, room_in_other_space.id)
+    end
+  end
+
   defp create_user_and_room do
     {:ok, %{user: user, space: space}} = insert_signup()
     {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
