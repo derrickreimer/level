@@ -10,7 +10,7 @@ defmodule Level.PaginationTest do
     setup do
       {:ok, %{user: owner, space: space}} = insert_signup()
       members = [owner | create_members(space, 3)]
-      sorted_users = Enum.sort_by(members, fn user -> user.inserted_at end)
+      sorted_users = Enum.sort_by(members, fn user -> user.id end)
       base_query = from u in User, where: u.space_id == ^space.id
       {:ok, users: sorted_users, base_query: base_query}
     end
@@ -21,7 +21,7 @@ defmodule Level.PaginationTest do
         before: nil,
         after: nil,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :asc
         }
       }
@@ -36,9 +36,9 @@ defmodule Level.PaginationTest do
       args = %{
         first: 2,
         before: nil,
-        after: Enum.at(users, 0).inserted_at,
+      after: Enum.at(users, 0).id,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :asc
         }
       }
@@ -55,7 +55,7 @@ defmodule Level.PaginationTest do
         before: nil,
         after: nil,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :asc
         }
       }
@@ -69,10 +69,10 @@ defmodule Level.PaginationTest do
     test "last with before cursor provided", %{users: users, base_query: base_query} do
       args = %{
         last: 2,
-        before: Enum.at(users, 3).inserted_at,
+        before: Enum.at(users, 3).id,
         after: nil,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :asc
         }
       }
@@ -86,10 +86,10 @@ defmodule Level.PaginationTest do
     test "last with before and after cursors provided", %{users: users, base_query: base_query} do
       args = %{
         last: 2,
-        after: Enum.at(users, 1).inserted_at,
-        before: Enum.at(users, 3).inserted_at,
+      after: Enum.at(users, 1).id,
+        before: Enum.at(users, 3).id,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :asc
         }
       }
@@ -106,7 +106,7 @@ defmodule Level.PaginationTest do
         before: nil,
         after: nil,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :desc
         }
       }
@@ -137,7 +137,7 @@ defmodule Level.PaginationTest do
         before: nil,
         after: nil,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :asc
         }
       }
@@ -153,7 +153,7 @@ defmodule Level.PaginationTest do
         before: nil,
         after: nil,
         order_by: %{
-          field: :inserted_at,
+          field: :id,
           direction: :asc
         }
       }
