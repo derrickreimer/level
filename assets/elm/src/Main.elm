@@ -265,8 +265,8 @@ setupSockets model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Ports.startFrames StartFrameReceived
-        , Ports.resultFrames ResultFrameReceived
+        [ Ports.startFrameReceived StartFrameReceived
+        , Ports.resultFrameReceived ResultFrameReceived
         , pageSubscription model
         ]
 

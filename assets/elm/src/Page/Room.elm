@@ -43,6 +43,7 @@ type alias Model =
     , composerBody : String
     , isSubmittingMessage : Bool
     , isFetchingMessages : Bool
+    , messagesScrollPosition : Maybe Ports.ScrollPosition
     }
 
 
@@ -58,14 +59,17 @@ fetchRoom session slug =
 -}
 buildModel : Query.Room.Data -> Model
 buildModel data =
-    Model data.room data.messages data.users "" False False
+    Model data.room data.messages data.users "" False False Nothing
 
 
 {-| Builds the task to perform post-page load.
 -}
 loaded : Cmd Msg
 loaded =
-    Cmd.batch [ scrollToBottom "messages", focusOnComposer ]
+    Cmd.batch
+        [ scrollToBottom "messages"
+        , focusOnComposer
+        ]
 
 
 {-| Append a new message to the room message connection when it is received.
@@ -144,10 +148,14 @@ update msg session model =
                     Ok position ->
                         case position.id of
                             "messages" ->
-                                if position.fromTop <= 200 then
-                                    fetchPreviousMessages session model
-                                else
-                                    ( model, Cmd.none )
+                                let
+                                    modelWithPosition =
+                                        { model | messagesScrollPosition = Just position }
+                                in
+                                    if position.fromTop <= 200 then
+                                        fetchPreviousMessages session modelWithPosition
+                                    else
+                                        ( modelWithPosition, Cmd.none )
 
                             _ ->
                                 ( model, Cmd.none )
@@ -181,7 +189,7 @@ update msg session model =
                             | messages = newConnection
                             , isFetchingMessages = False
                           }
-                        , Cmd.none
+                        , Ports.scrollTo <| Ports.ScrollParams "messages" "message-105851408690971672" 0
                         )
 
                 Query.RoomMessages.NotFound ->
@@ -239,7 +247,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Time.every second Tick
-        , Ports.scrollPosition ScrollPositionReceived
+        , Ports.scrollPositionReceived ScrollPositionReceived
         ]
 
 
@@ -308,7 +316,7 @@ renderMessages connection =
 
 renderMessage : RoomMessageEdge -> Html Msg
 renderMessage edge =
-    div [ class "message" ]
+    div [ id ("message-" ++ edge.node.id), class "message" ]
         [ div [ class "message__avatar" ] []
         , div [ class "message__contents" ]
             [ div [ class "message__head" ]

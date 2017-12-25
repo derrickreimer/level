@@ -14,11 +14,11 @@ export const attachPorts = (app) => {
       onError: logEvent("error"),
       onStart: data => {
         logEvent("start")(data);
-        app.ports.startFrames.send(data);
+        app.ports.startFrameReceived.send(data);
       },
       onResult: data => {
         logEvent("result")(data);
-        app.ports.resultFrames.send(data);
+        app.ports.resultFrameReceived.send(data);
       }
     });
   });
@@ -32,6 +32,17 @@ export const attachPorts = (app) => {
     let fromTop = node.scrollTop;
     let fromBottom = scrollHeight - fromTop - clientHeight;
 
-    app.ports.scrollPosition.send({id, fromBottom, fromTop});
+    app.ports.scrollPositionReceived.send({id, fromBottom, fromTop});
+  });
+
+  app.ports.scrollTo.subscribe((arg) => {
+    const {containerId, childId, offset} = arg;
+    let container = document.getElementById(containerId);
+    let child = document.getElementById(childId);
+    if (!(container && child)) return;
+
+    requestAnimationFrame(() => {
+      container.scrollTop = child.offsetTop - 100;
+    });
   });
 };

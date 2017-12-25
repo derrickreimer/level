@@ -22,13 +22,13 @@ scrollPositionDecoder =
         (Decode.field "fromBottom" Decode.int)
 
 
-port startFrames : (Decode.Value -> msg) -> Sub msg
+port startFrameReceived : (Decode.Value -> msg) -> Sub msg
 
 
-port resultFrames : (Decode.Value -> msg) -> Sub msg
+port resultFrameReceived : (Decode.Value -> msg) -> Sub msg
 
 
-port scrollPosition : (Decode.Value -> msg) -> Sub msg
+port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
 
 
 
@@ -41,7 +41,20 @@ type alias Frame =
     }
 
 
+type alias ScrollParams =
+    { containerId : String
+    , childId : String
+    , offset : Int
+    }
+
+
 port sendFrame : Frame -> Cmd msg
 
 
 port getScrollPosition : String -> Cmd msg
+
+
+port scrollTo : ScrollParams -> Cmd msg
+
+
+port onScroll : String -> Cmd msg
