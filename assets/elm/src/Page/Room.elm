@@ -221,20 +221,23 @@ update msg session model =
             ( model, Cmd.none )
 
 
-{-| Scroll the messages container to the most recent message.
+{-| Scrolls the messages container to the most recent message.
 -}
 scrollToBottom : String -> Cmd Msg
 scrollToBottom id =
     Task.attempt (always NoOp) <| Dom.Scroll.toBottom id
 
 
-{-| Set focus to the composer body textarea.
+{-| Sets focus to the composer body textarea.
 -}
 focusOnComposer : Cmd Msg
 focusOnComposer =
     Task.attempt (always NoOp) <| focus "composer-body-field"
 
 
+{-| Executes a query for previous messages, updates the model to a fetching
+state, and returns a model and command tuple.
+-}
 fetchPreviousMessages : Session -> Model -> ( Model, Cmd Msg )
 fetchPreviousMessages session model =
     case model.messages.pageInfo.endCursor of
@@ -242,10 +245,7 @@ fetchPreviousMessages session model =
             if model.messages.pageInfo.hasNextPage == True && model.isFetchingMessages == False then
                 let
                     params =
-                        Query.RoomMessages.Params
-                            model.room.id
-                            endCursor
-                            20
+                        Query.RoomMessages.Params model.room.id endCursor 20
 
                     request =
                         Query.RoomMessages.request session.apiToken params
@@ -265,7 +265,7 @@ fetchPreviousMessages session model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every second Tick
+        [ Time.every (500 * millisecond) Tick
         , Ports.scrollPositionReceived ScrollPositionReceived
         ]
 
