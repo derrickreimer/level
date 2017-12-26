@@ -97,7 +97,7 @@ type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
     | MessageSubmitResponse (Result Http.Error RoomMessage)
-    | MessagesFetched (Result Http.Error Query.RoomMessages.Response)
+    | PreviousMessagesFetched (Result Http.Error Query.RoomMessages.Response)
     | Tick Time
     | ScrollPositionReceived Decode.Value
     | NoOp
@@ -163,7 +163,7 @@ update msg session model =
                     Err _ ->
                         ( model, Cmd.none )
 
-        MessagesFetched (Ok response) ->
+        PreviousMessagesFetched (Ok response) ->
             case response of
                 Query.RoomMessages.Found { messages } ->
                     let
@@ -214,7 +214,7 @@ update msg session model =
                 Query.RoomMessages.NotFound ->
                     ( { model | isFetchingMessages = False }, Cmd.none )
 
-        MessagesFetched (Err _) ->
+        PreviousMessagesFetched (Err _) ->
             ( { model | isFetchingMessages = False }, Cmd.none )
 
         NoOp ->
@@ -250,7 +250,7 @@ fetchPreviousMessages session model =
                     request =
                         Query.RoomMessages.request session.apiToken params
                 in
-                    ( { model | isFetchingMessages = True }, Http.send MessagesFetched request )
+                    ( { model | isFetchingMessages = True }, Http.send PreviousMessagesFetched request )
             else
                 ( model, Cmd.none )
 
