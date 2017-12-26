@@ -55,6 +55,3 @@ port getScrollPosition : String -> Cmd msg
 
 
 port scrollTo : ScrollParams -> Cmd msg
-
-
-port onScroll : String -> Cmd msg
