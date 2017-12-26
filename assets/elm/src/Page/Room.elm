@@ -30,7 +30,8 @@ import Data.Session exposing (Session)
 import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
-import Ports
+import Ports exposing (ScrollParams)
+import Util exposing (last)
 
 
 -- MODEL
@@ -171,7 +172,7 @@ update msg session model =
                             model.messages.edges
 
                         anchorId =
-                            case List.head (List.reverse edges) of
+                            case last edges of
                                 Just edge ->
                                     messageId edge
 
@@ -200,15 +201,12 @@ update msg session model =
 
                         newConnection =
                             RoomMessageConnection newEdges newPageInfo
-
-                        scrollParams =
-                            Ports.ScrollParams "messages" anchorId offset
                     in
                         ( { model
                             | messages = newConnection
                             , isFetchingMessages = False
                           }
-                        , Ports.scrollTo scrollParams
+                        , Ports.scrollTo (ScrollParams "messages" anchorId offset)
                         )
 
                 Query.RoomMessages.NotFound ->
@@ -330,7 +328,11 @@ view model =
 
 renderMessages : RoomMessageConnection -> Html Msg
 renderMessages connection =
-    div [ id "messages", class "messages" ] (List.map renderMessage (List.reverse connection.edges))
+    let
+        visibleMessages =
+            List.map renderMessage (List.reverse connection.edges)
+    in
+        div [ id "messages", class "messages" ] visibleMessages
 
 
 renderMessage : RoomMessageEdge -> Html Msg
