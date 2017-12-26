@@ -178,6 +178,14 @@ update msg session model =
                                 Nothing ->
                                     ""
 
+                        offset =
+                            case model.messagesScrollPosition of
+                                Just position ->
+                                    position.fromTop
+
+                                Nothing ->
+                                    0
+
                         pageInfo =
                             model.messages.pageInfo
 
@@ -194,7 +202,7 @@ update msg session model =
                             RoomMessageConnection newEdges newPageInfo
 
                         scrollParams =
-                            Ports.ScrollParams "messages" anchorId 0
+                            Ports.ScrollParams "messages" anchorId offset
                     in
                         ( { model
                             | messages = newConnection
