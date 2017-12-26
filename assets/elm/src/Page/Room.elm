@@ -23,14 +23,15 @@ import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll
 import Date
-import Time exposing (Time, second)
+import Time exposing (Time, second, millisecond)
 import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
 import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
-import Ports
+import Ports exposing (ScrollParams)
+import Util exposing (last)
 
 
 -- MODEL
@@ -43,6 +44,7 @@ type alias Model =
     , composerBody : String
     , isSubmittingMessage : Bool
     , isFetchingMessages : Bool
+    , messagesScrollPosition : Maybe Ports.ScrollPosition
     }
 
 
@@ -58,14 +60,17 @@ fetchRoom session slug =
 -}
 buildModel : Query.Room.Data -> Model
 buildModel data =
-    Model data.room data.messages data.users "" False False
+    Model data.room data.messages data.users "" False False Nothing
 
 
 {-| Builds the task to perform post-page load.
 -}
 loaded : Cmd Msg
 loaded =
-    Cmd.batch [ scrollToBottom "messages", focusOnComposer ]
+    Cmd.batch
+        [ scrollToBottom "messages"
+        , focusOnComposer
+        ]
 
 
 {-| Append a new message to the room message connection when it is received.
@@ -93,7 +98,7 @@ type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
     | MessageSubmitResponse (Result Http.Error RoomMessage)
-    | MessagesFetched (Result Http.Error Query.RoomMessages.Response)
+    | PreviousMessagesFetched (Result Http.Error Query.RoomMessages.Response)
     | Tick Time
     | ScrollPositionReceived Decode.Value
     | NoOp
@@ -144,10 +149,14 @@ update msg session model =
                     Ok position ->
                         case position.id of
                             "messages" ->
-                                if position.fromTop <= 200 then
-                                    fetchPreviousMessages session model
-                                else
-                                    ( model, Cmd.none )
+                                let
+                                    modelWithPosition =
+                                        { model | messagesScrollPosition = Just position }
+                                in
+                                    if position.fromTop <= 200 then
+                                        fetchPreviousMessages session modelWithPosition
+                                    else
+                                        ( modelWithPosition, Cmd.none )
 
                             _ ->
                                 ( model, Cmd.none )
@@ -155,12 +164,28 @@ update msg session model =
                     Err _ ->
                         ( model, Cmd.none )
 
-        MessagesFetched (Ok response) ->
+        PreviousMessagesFetched (Ok response) ->
             case response of
                 Query.RoomMessages.Found { messages } ->
                     let
                         edges =
                             model.messages.edges
+
+                        anchorId =
+                            case last edges of
+                                Just edge ->
+                                    messageId edge
+
+                                Nothing ->
+                                    ""
+
+                        offset =
+                            case model.messagesScrollPosition of
+                                Just position ->
+                                    position.fromTop
+
+                                Nothing ->
+                                    0
 
                         pageInfo =
                             model.messages.pageInfo
@@ -181,33 +206,36 @@ update msg session model =
                             | messages = newConnection
                             , isFetchingMessages = False
                           }
-                        , Cmd.none
+                        , Ports.scrollTo (ScrollParams "messages" anchorId offset)
                         )
 
                 Query.RoomMessages.NotFound ->
                     ( { model | isFetchingMessages = False }, Cmd.none )
 
-        MessagesFetched (Err _) ->
+        PreviousMessagesFetched (Err _) ->
             ( { model | isFetchingMessages = False }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
 
 
-{-| Scroll the messages container to the most recent message.
+{-| Scrolls the messages container to the most recent message.
 -}
 scrollToBottom : String -> Cmd Msg
 scrollToBottom id =
     Task.attempt (always NoOp) <| Dom.Scroll.toBottom id
 
 
-{-| Set focus to the composer body textarea.
+{-| Sets focus to the composer body textarea.
 -}
 focusOnComposer : Cmd Msg
 focusOnComposer =
     Task.attempt (always NoOp) <| focus "composer-body-field"
 
 
+{-| Executes a query for previous messages, updates the model to a fetching
+state, and returns a model and command tuple.
+-}
 fetchPreviousMessages : Session -> Model -> ( Model, Cmd Msg )
 fetchPreviousMessages session model =
     case model.messages.pageInfo.endCursor of
@@ -215,15 +243,12 @@ fetchPreviousMessages session model =
             if model.messages.pageInfo.hasNextPage == True && model.isFetchingMessages == False then
                 let
                     params =
-                        Query.RoomMessages.Params
-                            model.room.id
-                            endCursor
-                            20
+                        Query.RoomMessages.Params model.room.id endCursor 20
 
                     request =
                         Query.RoomMessages.request session.apiToken params
                 in
-                    ( { model | isFetchingMessages = True }, Http.send MessagesFetched request )
+                    ( { model | isFetchingMessages = True }, Http.send PreviousMessagesFetched request )
             else
                 ( model, Cmd.none )
 
@@ -238,8 +263,8 @@ fetchPreviousMessages session model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every second Tick
-        , Ports.scrollPosition ScrollPositionReceived
+        [ Time.every (500 * millisecond) Tick
+        , Ports.scrollPositionReceived ScrollPositionReceived
         ]
 
 
@@ -303,12 +328,16 @@ view model =
 
 renderMessages : RoomMessageConnection -> Html Msg
 renderMessages connection =
-    div [ id "messages", class "messages" ] (List.map renderMessage (List.reverse connection.edges))
+    let
+        visibleMessages =
+            List.map renderMessage (List.reverse connection.edges)
+    in
+        div [ id "messages", class "messages" ] visibleMessages
 
 
 renderMessage : RoomMessageEdge -> Html Msg
 renderMessage edge =
-    div [ class "message" ]
+    div [ id (messageId edge), class "message" ]
         [ div [ class "message__avatar" ] []
         , div [ class "message__contents" ]
             [ div [ class "message__head" ]
@@ -319,6 +348,14 @@ renderMessage edge =
             , div [ class "message__body" ] [ text edge.node.body ]
             ]
         ]
+
+
+{-| Takes an edge from a room messages connection returns the DOM node ID for
+the message.
+-}
+messageId : RoomMessageEdge -> String
+messageId edge =
+    "message-" ++ edge.node.id
 
 
 {-| Determines if the "Send Message" button should be disabled.

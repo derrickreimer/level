@@ -1,11 +1,12 @@
 .messages {
+  position: relative;
   padding: 0 $baseline * 2 $baseline;
   overflow-y: auto;
 }
 
 .message {
   display: flex;
-  margin-top: $baseline;
+  padding-top: $baseline;
 
   &__avatar {
     flex: 0 0 auto;
