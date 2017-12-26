@@ -331,17 +331,8 @@ renderMessages connection =
     let
         visibleMessages =
             List.map renderMessage (List.reverse connection.edges)
-
-        loadingMore =
-            div [ class "loading-more" ] [ text "Loading more messages..." ]
-
-        nodes =
-            if connection.pageInfo.hasNextPage then
-                loadingMore :: visibleMessages
-            else
-                visibleMessages
     in
-        div [ id "messages", class "messages" ] nodes
+        div [ id "messages", class "messages" ] visibleMessages
 
 
 renderMessage : RoomMessageEdge -> Html Msg
