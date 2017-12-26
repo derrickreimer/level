@@ -23,7 +23,7 @@ import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll
 import Date
-import Time exposing (Time, second)
+import Time exposing (Time, second, millisecond)
 import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Data.Session exposing (Session)
@@ -170,6 +170,14 @@ update msg session model =
                         edges =
                             model.messages.edges
 
+                        anchorId =
+                            case List.head (List.reverse edges) of
+                                Just edge ->
+                                    messageId edge
+
+                                Nothing ->
+                                    ""
+
                         pageInfo =
                             model.messages.pageInfo
 
@@ -184,12 +192,15 @@ update msg session model =
 
                         newConnection =
                             RoomMessageConnection newEdges newPageInfo
+
+                        scrollParams =
+                            Ports.ScrollParams "messages" anchorId 0
                     in
                         ( { model
                             | messages = newConnection
                             , isFetchingMessages = False
                           }
-                        , Ports.scrollTo <| Ports.ScrollParams "messages" "message-105851408690971672" 0
+                        , Ports.scrollTo scrollParams
                         )
 
                 Query.RoomMessages.NotFound ->
@@ -316,7 +327,7 @@ renderMessages connection =
 
 renderMessage : RoomMessageEdge -> Html Msg
 renderMessage edge =
-    div [ id ("message-" ++ edge.node.id), class "message" ]
+    div [ id (messageId edge), class "message" ]
         [ div [ class "message__avatar" ] []
         , div [ class "message__contents" ]
             [ div [ class "message__head" ]
@@ -327,6 +338,14 @@ renderMessage edge =
             , div [ class "message__body" ] [ text edge.node.body ]
             ]
         ]
+
+
+{-| Takes an edge from a room messages connection returns the DOM node ID for
+the message.
+-}
+messageId : RoomMessageEdge -> String
+messageId edge =
+    "message-" ++ edge.node.id
 
 
 {-| Determines if the "Send Message" button should be disabled.

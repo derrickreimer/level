@@ -37,12 +37,13 @@ export const attachPorts = (app) => {
 
   app.ports.scrollTo.subscribe((arg) => {
     const {containerId, childId, offset} = arg;
-    let container = document.getElementById(containerId);
-    let child = document.getElementById(childId);
-    if (!(container && child)) return;
 
     requestAnimationFrame(() => {
-      container.scrollTop = child.offsetTop - 100;
+      let container = document.getElementById(containerId);
+      let child = document.getElementById(childId);
+      if (!(container && child)) return;
+
+      container.scrollTop = child.offsetTop + offset;
     });
   });
 };
