@@ -46,6 +46,7 @@
 
   &__loading-placeholder {
     @include loading-pulse;
+
     width: 120px;
     height: $default-font-size;
     border-radius: $base-radius;

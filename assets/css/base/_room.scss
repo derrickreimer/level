@@ -42,6 +42,7 @@
 
   &__subject-field {
     @include no-shadow-on-focus;
+
     border-radius: 3px 0 0;
     width: 100%;
   }
@@ -52,6 +53,7 @@
 
   &__recipients-field {
     @include no-shadow-on-focus;
+
     border-radius: 0 3px 0 0;
     width: 100%;
   }
