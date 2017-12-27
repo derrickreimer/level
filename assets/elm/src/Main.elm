@@ -341,11 +341,16 @@ spaceSelector space =
         ]
 
 
+stubbedAvatarUrl : String
+stubbedAvatarUrl =
+    "https://pbs.twimg.com/profile_images/852639806475583488/ZIHg4A21_400x400.jpg"
+
+
 identityMenu : User -> Html Msg
 identityMenu user =
     div [ class "identity-menu" ]
         [ a [ class "identity-menu__toggle", href "#" ]
-            [ div [ class "identity-menu__avatar" ] []
+            [ img [ class "identity-menu__avatar", src stubbedAvatarUrl ] []
             , div [ class "identity-menu__content" ]
                 [ div [ class "identity-menu__name" ] [ text (Data.User.displayName user) ]
                 ]

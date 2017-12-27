@@ -336,6 +336,11 @@ renderMessages connection =
         div [ id "messages", class "messages" ] visibleMessages
 
 
+stubbedAvatarUrl : String
+stubbedAvatarUrl =
+    "https://pbs.twimg.com/profile_images/852639806475583488/ZIHg4A21_400x400.jpg"
+
+
 renderMessage : RoomMessageEdge -> Html Msg
 renderMessage edge =
     let
@@ -346,7 +351,7 @@ renderMessage edge =
             formatTime edge.node.insertedAt
     in
         div [ id (messageId edge), class "message" ]
-            [ div [ class "message__avatar" ] []
+            [ img [ class "message__avatar", src stubbedAvatarUrl ] []
             , div [ class "message__contents" ]
                 [ div [ class "message__head" ]
                     [ span [ class "message__name" ] [ text (Data.User.displayName edge.node.user) ]
