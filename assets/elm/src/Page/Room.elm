@@ -338,17 +338,24 @@ renderMessages connection =
 
 renderMessage : RoomMessageEdge -> Html Msg
 renderMessage edge =
-    div [ id (messageId edge), class "message" ]
-        [ div [ class "message__avatar" ] []
-        , div [ class "message__contents" ]
-            [ div [ class "message__head" ]
-                [ span [ class "message__name" ] [ text (Data.User.displayName edge.node.user) ]
-                , span [ class "message__middot" ] [ text "·" ]
-                , span [ class "message__timestamp" ] [ text (formatTime edge.node.insertedAt) ]
+    let
+        dateTime =
+            formatDateTime edge.node.insertedAt
+
+        time =
+            formatTime edge.node.insertedAt
+    in
+        div [ id (messageId edge), class "message" ]
+            [ div [ class "message__avatar" ] []
+            , div [ class "message__contents" ]
+                [ div [ class "message__head" ]
+                    [ span [ class "message__name" ] [ text (Data.User.displayName edge.node.user) ]
+                    , span [ class "message__middot" ] [ text "·" ]
+                    , span [ class "message__timestamp", rel "tooltip", title dateTime ] [ text time ]
+                    ]
+                , div [ class "message__body" ] [ text edge.node.body ]
                 ]
-            , div [ class "message__body" ] [ text edge.node.body ]
             ]
-        ]
 
 
 {-| Takes an edge from a room messages connection returns the DOM node ID for
@@ -385,9 +392,23 @@ isComposerReadOnly model =
 
 {-| Converts a Time into a human-friendly HH:MMam time string.
 
-    formatTime 1510444158581 == "11:10 am"
+    formatTime 1514344680 == "9:18 pm"
 
 -}
 formatTime : Time -> String
 formatTime time =
     Date.Format.format "%-l:%M %P" <| Date.fromTime time
+
+
+{-| Converts a Time into a human-friendly date and time string.
+
+    formatDateTime 1514344680 == "Dec 26, 2017 at 11:10 am"
+
+-}
+formatDateTime : Time -> String
+formatDateTime time =
+    let
+        date =
+            Date.fromTime time
+    in
+        Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime time
