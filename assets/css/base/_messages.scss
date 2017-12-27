@@ -6,7 +6,7 @@
 
 .message {
   display: flex;
-  padding-top: $baseline;
+  padding-top: $baseline * 1.5;
 
   &__avatar {
     flex: 0 0 auto;
@@ -23,10 +23,13 @@
 
   &__name {
     font-weight: $bold-weight;
+    color: $muted-text-color;
+    margin-right: 8px;
   }
 
   &__middot {
     margin: 0 $baseline / 2;
+    display: none;
   }
 
   &__timestamp {
