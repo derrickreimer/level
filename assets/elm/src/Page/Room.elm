@@ -23,7 +23,6 @@ import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll
 import Date exposing (Date)
-import Date.Format
 import Time exposing (Time, second, millisecond)
 import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
@@ -32,7 +31,7 @@ import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last)
+import Util exposing (last, formatTime, formatDateTime, formatDay)
 
 
 -- MODEL
@@ -436,33 +435,3 @@ isSendDisabled model =
 isComposerReadOnly : Model -> Bool
 isComposerReadOnly model =
     model.isSubmittingMessage == True
-
-
-{-| Converts a Time into a human-friendly HH:MMam time string.
-
-    formatTime (Date ...) == "9:18 pm"
-
--}
-formatTime : Date -> String
-formatTime date =
-    Date.Format.format "%-l:%M %P" date
-
-
-{-| Converts a Time into a human-friendly date and time string.
-
-    formatDateTime (Date ...) == "Dec 26, 2017 at 11:10 am"
-
--}
-formatDateTime : Date -> String
-formatDateTime date =
-    Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime date
-
-
-{-| Converts a Time into a human-friendly day string.
-
-    formatDateTime (Date ...) == "Wed, December 26, 2017"
-
--}
-formatDay : Date -> String
-formatDay date =
-    Date.Format.format "%A, %B %-e, %Y" date

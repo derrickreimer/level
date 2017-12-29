@@ -15,6 +15,12 @@
   &__messages {
     padding: 0 $baseline;
   }
+
+  &:first-child {
+    .message-time-group__head {
+      padding-top: $baseline / 2;
+    }
+  }
 }
 
 .message {

@@ -1,10 +1,11 @@
 module Util exposing (..)
 
 import Date exposing (Date)
+import Date.Format
 import Json.Decode exposing (Decoder, string, andThen, succeed, fail)
 
 
--- UTILITY FUNCTIONS
+-- LIST HELPERS
 
 
 {-| Gets the last item from a list.
@@ -16,6 +17,10 @@ import Json.Decode exposing (Decoder, string, andThen, succeed, fail)
 last : List a -> Maybe a
 last =
     List.foldl (Just >> always) Nothing
+
+
+
+-- CUSTOM DECODERS
 
 
 {-| Decodes a Date from JSON.
@@ -37,3 +42,37 @@ dateDecoder =
                     fail error
     in
         string |> andThen convert
+
+
+
+-- DATE HELPERS
+
+
+{-| Converts a Time into a human-friendly HH:MMam time string.
+
+    formatTime (Date ...) == "9:18 pm"
+
+-}
+formatTime : Date -> String
+formatTime date =
+    Date.Format.format "%-l:%M %P" date
+
+
+{-| Converts a Time into a human-friendly date and time string.
+
+    formatDateTime (Date ...) == "Dec 26, 2017 at 11:10 am"
+
+-}
+formatDateTime : Date -> String
+formatDateTime date =
+    Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime date
+
+
+{-| Converts a Time into a human-friendly day string.
+
+    formatDateTime (Date ...) == "Wed, December 26, 2017"
+
+-}
+formatDay : Date -> String
+formatDay date =
+    Date.Format.format "%A, %B %-e, %Y" date
