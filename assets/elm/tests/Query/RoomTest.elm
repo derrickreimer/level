@@ -4,6 +4,7 @@ import Expect exposing (Expectation)
 import Test exposing (..)
 import Query.Room as Room
 import Json.Decode exposing (decodeString)
+import Date
 
 
 decoders : Test
@@ -49,7 +50,8 @@ decoders =
                                         "node": {
                                           "id": "8888",
                                           "body": "Hello world",
-                                          "insertedAtTs": 1510444158581,
+                                          "insertedAt": "2017-12-29T01:45:32Z",
+                                          "insertedAtTs": 1514511932000,
                                           "user": {
                                             "id": "7777",
                                             "firstName": "Derrick",
@@ -94,7 +96,8 @@ decoders =
                                     [ { node =
                                             { id = "8888"
                                             , body = "Hello world"
-                                            , insertedAt = 1510444158581
+                                            , insertedAt = Date.fromTime 1514511932000
+                                            , insertedAtTs = 1514511932000
                                             , user =
                                                 { id = "7777"
                                                 , firstName = "Derrick"

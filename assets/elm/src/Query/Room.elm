@@ -64,6 +64,7 @@ query =
                 node {
                   id
                   body
+                  insertedAt
                   insertedAtTs
                   user {
                     id

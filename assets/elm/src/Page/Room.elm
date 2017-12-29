@@ -22,7 +22,7 @@ import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick
 import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll
-import Date
+import Date exposing (Date)
 import Date.Format
 import Time exposing (Time, second, millisecond)
 import Data.User exposing (User, UserConnection)
@@ -397,23 +397,19 @@ isComposerReadOnly model =
 
 {-| Converts a Time into a human-friendly HH:MMam time string.
 
-    formatTime 1514344680 == "9:18 pm"
+    formatTime (Date ...) == "9:18 pm"
 
 -}
-formatTime : Time -> String
-formatTime time =
-    Date.Format.format "%-l:%M %P" <| Date.fromTime time
+formatTime : Date -> String
+formatTime date =
+    Date.Format.format "%-l:%M %P" date
 
 
 {-| Converts a Time into a human-friendly date and time string.
 
-    formatDateTime 1514344680 == "Dec 26, 2017 at 11:10 am"
+    formatDateTime (Date ...) == "Dec 26, 2017 at 11:10 am"
 
 -}
-formatDateTime : Time -> String
-formatDateTime time =
-    let
-        date =
-            Date.fromTime time
-    in
-        Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime time
+formatDateTime : Date -> String
+formatDateTime date =
+    Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime date
