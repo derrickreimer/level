@@ -15,6 +15,7 @@
     width: $jumbo-avatar-size;
     height: $jumbo-avatar-size;
     background-color: $default-avatar-color;
+    box-shadow: 0 0 ($baseline * 2) rgba(0,0,0,0.4);
   }
 
   &__contents {

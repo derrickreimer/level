@@ -144,8 +144,8 @@
     height: $number-width;
     border-radius: 99px;
     text-align: center;
-    color: #f0a202;
-    border: 1px solid #f0a202;
+    color: $default-link-color;
+    border: 1px solid $default-link-color;
   }
 
   &__controls {

@@ -34,6 +34,7 @@
     height: $large-avatar-size;
     background-color: $default-avatar-color;
     flex: 0 0 auto;
+    box-shadow: 0 0 ($baseline * 2) rgba(0,0,0,0.4);
 
     &--placeholder {
       @include loading-pulse;

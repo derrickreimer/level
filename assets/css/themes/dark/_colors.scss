@@ -9,18 +9,14 @@ $gray-blue: #9096a2;
 $old-lavendar: #6f687c;
 $dark-liver: #534b54;
 
-// Blues
-$united-nations-blue: #4990e2;
-$dodger-blue: #1e85fc;
+// Greens
+$mountain-meadow: #30ba8f;
 
 // Reds
 $dark-terra-cotta: #db5461;
 
-// Greens
-$pistachio: #8ed081;
-
-// Oranges
-$vivid-orange-peel: #f0a202;
+// Brights
+$confetti: #e5d352;
 
 
 // ------ SEMANTIC DEFINITIONS ------
@@ -40,16 +36,16 @@ $item-list-border-color: $dark-liver;
 $default-text-color: $lavendar-gray;
 $muted-text-color: $gray-blue;
 $offline-text-color: $old-lavendar;
-$default-link-color: $united-nations-blue;
+$default-link-color: $mountain-meadow;
 
 // Generic states
 $error-color: $dark-terra-cotta;
-$success-color: $pistachio;
-$highlight-color: $vivid-orange-peel;
+$success-color: $mountain-meadow;
+$highlight-color: $confetti; //$mountain-meadow;
 
 // User states
-$available-color: $pistachio;
-$focus-color: $vivid-orange-peel;
+$available-color: $mountain-meadow;
+$focus-color: $confetti;
 $offline-color: $quartz;
 
 // Forms
@@ -58,7 +54,7 @@ $input-muted-background-color: $quartz;
 $input-text-color: #fff;
 
 // Buttons
-$button-primary-color: $dodger-blue;
+$button-primary-color: $mountain-meadow;
 $button-primary-text-color: #fff;
 
 $button-secondary-border-color: $quartz;
