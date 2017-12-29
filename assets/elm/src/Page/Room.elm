@@ -332,7 +332,7 @@ groupMessagesByDay edges =
         [] ->
             []
 
-        hd :: tl ->
+        hd :: _ ->
             let
                 onDay : Date -> RoomMessageEdge -> Bool
                 onDay date edge =
