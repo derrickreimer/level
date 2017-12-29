@@ -327,13 +327,56 @@ view model =
         ]
 
 
+groupMessagesByDay : List RoomMessageEdge -> List ( Date, List RoomMessageEdge )
+groupMessagesByDay edges =
+    case edges of
+        [] ->
+            []
+
+        hd :: tl ->
+            let
+                onDay : Date -> RoomMessageEdge -> Bool
+                onDay date edge =
+                    let
+                        year =
+                            Date.year date
+
+                        month =
+                            Date.month date
+
+                        day =
+                            Date.day date
+                    in
+                        year
+                            == Date.year edge.node.insertedAt
+                            && month
+                            == Date.month edge.node.insertedAt
+                            && day
+                            == Date.day edge.node.insertedAt
+
+                ( phd, ptl ) =
+                    List.partition (onDay hd.node.insertedAt) edges
+            in
+                [ ( hd.node.insertedAt, phd ) ] ++ groupMessagesByDay ptl
+
+
 renderMessages : RoomMessageConnection -> Html Msg
 renderMessages connection =
     let
-        visibleMessages =
-            List.map renderMessage (List.reverse connection.edges)
+        edges =
+            List.reverse connection.edges
     in
-        div [ id "messages", class "messages" ] visibleMessages
+        div [ id "messages", class "messages" ]
+            (List.map renderMessageGroup <| groupMessagesByDay edges)
+
+
+renderMessageGroup : ( Date, List RoomMessageEdge ) -> Html Msg
+renderMessageGroup ( date, edges ) =
+    div [ class "message-time-group" ]
+        [ div [ class "message-time-group__head" ] [ text (formatDay date) ]
+        , div [ class "message-time-group__messages" ]
+            (List.map renderMessage edges)
+        ]
 
 
 stubbedAvatarUrl : String
@@ -413,3 +456,13 @@ formatTime date =
 formatDateTime : Date -> String
 formatDateTime date =
     Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime date
+
+
+{-| Converts a Time into a human-friendly day string.
+
+    formatDateTime (Date ...) == "Wed, December 26, 2017"
+
+-}
+formatDay : Date -> String
+formatDay date =
+    Date.Format.format "%A, %B %-e, %Y" date

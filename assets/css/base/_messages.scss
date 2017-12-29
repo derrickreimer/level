@@ -1,7 +1,20 @@
 .messages {
   position: relative;
-  padding: 0 $baseline * 2 $baseline;
+  padding: 0 $baseline $baseline / 2;
   overflow-y: auto;
+}
+
+.message-time-group {
+  &__head {
+    padding: $baseline * 4 $baseline $baseline / 2;
+    font-size: 17px;
+    color: $muted-text-color;
+    border-bottom: 1px solid $dark-liver;
+  }
+
+  &__messages {
+    padding: 0 $baseline;
+  }
 }
 
 .message {
