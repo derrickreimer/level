@@ -296,7 +296,7 @@ view model =
                 [ div [ id "sidebar-left", class "sidebar" ]
                     [ spaceSelector appState.space
                     , div [ class "sidebar__button-container" ]
-                        [ button [ class "button button--primary new-conversation-button" ] [ text "New Conversation" ]
+                        [ button [ class "button button--subdued new-conversation-button" ] [ text "New Conversation" ]
                         ]
                     , sideNav model.page appState
                     ]

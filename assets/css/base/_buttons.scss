@@ -10,6 +10,7 @@
   font-size: 15px;
   height: 40px;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   & + & {
     margin-left: $baseline;
@@ -29,7 +30,6 @@
   }
 
   &--primary {
-    transition: background-color 0.2s ease, color 0.2s ease;
     background-color: $button-primary-color;
 
     @if $gradient-buttons {
@@ -37,7 +37,6 @@
     }
 
     color: $button-primary-text-color;
-    // text-shadow: 0 -1px 0px rgba(0,0,0,0.2);
 
     &:hover:not(:disabled) {
       background-color: lighten($button-primary-color, 2%);
@@ -57,12 +56,24 @@
 
     &:disabled,
     &--disabled {
-      // background-color: lighten($button-primary-color, 15%);
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
 
-      @if $gradient-buttons {
-        // background-image: linear-gradient(0deg, lighten($button-primary-color, 8%), lighten($button-primary-color, 15%));
-      }
+  &--subdued {
+    background-color: $button-subdued-color;
+    color: $button-subdued-text-color;
 
+    &:hover:not(:disabled) {
+      background-color: lighten($button-subdued-color, 2%);
+    }
+
+    &:active {
+      background-color: darken($button-subdued-color, 10%);
+    }
+
+    &:disabled,
+    &--disabled {
       color: rgba(255, 255, 255, 0.6);
     }
   }
