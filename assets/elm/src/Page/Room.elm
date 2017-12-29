@@ -357,7 +357,9 @@ renderMessages connection =
 renderMessageGroup : ( Date, List RoomMessageEdge ) -> Html Msg
 renderMessageGroup ( date, edges ) =
     div [ class "message-time-group" ]
-        [ div [ class "message-time-group__head" ] [ text (formatDay date) ]
+        [ div [ class "message-time-group__head" ]
+            [ span [ class "message-time-group__timestamp" ] [ text (formatDay date) ]
+            ]
         , div [ class "message-time-group__messages" ] <| List.map renderMessage edges
         ]
 
