@@ -6,6 +6,7 @@ import TestHelpers exposing (userFixture)
 import Subscription.RoomMessageCreated as RoomMessageCreated
 import Json.Decode exposing (decodeString)
 import Json.Encode as Encode
+import Date
 
 
 query : Test
@@ -56,7 +57,8 @@ decoders =
                                         "firstName": "Derrick",
                                         "lastName": "Reimer"
                                       },
-                                      "insertedAtTs": 1510444158581
+                                      "insertedAt": "2017-12-29T01:45:32Z",
+                                      "insertedAtTs": 1514511932000
                                     }
                                   }
                                 }
@@ -71,7 +73,8 @@ decoders =
                             , roomMessage =
                                 { id = "9999"
                                 , body = "Hello world"
-                                , insertedAt = 1510444158581.0
+                                , insertedAt = Date.fromTime 1514511932000
+                                , insertedAtTs = 1514511932000.0
                                 , user =
                                     { id = "8888"
                                     , firstName = "Derrick"

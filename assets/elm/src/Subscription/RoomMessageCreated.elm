@@ -31,6 +31,7 @@ operation =
           roomMessage {
             id
             body
+            insertedAt
             insertedAtTs
             user {
               id

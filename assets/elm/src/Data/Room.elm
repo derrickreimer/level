@@ -20,6 +20,8 @@ import Time exposing (Time)
 import Data.User exposing (User, userDecoder)
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import UrlParser
+import Date exposing (Date)
+import Util exposing (dateDecoder)
 
 
 -- TYPES
@@ -55,7 +57,8 @@ type alias RoomMessage =
     { id : String
     , body : String
     , user : User
-    , insertedAt : Time
+    , insertedAt : Date
+    , insertedAtTs : Time
     }
 
 
@@ -115,6 +118,7 @@ roomMessageDecoder =
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "body" Decode.string
         |> Pipeline.custom (Decode.at [ "user" ] userDecoder)
+        |> Pipeline.required "insertedAt" dateDecoder
         |> Pipeline.required "insertedAtTs" Decode.float
 
 

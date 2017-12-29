@@ -22,8 +22,7 @@ import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick
 import Html.Attributes exposing (..)
 import Dom exposing (focus)
 import Dom.Scroll
-import Date
-import Date.Format
+import Date exposing (Date)
 import Time exposing (Time, second, millisecond)
 import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
@@ -32,7 +31,7 @@ import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last)
+import Util exposing (last, formatTime, formatDateTime, formatDay, onSameDay)
 
 
 -- MODEL
@@ -327,13 +326,40 @@ view model =
         ]
 
 
+groupMessagesByDay : List RoomMessageEdge -> List ( Date, List RoomMessageEdge )
+groupMessagesByDay edges =
+    case edges of
+        [] ->
+            []
+
+        hd :: _ ->
+            let
+                onDay : Date -> RoomMessageEdge -> Bool
+                onDay date edge =
+                    onSameDay date edge.node.insertedAt
+
+                ( phd, ptl ) =
+                    List.partition (onDay hd.node.insertedAt) edges
+            in
+                [ ( hd.node.insertedAt, phd ) ] ++ groupMessagesByDay ptl
+
+
 renderMessages : RoomMessageConnection -> Html Msg
 renderMessages connection =
     let
-        visibleMessages =
-            List.map renderMessage (List.reverse connection.edges)
+        edges =
+            List.reverse connection.edges
     in
-        div [ id "messages", class "messages" ] visibleMessages
+        div [ id "messages", class "messages" ]
+            (List.map renderMessageGroup <| groupMessagesByDay edges)
+
+
+renderMessageGroup : ( Date, List RoomMessageEdge ) -> Html Msg
+renderMessageGroup ( date, edges ) =
+    div [ class "message-time-group" ]
+        [ div [ class "message-time-group__head" ] [ text (formatDay date) ]
+        , div [ class "message-time-group__messages" ] <| List.map renderMessage edges
+        ]
 
 
 stubbedAvatarUrl : String
@@ -385,35 +411,11 @@ isSendDisabled model =
 
 {-| Determines if the composer textarea should be read-only.
 
-    isSendDisabled { composerBody = "" } == True
-    isSendDisabled { composerBody = "I have some text" } == False
-    isSendDisabled { isSubmittingMessage = True } == False
+    isComposerReadOnly { composerBody = "" } == True
+    isComposerReadOnly { composerBody = "I have some text" } == False
+    isComposerReadOnly { isSubmittingMessage = True } == False
 
 -}
 isComposerReadOnly : Model -> Bool
 isComposerReadOnly model =
     model.isSubmittingMessage == True
-
-
-{-| Converts a Time into a human-friendly HH:MMam time string.
-
-    formatTime 1514344680 == "9:18 pm"
-
--}
-formatTime : Time -> String
-formatTime time =
-    Date.Format.format "%-l:%M %P" <| Date.fromTime time
-
-
-{-| Converts a Time into a human-friendly date and time string.
-
-    formatDateTime 1514344680 == "Dec 26, 2017 at 11:10 am"
-
--}
-formatDateTime : Time -> String
-formatDateTime time =
-    let
-        date =
-            Date.fromTime time
-    in
-        Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime time
