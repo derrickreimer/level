@@ -6,7 +6,7 @@
   background-color: $sidebar-color;
 
   &__button-container {
-    padding: $baseline;
+    padding: $baseline $baseline $baseline * 1.5;
   }
 }
 
@@ -34,7 +34,7 @@
     height: $large-avatar-size;
     background-color: $default-avatar-color;
     flex: 0 0 auto;
-    box-shadow: 0 0 ($baseline * 2) rgba(0,0,0,0.4);
+    // box-shadow: 0 0 ($baseline * 2) rgba(0,0,0,0.4);
 
     &--placeholder {
       @include loading-pulse;
@@ -53,10 +53,6 @@
     border-radius: $base-radius;
   }
 }
-
-// .space-selector__name {
-//   font-size: $default-font-size + 2px;
-// }
 
 .side-nav-heading {
   margin: 0 0 0 $baseline;
@@ -111,7 +107,7 @@
 }
 
 .new-conversation-button {
-  height: 34px;
+  height: 36px;
 }
 
 .users-list {
