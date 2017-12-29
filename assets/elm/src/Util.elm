@@ -76,3 +76,15 @@ formatDateTime date =
 formatDay : Date -> String
 formatDay date =
     Date.Format.format "%A, %B %-e, %Y" date
+
+
+{-| Checks to see if two dates are on the same day.
+-}
+onSameDay : Date -> Date -> Bool
+onSameDay d1 d2 =
+    Date.year d1
+        == Date.year d2
+        && Date.month d1
+        == Date.month d2
+        && Date.day d1
+        == Date.day d2

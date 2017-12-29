@@ -31,7 +31,7 @@ import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last, formatTime, formatDateTime, formatDay)
+import Util exposing (last, formatTime, formatDateTime, formatDay, onSameDay)
 
 
 -- MODEL
@@ -336,22 +336,7 @@ groupMessagesByDay edges =
             let
                 onDay : Date -> RoomMessageEdge -> Bool
                 onDay date edge =
-                    let
-                        year =
-                            Date.year date
-
-                        month =
-                            Date.month date
-
-                        day =
-                            Date.day date
-                    in
-                        year
-                            == Date.year edge.node.insertedAt
-                            && month
-                            == Date.month edge.node.insertedAt
-                            && day
-                            == Date.day edge.node.insertedAt
+                    onSameDay date edge.node.insertedAt
 
                 ( phd, ptl ) =
                     List.partition (onDay hd.node.insertedAt) edges
