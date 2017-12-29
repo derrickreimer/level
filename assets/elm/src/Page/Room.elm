@@ -373,8 +373,7 @@ renderMessageGroup : ( Date, List RoomMessageEdge ) -> Html Msg
 renderMessageGroup ( date, edges ) =
     div [ class "message-time-group" ]
         [ div [ class "message-time-group__head" ] [ text (formatDay date) ]
-        , div [ class "message-time-group__messages" ]
-            (List.map renderMessage edges)
+        , div [ class "message-time-group__messages" ] <| List.map renderMessage edges
         ]
 
 
@@ -427,9 +426,9 @@ isSendDisabled model =
 
 {-| Determines if the composer textarea should be read-only.
 
-    isSendDisabled { composerBody = "" } == True
-    isSendDisabled { composerBody = "I have some text" } == False
-    isSendDisabled { isSubmittingMessage = True } == False
+    isComposerReadOnly { composerBody = "" } == True
+    isComposerReadOnly { composerBody = "I have some text" } == False
+    isComposerReadOnly { isSubmittingMessage = True } == False
 
 -}
 isComposerReadOnly : Model -> Bool
