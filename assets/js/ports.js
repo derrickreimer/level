@@ -23,27 +23,36 @@ export const attachPorts = (app) => {
     });
   });
 
-  app.ports.getScrollPosition.subscribe((id) => {
-    let node = document.getElementById(id);
-    if (!node) return;
+  app.ports.getScrollPosition.subscribe((arg) => {
+    const {containerId, anchorId} = arg;
 
-    let scrollHeight = node.scrollHeight;
-    let clientHeight = node.clientHeight;
-    let fromTop = node.scrollTop;
+    let container = document.getElementById(containerId);
+    let anchor = document.getElementById(anchorId);
+    if (!container) return;
+
+    let scrollHeight = container.scrollHeight;
+    let clientHeight = container.clientHeight;
+    let fromTop = container.scrollTop;
     let fromBottom = scrollHeight - fromTop - clientHeight;
 
-    app.ports.scrollPositionReceived.send({id, fromBottom, fromTop});
+    if (anchor) {
+      var anchorOffset = anchor.offsetTop;
+    } else {
+      var anchorOffset = null;
+    }
+
+    app.ports.scrollPositionReceived.send({containerId, fromBottom, fromTop, anchorOffset});
   });
 
   app.ports.scrollTo.subscribe((arg) => {
-    const {containerId, childId, offset} = arg;
+    const {containerId, anchorId, offset} = arg;
 
     requestAnimationFrame(() => {
       let container = document.getElementById(containerId);
-      let child = document.getElementById(childId);
-      if (!(container && child)) return;
+      let anchor = document.getElementById(anchorId);
+      if (!(container && anchor)) return;
 
-      container.scrollTop = child.offsetTop + offset;
+      container.scrollTop = anchor.offsetTop + offset;
     });
   });
 };

@@ -19,6 +19,17 @@ last =
     List.foldl (Just >> always) Nothing
 
 
+{-| Computes the size of a list.
+
+    size [1,2,3] == 3
+    size [] == 0
+
+-}
+size : List a -> Int
+size =
+    List.foldl (\_ t -> t + 1) 0
+
+
 
 -- CUSTOM DECODERS
 
@@ -48,7 +59,7 @@ dateDecoder =
 -- DATE HELPERS
 
 
-{-| Converts a Time into a human-friendly HH:MMam time string.
+{-| Converts a Time into a human-friendly HH:MM PP time string.
 
     formatTime (Date ...) == "9:18 pm"
 
@@ -56,6 +67,16 @@ dateDecoder =
 formatTime : Date -> String
 formatTime date =
     Date.Format.format "%-l:%M %P" date
+
+
+{-| Converts a Time into a human-friendly HH:MM time string.
+
+    formatTime (Date ...) == "9:18"
+
+-}
+formatTimeWithoutMeridian : Date -> String
+formatTimeWithoutMeridian date =
+    Date.Format.format "%-l:%M" date
 
 
 {-| Converts a Time into a human-friendly date and time string.

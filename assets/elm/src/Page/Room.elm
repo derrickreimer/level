@@ -31,7 +31,7 @@ import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last, formatTime, formatDateTime, formatDay, onSameDay)
+import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay)
 
 
 -- MODEL
@@ -138,7 +138,19 @@ update msg session model =
             ( model, Cmd.none )
 
         Tick _ ->
-            ( model, Ports.getScrollPosition "messages" )
+            let
+                anchorId =
+                    case last model.messages.edges of
+                        Just edge ->
+                            Just (messageAnchorId edge)
+
+                        Nothing ->
+                            Nothing
+
+                args =
+                    Ports.ScrollPositionArgs "messages" anchorId
+            in
+                ( model, Ports.getScrollPosition args )
 
         ScrollPositionReceived value ->
             let
@@ -147,7 +159,7 @@ update msg session model =
             in
                 case result of
                     Ok position ->
-                        case position.id of
+                        case position.containerId of
                             "messages" ->
                                 let
                                     modelWithPosition =
@@ -174,7 +186,7 @@ update msg session model =
                         anchorId =
                             case last edges of
                                 Just edge ->
-                                    messageId edge
+                                    messageAnchorId edge
 
                                 Nothing ->
                                     ""
@@ -182,7 +194,12 @@ update msg session model =
                         offset =
                             case model.messagesScrollPosition of
                                 Just position ->
-                                    position.fromTop
+                                    case position.anchorOffset of
+                                        Just offset ->
+                                            position.fromTop - offset
+
+                                        Nothing ->
+                                            position.fromTop
 
                                 Nothing ->
                                     0
@@ -344,6 +361,23 @@ groupMessagesByDay edges =
                 [ ( hd.node.insertedAt, phd ) ] ++ groupMessagesByDay ptl
 
 
+groupMessagesByUser : List RoomMessageEdge -> List ( User, List RoomMessageEdge )
+groupMessagesByUser edges =
+    let
+        reducer edge groups =
+            case groups of
+                [] ->
+                    [ ( edge.node.user, [ edge ] ) ]
+
+                ( hUser, hEdges ) :: tl ->
+                    if edge.node.user.id == hUser.id && Util.size hEdges < 5 then
+                        ( hUser, edge :: hEdges ) :: tl
+                    else
+                        ( edge.node.user, [ edge ] ) :: groups
+    in
+        List.foldr reducer [] edges
+
+
 renderMessages : RoomMessageConnection -> Html Msg
 renderMessages connection =
     let
@@ -351,17 +385,33 @@ renderMessages connection =
             List.reverse connection.edges
     in
         div [ id "messages", class "messages" ]
-            (List.map renderMessageGroup <| groupMessagesByDay edges)
+            (List.map renderTimeGroup <| groupMessagesByDay edges)
 
 
-renderMessageGroup : ( Date, List RoomMessageEdge ) -> Html Msg
-renderMessageGroup ( date, edges ) =
-    div [ class "message-time-group" ]
-        [ div [ class "message-time-group__head" ]
-            [ span [ class "message-time-group__timestamp" ] [ text (formatDay date) ]
+renderTimeGroup : ( Date, List RoomMessageEdge ) -> Html Msg
+renderTimeGroup ( date, edges ) =
+    let
+        userGroups =
+            groupMessagesByUser edges
+    in
+        div [ class "message-time-group" ]
+            [ div [ class "message-time-group__head" ]
+                [ span [ class "message-time-group__timestamp" ] [ text (formatDay date) ]
+                ]
+            , div [ class "message-time-group__messages" ] <| List.map renderUserGroup userGroups
             ]
-        , div [ class "message-time-group__messages" ] <| List.map renderMessage edges
-        ]
+
+
+renderUserGroup : ( User, List RoomMessageEdge ) -> Html Msg
+renderUserGroup ( user, edges ) =
+    case edges of
+        [] ->
+            text ""
+
+        hd :: tl ->
+            div [ class "message-user-group" ] <|
+                (renderHeadMessage hd)
+                    :: (renderTailMessages tl)
 
 
 stubbedAvatarUrl : String
@@ -369,8 +419,8 @@ stubbedAvatarUrl =
     "https://pbs.twimg.com/profile_images/852639806475583488/ZIHg4A21_400x400.jpg"
 
 
-renderMessage : RoomMessageEdge -> Html Msg
-renderMessage edge =
+renderHeadMessage : RoomMessageEdge -> Html Msg
+renderHeadMessage edge =
     let
         dateTime =
             formatDateTime edge.node.insertedAt
@@ -378,25 +428,46 @@ renderMessage edge =
         time =
             formatTime edge.node.insertedAt
     in
-        div [ id (messageId edge), class "message" ]
-            [ img [ class "message__avatar", src stubbedAvatarUrl ] []
-            , div [ class "message__contents" ]
-                [ div [ class "message__head" ]
-                    [ span [ class "message__name" ] [ text (Data.User.displayName edge.node.user) ]
-                    , span [ class "message__middot" ] [ text "·" ]
-                    , span [ class "message__timestamp", rel "tooltip", title dateTime ] [ text time ]
+        div [ class "message-head" ]
+            [ img [ class "message-head__avatar", src stubbedAvatarUrl ] []
+            , div [ class "message-head__contents" ]
+                [ div [ class "message-head__head" ]
+                    [ span [ class "message-head__name" ] [ text (Data.User.displayName edge.node.user) ]
+                    , span [ class "message-head__middot" ] [ text "·" ]
+                    , span [ class "message-head__timestamp", rel "tooltip", title dateTime ] [ text time ]
                     ]
-                , div [ class "message__body" ] [ text edge.node.body ]
+                , div [ id (messageAnchorId edge), class "message-head__body" ] [ text edge.node.body ]
                 ]
             ]
+
+
+renderTailMessages : List RoomMessageEdge -> List (Html Msg)
+renderTailMessages edges =
+    let
+        renderTailMessage edge =
+            let
+                dateTime =
+                    formatDateTime edge.node.insertedAt
+
+                time =
+                    formatTimeWithoutMeridian edge.node.insertedAt
+            in
+                div [ class "message-tail" ]
+                    [ div [ class "message-tail__timestamp", rel "tooltip", title dateTime ] [ text time ]
+                    , div [ class "message-tail__contents" ]
+                        [ div [ id (messageAnchorId edge), class "message-tail__body" ] [ text edge.node.body ]
+                        ]
+                    ]
+    in
+        List.map renderTailMessage edges
 
 
 {-| Takes an edge from a room messages connection returns the DOM node ID for
 the message.
 -}
-messageId : RoomMessageEdge -> String
-messageId edge =
-    "message-" ++ edge.node.id
+messageAnchorId : RoomMessageEdge -> String
+messageAnchorId edge =
+    "msg-body-" ++ edge.node.id
 
 
 {-| Determines if the "Send Message" button should be disabled.
