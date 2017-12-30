@@ -59,7 +59,7 @@ dateDecoder =
 -- DATE HELPERS
 
 
-{-| Converts a Time into a human-friendly HH:MMam time string.
+{-| Converts a Time into a human-friendly HH:MM PP time string.
 
     formatTime (Date ...) == "9:18 pm"
 
@@ -67,6 +67,16 @@ dateDecoder =
 formatTime : Date -> String
 formatTime date =
     Date.Format.format "%-l:%M %P" date
+
+
+{-| Converts a Time into a human-friendly HH:MM time string.
+
+    formatTime (Date ...) == "9:18"
+
+-}
+formatTimeWithoutMeridian : Date -> String
+formatTimeWithoutMeridian date =
+    Date.Format.format "%-l:%M" date
 
 
 {-| Converts a Time into a human-friendly date and time string.

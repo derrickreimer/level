@@ -31,7 +31,7 @@ import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last, formatTime, formatDateTime, formatDay, onSameDay)
+import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay)
 
 
 -- MODEL
@@ -450,10 +450,11 @@ renderTailMessages edges =
                     formatDateTime edge.node.insertedAt
 
                 time =
-                    formatTime edge.node.insertedAt
+                    formatTimeWithoutMeridian edge.node.insertedAt
             in
                 div [ class "message-tail" ]
-                    [ div [ class "message-tail__contents" ]
+                    [ div [ class "message-tail__timestamp", rel "tooltip", title dateTime ] [ text time ]
+                    , div [ class "message-tail__contents" ]
                         [ div [ id (messageAnchorId edge), class "message-tail__body" ] [ text edge.node.body ]
                         ]
                     ]

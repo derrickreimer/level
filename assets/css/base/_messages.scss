@@ -66,10 +66,30 @@
 }
 
 .message-tail {
+  display: flex;
   padding-top: $baseline / 2;
 
+  &__timestamp {
+    transition: opacity 0.2s ease;
+    flex: 0 0 auto;
+    margin-top: 4px;
+    margin-right: $baseline;
+    width: $jumbo-avatar-size;
+    font-size: 12px;
+    text-align: right;
+    color: $muted-text-color;
+    vertical-align: middle;
+    opacity: 0;
+  }
+
   &__contents {
-    margin-left: $jumbo-avatar-size + $baseline;
+    flex: 1 1 auto;
+  }
+
+  &:hover {
+    .message-tail__timestamp {
+      opacity: 1;
+    }
   }
 }
 
