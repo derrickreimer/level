@@ -370,7 +370,7 @@ groupMessagesByUser edges =
                     [ ( edge.node.user, [ edge ] ) ]
 
                 ( hUser, hEdges ) :: tl ->
-                    if edge.node.user.id == hUser.id then
+                    if edge.node.user.id == hUser.id && Util.size hEdges < 5 then
                         ( hUser, edge :: hEdges ) :: tl
                     else
                         ( edge.node.user, [ edge ] ) :: groups

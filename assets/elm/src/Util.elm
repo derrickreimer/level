@@ -19,6 +19,17 @@ last =
     List.foldl (Just >> always) Nothing
 
 
+{-| Computes the size of a list.
+
+    size [1,2,3] == 3
+    size [] == 0
+
+-}
+size : List a -> Int
+size =
+    List.foldl (\_ t -> t + 1) 0
+
+
 
 -- CUSTOM DECODERS
 
