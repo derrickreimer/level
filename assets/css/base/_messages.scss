@@ -8,15 +8,12 @@
   &__head {
     padding: $baseline * 4 0 $baseline / 2;
     text-align: center;
+    border-bottom: 1px solid darken($default-border-color, 8%);
   }
 
   &__timestamp {
-    display: inline-block;
-    padding: $baseline / 2 $baseline * 1.5;
-    border-radius: 9999px;
     font-size: 14px;
     font-weight: $bold-weight;
-    background-color: $dark-liver;
   }
 
   &__messages {
@@ -25,7 +22,7 @@
 
   &:first-child {
     .message-time-group__head {
-      padding-top: $baseline;
+      padding-top: $baseline / 2;
     }
   }
 }
