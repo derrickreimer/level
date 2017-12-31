@@ -1,3 +1,5 @@
+// FORM FIELDS
+
 .form-field {
   &--error {
     .text-field {
@@ -148,5 +150,45 @@ label.checkbox {
     &:last-child {
       margin-right: 0;
     }
+  }
+}
+
+// FORM STRUCTURE
+
+.center-form {
+  margin: 0 auto;
+  padding: 100px 0 0;
+  max-width: 380px;
+
+  &__form {
+    padding: $baseline * 2;
+    border: 1px solid;
+    border-radius: $base-radius * 2;
+    border-color: $default-border-color;
+  }
+
+  &__heading {
+    margin-bottom: 32px;
+    font-size: 36px;
+    font-weight: $normal-weight;
+    text-align: center;
+  }
+
+  &__footer {
+    margin: 24px 0;
+    text-align: center;
+    font-weight: $normal-weight;
+    color: $muted-text-color;
+  }
+
+  .form-field {
+    margin-bottom: $baseline * 2;
+  }
+
+  .form-label {
+    padding-bottom: $baseline / 2;
+    display: block;
+    font-size: $default-font-size;
+    font-weight: $bold-weight;
   }
 }

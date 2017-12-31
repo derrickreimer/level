@@ -2,10 +2,10 @@
   <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="auth-form">
-  <h2 class="auth-form__heading"><%= gettext "Join the %{name} space", name: @invitation.space.name %></h2>
+<div class="center-form">
+  <h2 class="center-form__heading"><%= gettext "Join the %{name} space", name: @invitation.space.name %></h2>
 
-  <%= form_for @changeset, accept_invitation_path(@conn, :create, @invitation), [class: "auth-form__form"], fn f -> %>
+  <%= form_for @changeset, accept_invitation_path(@conn, :create, @invitation), [class: "center-form__form"], fn f -> %>
     <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
       <%= label f, :email, gettext("Email Address"), class: "form-label" %>
       <%= text_input f, :email, class: "text-field text-field--full text-field--large" %>
@@ -43,7 +43,7 @@
     </div>
   <% end %>
 
-  <div class="auth-form__footer">
+  <div class="center-form__footer">
     <p>
       <%= gettext "You were invited by %{invitor}.", invitor: @invitation.invitor.email %><br>
       <%= gettext "If you don’t recognize the sender, please disregard this invitation!" %>
