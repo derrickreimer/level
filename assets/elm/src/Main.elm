@@ -58,6 +58,7 @@ type Page
     | NotFound
     | Conversations -- TODO: add a model to this type
     | Room Page.Room.Model
+    | NewRoom -- TODO: add a model to this type
 
 
 type alias Flags =
@@ -240,6 +241,10 @@ navigateTo maybeRoute model =
                     Just (Route.Room slug) ->
                         transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
 
+                    Just Route.NewRoom ->
+                        -- TODO: implement this
+                        ( { model | page = NewRoom }, Cmd.none )
+
 
 setupSockets : Model -> ( Model, Cmd Msg )
 setupSockets model =
@@ -319,6 +324,9 @@ pageContent page =
             model
                 |> Page.Room.view
                 |> Html.map RoomMsg
+
+        NewRoom ->
+            text ""
 
         Blank ->
             -- TODO: implement this
@@ -413,7 +421,27 @@ userItem page edge =
 
 roomSubscriptionsList : Page -> AppState -> Html Msg
 roomSubscriptionsList page appState =
-    div [ class "side-nav" ] (List.map (roomSubscriptionItem page) appState.roomSubscriptions.edges)
+    let
+        rooms =
+            List.map (roomSubscriptionItem page) appState.roomSubscriptions.edges
+    in
+        div [ class "side-nav" ] (rooms ++ [ createRoomLink page ])
+
+
+createRoomLink : Page -> Html Msg
+createRoomLink page =
+    let
+        selectedClass =
+            case page of
+                NewRoom ->
+                    "side-nav__item--selected"
+
+                _ ->
+                    ""
+    in
+        a [ class ("side-nav__item side-nav__item--action " ++ selectedClass), Route.href Route.NewRoom ]
+            [ span [ class "side-nav__item-name" ] [ text "Create a room..." ]
+            ]
 
 
 roomSubscriptionItem : Page -> RoomSubscriptionEdge -> Html Msg

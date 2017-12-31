@@ -87,6 +87,10 @@
       }
     }
 
+    &--action {
+      color: $muted-text-color;
+    }
+
     // &--room:before {
     //   content: "#";
     //   padding-right: $baseline / 2;
