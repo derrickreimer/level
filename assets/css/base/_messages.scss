@@ -8,7 +8,7 @@
   &__head {
     padding: $baseline * 4 0 $baseline / 2;
     text-align: center;
-    border-bottom: 1px solid darken($default-border-color, 8%);
+    border-bottom: 1px solid $default-border-color;
   }
 
   &__timestamp {
