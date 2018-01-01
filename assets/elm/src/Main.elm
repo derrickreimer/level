@@ -441,15 +441,22 @@ roomSubscriptionsList page appState =
 createRoomLink : Page -> Html Msg
 createRoomLink page =
     let
-        selectedClass =
+        isActive =
             case page of
                 NewRoom _ ->
-                    "side-nav__item--selected"
+                    True
 
                 _ ->
-                    ""
+                    False
     in
-        a [ class ("side-nav__item side-nav__item--action " ++ selectedClass), Route.href Route.NewRoom ]
+        a
+            [ classList
+                [ ( "side-nav__item", True )
+                , ( "side-nav__item--action", True )
+                , ( "side-nav__item--selected", isActive )
+                ]
+            , Route.href Route.NewRoom
+            ]
             [ span [ class "side-nav__item-name" ] [ text "Create a room..." ]
             ]
 
@@ -460,18 +467,25 @@ roomSubscriptionItem page edge =
         room =
             edge.node.room
 
-        selectedClass =
+        isActive =
             case page of
-                Room model ->
-                    if model.room.id == room.id then
-                        "side-nav__item--selected"
+                Room pageModel ->
+                    if pageModel.room.id == room.id then
+                        True
                     else
-                        ""
+                        False
 
                 _ ->
-                    ""
+                    False
     in
-        a [ class ("side-nav__item side-nav__item--room " ++ selectedClass), Route.href (Route.Room room.id) ]
+        a
+            [ classList
+                [ ( "side-nav__item", True )
+                , ( "side-nav__item--room", True )
+                , ( "side-nav__item--selected", isActive )
+                ]
+            , Route.href (Route.Room room.id)
+            ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             ]
 

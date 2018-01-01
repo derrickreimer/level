@@ -310,34 +310,41 @@ onEnter msg =
 
 view : Model -> Html Msg
 view model =
-    div [ id "main", class "main main--room" ]
-        [ div [ class "page-head" ]
-            [ h2 [ class "page-head__name" ] [ text model.room.name ]
-            , p [ class "page-head__description" ] [ text model.room.description ]
-            ]
-        , renderMessages model.messages
-        , div [ class "composer" ]
-            [ div [ class "composer__body" ]
-                [ textarea
-                    [ id "composer-body-field"
-                    , class "text-field text-field--muted textarea composer__body-field"
-                    , onInput ComposerBodyChanged
-                    , onEnter MessageSubmitted
-                    , readonly (isComposerReadOnly model)
-                    , value model.composerBody
-                    ]
-                    []
+    let
+        description =
+            if model.room.description == "" then
+                "Add a description..."
+            else
+                model.room.description
+    in
+        div [ id "main", class "main main--room" ]
+            [ div [ class "page-head" ]
+                [ h2 [ class "page-head__name" ] [ text model.room.name ]
+                , p [ class "page-head__description" ] [ text description ]
                 ]
-            , div [ class "composer__controls" ]
-                [ button
-                    [ class "button button--primary"
-                    , disabled (isSendDisabled model)
-                    , onClick MessageSubmitted
+            , renderMessages model.messages
+            , div [ class "composer" ]
+                [ div [ class "composer__body" ]
+                    [ textarea
+                        [ id "composer-body-field"
+                        , class "text-field text-field--muted textarea composer__body-field"
+                        , onInput ComposerBodyChanged
+                        , onEnter MessageSubmitted
+                        , readonly (isComposerReadOnly model)
+                        , value model.composerBody
+                        ]
+                        []
                     ]
-                    [ text "Send Message" ]
+                , div [ class "composer__controls" ]
+                    [ button
+                        [ class "button button--primary"
+                        , disabled (isSendDisabled model)
+                        , onClick MessageSubmitted
+                        ]
+                        [ text "Send Message" ]
+                    ]
                 ]
             ]
-        ]
 
 
 groupMessagesByDay : List RoomMessageEdge -> List ( Date, List RoomMessageEdge )
