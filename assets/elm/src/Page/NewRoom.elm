@@ -1,9 +1,10 @@
-module Page.NewRoom exposing (..)
+module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, initialModel, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Http
+import Data.Room exposing (Room)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateRoom as CreateRoom
@@ -46,14 +47,19 @@ type Msg
     | Submitted (Result Http.Error CreateRoom.Response)
 
 
-update : Msg -> Session -> Model -> ( Model, Cmd Msg )
+type ExternalMsg
+    = NoOp
+    | RoomCreated Room
+
+
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg session model =
     case msg of
         NameChanged val ->
-            ( { model | name = val }, Cmd.none )
+            ( ( { model | name = val }, Cmd.none ), NoOp )
 
         DescriptionChanged val ->
-            ( { model | description = val }, Cmd.none )
+            ( ( { model | description = val }, Cmd.none ), NoOp )
 
         Submit ->
             let
@@ -62,23 +68,23 @@ update msg session model =
                         CreateRoom.Params model.name model.description
             in
                 if isSubmittable model then
-                    ( { model | isSubmitting = True }
-                    , Http.send Submitted request
+                    ( ( { model | isSubmitting = True }
+                      , Http.send Submitted request
+                      )
+                    , NoOp
                     )
                 else
-                    ( model, Cmd.none )
+                    ( ( model, Cmd.none ), NoOp )
 
         Submitted (Ok (CreateRoom.Success room)) ->
-            -- TODO: add to the sidebar, redirect to the room
-            ( model, Route.modifyUrl <| Route.Room room.id )
+            ( ( model, Route.modifyUrl <| Route.Room room.id ), RoomCreated room )
 
         Submitted (Ok (CreateRoom.Invalid errors)) ->
-            -- TODO: render validation errors
-            ( { model | errors = errors }, Cmd.none )
+            ( ( { model | errors = errors }, Cmd.none ), NoOp )
 
         Submitted (Err _) ->
-            -- TODO: render errors
-            ( model, Cmd.none )
+            -- TODO: something unexpected went wrong - figure out best way to handle?
+            ( ( model, Cmd.none ), NoOp )
 
 
 

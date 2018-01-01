@@ -185,10 +185,38 @@ update msg model =
 
             ( NewRoomMsg msg, NewRoom pageModel ) ->
                 let
-                    ( newPageModel, cmd ) =
+                    ( ( newPageModel, cmd ), externalMsg ) =
                         Page.NewRoom.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.NewRoom.RoomCreated room ->
+                                case model.appState of
+                                    Loaded appState ->
+                                        let
+                                            -- TODO: this should probably be cleaned up/refactored.
+                                            -- We are relying on the fact that "room subscriptions"
+                                            -- are very simple and just contain a room record right now,
+                                            -- but that may not always be the case. This feels hacky
+                                            -- to do it this way, but it does avoid a round trip to the
+                                            -- server.
+                                            newEdges =
+                                                { node = { room = room } } :: appState.roomSubscriptions.edges
+
+                                            newAppState =
+                                                { appState | roomSubscriptions = { edges = newEdges } }
+                                        in
+                                            ( { model | appState = Loaded newAppState }, Cmd.none )
+
+                                    NotLoaded ->
+                                        ( model, Cmd.none )
+
+                            Page.NewRoom.NoOp ->
+                                ( model, Cmd.none )
                 in
-                    ( { model | page = NewRoom newPageModel }, Cmd.map NewRoomMsg cmd )
+                    ( { newModel | page = NewRoom newPageModel }
+                    , Cmd.batch [ externalCmd, Cmd.map NewRoomMsg cmd ]
+                    )
 
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
