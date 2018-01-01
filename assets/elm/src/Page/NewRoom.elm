@@ -7,6 +7,7 @@ import Http
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateRoom as CreateRoom
+import Route
 
 
 -- MODEL
@@ -69,7 +70,7 @@ update msg session model =
 
         Submitted (Ok (CreateRoom.Success room)) ->
             -- TODO: add to the sidebar, redirect to the room
-            ( model, Cmd.none )
+            ( model, Route.modifyUrl <| Route.Room room.id )
 
         Submitted (Ok (CreateRoom.Invalid errors)) ->
             -- TODO: render validation errors
