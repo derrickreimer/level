@@ -330,7 +330,7 @@ view model =
                 ]
             , div [ class "composer__controls" ]
                 [ button
-                    [ class "button button--subdued"
+                    [ class "button button--primary"
                     , disabled (isSendDisabled model)
                     , onClick MessageSubmitted
                     ]

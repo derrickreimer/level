@@ -183,6 +183,13 @@ update msg model =
                 in
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
+            ( NewRoomMsg msg, NewRoom pageModel ) ->
+                let
+                    ( newPageModel, cmd ) =
+                        Page.NewRoom.update msg model.session pageModel
+                in
+                    ( { model | page = NewRoom newPageModel }, Cmd.map NewRoomMsg cmd )
+
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
 

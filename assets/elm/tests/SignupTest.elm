@@ -66,7 +66,7 @@ decoders =
                     in
                         Expect.equal (Ok "http://example.com") result
             ]
-        , describe "Signup.errorDecoder"
+        , describe "Signup.failureDecoder"
             [ test "extracts a list of validation errors" <|
                 \_ ->
                     let
@@ -84,7 +84,7 @@ decoders =
                             """
 
                         result =
-                            decodeString Signup.errorDecoder json
+                            decodeString Signup.failureDecoder json
 
                         expected =
                             [ { attribute = "email"
