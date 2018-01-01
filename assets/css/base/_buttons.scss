@@ -1,8 +1,8 @@
 .button {
   @include shadow-on-focus;
 
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: $baseline;
+  padding-right: $baseline;
   border: none;
   border-radius: 3px;
   font-family: $system-font-stack;
@@ -22,7 +22,10 @@
   }
 
   &--large {
-    height: 47px;
+    height: 48px;
+    line-height: 2;
+    padding-left: $baseline * 2;
+    padding-right: $baseline * 2;
   }
 
   &--full {

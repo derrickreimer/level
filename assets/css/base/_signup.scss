@@ -1,6 +1,4 @@
 .signup-form {
-  @extend .center-form;
-
   margin: 100px auto;
   padding: $baseline;
   max-width: 500px;
@@ -9,18 +7,19 @@
   $inner-padding: $baseline * 1.5;
 
   &__header {
-    margin: ($baseline * 4) ($number-width / 2);
-
-    h1 {
-      font-size: 42px;
-      font-weight: normal;
-    }
+    margin: 0 ($number-width / 2);
+    padding-bottom: ($baseline * 4);
 
     p {
       font-size: 20px;
       line-height: 1.5;
       color: $muted-text-color;
     }
+  }
+
+  &__heading {
+    font-size: 42px;
+    font-weight: normal;
   }
 
   &__section {
@@ -74,5 +73,16 @@
     text-align: center;
     font-weight: $normal-weight;
     color: $muted-text-color;
+  }
+
+  .form-field {
+    margin-bottom: $baseline * 2;
+  }
+
+  .form-label {
+    padding-bottom: $baseline / 2;
+    display: block;
+    font-size: $default-font-size;
+    font-weight: $bold-weight;
   }
 }

@@ -2,8 +2,10 @@
   <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="center-form space-switcher">
-  <h2 class="center-form__heading"><%= gettext "My Spaces" %></h2>
+<div class="cform space-switcher">
+  <div class="cform__header cform__header--centered">
+    <h2 class="cform__heading"><%= gettext "My Spaces" %></h2>
+  </div>
 
   <ul class="space-switcher__spaces">
     <%= for space <- @spaces do %>
@@ -19,7 +21,7 @@
     <% end %>
   </ul>
 
-  <div class="center-form__footer">
+  <div class="cform__footer cform__footer--centered">
     <a href="<%= space_search_url(@conn) %>" class="space-switcher__add">
       Sign in to another space...
     </a>

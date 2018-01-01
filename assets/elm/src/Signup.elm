@@ -224,8 +224,8 @@ view : Model -> Html Msg
 view model =
     div [ class "signup-form" ]
         [ div [ class "signup-form__header" ]
-            [ h1 [] [ text "Join Level" ]
-            , p [] [ text "Level is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
+            [ h1 [ class "signup-form__heading" ] [ text "Join Level" ]
+            , p [ class "signup-form__description" ] [ text "Level is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
             ]
         , div [ class "signup-form__section" ]
             [ div [ class "signup-form__section-header" ]

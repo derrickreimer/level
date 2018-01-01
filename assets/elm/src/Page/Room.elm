@@ -11,9 +11,6 @@ module Page.Room
         , subscriptions
         )
 
-{-| Viewing an particular room.
--}
-
 import Task exposing (Task)
 import Http
 import Json.Decode as Decode
@@ -71,23 +68,6 @@ loaded =
         [ scrollToBottom "messages"
         , focusOnComposer
         ]
-
-
-{-| Append a new message to the room message connection when it is received.
--}
-receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
-receiveMessage message model =
-    let
-        pageInfo =
-            model.messages.pageInfo
-
-        edges =
-            RoomMessageEdge message :: model.messages.edges
-
-        newMessages =
-            RoomMessageConnection edges pageInfo
-    in
-        ( { model | messages = newMessages }, scrollToBottom "messages" )
 
 
 
@@ -271,6 +251,23 @@ fetchPreviousMessages session model =
 
         Nothing ->
             ( model, Cmd.none )
+
+
+{-| Append a new message to the room message connection when it is received.
+-}
+receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
+receiveMessage message model =
+    let
+        pageInfo =
+            model.messages.pageInfo
+
+        edges =
+            RoomMessageEdge message :: model.messages.edges
+
+        newMessages =
+            RoomMessageConnection edges pageInfo
+    in
+        ( { model | messages = newMessages }, scrollToBottom "messages" )
 
 
 

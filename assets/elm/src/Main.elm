@@ -8,6 +8,7 @@ import Data.Space exposing (Space)
 import Data.User exposing (User, UserEdge, displayName)
 import Data.Session exposing (Session)
 import Page.Room
+import Page.NewRoom
 import Page.Conversations
 import Query.AppState
 import Query.Room
@@ -58,7 +59,7 @@ type Page
     | NotFound
     | Conversations -- TODO: add a model to this type
     | Room Page.Room.Model
-    | NewRoom -- TODO: add a model to this type
+    | NewRoom Page.NewRoom.Model
 
 
 type alias Flags =
@@ -113,6 +114,7 @@ type Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
+    | NewRoomMsg Page.NewRoom.Msg
     | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
@@ -242,8 +244,7 @@ navigateTo maybeRoute model =
                         transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
 
                     Just Route.NewRoom ->
-                        -- TODO: implement this
-                        ( { model | page = NewRoom }, Cmd.none )
+                        ( { model | page = NewRoom Page.NewRoom.initialModel }, Cmd.none )
 
 
 setupSockets : Model -> ( Model, Cmd Msg )
@@ -325,8 +326,10 @@ pageContent page =
                 |> Page.Room.view
                 |> Html.map RoomMsg
 
-        NewRoom ->
-            text ""
+        NewRoom model ->
+            model
+                |> Page.NewRoom.view
+                |> Html.map NewRoomMsg
 
         Blank ->
             -- TODO: implement this
@@ -433,7 +436,7 @@ createRoomLink page =
     let
         selectedClass =
             case page of
-                NewRoom ->
+                NewRoom _ ->
                     "side-nav__item--selected"
 
                 _ ->

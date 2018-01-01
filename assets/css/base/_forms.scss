@@ -155,30 +155,50 @@ label.checkbox {
 
 // FORM STRUCTURE
 
-.center-form {
+.cform {
   margin: 0 auto;
-  padding: 100px 0 0;
+  padding: 100px $baseline * 2;
   max-width: 380px;
 
   &__form {
-    padding: $baseline * 2;
-    border: 1px solid;
-    border-radius: $base-radius * 2;
-    border-color: $default-border-color;
+
+    &--bordered {
+      padding: $baseline * 2;
+      border: 1px solid;
+      border-radius: $base-radius * 2;
+      border-color: $default-border-color;
+    }
+  }
+
+  &__header {
+    margin-bottom: 32px;
+
+    &--centered {
+      text-align: center;
+    }
   }
 
   &__heading {
-    margin-bottom: 32px;
+    margin: $baseline * 2 0;
     font-size: 36px;
+    line-height: 1.4;
     font-weight: $normal-weight;
-    text-align: center;
+  }
+
+  &__description {
+    margin: 0;
+    font-size: 16px;
+    color: $muted-text-color;
   }
 
   &__footer {
     margin: 24px 0;
-    text-align: center;
     font-weight: $normal-weight;
     color: $muted-text-color;
+
+    &--centered {
+      text-align: center;
+    }
   }
 
   .form-field {
