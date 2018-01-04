@@ -9,8 +9,8 @@ defmodule LevelWeb.RoomResolver do
   def create(args, %{context: %{current_user: user}}) do
     resp =
       case Rooms.create_room(user, args) do
-        {:ok, %{room: room, room_subscription: _}} ->
-          %{success: true, room: room, errors: []}
+        {:ok, %{room: room, room_subscription: room_subscription}} ->
+          %{success: true, room: room, room_subscription: room_subscription, errors: []}
 
         {:error, :room, changeset, _} ->
           %{success: false, room: nil, errors: format_errors(changeset)}

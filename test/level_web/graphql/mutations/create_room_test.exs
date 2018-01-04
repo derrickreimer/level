@@ -21,6 +21,11 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
             name
             subscriberPolicy
           }
+          roomSubscription {
+            room {
+              name
+            }
+          }
           success
           errors {
             attribute
@@ -55,6 +60,11 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
             "name" => variables.name,
             "subscriberPolicy" => "INVITE_ONLY"
           },
+          "roomSubscription" => %{
+            "room" => %{
+              "name" => variables.name
+            }
+          },
           "errors" => []
         }
       }
@@ -82,6 +92,7 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
         "createRoom" => %{
           "success" => false,
           "room" => nil,
+          "roomSubscription" => nil,
           "errors" => [
             %{"attribute" => "name", "message" => "has already been taken"}
           ]
