@@ -190,18 +190,12 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.NewRoom.RoomCreated room ->
+                            Page.NewRoom.RoomCreated roomSubscription ->
                                 case model.appState of
                                     Loaded appState ->
                                         let
-                                            -- TODO: this should probably be cleaned up/refactored.
-                                            -- We are relying on the fact that "room subscriptions"
-                                            -- are very simple and just contain a room record right now,
-                                            -- but that may not always be the case. This feels hacky
-                                            -- to do it this way, but it does avoid a round trip to the
-                                            -- server.
                                             newEdges =
-                                                { node = { room = room } } :: appState.roomSubscriptions.edges
+                                                { node = roomSubscription } :: appState.roomSubscriptions.edges
 
                                             newAppState =
                                                 { appState | roomSubscriptions = { edges = newEdges } }

@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Http
-import Data.Room exposing (Room)
+import Data.Room exposing (RoomSubscription)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateRoom as CreateRoom
@@ -49,7 +49,7 @@ type Msg
 
 type ExternalMsg
     = NoOp
-    | RoomCreated Room
+    | RoomCreated RoomSubscription
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
@@ -76,11 +76,13 @@ update msg session model =
                 else
                     ( ( model, Cmd.none ), NoOp )
 
-        Submitted (Ok (CreateRoom.Success room)) ->
-            ( ( model, Route.modifyUrl <| Route.Room room.id ), RoomCreated room )
+        Submitted (Ok (CreateRoom.Success roomSubscription)) ->
+            ( ( model, Route.modifyUrl <| Route.Room roomSubscription.room.id )
+            , RoomCreated roomSubscription
+            )
 
         Submitted (Ok (CreateRoom.Invalid errors)) ->
-            ( ( { model | errors = errors }, Cmd.none ), NoOp )
+            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none ), NoOp )
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?

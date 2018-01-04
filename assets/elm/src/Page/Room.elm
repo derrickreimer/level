@@ -286,7 +286,7 @@ subscriptions model =
 -- VIEW
 
 
-onEnter : Msg -> Attribute Msg
+onEnter : msg -> Attribute msg
 onEnter msg =
     let
         options =
@@ -298,7 +298,7 @@ onEnter msg =
                 Html.Events.keyCode
                 (Decode.field "shiftKey" Decode.bool)
 
-        isEnter : ( Int, Bool ) -> Decode.Decoder Msg
+        isEnter : ( Int, Bool ) -> Decode.Decoder msg
         isEnter ( code, shiftKey ) =
             if code == 13 && shiftKey == False then
                 Decode.succeed msg

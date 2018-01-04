@@ -3,7 +3,7 @@ module Mutation.CreateRoom exposing (Params, Response(..), request, variables, d
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Room exposing (Room, roomDecoder)
+import Data.Room exposing (RoomSubscription, roomSubscriptionDecoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL
 
@@ -15,7 +15,7 @@ type alias Params =
 
 
 type Response
-    = Success Room
+    = Success RoomSubscription
     | Invalid (List ValidationError)
 
 
@@ -30,10 +30,12 @@ query =
           name: $name,
           description: $description
         ) {
-          room {
-            id
-            name
-            description
+          roomSubscription {
+            room {
+              id
+              name
+              description
+            }
           }
           success
           errors {
@@ -56,7 +58,7 @@ variables params =
 successDecoder : Decode.Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "room" ] roomDecoder
+        Decode.at [ "roomSubscription" ] roomSubscriptionDecoder
 
 
 invalidDecoder : Decode.Decoder Response
