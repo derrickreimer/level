@@ -28,7 +28,7 @@ import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay)
+import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
 
 
 -- MODEL
@@ -284,28 +284,6 @@ subscriptions model =
 
 
 -- VIEW
-
-
-onEnter : msg -> Attribute msg
-onEnter msg =
-    let
-        options =
-            { defaultOptions | preventDefault = True }
-
-        codeAndShift : Decode.Decoder ( Int, Bool )
-        codeAndShift =
-            Decode.map2 (\a b -> ( a, b ))
-                Html.Events.keyCode
-                (Decode.field "shiftKey" Decode.bool)
-
-        isEnter : ( Int, Bool ) -> Decode.Decoder msg
-        isEnter ( code, shiftKey ) =
-            if code == 13 && shiftKey == False then
-                Decode.succeed msg
-            else
-                Decode.fail "not ENTER"
-    in
-        onWithOptions "keydown" options (Decode.andThen isEnter codeAndShift)
 
 
 view : Model -> Html Msg

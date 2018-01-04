@@ -2,7 +2,9 @@ module Util exposing (..)
 
 import Date exposing (Date)
 import Date.Format
-import Json.Decode exposing (Decoder, string, andThen, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
+import Html exposing (Attribute)
+import Html.Events exposing (defaultOptions, onWithOptions)
 
 
 -- LIST HELPERS
@@ -109,3 +111,29 @@ onSameDay d1 d2 =
         == Date.month d2
         && Date.day d1
         == Date.day d2
+
+
+
+-- CUSTOM HTML EVENTS
+
+
+onEnter : msg -> Attribute msg
+onEnter msg =
+    let
+        options =
+            { defaultOptions | preventDefault = True }
+
+        codeAndShift : Decode.Decoder ( Int, Bool )
+        codeAndShift =
+            Decode.map2 (\a b -> ( a, b ))
+                Html.Events.keyCode
+                (Decode.field "shiftKey" Decode.bool)
+
+        isEnter : ( Int, Bool ) -> Decode.Decoder msg
+        isEnter ( code, shiftKey ) =
+            if code == 13 && shiftKey == False then
+                Decode.succeed msg
+            else
+                Decode.fail "not ENTER"
+    in
+        onWithOptions "keydown" options (Decode.andThen isEnter codeAndShift)
