@@ -1,14 +1,17 @@
-module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, initialModel, update, view)
+module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, initialModel, initialCmd, update, view)
 
+import Dom exposing (focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Http
+import Task
 import Data.Room exposing (RoomSubscription)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateRoom as CreateRoom
 import Route
+import Util exposing (onEnter)
 
 
 -- MODEL
@@ -29,6 +32,13 @@ initialModel =
     Model "" "" False []
 
 
+{-| Returns the initial command to run after the page is loaded.
+-}
+initialCmd : Cmd Msg
+initialCmd =
+    Task.attempt (always Focused) <| focus "name-field"
+
+
 {-| Determines whether the form is able to be submitted.
 -}
 isSubmittable : Model -> Bool
@@ -45,6 +55,7 @@ type Msg
     | DescriptionChanged String
     | Submit
     | Submitted (Result Http.Error CreateRoom.Response)
+    | Focused
 
 
 type ExternalMsg
@@ -88,6 +99,9 @@ update msg session model =
             -- TODO: something unexpected went wrong - figure out best way to handle?
             ( ( model, Cmd.none ), NoOp )
 
+        Focused ->
+            ( ( model, Cmd.none ), NoOp )
+
 
 
 -- VIEW
@@ -103,8 +117,8 @@ view model =
                     [ text "Rooms are where spontaneous discussions take place. If the topic is important, a conversation is better venue." ]
                 ]
             , div [ class "cform__form" ]
-                [ inputField "name" "Room Name" NameChanged (errorsFor "name" model.errors)
-                , inputField "description" "Description (optional)" DescriptionChanged (errorsFor "description" model.errors)
+                [ inputField "name" "Room Name" NameChanged model
+                , inputField "description" "Description (optional)" DescriptionChanged model
                 , div [ class "form-controls" ]
                     [ input
                         [ type_ "submit"
@@ -120,24 +134,31 @@ view model =
         ]
 
 
-inputField : String -> String -> (String -> Msg) -> List ValidationError -> Html Msg
-inputField fieldName labelText inputMsg errors =
-    div
-        [ classList
-            [ ( "form-field", True )
-            , ( "form-field--error", not (List.isEmpty errors) )
+inputField : String -> String -> (String -> Msg) -> Model -> Html Msg
+inputField fieldName labelText inputMsg model =
+    let
+        errors =
+            errorsFor fieldName model.errors
+    in
+        div
+            [ classList
+                [ ( "form-field", True )
+                , ( "form-field--error", not (List.isEmpty errors) )
+                ]
             ]
-        ]
-        [ label [ class "form-label" ] [ text labelText ]
-        , input
-            [ type_ "text"
-            , class "text-field text-field--full text-field--large"
-            , name fieldName
-            , onInput inputMsg
+            [ label [ class "form-label" ] [ text labelText ]
+            , input
+                [ type_ "text"
+                , id (fieldName ++ "-field")
+                , class "text-field text-field--full text-field--large"
+                , name fieldName
+                , onInput inputMsg
+                , onEnter Submit
+                , disabled model.isSubmitting
+                ]
+                []
+            , formErrors errors
             ]
-            []
-        , formErrors errors
-        ]
 
 
 formErrors : List ValidationError -> Html Msg

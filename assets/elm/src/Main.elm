@@ -273,7 +273,13 @@ navigateTo maybeRoute model =
                         transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
 
                     Just Route.NewRoom ->
-                        ( { model | page = NewRoom Page.NewRoom.initialModel }, Cmd.none )
+                        let
+                            pageModel =
+                                Page.NewRoom.initialModel
+                        in
+                            ( { model | page = NewRoom pageModel }
+                            , Cmd.map NewRoomMsg Page.NewRoom.initialCmd
+                            )
 
 
 setupSockets : Model -> ( Model, Cmd Msg )
