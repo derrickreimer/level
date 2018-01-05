@@ -515,6 +515,15 @@ roomSubscriptionItem page edge =
 
                 _ ->
                     text ""
+
+        -- Placeholder for when we implement "unread" indicator
+        dot =
+            if True == False then
+                span [ class "side-nav__item-indicator" ]
+                    [ span [ class "side-nav__dot" ] []
+                    ]
+            else
+                text ""
     in
         a
             [ classList
@@ -526,6 +535,7 @@ roomSubscriptionItem page edge =
             ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             , icon
+            , dot
             ]
 
 

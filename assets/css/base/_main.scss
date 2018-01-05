@@ -100,8 +100,32 @@
     // }
   }
 
+  &__item-name {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow-x: hidden;
+  }
+
   &__item-icon {
+    flex: 0 0;
+    margin-left: 4px;
+  }
+
+  &__item-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 0;
     margin-left: 6px;
+    text-align: right;
+  }
+
+  &__dot {
+    display: block;
+    width: 5px;
+    height: 5px;
+    background-color: $highlight-color;
+    border-radius: 20px;
   }
 }
 
@@ -109,11 +133,6 @@
   padding: $baseline;
   display: flex;
   justify-content: space-between;
-}
-
-.search-field {
-  // width: 350px;
-  flex: 0 1 350px;
 }
 
 .new-conversation-button {
