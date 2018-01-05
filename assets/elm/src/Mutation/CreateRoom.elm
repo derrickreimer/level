@@ -11,6 +11,7 @@ import GraphQL
 type alias Params =
     { name : String
     , description : String
+    , subscriberPolicy : String
     }
 
 
@@ -24,11 +25,13 @@ query =
     """
       mutation CreateRoom(
         $name: String!,
-        $description: String
+        $description: String,
+        $subscriberPolicy: String!
       ) {
         createRoom(
           name: $name,
-          description: $description
+          description: $description,
+          subscriberPolicy: $subscriberPolicy
         ) {
           roomSubscription {
             room {
@@ -52,6 +55,7 @@ variables params =
     Encode.object
         [ ( "name", Encode.string params.name )
         , ( "description", Encode.string params.description )
+        , ( "subscriberPolicy", Encode.string params.subscriberPolicy )
         ]
 
 

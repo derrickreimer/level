@@ -20,6 +20,7 @@ import Util exposing (onEnter)
 type alias Model =
     { name : String
     , description : String
+    , isPrivate : Bool
     , isSubmitting : Bool
     , errors : List ValidationError
     }
@@ -29,7 +30,7 @@ type alias Model =
 -}
 initialModel : Model
 initialModel =
-    Model "" "" False []
+    Model "" "" False False []
 
 
 {-| Returns the initial command to run after the page is loaded.
@@ -53,6 +54,7 @@ isSubmittable model =
 type Msg
     = NameChanged String
     | DescriptionChanged String
+    | PrivacyToggled
     | Submit
     | Submitted (Result Http.Error CreateRoom.Response)
     | Focused
@@ -72,11 +74,20 @@ update msg session model =
         DescriptionChanged val ->
             ( ( { model | description = val }, Cmd.none ), NoOp )
 
+        PrivacyToggled ->
+            ( ( { model | isPrivate = not model.isPrivate }, Cmd.none ), NoOp )
+
         Submit ->
             let
+                subscriberPolicy =
+                    if model.isPrivate == True then
+                        "INVITE_ONLY"
+                    else
+                        "PUBLIC"
+
                 request =
                     CreateRoom.request session.apiToken <|
-                        CreateRoom.Params model.name model.description
+                        CreateRoom.Params model.name model.description subscriberPolicy
             in
                 if isSubmittable model then
                     ( ( { model | isSubmitting = True }
@@ -119,6 +130,21 @@ view model =
             , div [ class "cform__form" ]
                 [ inputField "name" "Room Name" NameChanged model
                 , inputField "description" "Description (optional)" DescriptionChanged model
+                , div [ class "form-field" ]
+                    [ div [ class "checkbox-toggle" ]
+                        [ input
+                            [ type_ "checkbox"
+                            , id "private"
+                            , checked model.isPrivate
+                            , onClick PrivacyToggled
+                            ]
+                            []
+                        , label [ class "checkbox-toggle__label", for "private" ]
+                            [ span [ class "checkbox-toggle__switch" ] []
+                            , text "Make this room private"
+                            ]
+                        ]
+                    ]
                 , div [ class "form-controls" ]
                     [ input
                         [ type_ "submit"

@@ -19,6 +19,7 @@ query =
                         params =
                             { name = "Development"
                             , description = "A place for devs to hang out."
+                            , subscriberPolicy = "PUBLIC"
                             }
 
                         encodedResult =
@@ -28,6 +29,7 @@ query =
                             Encode.object
                                 [ ( "name", Encode.string params.name )
                                 , ( "description", Encode.string params.description )
+                                , ( "subscriberPolicy", Encode.string params.subscriberPolicy )
                                 ]
                     in
                         Expect.equal expected encodedResult
@@ -47,10 +49,12 @@ decoders =
                               {
                                 "data": {
                                   "createRoom": {
-                                    "room": {
-                                      "id": "9999",
-                                      "name": "Development",
-                                      "description": "A place for devs to hang out."
+                                    "roomSubscription": {
+                                      "room": {
+                                        "id": "9999",
+                                        "name": "Development",
+                                        "description": "A place for devs to hang out."
+                                      }
                                     },
                                     "success": true,
                                     "errors": []
@@ -64,9 +68,11 @@ decoders =
 
                         expected =
                             CreateRoom.Success
-                                { id = "9999"
-                                , name = "Development"
-                                , description = "A place for devs to hang out."
+                                { room =
+                                    { id = "9999"
+                                    , name = "Development"
+                                    , description = "A place for devs to hang out."
+                                    }
                                 }
                     in
                         Expect.equal (Ok expected) result
@@ -78,7 +84,7 @@ decoders =
                               {
                                 "data": {
                                   "createRoom": {
-                                    "room": null,
+                                    "roomSubscription": null,
                                     "success": false,
                                     "errors": [{
                                       "attribute": "name",
