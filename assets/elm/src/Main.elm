@@ -18,7 +18,7 @@ import Route exposing (Route)
 import Task
 import Json.Decode as Decode
 import Ports
-import Material.Icons.Action as ActionIcons
+import Icons exposing (privacyIcon)
 import Color
 
 
@@ -511,7 +511,7 @@ roomSubscriptionItem page edge =
         icon =
             case room.subscriberPolicy of
                 Data.Room.InviteOnly ->
-                    span [ class "side-nav__item-icon" ] [ ActionIcons.lock (Color.rgb 255 255 255) 12 ]
+                    span [ class "side-nav__item-icon" ] [ privacyIcon (Color.rgba 255 255 255 0.5) 12 ]
 
                 _ ->
                     text ""

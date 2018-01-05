@@ -17,6 +17,7 @@
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
         "elm-lang/http": "1.0.0 <= v < 2.0.0",
         "elm-lang/navigation": "2.1.0 <= v < 3.0.0",
+        "elm-lang/svg": "2.0.0 <= v < 3.0.0",
         "evancz/url-parser": "2.0.1 <= v < 3.0.0",
         "mgold/elm-date-format": "1.4.2 <= v < 2.0.0"
     },

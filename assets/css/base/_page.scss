@@ -16,6 +16,10 @@
     font-weight: $very-bold-weight;
   }
 
+  &__name-icon {
+    margin-left: 6px;
+  }
+
   &__description {
     margin: 0;
     color: $muted-text-color;
