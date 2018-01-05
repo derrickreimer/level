@@ -18,6 +18,8 @@ import Route exposing (Route)
 import Task
 import Json.Decode as Decode
 import Ports
+import Icons exposing (privacyIcon)
+import Color
 
 
 main : Program Flags Model Msg
@@ -505,6 +507,23 @@ roomSubscriptionItem page edge =
 
                 _ ->
                     False
+
+        icon =
+            case room.subscriberPolicy of
+                Data.Room.InviteOnly ->
+                    span [ class "side-nav__item-icon" ] [ privacyIcon (Color.rgba 255 255 255 0.5) 12 ]
+
+                _ ->
+                    text ""
+
+        -- Placeholder for when we implement "unread" indicator
+        dot =
+            if True == False then
+                span [ class "side-nav__item-indicator" ]
+                    [ span [ class "side-nav__dot" ] []
+                    ]
+            else
+                text ""
     in
         a
             [ classList
@@ -515,6 +534,8 @@ roomSubscriptionItem page edge =
             , Route.href (Route.Room room.id)
             ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
+            , icon
+            , dot
             ]
 
 

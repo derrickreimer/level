@@ -29,6 +29,8 @@ import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
 import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
+import Icons exposing (privacyIcon)
+import Color
 
 
 -- MODEL
@@ -294,10 +296,23 @@ view model =
                 "Add a description..."
             else
                 model.room.description
+
+        icon =
+            case model.room.subscriberPolicy of
+                Data.Room.InviteOnly ->
+                    span [ class "page-head__name-icon" ]
+                        [ privacyIcon (Color.rgba 255 255 255 0.5) 18
+                        ]
+
+                _ ->
+                    text ""
     in
         div [ id "main", class "main main--room" ]
             [ div [ class "page-head" ]
-                [ h2 [ class "page-head__name" ] [ text model.room.name ]
+                [ h2 [ class "page-head__name" ]
+                    [ text model.room.name
+                    , icon
+                    ]
                 , p [ class "page-head__description" ] [ text description ]
                 ]
             , renderMessages model.messages

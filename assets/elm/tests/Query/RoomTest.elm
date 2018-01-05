@@ -2,6 +2,7 @@ module Query.RoomTest exposing (..)
 
 import Expect exposing (Expectation)
 import Test exposing (..)
+import Data.Room
 import Query.Room as Room
 import Json.Decode exposing (decodeString)
 import Date
@@ -23,6 +24,7 @@ decoders =
                                     "id": "9999",
                                     "name": "Everyone",
                                     "description": "All the things",
+                                    "subscriberPolicy": "PUBLIC",
                                     "users": {
                                       "pageInfo": {
                                         "hasPreviousPage": false,
@@ -74,6 +76,7 @@ decoders =
                                 { id = "9999"
                                 , name = "Everyone"
                                 , description = "All the things"
+                                , subscriberPolicy = Data.Room.Public
                                 }
                             , users =
                                 { edges =
@@ -128,6 +131,7 @@ decoders =
                                     "id": "9999",
                                     "name": "Everyone",
                                     "description": "All the things",
+                                    "subscriberPolicy": "PUBLIC",
                                     "users": {
                                       "pageInfo": {
                                         "hasPreviousPage": false,
@@ -167,6 +171,7 @@ decoders =
                                 { id = "9999"
                                 , name = "Everyone"
                                 , description = "All the things"
+                                , subscriberPolicy = Data.Room.Public
                                 }
                             , users =
                                 { edges =

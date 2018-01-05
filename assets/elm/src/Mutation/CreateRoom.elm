@@ -3,7 +3,7 @@ module Mutation.CreateRoom exposing (Params, Response(..), request, variables, d
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Room exposing (RoomSubscription, roomSubscriptionDecoder)
+import Data.Room exposing (RoomSubscription, SubscriberPolicy, roomSubscriptionDecoder, subscriberPolicyEncoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL
 
@@ -11,7 +11,7 @@ import GraphQL
 type alias Params =
     { name : String
     , description : String
-    , subscriberPolicy : String
+    , subscriberPolicy : SubscriberPolicy
     }
 
 
@@ -38,6 +38,7 @@ query =
               id
               name
               description
+              subscriberPolicy
             }
           }
           success
@@ -55,7 +56,7 @@ variables params =
     Encode.object
         [ ( "name", Encode.string params.name )
         , ( "description", Encode.string params.description )
-        , ( "subscriberPolicy", Encode.string params.subscriberPolicy )
+        , ( "subscriberPolicy", subscriberPolicyEncoder params.subscriberPolicy )
         ]
 
 

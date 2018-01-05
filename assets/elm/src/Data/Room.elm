@@ -7,16 +7,19 @@ module Data.Room
         , RoomMessageConnection
         , RoomMessageEdge
         , RoomMessage
+        , SubscriberPolicy(..)
         , roomSubscriptionConnectionDecoder
         , roomSubscriptionDecoder
         , roomDecoder
         , roomMessageConnectionDecoder
         , roomMessageDecoder
         , slugParser
+        , subscriberPolicyEncoder
         )
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Json.Encode as Encode
 import Time exposing (Time)
 import Data.User exposing (User, userDecoder)
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
@@ -26,6 +29,12 @@ import Util exposing (dateDecoder)
 
 
 -- TYPES
+
+
+type SubscriberPolicy
+    = Public
+    | InviteOnly
+    | Mandatory
 
 
 type alias RoomSubscriptionConnection =
@@ -67,6 +76,7 @@ type alias Room =
     { id : String
     , name : String
     , description : String
+    , subscriberPolicy : SubscriberPolicy
     }
 
 
@@ -98,6 +108,7 @@ roomDecoder =
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
         |> Pipeline.required "description" Decode.string
+        |> Pipeline.required "subscriberPolicy" subscriberPolicyDecoder
 
 
 roomMessageConnectionDecoder : Decode.Decoder RoomMessageConnection
@@ -121,6 +132,44 @@ roomMessageDecoder =
         |> Pipeline.custom (Decode.at [ "user" ] userDecoder)
         |> Pipeline.required "insertedAt" dateDecoder
         |> Pipeline.required "insertedAtTs" Decode.float
+
+
+subscriberPolicyDecoder : Decode.Decoder SubscriberPolicy
+subscriberPolicyDecoder =
+    let
+        convert : String -> Decode.Decoder SubscriberPolicy
+        convert raw =
+            case raw of
+                "PUBLIC" ->
+                    Decode.succeed Public
+
+                "INVITE_ONLY" ->
+                    Decode.succeed InviteOnly
+
+                "MANDATORY" ->
+                    Decode.succeed Mandatory
+
+                _ ->
+                    Decode.fail "Subscriber policy not valid"
+    in
+        Decode.string |> Decode.andThen convert
+
+
+
+-- ENCODERS
+
+
+subscriberPolicyEncoder : SubscriberPolicy -> Encode.Value
+subscriberPolicyEncoder raw =
+    case raw of
+        Public ->
+            Encode.string "PUBLIC"
+
+        InviteOnly ->
+            Encode.string "INVITE_ONLY"
+
+        Mandatory ->
+            Encode.string "MANDATORY"
 
 
 
