@@ -3,6 +3,7 @@ module Mutation.CreateRoomTest exposing (..)
 import Expect exposing (Expectation)
 import Test exposing (..)
 import TestHelpers exposing (roomFixture)
+import Data.Room exposing (subscriberPolicyEncoder)
 import Data.ValidationError exposing (ValidationError)
 import Mutation.CreateRoom as CreateRoom
 import Json.Decode exposing (decodeString)
@@ -19,7 +20,7 @@ query =
                         params =
                             { name = "Development"
                             , description = "A place for devs to hang out."
-                            , subscriberPolicy = "PUBLIC"
+                            , subscriberPolicy = Data.Room.Public
                             }
 
                         encodedResult =
@@ -29,7 +30,7 @@ query =
                             Encode.object
                                 [ ( "name", Encode.string params.name )
                                 , ( "description", Encode.string params.description )
-                                , ( "subscriberPolicy", Encode.string params.subscriberPolicy )
+                                , ( "subscriberPolicy", subscriberPolicyEncoder params.subscriberPolicy )
                                 ]
                     in
                         Expect.equal expected encodedResult
@@ -53,7 +54,8 @@ decoders =
                                       "room": {
                                         "id": "9999",
                                         "name": "Development",
-                                        "description": "A place for devs to hang out."
+                                        "description": "A place for devs to hang out.",
+                                        "subscriberPolicy": "PUBLIC"
                                       }
                                     },
                                     "success": true,
@@ -72,6 +74,7 @@ decoders =
                                     { id = "9999"
                                     , name = "Development"
                                     , description = "A place for devs to hang out."
+                                    , subscriberPolicy = Data.Room.Public
                                     }
                                 }
                     in

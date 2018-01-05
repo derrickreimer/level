@@ -67,7 +67,7 @@
 
   &__item {
     position: relative;
-    display: block;
+    display: flex;
     margin: 0 0 0 $baseline;
     padding: 1px $baseline;
     border-radius: $base-radius 0 0 $base-radius;
@@ -98,6 +98,10 @@
     //   padding-right: $baseline / 2;
     //   opacity: 0.5;
     // }
+  }
+
+  &__item-icon {
+    margin-left: 6px;
   }
 }
 

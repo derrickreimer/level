@@ -18,6 +18,8 @@ import Route exposing (Route)
 import Task
 import Json.Decode as Decode
 import Ports
+import Material.Icons.Action as ActionIcons
+import Color
 
 
 main : Program Flags Model Msg
@@ -505,6 +507,14 @@ roomSubscriptionItem page edge =
 
                 _ ->
                     False
+
+        icon =
+            case room.subscriberPolicy of
+                Data.Room.InviteOnly ->
+                    span [ class "side-nav__item-icon" ] [ ActionIcons.lock (Color.rgb 255 255 255) 12 ]
+
+                _ ->
+                    text ""
     in
         a
             [ classList
@@ -515,6 +525,7 @@ roomSubscriptionItem page edge =
             , Route.href (Route.Room room.id)
             ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
+            , icon
             ]
 
 

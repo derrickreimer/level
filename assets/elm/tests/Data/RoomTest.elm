@@ -18,11 +18,12 @@ decoders =
                     let
                         json =
                             """
-                            {
+                              {
                                 "id": "9999",
                                 "name": "Everyone",
-                                "description": "All the things"
-                            }
+                                "description": "All the things",
+                                "subscriberPolicy": "PUBLIC"
+                              }
                             """
 
                         result =
@@ -32,6 +33,7 @@ decoders =
                             { id = "9999"
                             , name = "Everyone"
                             , description = "All the things"
+                            , subscriberPolicy = Room.Public
                             }
                     in
                         Expect.equal (Ok expected) result
@@ -40,9 +42,9 @@ decoders =
                     let
                         json =
                             """
-                            {
+                              {
                                 "id": "9999"
-                            }
+                              }
                             """
 
                         result =
@@ -56,17 +58,18 @@ decoders =
                     let
                         json =
                             """
-                            {
+                              {
                                 "edges": [{
-                                    "node": {
-                                        "room": {
-                                            "id": "123",
-                                            "name": "Everyone",
-                                            "description": "All the things"
-                                        }
+                                  "node": {
+                                    "room": {
+                                      "id": "123",
+                                      "name": "Everyone",
+                                      "description": "All the things",
+                                      "subscriberPolicy": "PUBLIC"
                                     }
+                                  }
                                 }]
-                            }
+                              }
                             """
 
                         result =
@@ -79,6 +82,7 @@ decoders =
                                             { id = "123"
                                             , name = "Everyone"
                                             , description = "All the things"
+                                            , subscriberPolicy = Room.Public
                                             }
                                         }
                                   }
@@ -91,9 +95,9 @@ decoders =
                     let
                         json =
                             """
-                            {
+                              {
                                 "foo": "bar"
-                            }
+                              }
                             """
 
                         result =

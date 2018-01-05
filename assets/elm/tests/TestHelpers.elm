@@ -43,4 +43,4 @@ userFixture =
 
 roomFixture : Data.Room.Room
 roomFixture =
-    Data.Room.Room "999" "Everyone" "The cool room."
+    Data.Room.Room "999" "Everyone" "The cool room." Data.Room.Public

@@ -37,6 +37,7 @@ query =
             id
             name
             description
+            subscriberPolicy
             users(first: 10) {
               pageInfo {
                 hasPreviousPage

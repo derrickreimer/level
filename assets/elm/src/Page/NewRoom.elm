@@ -81,9 +81,9 @@ update msg session model =
             let
                 subscriberPolicy =
                     if model.isPrivate == True then
-                        "INVITE_ONLY"
+                        Data.Room.InviteOnly
                     else
-                        "PUBLIC"
+                        Data.Room.Public
 
                 request =
                     CreateRoom.request session.apiToken <|
