@@ -87,6 +87,12 @@
       }
     }
 
+    &--action {
+      // color: $muted-text-color;
+      // font-size: 14px;
+      margin-top: $baseline;
+    }
+
     // &--room:before {
     //   content: "#";
     //   padding-right: $baseline / 2;

@@ -11,9 +11,6 @@ module Page.Room
         , subscriptions
         )
 
-{-| Viewing an particular room.
--}
-
 import Task exposing (Task)
 import Http
 import Json.Decode as Decode
@@ -31,7 +28,7 @@ import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay)
+import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
 
 
 -- MODEL
@@ -71,23 +68,6 @@ loaded =
         [ scrollToBottom "messages"
         , focusOnComposer
         ]
-
-
-{-| Append a new message to the room message connection when it is received.
--}
-receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
-receiveMessage message model =
-    let
-        pageInfo =
-            model.messages.pageInfo
-
-        edges =
-            RoomMessageEdge message :: model.messages.edges
-
-        newMessages =
-            RoomMessageConnection edges pageInfo
-    in
-        ( { model | messages = newMessages }, scrollToBottom "messages" )
 
 
 
@@ -273,6 +253,23 @@ fetchPreviousMessages session model =
             ( model, Cmd.none )
 
 
+{-| Append a new message to the room message connection when it is received.
+-}
+receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
+receiveMessage message model =
+    let
+        pageInfo =
+            model.messages.pageInfo
+
+        edges =
+            RoomMessageEdge message :: model.messages.edges
+
+        newMessages =
+            RoomMessageConnection edges pageInfo
+    in
+        ( { model | messages = newMessages }, scrollToBottom "messages" )
+
+
 
 -- SUBSCRIPTIONS
 
@@ -289,58 +286,43 @@ subscriptions model =
 -- VIEW
 
 
-onEnter : Msg -> Attribute Msg
-onEnter msg =
-    let
-        options =
-            { defaultOptions | preventDefault = True }
-
-        codeAndShift : Decode.Decoder ( Int, Bool )
-        codeAndShift =
-            Decode.map2 (\a b -> ( a, b ))
-                Html.Events.keyCode
-                (Decode.field "shiftKey" Decode.bool)
-
-        isEnter : ( Int, Bool ) -> Decode.Decoder Msg
-        isEnter ( code, shiftKey ) =
-            if code == 13 && shiftKey == False then
-                Decode.succeed msg
-            else
-                Decode.fail "not ENTER"
-    in
-        onWithOptions "keydown" options (Decode.andThen isEnter codeAndShift)
-
-
 view : Model -> Html Msg
 view model =
-    div [ id "main", class "main main--room" ]
-        [ div [ class "page-head" ]
-            [ h2 [ class "page-head__name" ] [ text model.room.name ]
-            , p [ class "page-head__description" ] [ text model.room.description ]
-            ]
-        , renderMessages model.messages
-        , div [ class "composer" ]
-            [ div [ class "composer__body" ]
-                [ textarea
-                    [ id "composer-body-field"
-                    , class "text-field text-field--muted textarea composer__body-field"
-                    , onInput ComposerBodyChanged
-                    , onEnter MessageSubmitted
-                    , readonly (isComposerReadOnly model)
-                    , value model.composerBody
-                    ]
-                    []
+    let
+        description =
+            if model.room.description == "" then
+                "Add a description..."
+            else
+                model.room.description
+    in
+        div [ id "main", class "main main--room" ]
+            [ div [ class "page-head" ]
+                [ h2 [ class "page-head__name" ] [ text model.room.name ]
+                , p [ class "page-head__description" ] [ text description ]
                 ]
-            , div [ class "composer__controls" ]
-                [ button
-                    [ class "button button--subdued"
-                    , disabled (isSendDisabled model)
-                    , onClick MessageSubmitted
+            , renderMessages model.messages
+            , div [ class "composer" ]
+                [ div [ class "composer__body" ]
+                    [ textarea
+                        [ id "composer-body-field"
+                        , class "text-field text-field--muted textarea composer__body-field"
+                        , onInput ComposerBodyChanged
+                        , onEnter MessageSubmitted
+                        , readonly (isComposerReadOnly model)
+                        , value model.composerBody
+                        ]
+                        []
                     ]
-                    [ text "Send Message" ]
+                , div [ class "composer__controls" ]
+                    [ button
+                        [ class "button button--primary"
+                        , disabled (isSendDisabled model)
+                        , onClick MessageSubmitted
+                        ]
+                        [ text "Send Message" ]
+                    ]
                 ]
             ]
-        ]
 
 
 groupMessagesByDay : List RoomMessageEdge -> List ( Date, List RoomMessageEdge )

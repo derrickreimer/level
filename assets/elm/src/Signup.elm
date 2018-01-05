@@ -9,6 +9,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (decodeString)
 import Time exposing (Time, second)
 import Navigation
+import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
 
 
 main : Program Flags Model Msg
@@ -149,7 +150,7 @@ update msg model =
             ( model, Navigation.load redirectUrl )
 
         Submitted (Err (Http.BadStatus resp)) ->
-            case decodeString errorDecoder resp.body of
+            case decodeString failureDecoder resp.body of
                 Ok value ->
                     ( { model | formState = Idle, errors = value }, Cmd.none )
 
@@ -224,8 +225,8 @@ view : Model -> Html Msg
 view model =
     div [ class "signup-form" ]
         [ div [ class "signup-form__header" ]
-            [ h1 [] [ text "Join Level" ]
-            , p [] [ text "Level is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
+            [ h1 [ class "signup-form__heading" ] [ text "Join Level" ]
+            , p [ class "signup-form__description" ] [ text "Level is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
             ]
         , div [ class "signup-form__section" ]
             [ div [ class "signup-form__section-header" ]
@@ -269,16 +270,6 @@ view model =
                 ]
             ]
         ]
-
-
-errorsFor : String -> List ValidationError -> List ValidationError
-errorsFor attribute errors =
-    List.filter (\error -> error.attribute == attribute) errors
-
-
-errorsNotFor : String -> List ValidationError -> List ValidationError
-errorsNotFor attribute errors =
-    List.filter (\error -> not (error.attribute == attribute)) errors
 
 
 textField : FormField -> List ValidationError -> Html Msg
@@ -332,7 +323,7 @@ errorClass errors =
             "form-field--error"
 
 
-formErrors : List ValidationError -> Html a
+formErrors : List ValidationError -> Html Msg
 formErrors errors =
     case errors of
         error :: _ ->
@@ -344,12 +335,6 @@ formErrors errors =
 
 
 -- HTTP
-
-
-type alias ValidationError =
-    { attribute : String
-    , message : String
-    }
 
 
 submit : Model -> Cmd Msg
@@ -369,7 +354,7 @@ buildSubmitRequest model =
 
 buildValidationRequest : Model -> Http.Request (List ValidationError)
 buildValidationRequest model =
-    postWithCsrfToken model.csrf_token "/api/signup/errors" (buildBody model) errorDecoder
+    postWithCsrfToken model.csrf_token "/api/signup/errors" (buildBody model) failureDecoder
 
 
 postWithCsrfToken : String -> String -> Http.Body -> Decode.Decoder a -> Http.Request a
@@ -413,12 +398,6 @@ successDecoder =
     Decode.at [ "redirect_url" ] Decode.string
 
 
-errorDecoder : Decode.Decoder (List ValidationError)
-errorDecoder =
-    Decode.field "errors"
-        (Decode.list
-            (Decode.map2 ValidationError
-                (Decode.field "attribute" Decode.string)
-                (Decode.field "message" Decode.string)
-            )
-        )
+failureDecoder : Decode.Decoder (List ValidationError)
+failureDecoder =
+    Decode.field "errors" (Decode.list errorDecoder)

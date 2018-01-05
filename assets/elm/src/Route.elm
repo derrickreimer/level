@@ -1,4 +1,4 @@
-module Route exposing (Route(..), route, href, fromLocation)
+module Route exposing (Route(..), route, href, fromLocation, modifyUrl)
 
 {-| Routing logic for the application.
 -}
@@ -16,12 +16,14 @@ import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string)
 type Route
     = Conversations
     | Room String -- TODO: Create a strong type for the room id param
+    | NewRoom
 
 
 route : Parser (Route -> a) a
 route =
     oneOf
         [ Url.map Conversations (s "")
+        , Url.map NewRoom (s "rooms" </> s "new")
         , Url.map Room (s "rooms" </> Room.slugParser)
         ]
 
@@ -38,6 +40,9 @@ routeToString page =
                 Conversations ->
                     []
 
+                NewRoom ->
+                    [ "rooms", "new" ]
+
                 Room slug ->
                     [ "rooms", slug ]
     in
@@ -51,6 +56,11 @@ routeToString page =
 href : Route -> Attribute msg
 href route =
     Attr.href (routeToString route)
+
+
+modifyUrl : Route -> Cmd msg
+modifyUrl =
+    routeToString >> Navigation.modifyUrl
 
 
 fromLocation : Location -> Maybe Route

@@ -94,10 +94,16 @@ defmodule LevelWeb.Schema.Mutations do
     field :errors, list_of(:error)
 
     @desc """
-    The newly-created object. If the mutation was not successful,
+    The newly-created room object. If the mutation was not successful,
     this field will be null.
     """
     field :room, :room
+
+    @desc """
+    The newly-created room subscription object. If the mutation was not successful,
+    this field will be null.
+    """
+    field :room_subscription, :room_subscription
   end
 
   @desc "The response to creating a room message."

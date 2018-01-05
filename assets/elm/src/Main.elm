@@ -8,6 +8,7 @@ import Data.Space exposing (Space)
 import Data.User exposing (User, UserEdge, displayName)
 import Data.Session exposing (Session)
 import Page.Room
+import Page.NewRoom
 import Page.Conversations
 import Query.AppState
 import Query.Room
@@ -58,6 +59,7 @@ type Page
     | NotFound
     | Conversations -- TODO: add a model to this type
     | Room Page.Room.Model
+    | NewRoom Page.NewRoom.Model
 
 
 type alias Flags =
@@ -112,6 +114,7 @@ type Msg
     | RoomLoaded String (Result Http.Error Query.Room.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
+    | NewRoomMsg Page.NewRoom.Msg
     | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
@@ -180,6 +183,35 @@ update msg model =
                 in
                     ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
 
+            ( NewRoomMsg msg, NewRoom pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), externalMsg ) =
+                        Page.NewRoom.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.NewRoom.RoomCreated roomSubscription ->
+                                case model.appState of
+                                    Loaded appState ->
+                                        let
+                                            newEdges =
+                                                { node = roomSubscription } :: appState.roomSubscriptions.edges
+
+                                            newAppState =
+                                                { appState | roomSubscriptions = { edges = newEdges } }
+                                        in
+                                            ( { model | appState = Loaded newAppState }, Cmd.none )
+
+                                    NotLoaded ->
+                                        ( model, Cmd.none )
+
+                            Page.NewRoom.NoOp ->
+                                ( model, Cmd.none )
+                in
+                    ( { newModel | page = NewRoom newPageModel }
+                    , Cmd.batch [ externalCmd, Cmd.map NewRoomMsg cmd ]
+                    )
+
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
 
@@ -239,6 +271,15 @@ navigateTo maybeRoute model =
 
                     Just (Route.Room slug) ->
                         transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
+
+                    Just Route.NewRoom ->
+                        let
+                            pageModel =
+                                Page.NewRoom.initialModel
+                        in
+                            ( { model | page = NewRoom pageModel }
+                            , Cmd.map NewRoomMsg Page.NewRoom.initialCmd
+                            )
 
 
 setupSockets : Model -> ( Model, Cmd Msg )
@@ -319,6 +360,11 @@ pageContent page =
             model
                 |> Page.Room.view
                 |> Html.map RoomMsg
+
+        NewRoom model ->
+            model
+                |> Page.NewRoom.view
+                |> Html.map NewRoomMsg
 
         Blank ->
             -- TODO: implement this
@@ -413,7 +459,34 @@ userItem page edge =
 
 roomSubscriptionsList : Page -> AppState -> Html Msg
 roomSubscriptionsList page appState =
-    div [ class "side-nav" ] (List.map (roomSubscriptionItem page) appState.roomSubscriptions.edges)
+    let
+        rooms =
+            List.map (roomSubscriptionItem page) appState.roomSubscriptions.edges
+    in
+        div [ class "side-nav" ] (rooms ++ [ createRoomLink page ])
+
+
+createRoomLink : Page -> Html Msg
+createRoomLink page =
+    let
+        isActive =
+            case page of
+                NewRoom _ ->
+                    True
+
+                _ ->
+                    False
+    in
+        a
+            [ classList
+                [ ( "side-nav__item", True )
+                , ( "side-nav__item--action", True )
+                , ( "side-nav__item--selected", isActive )
+                ]
+            , Route.href Route.NewRoom
+            ]
+            [ span [ class "side-nav__item-name" ] [ text "Create a room..." ]
+            ]
 
 
 roomSubscriptionItem : Page -> RoomSubscriptionEdge -> Html Msg
@@ -422,18 +495,25 @@ roomSubscriptionItem page edge =
         room =
             edge.node.room
 
-        selectedClass =
+        isActive =
             case page of
-                Room model ->
-                    if model.room.id == room.id then
-                        "side-nav__item--selected"
+                Room pageModel ->
+                    if pageModel.room.id == room.id then
+                        True
                     else
-                        ""
+                        False
 
                 _ ->
-                    ""
+                    False
     in
-        a [ class ("side-nav__item side-nav__item--room " ++ selectedClass), Route.href (Route.Room room.id) ]
+        a
+            [ classList
+                [ ( "side-nav__item", True )
+                , ( "side-nav__item--room", True )
+                , ( "side-nav__item--selected", isActive )
+                ]
+            , Route.href (Route.Room room.id)
+            ]
             [ span [ class "side-nav__item-name" ] [ text room.name ]
             ]
 
