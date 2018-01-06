@@ -13,14 +13,17 @@
 
   & > .page-head {
     grid-area: page-head;
+    min-width: 0;
   }
 
   & > .messages {
     grid-area: page-content;
+    min-width: 0;
   }
 
   & > .composer {
     grid-area: composer;
+    min-width: 0;
   }
 }
 

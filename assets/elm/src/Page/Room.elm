@@ -300,7 +300,7 @@ view model =
         icon =
             case model.room.subscriberPolicy of
                 Data.Room.InviteOnly ->
-                    span [ class "page-head__name-icon" ]
+                    span [ class "page-head__title-icon" ]
                         [ privacyIcon (Color.rgba 255 255 255 0.5) 18
                         ]
 
@@ -309,9 +309,12 @@ view model =
     in
         div [ id "main", class "main main--room" ]
             [ div [ class "page-head" ]
-                [ h2 [ class "page-head__name" ]
-                    [ text model.room.name
-                    , icon
+                [ div [ class "page-head__header" ]
+                    [ div [ class "page-head__title" ]
+                        [ h2 [ class "page-head__title-text" ] [ text model.room.name ]
+                        , icon
+                        ]
+                    , div [ class "page-head__controls" ] []
                     ]
                 , p [ class "page-head__description" ] [ text description ]
                 ]
