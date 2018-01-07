@@ -18,7 +18,7 @@ defmodule LevelWeb.SessionController do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")
-        |> redirect(to: thread_path(conn, :index))
+        |> redirect(to: cockpit_path(conn, :index))
       {:error, _reason, conn} ->
         conn
         |> put_flash(:error, "Oops, those credentials are not correct")
@@ -29,7 +29,7 @@ defmodule LevelWeb.SessionController do
   defp redirect_if_signed_in(conn, _opts) do
     if conn.assigns.current_user do
       conn
-      |> redirect(to: thread_path(conn, :index))
+      |> redirect(to: cockpit_path(conn, :index))
       |> halt()
     else
       conn

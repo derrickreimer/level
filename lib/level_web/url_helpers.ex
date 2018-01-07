@@ -27,7 +27,7 @@ defmodule LevelWeb.UrlHelpers do
   def threads_url(conn, space) do
     URI.to_string %{build_uri_from_conn(conn) |
       host: "#{space.slug}.#{default_host()}",
-      path: Helpers.thread_path(conn, :index)}
+      path: Helpers.cockpit_path(conn, :index)}
   end
 
   def build_url_with_subdomain(subdomain, path, config \\ nil) do

@@ -92,8 +92,7 @@ defmodule LevelWeb.Router do
   scope "/", LevelWeb do
     pipe_through [:browser, :space]
 
-    get "/", ThreadController, :index
-    get "/rooms/:id", RoomController, :show
+    get "/", CockpitController, :index
   end
 
   # RESTful API endpoints authenticated via browser cookies

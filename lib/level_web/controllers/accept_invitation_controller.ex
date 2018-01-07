@@ -14,7 +14,7 @@ defmodule LevelWeb.AcceptInvitationController do
       {:ok, %{user: user}} ->
         conn
         |> LevelWeb.Auth.sign_in(invitation.space, user)
-        |> redirect(to: thread_path(conn, :index))
+        |> redirect(to: cockpit_path(conn, :index))
 
       {:error, :user, changeset, _} ->
         conn
