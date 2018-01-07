@@ -1,5 +1,31 @@
-#app {
-  font-size: $default-font-size;
+#cockpit {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  grid-gap: 0 0;
+  grid-template-columns: $sidebar-width auto $sidebar-width;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "left-sidebar main right-sidebar";
+  justify-content: stretch;
+}
+
+#sidebar-left {
+  grid-area: left-sidebar;
+  height: 100vh;
+}
+
+#sidebar-right {
+  grid-area: right-sidebar;
+  height: 100vh;
+}
+
+#main {
+  grid-area: main;
+  height: 100vh;
 }
 
 .sidebar {
@@ -11,6 +37,24 @@
 }
 
 .sidebar-left {
+  display: grid;
+  grid-gap: 0 0;
+  grid-template-rows: min-content auto;
+  grid-template-areas:
+    "head"
+    "nav";
+
+  &__head {
+    grid-area: head;
+  }
+
+  &__nav {
+    grid-area: nav;
+    overflow-y: scroll;
+  }
+}
+
+.sidebar-right {
   display: grid;
   grid-gap: 0 0;
   grid-template-rows: min-content auto;
@@ -105,16 +149,8 @@
     }
 
     &--action {
-      // color: $muted-text-color;
-      // font-size: 14px;
       margin-top: $baseline;
     }
-
-    // &--room:before {
-    //   content: "#";
-    //   padding-right: $baseline / 2;
-    //   opacity: 0.5;
-    // }
   }
 
   &__item-name {

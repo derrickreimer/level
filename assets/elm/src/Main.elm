@@ -332,10 +332,10 @@ view : Model -> Html Msg
 view model =
     case model.appState of
         NotLoaded ->
-            div [ id "app" ] [ text "Loading..." ]
+            div [ id "cockpit" ] [ text "Loading..." ]
 
         Loaded appState ->
-            div [ id "app" ]
+            div [ id "cockpit" ]
                 [ div [ id "sidebar-left", class "sidebar sidebar-left" ]
                     [ div [ class "sidebar-left__head" ]
                         [ spaceSelector appState.space
@@ -345,8 +345,10 @@ view model =
                         ]
                     , div [ class "sidebar-left__nav" ] (sideNav model.page appState)
                     ]
-                , div [ id "sidebar-right", class "sidebar" ]
-                    ([ identityMenu appState.user ] ++ (rightSidebar model))
+                , div [ id "sidebar-right", class "sidebar sidebar-right" ]
+                    [ div [ class "sidebar-right__head" ] [ identityMenu appState.user ]
+                    , div [ class "sidebar-right__nav" ] (rightSidebar model)
+                    ]
                 , pageContent model.page
                 ]
 

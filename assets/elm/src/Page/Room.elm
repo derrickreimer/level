@@ -307,7 +307,7 @@ view model =
                 _ ->
                     text ""
     in
-        div [ id "main", class "main main--room" ]
+        div [ id "main", class "thread-page" ]
             [ div [ class "page-head" ]
                 [ div [ class "page-head__header" ]
                     [ div [ class "page-head__title" ]

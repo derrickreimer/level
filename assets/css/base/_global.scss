@@ -20,19 +20,3 @@ a {
     text-decoration: underline;
   }
 }
-
-.inline-flash {
-  padding: 18px;
-  text-align: center;
-  font-weight: $bold-weight;
-
-  &--info {
-    background-color: $success-color;
-    color: #fff;
-  }
-
-  &--error {
-    background-color: $error-color;
-    color: #fff;
-  }
-}

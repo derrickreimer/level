@@ -7,18 +7,20 @@
 @import "base/mixins";
 
 // SHARED COMPONENTS
-@import "base/layout";
-@import "base/page";
-@import "base/grid";
+@import "base/global";
+@import "base/flashes";
 @import "base/forms";
 @import "base/buttons";
 @import "base/checkboxes";
-@import "base/main";
 @import "base/signup";
 @import "base/signin";
 @import "base/messages";
 
+// LAYOUTS
+@import "base/cockpit";
+
 // PAGES
+@import "base/page";
 @import "base/conversations";
 @import "base/room";
 @import "base/new_room";
