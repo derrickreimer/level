@@ -10,6 +10,24 @@
   }
 }
 
+.sidebar-left {
+  display: grid;
+  grid-gap: 0 0;
+  grid-template-rows: min-content auto;
+  grid-template-areas:
+    "head"
+    "nav";
+
+  &__head {
+    grid-area: head;
+  }
+
+  &__nav {
+    grid-area: nav;
+    overflow-y: scroll;
+  }
+}
+
 .space-selector,
 .identity-menu {
   background-color: $sidebar-color;
@@ -34,7 +52,6 @@
     height: $large-avatar-size;
     background-color: $default-avatar-color;
     flex: 0 0 auto;
-    // box-shadow: 0 0 ($baseline * 2) rgba(0,0,0,0.4);
 
     &--placeholder {
       @include loading-pulse;

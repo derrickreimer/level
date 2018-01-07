@@ -19,7 +19,10 @@ view : Html Msg
 view =
     div [ id "main", class "main main--conversations" ]
         [ div [ class "page-head" ]
-            [ h2 [ class "page-head__name" ] [ text "Inbox" ]
+            [ div [ class "page-head__header" ]
+                [ div [ class "page-head__title" ]
+                    [ h2 [ class "page-head__title-text" ] [ text "Inbox" ] ]
+                ]
             , p [ class "page-head__description" ] [ text "All your ongoing conversations." ]
             ]
         , div [ class "convos" ]

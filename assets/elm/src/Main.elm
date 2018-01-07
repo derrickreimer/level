@@ -336,17 +336,17 @@ view model =
 
         Loaded appState ->
             div [ id "app" ]
-                [ div [ id "sidebar-left", class "sidebar" ]
-                    [ spaceSelector appState.space
-                    , div [ class "sidebar__button-container" ]
-                        [ button [ class "button button--subdued new-conversation-button" ] [ text "New Conversation" ]
+                [ div [ id "sidebar-left", class "sidebar sidebar-left" ]
+                    [ div [ class "sidebar-left__head" ]
+                        [ spaceSelector appState.space
+                        , div [ class "sidebar__button-container" ]
+                            [ button [ class "button button--subdued new-conversation-button" ] [ text "New Conversation" ]
+                            ]
                         ]
-                    , sideNav model.page appState
+                    , div [ class "sidebar-left__nav" ] (sideNav model.page appState)
                     ]
                 , div [ id "sidebar-right", class "sidebar" ]
-                    [ identityMenu appState.user
-                    , rightSidebar model
-                    ]
+                    ([ identityMenu appState.user ] ++ (rightSidebar model))
                 , pageContent model.page
                 ]
 
@@ -422,33 +422,31 @@ inboxLink page =
             ]
 
 
-sideNav : Page -> AppState -> Html Msg
+sideNav : Page -> AppState -> List (Html Msg)
 sideNav page appState =
-    div [ class "side-nav-container" ]
-        [ div [ class "side-nav" ]
-            [ inboxLink page
-            , a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Everything" ]
-                ]
-            , a [ class "side-nav__item", href "#" ]
-                [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
-                ]
+    [ div [ class "side-nav" ]
+        [ inboxLink page
+        , a [ class "side-nav__item", href "#" ]
+            [ span [ class "side-nav__item-name" ] [ text "Everything" ]
             ]
-        , roomSubscriptionsList page appState
+        , a [ class "side-nav__item", href "#" ]
+            [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
+            ]
         ]
+    , roomSubscriptionsList page appState
+    ]
 
 
-rightSidebar : Model -> Html Msg
+rightSidebar : Model -> List (Html Msg)
 rightSidebar model =
     case model.page of
         Room pageModel ->
-            div [ class "side-nav-container" ]
-                [ h3 [ class "side-nav-heading" ] [ text "Members" ]
-                , div [ class "users-list" ] (List.map (userItem model.page) pageModel.users.edges)
-                ]
+            [ h3 [ class "side-nav-heading" ] [ text "Members" ]
+            , div [ class "users-list" ] (List.map (userItem model.page) pageModel.users.edges)
+            ]
 
         _ ->
-            div [ class "side-nav-container" ] []
+            []
 
 
 userItem : Page -> UserEdge -> Html Msg
