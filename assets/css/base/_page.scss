@@ -1,12 +1,6 @@
 .page-head {
   margin: 0 $baseline;
   padding: $baseline;
-  // border-bottom: 1px solid $item-list-border-color;
-  // box-shadow: 0 2px 15px rgba(0,0,0,0.40);
-  // box-shadow: 0 1px rgba(255,255,255,0.1);
-  // box-shadow: 0 1px rgba(0,0,0,0.7);
-  // box-shadow: 0 2px 12px rgba(0,0,0,0.30);
-  // background-color: darken($background-color, 5%);
   border-bottom: 1px solid $dark-liver;
   z-index: 1000;
 
@@ -17,7 +11,7 @@
 
   &__title {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     min-width: 0;
     flex: 1 1;
   }
@@ -46,5 +40,8 @@
   &__description {
     margin: 0;
     color: $muted-text-color;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
