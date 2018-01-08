@@ -26,22 +26,24 @@ export const attachPorts = (app) => {
   app.ports.getScrollPosition.subscribe((arg) => {
     const {containerId, anchorId} = arg;
 
-    let container = document.getElementById(containerId);
-    let anchor = document.getElementById(anchorId);
-    if (!container) return;
+    requestAnimationFrame(() => {
+      let container = document.getElementById(containerId);
+      let anchor = document.getElementById(anchorId);
+      if (!container) return;
 
-    let scrollHeight = container.scrollHeight;
-    let clientHeight = container.clientHeight;
-    let fromTop = container.scrollTop;
-    let fromBottom = scrollHeight - fromTop - clientHeight;
+      let scrollHeight = container.scrollHeight;
+      let clientHeight = container.clientHeight;
+      let fromTop = container.scrollTop;
+      let fromBottom = scrollHeight - fromTop - clientHeight;
 
-    if (anchor) {
-      var anchorOffset = anchor.offsetTop;
-    } else {
-      var anchorOffset = null;
-    }
+      if (anchor) {
+        var anchorOffset = anchor.offsetTop;
+      } else {
+        var anchorOffset = null;
+      }
 
-    app.ports.scrollPositionReceived.send({containerId, fromBottom, fromTop, anchorOffset});
+      app.ports.scrollPositionReceived.send({containerId, fromBottom, fromTop, anchorOffset});
+    });
   });
 
   app.ports.scrollTo.subscribe((arg) => {
