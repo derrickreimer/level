@@ -29,7 +29,7 @@ import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
 import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
-import Icons exposing (privacyIcon)
+import Icons exposing (privacyIcon, settingsIcon)
 import Color
 
 
@@ -314,7 +314,11 @@ view model =
                         [ h2 [ class "page-head__title-text" ] [ text model.room.name ]
                         , icon
                         ]
-                    , div [ class "page-head__controls" ] []
+                    , div [ class "page-head__controls" ]
+                        [ button [ class "button button--secondary" ]
+                            [ settingsIcon (Color.rgba 255 255 255 0.5) 24
+                            ]
+                        ]
                     ]
                 , p [ class "page-head__description" ] [ text description ]
                 ]

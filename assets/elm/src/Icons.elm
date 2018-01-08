@@ -14,3 +14,8 @@ privacyIcon =
 commentIcon : Color.Color -> Int -> Svg.Svg msg
 commentIcon =
     Material.Icons.Communication.comment
+
+
+settingsIcon : Color.Color -> Int -> Svg.Svg msg
+settingsIcon =
+    Material.Icons.Action.settings
