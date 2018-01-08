@@ -75,7 +75,7 @@
     text-align: right;
     color: $muted-text-color;
     vertical-align: middle;
-    opacity: 0;
+    visibility: hidden;
   }
 
   &__contents {
@@ -84,7 +84,7 @@
 
   &:hover {
     .message-tail__timestamp {
-      opacity: 1;
+      visibility: visible;
     }
   }
 }
