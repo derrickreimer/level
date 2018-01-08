@@ -2,14 +2,10 @@
   display: grid;
   grid-gap: 0 0;
   grid-template-rows: min-content auto min-content;
-  grid-template-columns: auto;
   grid-template-areas:
     "page-head"
     "page-content"
     "composer";
-  justify-content: stretch;
-  align-content: stretch;
-  min-height: 0;
 
   & > .page-head {
     grid-area: page-head;

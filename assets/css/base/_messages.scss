@@ -1,7 +1,6 @@
 .messages {
-  position: relative;
   padding: 0 $baseline $baseline / 2;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 
 .message-time-group {
