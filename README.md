@@ -88,6 +88,6 @@ script/docs
 
 ## Copyright
 
-&copy; 2017 Derrick Reimer
+&copy; 2018 Derrick Reimer
 
 Licensed under the Apache License, Version 2.0.
