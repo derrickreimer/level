@@ -1,6 +1,7 @@
 .button {
   @include shadow-on-focus;
 
+  display: inline-block;
   padding-left: $baseline;
   padding-right: $baseline;
   border: none;
@@ -11,6 +12,11 @@
   height: 40px;
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
+
+  &--icon {
+    display: flex;
+    align-items: center;
+  }
 
   & + & {
     margin-left: $baseline;
@@ -95,6 +101,11 @@
     &:disabled,
     &--disabled {
       opacity: 0.5;
+    }
+
+    &:active,
+    &:focus {
+      box-shadow: none;
     }
   }
 }

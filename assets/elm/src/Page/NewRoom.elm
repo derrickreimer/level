@@ -1,4 +1,4 @@
-module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, initialModel, initialCmd, update, view)
+module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, buildModel, initialCmd, update, view)
 
 import Dom exposing (focus)
 import Html exposing (..)
@@ -28,8 +28,8 @@ type alias Model =
 
 {-| Builds the initial model for the page.
 -}
-initialModel : Model
-initialModel =
+buildModel : Model
+buildModel =
     Model "" "" False False []
 
 

@@ -29,6 +29,7 @@ import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
 import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
+import Route
 import Icons exposing (privacyIcon, settingsIcon)
 import Color
 
@@ -315,7 +316,7 @@ view model =
                         , icon
                         ]
                     , div [ class "page-head__controls" ]
-                        [ button [ class "button button--secondary" ]
+                        [ a [ Route.href (Route.RoomSettings model.room.id), class "button button--secondary button--icon" ]
                             [ settingsIcon (Color.rgba 255 255 255 0.5) 24
                             ]
                         ]
