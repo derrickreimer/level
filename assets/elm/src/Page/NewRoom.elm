@@ -108,7 +108,7 @@ update msg session model =
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
-            ( ( model, Cmd.none ), NoOp )
+            ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
 
         Focused ->
             ( ( model, Cmd.none ), NoOp )

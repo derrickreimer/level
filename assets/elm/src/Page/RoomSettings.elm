@@ -8,6 +8,7 @@ import Task exposing (Task)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
+import Mutation.UpdateRoom as UpdateRoom
 import Query.RoomSettings
 import Util exposing (onEnter)
 
@@ -56,6 +57,7 @@ type Msg
     | DescriptionChanged String
     | PrivacyToggled
     | Submit
+    | Submitted (Result Http.Error UpdateRoom.Response)
 
 
 update : Msg -> Session -> Model -> ( Model, Cmd Msg )
@@ -74,7 +76,27 @@ update msg session model =
                 ( { model | subscriberPolicy = Data.Room.InviteOnly }, Cmd.none )
 
         Submit ->
-            ( model, Cmd.none )
+            let
+                request =
+                    UpdateRoom.request session.apiToken <|
+                        UpdateRoom.Params model.id model.name model.description model.subscriberPolicy
+            in
+                if isSubmittable model then
+                    ( { model | isSubmitting = True }
+                    , Http.send Submitted request
+                    )
+                else
+                    ( model, Cmd.none )
+
+        Submitted (Ok (UpdateRoom.Success room)) ->
+            ( { model | isSubmitting = False }, Cmd.none )
+
+        Submitted (Ok (UpdateRoom.Invalid errors)) ->
+            ( { model | errors = errors, isSubmitting = False }, Cmd.none )
+
+        Submitted (Err _) ->
+            -- TODO: something unexpected went wrong - figure out best way to handle?
+            ( { model | isSubmitting = False }, Cmd.none )
 
 
 
