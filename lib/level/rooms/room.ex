@@ -28,4 +28,14 @@ defmodule Level.Rooms.Room do
     |> validate_required([:name])
     |> unique_constraint(:name, name: :rooms_unique_ci_name)
   end
+
+  @doc """
+  Builds a changeset for updating a room.
+  """
+  def update_changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:name, :description, :subscriber_policy])
+    |> validate_required([:name])
+    |> unique_constraint(:name, name: :rooms_unique_ci_name)
+  end
 end

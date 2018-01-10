@@ -96,6 +96,14 @@ defmodule Level.TestHelpers do
     |> Threads.create_draft()
   end
 
+  def insert_room(user, params \\ %{}) do
+    params =
+      valid_room_params()
+      |> Map.merge(params)
+
+    Level.Rooms.create_room(user, params)
+  end
+
   def put_launch_host(conn) do
     %{conn | host: "launch.level.test"}
   end

@@ -65,6 +65,25 @@ defmodule Level.Rooms do
   end
 
   @doc """
+  Updates a room.
+
+  ## Examples
+
+      # If the operation succeeds, returns a success tuple containing the updated room.
+      # This function accepts partial updates.
+      update_room(room, %{name: "New Name"})
+      => {:ok, %Room{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %Ecto.Changeset{...}}
+  """
+  def update_room(room, params \\ %{}) do
+    room
+    |> Room.update_changeset(params)
+    |> Repo.update()
+  end
+
+  @doc """
   Transitions a given room to a deleted state.
 
   ## Examples
