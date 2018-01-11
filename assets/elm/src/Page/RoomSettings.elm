@@ -116,6 +116,7 @@ view model =
         [ div [ class "cform" ]
             [ div [ class "cform__header cform__header" ]
                 [ h2 [ class "cform__heading" ] [ text "Room Settings" ]
+                , div [ class "cform__description" ] [ text "Customize this room to your liking and configure your desired privacy settings." ]
                 ]
             , div [ class "cform__form" ]
                 [ inputField "name" "Room Name" model.name NameChanged model
