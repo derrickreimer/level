@@ -10,6 +10,9 @@ import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.UpdateRoom as UpdateRoom
 import Query.RoomSettings
+import Color
+import Icons exposing (leftArrowIcon)
+import Route
 import Util exposing (onEnter)
 
 
@@ -114,8 +117,12 @@ view : Model -> Html Msg
 view model =
     div [ id "main", class "main" ]
         [ div [ class "cform" ]
-            [ div [ class "cform__header cform__header" ]
-                [ h2 [ class "cform__heading" ] [ text "Room Settings" ]
+            [ div [ class "cform__header" ]
+                [ a [ Route.href (Route.Room model.id), class "cform__back" ]
+                    [ leftArrowIcon (Color.rgb 48 186 143) 24
+                    , text "Back to Room"
+                    ]
+                , h2 [ class "cform__heading" ] [ text "Room Settings" ]
                 , div [ class "cform__description" ] [ text "Customize this room to your liking and configure your desired privacy settings." ]
                 ]
             , div [ class "cform__form" ]

@@ -412,7 +412,7 @@ view model =
                         , div [ class "sidebar__button-container" ]
                             [ a [ href "#", class "new-conversation-button" ]
                                 [ commentIcon (Color.rgb 48 186 143) 24
-                                , text "Start a thread"
+                                , text "New Conversation"
                                 ]
                             ]
                         ]

@@ -21,8 +21,14 @@
     }
   }
 
+  &__back {
+    display: flex;
+    margin-left: -8px;
+  }
+
   &__heading {
-    margin: $baseline * 2 0;
+    display: flex;
+    margin: 4px 0 $baseline * 2 0;
     font-size: 36px;
     line-height: 1.4;
     font-weight: $normal-weight;
