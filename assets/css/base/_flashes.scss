@@ -14,22 +14,13 @@
   }
 }
 
-@keyframes fadeInOut {
-  0% { opacity: 0; }
-  8% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
 .flash {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  animation-duration: 3.1s;
-  animation-name: fadeInOut;
   z-index: 1000;
-  padding: $baseline $baseline * 2;
+  padding: $baseline / 2 $baseline * 2;
   border-bottom: 4px solid darken($highlight-color, 20%);
   font-weight: bold;
 
