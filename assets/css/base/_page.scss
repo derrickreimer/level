@@ -4,6 +4,10 @@
   border-bottom: 1px solid $dark-liver;
   z-index: 1000;
 
+  &--borderless {
+    border: none;
+  }
+
   &__header {
     display: flex;
     overflow: hidden;

@@ -302,7 +302,7 @@ view model =
             case model.room.subscriberPolicy of
                 Data.Room.InviteOnly ->
                     span [ class "page-head__title-icon" ]
-                        [ privacyIcon (Color.rgba 255 255 255 0.5) 18
+                        [ privacyIcon (Color.rgb 144 150 162) 18
                         ]
 
                 _ ->
@@ -317,7 +317,7 @@ view model =
                         ]
                     , div [ class "page-head__controls" ]
                         [ a [ Route.href (Route.RoomSettings model.room.id), class "button button--secondary button--icon" ]
-                            [ settingsIcon (Color.rgba 255 255 255 0.5) 24
+                            [ settingsIcon (Color.rgb 144 150 162) 24
                             ]
                         ]
                     ]

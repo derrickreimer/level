@@ -1,27 +1,33 @@
 module Icons exposing (..)
 
-import Material.Icons.Action
-import Material.Icons.Communication
-import Material.Icons.Hardware
+import Material.Icons.Action as Action
+import Material.Icons.Communication as Communication
+import Material.Icons.Hardware as Hardware
+import Material.Icons.Navigation as Navigation
 import Svg
 import Color
 
 
 privacyIcon : Color.Color -> Int -> Svg.Svg msg
 privacyIcon =
-    Material.Icons.Action.lock
+    Action.lock
 
 
 commentIcon : Color.Color -> Int -> Svg.Svg msg
 commentIcon =
-    Material.Icons.Communication.comment
+    Communication.comment
 
 
 settingsIcon : Color.Color -> Int -> Svg.Svg msg
 settingsIcon =
-    Material.Icons.Action.settings
+    Action.settings
 
 
 leftArrowIcon : Color.Color -> Int -> Svg.Svg msg
 leftArrowIcon =
-    Material.Icons.Hardware.keyboard_arrow_left
+    Hardware.keyboard_arrow_left
+
+
+closeIcon : Color.Color -> Int -> Svg.Svg msg
+closeIcon =
+    Navigation.close

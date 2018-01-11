@@ -606,7 +606,7 @@ roomSubscriptionItem page edge =
         icon =
             case room.subscriberPolicy of
                 Data.Room.InviteOnly ->
-                    span [ class "side-nav__item-icon" ] [ privacyIcon (Color.rgba 255 255 255 0.5) 12 ]
+                    span [ class "side-nav__item-icon" ] [ privacyIcon (Color.rgb 144 150 162) 12 ]
 
                 _ ->
                     text ""

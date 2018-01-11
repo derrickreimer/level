@@ -1,7 +1,11 @@
 .cform {
   margin: 0 auto;
-  padding: 100px $baseline * 2;
+  padding: 120px $baseline * 2;
   max-width: 380px;
+
+  &--slim-pad {
+    padding-top: 80px;
+  }
 
   &__form {
 
@@ -27,7 +31,6 @@
   }
 
   &__heading {
-    display: flex;
     margin: 4px 0 $baseline * 2 0;
     font-size: 36px;
     line-height: 1.4;
