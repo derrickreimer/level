@@ -1,4 +1,4 @@
-module Page.RoomSettings exposing (..)
+module Page.RoomSettings exposing (Model, ExternalMsg(..), Msg, fetchRoom, buildModel, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -60,20 +60,25 @@ type Msg
     | Submitted (Result Http.Error UpdateRoom.Response)
 
 
-update : Msg -> Session -> Model -> ( Model, Cmd Msg )
+type ExternalMsg
+    = RoomUpdated Room
+    | NoOp
+
+
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg session model =
     case msg of
         NameChanged val ->
-            ( { model | name = val }, Cmd.none )
+            ( ( { model | name = val }, Cmd.none ), NoOp )
 
         DescriptionChanged val ->
-            ( { model | description = val }, Cmd.none )
+            ( ( { model | description = val }, Cmd.none ), NoOp )
 
         PrivacyToggled ->
             if model.subscriberPolicy == Data.Room.InviteOnly then
-                ( { model | subscriberPolicy = Data.Room.Public }, Cmd.none )
+                ( ( { model | subscriberPolicy = Data.Room.Public }, Cmd.none ), NoOp )
             else
-                ( { model | subscriberPolicy = Data.Room.InviteOnly }, Cmd.none )
+                ( ( { model | subscriberPolicy = Data.Room.InviteOnly }, Cmd.none ), NoOp )
 
         Submit ->
             let
@@ -82,21 +87,23 @@ update msg session model =
                         UpdateRoom.Params model.id model.name model.description model.subscriberPolicy
             in
                 if isSubmittable model then
-                    ( { model | isSubmitting = True }
-                    , Http.send Submitted request
+                    ( ( { model | isSubmitting = True }
+                      , Http.send Submitted request
+                      )
+                    , NoOp
                     )
                 else
-                    ( model, Cmd.none )
+                    ( ( model, Cmd.none ), NoOp )
 
         Submitted (Ok (UpdateRoom.Success room)) ->
-            ( { model | isSubmitting = False }, Cmd.none )
+            ( ( { model | isSubmitting = False }, Cmd.none ), RoomUpdated room )
 
         Submitted (Ok (UpdateRoom.Invalid errors)) ->
-            ( { model | errors = errors, isSubmitting = False }, Cmd.none )
+            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none ), NoOp )
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
-            ( { model | isSubmitting = False }, Cmd.none )
+            ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
 
 
 

@@ -3,6 +3,10 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
+import Json.Decode as Decode
+import Process
+import Task
+import Time exposing (second)
 import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
 import Data.User exposing (User, UserEdge, displayName)
@@ -17,8 +21,6 @@ import Query.RoomSettings
 import Subscription.RoomMessageCreated
 import Navigation
 import Route exposing (Route)
-import Task
-import Json.Decode as Decode
 import Ports
 import Icons exposing (privacyIcon, commentIcon)
 import Color
@@ -48,6 +50,7 @@ type alias Model =
     , appState : Lazy AppState
     , page : Page
     , isTransitioning : Bool
+    , flashNotice : Maybe String
     }
 
 
@@ -91,7 +94,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Session flags.apiToken) NotLoaded Blank True
+    Model (Session flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -125,6 +128,7 @@ type Msg
     | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
+    | FlashNoticeExpired
 
 
 getSession : Model -> Session
@@ -244,10 +248,21 @@ update msg model =
 
             ( RoomSettingsMsg msg, RoomSettings pageModel ) ->
                 let
-                    ( newPageModel, cmd ) =
+                    ( ( newPageModel, cmd ), externalMsg ) =
                         Page.RoomSettings.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.RoomSettings.RoomUpdated room ->
+                                -- TODO: propagate room changes out to wherever they need to go
+                                ( { model | flashNotice = Just "Room updated" }, expireFlashNotice )
+
+                            Page.RoomSettings.NoOp ->
+                                ( model, Cmd.none )
                 in
-                    ( { model | page = RoomSettings newPageModel }, Cmd.map RoomSettingsMsg cmd )
+                    ( { newModel | page = RoomSettings newPageModel }
+                    , Cmd.batch [ externalCmd, Cmd.map RoomSettingsMsg cmd ]
+                    )
 
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
@@ -275,9 +290,17 @@ update msg model =
                     UnknownMessage ->
                         ( model, Cmd.none )
 
+            ( FlashNoticeExpired, _ ) ->
+                ( { model | flashNotice = Nothing }, Cmd.none )
+
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
+
+
+expireFlashNotice : Cmd Msg
+expireFlashNotice =
+    Task.perform (\_ -> FlashNoticeExpired) <| Process.sleep (5 * second)
 
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
@@ -400,7 +423,18 @@ view model =
                     , div [ class "sidebar-right__nav" ] (rightSidebar model)
                     ]
                 , pageContent model.page
+                , flashNotice model
                 ]
+
+
+flashNotice : Model -> Html Msg
+flashNotice model =
+    case model.flashNotice of
+        Just message ->
+            div [ class "flash flash--notice" ] [ text message ]
+
+        Nothing ->
+            text ""
 
 
 pageContent : Page -> Html Msg
