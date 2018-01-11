@@ -300,7 +300,7 @@ update msg model =
 
 expireFlashNotice : Cmd Msg
 expireFlashNotice =
-    Task.perform (\_ -> FlashNoticeExpired) <| Process.sleep (5 * second)
+    Task.perform (\_ -> FlashNoticeExpired) <| Process.sleep (3 * second)
 
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
