@@ -18,7 +18,7 @@ import Route exposing (Route)
 import Task
 import Json.Decode as Decode
 import Ports
-import Icons exposing (privacyIcon)
+import Icons exposing (privacyIcon, commentIcon)
 import Color
 
 
@@ -340,7 +340,10 @@ view model =
                     [ div [ class "sidebar-left__head" ]
                         [ spaceSelector appState.space
                         , div [ class "sidebar__button-container" ]
-                            [ button [ class "button button--subdued new-conversation-button" ] [ text "New Conversation" ]
+                            [ a [ href "#", class "new-conversation-button" ]
+                                [ commentIcon (Color.rgb 48 186 143) 24
+                                , text "Start a thread"
+                                ]
                             ]
                         ]
                     , div [ class "sidebar-left__nav" ] (sideNav model.page appState)

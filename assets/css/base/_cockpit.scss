@@ -32,7 +32,7 @@
   background-color: $sidebar-color;
 
   &__button-container {
-    padding: $baseline $baseline $baseline * 1.5;
+    padding: $baseline;
   }
 }
 
@@ -189,7 +189,12 @@
 }
 
 .new-conversation-button {
-  height: 36px;
+  display: inline-flex;
+  font-weight: bold;
+
+  svg {
+    margin-right: $baseline / 2;
+  }
 }
 
 .users-list {
