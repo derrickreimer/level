@@ -1,0 +1,57 @@
+.cform {
+  margin: 0 auto;
+  padding: 100px $baseline * 2;
+  max-width: 380px;
+
+  &__form {
+
+    &--bordered {
+      padding: $baseline * 2;
+      border: 1px solid;
+      border-radius: $base-radius * 2;
+      border-color: $default-border-color;
+    }
+  }
+
+  &__header {
+    margin-bottom: 32px;
+
+    &--centered {
+      text-align: center;
+    }
+  }
+
+  &__heading {
+    margin: $baseline * 2 0;
+    font-size: 36px;
+    line-height: 1.4;
+    font-weight: $normal-weight;
+  }
+
+  &__description {
+    margin: 0;
+    font-size: 16px;
+    color: $muted-text-color;
+  }
+
+  &__footer {
+    margin: 24px 0;
+    font-weight: $normal-weight;
+    color: $muted-text-color;
+
+    &--centered {
+      text-align: center;
+    }
+  }
+
+  .form-field {
+    margin-bottom: $baseline * 2;
+  }
+
+  .form-label {
+    padding-bottom: $baseline / 2;
+    display: block;
+    font-size: $default-font-size;
+    font-weight: $bold-weight;
+  }
+}
