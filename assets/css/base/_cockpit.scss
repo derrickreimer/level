@@ -188,18 +188,6 @@
   justify-content: space-between;
 }
 
-.new-conversation-button {
-  display: inline-flex;
-  font-weight: bold;
-  padding: $baseline / 2 $baseline;
-  border-radius: $base-radius;
-  background-color: $background-color;
-
-  svg {
-    margin-right: $baseline / 2;
-  }
-}
-
 .users-list {
   &__item {
     display: block;

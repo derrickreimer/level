@@ -410,7 +410,7 @@ view model =
                     [ div [ class "sidebar-left__head" ]
                         [ spaceSelector appState.space
                         , div [ class "sidebar__button-container" ]
-                            [ a [ href "#", class "new-conversation-button" ]
+                            [ button [ class "button button--sidebar" ]
                                 [ commentIcon (Color.rgb 48 186 143) 24
                                 , text "New Conversation"
                                 ]
