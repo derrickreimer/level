@@ -17,6 +17,14 @@
   }
 }
 
+.form-info {
+  display: flex;
+
+  svg {
+    margin-right: $baseline / 2;
+  }
+}
+
 .text-field {
   @include shadow-on-focus;
 

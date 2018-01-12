@@ -13,7 +13,7 @@ import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.UpdateRoom as UpdateRoom
 import Query.RoomSettings
 import Color
-import Icons exposing (closeIcon)
+import Icons exposing (closeIcon, peopleIcon)
 import Route
 import Util exposing (onEnter)
 
@@ -156,21 +156,7 @@ view model =
             , div [ class "cform__form" ]
                 [ inputField "name" "Room Name" model.name NameChanged model
                 , inputField "description" "Description" model.description DescriptionChanged model
-                , div [ class "form-field" ]
-                    [ div [ class "checkbox-toggle" ]
-                        [ input
-                            [ type_ "checkbox"
-                            , id "private"
-                            , checked (model.subscriberPolicy == Data.Room.InviteOnly)
-                            , onClick PrivacyToggled
-                            ]
-                            []
-                        , label [ class "checkbox-toggle__label", for "private" ]
-                            [ span [ class "checkbox-toggle__switch" ] []
-                            , text "Private (by invite only)"
-                            ]
-                        ]
-                    ]
+                , privacyField model
                 , div [ class "form-controls" ]
                     [ input
                         [ type_ "submit"
@@ -212,6 +198,33 @@ inputField fieldName labelText fieldValue inputMsg model =
                 []
             , formErrors errors
             ]
+
+
+privacyField : Model -> Html Msg
+privacyField model =
+    case model.subscriberPolicy of
+        Data.Room.Mandatory ->
+            div [ class "form-info" ]
+                [ peopleIcon (Color.rgb 144 150 162) 24
+                , text "Everyone joins this room by default."
+                ]
+
+        _ ->
+            div [ class "form-field" ]
+                [ div [ class "checkbox-toggle" ]
+                    [ input
+                        [ type_ "checkbox"
+                        , id "private"
+                        , checked (model.subscriberPolicy == Data.Room.InviteOnly)
+                        , onClick PrivacyToggled
+                        ]
+                        []
+                    , label [ class "checkbox-toggle__label", for "private" ]
+                        [ span [ class "checkbox-toggle__switch" ] []
+                        , text "Private (by invite only)"
+                        ]
+                    ]
+                ]
 
 
 formErrors : List ValidationError -> Html Msg
