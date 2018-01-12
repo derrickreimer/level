@@ -13,3 +13,19 @@
     color: #fff;
   }
 }
+
+.flash {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: $baseline / 2 $baseline * 2;
+  border-bottom: 4px solid darken($highlight-color, 20%);
+  font-weight: bold;
+
+  &--notice {
+    background-color: $highlight-color;
+    color: $background-color;
+  }
+}

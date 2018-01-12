@@ -106,6 +106,25 @@ defmodule LevelWeb.Schema.Mutations do
     field :room_subscription, :room_subscription
   end
 
+  @desc "The response to updating a room."
+  object :update_room_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, :boolean
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The room object. If the mutation was not successful,
+    this field will be null.
+    """
+    field :room, :room
+  end
+
   @desc "The response to creating a room message."
   object :create_room_message_payload do
     @desc """

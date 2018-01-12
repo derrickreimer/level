@@ -3,20 +3,24 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
+import Json.Decode as Decode
+import Process
+import Task
+import Time exposing (second)
 import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
-import Data.User exposing (User, UserEdge, displayName)
+import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Data.Session exposing (Session)
 import Page.Room
 import Page.NewRoom
+import Page.RoomSettings
 import Page.Conversations
 import Query.AppState
 import Query.Room
+import Query.RoomSettings
 import Subscription.RoomMessageCreated
 import Navigation
 import Route exposing (Route)
-import Task
-import Json.Decode as Decode
 import Ports
 import Icons exposing (privacyIcon, commentIcon)
 import Color
@@ -46,6 +50,7 @@ type alias Model =
     , appState : Lazy AppState
     , page : Page
     , isTransitioning : Bool
+    , flashNotice : Maybe String
     }
 
 
@@ -62,6 +67,7 @@ type Page
     | Conversations -- TODO: add a model to this type
     | Room Page.Room.Model
     | NewRoom Page.NewRoom.Model
+    | RoomSettings Page.RoomSettings.Model
 
 
 type alias Flags =
@@ -80,15 +86,15 @@ type alias Flags =
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     flags
-        |> buildInitialModel
+        |> buildModel
         |> navigateTo (Route.fromLocation location)
 
 
 {-| Build the initial model, before running the page "bootstrap" query.
 -}
-buildInitialModel : Flags -> Model
-buildInitialModel flags =
-    Model (Session flags.apiToken) NotLoaded Blank True
+buildModel : Flags -> Model
+buildModel flags =
+    Model (Session flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -114,12 +120,15 @@ type Msg
     = UrlChanged Navigation.Location
     | AppStateLoaded (Maybe Route) (Result Http.Error Query.AppState.Response)
     | RoomLoaded String (Result Http.Error Query.Room.Response)
+    | RoomSettingsLoaded String (Result Http.Error Query.RoomSettings.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
     | NewRoomMsg Page.NewRoom.Msg
+    | RoomSettingsMsg Page.RoomSettings.Msg
     | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
+    | FlashNoticeExpired
 
 
 getSession : Model -> Session
@@ -172,6 +181,29 @@ update msg model =
                         )
 
             ( RoomLoaded slug (Err _), _ ) ->
+                -- TODO: display an unexpected error page?
+                ( model, Cmd.none )
+
+            ( RoomSettingsLoaded slug (Ok response), _ ) ->
+                case response of
+                    Query.RoomSettings.Found data ->
+                        ( { model
+                            | page = RoomSettings (Page.RoomSettings.buildModel data.room data.users)
+                            , isTransitioning = False
+                          }
+                        , Cmd.none
+                        )
+
+                    Query.RoomSettings.NotFound ->
+                        ( { model
+                            | page = NotFound
+                            , isTransitioning = False
+                          }
+                        , Cmd.none
+                        )
+
+            ( RoomSettingsLoaded slug (Err _), _ ) ->
+                -- TODO: display an unexpected error page?
                 ( model, Cmd.none )
 
             ( ConversationsMsg _, _ ) ->
@@ -214,6 +246,24 @@ update msg model =
                     , Cmd.batch [ externalCmd, Cmd.map NewRoomMsg cmd ]
                     )
 
+            ( RoomSettingsMsg msg, RoomSettings pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), externalMsg ) =
+                        Page.RoomSettings.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.RoomSettings.RoomUpdated room ->
+                                -- TODO: propagate room changes out to wherever they need to go
+                                ( { model | flashNotice = Just "Room updated" }, expireFlashNotice )
+
+                            Page.RoomSettings.NoOp ->
+                                ( model, Cmd.none )
+                in
+                    ( { newModel | page = RoomSettings newPageModel }
+                    , Cmd.batch [ externalCmd, Cmd.map RoomSettingsMsg cmd ]
+                    )
+
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
 
@@ -240,9 +290,17 @@ update msg model =
                     UnknownMessage ->
                         ( model, Cmd.none )
 
+            ( FlashNoticeExpired, _ ) ->
+                ( { model | flashNotice = Nothing }, Cmd.none )
+
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
+
+
+expireFlashNotice : Cmd Msg
+expireFlashNotice =
+    Task.perform (\_ -> FlashNoticeExpired) <| Process.sleep (3 * second)
 
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
@@ -277,11 +335,23 @@ navigateTo maybeRoute model =
                     Just Route.NewRoom ->
                         let
                             pageModel =
-                                Page.NewRoom.initialModel
+                                Page.NewRoom.buildModel
                         in
                             ( { model | page = NewRoom pageModel }
                             , Cmd.map NewRoomMsg Page.NewRoom.initialCmd
                             )
+
+                    Just (Route.RoomSettings slug) ->
+                        case model.page of
+                            Room currentPageModel ->
+                                let
+                                    pageModel =
+                                        Page.RoomSettings.buildModel currentPageModel.room currentPageModel.users
+                                in
+                                    ( { model | page = RoomSettings pageModel }, Cmd.none )
+
+                            _ ->
+                                transition model (RoomSettingsLoaded slug) (Page.RoomSettings.fetchRoom model.session slug)
 
 
 setupSockets : Model -> ( Model, Cmd Msg )
@@ -317,8 +387,11 @@ subscriptions model =
 pageSubscription : Model -> Sub Msg
 pageSubscription model =
     case model.page of
-        Room model ->
-            Sub.map RoomMsg <| Page.Room.subscriptions model
+        Room pageModel ->
+            Sub.map RoomMsg <| Page.Room.subscriptions pageModel
+
+        RoomSettings _ ->
+            Sub.map RoomSettingsMsg <| Page.RoomSettings.subscriptions
 
         _ ->
             Sub.none
@@ -340,9 +413,9 @@ view model =
                     [ div [ class "sidebar-left__head" ]
                         [ spaceSelector appState.space
                         , div [ class "sidebar__button-container" ]
-                            [ a [ href "#", class "new-conversation-button" ]
+                            [ button [ class "button button--sidebar" ]
                                 [ commentIcon (Color.rgb 48 186 143) 24
-                                , text "Start a thread"
+                                , text "New Conversation"
                                 ]
                             ]
                         ]
@@ -353,7 +426,18 @@ view model =
                     , div [ class "sidebar-right__nav" ] (rightSidebar model)
                     ]
                 , pageContent model.page
+                , flashNotice model
                 ]
+
+
+flashNotice : Model -> Html Msg
+flashNotice model =
+    case model.flashNotice of
+        Just message ->
+            div [ class "flash flash--notice" ] [ text message ]
+
+        Nothing ->
+            text ""
 
 
 pageContent : Page -> Html Msg
@@ -372,6 +456,11 @@ pageContent page =
             model
                 |> Page.NewRoom.view
                 |> Html.map NewRoomMsg
+
+        RoomSettings model ->
+            model
+                |> Page.RoomSettings.view
+                |> Html.map RoomSettingsMsg
 
         Blank ->
             -- TODO: implement this
@@ -446,12 +535,20 @@ rightSidebar : Model -> List (Html Msg)
 rightSidebar model =
     case model.page of
         Room pageModel ->
-            [ h3 [ class "side-nav-heading" ] [ text "Members" ]
-            , div [ class "users-list" ] (List.map (userItem model.page) pageModel.users.edges)
-            ]
+            userList model.page pageModel.users
+
+        RoomSettings pageModel ->
+            userList model.page pageModel.users
 
         _ ->
             []
+
+
+userList : Page -> UserConnection -> List (Html Msg)
+userList page users =
+    [ h3 [ class "side-nav-heading" ] [ text "Members" ]
+    , div [ class "users-list" ] (List.map (userItem page) users.edges)
+    ]
 
 
 userItem : Page -> UserEdge -> Html Msg
@@ -508,13 +605,19 @@ roomSubscriptionItem page edge =
                     else
                         False
 
+                RoomSettings pageModel ->
+                    if pageModel.id == room.id then
+                        True
+                    else
+                        False
+
                 _ ->
                     False
 
         icon =
             case room.subscriberPolicy of
                 Data.Room.InviteOnly ->
-                    span [ class "side-nav__item-icon" ] [ privacyIcon (Color.rgba 255 255 255 0.5) 12 ]
+                    span [ class "side-nav__item-icon" ] [ privacyIcon (Color.rgb 144 150 162) 12 ]
 
                 _ ->
                     text ""

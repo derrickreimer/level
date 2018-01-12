@@ -29,7 +29,8 @@ import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
 import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
-import Icons exposing (privacyIcon)
+import Route
+import Icons exposing (privacyIcon, settingsIcon)
 import Color
 
 
@@ -293,15 +294,15 @@ view model =
     let
         description =
             if model.room.description == "" then
-                "Add a description..."
+                a [ Route.href <| Route.RoomSettings model.room.id ] [ text "Add a description..." ]
             else
-                model.room.description
+                text model.room.description
 
         icon =
             case model.room.subscriberPolicy of
                 Data.Room.InviteOnly ->
                     span [ class "page-head__title-icon" ]
-                        [ privacyIcon (Color.rgba 255 255 255 0.5) 18
+                        [ privacyIcon (Color.rgb 144 150 162) 18
                         ]
 
                 _ ->
@@ -314,9 +315,13 @@ view model =
                         [ h2 [ class "page-head__title-text" ] [ text model.room.name ]
                         , icon
                         ]
-                    , div [ class "page-head__controls" ] []
+                    , div [ class "page-head__controls" ]
+                        [ a [ Route.href (Route.RoomSettings model.room.id), class "button button--secondary button--icon" ]
+                            [ settingsIcon (Color.rgb 144 150 162) 24
+                            ]
+                        ]
                     ]
-                , p [ class "page-head__description" ] [ text description ]
+                , p [ class "page-head__description" ] [ description ]
                 ]
             , renderMessages model.messages
             , div [ class "composer" ]

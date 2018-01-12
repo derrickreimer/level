@@ -188,15 +188,6 @@
   justify-content: space-between;
 }
 
-.new-conversation-button {
-  display: inline-flex;
-  font-weight: bold;
-
-  svg {
-    margin-right: $baseline / 2;
-  }
-}
-
 .users-list {
   &__item {
     display: block;

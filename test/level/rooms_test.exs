@@ -39,6 +39,20 @@ defmodule Level.RoomsTest do
     end
   end
 
+  describe "update_room/2" do
+    setup do
+      {:ok, %{user: user}} = insert_signup()
+      {:ok, %{room: room}} = insert_room(user)
+      {:ok, user: user, room: room}
+    end
+
+    test "updates a room given valid params", %{room: room} do
+      params = %{name: "New Name"}
+      {:ok, new_room} = Rooms.update_room(room, params)
+      assert new_room.name == "New Name"
+    end
+  end
+
   describe "get_room_subscription/2" do
     setup do
       insert_signup()

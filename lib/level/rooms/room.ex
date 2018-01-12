@@ -9,7 +9,7 @@ defmodule Level.Rooms.Room do
   schema "rooms" do
     field :state, :string, read_after_writes: true # room_state
     field :name, :string
-    field :description, :string, read_after_writes: true
+    field :description, :string, read_after_writes: true, default: ""
     field :subscriber_policy, :string, read_after_writes: true # room_subscriber_policy
 
     belongs_to :space, Level.Spaces.Space
@@ -25,6 +25,16 @@ defmodule Level.Rooms.Room do
   def create_changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:space_id, :creator_id, :name, :description, :subscriber_policy])
+    |> validate_required([:name])
+    |> unique_constraint(:name, name: :rooms_unique_ci_name)
+  end
+
+  @doc """
+  Builds a changeset for updating a room.
+  """
+  def update_changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:name, :description, :subscriber_policy])
     |> validate_required([:name])
     |> unique_constraint(:name, name: :rooms_unique_ci_name)
   end

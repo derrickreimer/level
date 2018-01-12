@@ -1,4 +1,4 @@
-module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, initialModel, initialCmd, update, view)
+module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, buildModel, initialCmd, update, view)
 
 import Dom exposing (focus)
 import Html exposing (..)
@@ -28,8 +28,8 @@ type alias Model =
 
 {-| Builds the initial model for the page.
 -}
-initialModel : Model
-initialModel =
+buildModel : Model
+buildModel =
     Model "" "" False False []
 
 
@@ -108,7 +108,7 @@ update msg session model =
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
-            ( ( model, Cmd.none ), NoOp )
+            ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
 
         Focused ->
             ( ( model, Cmd.none ), NoOp )

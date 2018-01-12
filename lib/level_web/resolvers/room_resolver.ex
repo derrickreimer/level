@@ -4,6 +4,7 @@ defmodule LevelWeb.RoomResolver do
   """
 
   import LevelWeb.ResolverHelpers
+  import Level.Gettext
   alias Level.Rooms
 
   def create(args, %{context: %{current_user: user}}) do
@@ -18,6 +19,30 @@ defmodule LevelWeb.RoomResolver do
         # TODO: handle all possible failure modes comprehensively here?
         _ ->
           %{success: false, room: nil, errors: []}
+      end
+
+    {:ok, resp}
+  end
+
+  def update(args, %{context: %{current_user: user}}) do
+    resp =
+      case Rooms.get_room(user, args.id) do
+        {:error, _} ->
+          errors = [%{
+            attribute: "base",
+            message: dgettext("errors", "Room not found")
+          }]
+
+          %{success: false, room: nil, errors: errors}
+
+        {:ok, room} ->
+          case Rooms.update_room(room, args) do
+            {:ok, updated_room} ->
+              %{success: true, room: updated_room, errors: []}
+
+            {:error, changeset} ->
+              %{success: false, room: room, errors: format_errors(changeset)}
+          end
       end
 
     {:ok, resp}
