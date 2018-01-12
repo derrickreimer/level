@@ -9,7 +9,7 @@ import Task
 import Time exposing (second)
 import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
-import Data.User exposing (User, UserEdge, displayName)
+import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Data.Session exposing (Session)
 import Page.Room
 import Page.NewRoom
@@ -188,7 +188,7 @@ update msg model =
                 case response of
                     Query.RoomSettings.Found data ->
                         ( { model
-                            | page = RoomSettings (Page.RoomSettings.buildModel data.room)
+                            | page = RoomSettings (Page.RoomSettings.buildModel data.room data.users)
                             , isTransitioning = False
                           }
                         , Cmd.none
@@ -346,7 +346,7 @@ navigateTo maybeRoute model =
                             Room currentPageModel ->
                                 let
                                     pageModel =
-                                        Page.RoomSettings.buildModel currentPageModel.room
+                                        Page.RoomSettings.buildModel currentPageModel.room currentPageModel.users
                                 in
                                     ( { model | page = RoomSettings pageModel }, Cmd.none )
 
@@ -535,12 +535,20 @@ rightSidebar : Model -> List (Html Msg)
 rightSidebar model =
     case model.page of
         Room pageModel ->
-            [ h3 [ class "side-nav-heading" ] [ text "Members" ]
-            , div [ class "users-list" ] (List.map (userItem model.page) pageModel.users.edges)
-            ]
+            userList model.page pageModel.users
+
+        RoomSettings pageModel ->
+            userList model.page pageModel.users
 
         _ ->
             []
+
+
+userList : Page -> UserConnection -> List (Html Msg)
+userList page users =
+    [ h3 [ class "side-nav-heading" ] [ text "Members" ]
+    , div [ class "users-list" ] (List.map (userItem page) users.edges)
+    ]
 
 
 userItem : Page -> UserEdge -> Html Msg

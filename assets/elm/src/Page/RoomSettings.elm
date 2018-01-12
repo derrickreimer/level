@@ -8,6 +8,7 @@ import Keyboard
 import Task exposing (Task)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
+import Data.User exposing (UserConnection)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.UpdateRoom as UpdateRoom
 import Query.RoomSettings
@@ -27,6 +28,7 @@ type alias Model =
     , subscriberPolicy : Data.Room.SubscriberPolicy
     , isSubmitting : Bool
     , errors : List ValidationError
+    , users : UserConnection
     }
 
 
@@ -40,9 +42,9 @@ fetchRoom session slug =
 
 {-| Builds the initial model for the page.
 -}
-buildModel : Room -> Model
-buildModel room =
-    Model room.id room.name room.description room.subscriberPolicy False []
+buildModel : Room -> UserConnection -> Model
+buildModel room users =
+    Model room.id room.name room.description room.subscriberPolicy False [] users
 
 
 {-| Determines whether the form is able to be submitted.
