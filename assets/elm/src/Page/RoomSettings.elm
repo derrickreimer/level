@@ -1,9 +1,10 @@
-module Page.RoomSettings exposing (Model, ExternalMsg(..), Msg, fetchRoom, buildModel, update, view)
+module Page.RoomSettings exposing (Model, ExternalMsg(..), Msg, fetchRoom, buildModel, update, subscriptions, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Http
+import Keyboard
 import Task exposing (Task)
 import Data.Room exposing (Room)
 import Data.Session exposing (Session)
@@ -61,6 +62,7 @@ type Msg
     | PrivacyToggled
     | Submit
     | Submitted (Result Http.Error UpdateRoom.Response)
+    | Keydown Keyboard.KeyCode
 
 
 type ExternalMsg
@@ -107,6 +109,24 @@ update msg session model =
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
             ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
+
+        Keydown code ->
+            case code of
+                -- esc
+                27 ->
+                    ( ( model, Route.modifyUrl <| Route.Room model.id ), NoOp )
+
+                _ ->
+                    ( ( model, Cmd.none ), NoOp )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Sub Msg
+subscriptions =
+    Keyboard.downs Keydown
 
 
 

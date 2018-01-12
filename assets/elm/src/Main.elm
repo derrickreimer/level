@@ -387,8 +387,11 @@ subscriptions model =
 pageSubscription : Model -> Sub Msg
 pageSubscription model =
     case model.page of
-        Room model ->
-            Sub.map RoomMsg <| Page.Room.subscriptions model
+        Room pageModel ->
+            Sub.map RoomMsg <| Page.Room.subscriptions pageModel
+
+        RoomSettings _ ->
+            Sub.map RoomSettingsMsg <| Page.RoomSettings.subscriptions
 
         _ ->
             Sub.none
