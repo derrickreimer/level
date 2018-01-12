@@ -294,9 +294,9 @@ view model =
     let
         description =
             if model.room.description == "" then
-                "Add a description..."
+                a [ Route.href <| Route.RoomSettings model.room.id ] [ text "Add a description..." ]
             else
-                model.room.description
+                text model.room.description
 
         icon =
             case model.room.subscriberPolicy of
@@ -321,7 +321,7 @@ view model =
                             ]
                         ]
                     ]
-                , p [ class "page-head__description" ] [ text description ]
+                , p [ class "page-head__description" ] [ description ]
                 ]
             , renderMessages model.messages
             , div [ class "composer" ]
