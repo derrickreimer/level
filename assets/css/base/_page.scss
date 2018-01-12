@@ -2,6 +2,7 @@
   margin: 0 $baseline;
   padding: $baseline 0 $baseline $baseline;
   border-bottom: 1px solid $dark-liver;
+  box-shadow: 0 0 0 6px $background-color; // prevent content from overflowing right up against it
   z-index: 1000;
 
   &--borderless {
