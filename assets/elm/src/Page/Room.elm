@@ -316,7 +316,7 @@ view model =
                         , icon
                         ]
                     , div [ class "page-head__controls" ]
-                        [ a [ Route.href (Route.RoomSettings model.room.id), class "button button--secondary button--icon" ]
+                        [ a [ Route.href (Route.RoomSettings model.room.id), class "button button--secondary" ]
                             [ settingsIcon (Color.rgb 144 150 162) 24
                             ]
                         ]

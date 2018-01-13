@@ -142,7 +142,7 @@ view model =
             [ div [ class "page-head__header" ]
                 [ div [ class "page-head__title" ] []
                 , div [ class "page-head__controls" ]
-                    [ a [ Route.href (Route.Room model.id), class "button button--secondary button--icon" ]
+                    [ a [ Route.href (Route.Room model.id), class "button button--secondary" ]
                         [ closeIcon (Color.rgb 144 150 162) 24
                         ]
                     ]

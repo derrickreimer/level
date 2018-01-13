@@ -413,8 +413,8 @@ view model =
                     [ div [ class "sidebar-left__head" ]
                         [ spaceSelector appState.space
                         , div [ class "sidebar__button-container" ]
-                            [ button [ class "button button--sidebar" ]
-                                [ commentIcon (Color.rgb 48 186 143) 24
+                            [ button [ class "button button--primary button--short button--icon" ]
+                                [ commentIcon (Color.rgb 255 255 255) 24
                                 , text "New Conversation"
                                 ]
                             ]

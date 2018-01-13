@@ -1,7 +1,9 @@
 .button {
   @include shadow-on-focus;
 
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding-left: $baseline;
   padding-right: $baseline;
   border: none;
@@ -13,23 +15,16 @@
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 
-  &--icon {
-    display: flex;
-    align-items: center;
-  }
-
   & + & {
     margin-left: $baseline;
   }
 
   &--short {
-    padding-top: $baseline * 0.8;
-    padding-bottom: $baseline * 0.8;
+    height: 36px;
   }
 
   &--large {
     height: 48px;
-    line-height: 2;
     padding-left: $baseline * 1.5;
     padding-right: $baseline * 1.5;
   }
@@ -109,29 +104,16 @@
     }
   }
 
-  &--sidebar {
-    display: inline-flex;
-    align-items: center;
-    font-weight: bold;
-    padding: $baseline / 2 $baseline $baseline / 2 $baseline - 5px;
-    border-radius: $base-radius;
-    background-color: $background-color;
-    // border: 1px solid darken($default-link-color, 30%);
-    // background-color: transparent;
-    color: $default-link-color;
+  &--icon {
+    display: flex;
+    justify-content: left;
+    width: 100%;
 
     svg {
       position: relative;
-      margin-right: $baseline / 2;
+      margin-right: ($baseline / 2); //- 2px;
+      left: -2px;
       bottom: -1px;
-    }
-
-    &:hover {
-      background-color: lighten($background-color, 2%);
-    }
-
-    &:active {
-      background-color: darken($background-color, 2%);
     }
   }
 }
