@@ -104,16 +104,14 @@
     }
   }
 
-  &--icon {
+  &--convo {
     display: flex;
     justify-content: left;
-    width: 100%;
 
     svg {
       position: relative;
-      margin-right: ($baseline / 2); //- 2px;
+      margin-right: 3px;
       left: -2px;
-      bottom: -1px;
     }
   }
 }

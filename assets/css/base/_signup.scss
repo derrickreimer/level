@@ -1,5 +1,5 @@
 .signup-form {
-  margin: 100px auto;
+  margin: 120px auto;
   padding: $baseline;
   max-width: 500px;
 
@@ -11,6 +11,7 @@
     padding-bottom: ($baseline * 4);
 
     p {
+      margin: 0;
       font-size: 20px;
       line-height: 1.5;
       color: $muted-text-color;
@@ -18,7 +19,8 @@
   }
 
   &__heading {
-    font-size: 42px;
+    margin: 0 0 $baseline;
+    font-size: 46px;
     font-weight: normal;
   }
 

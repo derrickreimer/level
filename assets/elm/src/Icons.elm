@@ -1,7 +1,7 @@
 module Icons exposing (..)
 
 import Material.Icons.Action as Action
-import Material.Icons.Communication as Communication
+import Material.Icons.Content as Content
 import Material.Icons.Hardware as Hardware
 import Material.Icons.Navigation as Navigation
 import Material.Icons.Social as Social
@@ -14,9 +14,9 @@ privacyIcon =
     Action.lock
 
 
-commentIcon : Color.Color -> Int -> Svg.Svg msg
-commentIcon =
-    Communication.comment
+convoIcon : Color.Color -> Int -> Svg.Svg msg
+convoIcon =
+    Content.send
 
 
 settingsIcon : Color.Color -> Int -> Svg.Svg msg
