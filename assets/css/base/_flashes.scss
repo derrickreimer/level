@@ -21,7 +21,8 @@
   transform: translateX(-50%);
   z-index: 1000;
   padding: $baseline / 2 $baseline * 2;
-  border-bottom: 4px solid darken($highlight-color, 20%);
+  // border-bottom: 4px solid darken($highlight-color, 20%);
+  border-radius: 0 0 $base-radius $base-radius;
   font-weight: bold;
 
   &--notice {

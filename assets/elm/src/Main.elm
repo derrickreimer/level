@@ -7,7 +7,7 @@ import Json.Decode as Decode
 import Process
 import Task
 import Time exposing (second)
-import Data.Room exposing (RoomSubscriptionConnection, RoomSubscriptionEdge)
+import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Data.Session exposing (Session)
@@ -254,8 +254,13 @@ update msg model =
                     ( newModel, externalCmd ) =
                         case externalMsg of
                             Page.RoomSettings.RoomUpdated room ->
-                                -- TODO: propagate room changes out to wherever they need to go
-                                ( { model | flashNotice = Just "Room updated" }, expireFlashNotice )
+                                let
+                                    newModel =
+                                        model
+                                            |> setFlashNotice "Room updated"
+                                            |> updateRoom room
+                                in
+                                    ( newModel, expireFlashNotice )
 
                             Page.RoomSettings.NoOp ->
                                 ( model, Cmd.none )
@@ -296,6 +301,47 @@ update msg model =
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
+
+
+{-| Propagates changes made to room to all the places where that room might be
+stored in the model.
+-}
+updateRoom : Room -> Model -> Model
+updateRoom room model =
+    case model.appState of
+        Loaded data ->
+            let
+                roomSubscriptions =
+                    data.roomSubscriptions
+
+                edges =
+                    roomSubscriptions.edges
+
+                update edge =
+                    if room.id == edge.node.room.id then
+                        let
+                            node =
+                                edge.node
+                        in
+                            { edge | node = { node | room = room } }
+                    else
+                        edge
+
+                newRoomSubscriptions =
+                    { roomSubscriptions | edges = List.map update edges }
+
+                newData =
+                    { data | roomSubscriptions = newRoomSubscriptions }
+            in
+                { model | appState = Loaded newData }
+
+        NotLoaded ->
+            model
+
+
+setFlashNotice : String -> Model -> Model
+setFlashNotice message model =
+    { model | flashNotice = Just message }
 
 
 expireFlashNotice : Cmd Msg
