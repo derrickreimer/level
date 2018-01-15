@@ -582,15 +582,20 @@ rightSidebar : Model -> List (Html Msg)
 rightSidebar model =
     case model.page of
         Room pageModel ->
-            userList "Room Members" model.page pageModel.users
+            userList "Members" model.page pageModel.users
 
         RoomSettings pageModel ->
-            userList "Room Members" model.page pageModel.users
+            userList "Members" model.page pageModel.users
 
         Conversations ->
             case model.appState of
                 Loaded appState ->
-                    userList "All Members" model.page appState.users
+                    (userList "Directory" model.page appState.users)
+                        ++ [ div [ class "side-nav side-nav--right" ]
+                                [ a [ class "side-nav__item", href "#" ]
+                                    [ span [ class "side-nav__item-name" ] [ text "Invite people..." ] ]
+                                ]
+                           ]
 
                 NotLoaded ->
                     []
