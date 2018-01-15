@@ -1,16 +1,7 @@
 .thread-page {
   position: relative;
-  // display: grid;
-  // grid-gap: 0 0;
-  // grid-template-rows: min-content auto min-content;
-  // grid-template-areas:
-  //   "page-head"
-  //   "page-content"
-  //   "composer";
 
   & > .page-head {
-    // grid-area: page-head;
-    // min-width: 0;
     position: absolute;
     left: 0;
     right: 0;
@@ -19,8 +10,6 @@
   }
 
   & > .messages {
-    // grid-area: page-content;
-    // min-width: 0;
     position: absolute;
     left: 0;
     right: 0;
@@ -28,9 +17,18 @@
     bottom: 146px;
   }
 
+  &--no-description {
+
+    & > .page-head {
+      height: 65px;
+    }
+
+    & > .messages {
+      top: 65px;
+    }
+  }
+
   & > .composer {
-    // grid-area: composer;
-    // min-width: 0;
     position: absolute;
     left: 0;
     right: 0;

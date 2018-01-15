@@ -294,7 +294,7 @@ view model =
     let
         description =
             if model.room.description == "" then
-                a [ Route.href <| Route.RoomSettings model.room.id ] [ text "Add a description..." ]
+                text ""
             else
                 text model.room.description
 
@@ -308,7 +308,7 @@ view model =
                 _ ->
                     text ""
     in
-        div [ id "main", class "thread-page" ]
+        div [ id "main", classList [ ( "thread-page", True ), ( "thread-page--no-description", model.room.description == "" ) ] ]
             [ div [ class "page-head" ]
                 [ div [ class "page-head__header" ]
                     [ div [ class "page-head__title" ]
