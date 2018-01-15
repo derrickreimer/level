@@ -2,7 +2,7 @@ module Query.AppState exposing (request, Response)
 
 import Data.Room exposing (RoomSubscriptionConnection, roomSubscriptionConnectionDecoder)
 import Data.Space exposing (Space, spaceDecoder)
-import Data.User exposing (User, userDecoder)
+import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -13,6 +13,7 @@ type alias Response =
     { user : User
     , space : Space
     , roomSubscriptions : RoomSubscriptionConnection
+    , users : UserConnection
     }
 
 
@@ -28,6 +29,22 @@ query =
           space {
             id
             name
+            users(first: 10) {
+              pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+              }
+              edges {
+                node {
+                  id
+                  firstName
+                  lastName
+                }
+                cursor
+              }
+            }
           }
           roomSubscriptions(first: 10) {
             edges {
@@ -53,6 +70,7 @@ decoder =
             |> Pipeline.custom userDecoder
             |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
             |> Pipeline.custom (Decode.at [ "roomSubscriptions" ] roomSubscriptionConnectionDecoder)
+            |> Pipeline.custom (Decode.at [ "space", "users" ] userConnectionDecoder)
         )
 
 

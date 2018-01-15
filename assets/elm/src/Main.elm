@@ -58,6 +58,7 @@ type alias AppState =
     { space : Space
     , user : User
     , roomSubscriptions : RoomSubscriptionConnection
+    , users : UserConnection
     }
 
 
@@ -581,18 +582,23 @@ rightSidebar : Model -> List (Html Msg)
 rightSidebar model =
     case model.page of
         Room pageModel ->
-            userList model.page pageModel.users
+            userList "Room Members" model.page pageModel.users
 
         RoomSettings pageModel ->
-            userList model.page pageModel.users
+            userList "Room Members" model.page pageModel.users
 
         _ ->
-            []
+            case model.appState of
+                Loaded appState ->
+                    userList "All Members" model.page appState.users
+
+                NotLoaded ->
+                    []
 
 
-userList : Page -> UserConnection -> List (Html Msg)
-userList page users =
-    [ h3 [ class "side-nav-heading" ] [ text "Members" ]
+userList : String -> Page -> UserConnection -> List (Html Msg)
+userList heading page users =
+    [ h3 [ class "side-nav-heading" ] [ text heading ]
     , div [ class "users-list" ] (List.map (userItem page) users.edges)
     ]
 
