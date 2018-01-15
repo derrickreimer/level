@@ -587,7 +587,7 @@ rightSidebar model =
         RoomSettings pageModel ->
             userList "Room Members" model.page pageModel.users
 
-        _ ->
+        Conversations ->
             case model.appState of
                 Loaded appState ->
                     userList "All Members" model.page appState.users
@@ -595,19 +595,22 @@ rightSidebar model =
                 NotLoaded ->
                     []
 
+        _ ->
+            []
+
 
 userList : String -> Page -> UserConnection -> List (Html Msg)
 userList heading page users =
     [ h3 [ class "side-nav-heading" ] [ text heading ]
-    , div [ class "users-list" ] (List.map (userItem page) users.edges)
+    , div [ class "side-nav side-nav--right" ] (List.map (userItem page) users.edges)
     ]
 
 
 userItem : Page -> UserEdge -> Html Msg
 userItem page edge =
-    a [ class "users-list__item", href "#" ]
-        [ span [ class "state-indicator state-indicator--available" ] []
-        , span [ class "users-list__name" ] [ text (displayName edge.node) ]
+    a [ class "side-nav__item", href "#" ]
+        [ span [ class "side-nav__state-indicator side-nav__state-indicator--available" ] []
+        , span [ class "side-nav__item-name" ] [ text (displayName edge.node) ]
         ]
 
 

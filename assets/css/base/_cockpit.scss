@@ -129,6 +129,7 @@
   &__item {
     position: relative;
     display: flex;
+    align-items: center;
     margin: 0 0 0 $baseline;
     padding: 1px $baseline;
     border-radius: $base-radius 0 0 $base-radius;
@@ -150,6 +151,14 @@
 
     &--action {
       margin-top: $baseline;
+    }
+  }
+
+  &--right {
+
+    .side-nav__item {
+      margin: 0 $baseline 0 0;
+      border-radius: 0 $base-radius $base-radius 0;
     }
   }
 
@@ -180,54 +189,34 @@
     background-color: $highlight-color;
     border-radius: 20px;
   }
+
+  &__state-indicator {
+    display: block;
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-right: $baseline / 2;
+    border-radius: 50px;
+
+    &--available {
+      background-color: $available-color;
+    }
+
+    &--focus {
+      border: 3px solid $focus-color;
+    }
+
+    &--offline {
+      border: 3px solid $offline-color;
+    }
+  }
 }
 
 .top-nav {
   padding: $baseline;
   display: flex;
   justify-content: space-between;
-}
-
-.users-list {
-  &__item {
-    display: block;
-    padding: 0 $baseline;
-    color: $default-text-color;
-
-    &:hover {
-      text-decoration: none;
-      background-color: $sidebar-hover;
-    }
-
-    &--offline {
-      color: $offline-text-color;
-    }
-  }
-
-  &__name {
-    vertical-align: middle;
-  }
-}
-
-.state-indicator {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
-  margin-right: $baseline / 2;
-  border-radius: 50px;
-
-  &--available {
-    background-color: $available-color;
-  }
-
-  &--focus {
-    border: 3px solid $focus-color;
-  }
-
-  &--offline {
-    border: 3px solid $offline-color;
-  }
 }
 
 .blank-slate {
