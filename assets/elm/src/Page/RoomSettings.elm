@@ -103,7 +103,7 @@ update msg session model =
                     ( ( model, Cmd.none ), NoOp )
 
         Submitted (Ok (UpdateRoom.Success room)) ->
-            ( ( { model | isSubmitting = False }, Cmd.none ), RoomUpdated room )
+            ( ( { model | isSubmitting = False }, navigateToRoom model ), RoomUpdated room )
 
         Submitted (Ok (UpdateRoom.Invalid errors)) ->
             ( ( { model | errors = errors, isSubmitting = False }, Cmd.none ), NoOp )
@@ -116,10 +116,15 @@ update msg session model =
             case code of
                 -- esc
                 27 ->
-                    ( ( model, Route.modifyUrl <| Route.Room model.id ), NoOp )
+                    ( ( model, navigateToRoom model ), NoOp )
 
                 _ ->
                     ( ( model, Cmd.none ), NoOp )
+
+
+navigateToRoom : Model -> Cmd Msg
+navigateToRoom model =
+    Route.modifyUrl <| Route.Room model.id
 
 
 
