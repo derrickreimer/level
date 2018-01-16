@@ -2,53 +2,58 @@
   <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="cform">
-  <div class="cform__header cform__header--centered">
-    <h2 class="cform__heading"><%= gettext "Join the %{name} space", name: @invitation.space.name %></h2>
+<div class="signup-form">
+  <div class="signup-form__header">
+    <h2 class="signup-form__heading"><%= gettext "Join %{name} on Level", name: @invitation.space.name %></h2>
+    <p class="signup-form__description">
+      <%= gettext "You were invited by %{invitor}.", invitor: @invitation.invitor.email %>
+      <%= gettext "If you don’t recognize the sender, please disregard this invitation." %>
+    </p>
   </div>
 
-  <%= form_for @changeset, accept_invitation_path(@conn, :create, @invitation), [class: "cform__form cform__form--bordered"], fn f -> %>
-    <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
-      <%= label f, :email, gettext("Email Address"), class: "form-label" %>
-      <%= text_input f, :email, class: "text-field text-field--full text-field--large" %>
-      <%= error_tag f, :email %>
-    </div>
-
-    <div class="inline-field-group">
-      <div class="form-field <%= if f.errors[:first_name], do: "form-field--error" %>">
-        <%= label f, :first_name, gettext("First Name"), class: "form-label" %>
-        <%= text_input f, :first_name, class: "text-field text-field--full text-field--large" %>
-        <%= error_tag f, :first_name %>
+  <%= form_for @changeset, accept_invitation_path(@conn, :create, @invitation), fn f -> %>
+    <div class="signup-form__section">
+      <div class="signup-form__section-header">
+        <span class="signup-form__section-number">1</span>
+        Tell us about yourself!
       </div>
+      <div class="signup-form__section-body">
+        <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
+          <%= label f, :email, gettext("Email Address"), class: "form-label" %>
+          <%= text_input f, :email, class: "text-field text-field--full text-field--large" %>
+          <%= error_tag f, :email %>
+        </div>
 
-      <div class="form-field <%= if f.errors[:last_name], do: "form-field--error" %>">
-        <%= label f, :last_name, gettext("Last Name"), class: "form-label" %>
-        <%= text_input f, :last_name, class: "text-field text-field--full text-field--large" %>
-        <%= error_tag f, :last_name %>
+        <div class="inline-field-group">
+          <div class="form-field <%= if f.errors[:first_name], do: "form-field--error" %>">
+            <%= label f, :first_name, gettext("First Name"), class: "form-label" %>
+            <%= text_input f, :first_name, class: "text-field text-field--full text-field--large" %>
+            <%= error_tag f, :first_name %>
+          </div>
+
+          <div class="form-field <%= if f.errors[:last_name], do: "form-field--error" %>">
+            <%= label f, :last_name, gettext("Last Name"), class: "form-label" %>
+            <%= text_input f, :last_name, class: "text-field text-field--full text-field--large" %>
+            <%= error_tag f, :last_name %>
+          </div>
+        </div>
+
+        <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
+          <%= label f, :username, gettext("Username"), class: "form-label" %>
+          <%= text_input f, :username, class: "text-field text-field--full text-field--large" %>
+          <%= error_tag f, :username %>
+        </div>
+
+        <div class="form-field <%= if f.errors[:password], do: "form-field--error" %>">
+          <%= label f, :password, gettext("Password"), class: "form-label" %>
+          <%= password_input f, :password, class: "text-field text-field--full text-field--large" %>
+          <%= error_tag f, :password %>
+        </div>
       </div>
     </div>
 
-    <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
-      <%= label f, :username, gettext("Username"), class: "form-label" %>
-      <%= text_input f, :username, class: "text-field text-field--full text-field--large" %>
-      <%= error_tag f, :username %>
-    </div>
-
-    <div class="form-field <%= if f.errors[:password], do: "form-field--error" %>">
-      <%= label f, :password, gettext("Password"), class: "form-label" %>
-      <%= password_input f, :password, class: "text-field text-field--full text-field--large" %>
-      <%= error_tag f, :password %>
-    </div>
-
-    <div class="form-controls">
+    <div class="signup-form__controls">
       <%= submit gettext("Join the space"), class: "button button--primary button--full button--large" %>
     </div>
   <% end %>
-
-  <div class="cform__footer cform__footer--centered">
-    <p>
-      <%= gettext "You were invited by %{invitor}.", invitor: @invitation.invitor.email %><br>
-      <%= gettext "If you don’t recognize the sender, please disregard this invitation!" %>
-    </p>
-  </div>
 </div>

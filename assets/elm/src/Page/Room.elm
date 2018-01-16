@@ -421,7 +421,7 @@ renderUserGroup ( user, edges ) =
 
 stubbedAvatarUrl : String
 stubbedAvatarUrl =
-    "https://pbs.twimg.com/profile_images/852639806475583488/ZIHg4A21_400x400.jpg"
+    "https://pbs.twimg.com/profile_images/952064552287453185/T_QMnFac_400x400.jpg"
 
 
 renderHeadMessage : RoomMessageEdge -> Html Msg

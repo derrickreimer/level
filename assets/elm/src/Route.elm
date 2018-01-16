@@ -18,6 +18,7 @@ type Route
     | Room String -- TODO: Create a strong type for the room id param
     | RoomSettings String
     | NewRoom
+    | NewInvitation
 
 
 route : Parser (Route -> a) a
@@ -27,6 +28,7 @@ route =
         , Url.map NewRoom (s "rooms" </> s "new")
         , Url.map Room (s "rooms" </> Room.slugParser)
         , Url.map RoomSettings (s "rooms" </> Room.slugParser </> s "settings")
+        , Url.map NewInvitation (s "invitations" </> s "new")
         ]
 
 
@@ -50,6 +52,9 @@ routeToString page =
 
                 RoomSettings slug ->
                     [ "rooms", slug, "settings" ]
+
+                NewInvitation ->
+                    [ "invitations", "new" ]
     in
         "#/" ++ String.join "/" pieces
 

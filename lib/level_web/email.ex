@@ -21,7 +21,7 @@ defmodule LevelWeb.Email do
     new_email()
     |> to(invitation.email)
     |> from({"Level", support_address()})
-    |> subject("Your invitation to join the #{space.name} Level space")
+    |> subject("Your invitation to join #{space.name} on Level")
     |> put_html_layout({LevelWeb.LayoutView, "plain_text_email.html"})
     |> render(:invitation_email, invitation: invitation,
                                  space: space,

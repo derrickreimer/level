@@ -10,7 +10,7 @@ defmodule Level.Connections.Users do
     before: nil,
     after: nil,
     order_by: %{
-      field: :username,
+      field: :last_name,
       direction: :asc
     }
   }

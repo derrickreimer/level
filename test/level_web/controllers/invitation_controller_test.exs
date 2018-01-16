@@ -33,7 +33,7 @@ defmodule LevelWeb.InvitationControllerTest do
         |> get("/invitations/#{invitation.token}")
 
       response = html_response(conn, 200)
-      assert response =~ "Join the #{space.name} space"
+      assert response =~ "Join #{space.name} on Level"
       assert response =~ "You were invited by #{invitor.email}"
     end
 

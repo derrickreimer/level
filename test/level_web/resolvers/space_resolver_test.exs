@@ -5,7 +5,7 @@ defmodule LevelWeb.SpaceResolverTest do
 
   describe "users/3" do
     setup do
-      {:ok, %{space: space, user: user}} = insert_signup(%{username: "aaa"})
+      {:ok, %{space: space, user: user}} = insert_signup(%{last_name: "aaa"})
       {:ok, %{space: space, owner: user}}
     end
 
@@ -16,18 +16,18 @@ defmodule LevelWeb.SpaceResolverTest do
     end
 
     test "includes edges", %{space: space} do
-      insert_member(space, %{username: "bbb"})
+      insert_member(space, %{last_name: "bbb"})
       {:ok, %{edges: edges}} = SpaceResolver.users(space, %{first: 10}, %{})
 
       nodes = Enum.map(edges, &(&1.node))
       cursors = Enum.map(edges, &(&1.cursor))
 
-      assert Enum.map(nodes, &(&1.username)) == ["aaa", "bbb"]
+      assert Enum.map(nodes, &(&1.last_name)) == ["aaa", "bbb"]
       assert cursors == ["aaa", "bbb"]
     end
 
     test "includes page info", %{space: space} do
-      insert_member(space, %{username: "bbb"})
+      insert_member(space, %{last_name: "bbb"})
       {:ok, %{page_info: page_info}} = SpaceResolver.users(space, %{first: 10}, %{})
 
       assert page_info.start_cursor == "aaa"
@@ -35,7 +35,7 @@ defmodule LevelWeb.SpaceResolverTest do
     end
 
     test "includes previous/next page flags", %{space: space} do
-      insert_member(space, %{username: "bbb"})
+      insert_member(space, %{last_name: "bbb"})
       {:ok, %{page_info: page_info}} = SpaceResolver.users(space, %{first: 1}, %{})
 
       assert page_info.start_cursor == "aaa"
