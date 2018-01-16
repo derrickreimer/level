@@ -15,6 +15,7 @@ import Page.Room
 import Page.NewRoom
 import Page.RoomSettings
 import Page.Conversations
+import Page.NewInvitation
 import Query.AppState
 import Query.Room
 import Query.RoomSettings
@@ -69,6 +70,7 @@ type Page
     | Room Page.Room.Model
     | NewRoom Page.NewRoom.Model
     | RoomSettings Page.RoomSettings.Model
+    | NewInvitation Page.NewInvitation.Model
 
 
 type alias Flags =
@@ -126,6 +128,7 @@ type Msg
     | RoomMsg Page.Room.Msg
     | NewRoomMsg Page.NewRoom.Msg
     | RoomSettingsMsg Page.RoomSettings.Msg
+    | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
@@ -270,6 +273,27 @@ update msg model =
                     , Cmd.batch [ externalCmd, Cmd.map RoomSettingsMsg cmd ]
                     )
 
+            ( NewInvitationMsg msg, NewInvitation pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), externalMsg ) =
+                        Page.NewInvitation.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.NewInvitation.InvitationCreated ->
+                                let
+                                    newModel =
+                                        setFlashNotice "Invitation sent" model
+                                in
+                                    ( newModel, expireFlashNotice )
+
+                            Page.NewInvitation.NoOp ->
+                                ( model, Cmd.none )
+                in
+                    ( { newModel | page = NewInvitation newPageModel }
+                    , Cmd.batch [ externalCmd, Cmd.map NewInvitationMsg cmd ]
+                    )
+
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
 
@@ -400,6 +424,15 @@ navigateTo maybeRoute model =
                             _ ->
                                 transition model (RoomSettingsLoaded slug) (Page.RoomSettings.fetchRoom model.session slug)
 
+                    Just Route.NewInvitation ->
+                        let
+                            pageModel =
+                                Page.NewInvitation.buildModel
+                        in
+                            ( { model | page = NewInvitation pageModel }
+                            , Cmd.map NewInvitationMsg Page.NewInvitation.initialCmd
+                            )
+
 
 setupSockets : Model -> ( Model, Cmd Msg )
 setupSockets model =
@@ -509,6 +542,11 @@ pageContent page =
                 |> Page.RoomSettings.view
                 |> Html.map RoomSettingsMsg
 
+        NewInvitation model ->
+            model
+                |> Page.NewInvitation.view
+                |> Html.map NewInvitationMsg
+
         Blank ->
             -- TODO: implement this
             div [] []
@@ -532,7 +570,7 @@ spaceSelector space =
 
 stubbedAvatarUrl : String
 stubbedAvatarUrl =
-    "https://pbs.twimg.com/profile_images/852639806475583488/ZIHg4A21_400x400.jpg"
+    "https://pbs.twimg.com/profile_images/952064552287453185/T_QMnFac_400x400.jpg"
 
 
 identityMenu : User -> Html Msg
@@ -584,24 +622,52 @@ rightSidebar model =
         Room pageModel ->
             userList "Members" model.page pageModel.users
 
+        NewRoom _ ->
+            mainDirectory model
+
         RoomSettings pageModel ->
             userList "Members" model.page pageModel.users
 
         Conversations ->
-            case model.appState of
-                Loaded appState ->
-                    (userList "Directory" model.page appState.users)
-                        ++ [ div [ class "side-nav side-nav--right" ]
-                                [ a [ class "side-nav__item", href "#" ]
-                                    [ span [ class "side-nav__item-name" ] [ text "Invite people..." ] ]
-                                ]
-                           ]
+            mainDirectory model
 
-                NotLoaded ->
-                    []
+        NewInvitation _ ->
+            mainDirectory model
 
         _ ->
             []
+
+
+mainDirectory : Model -> List (Html Msg)
+mainDirectory model =
+    let
+        isInviteActive =
+            case model.page of
+                NewInvitation _ ->
+                    True
+
+                _ ->
+                    False
+
+        inviteLink =
+            div [ class "side-nav side-nav--right" ]
+                [ a
+                    [ classList
+                        [ ( "side-nav__item", True )
+                        , ( "side-nav__item--action", True )
+                        , ( "side-nav__item--selected", isInviteActive )
+                        ]
+                    , Route.href Route.NewInvitation
+                    ]
+                    [ span [ class "side-nav__item-name" ] [ text "Invite people..." ] ]
+                ]
+    in
+        case model.appState of
+            Loaded appState ->
+                (userList "Directory" model.page appState.users) ++ [ inviteLink ]
+
+            NotLoaded ->
+                []
 
 
 userList : String -> Page -> UserConnection -> List (Html Msg)
