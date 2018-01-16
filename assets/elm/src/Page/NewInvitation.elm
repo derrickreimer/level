@@ -117,9 +117,9 @@ view model =
     div [ id "main", class "main main--new-invitation" ]
         [ div [ class "cform" ]
             [ div [ class "cform__header cform__header" ]
-                [ h2 [ class "cform__heading" ] [ text "Invite a user" ]
+                [ h2 [ class "cform__heading" ] [ text "Invite a person" ]
                 , p [ class "cform__description" ]
-                    [ text "We'll send them an email invitation. They will be given member-level permissions to start." ]
+                    [ text "They will be given member-level permissions to start (you can grant them greater access later if needed)." ]
                 ]
             , div [ class "cform__form" ]
                 [ inputField "email" "email" "Email Address" model.email EmailChanged model

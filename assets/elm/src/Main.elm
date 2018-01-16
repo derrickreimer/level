@@ -23,7 +23,7 @@ import Subscription.RoomMessageCreated
 import Navigation
 import Route exposing (Route)
 import Ports
-import Icons exposing (privacyIcon, convoIcon)
+import Icons exposing (privacyIcon)
 import Color
 
 
@@ -494,8 +494,7 @@ view model =
                         [ spaceSelector appState.space
                         , div [ class "sidebar__button-container" ]
                             [ button [ class "button button--primary button--short button--convo" ]
-                                [ convoIcon (Color.rgb 255 255 255) 24
-                                , text "New Conversation"
+                                [ text "New Conversation"
                                 ]
                             ]
                         ]
