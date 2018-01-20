@@ -82,4 +82,20 @@ defmodule Level.Connections do
   def room_users(room, args, context \\ %{}) do
     Level.Connections.RoomUsers.get(room, args, context)
   end
+
+  @doc """
+  Fetch pending invitations for given a space.
+
+  ## Examples
+
+      invitations(space, args)
+      => {:ok, %Level.Pagination.Result{
+        edges: [%Invitation{...}],
+        page_info: %PageInfo{...},
+        total_count: 10
+      }}
+  """
+  def invitations(space, args, context \\ %{}) do
+    Level.Connections.Invitations.get(space, args, context)
+  end
 end

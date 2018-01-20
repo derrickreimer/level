@@ -76,6 +76,15 @@ defmodule LevelWeb.Schema.Types do
       arg :order_by, :user_order
       resolve &LevelWeb.SpaceResolver.users/3
     end
+
+    field :invitations, non_null(:invitation_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :invitation_order
+      resolve &LevelWeb.SpaceResolver.invitations/3
+    end
   end
 
   @desc "An invitation is the means by which a new user joins an existing space."

@@ -40,6 +40,12 @@ defmodule Level.TestHelpers do
     }
   end
 
+  def valid_invitation_params do
+    %{
+      email: "user#{random_string()}@level.live"
+    }
+  end
+
   def valid_draft_params(%{space: space, user: user}) do
     %{
       space_id: space.id,
@@ -72,6 +78,17 @@ defmodule Level.TestHelpers do
     %{}
     |> Level.Spaces.registration_changeset(params)
     |> Level.Spaces.register()
+  end
+
+  def insert_invitation(user, space, params \\ %{}) do
+    params =
+      valid_invitation_params()
+      |> Map.merge(%{invitor_id: user.id, space_id: space.id})
+      |> Map.merge(params)
+
+    params
+    |> Level.Spaces.create_invitation_changeset()
+    |> Level.Spaces.create_invitation()
   end
 
   def insert_member(space, params \\ %{}) do

@@ -116,6 +116,14 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   @desc """
+  This scalar type represents the possible fields by which invitations can be ordered.
+  """
+  enum :invitation_order_field do
+    @desc "Order by the email field."
+    value :email
+  end
+
+  @desc """
   This scalar type represents the direction by which nodes should be sorted in a connection.
   """
   enum :order_direction do
