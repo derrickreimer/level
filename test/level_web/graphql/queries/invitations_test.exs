@@ -23,7 +23,7 @@ defmodule LevelWeb.GraphQL.InvitationsTest do
                   insertedAt
                 }
               }
-              total_count
+              totalCount
             }
           }
         }
@@ -47,7 +47,42 @@ defmodule LevelWeb.GraphQL.InvitationsTest do
                   "insertedAt" => invitation.inserted_at |> Timex.to_datetime() |> DateTime.to_iso8601()
                 }
               }],
-              "total_count" => 1
+              "totalCount" => 1
+            }
+          }
+        }
+      }
+    }
+  end
+
+  test "excludes non-pending invitations", %{conn: conn, invitation: invitation} do
+    invitation
+    |> Ecto.Changeset.change(%{state: "ACCEPTED"})
+    |> Level.Repo.update
+
+    query = """
+      query GetInvitations {
+        viewer {
+          space {
+            invitations(first: 10) {
+              totalCount
+            }
+          }
+        }
+      }
+    """
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: query})
+
+    assert json_response(conn, 200) == %{
+      "data" => %{
+        "viewer" => %{
+          "space" => %{
+            "invitations" => %{
+              "totalCount" => 0
             }
           }
         }
