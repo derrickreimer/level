@@ -7,6 +7,12 @@ import Html exposing (Attribute)
 import Html.Events exposing (defaultOptions, onWithOptions)
 
 
+type Lazy a
+    = NotLoaded
+    | Loaded a
+
+
+
 -- LIST HELPERS
 
 

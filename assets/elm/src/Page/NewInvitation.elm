@@ -6,10 +6,12 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Http
 import Task
+import Data.Invitation exposing (InvitationConnection)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateInvitation as CreateInvitation
-import Util exposing (onEnter)
+import Query.Invitations
+import Util exposing (Lazy(..), onEnter)
 
 
 -- MODEL
@@ -19,6 +21,7 @@ type alias Model =
     { email : String
     , isSubmitting : Bool
     , errors : List ValidationError
+    , invitations : Lazy InvitationConnection
     }
 
 
@@ -26,7 +29,7 @@ type alias Model =
 -}
 buildModel : Model
 buildModel =
-    Model "" False []
+    Model "" False [] NotLoaded
 
 
 {-| Determines whether the form is able to be submitted.
@@ -38,9 +41,12 @@ isSubmittable model =
 
 {-| Returns the initial command to run after the page is loaded.
 -}
-initialCmd : Cmd Msg
-initialCmd =
-    focusOnEmailField
+initialCmd : Session -> Cmd Msg
+initialCmd session =
+    Cmd.batch
+        [ focusOnEmailField
+        , fetchInvitations session
+        ]
 
 
 
@@ -52,6 +58,7 @@ type Msg
     | Submit
     | Submitted (Result Http.Error CreateInvitation.Response)
     | Focused
+    | InvitationsFetched (Result Http.Error Query.Invitations.Response)
 
 
 type ExternalMsg
@@ -97,6 +104,13 @@ update msg session model =
         Focused ->
             noCmd model
 
+        InvitationsFetched (Ok (Query.Invitations.Found data)) ->
+            ( ( { model | invitations = Loaded data.invitations }, Cmd.none ), NoOp )
+
+        InvitationsFetched (Err _) ->
+            -- TODO: something unexpected went wrong - figure out best way to handle?
+            noCmd model
+
 
 noCmd : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 noCmd model =
@@ -106,6 +120,15 @@ noCmd model =
 focusOnEmailField : Cmd Msg
 focusOnEmailField =
     Task.attempt (always Focused) <| focus "email-field"
+
+
+fetchInvitations : Session -> Cmd Msg
+fetchInvitations session =
+    let
+        params =
+            Query.Invitations.Params "" 10
+    in
+        Http.send InvitationsFetched (Query.Invitations.request session.apiToken params)
 
 
 

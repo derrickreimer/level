@@ -40,6 +40,12 @@ query =
                   insertedAt
                 }
               }
+              pageInfo {
+                hasNextPage
+                hasPreviousPage
+                startCursor
+                endCursor
+              }
               totalCount
             }
           }
@@ -52,7 +58,7 @@ variables : Params -> Encode.Value
 variables params =
     Encode.object
         [ ( "afterCursor", Encode.string params.afterCursor )
-        , ( "limit", Encode.string params.limit )
+        , ( "limit", Encode.int params.limit )
         ]
 
 
