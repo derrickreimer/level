@@ -12,7 +12,7 @@ defmodule Level.PaginationTest do
       members = [owner | create_members(space, 3)]
       sorted_users = Enum.sort_by(members, fn user -> user.id end)
       base_query = from u in User, where: u.space_id == ^space.id
-      {:ok, users: sorted_users, base_query: base_query}
+      {:ok, users: sorted_users, base_query: base_query, space: space}
     end
 
     test "only first param provided", %{users: users, base_query: base_query} do
@@ -86,7 +86,7 @@ defmodule Level.PaginationTest do
     test "last with before and after cursors provided", %{users: users, base_query: base_query} do
       args = %{
         last: 2,
-      after: Enum.at(users, 1).id,
+        after: Enum.at(users, 1).id,
         before: Enum.at(users, 3).id,
         order_by: %{
           field: :id,
@@ -160,6 +160,23 @@ defmodule Level.PaginationTest do
 
       {:error, "first and last cannot both be set"} =
         Pagination.fetch_result(Level.Repo, base_query, args)
+    end
+
+    test "accepts preloads", %{base_query: base_query, space: space}  do
+      args = %{
+        first: 1,
+        before: nil,
+        after: nil,
+        order_by: %{
+          field: :id,
+          direction: :desc
+        }
+      }
+
+      {:ok, %Result{edges: [%{node: node} | _]}} =
+        Pagination.fetch_result(Level.Repo, base_query, args, preload: [:space])
+
+      assert node.space.id == space.id
     end
   end
 

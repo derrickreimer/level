@@ -24,7 +24,7 @@ defmodule Level.Connections.Invitations do
         base_query = from i in Invitation,
           where: i.space_id == ^space.id and i.state == "PENDING"
 
-        Level.Pagination.fetch_result(Level.Repo, base_query, args)
+        Level.Pagination.fetch_result(Level.Repo, base_query, args, preload: [:invitor])
       error ->
         error
     end
