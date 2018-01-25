@@ -1,0 +1,14 @@
+.resource-list {
+
+  &__item {
+    padding: $baseline 0;
+    border-bottom: 1px solid $item-list-border-color;
+  }
+
+  &__heading {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    font-weight: $normal-weight;
+  }
+}

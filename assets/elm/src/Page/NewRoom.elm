@@ -120,7 +120,7 @@ update msg session model =
 
 view : Model -> Html Msg
 view model =
-    div [ id "main", class "main main--new-room" ]
+    div [ id "main", class "main main--scrollable" ]
         [ div [ class "cform" ]
             [ div [ class "cform__header cform__header" ]
                 [ h2 [ class "cform__heading" ] [ text "Create a room" ]

@@ -64,4 +64,10 @@
     font-size: $default-font-size;
     font-weight: $bold-weight;
   }
+
+  &__section-heading {
+    margin: 0;
+    padding: 4 * $baseline 0 $baseline;
+    border-bottom: 1px solid $item-list-border-color;
+  }
 }

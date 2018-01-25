@@ -137,9 +137,9 @@ fetchInvitations session =
 
 view : Model -> Html Msg
 view model =
-    div [ id "main", class "main main--new-invitation" ]
+    div [ id "main", class "main main--scrollable" ]
         [ div [ class "cform" ]
-            [ div [ class "cform__header cform__header" ]
+            [ div [ class "cform__header" ]
                 [ h2 [ class "cform__heading" ] [ text "Invite a person" ]
                 , p [ class "cform__description" ]
                     [ text "They will be given member-level permissions to start (you can grant them greater access later if needed)." ]
@@ -157,6 +157,7 @@ view model =
                         []
                     ]
                 ]
+            , invitationsList model
             ]
         ]
 
@@ -197,3 +198,26 @@ formErrors errors =
 
         [] ->
             text ""
+
+
+invitationsList : Model -> Html Msg
+invitationsList model =
+    case model.invitations of
+        NotLoaded ->
+            text ""
+
+        Loaded data ->
+            let
+                displayCount =
+                    toString data.totalCount
+
+                listItem edge =
+                    div [ class "resource-list__item" ]
+                        [ div [ class "resource-list__content" ]
+                            [ h3 [ class "resource-list__heading" ] [ text edge.node.email ] ]
+                        ]
+            in
+                div [ class "cform__section" ]
+                    [ h2 [ class "cform__section-heading" ] [ text <| "Pending Invitations (" ++ displayCount ++ ")" ]
+                    , div [ class "resource-list" ] (List.map listItem data.edges)
+                    ]
