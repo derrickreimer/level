@@ -34,7 +34,7 @@ defmodule Level.Pagination do
         total_count: 10
       }}
   """
-  def fetch_result(repo, base_query, args, opts \\ []) do
+  def fetch_result(repo, base_query, args) do
     case validate(args) do
       {:ok, _} ->
         {normalized_args, is_flipped} = normalize(args)
@@ -43,7 +43,7 @@ defmodule Level.Pagination do
         total_count = repo.one(apply_count(base_query))
 
         {:ok, nodes, has_previous_page, has_next_page} =
-          fetch_nodes(repo, base_query, order_field, normalized_args, opts)
+          fetch_nodes(repo, base_query, order_field, normalized_args)
 
         edges = build_edges(nodes, order_field)
 
@@ -127,7 +127,7 @@ defmodule Level.Pagination do
     %Result{result | edges: edges, page_info: page_info}
   end
 
-  defp fetch_nodes(repo, query, order_field, args, opts) do
+  defp fetch_nodes(repo, query, order_field, args) do
     sorted_query = apply_sort(query, args)
 
     nodes = repo.all(
@@ -135,7 +135,6 @@ defmodule Level.Pagination do
       |> apply_limit(args)
       |> apply_before_cursor(order_field, args)
       |> apply_after_cursor(order_field, args)
-      |> apply_preloads(opts)
     )
 
     {has_previous_page, has_next_page} =
@@ -204,9 +203,4 @@ defmodule Level.Pagination do
         where(query, [r], field(r, ^order_field) > ^cursor)
     end
   end
-
-  defp apply_preloads(query, [preload: preloads]) do
-    preload(query, ^preloads)
-  end
-  defp apply_preloads(query, _), do: query
 end

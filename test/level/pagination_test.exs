@@ -161,23 +161,6 @@ defmodule Level.PaginationTest do
       {:error, "first and last cannot both be set"} =
         Pagination.fetch_result(Level.Repo, base_query, args)
     end
-
-    test "accepts preloads", %{base_query: base_query, space: space}  do
-      args = %{
-        first: 1,
-        before: nil,
-        after: nil,
-        order_by: %{
-          field: :id,
-          direction: :desc
-        }
-      }
-
-      {:ok, %Result{edges: [%{node: node} | _]}} =
-        Pagination.fetch_result(Level.Repo, base_query, args, preload: [:space])
-
-      assert node.space.id == space.id
-    end
   end
 
   defp create_members(space, count, list \\ [])
