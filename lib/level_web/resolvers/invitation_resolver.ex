@@ -7,13 +7,7 @@ defmodule LevelWeb.InvitationResolver do
   alias Level.Spaces
 
   def create(args, %{context: %{current_user: user}}) do
-    changeset =
-      args
-      |> Map.put(:invitor_id, user.id)
-      |> Map.put(:space_id, user.space_id)
-      |> Spaces.create_invitation_changeset()
-
-    resp = case Spaces.create_invitation(changeset) do
+    resp = case Spaces.create_invitation(user, args) do
       {:ok, invitation} ->
         %{success: true, invitation: invitation, errors: []}
 

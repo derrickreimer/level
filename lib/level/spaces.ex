@@ -98,27 +98,36 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Builds a changeset for creating an invitation.
-  """
-  def create_invitation_changeset(params \\ %{}) do
-    Invitation.changeset(%Invitation{}, params)
-  end
-
-  @doc """
   Creates an invitation and sends an email to the invited person.
+
+  ## Examples
+
+      # If successful, returns the newly-created invitation.
+      create_invitation(%User{...}, %{email: "foo@bar.com"})
+      => {:ok, %Invitation{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %Ecto.Changeset{...}}
   """
-  def create_invitation(changeset) do
+  def create_invitation(user, params \\ %{}) do
+    params_with_relations =
+      params
+      |> Map.put(:space_id, user.space_id)
+      |> Map.put(:invitor_id, user.id)
+
+    changeset = Invitation.changeset(%Invitation{}, params_with_relations)
+
     case Repo.insert(changeset) do
       {:ok, invitation} ->
-        invitation =
+        invitation_with_relations =
           invitation
           |> Repo.preload([:space, :invitor])
 
-        invitation
+        invitation_with_relations
         |> LevelWeb.Email.invitation_email()
         |> Level.Mailer.deliver_later()
 
-        {:ok, invitation}
+        {:ok, invitation_with_relations}
 
       error ->
         error
