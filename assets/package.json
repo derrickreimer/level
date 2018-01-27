@@ -1,7 +1,7 @@
 {
-  "repository": {},
-  "license": "MIT",
+  "private": true,
   "scripts": {
+    "build": "brunch build",
     "deploy": "brunch build --production",
     "watch": "brunch watch --stdin"
   },
@@ -18,6 +18,7 @@
     "css-brunch": "~2.0.0",
     "elm": "^0.18.0",
     "elm-brunch": "^0.8.0",
+    "elm-test": "^0.18.12",
     "javascript-brunch": "~2.0.0",
     "sass-brunch": "^2.10.4",
     "stylelint": "~8.0.0",

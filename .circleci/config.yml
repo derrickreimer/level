@@ -1,23 +1,12 @@
-# Elixir CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-elixir/ for more details
 version: 2
 jobs:
-  build:
+  build_elixir:
     docker:
-      # specify the version here
-      - image: circleci/elixir:1.4
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      - image: circleci/postgres:9.4
+      - image: circleci/elixir:1.5.2
 
     working_directory: ~/repo
     steps:
       - checkout
-
-      # specify any bash command here prefixed with `run: `
       - run:
           name: "Install Hex"
           command: mix local.hex --force
@@ -28,6 +17,32 @@ jobs:
           name: "Install Elixir dependencies"
           command: mix deps.get
       - run:
+          name: "Compile Elixir source"
+          command: mix compile
+      - save_cache:
+          key: elixir-build-v1-{{ checksum "mix.exs" }}
+          paths:
+            - '_build'
+            - 'deps'
+
+  test_elixir:
+    docker:
+      - image: circleci/elixir:1.5.2
+      - image: circleci/postgres:9.6.2
+
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - elixir-build-v1-{{ checksum "mix.exs" }}
+      - run:
+          name: "Install Hex"
+          command: mix local.hex --force
+      - run:
+          name: "Install Rebar"
+          command: mix local.rebar --force
+      - run:
           name: "Create the test database"
           command: mix ecto.create
       - run:
@@ -36,3 +51,81 @@ jobs:
       - run:
           name: "Run Elixir linting"
           command: mix credo
+
+  build_elm:
+    docker:
+      - image: circleci/node:8.9.1
+
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - node-modules-v1-{{ checksum "assets/package.json" }}
+      - restore_cache:
+          keys:
+            - elm-stuff-v1-{{ checksum "assets/elm/elm-package.json" }}
+      - restore_cache:
+          keys:
+            - elixir-build-v1-{{ checksum "mix.exs" }}
+      - run:
+          name: "Correct CPU count"
+          command: |
+            if [ ! -d libsysconfcpus ]; then git clone https://github.com/obmarg/libsysconfcpus.git; fi
+            cd libsysconfcpus && ./configure && make && sudo make install
+            sysconfcpus -n 2
+      - run:
+          name: "Install yarn packages"
+          command: cd assets && yarn install
+      - run:
+          name: "Build assets"
+          command: cd assets && yarn build
+      - save_cache:
+          key: node-modules-v1-{{ checksum "assets/package.json" }}
+          paths:
+            - 'assets/node_modules'
+            - 'libsysconfcpus'
+      - save_cache:
+          key: elm-stuff-v1-{{ checksum "assets/elm/elm-package.json" }}
+          paths:
+            - 'assets/elm/elm-stuff'
+
+  test_elm:
+    docker:
+      - image: circleci/node:8.9.1
+
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - node-modules-v1-{{ checksum "assets/package.json" }}
+      - restore_cache:
+          keys:
+            - elm-stuff-v1-{{ checksum "assets/elm/elm-package.json" }}
+      - restore_cache:
+          keys:
+            - elixir-build-v1-{{ checksum "mix.exs" }}
+      - run:
+          name: "Correct CPU count"
+          command: |
+            if [ ! -d libsysconfcpus ]; then git clone https://github.com/obmarg/libsysconfcpus.git; fi
+            cd libsysconfcpus && ./configure && make && sudo make install
+            sysconfcpus -n 2
+      - run:
+          name: "Run Elm test suite"
+          command: script/elm-test
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_elixir
+      - test_elixir:
+          requires:
+            - build_elixir
+      - build_elm:
+          requires:
+            - build_elixir
+      - test_elm:
+          requires:
+            - build_elm

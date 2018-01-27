@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd assets/elm
-elm-test
+../node_modules/.bin/elm-test --compiler ../node_modules/.bin/elm-make

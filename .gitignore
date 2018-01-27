@@ -12,6 +12,7 @@ erl_crash.dump
 
 # Static artifacts
 /assets/node_modules
+/assets/elm/node_modules
 
 # Elm stuff
 elm-stuff
