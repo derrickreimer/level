@@ -1,4 +1,4 @@
-module Data.Invitation exposing (InvitationConnection, Invitation, invitationConnectionDecoder)
+module Data.Invitation exposing (InvitationConnection, Invitation, invitationConnectionDecoder, invitationDecoder)
 
 import Json.Encode as Encode
 import Json.Decode as Decode

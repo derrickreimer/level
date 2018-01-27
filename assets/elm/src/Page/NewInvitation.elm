@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Http
 import Task
-import Data.Invitation exposing (InvitationConnection)
+import Data.Invitation as Invitation exposing (InvitationConnection)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateInvitation as CreateInvitation
@@ -62,7 +62,7 @@ type Msg
 
 
 type ExternalMsg
-    = InvitationCreated
+    = InvitationCreated Invitation.Invitation
     | NoOp
 
 
@@ -87,12 +87,16 @@ update msg session model =
                 else
                     noCmd model
 
-        Submitted (Ok CreateInvitation.Success) ->
-            ( ( { model | errors = [], isSubmitting = False, email = "" }
-              , focusOnEmailField
-              )
-            , InvitationCreated
-            )
+        Submitted (Ok (CreateInvitation.Success invitation)) ->
+            let
+                newModel =
+                    receiveNewInvitation model invitation
+            in
+                ( ( { newModel | errors = [], isSubmitting = False, email = "" }
+                  , focusOnEmailField
+                  )
+                , InvitationCreated invitation
+                )
 
         Submitted (Ok (CreateInvitation.Invalid errors)) ->
             ( ( { model | errors = errors, isSubmitting = False }, Cmd.none ), NoOp )
@@ -129,6 +133,26 @@ fetchInvitations session =
             Query.Invitations.Params "" 10
     in
         Http.send InvitationsFetched (Query.Invitations.request session.apiToken params)
+
+
+receiveNewInvitation : Model -> Invitation.Invitation -> Model
+receiveNewInvitation model invitation =
+    case model.invitations of
+        NotLoaded ->
+            model
+
+        Loaded connection ->
+            let
+                newEdges =
+                    { node = invitation } :: connection.edges
+
+                newConnection =
+                    { connection
+                        | edges = newEdges
+                        , totalCount = connection.totalCount + 1
+                    }
+            in
+                { model | invitations = Loaded newConnection }
 
 
 
