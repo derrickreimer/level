@@ -54,7 +54,8 @@
       }
     }
 
-    &:active {
+    &:active,
+    &:hover:active {
       background-color: darken($button-primary-color, 10%);
 
       @if $gradient-buttons {
@@ -76,7 +77,8 @@
       background-color: lighten($button-subdued-color, 2%);
     }
 
-    &:active {
+    &:active,
+    &:hover:active {
       background-color: darken($button-subdued-color, 10%);
     }
 
@@ -103,6 +105,7 @@
     }
 
     &:active,
+    &:hover:active,
     &:focus {
       box-shadow: none;
     }
