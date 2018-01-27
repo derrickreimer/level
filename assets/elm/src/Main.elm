@@ -276,7 +276,7 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.NewInvitation.InvitationCreated ->
+                            Page.NewInvitation.InvitationCreated _ ->
                                 let
                                     newModel =
                                         setFlashNotice "Invitation sent" model

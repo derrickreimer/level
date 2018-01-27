@@ -5,6 +5,7 @@ import Test exposing (..)
 import TestHelpers exposing (roomFixture)
 import Data.ValidationError exposing (ValidationError)
 import Mutation.CreateInvitation as CreateInvitation
+import Date
 import Json.Decode exposing (decodeString)
 import Json.Encode as Encode
 
@@ -46,6 +47,11 @@ decoders =
                                 "data": {
                                   "inviteUser": {
                                     "success": true,
+                                    "invitation": {
+                                      "id": "9999",
+                                      "email": "d@level.space",
+                                      "insertedAt": "2017-12-29T01:45:32Z"
+                                    },
                                     "errors": []
                                   }
                                 }
@@ -55,7 +61,16 @@ decoders =
                         result =
                             decodeString CreateInvitation.decoder json
                     in
-                        Expect.equal (Ok CreateInvitation.Success) result
+                        Expect.equal
+                            (Ok
+                                (CreateInvitation.Success
+                                    { id = "9999"
+                                    , email = "d@level.space"
+                                    , insertedAt = Date.fromTime 1514511932000
+                                    }
+                                )
+                            )
+                            result
             , test "handles validation error response" <|
                 \_ ->
                     let
@@ -65,6 +80,7 @@ decoders =
                                 "data": {
                                   "inviteUser": {
                                     "success": false,
+                                    "invitation": null,
                                     "errors": [{
                                       "attribute": "email",
                                       "message": "has already been invited"

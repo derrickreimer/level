@@ -44,7 +44,6 @@
   }
 
   input:checked ~ &__label {
-
     .checkbox-toggle__switch:before {
       transform: translate($switch-height, 0);
       background-color: $button-primary-color;

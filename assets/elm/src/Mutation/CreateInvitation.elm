@@ -3,6 +3,7 @@ module Mutation.CreateInvitation exposing (Params, Response(..), request, variab
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Data.Invitation exposing (Invitation, invitationDecoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL
 
@@ -13,7 +14,7 @@ type alias Params =
 
 
 type Response
-    = Success
+    = Success Invitation
     | Invalid (List ValidationError)
 
 
@@ -27,6 +28,11 @@ query =
           email: $email
         ) {
           success
+          invitation {
+            id
+            email
+            insertedAt
+          }
           errors {
             attribute
             message
@@ -43,6 +49,12 @@ variables params =
         ]
 
 
+successDecoder : Decode.Decoder Response
+successDecoder =
+    Decode.map Success <|
+        Decode.at [ "data", "inviteUser", "invitation" ] invitationDecoder
+
+
 invalidDecoder : Decode.Decoder Response
 invalidDecoder =
     Decode.map Invalid <|
@@ -56,7 +68,7 @@ decoder =
         conditionalDecoder success =
             case success of
                 True ->
-                    Decode.succeed Success
+                    successDecoder
 
                 False ->
                     Decode.at [ "data", "inviteUser" ] invalidDecoder

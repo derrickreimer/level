@@ -29,7 +29,6 @@
 }
 
 .main {
-
   &--scrollable {
     overflow-y: auto;
   }
@@ -162,7 +161,6 @@
   }
 
   &--right {
-
     .side-nav__item {
       margin: 0 $baseline 0 0;
       border-radius: 0 $base-radius $base-radius 0;
