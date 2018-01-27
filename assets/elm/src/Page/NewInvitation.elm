@@ -277,24 +277,27 @@ invitationsList model =
             text ""
 
         Loaded data ->
-            let
-                displayCount =
-                    toString data.totalCount
+            if data.totalCount <= 0 then
+                text ""
+            else
+                let
+                    displayCount =
+                        toString data.totalCount
 
-                listItem edge =
-                    div [ class "resource-list__item" ]
-                        [ div [ class "resource-list__content" ]
-                            [ h3 [ class "resource-list__heading" ] [ text edge.node.email ] ]
-                        , div [ class "resource-list__controls" ]
-                            [ button
-                                [ class "button button--tiny button--subdued"
-                                , onClick <| RevokeInvitation edge.node.id
+                    listItem edge =
+                        div [ class "resource-list__item" ]
+                            [ div [ class "resource-list__content" ]
+                                [ h3 [ class "resource-list__heading" ] [ text edge.node.email ] ]
+                            , div [ class "resource-list__controls" ]
+                                [ button
+                                    [ class "button button--tiny button--subdued"
+                                    , onClick <| RevokeInvitation edge.node.id
+                                    ]
+                                    [ text "Revoke" ]
                                 ]
-                                [ text "Revoke" ]
                             ]
+                in
+                    div [ class "cform__section" ]
+                        [ h2 [ class "cform__section-heading" ] [ text <| "Pending Invitations (" ++ displayCount ++ ")" ]
+                        , div [ class "resource-list" ] (List.map listItem data.edges)
                         ]
-            in
-                div [ class "cform__section" ]
-                    [ h2 [ class "cform__section-heading" ] [ text <| "Pending Invitations (" ++ displayCount ++ ")" ]
-                    , div [ class "resource-list" ] (List.map listItem data.edges)
-                    ]
