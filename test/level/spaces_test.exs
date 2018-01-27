@@ -135,6 +135,35 @@ defmodule Level.SpacesTest do
     end
   end
 
+  describe "get_pending_invitation/2" do
+    setup do
+      {:ok, %{space: space, user: user}} = insert_signup()
+      params = valid_invitation_params()
+      {:ok, invitation} = Spaces.create_invitation(user, params)
+      {:ok, %{space: space, invitation: invitation}}
+    end
+
+    test "returns pending invitation with a matching id",
+      %{invitation: invitation, space: space} do
+      assert Spaces.get_pending_invitation(space, invitation.id).id ==
+        invitation.id
+    end
+
+    test "returns nil if invitation is already accepted",
+      %{invitation: invitation, space: space} do
+
+      invitation
+      |> Ecto.Changeset.change(state: "ACCEPTED")
+      |> Repo.update()
+
+      assert Spaces.get_pending_invitation(space, invitation.id) == nil
+    end
+
+    test "returns nil if invitation does not exist", %{space: space} do
+      assert Spaces.get_pending_invitation(space, "99999") == nil
+    end
+  end
+
   describe "accept_invitation/2" do
     setup do
       {:ok, %{

@@ -152,6 +152,21 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Fetches a pending invitation by space and id.
+
+  ## Examples
+
+      # If found, returns the invitation with preloaded space and invitor.
+      get_pending_invitation(space, 123)
+      => %Invitation{space: %Space{...}, invitor: %User{...}, ...}
+
+      # Otherwise, returns nil.
+  """
+  def get_pending_invitation(space, id) do
+    Repo.get_by(Invitation, space_id: space.id, state: "PENDING", id: id)
+  end
+
+  @doc """
   Registers a user and marks the given invitation as accepted.
 
   ## Examples
@@ -167,6 +182,24 @@ defmodule Level.Spaces do
     invitation
     |> Invitation.accept_operation(params)
     |> Repo.transaction()
+  end
+
+  @doc """
+  Transitions an invitation to revoked.
+
+  ## Examples
+
+      # If successful, returns the mutated invitation.
+      revoke_invitation(invitation)
+      => {:ok, %Invitation{...}}
+
+      # Otherwise, returns an error.
+      => {:error, message}
+  """
+  def revoke_invitation(invitation) do
+    invitation
+    |> Invitation.revoke_operation()
+    |> Repo.update()
   end
 
   @doc """
