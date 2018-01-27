@@ -37,6 +37,13 @@ defmodule LevelWeb.Schema do
       resolve &LevelWeb.InvitationResolver.create/2
     end
 
+    @desc "Revoke an invitation."
+    field :revoke_invitation, type: :revoke_invitation_payload do
+      arg :id, non_null(:id)
+
+      resolve &LevelWeb.InvitationResolver.revoke/2
+    end
+
     @desc "Create a new draft."
     field :create_draft, type: :create_draft_payload do
       arg :recipient_ids, list_of(:string)

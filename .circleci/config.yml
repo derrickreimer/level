@@ -85,9 +85,13 @@ jobs:
               cd libsysconfcpus;
               ./configure --prefix $CIRCLE_WORKING_DIRECTORY/sysconfcpus;
               make && make install;
+              cd ..;
+            fi
 
+            if [ ! -f $(yarn bin)/elm-make-old ];
+            then
               # Replace the elm-make binstub with an optimized one
-              cd ../assets;
+              cd assets;
               mv $(yarn bin)/elm-make $(yarn bin)/elm-make-old;
               printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 2\"\n\n$CIRCLE_WORKING_DIRECTORY/sysconfcpus/bin/sysconfcpus -n 2 $(yarn bin)/elm-make-old \"\$@\"" > $(yarn bin)/elm-make;
               chmod +x $(yarn bin)/elm-make;

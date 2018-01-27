@@ -10,6 +10,7 @@ import Data.Invitation as Invitation exposing (InvitationConnection)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateInvitation as CreateInvitation
+import Mutation.RevokeInvitation as RevokeInvitation
 import Query.Invitations
 import Util exposing (Lazy(..), onEnter)
 
@@ -59,6 +60,8 @@ type Msg
     | Submitted (Result Http.Error CreateInvitation.Response)
     | Focused
     | InvitationsFetched (Result Http.Error Query.Invitations.Response)
+    | RevokeInvitation String
+    | RevokeInvitationResponse (Result Http.Error RevokeInvitation.Response)
 
 
 type ExternalMsg
@@ -90,7 +93,7 @@ update msg session model =
         Submitted (Ok (CreateInvitation.Success invitation)) ->
             let
                 newModel =
-                    receiveNewInvitation model invitation
+                    newInvitationCreated model invitation
             in
                 ( ( { newModel | errors = [], isSubmitting = False, email = "" }
                   , focusOnEmailField
@@ -115,6 +118,29 @@ update msg session model =
             -- TODO: something unexpected went wrong - figure out best way to handle?
             noCmd model
 
+        RevokeInvitation id ->
+            let
+                request =
+                    RevokeInvitation.request session.apiToken <|
+                        RevokeInvitation.Params id
+            in
+                ( ( model, Http.send RevokeInvitationResponse request ), NoOp )
+
+        RevokeInvitationResponse (Ok (RevokeInvitation.Success id)) ->
+            let
+                newModel =
+                    invitationRevoked model id
+            in
+                ( ( newModel, Cmd.none ), NoOp )
+
+        RevokeInvitationResponse (Ok (RevokeInvitation.Invalid errors)) ->
+            -- TODO: Show errors?
+            noCmd model
+
+        RevokeInvitationResponse (Err _) ->
+            -- TODO: something unexpected went wrong - figure out best way to handle?
+            noCmd model
+
 
 noCmd : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 noCmd model =
@@ -135,8 +161,8 @@ fetchInvitations session =
         Http.send InvitationsFetched (Query.Invitations.request session.apiToken params)
 
 
-receiveNewInvitation : Model -> Invitation.Invitation -> Model
-receiveNewInvitation model invitation =
+newInvitationCreated : Model -> Invitation.Invitation -> Model
+newInvitationCreated model invitation =
     case model.invitations of
         NotLoaded ->
             model
@@ -150,6 +176,26 @@ receiveNewInvitation model invitation =
                     { connection
                         | edges = newEdges
                         , totalCount = connection.totalCount + 1
+                    }
+            in
+                { model | invitations = Loaded newConnection }
+
+
+invitationRevoked : Model -> String -> Model
+invitationRevoked model id =
+    case model.invitations of
+        NotLoaded ->
+            model
+
+        Loaded connection ->
+            let
+                newEdges =
+                    List.filter (\edge -> not <| edge.node.id == id) connection.edges
+
+                newConnection =
+                    { connection
+                        | edges = newEdges
+                        , totalCount = connection.totalCount - 1
                     }
             in
                 { model | invitations = Loaded newConnection }
@@ -231,17 +277,27 @@ invitationsList model =
             text ""
 
         Loaded data ->
-            let
-                displayCount =
-                    toString data.totalCount
+            if data.totalCount <= 0 then
+                text ""
+            else
+                let
+                    displayCount =
+                        toString data.totalCount
 
-                listItem edge =
-                    div [ class "resource-list__item" ]
-                        [ div [ class "resource-list__content" ]
-                            [ h3 [ class "resource-list__heading" ] [ text edge.node.email ] ]
+                    listItem edge =
+                        div [ class "resource-list__item" ]
+                            [ div [ class "resource-list__content" ]
+                                [ h3 [ class "resource-list__heading" ] [ text edge.node.email ] ]
+                            , div [ class "resource-list__controls" ]
+                                [ button
+                                    [ class "button button--tiny button--subdued"
+                                    , onClick <| RevokeInvitation edge.node.id
+                                    ]
+                                    [ text "Revoke" ]
+                                ]
+                            ]
+                in
+                    div [ class "cform__section" ]
+                        [ h2 [ class "cform__section-heading" ] [ text <| "Pending Invitations (" ++ displayCount ++ ")" ]
+                        , div [ class "resource-list" ] (List.map listItem data.edges)
                         ]
-            in
-                div [ class "cform__section" ]
-                    [ h2 [ class "cform__section-heading" ] [ text <| "Pending Invitations (" ++ displayCount ++ ")" ]
-                    , div [ class "resource-list" ] (List.map listItem data.edges)
-                    ]

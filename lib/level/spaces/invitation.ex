@@ -67,6 +67,11 @@ defmodule Level.Spaces.Invitation do
     |> Multi.run(:room_subscriptions, subscribe_to_rooms_operation())
   end
 
+  def revoke_operation(invitation) do
+    invitation
+    |> change(state: "REVOKED")
+  end
+
   defp mark_accepted_operation(invitation) do
     fn %{user: user} ->
       invitation

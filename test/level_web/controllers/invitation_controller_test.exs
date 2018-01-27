@@ -16,12 +16,8 @@ defmodule LevelWeb.InvitationControllerTest do
 
   describe "GET /invitations/:id" do
     setup %{conn: conn, space: space, owner: owner} do
-      changeset =
-        %{space: space, invitor: owner}
-        |> valid_invitation_params()
-        |> Spaces.create_invitation_changeset()
-
-      {:ok, invitation} = Spaces.create_invitation(changeset)
+      params = valid_invitation_params()
+      {:ok, invitation} = Spaces.create_invitation(owner, params)
       {:ok, %{conn: conn, space: space, invitor: owner, invitation: invitation}}
     end
 
