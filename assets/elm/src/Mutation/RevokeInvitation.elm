@@ -13,7 +13,7 @@ type alias Params =
 
 
 type Response
-    = Success
+    = Success String
     | Invalid (List ValidationError)
 
 
@@ -27,6 +27,9 @@ query =
           id: $id
         ) {
           success
+          invitation {
+            id
+          }
           errors {
             attribute
             message
@@ -43,10 +46,16 @@ variables params =
         ]
 
 
+successDecoder : Decode.Decoder Response
+successDecoder =
+    Decode.map Success <|
+        Decode.at [ "data", "revokeInvitation", "invitation", "id" ] Decode.string
+
+
 invalidDecoder : Decode.Decoder Response
 invalidDecoder =
     Decode.map Invalid <|
-        Decode.at [ "errors" ] (Decode.list errorDecoder)
+        Decode.at [ "data", "revokeInvitation", "errors" ] (Decode.list errorDecoder)
 
 
 decoder : Decode.Decoder Response
@@ -56,10 +65,10 @@ decoder =
         conditionalDecoder success =
             case success of
                 True ->
-                    Decode.succeed Success
+                    successDecoder
 
                 False ->
-                    Decode.at [ "data", "revokeInvitation" ] invalidDecoder
+                    invalidDecoder
     in
         Decode.at [ "data", "revokeInvitation", "success" ] Decode.bool
             |> Decode.andThen conditionalDecoder

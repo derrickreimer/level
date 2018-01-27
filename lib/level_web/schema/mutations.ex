@@ -42,6 +42,12 @@ defmodule LevelWeb.Schema.Mutations do
 
     @desc "A list of validation errors."
     field :errors, list_of(:error)
+
+    @desc """
+    The mutated object. If the mutation was not successful,
+    this field may be null.
+    """
+    field :invitation, :invitation
   end
 
   @desc "The response to creating a draft."

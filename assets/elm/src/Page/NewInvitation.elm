@@ -93,7 +93,7 @@ update msg session model =
         Submitted (Ok (CreateInvitation.Success invitation)) ->
             let
                 newModel =
-                    receiveNewInvitation model invitation
+                    newInvitationCreated model invitation
             in
                 ( ( { newModel | errors = [], isSubmitting = False, email = "" }
                   , focusOnEmailField
@@ -126,9 +126,12 @@ update msg session model =
             in
                 ( ( model, Http.send RevokeInvitationResponse request ), NoOp )
 
-        RevokeInvitationResponse (Ok RevokeInvitation.Success) ->
-            -- TODO: Remove from the list, broadcast an external msg for a flash
-            noCmd model
+        RevokeInvitationResponse (Ok (RevokeInvitation.Success id)) ->
+            let
+                newModel =
+                    invitationRevoked model id
+            in
+                ( ( newModel, Cmd.none ), NoOp )
 
         RevokeInvitationResponse (Ok (RevokeInvitation.Invalid errors)) ->
             -- TODO: Show errors?
@@ -158,8 +161,8 @@ fetchInvitations session =
         Http.send InvitationsFetched (Query.Invitations.request session.apiToken params)
 
 
-receiveNewInvitation : Model -> Invitation.Invitation -> Model
-receiveNewInvitation model invitation =
+newInvitationCreated : Model -> Invitation.Invitation -> Model
+newInvitationCreated model invitation =
     case model.invitations of
         NotLoaded ->
             model
@@ -173,6 +176,26 @@ receiveNewInvitation model invitation =
                     { connection
                         | edges = newEdges
                         , totalCount = connection.totalCount + 1
+                    }
+            in
+                { model | invitations = Loaded newConnection }
+
+
+invitationRevoked : Model -> String -> Model
+invitationRevoked model id =
+    case model.invitations of
+        NotLoaded ->
+            model
+
+        Loaded connection ->
+            let
+                newEdges =
+                    List.filter (\edge -> not <| edge.node.id == id) connection.edges
+
+                newConnection =
+                    { connection
+                        | edges = newEdges
+                        , totalCount = connection.totalCount - 1
                     }
             in
                 { model | invitations = Loaded newConnection }

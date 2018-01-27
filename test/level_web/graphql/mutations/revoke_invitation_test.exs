@@ -19,6 +19,9 @@ defmodule LevelWeb.GraphQL.RevokeInvitationTest do
       ) {
         revokeInvitation(id: $id) {
           success
+          invitation {
+            id
+          }
           errors {
             attribute
             message
@@ -40,6 +43,9 @@ defmodule LevelWeb.GraphQL.RevokeInvitationTest do
       "data" => %{
         "revokeInvitation" => %{
           "success" => true,
+          "invitation" => %{
+            "id" => to_string(invitation.id)
+          },
           "errors" => []
         }
       }

@@ -26,7 +26,7 @@ defmodule LevelWeb.InvitationResolver do
     resp =
       case Spaces.get_pending_invitation(user.space, args.id) do
         nil ->
-          %{success: false, errors: [%{
+          %{success: false, invitation: nil, errors: [%{
             attribute: "base",
             message: dgettext("errors", "Invitation not found")
           }]}
@@ -34,10 +34,10 @@ defmodule LevelWeb.InvitationResolver do
         invitation ->
           case Spaces.revoke_invitation(invitation) do
             {:ok, _} ->
-              %{success: true, errors: []}
+              %{success: true, invitation: invitation, errors: []}
 
             {:error, _} ->
-              %{success: false, errors: []}
+              %{success: false, invitation: invitation, errors: []}
           end
       end
 
