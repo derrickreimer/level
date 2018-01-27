@@ -46,6 +46,9 @@ decoders =
                                 "data": {
                                   "revokeInvitation": {
                                     "success": true,
+                                    "invitation": {
+                                      "id": "9999"
+                                    },
                                     "errors": []
                                   }
                                 }
@@ -55,7 +58,7 @@ decoders =
                         result =
                             decodeString RevokeInvitation.decoder json
                     in
-                        Expect.equal (Ok RevokeInvitation.Success) result
+                        Expect.equal (Ok (RevokeInvitation.Success "9999")) result
             , test "handles validation error response" <|
                 \_ ->
                     let
@@ -65,6 +68,7 @@ decoders =
                                 "data": {
                                   "revokeInvitation": {
                                     "success": false,
+                                    "invitation": null,
                                     "errors": [{
                                       "attribute": "base",
                                       "message": "Invitation not found"
