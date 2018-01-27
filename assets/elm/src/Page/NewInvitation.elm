@@ -59,6 +59,7 @@ type Msg
     | Submitted (Result Http.Error CreateInvitation.Response)
     | Focused
     | InvitationsFetched (Result Http.Error Query.Invitations.Response)
+    | RevokeInvitation String
 
 
 type ExternalMsg
@@ -113,6 +114,10 @@ update msg session model =
 
         InvitationsFetched (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
+            noCmd model
+
+        RevokeInvitation id ->
+            -- TODO: implement this
             noCmd model
 
 
@@ -239,6 +244,13 @@ invitationsList model =
                     div [ class "resource-list__item" ]
                         [ div [ class "resource-list__content" ]
                             [ h3 [ class "resource-list__heading" ] [ text edge.node.email ] ]
+                        , div [ class "resource-list__controls" ]
+                            [ button
+                                [ class "button button--tiny button--subdued"
+                                , onClick <| RevokeInvitation edge.node.id
+                                ]
+                                [ text "Revoke" ]
+                            ]
                         ]
             in
                 div [ class "cform__section" ]
