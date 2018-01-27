@@ -59,7 +59,7 @@ exports.config = {
       }
     },
     elmBrunch: {
-      executablePath: '../node_modules/elm/binwrappers',
+      executablePath: '../node_modules/.bin',
       elmFolder: 'elm',
       mainModules: ['src/Main.elm', 'src/Signup.elm'],
       outputFolder: '../../priv/static/js',
