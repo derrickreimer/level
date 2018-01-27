@@ -10,6 +10,7 @@ import Data.Invitation as Invitation exposing (InvitationConnection)
 import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateInvitation as CreateInvitation
+import Mutation.RevokeInvitation as RevokeInvitation
 import Query.Invitations
 import Util exposing (Lazy(..), onEnter)
 
@@ -60,6 +61,7 @@ type Msg
     | Focused
     | InvitationsFetched (Result Http.Error Query.Invitations.Response)
     | RevokeInvitation String
+    | RevokeInvitationResponse (Result Http.Error RevokeInvitation.Response)
 
 
 type ExternalMsg
@@ -117,7 +119,23 @@ update msg session model =
             noCmd model
 
         RevokeInvitation id ->
-            -- TODO: implement this
+            let
+                request =
+                    RevokeInvitation.request session.apiToken <|
+                        RevokeInvitation.Params id
+            in
+                ( ( model, Http.send RevokeInvitationResponse request ), NoOp )
+
+        RevokeInvitationResponse (Ok RevokeInvitation.Success) ->
+            -- TODO: Remove from the list, broadcast an external msg for a flash
+            noCmd model
+
+        RevokeInvitationResponse (Ok (RevokeInvitation.Invalid errors)) ->
+            -- TODO: Show errors?
+            noCmd model
+
+        RevokeInvitationResponse (Err _) ->
+            -- TODO: something unexpected went wrong - figure out best way to handle?
             noCmd model
 
 
