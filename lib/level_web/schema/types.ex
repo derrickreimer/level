@@ -91,7 +91,7 @@ defmodule LevelWeb.Schema.Types do
   object :invitation do
     field :id, non_null(:id)
     field :state, non_null(:invitation_state)
-    field :invitor, non_null(:user)
+    field :invitor, non_null(:user), resolve: dataloader(Spaces)
     field :email, non_null(:string)
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)

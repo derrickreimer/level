@@ -25,6 +25,7 @@ import Route exposing (Route)
 import Ports
 import Icons exposing (privacyIcon)
 import Color
+import Util exposing (Lazy(..))
 
 
 main : Program Flags Model Msg
@@ -39,11 +40,6 @@ main =
 
 
 -- MODEL
-
-
-type Lazy a
-    = NotLoaded
-    | Loaded a
 
 
 type alias Model =
@@ -430,7 +426,7 @@ navigateTo maybeRoute model =
                                 Page.NewInvitation.buildModel
                         in
                             ( { model | page = NewInvitation pageModel }
-                            , Cmd.map NewInvitationMsg Page.NewInvitation.initialCmd
+                            , Cmd.map NewInvitationMsg (Page.NewInvitation.initialCmd model.session)
                             )
 
 

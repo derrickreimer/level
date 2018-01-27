@@ -10,9 +10,10 @@
 @import "base/global";
 @import "base/flashes";
 @import "base/form_elements";
-@import "base/form_layouts";
+@import "base/cform";
 @import "base/buttons";
 @import "base/checkboxes";
+@import "base/resource_list";
 @import "base/signup";
 @import "base/signin";
 @import "base/messages";
@@ -24,7 +25,6 @@
 @import "base/page";
 @import "base/conversations";
 @import "base/room";
-@import "base/new_room";
 
 // OVERRIDES
 @import "base/elm_controls";
