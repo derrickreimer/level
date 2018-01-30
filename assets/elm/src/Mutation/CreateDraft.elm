@@ -3,6 +3,7 @@ module Mutation.CreateDraft exposing (Params, request)
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Data.Session exposing (Session)
 import GraphQL
 
 
@@ -54,6 +55,6 @@ decoder =
     Decode.at [ "data", "createDraft", "success" ] Decode.bool
 
 
-request : String -> Params -> Http.Request Bool
-request apiToken params =
-    GraphQL.request apiToken query (Just (variables params)) decoder
+request : Session -> Params -> Http.Request Bool
+request session params =
+    GraphQL.request session query (Just (variables params)) decoder

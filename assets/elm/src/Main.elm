@@ -372,7 +372,7 @@ expireFlashNotice =
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
 bootstrap session maybeRoute =
-    Http.send (AppStateLoaded maybeRoute) (Query.AppState.request session.apiToken)
+    Http.send (AppStateLoaded maybeRoute) (Query.AppState.request session)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )

@@ -52,7 +52,7 @@ type alias Model =
 -}
 fetchRoom : Session -> String -> Task Http.Error Query.Room.Response
 fetchRoom session slug =
-    Query.Room.request session.apiToken (Query.Room.Params slug)
+    Query.Room.request session (Query.Room.Params slug)
         |> Http.toTask
 
 
@@ -99,7 +99,7 @@ update msg session model =
                     CreateRoomMessage.Params model.room model.composerBody
 
                 request =
-                    CreateRoomMessage.request session.apiToken params
+                    CreateRoomMessage.request session params
             in
                 if isSendDisabled model then
                     ( model, Cmd.none )
@@ -246,7 +246,7 @@ fetchPreviousMessages session model =
                         Query.RoomMessages.Params model.room.id endCursor 20
 
                     request =
-                        Query.RoomMessages.request session.apiToken params
+                        Query.RoomMessages.request session params
                 in
                     ( { model | isFetchingMessages = True }, Http.send PreviousMessagesFetched request )
             else

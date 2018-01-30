@@ -78,7 +78,7 @@ update msg session model =
         Submit ->
             let
                 request =
-                    CreateInvitation.request session.apiToken <|
+                    CreateInvitation.request session <|
                         CreateInvitation.Params model.email
             in
                 if isSubmittable model then
@@ -121,7 +121,7 @@ update msg session model =
         RevokeInvitation id ->
             let
                 request =
-                    RevokeInvitation.request session.apiToken <|
+                    RevokeInvitation.request session <|
                         RevokeInvitation.Params id
             in
                 ( ( model, Http.send RevokeInvitationResponse request ), NoOp )
@@ -158,7 +158,7 @@ fetchInvitations session =
         params =
             Query.Invitations.Params "" 10
     in
-        Http.send InvitationsFetched (Query.Invitations.request session.apiToken params)
+        Http.send InvitationsFetched (Query.Invitations.request session params)
 
 
 newInvitationCreated : Model -> Invitation.Invitation -> Model

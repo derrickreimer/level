@@ -5,6 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Data.Room exposing (RoomMessageConnection, RoomMessageEdge, roomMessageConnectionDecoder)
+import Data.Session exposing (Session)
 import GraphQL
 
 
@@ -91,6 +92,6 @@ decoder =
         Decode.oneOf [ foundDecoder, notFoundDecoder ]
 
 
-request : String -> Params -> Http.Request Response
-request apiToken params =
-    GraphQL.request apiToken query (Just (variables params)) decoder
+request : Session -> Params -> Http.Request Response
+request session params =
+    GraphQL.request session query (Just (variables params)) decoder

@@ -36,7 +36,7 @@ type alias Model =
 -}
 fetchRoom : Session -> String -> Task Http.Error Query.RoomSettings.Response
 fetchRoom session slug =
-    Query.RoomSettings.request session.apiToken (Query.RoomSettings.Params slug)
+    Query.RoomSettings.request session (Query.RoomSettings.Params slug)
         |> Http.toTask
 
 
@@ -90,7 +90,7 @@ update msg session model =
         Submit ->
             let
                 request =
-                    UpdateRoom.request session.apiToken <|
+                    UpdateRoom.request session <|
                         UpdateRoom.Params model.id model.name model.description model.subscriberPolicy
             in
                 if isSubmittable model then

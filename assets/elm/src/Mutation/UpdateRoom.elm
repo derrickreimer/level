@@ -4,6 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Room exposing (RoomSubscription, SubscriberPolicy, roomDecoder, subscriberPolicyEncoder)
+import Data.Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL
 
@@ -90,6 +91,6 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : String -> Params -> Http.Request Response
-request apiToken params =
-    GraphQL.request apiToken query (Just (variables params)) decoder
+request : Session -> Params -> Http.Request Response
+request session params =
+    GraphQL.request session query (Just (variables params)) decoder

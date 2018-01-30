@@ -4,6 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Room exposing (Room, RoomMessage, roomMessageDecoder)
+import Data.Session exposing (Session)
 import GraphQL
 
 
@@ -67,6 +68,6 @@ decoder =
     Decode.at [ "data", "createRoomMessage" ] successDecoder
 
 
-request : String -> Params -> Http.Request RoomMessage
-request apiToken params =
-    GraphQL.request apiToken query (Just (variables params)) decoder
+request : Session -> Params -> Http.Request RoomMessage
+request session params =
+    GraphQL.request session query (Just (variables params)) decoder

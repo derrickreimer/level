@@ -86,7 +86,7 @@ update msg session model =
                         Data.Room.Public
 
                 request =
-                    CreateRoom.request session.apiToken <|
+                    CreateRoom.request session <|
                         CreateRoom.Params model.name model.description subscriberPolicy
             in
                 if isSubmittable model then
