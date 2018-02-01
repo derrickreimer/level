@@ -72,7 +72,7 @@ defmodule Level.TestHelpers do
     |> Level.Spaces.register()
   end
 
-  def insert_invitation(user, space, params \\ %{}) do
+  def insert_invitation(user, params \\ %{}) do
     params =
       valid_invitation_params()
       |> Map.merge(params)

@@ -244,7 +244,7 @@ defmodule LevelWeb.AuthTest do
       signed_token = Auth.generate_signed_jwt(user)
       verified_token = Auth.verify_signed_jwt(signed_token)
       %Joken.Token{claims: %{"sub" => user_id}} = verified_token
-      assert user_id == user.id
+      assert user_id == to_string(user.id)
     end
   end
 
