@@ -4,5 +4,5 @@ module Data.Session exposing (Session)
 
 
 type alias Session =
-    { apiToken : String
+    { token : String
     }

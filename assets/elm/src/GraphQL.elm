@@ -28,7 +28,7 @@ request session query maybeVariables decoder =
     in
         Http.request
             { method = "POST"
-            , headers = [ Http.header "Authorization" ("Bearer " ++ session.apiToken) ]
+            , headers = [ Http.header "Authorization" ("Bearer " ++ session.token) ]
             , url = "/graphql"
             , body = Http.stringBody "application/json" body
             , expect = Http.expectJson decoder
