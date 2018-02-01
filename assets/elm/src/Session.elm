@@ -1,4 +1,4 @@
-module Session exposing (Session, Payload, init, payloadDecoder, decodeToken)
+module Session exposing (Session, Payload, init, decodeToken)
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -37,18 +37,19 @@ init token =
     Session token (decodeToken token)
 
 
-{-| Returns a JSON decoder for the JWT payload.
--}
-payloadDecoder : Decode.Decoder Payload
-payloadDecoder =
-    Pipeline.decode Payload
-        |> Pipeline.required "iat" Decode.int
-        |> Pipeline.required "exp" Decode.int
-        |> Pipeline.required "sub" Decode.string
-
-
 {-| Accepts a token and returns a Result from attempting to decode the payload.
+
+    decodeToken "ey..." == Ok { iat = 1517515691, exp = 1517515691, sub = "999999999" }
+    decodeToken "invalid" == Err (TokenProcessingError "Wrong length")
+
 -}
 decodeToken : String -> Result JwtError Payload
 decodeToken token =
-    Jwt.decodeToken payloadDecoder token
+    let
+        decoder =
+            Pipeline.decode Payload
+                |> Pipeline.required "iat" Decode.int
+                |> Pipeline.required "exp" Decode.int
+                |> Pipeline.required "sub" Decode.string
+    in
+        Jwt.decodeToken decoder token
