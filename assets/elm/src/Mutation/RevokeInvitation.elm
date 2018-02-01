@@ -3,7 +3,7 @@ module Mutation.RevokeInvitation exposing (Params, Response(..), request, variab
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL
 

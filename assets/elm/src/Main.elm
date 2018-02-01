@@ -10,7 +10,7 @@ import Time exposing (second)
 import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Page.Room
 import Page.NewRoom
 import Page.RoomSettings
@@ -93,7 +93,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Data.Session.init flags.apiToken) NotLoaded Blank True Nothing
+    Model (Session.init flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in

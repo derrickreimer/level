@@ -7,7 +7,7 @@ import Html.Events exposing (onInput, onClick)
 import Http
 import Task
 import Data.Invitation as Invitation exposing (InvitationConnection)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateInvitation as CreateInvitation
 import Mutation.RevokeInvitation as RevokeInvitation

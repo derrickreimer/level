@@ -7,7 +7,7 @@ import Http
 import Keyboard
 import Task exposing (Task)
 import Data.Room exposing (Room)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Data.User exposing (UserConnection)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.UpdateRoom as UpdateRoom

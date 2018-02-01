@@ -1,11 +1,8 @@
-module Data.Session exposing (Session, Payload, init, payloadDecoder, decodeToken)
+module Session exposing (Session, Payload, init, payloadDecoder, decodeToken)
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Jwt exposing (JwtError)
-
-
--- TYPES
 
 
 type alias Payload =
@@ -21,11 +18,27 @@ type alias Session =
     }
 
 
+{-| Accepts a JWT and generates a new Session record that contains the decoded
+payload.
+
+    init "ey..." ==
+        { token = "ey..."
+        , payload = Ok { iat = 1517515691, exp = 1517515691, sub = "999999999" }
+        }
+
+    init "invalid" ==
+        { token = "invalid"
+        , payload = Err (TokenProcessingError "Wrong length")
+        }
+
+-}
 init : String -> Session
 init token =
     Session token (decodeToken token)
 
 
+{-| Returns a JSON decoder for the JWT payload.
+-}
 payloadDecoder : Decode.Decoder Payload
 payloadDecoder =
     Pipeline.decode Payload
@@ -34,6 +47,8 @@ payloadDecoder =
         |> Pipeline.required "sub" Decode.string
 
 
+{-| Accepts a token and returns a Result from attempting to decode the payload.
+-}
 decodeToken : String -> Result JwtError Payload
 decodeToken token =
     Jwt.decodeToken payloadDecoder token

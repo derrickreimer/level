@@ -1,7 +1,7 @@
 module Query.AppState exposing (request, Response)
 
 import Data.Room exposing (RoomSubscriptionConnection, roomSubscriptionConnectionDecoder)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Data.Space exposing (Space, spaceDecoder)
 import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
 import Http

@@ -4,7 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Invitation exposing (Invitation, invitationDecoder)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL
 

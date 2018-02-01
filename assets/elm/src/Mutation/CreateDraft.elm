@@ -3,7 +3,7 @@ module Mutation.CreateDraft exposing (Params, request)
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import GraphQL
 
 

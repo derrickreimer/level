@@ -7,7 +7,7 @@ import Html.Events exposing (onInput, onClick)
 import Http
 import Task
 import Data.Room exposing (RoomSubscription)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateRoom as CreateRoom
 import Route

@@ -23,7 +23,7 @@ import Date exposing (Date)
 import Time exposing (Time, second, millisecond)
 import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Query.Room
 import Query.RoomMessages
 import Mutation.CreateRoomMessage as CreateRoomMessage

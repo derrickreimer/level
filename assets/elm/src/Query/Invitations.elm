@@ -5,7 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Data.Invitation exposing (InvitationConnection, invitationConnectionDecoder)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import GraphQL
 
 

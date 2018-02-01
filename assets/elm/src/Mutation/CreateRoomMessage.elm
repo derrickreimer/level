@@ -4,7 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Room exposing (Room, RoomMessage, roomMessageDecoder)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import GraphQL
 
 

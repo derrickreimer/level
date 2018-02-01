@@ -1,11 +1,11 @@
-module Data.SessionTest exposing (..)
+module SessionTest exposing (..)
 
 import Expect exposing (Expectation)
 import Test exposing (..)
 import TestHelpers exposing (success)
 import Json.Decode exposing (decodeString)
 import Jwt
-import Data.Session as Session
+import Session as Session
 
 
 {-| Tests for decoders.

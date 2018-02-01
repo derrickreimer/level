@@ -5,7 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Data.Room exposing (Room, roomDecoder)
-import Data.Session exposing (Session)
+import Session exposing (Session)
 import Data.User exposing (UserConnection, userConnectionDecoder)
 import GraphQL
 
