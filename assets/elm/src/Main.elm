@@ -93,7 +93,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Session flags.apiToken) NotLoaded Blank True Nothing
+    Model (Data.Session.init flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
