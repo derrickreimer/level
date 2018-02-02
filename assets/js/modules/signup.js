@@ -1,7 +1,7 @@
-export function initialize() {
-  var csrfToken = document.head.querySelector("meta[name='csrf_token']").content;
+import { getCsrfToken } from "../token";
 
-  var app = Elm.Signup.fullscreen({
-    csrf_token: csrfToken
+export function initialize() {
+  const app = Elm.Signup.fullscreen({
+    csrf_token: getCsrfToken()
   });
 };

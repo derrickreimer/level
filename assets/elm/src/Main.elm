@@ -70,7 +70,8 @@ type Page
 
 
 type alias Flags =
-    { apiToken : String
+    { csrfToken : String
+    , apiToken : String
     }
 
 
@@ -93,7 +94,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Session.init flags.apiToken) NotLoaded Blank True Nothing
+    Model (Session.init flags.csrfToken flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in

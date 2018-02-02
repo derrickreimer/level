@@ -5,6 +5,7 @@ import Date.Format
 import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
 import Html exposing (Attribute)
 import Html.Events exposing (defaultOptions, onWithOptions)
+import Http
 
 
 type Lazy a
@@ -143,3 +144,20 @@ onEnter msg =
                 Decode.fail "not ENTER"
     in
         onWithOptions "keydown" options (Decode.andThen isEnter codeAndShift)
+
+
+
+-- HTTP HELPERS
+
+
+postWithCsrfToken : String -> String -> Http.Body -> Decode.Decoder a -> Http.Request a
+postWithCsrfToken token url body decoder =
+    Http.request
+        { method = "POST"
+        , headers = [ Http.header "X-Csrf-Token" token ]
+        , url = url
+        , body = body
+        , expect = Http.expectJson decoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
