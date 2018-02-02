@@ -173,7 +173,7 @@ defmodule LevelWeb.Auth do
   def generate_jwt(user) do
     %Joken.Token{}
     |> with_json_module(Poison)
-    |> with_exp(current_time() + (2 * 60 * 60)) # 2 hours from now
+    |> with_exp(current_time() + 15 * 60) # 15 minutes from now
     |> with_iat(current_time())
     |> with_nbf(current_time() - 1) # 1 second ago
     |> with_sub(to_string(user.id))

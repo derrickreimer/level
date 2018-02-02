@@ -48,12 +48,11 @@ type alias Model =
     }
 
 
-{-| Builds a Task to fetch a room by slug.
+{-| Builds a request to fetch a room by slug.
 -}
-fetchRoom : Session -> String -> Task Http.Error Query.Room.Response
-fetchRoom session slug =
+fetchRoom : String -> Session -> Http.Request Query.Room.Response
+fetchRoom slug session =
     Query.Room.request session (Query.Room.Params slug)
-        |> Http.toTask
 
 
 {-| Builds a model for this page based on the response from initial page request.

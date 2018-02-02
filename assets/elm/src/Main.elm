@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode
 import Process
-import Task
+import Task exposing (Task)
 import Time exposing (second)
 import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
@@ -119,7 +119,7 @@ commandPipeline transforms model =
 type Msg
     = UrlChanged Navigation.Location
     | AppStateLoaded (Maybe Route) (Result Http.Error Query.AppState.Response)
-    | RoomLoaded String (Result Http.Error Query.Room.Response)
+    | RoomLoaded String (Result Session.Error ( Session, Query.Room.Response ))
     | RoomSettingsLoaded String (Result Http.Error Query.RoomSettings.Response)
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
@@ -163,11 +163,12 @@ update msg model =
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
 
-            ( RoomLoaded slug (Ok response), _ ) ->
+            ( RoomLoaded slug (Ok ( session, response )), _ ) ->
                 case response of
                     Query.Room.Found data ->
                         ( { model
                             | page = Room (Page.Room.buildModel data)
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.map RoomMsg Page.Room.loaded
@@ -176,10 +177,14 @@ update msg model =
                     Query.Room.NotFound ->
                         ( { model
                             | page = NotFound
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.none
                         )
+
+            ( RoomLoaded slug (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
 
             ( RoomLoaded slug (Err _), _ ) ->
                 -- TODO: display an unexpected error page?
@@ -398,7 +403,11 @@ navigateTo maybeRoute model =
                         ( { model | page = Conversations }, Cmd.none )
 
                     Just (Route.Room slug) ->
-                        transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
+                        let
+                            request =
+                                Session.request model.session (Page.Room.fetchRoom slug)
+                        in
+                            transition model (RoomLoaded slug) request
 
                     Just Route.NewRoom ->
                         let

@@ -1,4 +1,4 @@
-module Session exposing (Session, Payload, init, decodeToken)
+module Session exposing (Session, Error(..), Payload, init, decodeToken, request)
 
 import Http
 import Json.Decode as Decode exposing (field)
@@ -85,7 +85,7 @@ request session innerRequest =
         handleError error =
             case error of
                 Http.BadStatus { status } ->
-                    if status.code == 401 then
+                    if status.code == 401 || status.code == 403 then
                         Expired
                     else
                         HttpError error
@@ -111,7 +111,7 @@ request session innerRequest =
         performRequest session =
             innerRequest session
                 |> Http.toTask
-                |> Task.mapError HttpError
+                |> Task.mapError handleError
                 |> Task.map (\a -> ( session, a ))
     in
         Time.now
