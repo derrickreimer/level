@@ -1,17 +1,26 @@
-module Page.NewInvitation exposing (ExternalMsg(..), Model, Msg, buildModel, initialCmd, update, view)
+module Page.NewInvitation
+    exposing
+        ( ExternalMsg(..)
+        , Model
+        , Msg
+        , buildModel
+        , initialCmd
+        , update
+        , view
+        )
 
 import Dom exposing (focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Http
 import Task
-import Data.Invitation as Invitation exposing (InvitationConnection)
-import Session exposing (Session)
+import Data.Invitation as Invitation exposing (Invitation, InvitationConnection)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateInvitation as CreateInvitation
 import Mutation.RevokeInvitation as RevokeInvitation
 import Query.Invitations
+import Route
+import Session exposing (Session)
 import Util exposing (Lazy(..), onEnter)
 
 
@@ -57,15 +66,16 @@ initialCmd session =
 type Msg
     = EmailChanged String
     | Submit
-    | Submitted (Result Http.Error CreateInvitation.Response)
     | Focused
-    | InvitationsFetched (Result Http.Error Query.Invitations.Response)
     | RevokeInvitation String
-    | RevokeInvitationResponse (Result Http.Error RevokeInvitation.Response)
+    | Submitted (Result Session.Error ( Session, CreateInvitation.Response ))
+    | InvitationsFetched (Result Session.Error ( Session, Query.Invitations.Response ))
+    | RevokeInvitationResponse (Result Session.Error ( Session, RevokeInvitation.Response ))
 
 
 type ExternalMsg
-    = InvitationCreated Invitation.Invitation
+    = InvitationCreated Session Invitation
+    | SessionRefreshed Session
     | NoOp
 
 
@@ -77,20 +87,18 @@ update msg session model =
 
         Submit ->
             let
-                request =
-                    CreateInvitation.request session <|
-                        CreateInvitation.Params model.email
+                cmd =
+                    CreateInvitation.Params model.email
+                        |> CreateInvitation.request
+                        |> Session.request session
+                        |> Task.attempt Submitted
             in
                 if isSubmittable model then
-                    ( ( { model | isSubmitting = True }
-                      , Http.send Submitted request
-                      )
-                    , NoOp
-                    )
+                    ( ( { model | isSubmitting = True }, cmd ), NoOp )
                 else
                     noCmd model
 
-        Submitted (Ok (CreateInvitation.Success invitation)) ->
+        Submitted (Ok ( session, CreateInvitation.Success invitation )) ->
             let
                 newModel =
                     newInvitationCreated model invitation
@@ -98,11 +106,16 @@ update msg session model =
                 ( ( { newModel | errors = [], isSubmitting = False, email = "" }
                   , focusOnEmailField
                   )
-                , InvitationCreated invitation
+                , InvitationCreated session invitation
                 )
 
-        Submitted (Ok (CreateInvitation.Invalid errors)) ->
-            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none ), NoOp )
+        Submitted (Ok ( session, CreateInvitation.Invalid errors )) ->
+            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none )
+            , SessionRefreshed session
+            )
+
+        Submitted (Err Session.Expired) ->
+            ( ( model, Route.toLogin ), NoOp )
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
@@ -111,8 +124,13 @@ update msg session model =
         Focused ->
             noCmd model
 
-        InvitationsFetched (Ok (Query.Invitations.Found data)) ->
-            ( ( { model | invitations = Loaded data.invitations }, Cmd.none ), NoOp )
+        InvitationsFetched (Ok ( session, Query.Invitations.Found data )) ->
+            ( ( { model | invitations = Loaded data.invitations }, Cmd.none )
+            , SessionRefreshed session
+            )
+
+        InvitationsFetched (Err Session.Expired) ->
+            redirectToLogin model
 
         InvitationsFetched (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
@@ -120,22 +138,27 @@ update msg session model =
 
         RevokeInvitation id ->
             let
-                request =
-                    RevokeInvitation.request session <|
-                        RevokeInvitation.Params id
+                cmd =
+                    RevokeInvitation.Params id
+                        |> RevokeInvitation.request
+                        |> Session.request session
+                        |> Task.attempt RevokeInvitationResponse
             in
-                ( ( model, Http.send RevokeInvitationResponse request ), NoOp )
+                ( ( model, cmd ), NoOp )
 
-        RevokeInvitationResponse (Ok (RevokeInvitation.Success id)) ->
+        RevokeInvitationResponse (Ok ( session, RevokeInvitation.Success id )) ->
             let
                 newModel =
                     invitationRevoked model id
             in
-                ( ( newModel, Cmd.none ), NoOp )
+                ( ( newModel, Cmd.none ), SessionRefreshed session )
 
-        RevokeInvitationResponse (Ok (RevokeInvitation.Invalid errors)) ->
+        RevokeInvitationResponse (Ok ( session, RevokeInvitation.Invalid errors )) ->
             -- TODO: Show errors?
-            noCmd model
+            ( ( model, Cmd.none ), SessionRefreshed session )
+
+        RevokeInvitationResponse (Err Session.Expired) ->
+            redirectToLogin model
 
         RevokeInvitationResponse (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
@@ -147,6 +170,11 @@ noCmd model =
     ( ( model, Cmd.none ), NoOp )
 
 
+redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+redirectToLogin model =
+    ( ( model, Route.toLogin ), NoOp )
+
+
 focusOnEmailField : Cmd Msg
 focusOnEmailField =
     Task.attempt (always Focused) <| focus "email-field"
@@ -154,11 +182,10 @@ focusOnEmailField =
 
 fetchInvitations : Session -> Cmd Msg
 fetchInvitations session =
-    let
-        params =
-            Query.Invitations.Params "" 10
-    in
-        Http.send InvitationsFetched (Query.Invitations.request session params)
+    Query.Invitations.Params "" 10
+        |> Query.Invitations.request
+        |> Session.request session
+        |> Task.attempt InvitationsFetched
 
 
 newInvitationCreated : Model -> Invitation.Invitation -> Model

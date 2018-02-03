@@ -282,12 +282,16 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.NewInvitation.InvitationCreated _ ->
+                            Page.NewInvitation.InvitationCreated session _ ->
                                 let
                                     newModel =
-                                        setFlashNotice "Invitation sent" model
+                                        { model | session = session }
+                                            |> setFlashNotice "Invitation sent"
                                 in
                                     ( newModel, expireFlashNotice )
+
+                            Page.NewInvitation.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
 
                             Page.NewInvitation.NoOp ->
                                 ( model, Cmd.none )
@@ -403,11 +407,9 @@ navigateTo maybeRoute model =
                         ( { model | page = Conversations }, Cmd.none )
 
                     Just (Route.Room slug) ->
-                        let
-                            request =
-                                Session.request model.session (Page.Room.fetchRoom slug)
-                        in
-                            transition model (RoomLoaded slug) request
+                        Page.Room.fetchRoom slug
+                            |> Session.request model.session
+                            |> transition model (RoomLoaded slug)
 
                     Just Route.NewRoom ->
                         let
