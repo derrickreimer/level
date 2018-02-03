@@ -240,7 +240,7 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.NewRoom.RoomCreated roomSubscription ->
+                            Page.NewRoom.RoomCreated session roomSubscription ->
                                 case model.appState of
                                     Loaded appState ->
                                         let
@@ -250,10 +250,13 @@ update msg model =
                                             newAppState =
                                                 { appState | roomSubscriptions = { edges = newEdges } }
                                         in
-                                            ( { model | appState = Loaded newAppState }, Cmd.none )
+                                            ( { model | appState = Loaded newAppState, session = session }, Cmd.none )
 
                                     NotLoaded ->
-                                        ( model, Cmd.none )
+                                        ( { model | session = session }, Cmd.none )
+
+                            Page.NewRoom.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
 
                             Page.NewRoom.NoOp ->
                                 ( model, Cmd.none )

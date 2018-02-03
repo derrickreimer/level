@@ -79,6 +79,6 @@ decoder =
         Decode.oneOf [ successDecoder, invalidDecoder ]
 
 
-request : Session -> Params -> Http.Request Response
-request session params =
+request : Params -> Session -> Http.Request Response
+request params session =
     GraphQL.request session query (Just (variables params)) decoder

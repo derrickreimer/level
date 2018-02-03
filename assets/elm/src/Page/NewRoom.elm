@@ -1,16 +1,24 @@
-module Page.NewRoom exposing (ExternalMsg(..), Model, Msg, buildModel, initialCmd, update, view)
+module Page.NewRoom
+    exposing
+        ( ExternalMsg(..)
+        , Model
+        , Msg
+        , buildModel
+        , initialCmd
+        , update
+        , view
+        )
 
 import Dom exposing (focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Http
 import Task
 import Data.Room exposing (RoomSubscription)
-import Session exposing (Session)
 import Data.ValidationError exposing (ValidationError, errorsFor)
 import Mutation.CreateRoom as CreateRoom
 import Route
+import Session exposing (Session)
 import Util exposing (onEnter)
 
 
@@ -56,13 +64,14 @@ type Msg
     | DescriptionChanged String
     | PrivacyToggled
     | Submit
-    | Submitted (Result Http.Error CreateRoom.Response)
+    | Submitted (Result Session.Error ( Session, CreateRoom.Response ))
     | Focused
 
 
 type ExternalMsg
     = NoOp
-    | RoomCreated RoomSubscription
+    | RoomCreated Session RoomSubscription
+    | SessionRefreshed Session
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
@@ -85,26 +94,30 @@ update msg session model =
                     else
                         Data.Room.Public
 
-                request =
-                    CreateRoom.request session <|
-                        CreateRoom.Params model.name model.description subscriberPolicy
+                cmd =
+                    CreateRoom.Params model.name model.description subscriberPolicy
+                        |> CreateRoom.request
+                        |> Session.request session
+                        |> Task.attempt Submitted
             in
                 if isSubmittable model then
-                    ( ( { model | isSubmitting = True }
-                      , Http.send Submitted request
-                      )
-                    , NoOp
-                    )
+                    ( ( { model | isSubmitting = True }, cmd ), NoOp )
                 else
                     ( ( model, Cmd.none ), NoOp )
 
-        Submitted (Ok (CreateRoom.Success roomSubscription)) ->
+        Submitted (Ok ( session, CreateRoom.Success roomSubscription )) ->
             ( ( model, Route.modifyUrl <| Route.Room roomSubscription.room.id )
-            , RoomCreated roomSubscription
+            , RoomCreated session roomSubscription
             )
 
-        Submitted (Ok (CreateRoom.Invalid errors)) ->
-            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none ), NoOp )
+        Submitted (Ok ( session, CreateRoom.Invalid errors )) ->
+            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none )
+            , SessionRefreshed session
+            )
+
+        Submitted (Err Session.Expired) ->
+            { model | isSubmitting = False }
+                |> redirectToLogin
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
@@ -112,6 +125,11 @@ update msg session model =
 
         Focused ->
             ( ( model, Cmd.none ), NoOp )
+
+
+redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+redirectToLogin model =
+    ( ( model, Route.toLogin ), NoOp )
 
 
 
