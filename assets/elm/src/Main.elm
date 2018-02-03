@@ -1,30 +1,30 @@
 module Main exposing (..)
 
+import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode
+import Navigation
 import Process
-import Task
+import Task exposing (Task)
 import Time exposing (second)
 import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
-import Data.Session exposing (Session)
+import Icons exposing (privacyIcon)
 import Page.Room
 import Page.NewRoom
 import Page.RoomSettings
 import Page.Conversations
 import Page.NewInvitation
+import Ports
 import Query.AppState
 import Query.Room
 import Query.RoomSettings
-import Subscription.RoomMessageCreated
-import Navigation
 import Route exposing (Route)
-import Ports
-import Icons exposing (privacyIcon)
-import Color
+import Session exposing (Session)
+import Subscription.RoomMessageCreated
 import Util exposing (Lazy(..))
 
 
@@ -70,7 +70,8 @@ type Page
 
 
 type alias Flags =
-    { apiToken : String
+    { csrfToken : String
+    , apiToken : String
     }
 
 
@@ -93,7 +94,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Session flags.apiToken) NotLoaded Blank True Nothing
+    Model (Session.init flags.csrfToken flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -117,9 +118,9 @@ commandPipeline transforms model =
 
 type Msg
     = UrlChanged Navigation.Location
-    | AppStateLoaded (Maybe Route) (Result Http.Error Query.AppState.Response)
-    | RoomLoaded String (Result Http.Error Query.Room.Response)
-    | RoomSettingsLoaded String (Result Http.Error Query.RoomSettings.Response)
+    | AppStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.AppState.Response ))
+    | RoomLoaded String (Result Session.Error ( Session, Query.Room.Response ))
+    | RoomSettingsLoaded String (Result Session.Error ( Session, Query.RoomSettings.Response ))
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
     | NewRoomMsg Page.NewRoom.Msg
@@ -155,18 +156,22 @@ update msg model =
             ( UrlChanged location, _ ) ->
                 navigateTo (Route.fromLocation location) model
 
-            ( AppStateLoaded maybeRoute (Ok response), _ ) ->
-                { model | appState = Loaded response }
+            ( AppStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
+                { model | appState = Loaded response, session = session }
                     |> commandPipeline [ navigateTo maybeRoute, setupSockets ]
+
+            ( AppStateLoaded maybeRoute (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
 
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
 
-            ( RoomLoaded slug (Ok response), _ ) ->
+            ( RoomLoaded slug (Ok ( session, response )), _ ) ->
                 case response of
                     Query.Room.Found data ->
                         ( { model
                             | page = Room (Page.Room.buildModel data)
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.map RoomMsg Page.Room.loaded
@@ -175,20 +180,25 @@ update msg model =
                     Query.Room.NotFound ->
                         ( { model
                             | page = NotFound
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.none
                         )
 
+            ( RoomLoaded slug (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
+
             ( RoomLoaded slug (Err _), _ ) ->
                 -- TODO: display an unexpected error page?
                 ( model, Cmd.none )
 
-            ( RoomSettingsLoaded slug (Ok response), _ ) ->
+            ( RoomSettingsLoaded slug (Ok ( session, response )), _ ) ->
                 case response of
                     Query.RoomSettings.Found data ->
                         ( { model
                             | page = RoomSettings (Page.RoomSettings.buildModel data.room data.users)
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.none
@@ -197,10 +207,14 @@ update msg model =
                     Query.RoomSettings.NotFound ->
                         ( { model
                             | page = NotFound
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.none
                         )
+
+            ( RoomSettingsLoaded slug (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
 
             ( RoomSettingsLoaded slug (Err _), _ ) ->
                 -- TODO: display an unexpected error page?
@@ -212,10 +226,20 @@ update msg model =
 
             ( RoomMsg msg, Room pageModel ) ->
                 let
-                    ( newPageModel, cmd ) =
+                    ( ( newPageModel, cmd ), externalMsg ) =
                         Page.Room.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.Room.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
+
+                            Page.Room.ExternalNoOp ->
+                                ( model, Cmd.none )
                 in
-                    ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
+                    ( { newModel | page = Room newPageModel }
+                    , Cmd.batch [ externalCmd, Cmd.map RoomMsg cmd ]
+                    )
 
             ( NewRoomMsg msg, NewRoom pageModel ) ->
                 let
@@ -224,7 +248,7 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.NewRoom.RoomCreated roomSubscription ->
+                            Page.NewRoom.RoomCreated session roomSubscription ->
                                 case model.appState of
                                     Loaded appState ->
                                         let
@@ -234,10 +258,13 @@ update msg model =
                                             newAppState =
                                                 { appState | roomSubscriptions = { edges = newEdges } }
                                         in
-                                            ( { model | appState = Loaded newAppState }, Cmd.none )
+                                            ( { model | appState = Loaded newAppState, session = session }, Cmd.none )
 
                                     NotLoaded ->
-                                        ( model, Cmd.none )
+                                        ( { model | session = session }, Cmd.none )
+
+                            Page.NewRoom.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
 
                             Page.NewRoom.NoOp ->
                                 ( model, Cmd.none )
@@ -253,14 +280,17 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.RoomSettings.RoomUpdated room ->
+                            Page.RoomSettings.RoomUpdated session room ->
                                 let
                                     newModel =
                                         model
                                             |> setFlashNotice "Room updated"
                                             |> updateRoom room
                                 in
-                                    ( newModel, expireFlashNotice )
+                                    ( { newModel | session = session }, expireFlashNotice )
+
+                            Page.RoomSettings.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
 
                             Page.RoomSettings.NoOp ->
                                 ( model, Cmd.none )
@@ -276,12 +306,16 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.NewInvitation.InvitationCreated _ ->
+                            Page.NewInvitation.InvitationCreated session _ ->
                                 let
                                     newModel =
-                                        setFlashNotice "Invitation sent" model
+                                        { model | session = session }
+                                            |> setFlashNotice "Invitation sent"
                                 in
                                     ( newModel, expireFlashNotice )
+
+                            Page.NewInvitation.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
 
                             Page.NewInvitation.NoOp ->
                                 ( model, Cmd.none )
@@ -303,7 +337,7 @@ update msg model =
                             Room pageModel ->
                                 if pageModel.room.id == result.roomId then
                                     let
-                                        ( newPageModel, cmd ) =
+                                        ( ( newPageModel, cmd ), _ ) =
                                             Page.Room.receiveMessage result.roomMessage pageModel
                                     in
                                         ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
@@ -372,7 +406,9 @@ expireFlashNotice =
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
 bootstrap session maybeRoute =
-    Http.send (AppStateLoaded maybeRoute) (Query.AppState.request session.apiToken)
+    Query.AppState.request
+        |> Session.request session
+        |> Task.attempt (AppStateLoaded maybeRoute)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -397,7 +433,9 @@ navigateTo maybeRoute model =
                         ( { model | page = Conversations }, Cmd.none )
 
                     Just (Route.Room slug) ->
-                        transition model (RoomLoaded slug) (Page.Room.fetchRoom model.session slug)
+                        Page.Room.fetchRoom slug
+                            |> Session.request model.session
+                            |> transition model (RoomLoaded slug)
 
                     Just Route.NewRoom ->
                         let
@@ -418,7 +456,9 @@ navigateTo maybeRoute model =
                                     ( { model | page = RoomSettings pageModel }, Cmd.none )
 
                             _ ->
-                                transition model (RoomSettingsLoaded slug) (Page.RoomSettings.fetchRoom model.session slug)
+                                Page.RoomSettings.fetchRoomSettings slug
+                                    |> Session.request model.session
+                                    |> transition model (RoomSettingsLoaded slug)
 
                     Just Route.NewInvitation ->
                         let

@@ -26,11 +26,10 @@ defmodule LevelWeb.API.UserTokenControllerTest do
 
       %{"token" => token} = json_response(conn, 201)
       decoded_token = LevelWeb.Auth.verify_signed_jwt(token)
-      assert decoded_token.claims["sub"] == user.id
+      assert decoded_token.claims["sub"] == to_string(user.id)
     end
 
     test "responds with unauthorized is user is not signed in", %{space: space} do
-
       conn =
         build_conn()
         |> put_space_host(space)

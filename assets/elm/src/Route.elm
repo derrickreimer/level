@@ -1,4 +1,4 @@
-module Route exposing (Route(..), route, href, fromLocation, modifyUrl)
+module Route exposing (Route(..), route, href, fromLocation, modifyUrl, toLogin)
 
 {-| Routing logic for the application.
 -}
@@ -79,3 +79,8 @@ fromLocation location =
         Just Conversations
     else
         parseHash route location
+
+
+toLogin : Cmd msg
+toLogin =
+    Navigation.load "/login"

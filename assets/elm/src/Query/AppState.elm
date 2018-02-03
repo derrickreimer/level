@@ -1,6 +1,7 @@
 module Query.AppState exposing (request, Response)
 
 import Data.Room exposing (RoomSubscriptionConnection, roomSubscriptionConnectionDecoder)
+import Session exposing (Session)
 import Data.Space exposing (Space, spaceDecoder)
 import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
 import Http
@@ -74,6 +75,6 @@ decoder =
         )
 
 
-request : String -> Http.Request Response
-request apiToken =
-    GraphQL.request apiToken query Nothing decoder
+request : Session -> Http.Request Response
+request session =
+    GraphQL.request session query Nothing decoder

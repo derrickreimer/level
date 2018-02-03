@@ -21,17 +21,19 @@ import "phoenix_html";
 import * as Main from "./modules/main";
 import * as Signup from "./modules/signup";
 
-const MODULE = document.head.querySelector("meta[name='module']").content;
+const moduleNode = document.head.querySelector("meta[name='module']");
 
-switch (MODULE) {
-  case "main":
-    Main.initialize();
-    break;
+if (moduleNode) {
+  switch (moduleNode.content) {
+    case "main":
+      Main.initialize();
+      break;
 
-  case "signup":
-    Signup.initialize();
-    break;
+    case "signup":
+      Signup.initialize();
+      break;
 
-  default:
-    break;
+    default:
+      break;
+  }
 }

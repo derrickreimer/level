@@ -5,6 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Data.Invitation exposing (InvitationConnection, invitationConnectionDecoder)
+import Session exposing (Session)
 import GraphQL
 
 
@@ -75,6 +76,6 @@ decoder =
     Decode.at [ "data", "viewer", "space" ] foundDecoder
 
 
-request : String -> Params -> Http.Request Response
-request apiToken params =
-    GraphQL.request apiToken query (Just (variables params)) decoder
+request : Params -> Session -> Http.Request Response
+request params session =
+    GraphQL.request session query (Just (variables params)) decoder

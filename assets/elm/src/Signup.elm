@@ -10,6 +10,7 @@ import Json.Decode as Decode exposing (decodeString)
 import Time exposing (Time, second)
 import Navigation
 import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
+import Util exposing (postWithCsrfToken)
 
 
 main : Program Flags Model Msg
@@ -355,19 +356,6 @@ buildSubmitRequest model =
 buildValidationRequest : Model -> Http.Request (List ValidationError)
 buildValidationRequest model =
     postWithCsrfToken model.csrf_token "/api/signup/errors" (buildBody model) failureDecoder
-
-
-postWithCsrfToken : String -> String -> Http.Body -> Decode.Decoder a -> Http.Request a
-postWithCsrfToken token url body decoder =
-    Http.request
-        { method = "POST"
-        , headers = [ Http.header "X-Csrf-Token" token ]
-        , url = url
-        , body = body
-        , expect = Http.expectJson decoder
-        , timeout = Nothing
-        , withCredentials = False
-        }
 
 
 buildBody : Model -> Http.Body
