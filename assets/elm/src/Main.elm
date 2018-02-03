@@ -218,10 +218,20 @@ update msg model =
 
             ( RoomMsg msg, Room pageModel ) ->
                 let
-                    ( newPageModel, cmd ) =
+                    ( ( newPageModel, cmd ), externalMsg ) =
                         Page.Room.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.Room.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
+
+                            Page.Room.ExternalNoOp ->
+                                ( model, Cmd.none )
                 in
-                    ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
+                    ( { newModel | page = Room newPageModel }
+                    , Cmd.batch [ externalCmd, Cmd.map RoomMsg cmd ]
+                    )
 
             ( NewRoomMsg msg, NewRoom pageModel ) ->
                 let
@@ -313,7 +323,7 @@ update msg model =
                             Room pageModel ->
                                 if pageModel.room.id == result.roomId then
                                     let
-                                        ( newPageModel, cmd ) =
+                                        ( ( newPageModel, cmd ), _ ) =
                                             Page.Room.receiveMessage result.roomMessage pageModel
                                     in
                                         ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )

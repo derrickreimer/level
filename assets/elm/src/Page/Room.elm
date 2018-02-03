@@ -1,6 +1,7 @@
 module Page.Room
     exposing
         ( Model
+        , ExternalMsg(..)
         , Msg
         , fetchRoom
         , buildModel
@@ -11,27 +12,27 @@ module Page.Room
         , subscriptions
         )
 
-import Task exposing (Task)
-import Http
-import Json.Decode as Decode
-import Html exposing (..)
-import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick)
-import Html.Attributes exposing (..)
+import Color
+import Date exposing (Date)
 import Dom exposing (focus)
 import Dom.Scroll
-import Date exposing (Date)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (on, onWithOptions, defaultOptions, onInput, onClick)
+import Http
+import Json.Decode as Decode
+import Task exposing (Task)
 import Time exposing (Time, second, millisecond)
 import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
-import Session exposing (Session)
-import Query.Room
-import Query.RoomMessages
+import Icons exposing (privacyIcon, settingsIcon)
 import Mutation.CreateRoomMessage as CreateRoomMessage
 import Ports exposing (ScrollParams)
-import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
+import Query.Room
+import Query.RoomMessages
 import Route
-import Icons exposing (privacyIcon, settingsIcon)
-import Color
+import Session exposing (Session)
+import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
 
 
 -- MODEL
@@ -52,7 +53,7 @@ type alias Model =
 -}
 fetchRoom : String -> Session -> Http.Request Query.Room.Response
 fetchRoom slug session =
-    Query.Room.request session (Query.Room.Params slug)
+    Query.Room.request (Query.Room.Params slug) session
 
 
 {-| Builds a model for this page based on the response from initial page request.
@@ -79,45 +80,53 @@ loaded =
 type Msg
     = ComposerBodyChanged String
     | MessageSubmitted
-    | MessageSubmitResponse (Result Http.Error RoomMessage)
-    | PreviousMessagesFetched (Result Http.Error Query.RoomMessages.Response)
     | Tick Time
     | ScrollPositionReceived Decode.Value
     | NoOp
+    | MessageSubmitResponse (Result Session.Error ( Session, RoomMessage ))
+    | PreviousMessagesFetched (Result Session.Error ( Session, Query.RoomMessages.Response ))
 
 
-update : Msg -> Session -> Model -> ( Model, Cmd Msg )
+type ExternalMsg
+    = SessionRefreshed Session
+    | ExternalNoOp
+
+
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg session model =
     case msg of
         ComposerBodyChanged newBody ->
-            ( { model | composerBody = newBody }, Cmd.none )
+            ( ( { model | composerBody = newBody }, Cmd.none ), ExternalNoOp )
 
         MessageSubmitted ->
             let
-                params =
+                cmd =
                     CreateRoomMessage.Params model.room model.composerBody
-
-                request =
-                    CreateRoomMessage.request session params
+                        |> CreateRoomMessage.request
+                        |> Session.request session
+                        |> Task.attempt MessageSubmitResponse
             in
                 if isSendDisabled model then
-                    ( model, Cmd.none )
+                    ( ( model, Cmd.none ), ExternalNoOp )
                 else
-                    ( { model | isSubmittingMessage = True }
-                    , Http.send MessageSubmitResponse request
-                    )
+                    ( ( { model | isSubmittingMessage = True }, cmd ), ExternalNoOp )
 
-        MessageSubmitResponse (Ok message) ->
-            ( { model
-                | isSubmittingMessage = False
-                , composerBody = ""
-              }
-            , Cmd.none
+        MessageSubmitResponse (Ok ( session, message )) ->
+            ( ( { model
+                    | isSubmittingMessage = False
+                    , composerBody = ""
+                }
+              , Cmd.none
+              )
+            , SessionRefreshed session
             )
+
+        MessageSubmitResponse (Err Session.Expired) ->
+            redirectToLogin model
 
         MessageSubmitResponse (Err _) ->
             -- TODO: implement this
-            ( model, Cmd.none )
+            ( ( model, Cmd.none ), ExternalNoOp )
 
         Tick _ ->
             let
@@ -132,7 +141,7 @@ update msg session model =
                 args =
                     Ports.ScrollPositionArgs "messages" anchorId
             in
-                ( model, Ports.getScrollPosition args )
+                ( ( model, Ports.getScrollPosition args ), ExternalNoOp )
 
         ScrollPositionReceived value ->
             let
@@ -150,15 +159,15 @@ update msg session model =
                                     if position.fromTop <= 200 then
                                         fetchPreviousMessages session modelWithPosition
                                     else
-                                        ( modelWithPosition, Cmd.none )
+                                        ( ( modelWithPosition, Cmd.none ), ExternalNoOp )
 
                             _ ->
-                                ( model, Cmd.none )
+                                ( ( model, Cmd.none ), ExternalNoOp )
 
                     Err _ ->
-                        ( model, Cmd.none )
+                        ( ( model, Cmd.none ), ExternalNoOp )
 
-        PreviousMessagesFetched (Ok response) ->
+        PreviousMessagesFetched (Ok ( session, response )) ->
             case response of
                 Query.RoomMessages.Found { messages } ->
                     let
@@ -201,21 +210,27 @@ update msg session model =
                         newConnection =
                             RoomMessageConnection newEdges newPageInfo
                     in
-                        ( { model
-                            | messages = newConnection
-                            , isFetchingMessages = False
-                          }
-                        , Ports.scrollTo (ScrollParams "messages" anchorId offset)
+                        ( ( { model
+                                | messages = newConnection
+                                , isFetchingMessages = False
+                            }
+                          , Ports.scrollTo (ScrollParams "messages" anchorId offset)
+                          )
+                        , SessionRefreshed session
                         )
 
                 Query.RoomMessages.NotFound ->
-                    ( { model | isFetchingMessages = False }, Cmd.none )
+                    ( ( { model | isFetchingMessages = False }, Cmd.none ), ExternalNoOp )
+
+        PreviousMessagesFetched (Err Session.Expired) ->
+            { model | isFetchingMessages = False }
+                |> redirectToLogin
 
         PreviousMessagesFetched (Err _) ->
-            ( { model | isFetchingMessages = False }, Cmd.none )
+            ( ( { model | isFetchingMessages = False }, Cmd.none ), ExternalNoOp )
 
         NoOp ->
-            ( model, Cmd.none )
+            ( ( model, Cmd.none ), ExternalNoOp )
 
 
 {-| Scrolls the messages container to the most recent message.
@@ -235,29 +250,29 @@ focusOnComposer =
 {-| Executes a query for previous messages, updates the model to a fetching
 state, and returns a model and command tuple.
 -}
-fetchPreviousMessages : Session -> Model -> ( Model, Cmd Msg )
+fetchPreviousMessages : Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 fetchPreviousMessages session model =
     case model.messages.pageInfo.endCursor of
         Just endCursor ->
             if model.messages.pageInfo.hasNextPage == True && model.isFetchingMessages == False then
                 let
-                    params =
+                    cmd =
                         Query.RoomMessages.Params model.room.id endCursor 20
-
-                    request =
-                        Query.RoomMessages.request session params
+                            |> Query.RoomMessages.request
+                            |> Session.request session
+                            |> Task.attempt PreviousMessagesFetched
                 in
-                    ( { model | isFetchingMessages = True }, Http.send PreviousMessagesFetched request )
+                    ( ( { model | isFetchingMessages = True }, cmd ), ExternalNoOp )
             else
-                ( model, Cmd.none )
+                ( ( model, Cmd.none ), ExternalNoOp )
 
         Nothing ->
-            ( model, Cmd.none )
+            ( ( model, Cmd.none ), ExternalNoOp )
 
 
 {-| Append a new message to the room message connection when it is received.
 -}
-receiveMessage : RoomMessage -> Model -> ( Model, Cmd Msg )
+receiveMessage : RoomMessage -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 receiveMessage message model =
     let
         pageInfo =
@@ -269,7 +284,12 @@ receiveMessage message model =
         newMessages =
             RoomMessageConnection edges pageInfo
     in
-        ( { model | messages = newMessages }, scrollToBottom "messages" )
+        ( ( { model | messages = newMessages }, scrollToBottom "messages" ), ExternalNoOp )
+
+
+redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+redirectToLogin model =
+    ( ( model, Route.toLogin ), ExternalNoOp )
 
 
 

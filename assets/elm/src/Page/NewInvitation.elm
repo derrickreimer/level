@@ -115,7 +115,7 @@ update msg session model =
             )
 
         Submitted (Err Session.Expired) ->
-            ( ( model, Route.toLogin ), NoOp )
+            redirectToLogin model
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?

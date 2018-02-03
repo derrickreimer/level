@@ -68,6 +68,6 @@ decoder =
     Decode.at [ "data", "createRoomMessage" ] successDecoder
 
 
-request : Session -> Params -> Http.Request RoomMessage
-request session params =
+request : Params -> Session -> Http.Request RoomMessage
+request params session =
     GraphQL.request session query (Just (variables params)) decoder
