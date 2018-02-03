@@ -1,4 +1,14 @@
-module Page.RoomSettings exposing (Model, ExternalMsg(..), Msg, fetchRoom, buildModel, update, subscriptions, view)
+module Page.RoomSettings
+    exposing
+        ( Model
+        , ExternalMsg(..)
+        , Msg
+        , fetchRoomSettings
+        , buildModel
+        , update
+        , subscriptions
+        , view
+        )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -32,12 +42,11 @@ type alias Model =
     }
 
 
-{-| Builds a Task to fetch a room by slug.
+{-| Builds a request to fetch room settings by slug.
 -}
-fetchRoom : Session -> String -> Task Http.Error Query.RoomSettings.Response
-fetchRoom session slug =
-    Query.RoomSettings.request session (Query.RoomSettings.Params slug)
-        |> Http.toTask
+fetchRoomSettings : String -> Session -> Http.Request Query.RoomSettings.Response
+fetchRoomSettings slug session =
+    Query.RoomSettings.request (Query.RoomSettings.Params slug) session
 
 
 {-| Builds the initial model for the page.
@@ -63,12 +72,13 @@ type Msg
     | DescriptionChanged String
     | PrivacyToggled
     | Submit
-    | Submitted (Result Http.Error UpdateRoom.Response)
+    | Submitted (Result Session.Error ( Session, UpdateRoom.Response ))
     | Keydown Keyboard.KeyCode
 
 
 type ExternalMsg
-    = RoomUpdated Room
+    = RoomUpdated Session Room
+    | SessionRefreshed Session
     | NoOp
 
 
@@ -89,24 +99,29 @@ update msg session model =
 
         Submit ->
             let
-                request =
-                    UpdateRoom.request session <|
-                        UpdateRoom.Params model.id model.name model.description model.subscriberPolicy
+                cmd =
+                    UpdateRoom.Params model.id model.name model.description model.subscriberPolicy
+                        |> UpdateRoom.request
+                        |> Session.request session
+                        |> Task.attempt Submitted
             in
                 if isSubmittable model then
-                    ( ( { model | isSubmitting = True }
-                      , Http.send Submitted request
-                      )
-                    , NoOp
-                    )
+                    ( ( { model | isSubmitting = True }, cmd ), NoOp )
                 else
                     ( ( model, Cmd.none ), NoOp )
 
-        Submitted (Ok (UpdateRoom.Success room)) ->
-            ( ( { model | isSubmitting = False }, navigateToRoom model ), RoomUpdated room )
+        Submitted (Ok ( session, UpdateRoom.Success room )) ->
+            ( ( { model | isSubmitting = False }, navigateToRoom model )
+            , RoomUpdated session room
+            )
 
-        Submitted (Ok (UpdateRoom.Invalid errors)) ->
-            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none ), NoOp )
+        Submitted (Ok ( session, UpdateRoom.Invalid errors )) ->
+            ( ( { model | errors = errors, isSubmitting = False }, Cmd.none )
+            , SessionRefreshed session
+            )
+
+        Submitted (Err Session.Expired) ->
+            redirectToLogin model
 
         Submitted (Err _) ->
             -- TODO: something unexpected went wrong - figure out best way to handle?
@@ -127,6 +142,11 @@ navigateToRoom model =
     Route.modifyUrl <| Route.Room model.id
 
 
+redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+redirectToLogin model =
+    ( ( model, Route.toLogin ), NoOp )
+
+
 
 -- SUBSCRIPTIONS
 
@@ -142,7 +162,7 @@ subscriptions =
 
 view : Model -> Html Msg
 view model =
-    div [ id "main", class "main" ]
+    div [ id "main", class "main main--scrollable" ]
         [ div [ class "page-head page-head--borderless" ]
             [ div [ class "page-head__header" ]
                 [ div [ class "page-head__title" ] []

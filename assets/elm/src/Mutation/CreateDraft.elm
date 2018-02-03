@@ -55,6 +55,6 @@ decoder =
     Decode.at [ "data", "createDraft", "success" ] Decode.bool
 
 
-request : Session -> Params -> Http.Request Bool
-request session params =
+request : Params -> Session -> Http.Request Bool
+request params session =
     GraphQL.request session query (Just (variables params)) decoder

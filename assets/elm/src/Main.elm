@@ -120,7 +120,7 @@ type Msg
     = UrlChanged Navigation.Location
     | AppStateLoaded (Maybe Route) (Result Http.Error Query.AppState.Response)
     | RoomLoaded String (Result Session.Error ( Session, Query.Room.Response ))
-    | RoomSettingsLoaded String (Result Http.Error Query.RoomSettings.Response)
+    | RoomSettingsLoaded String (Result Session.Error ( Session, Query.RoomSettings.Response ))
     | ConversationsMsg Page.Conversations.Msg
     | RoomMsg Page.Room.Msg
     | NewRoomMsg Page.NewRoom.Msg
@@ -190,11 +190,12 @@ update msg model =
                 -- TODO: display an unexpected error page?
                 ( model, Cmd.none )
 
-            ( RoomSettingsLoaded slug (Ok response), _ ) ->
+            ( RoomSettingsLoaded slug (Ok ( session, response )), _ ) ->
                 case response of
                     Query.RoomSettings.Found data ->
                         ( { model
                             | page = RoomSettings (Page.RoomSettings.buildModel data.room data.users)
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.none
@@ -203,10 +204,14 @@ update msg model =
                     Query.RoomSettings.NotFound ->
                         ( { model
                             | page = NotFound
+                            , session = session
                             , isTransitioning = False
                           }
                         , Cmd.none
                         )
+
+            ( RoomSettingsLoaded slug (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
 
             ( RoomSettingsLoaded slug (Err _), _ ) ->
                 -- TODO: display an unexpected error page?
@@ -272,14 +277,17 @@ update msg model =
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.RoomSettings.RoomUpdated room ->
+                            Page.RoomSettings.RoomUpdated session room ->
                                 let
                                     newModel =
                                         model
                                             |> setFlashNotice "Room updated"
                                             |> updateRoom room
                                 in
-                                    ( newModel, expireFlashNotice )
+                                    ( { newModel | session = session }, expireFlashNotice )
+
+                            Page.RoomSettings.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
 
                             Page.RoomSettings.NoOp ->
                                 ( model, Cmd.none )
@@ -443,7 +451,9 @@ navigateTo maybeRoute model =
                                     ( { model | page = RoomSettings pageModel }, Cmd.none )
 
                             _ ->
-                                transition model (RoomSettingsLoaded slug) (Page.RoomSettings.fetchRoom model.session slug)
+                                Page.RoomSettings.fetchRoomSettings slug
+                                    |> Session.request model.session
+                                    |> transition model (RoomSettingsLoaded slug)
 
                     Just Route.NewInvitation ->
                         let
