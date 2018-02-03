@@ -3,7 +3,6 @@ module Main exposing (..)
 import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Http
 import Json.Decode as Decode
 import Navigation
 import Process
