@@ -1,30 +1,30 @@
 module Main exposing (..)
 
+import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode
+import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
 import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
-import Session exposing (Session)
+import Icons exposing (privacyIcon)
 import Page.Room
 import Page.NewRoom
 import Page.RoomSettings
 import Page.Conversations
 import Page.NewInvitation
+import Ports
 import Query.AppState
 import Query.Room
 import Query.RoomSettings
-import Subscription.RoomMessageCreated
-import Navigation
 import Route exposing (Route)
-import Ports
-import Icons exposing (privacyIcon)
-import Color
+import Session exposing (Session)
+import Subscription.RoomMessageCreated
 import Util exposing (Lazy(..))
 
 
