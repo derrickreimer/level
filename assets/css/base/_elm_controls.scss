@@ -1,4 +1,5 @@
-body { // a little higher specificity than what elm uses by default
+body {
+  // a little higher specificity than what elm uses by default
   .elm-mini-controls {
     font-size: 14px;
     background-color: rgba(0, 0, 0, 0.5);

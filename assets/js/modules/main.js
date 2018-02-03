@@ -8,4 +8,4 @@ export function initialize() {
   });
 
   attachPorts(app);
-};
+}

@@ -8,8 +8,7 @@
   grid-gap: 0 0;
   grid-template-columns: $sidebar-width auto $sidebar-width;
   grid-template-rows: auto;
-  grid-template-areas:
-    "left-sidebar main right-sidebar";
+  grid-template-areas: "left-sidebar main right-sidebar";
   justify-content: stretch;
 }
 

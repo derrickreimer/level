@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd assets
+node_modules/.bin/prettier --write "{css,js}/**/*.@(scss|js)"
