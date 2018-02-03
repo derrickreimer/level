@@ -118,7 +118,7 @@ commandPipeline transforms model =
 
 type Msg
     = UrlChanged Navigation.Location
-    | AppStateLoaded (Maybe Route) (Result Http.Error Query.AppState.Response)
+    | AppStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.AppState.Response ))
     | RoomLoaded String (Result Session.Error ( Session, Query.Room.Response ))
     | RoomSettingsLoaded String (Result Session.Error ( Session, Query.RoomSettings.Response ))
     | ConversationsMsg Page.Conversations.Msg
@@ -156,9 +156,12 @@ update msg model =
             ( UrlChanged location, _ ) ->
                 navigateTo (Route.fromLocation location) model
 
-            ( AppStateLoaded maybeRoute (Ok response), _ ) ->
-                { model | appState = Loaded response }
+            ( AppStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
+                { model | appState = Loaded response, session = session }
                     |> commandPipeline [ navigateTo maybeRoute, setupSockets ]
+
+            ( AppStateLoaded maybeRoute (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
 
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
@@ -403,7 +406,9 @@ expireFlashNotice =
 
 bootstrap : Session -> Maybe Route -> Cmd Msg
 bootstrap session maybeRoute =
-    Http.send (AppStateLoaded maybeRoute) (Query.AppState.request session)
+    Query.AppState.request
+        |> Session.request session
+        |> Task.attempt (AppStateLoaded maybeRoute)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
