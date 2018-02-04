@@ -128,12 +128,10 @@ type Msg
     | SendFrame Ports.Frame
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
+    | SocketError Decode.Value
+    | SocketReset Decode.Value
+    | SessionRefreshed (Result Session.Error Session)
     | FlashNoticeExpired
-
-
-getSession : Model -> Session
-getSession model =
-    model.session
 
 
 getPage : Model -> Page
@@ -349,6 +347,25 @@ update msg model =
                     UnknownMessage ->
                         ( model, Cmd.none )
 
+            ( SocketError value, _ ) ->
+                -- Debug.log (Encode.encode 0 value) ( model, Cmd.none )
+                let
+                    cmd =
+                        model.session
+                            |> Session.fetchNewToken
+                            |> Task.attempt SessionRefreshed
+                in
+                    ( model, cmd )
+
+            ( SocketReset _, _ ) ->
+                setupSockets model
+
+            ( SessionRefreshed (Ok session), _ ) ->
+                ( { model | session = session }, Ports.refreshToken session.token )
+
+            ( SessionRefreshed (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
+
             ( FlashNoticeExpired, _ ) ->
                 ( { model | flashNotice = Nothing }, Cmd.none )
 
@@ -495,6 +512,8 @@ subscriptions model =
     Sub.batch
         [ Ports.startFrameReceived StartFrameReceived
         , Ports.resultFrameReceived ResultFrameReceived
+        , Ports.socketError SocketError
+        , Ports.socketReset SocketReset
         , pageSubscription model
         ]
 

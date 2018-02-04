@@ -1,4 +1,4 @@
-module Session exposing (Session, Error(..), Payload, init, decodeToken, request)
+module Session exposing (Session, Error(..), Payload, init, decodeToken, fetchNewToken, request)
 
 import Http
 import Json.Decode as Decode exposing (field)
@@ -69,10 +69,16 @@ decodeToken token =
 {-| Builds a request for fetching a new JWT. This request should succeed if
 there a valid cookie-based session.
 -}
-fetchNewToken : Session -> Http.Request Session
+fetchNewToken : Session -> Task Error Session
 fetchNewToken session =
-    postWithCsrfToken session.csrfToken "/api/user_tokens" Http.emptyBody <|
-        Decode.map (init session.csrfToken) (field "token" Decode.string)
+    let
+        request =
+            postWithCsrfToken session.csrfToken "/api/user_tokens" Http.emptyBody <|
+                Decode.map (init session.csrfToken) (field "token" Decode.string)
+    in
+        request
+            |> Http.toTask
+            |> Task.mapError handleError
 
 
 {-| Builds a `Task` that refreshes the `Session` if it has expired, then
@@ -81,26 +87,12 @@ executes the given request with that session.
 request : Session -> (Session -> Http.Request a) -> Task Error ( Session, a )
 request session innerRequest =
     let
-        handleError : Http.Error -> Error
-        handleError error =
-            case error of
-                Http.BadStatus { status } ->
-                    if status.code == 401 || status.code == 403 then
-                        Expired
-                    else
-                        HttpError error
-
-                _ ->
-                    HttpError error
-
         refreshIfExpired : Session -> Time -> Task Error Session
         refreshIfExpired session now =
             case session.payload of
                 Ok payload ->
                     if payload.exp <= round (Time.inSeconds now) then
                         fetchNewToken session
-                            |> Http.toTask
-                            |> Task.mapError handleError
                     else
                         succeed session
 
@@ -117,3 +109,16 @@ request session innerRequest =
         Time.now
             |> Task.andThen (refreshIfExpired session)
             |> Task.andThen performRequest
+
+
+handleError : Http.Error -> Error
+handleError error =
+    case error of
+        Http.BadStatus { status } ->
+            if status.code == 401 || status.code == 403 then
+                Expired
+            else
+                HttpError error
+
+        _ ->
+            HttpError error

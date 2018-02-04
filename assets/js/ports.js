@@ -1,17 +1,26 @@
 import { createSocket } from "./socket";
+import { getApiToken } from "./token";
 import * as AbsintheSocket from "@absinthe/socket";
 
 const logEvent = eventName => (...args) => console.log(eventName, ...args);
 
 export const attachPorts = app => {
-  const socket = createSocket();
+  let socket = createSocket(getApiToken());
+
+  app.ports.refreshToken.subscribe(token => {
+    socket = createSocket(token);
+    app.ports.socketReset.send();
+  });
 
   app.ports.sendFrame.subscribe(doc => {
     const notifier = AbsintheSocket.send(socket, doc);
 
     const observedNotifier = AbsintheSocket.observe(socket, notifier, {
       onAbort: logEvent("abort"),
-      onError: logEvent("error"),
+      onError: error => {
+        let message = error.message;
+        app.ports.socketError.send({ message });
+      },
       onStart: data => {
         logEvent("start")(data);
         app.ports.startFrameReceived.send(data);
