@@ -33,7 +33,7 @@ port resultFrameReceived : (Decode.Value -> msg) -> Sub msg
 port socketError : (Decode.Value -> msg) -> Sub msg
 
 
-port socketReset : (Decode.Value -> msg) -> Sub msg
+port socketTokenUpdated : (Decode.Value -> msg) -> Sub msg
 
 
 port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
@@ -65,7 +65,7 @@ type alias ScrollPositionArgs =
 port sendFrame : Frame -> Cmd msg
 
 
-port refreshToken : String -> Cmd msg
+port updateToken : String -> Cmd msg
 
 
 port getScrollPosition : ScrollPositionArgs -> Cmd msg

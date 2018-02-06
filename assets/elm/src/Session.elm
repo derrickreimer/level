@@ -6,7 +6,6 @@ import Json.Decode.Pipeline as Pipeline
 import Jwt exposing (JwtError)
 import Task exposing (Task, succeed, fail)
 import Time exposing (Time)
-import Util exposing (postWithCsrfToken)
 
 
 type alias Payload =
@@ -73,7 +72,7 @@ fetchNewToken : Session -> Task Error Session
 fetchNewToken session =
     let
         request =
-            postWithCsrfToken session.csrfToken "/api/user_tokens" Http.emptyBody <|
+            Http.post "/api/tokens" Http.emptyBody <|
                 Decode.map (init session.csrfToken) (field "token" Decode.string)
     in
         request

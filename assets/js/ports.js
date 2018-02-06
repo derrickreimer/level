@@ -1,21 +1,22 @@
-import { createSocket } from "./socket";
+import { createPhoenixSocket, createAbsintheSocket, updateSocketToken } from "./socket";
 import { getApiToken } from "./token";
 import * as AbsintheSocket from "@absinthe/socket";
 
 const logEvent = eventName => (...args) => console.log(eventName, ...args);
 
 export const attachPorts = app => {
-  let socket = createSocket(getApiToken());
+  let phoenixSocket = createPhoenixSocket(getApiToken());
+  let absintheSocket = createAbsintheSocket(phoenixSocket);
 
-  app.ports.refreshToken.subscribe(token => {
-    socket = createSocket(token);
-    app.ports.socketReset.send();
+  app.ports.updateToken.subscribe(token => {
+    updateSocketToken(phoenixSocket, token);
+    app.ports.socketTokenUpdated.send();
   });
 
   app.ports.sendFrame.subscribe(doc => {
-    const notifier = AbsintheSocket.send(socket, doc);
+    const notifier = AbsintheSocket.send(absintheSocket, doc);
 
-    const observedNotifier = AbsintheSocket.observe(socket, notifier, {
+    const observedNotifier = AbsintheSocket.observe(absintheSocket, notifier, {
       onAbort: logEvent("abort"),
       onError: error => {
         let message = error.message;

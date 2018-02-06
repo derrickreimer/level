@@ -129,7 +129,7 @@ type Msg
     | StartFrameReceived Decode.Value
     | ResultFrameReceived Decode.Value
     | SocketError Decode.Value
-    | SocketReset Decode.Value
+    | SocketTokenUpdated Decode.Value
     | SessionRefreshed (Result Session.Error Session)
     | FlashNoticeExpired
 
@@ -357,11 +357,11 @@ update msg model =
                 in
                     ( model, cmd )
 
-            ( SocketReset _, _ ) ->
-                setupSockets model
+            ( SocketTokenUpdated _, _ ) ->
+                ( model, Cmd.none )
 
             ( SessionRefreshed (Ok session), _ ) ->
-                ( { model | session = session }, Ports.refreshToken session.token )
+                ( { model | session = session }, Ports.updateToken session.token )
 
             ( SessionRefreshed (Err Session.Expired), _ ) ->
                 ( model, Route.toLogin )
@@ -513,7 +513,7 @@ subscriptions model =
         [ Ports.startFrameReceived StartFrameReceived
         , Ports.resultFrameReceived ResultFrameReceived
         , Ports.socketError SocketError
-        , Ports.socketReset SocketReset
+        , Ports.socketTokenUpdated SocketTokenUpdated
         , pageSubscription model
         ]
 

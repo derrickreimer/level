@@ -22,10 +22,13 @@ defmodule LevelWeb.Router do
   pipeline :browser_api do
     plug :accepts, ["json"]
     plug :fetch_session
-    plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :validate_host
     plug :extract_subdomain
+  end
+
+  pipeline :csrf do
+    plug :protect_from_forgery
   end
 
   pipeline :graphql do
@@ -98,11 +101,16 @@ defmodule LevelWeb.Router do
   # RESTful API endpoints authenticated via browser cookies
   scope "/api", LevelWeb.API do
     pipe_through :browser_api
+    resources "/tokens", UserTokenController, only: [:create]
+  end
+
+  scope "/api", LevelWeb.API do
+    pipe_through [:browser_api, :csrf]
 
     resources "/spaces", SpaceController, only: [:create]
     post "/signup/errors", SignupErrorsController, :index
 
-    resources "/user_tokens", UserTokenController, only: [:create]
+    resources "/tokens", UserTokenController, only: [:create]
   end
 
   # Preview sent emails in development mode
