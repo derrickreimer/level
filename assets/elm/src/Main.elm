@@ -69,8 +69,7 @@ type Page
 
 
 type alias Flags =
-    { csrfToken : String
-    , apiToken : String
+    { apiToken : String
     }
 
 
@@ -93,7 +92,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Session.init flags.csrfToken flags.apiToken) NotLoaded Blank True Nothing
+    Model (Session.init flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -126,14 +125,13 @@ type Msg
     | RoomSettingsMsg Page.RoomSettings.Msg
     | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
-    | StartFrameReceived Decode.Value
-    | ResultFrameReceived Decode.Value
+    | SocketAbort Decode.Value
+    | SocketStart Decode.Value
+    | SocketResult Decode.Value
+    | SocketError Decode.Value
+    | SocketTokenUpdated Decode.Value
+    | SessionRefreshed (Result Session.Error Session)
     | FlashNoticeExpired
-
-
-getSession : Model -> Session
-getSession model =
-    model.session
 
 
 getPage : Model -> Page
@@ -326,10 +324,13 @@ update msg model =
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
 
-            ( StartFrameReceived value, _ ) ->
+            ( SocketAbort value, _ ) ->
                 ( model, Cmd.none )
 
-            ( ResultFrameReceived value, page ) ->
+            ( SocketStart value, _ ) ->
+                ( model, Cmd.none )
+
+            ( SocketResult value, page ) ->
                 case decodeMessage value of
                     RoomMessageCreated result ->
                         case page of
@@ -348,6 +349,25 @@ update msg model =
 
                     UnknownMessage ->
                         ( model, Cmd.none )
+
+            ( SocketError value, _ ) ->
+                -- Debug.log (Encode.encode 0 value) ( model, Cmd.none )
+                let
+                    cmd =
+                        model.session
+                            |> Session.fetchNewToken
+                            |> Task.attempt SessionRefreshed
+                in
+                    ( model, cmd )
+
+            ( SocketTokenUpdated _, _ ) ->
+                ( model, Cmd.none )
+
+            ( SessionRefreshed (Ok session), _ ) ->
+                ( { model | session = session }, Ports.updateToken session.token )
+
+            ( SessionRefreshed (Err Session.Expired), _ ) ->
+                ( model, Route.toLogin )
 
             ( FlashNoticeExpired, _ ) ->
                 ( { model | flashNotice = Nothing }, Cmd.none )
@@ -493,8 +513,11 @@ setupSockets model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Ports.startFrameReceived StartFrameReceived
-        , Ports.resultFrameReceived ResultFrameReceived
+        [ Ports.socketAbort SocketAbort
+        , Ports.socketStart SocketStart
+        , Ports.socketResult SocketResult
+        , Ports.socketError SocketError
+        , Ports.socketTokenUpdated SocketTokenUpdated
         , pageSubscription model
         ]
 

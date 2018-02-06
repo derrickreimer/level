@@ -1,12 +1,15 @@
 import * as AbsintheSocket from "@absinthe/socket";
 import { Socket as PhoenixSocket } from "phoenix";
-import { getApiToken } from "./token";
 
 const ADDRESS = "ws://" + window.location.host + "/socket";
 
-export const createSocket = () =>
-  AbsintheSocket.create(
-    new PhoenixSocket(ADDRESS, {
-      params: { Authorization: "Bearer " + getApiToken() }
-    })
-  );
+export const createPhoenixSocket = token =>
+  new PhoenixSocket(ADDRESS, {
+    params: { Authorization: "Bearer " + token }
+  });
+
+export const updateSocketToken = (socket, token) =>
+  (socket.params = { Authorization: "Bearer " + token });
+
+export const createAbsintheSocket = phoenixSocket =>
+  AbsintheSocket.create(phoenixSocket);

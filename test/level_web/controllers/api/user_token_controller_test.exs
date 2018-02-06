@@ -1,7 +1,7 @@
 defmodule LevelWeb.API.UserTokenControllerTest do
   use LevelWeb.ConnCase
 
-  describe "POST /api/user_tokens" do
+  describe "POST /api/tokens" do
     setup %{conn: conn} do
       {:ok, %{space: space, user: user}} = insert_signup()
 
@@ -22,7 +22,7 @@ defmodule LevelWeb.API.UserTokenControllerTest do
         |> sign_in(space, user)
         |> put_space_host(space)
         |> put_req_header("content-type", "application/json")
-        |> post("/api/user_tokens")
+        |> post("/api/tokens")
 
       %{"token" => token} = json_response(conn, 201)
       decoded_token = LevelWeb.Auth.verify_signed_jwt(token)
@@ -35,7 +35,7 @@ defmodule LevelWeb.API.UserTokenControllerTest do
         |> put_space_host(space)
         |> put_req_header("content-type", "application/json")
         |> assign(:current_user, nil)
-        |> post("/api/user_tokens")
+        |> post("/api/tokens")
 
       assert conn.status == 401
     end

@@ -24,10 +24,19 @@ scrollPositionDecoder =
         (Decode.field "anchorOffset" (Decode.maybe Decode.int))
 
 
-port startFrameReceived : (Decode.Value -> msg) -> Sub msg
+port socketAbort : (Decode.Value -> msg) -> Sub msg
 
 
-port resultFrameReceived : (Decode.Value -> msg) -> Sub msg
+port socketStart : (Decode.Value -> msg) -> Sub msg
+
+
+port socketResult : (Decode.Value -> msg) -> Sub msg
+
+
+port socketError : (Decode.Value -> msg) -> Sub msg
+
+
+port socketTokenUpdated : (Decode.Value -> msg) -> Sub msg
 
 
 port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
@@ -57,6 +66,9 @@ type alias ScrollPositionArgs =
 
 
 port sendFrame : Frame -> Cmd msg
+
+
+port updateToken : String -> Cmd msg
 
 
 port getScrollPosition : ScrollPositionArgs -> Cmd msg

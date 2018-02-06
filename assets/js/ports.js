@@ -1,24 +1,41 @@
-import { createSocket } from "./socket";
+import {
+  createPhoenixSocket,
+  createAbsintheSocket,
+  updateSocketToken
+} from "./socket";
+import { getApiToken } from "./token";
 import * as AbsintheSocket from "@absinthe/socket";
 
 const logEvent = eventName => (...args) => console.log(eventName, ...args);
 
 export const attachPorts = app => {
-  const socket = createSocket();
+  let phoenixSocket = createPhoenixSocket(getApiToken());
+  let absintheSocket = createAbsintheSocket(phoenixSocket);
+
+  app.ports.updateToken.subscribe(token => {
+    updateSocketToken(phoenixSocket, token);
+    app.ports.socketTokenUpdated.send();
+  });
 
   app.ports.sendFrame.subscribe(doc => {
-    const notifier = AbsintheSocket.send(socket, doc);
+    const notifier = AbsintheSocket.send(absintheSocket, doc);
 
-    const observedNotifier = AbsintheSocket.observe(socket, notifier, {
-      onAbort: logEvent("abort"),
-      onError: logEvent("error"),
+    const observedNotifier = AbsintheSocket.observe(absintheSocket, notifier, {
+      onAbort: data => {
+        logEvent("abort")(data);
+        app.ports.socketAbort.send(data);
+      },
+      onError: data => {
+        logEvent("error")(data);
+        app.ports.socketError.send(data);
+      },
       onStart: data => {
         logEvent("start")(data);
-        app.ports.startFrameReceived.send(data);
+        app.ports.socketStart.send(data);
       },
       onResult: data => {
         logEvent("result")(data);
-        app.ports.resultFrameReceived.send(data);
+        app.ports.socketResult.send(data);
       }
     });
   });
