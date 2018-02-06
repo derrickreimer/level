@@ -62,12 +62,25 @@ defmodule LevelWeb.AuthTest do
       assert conn.assigns.current_user == nil
     end
 
+    test "sets the current user to nil if user is not found", %{conn: conn} do
+      {:ok, %{space: space}} = insert_signup()
+
+      conn =
+        conn
+        |> assign(:space, space)
+        |> put_session(:sessions, to_user_session(space, %Level.Spaces.User{id: 999, session_salt: "nacl"}))
+        |> Auth.fetch_current_user_by_session()
+
+      assert conn.assigns.current_user == nil
+    end
+
     test "sets the current user to nil if salt does not match", %{conn: conn} do
       {:ok, %{space: space, user: user}} = insert_signup()
 
       old_salted_session = to_user_session(space, user)
 
-      Ecto.Changeset.change(user, %{session_salt: "new salt"})
+      user
+      |> Ecto.Changeset.change(%{session_salt: "new salt"})
       |> Repo.update()
 
       conn =

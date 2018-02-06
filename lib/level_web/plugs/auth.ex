@@ -46,15 +46,12 @@ defmodule LevelWeb.Auth do
       sessions = get_session(conn, :sessions) ->
         space_id = Integer.to_string(conn.assigns.space.id)
 
-        case decode_user_sessions(sessions) do
-          %{^space_id => [user_id, session_salt, _issued_at_ts]} ->
-            user = Spaces.get_user(user_id)
-
-            if user.session_salt == session_salt do
-              put_current_user(conn, user)
-            else
-              delete_current_user(conn)
-            end
+        with %{^space_id => [user_id, salt, _]} <- decode_user_sessions(sessions),
+             %Spaces.User{} = user <- Spaces.get_user(user_id),
+             true <- user.session_salt == salt
+        do
+          put_current_user(conn, user)
+        else
           _ ->
             delete_current_user(conn)
         end
