@@ -1,6 +1,5 @@
 module Data.Invitation exposing (InvitationConnection, Invitation, invitationConnectionDecoder, invitationDecoder)
 
-import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Date exposing (Date)
