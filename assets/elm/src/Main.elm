@@ -126,8 +126,9 @@ type Msg
     | RoomSettingsMsg Page.RoomSettings.Msg
     | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
-    | StartFrameReceived Decode.Value
-    | ResultFrameReceived Decode.Value
+    | SocketAbort Decode.Value
+    | SocketStart Decode.Value
+    | SocketResult Decode.Value
     | SocketError Decode.Value
     | SocketTokenUpdated Decode.Value
     | SessionRefreshed (Result Session.Error Session)
@@ -324,10 +325,13 @@ update msg model =
             ( SendFrame frame, _ ) ->
                 ( model, Ports.sendFrame frame )
 
-            ( StartFrameReceived value, _ ) ->
+            ( SocketAbort value, _ ) ->
                 ( model, Cmd.none )
 
-            ( ResultFrameReceived value, page ) ->
+            ( SocketStart value, _ ) ->
+                ( model, Cmd.none )
+
+            ( SocketResult value, page ) ->
                 case decodeMessage value of
                     RoomMessageCreated result ->
                         case page of
@@ -510,8 +514,9 @@ setupSockets model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Ports.startFrameReceived StartFrameReceived
-        , Ports.resultFrameReceived ResultFrameReceived
+        [ Ports.socketAbort SocketAbort
+        , Ports.socketStart SocketStart
+        , Ports.socketResult SocketResult
         , Ports.socketError SocketError
         , Ports.socketTokenUpdated SocketTokenUpdated
         , pageSubscription model

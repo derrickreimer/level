@@ -17,18 +17,21 @@ export const attachPorts = app => {
     const notifier = AbsintheSocket.send(absintheSocket, doc);
 
     const observedNotifier = AbsintheSocket.observe(absintheSocket, notifier, {
-      onAbort: logEvent("abort"),
-      onError: error => {
-        let message = error.message;
-        app.ports.socketError.send({ message });
+      onAbort: data => {
+        logEvent("abort")(data);
+        app.ports.socketAbort.send(data);
+      },
+      onError: data => {
+        logEvent("error")(data);
+        app.ports.socketError.send(data);
       },
       onStart: data => {
         logEvent("start")(data);
-        app.ports.startFrameReceived.send(data);
+        app.ports.socketStart.send(data);
       },
       onResult: data => {
         logEvent("result")(data);
-        app.ports.resultFrameReceived.send(data);
+        app.ports.socketResult.send(data);
       }
     });
   });
