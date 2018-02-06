@@ -16,8 +16,7 @@ type alias Payload =
 
 
 type alias Session =
-    { csrfToken : String
-    , token : String
+    { token : String
     , payload : Result JwtError Payload
     }
 
@@ -42,9 +41,9 @@ payload.
         }
 
 -}
-init : String -> String -> Session
-init csrfToken token =
-    Session csrfToken token (decodeToken token)
+init : String -> Session
+init token =
+    Session token (decodeToken token)
 
 
 {-| Accepts a token and returns a Result from attempting to decode the payload.
@@ -73,7 +72,7 @@ fetchNewToken session =
     let
         request =
             Http.post "/api/tokens" Http.emptyBody <|
-                Decode.map (init session.csrfToken) (field "token" Decode.string)
+                Decode.map init (field "token" Decode.string)
     in
         request
             |> Http.toTask
