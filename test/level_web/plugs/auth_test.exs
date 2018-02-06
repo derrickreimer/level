@@ -62,7 +62,24 @@ defmodule LevelWeb.AuthTest do
       assert conn.assigns.current_user == nil
     end
 
-    test "sets the current user if logged in", %{conn: conn} do
+    test "sets the current user to nil if salt does not match", %{conn: conn} do
+      {:ok, %{space: space, user: user}} = insert_signup()
+
+      old_salted_session = to_user_session(space, user)
+
+      Ecto.Changeset.change(user, %{session_salt: "new salt"})
+      |> Repo.update()
+
+      conn =
+        conn
+        |> assign(:space, space)
+        |> put_session(:sessions, old_salted_session)
+        |> Auth.fetch_current_user_by_session()
+
+      assert conn.assigns.current_user == nil
+    end
+
+    test "sets the current user if logged in and salt matches", %{conn: conn} do
       {:ok, %{space: space, user: user}} = insert_signup()
 
       conn =
@@ -300,7 +317,7 @@ defmodule LevelWeb.AuthTest do
   end
 
   defp to_user_session(space, user, ts \\ 123) do
-    Poison.encode!(%{Integer.to_string(space.id) => [user.id, ts]})
+    Poison.encode!(%{Integer.to_string(space.id) => [user.id, user.session_salt, ts]})
   end
 
   defp generate_expired_token(user) do

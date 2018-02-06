@@ -253,7 +253,8 @@ CREATE TABLE users (
     time_zone text NOT NULL,
     password_hash text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    session_salt text DEFAULT 'salt'::text NOT NULL
 );
 
 
@@ -570,5 +571,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345), (20171028185025);
+INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345), (20171028185025), (20180206160730);
 

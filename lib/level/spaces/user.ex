@@ -23,6 +23,7 @@ defmodule Level.Spaces.User do
     field :time_zone, :string
     field :password, :string, virtual: true
     field :password_hash, :string
+    field :session_salt, :string
     belongs_to :space, Level.Spaces.Space
     has_many :room_subscriptions, Level.Rooms.RoomSubscription
 
@@ -54,6 +55,7 @@ defmodule Level.Spaces.User do
     |> validate_user_params()
     |> put_default_time_zone
     |> put_pass_hash
+    |> put_change(:session_salt, generate_salt())
   end
 
   @doc """
@@ -71,6 +73,13 @@ defmodule Level.Spaces.User do
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
     |> unique_constraint(:email, name: :users_space_id_email_index)
     |> unique_constraint(:username, name: :users_space_id_username_index)
+  end
+
+  defp generate_salt do
+    16
+    |> :crypto.strong_rand_bytes()
+    |> Base.encode16()
+    |> String.downcase
   end
 
   defp put_pass_hash(changeset) do

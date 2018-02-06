@@ -34,6 +34,12 @@ defmodule Level.Spaces.UserTest do
       assert password_hash
       assert Comeonin.Bcrypt.checkpw(password, password_hash)
     end
+
+    test "sets random session salt" do
+      changeset = User.signup_changeset(%User{}, valid_signup_params())
+      %{session_salt: salt} = changeset.changes
+      assert String.length(salt) == 32
+    end
   end
 
   describe "username_format/0" do
