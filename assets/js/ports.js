@@ -1,4 +1,8 @@
-import { createPhoenixSocket, createAbsintheSocket, updateSocketToken } from "./socket";
+import {
+  createPhoenixSocket,
+  createAbsintheSocket,
+  updateSocketToken
+} from "./socket";
 import { getApiToken } from "./token";
 import * as AbsintheSocket from "@absinthe/socket";
 
