@@ -177,6 +177,34 @@ defmodule Level.Rooms do
   end
 
   @doc """
+  Fetches the most recently posted message.
+
+  ## Examples
+
+      # If there are any messages, retuns the most recent in a success tuple.
+      get_last_message(room)
+      => {:ok, %Message{...}}
+
+      # Otherwise, returns nil.
+      => {:ok, nil}
+  """
+  def get_last_message(room) do
+    query =
+      from m in Message,
+        where: m.room_id == ^room.id,
+        order_by: [desc: m.inserted_at],
+        limit: 1
+
+    case Repo.all(query) do
+      [message | _] ->
+        {:ok, message}
+
+      _ ->
+        {:ok, nil}
+    end
+  end
+
+  @doc """
   Posts a new message to a given room.
 
   ## Examples

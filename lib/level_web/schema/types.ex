@@ -140,6 +140,11 @@ defmodule LevelWeb.Schema.Types do
 
     field :creator, non_null(:user), resolve: dataloader(Spaces)
     field :space, non_null(:space), resolve: dataloader(Spaces)
+
+    # TODO: This presents an N+1 query. Investigate using dataloader instead.
+    field :last_message, :room_message do
+      resolve &LevelWeb.RoomResolver.last_message/3
+    end
   end
 
   @desc "A room subscription represents a user's membership in a room."

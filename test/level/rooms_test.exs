@@ -169,6 +169,30 @@ defmodule Level.RoomsTest do
     end
   end
 
+  describe "get_last_message/3" do
+    setup do
+      create_user_and_room()
+    end
+
+    test "returns nil when there are no room messages", %{room: room} do
+      {:ok, message} = Rooms.get_last_message(room)
+      assert message == nil
+    end
+
+    test "returns the most recent message", %{room: room, user: user} do
+      params = valid_room_message_params()
+
+      {:ok, message1} = Rooms.create_message(room, user, params)
+      {:ok, message2} = Rooms.create_message(room, user, params)
+
+      Repo.update(Ecto.Changeset.change(message1, %{inserted_at: ~N[2018-02-08 00:10:00]}))
+      Repo.update(Ecto.Changeset.change(message2, %{inserted_at: ~N[2018-02-08 00:00:00]}))
+
+      {:ok, message} = Rooms.get_last_message(room)
+      assert message.id == message1.id
+    end
+  end
+
   describe "message_created_payload/2" do
     setup do
       {:ok, %{room: %Rooms.Room{}, message: %Rooms.Message{}}}

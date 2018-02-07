@@ -22,7 +22,10 @@ decoders =
                                 "id": "9999",
                                 "name": "Everyone",
                                 "description": "All the things",
-                                "subscriberPolicy": "PUBLIC"
+                                "subscriberPolicy": "PUBLIC",
+                                "lastMessage": {
+                                  "id": "8888"
+                                }
                               }
                             """
 
@@ -34,6 +37,7 @@ decoders =
                             , name = "Everyone"
                             , description = "All the things"
                             , subscriberPolicy = Room.Public
+                            , lastMessageId = Just "8888"
                             }
                     in
                         Expect.equal (Ok expected) result
@@ -65,7 +69,10 @@ decoders =
                                       "id": "123",
                                       "name": "Everyone",
                                       "description": "All the things",
-                                      "subscriberPolicy": "PUBLIC"
+                                      "subscriberPolicy": "PUBLIC",
+                                      "lastMessage": {
+                                        "id": "8888"
+                                      }
                                     }
                                   }
                                 }]
@@ -83,6 +90,7 @@ decoders =
                                             , name = "Everyone"
                                             , description = "All the things"
                                             , subscriberPolicy = Room.Public
+                                            , lastMessageId = Just "8888"
                                             }
                                         }
                                   }

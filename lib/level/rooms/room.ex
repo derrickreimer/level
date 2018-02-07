@@ -15,6 +15,7 @@ defmodule Level.Rooms.Room do
     belongs_to :space, Level.Spaces.Space
     belongs_to :creator, Level.Spaces.User
     has_many :room_subscriptions, Level.Rooms.RoomSubscription
+    has_many :messages, Level.Rooms.Message
 
     timestamps()
   end

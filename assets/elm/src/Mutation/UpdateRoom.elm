@@ -42,6 +42,9 @@ query =
             name
             description
             subscriberPolicy
+            lastMessage {
+              id
+            }
           }
           success
           errors {

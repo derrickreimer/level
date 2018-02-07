@@ -77,6 +77,7 @@ type alias Room =
     , name : String
     , description : String
     , subscriberPolicy : SubscriberPolicy
+    , lastMessageId : Maybe String
     }
 
 
@@ -109,6 +110,7 @@ roomDecoder =
         |> Pipeline.required "name" Decode.string
         |> Pipeline.required "description" Decode.string
         |> Pipeline.required "subscriberPolicy" subscriberPolicyDecoder
+        |> Pipeline.custom lastMessageIdDecoder
 
 
 roomMessageConnectionDecoder : Decode.Decoder RoomMessageConnection
@@ -153,6 +155,14 @@ subscriberPolicyDecoder =
                     Decode.fail "Subscriber policy not valid"
     in
         Decode.string |> Decode.andThen convert
+
+
+lastMessageIdDecoder : Decode.Decoder (Maybe String)
+lastMessageIdDecoder =
+    Decode.oneOf
+        [ Decode.map Just <| Decode.at [ "lastMessage", "id" ] Decode.string
+        , Decode.succeed Nothing
+        ]
 
 
 
