@@ -153,6 +153,8 @@ defmodule LevelWeb.Schema.Types do
     field :user, non_null(:user), resolve: dataloader(Spaces)
     field :space, non_null(:space), resolve: dataloader(Spaces)
     field :room, non_null(:room), resolve: dataloader(Spaces)
+    field :last_read_message, :room_message, resolve: dataloader(Rooms)
+    field :last_read_message_at, :time
   end
 
   @desc "A room message is message posted to a room."
