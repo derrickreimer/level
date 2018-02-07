@@ -9,6 +9,7 @@ defmodule Level.Rooms do
   alias Level.Rooms.Room
   alias Level.Rooms.RoomSubscription
   alias Level.Rooms.Message
+  alias Ecto.Changeset
   alias Ecto.Multi
 
   import Level.Gettext
@@ -177,11 +178,33 @@ defmodule Level.Rooms do
   end
 
   @doc """
+  Fetches a room message by id.
+
+  ## Examples
+
+      # Returns the message in a success tuple if found.
+      get_message(room, id)
+      => {:ok, %Message{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %{message: "...", code: "NOT_FOUND"}}
+  """
+  def get_message(room, id) do
+    case Repo.get_by(Message, %{room_id: room.id, id: id}) do
+      nil ->
+        not_found(dgettext("errors", "Message not found"))
+
+      message ->
+        {:ok, message}
+    end
+  end
+
+  @doc """
   Fetches the most recently posted message.
 
   ## Examples
 
-      # If there are any messages, retuns the most recent in a success tuple.
+      # If there are any messages, returns the most recent in a success tuple.
       get_last_message(room)
       => {:ok, %Message{...}}
 
@@ -246,6 +269,35 @@ defmodule Level.Rooms do
     else
       err -> err
     end
+  end
+
+  @doc """
+  Marks a message read by updating the last read message state on the given
+  subscription (if this message is more recent than the previous last read
+  message).
+
+  ## Examples
+
+      mark_message_as_read(room_subscription, message)
+      => {:ok, %RoomSubscription{...}}
+  """
+  def mark_message_as_read(%RoomSubscription{last_read_message_id: nil} = room_subscription, message) do
+    set_last_read_message(room_subscription, message)
+  end
+  def mark_message_as_read(room_subscription, message) do
+    if room_subscription.last_read_message_id < message.id do
+      # If message is more recent than the previous last read one, then update it.
+      set_last_read_message(room_subscription, message)
+    else
+      # Otherwise, do nothing.
+      {:ok, room_subscription}
+    end
+  end
+
+  defp set_last_read_message(room_subscription, message) do
+    room_subscription
+    |> Changeset.change(last_read_message_id: message.id)
+    |> Repo.update()
   end
 
   @doc """

@@ -141,6 +141,24 @@ defmodule Level.RoomsTest do
     end
   end
 
+  describe "get_message/2" do
+    setup do
+      create_user_and_room()
+    end
+
+    test "returns the message if it exists", %{room: room, user: user} do
+      params = valid_room_message_params()
+      {:ok, message} = Rooms.create_message(room, user, params)
+      {:ok, result} = Rooms.get_message(room, message.id)
+      assert result.id == message.id
+    end
+
+    test "returns an error if message is not found", %{room: room} do
+      {:error, result} = Rooms.get_message(room, "9999999")
+      assert result == %{code: "NOT_FOUND", message: "Message not found"}
+    end
+  end
+
   describe "create_message/3" do
     setup do
       create_user_and_room()
@@ -190,6 +208,34 @@ defmodule Level.RoomsTest do
 
       {:ok, message} = Rooms.get_last_message(room)
       assert message.id == message1.id
+    end
+  end
+
+  describe "mark_message_as_read/2" do
+    setup do
+      {:ok, %{user: user, room: room, room_subscription: room_subscription}} = create_user_and_room()
+      {:ok, message} = Rooms.create_message(room, user, valid_room_message_params())
+      {:ok, %{user: user, message: message, room: room, room_subscription: room_subscription}}
+    end
+
+    test "sets the last read message state",
+      %{message: message, room_subscription: room_subscription} do
+
+      {:ok, updated_subscription} =
+        Rooms.mark_message_as_read(room_subscription, message)
+
+      assert updated_subscription.last_read_message_id == message.id
+    end
+
+    test "does not set the last read message state if message is old",
+      %{user: user, message: old_message, room: room, room_subscription: room_subscription} do
+
+      {:ok, new_message} = Rooms.create_message(room, user, valid_room_message_params())
+      {:ok, room_subscription} = Rooms.mark_message_as_read(room_subscription, new_message)
+      {:ok, updated_subscription} = Rooms.mark_message_as_read(room_subscription, old_message)
+
+      assert old_message.id < new_message.id # verify that monatonicity is maintained
+      assert updated_subscription.last_read_message_id == new_message.id
     end
   end
 
@@ -249,7 +295,8 @@ defmodule Level.RoomsTest do
 
   defp create_user_and_room do
     {:ok, %{user: user, space: space}} = insert_signup()
-    {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
-    {:ok, %{user: user, room: room, space: space}}
+    {:ok, %{room: room, room_subscription: room_subscription}} =
+      Rooms.create_room(user, valid_room_params())
+    {:ok, %{user: user, room: room, room_subscription: room_subscription, space: space}}
   end
 end

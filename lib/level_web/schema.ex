@@ -96,6 +96,14 @@ defmodule LevelWeb.Schema do
 
       resolve &LevelWeb.RoomMessageResolver.create/2
     end
+
+    @desc "Mark a particular room message as read."
+    field :mark_room_message_as_read, type: :mark_room_message_as_read_payload do
+      arg :room_id, non_null(:id)
+      arg :message_id, non_null(:id)
+
+      resolve &LevelWeb.RoomMessageResolver.mark_as_read/2
+    end
   end
 
   subscription do

@@ -23,4 +23,24 @@ defmodule LevelWeb.RoomMessageResolver do
       error -> error
     end
   end
+
+  def mark_as_read(%{room_id: room_id, message_id: message_id}, %{context: %{current_user: user}}) do
+    with {:ok, room} <- Rooms.get_room(user, room_id),
+         {:ok, subscription} <- Rooms.get_room_subscription(room, user),
+         {:ok, message} <- Rooms.get_message(room, message_id)
+    do
+      resp =
+        case Rooms.mark_message_as_read(subscription, message) do
+          {:ok, subscription} ->
+            %{success: true, room_subscription: subscription, errors: []}
+
+          {:error, changeset}->
+            %{success: false, room_subscription: subscription, errors: format_errors(changeset)}
+        end
+
+      {:ok, resp}
+    else
+      error -> error
+    end
+  end
 end
