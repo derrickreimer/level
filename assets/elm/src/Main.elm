@@ -99,8 +99,8 @@ buildModel flags =
 succession. Returns a ( model, Cmd msg ), where the Cmd is a batch of accumulated
 commands and the model is the original model with all mutations applied to it.
 -}
-commandPipeline : List (model -> ( model, Cmd msg )) -> model -> ( model, Cmd msg )
-commandPipeline transforms model =
+updatePipeline : List (model -> ( model, Cmd msg )) -> model -> ( model, Cmd msg )
+updatePipeline transforms model =
     let
         reducer transform ( model, cmds ) =
             transform model
@@ -155,7 +155,7 @@ update msg model =
 
             ( AppStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
                 { model | appState = Loaded response, session = session }
-                    |> commandPipeline [ navigateTo maybeRoute, setupSockets ]
+                    |> updatePipeline [ navigateTo maybeRoute, setupSockets ]
 
             ( AppStateLoaded maybeRoute (Err Session.Expired), _ ) ->
                 ( model, Route.toLogin )
@@ -278,13 +278,11 @@ update msg model =
                     ( newModel, externalCmd ) =
                         case externalMsg of
                             Page.RoomSettings.RoomUpdated session room ->
-                                let
-                                    newModel =
-                                        model
-                                            |> setFlashNotice "Room updated"
-                                            |> updateRoom room
-                                in
-                                    ( { newModel | session = session }, expireFlashNotice )
+                                { model | session = session }
+                                    |> updatePipeline
+                                        [ setFlashNotice "Room updated"
+                                        , updateRoom room.id (\_ -> room)
+                                        ]
 
                             Page.RoomSettings.SessionRefreshed session ->
                                 ( { model | session = session }, Cmd.none )
@@ -304,12 +302,8 @@ update msg model =
                     ( newModel, externalCmd ) =
                         case externalMsg of
                             Page.NewInvitation.InvitationCreated session _ ->
-                                let
-                                    newModel =
-                                        { model | session = session }
-                                            |> setFlashNotice "Invitation sent"
-                                in
-                                    ( newModel, expireFlashNotice )
+                                { model | session = session }
+                                    |> updatePipeline [ setFlashNotice "Invitation sent" ]
 
                             Page.NewInvitation.SessionRefreshed session ->
                                 ( { model | session = session }, Cmd.none )
@@ -333,25 +327,35 @@ update msg model =
             ( SocketResult value, page ) ->
                 case decodeMessage value of
                     RoomMessageCreated result ->
-                        case page of
-                            Room pageModel ->
-                                if pageModel.room.id == result.roomId then
-                                    let
-                                        ( ( newPageModel, cmd ), _ ) =
-                                            Page.Room.receiveMessage result.roomMessage pageModel
-                                    in
-                                        ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
-                                else
-                                    ( model, Cmd.none )
+                        let
+                            sendMessageToRooms model =
+                                case page of
+                                    Room pageModel ->
+                                        if pageModel.room.id == result.roomId then
+                                            let
+                                                ( ( newPageModel, cmd ), _ ) =
+                                                    Page.Room.receiveMessage result.roomMessage pageModel
+                                            in
+                                                ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
+                                        else
+                                            ( model, Cmd.none )
 
-                            _ ->
-                                ( model, Cmd.none )
+                                    _ ->
+                                        ( model, Cmd.none )
+
+                            lastMessageUpdater room =
+                                { room | lastMessageId = Just result.roomMessage.id }
+                        in
+                            model
+                                |> updatePipeline
+                                    [ sendMessageToRooms
+                                    , updateRoom result.roomId lastMessageUpdater
+                                    ]
 
                     UnknownMessage ->
                         ( model, Cmd.none )
 
             ( SocketError value, _ ) ->
-                -- Debug.log (Encode.encode 0 value) ( model, Cmd.none )
                 let
                     cmd =
                         model.session
@@ -377,11 +381,11 @@ update msg model =
                 ( model, Cmd.none )
 
 
-{-| Propagates changes made to room to all the places where that room might be
-stored in the model.
+{-| Finds all instances of where a room with given id is stored and updates
+using the given mutator function.
 -}
-updateRoom : Room -> Model -> Model
-updateRoom room model =
+updateRoom : String -> (Room -> Room) -> Model -> ( Model, Cmd Msg )
+updateRoom roomId mutator model =
     case model.appState of
         Loaded data ->
             let
@@ -392,12 +396,12 @@ updateRoom room model =
                     roomSubscriptions.edges
 
                 update edge =
-                    if room.id == edge.node.room.id then
+                    if roomId == edge.node.room.id then
                         let
                             node =
                                 edge.node
                         in
-                            { edge | node = { node | room = room } }
+                            { edge | node = { node | room = mutator node.room } }
                     else
                         edge
 
@@ -407,15 +411,15 @@ updateRoom room model =
                 newData =
                     { data | roomSubscriptions = newRoomSubscriptions }
             in
-                { model | appState = Loaded newData }
+                ( { model | appState = Loaded newData }, Cmd.none )
 
         NotLoaded ->
-            model
+            ( model, Cmd.none )
 
 
-setFlashNotice : String -> Model -> Model
+setFlashNotice : String -> Model -> ( Model, Cmd Msg )
 setFlashNotice message model =
-    { model | flashNotice = Just message }
+    ( { model | flashNotice = Just message }, expireFlashNotice )
 
 
 expireFlashNotice : Cmd Msg
