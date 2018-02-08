@@ -8,7 +8,7 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
-import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge)
+import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge, RoomSubscription)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Icons exposing (privacyIcon)
@@ -807,7 +807,7 @@ roomSubscriptionItem page edge =
 
         -- Placeholder for when we implement "unread" indicator
         dot =
-            if True == False then
+            if hasUnreadMessages edge.node then
                 span [ class "side-nav__item-indicator" ]
                     [ span [ class "side-nav__dot" ] []
                     ]
@@ -826,6 +826,27 @@ roomSubscriptionItem page edge =
             , icon
             , dot
             ]
+
+
+hasUnreadMessages : RoomSubscription -> Bool
+hasUnreadMessages sub =
+    case ( sub.lastReadMessageId, sub.room.lastMessageId ) of
+        ( Nothing, Nothing ) ->
+            False
+
+        ( Nothing, Just _ ) ->
+            True
+
+        ( Just _, Nothing ) ->
+            False
+
+        ( Just lastReadMessageId, Just lastMessageId ) ->
+            case ( String.toInt lastReadMessageId, String.toInt lastMessageId ) of
+                ( Ok lastReadMessageIdInt, Ok lastMessageIdInt ) ->
+                    lastReadMessageIdInt < lastMessageIdInt
+
+                ( _, _ ) ->
+                    False
 
 
 
