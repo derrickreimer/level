@@ -286,17 +286,15 @@ defmodule Level.Rooms do
   end
   def mark_message_as_read(room_subscription, message) do
     if room_subscription.last_read_message_id < message.id do
-      # If message is more recent than the previous last read one, then update it.
       set_last_read_message(room_subscription, message)
     else
-      # Otherwise, do nothing.
       {:ok, room_subscription}
     end
   end
 
   defp set_last_read_message(room_subscription, message) do
     room_subscription
-    |> Changeset.change(last_read_message_id: message.id)
+    |> Changeset.change(last_read_message_id: message.id, last_read_message_at: Timex.now)
     |> Repo.update()
   end
 
