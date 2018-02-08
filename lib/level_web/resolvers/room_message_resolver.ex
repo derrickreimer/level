@@ -34,7 +34,7 @@ defmodule LevelWeb.RoomMessageResolver do
           {:ok, subscription} ->
             %{success: true, room_subscription: subscription, errors: []}
 
-          {:error, changeset}->
+          {:error, changeset} ->
             %{success: false, room_subscription: subscription, errors: format_errors(changeset)}
         end
 
