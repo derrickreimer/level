@@ -59,7 +59,9 @@ decoders =
                                         "lastMessage": {
                                           "id": "8888"
                                         }
-                                      }
+                                      },
+                                      "lastReadMessage": null,
+                                      "lastReadMessageAt": null
                                     },
                                     "success": true,
                                     "errors": []
@@ -80,6 +82,8 @@ decoders =
                                     , subscriberPolicy = Data.Room.Public
                                     , lastMessageId = Just "8888"
                                     }
+                                , lastReadMessageId = Nothing
+                                , lastReadMessageAt = Nothing
                                 }
                     in
                         Expect.equal (Ok expected) result

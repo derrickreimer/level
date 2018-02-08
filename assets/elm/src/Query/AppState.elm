@@ -59,6 +59,10 @@ query =
                     id
                   }
                 }
+                lastReadMessage {
+                  id
+                }
+                lastReadMessageAt
               }
             }
           }

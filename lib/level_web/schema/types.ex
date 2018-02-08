@@ -169,7 +169,8 @@ defmodule LevelWeb.Schema.Types do
     end
 
     field :space, non_null(:space), resolve: dataloader(Spaces)
-    field :room, non_null(:room), resolve: dataloader(Rooms)
     field :user, non_null(:user), resolve: dataloader(Spaces)
+    field :room, non_null(:room), resolve: dataloader(Rooms)
+    field :last_read_message, :room_message, resolve: dataloader(Rooms)
   end
 end

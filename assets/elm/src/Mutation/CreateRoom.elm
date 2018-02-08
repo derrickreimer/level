@@ -44,6 +44,10 @@ query =
                 id
               }
             }
+            lastReadMessage {
+              id
+            }
+            lastReadMessageAt
           }
           success
           errors {
