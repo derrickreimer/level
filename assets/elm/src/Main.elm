@@ -166,13 +166,17 @@ update msg model =
             ( RoomLoaded slug (Ok ( session, response )), _ ) ->
                 case response of
                     Query.Room.Found data ->
-                        ( { model
-                            | page = Room (Page.Room.buildModel data)
-                            , session = session
-                            , isTransitioning = False
-                          }
-                        , Cmd.map RoomMsg Page.Room.loaded
-                        )
+                        let
+                            pageModel =
+                                Page.Room.buildModel data
+                        in
+                            ( { model
+                                | page = Room pageModel
+                                , session = session
+                                , isTransitioning = False
+                              }
+                            , Cmd.map RoomMsg <| Page.Room.loaded session pageModel
+                            )
 
                     Query.Room.NotFound ->
                         ( { model

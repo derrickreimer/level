@@ -27,12 +27,22 @@ import Data.User exposing (User, UserConnection)
 import Data.Room exposing (Room, RoomMessageConnection, RoomMessageEdge, RoomMessage)
 import Icons exposing (privacyIcon, settingsIcon)
 import Mutation.CreateRoomMessage as CreateRoomMessage
+import Mutation.MarkRoomMessageAsRead as MarkRoomMessageAsRead
 import Ports exposing (ScrollParams)
 import Query.Room
 import Query.RoomMessages
 import Route
 import Session exposing (Session)
-import Util exposing (last, formatTime, formatTimeWithoutMeridian, formatDateTime, formatDay, onSameDay, onEnter)
+import Util
+    exposing
+        ( last
+        , formatTime
+        , formatTimeWithoutMeridian
+        , formatDateTime
+        , formatDay
+        , onSameDay
+        , onEnter
+        )
 
 
 -- MODEL
@@ -65,12 +75,26 @@ buildModel data =
 
 {-| Builds the task to perform post-page load.
 -}
-loaded : Cmd Msg
-loaded =
-    Cmd.batch
-        [ scrollToBottom "messages"
-        , focusOnComposer
-        ]
+loaded : Session -> Model -> Cmd Msg
+loaded session model =
+    let
+        -- TODO: This currently reports that user has read the most recent
+        -- message. It should be smarter and inspect the scroll position of
+        -- the messages container to determine what the last "seen" message
+        -- actually is.
+        lastReadMessage =
+            case List.head model.messages.edges of
+                Just edge ->
+                    Just edge.node
+
+                Nothing ->
+                    Nothing
+    in
+        Cmd.batch
+            [ scrollToBottom "messages"
+            , focusOnComposer
+            , updateLastReadMessage model.room lastReadMessage session
+            ]
 
 
 
@@ -85,6 +109,7 @@ type Msg
     | NoOp
     | MessageSubmitResponse (Result Session.Error ( Session, RoomMessage ))
     | PreviousMessagesFetched (Result Session.Error ( Session, Query.RoomMessages.Response ))
+    | MessageMarkedAsRead (Result Session.Error ( Session, Bool ))
 
 
 type ExternalMsg
@@ -229,6 +254,15 @@ update msg session model =
         PreviousMessagesFetched (Err _) ->
             ( ( { model | isFetchingMessages = False }, Cmd.none ), ExternalNoOp )
 
+        MessageMarkedAsRead (Ok ( session, _ )) ->
+            ( ( model, Cmd.none ), SessionRefreshed session )
+
+        MessageMarkedAsRead (Err Session.Expired) ->
+            redirectToLogin model
+
+        MessageMarkedAsRead (Err _) ->
+            ( ( model, Cmd.none ), ExternalNoOp )
+
         NoOp ->
             ( ( model, Cmd.none ), ExternalNoOp )
 
@@ -245,6 +279,21 @@ scrollToBottom id =
 focusOnComposer : Cmd Msg
 focusOnComposer =
     Task.attempt (always NoOp) <| focus "composer-body-field"
+
+
+{-| Sends an update to the backend to set the last read message.
+-}
+updateLastReadMessage : Room -> Maybe RoomMessage -> Session -> Cmd Msg
+updateLastReadMessage room maybeMessage session =
+    case maybeMessage of
+        Just message ->
+            MarkRoomMessageAsRead.Params room.id message.id
+                |> MarkRoomMessageAsRead.request
+                |> Session.request session
+                |> Task.attempt MessageMarkedAsRead
+
+        Nothing ->
+            Cmd.none
 
 
 {-| Executes a query for previous messages, updates the model to a fetching
