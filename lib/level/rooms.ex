@@ -5,6 +5,7 @@ defmodule Level.Rooms do
   for small disparate discussions.
   """
 
+  alias Level.Pubsub
   alias Level.Repo
   alias Level.Rooms.Room
   alias Level.Rooms.RoomSubscription
@@ -269,8 +270,7 @@ defmodule Level.Rooms do
         {:room_message_created, to_string(id)}
       end)
 
-      payload = message_created_payload(room, message)
-      publish_to_listeners(payload, topics)
+      Pubsub.publish(message_created_payload(room, message), topics)
 
       {:ok, %{room_message: message, room_subscription: updated_subscription}}
     else
@@ -311,7 +311,7 @@ defmodule Level.Rooms do
 
       updated_subscription
       |> mark_message_as_read_payload()
-      |> publish_to_listeners(topics)
+      |> Pubsub.publish(topics)
 
       {:ok, updated_subscription}
     else
@@ -365,10 +365,6 @@ defmodule Level.Rooms do
   """
   def query(queryable, _params) do
     queryable
-  end
-
-  defp publish_to_listeners(payload, topics) do
-    Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
   end
 
   # Builds an operation to create a new room. Specifically, this operation
