@@ -339,7 +339,7 @@ update msg model =
                                         if pageModel.room.id == result.roomId then
                                             let
                                                 ( ( newPageModel, cmd ), _ ) =
-                                                    Page.Room.receiveMessage result.roomMessage pageModel
+                                                    Page.Room.receiveMessage model.session result.roomMessage pageModel
                                             in
                                                 ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
                                         else

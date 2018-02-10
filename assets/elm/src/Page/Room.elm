@@ -321,8 +321,8 @@ fetchPreviousMessages session model =
 
 {-| Append a new message to the room message connection when it is received.
 -}
-receiveMessage : RoomMessage -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
-receiveMessage message model =
+receiveMessage : Session -> RoomMessage -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+receiveMessage session message model =
     let
         pageInfo =
             model.messages.pageInfo
@@ -332,8 +332,14 @@ receiveMessage message model =
 
         newMessages =
             RoomMessageConnection edges pageInfo
+
+        cmd =
+            Cmd.batch
+                [ scrollToBottom "messages"
+                , updateLastReadMessage model.room (Just message) session
+                ]
     in
-        ( ( { model | messages = newMessages }, scrollToBottom "messages" ), ExternalNoOp )
+        ( ( { model | messages = newMessages }, cmd ), ExternalNoOp )
 
 
 redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
