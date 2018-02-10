@@ -24,6 +24,7 @@ import Query.RoomSettings
 import Route exposing (Route)
 import Session exposing (Session)
 import Subscription.RoomMessageCreated
+import Subscription.LastReadRoomMessageUpdated
 import Util exposing (Lazy(..))
 
 
@@ -356,6 +357,16 @@ update msg model =
                                     , updateRoom result.roomId lastMessageUpdater
                                     ]
 
+                    LastReadRoomMessageUpdated result ->
+                        let
+                            mutator subscription =
+                                { subscription | lastReadMessageId = Just result.messageId }
+                        in
+                            model
+                                |> updatePipeline
+                                    [ updateRoomSubscription result.roomId mutator
+                                    ]
+
                     UnknownMessage ->
                         ( model, Cmd.none )
 
@@ -406,6 +417,38 @@ updateRoom roomId mutator model =
                                 edge.node
                         in
                             { edge | node = { node | room = mutator node.room } }
+                    else
+                        edge
+
+                newRoomSubscriptions =
+                    { roomSubscriptions | edges = List.map update edges }
+
+                newData =
+                    { data | roomSubscriptions = newRoomSubscriptions }
+            in
+                ( { model | appState = Loaded newData }, Cmd.none )
+
+        NotLoaded ->
+            ( model, Cmd.none )
+
+
+{-| Finds all instances of where a room subscription with given room id is
+stored and updates using the given mutator function.
+-}
+updateRoomSubscription : String -> (RoomSubscription -> RoomSubscription) -> Model -> ( Model, Cmd Msg )
+updateRoomSubscription roomId mutator model =
+    case model.appState of
+        Loaded data ->
+            let
+                roomSubscriptions =
+                    data.roomSubscriptions
+
+                edges =
+                    roomSubscriptions.edges
+
+                update edge =
+                    if roomId == edge.node.room.id then
+                        { edge | node = mutator edge.node }
                     else
                         edge
 
@@ -505,13 +548,14 @@ setupSockets model =
 
         Loaded state ->
             let
-                operation =
-                    Subscription.RoomMessageCreated.operation
-
-                variables =
-                    Just (Subscription.RoomMessageCreated.variables { user = state.user })
+                frames =
+                    [ Ports.Frame Subscription.RoomMessageCreated.operation
+                        (Just (Subscription.RoomMessageCreated.variables { user = state.user }))
+                    , Ports.Frame Subscription.LastReadRoomMessageUpdated.operation
+                        (Just (Subscription.LastReadRoomMessageUpdated.variables { user = state.user }))
+                    ]
             in
-                ( model, Ports.sendFrame <| Ports.Frame operation variables )
+                ( model, Cmd.batch <| List.map Ports.sendFrame frames )
 
 
 
@@ -863,6 +907,7 @@ hasUnreadMessages sub =
 
 type Message
     = RoomMessageCreated Subscription.RoomMessageCreated.Result
+    | LastReadRoomMessageUpdated Subscription.LastReadRoomMessageUpdated.Result
     | UnknownMessage
 
 
@@ -876,9 +921,15 @@ messageDecoder : Decode.Decoder Message
 messageDecoder =
     Decode.oneOf
         [ roomMessageCreatedDecoder
+        , lastReadRoomMessageUpdatedDecoder
         ]
 
 
 roomMessageCreatedDecoder : Decode.Decoder Message
 roomMessageCreatedDecoder =
     Decode.map RoomMessageCreated Subscription.RoomMessageCreated.decoder
+
+
+lastReadRoomMessageUpdatedDecoder : Decode.Decoder Message
+lastReadRoomMessageUpdatedDecoder =
+    Decode.map LastReadRoomMessageUpdated Subscription.LastReadRoomMessageUpdated.decoder
