@@ -123,5 +123,18 @@ defmodule LevelWeb.Schema do
       #   payload.room.id
       # end
     end
+
+    @desc "Triggered when the last read room message is updated."
+    field :last_read_room_message_updated, :mark_room_message_as_read_payload do
+      arg :user_id, non_null(:id)
+
+      config fn %{user_id: user_id}, %{context: %{current_user: user}} ->
+        if user_id == to_string(user.id) do
+          {:ok, topic: user_id}
+        else
+          {:error, "User is not authenticated"}
+        end
+      end
+    end
   end
 end

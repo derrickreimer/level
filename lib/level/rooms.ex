@@ -262,8 +262,7 @@ defmodule Level.Rooms do
       end)
 
       payload = message_created_payload(room, message)
-
-      Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
+      publish_to_listeners(payload, topics)
 
       {:ok, message}
     else
@@ -293,9 +292,23 @@ defmodule Level.Rooms do
   end
 
   defp set_last_read_message(room_subscription, message) do
-    room_subscription
-    |> Changeset.change(last_read_message_id: message.id, last_read_message_at: Timex.now)
-    |> Repo.update()
+    with {:ok, updated_subscription} <- room_subscription
+      |> Changeset.change(last_read_message_id: message.id, last_read_message_at: Timex.now)
+      |> Repo.update()
+    do
+      topics = [{
+        :last_read_room_message_updated,
+        to_string(updated_subscription.user_id)
+      }]
+
+      updated_subscription
+      |> mark_message_as_read_payload()
+      |> publish_to_listeners(topics)
+
+      {:ok, updated_subscription}
+    else
+      err -> err
+    end
   end
 
   @doc """
@@ -317,6 +330,22 @@ defmodule Level.Rooms do
   end
 
   @doc """
+  Builds a payload (to return via GraphQL) when a message is marked as read.
+
+  ## Examples
+
+      mark_message_as_read_payload(room_subscription)
+      => %{
+        success: true,
+        room_subscription: subscription,
+        errors: []
+      }
+  """
+  def mark_message_as_read_payload(room_subscription) do
+    %{success: true, room_subscription: room_subscription, errors: []}
+  end
+
+  @doc """
   The Ecto data source for use by dataloader.
   """
   def data do
@@ -328,6 +357,10 @@ defmodule Level.Rooms do
   """
   def query(queryable, _params) do
     queryable
+  end
+
+  defp publish_to_listeners(payload, topics) do
+    Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
   end
 
   # Builds an operation to create a new room. Specifically, this operation

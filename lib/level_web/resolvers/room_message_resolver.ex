@@ -32,7 +32,7 @@ defmodule LevelWeb.RoomMessageResolver do
       resp =
         case Rooms.mark_message_as_read(subscription, message) do
           {:ok, subscription} ->
-            %{success: true, room_subscription: subscription, errors: []}
+            Rooms.mark_message_as_read_payload(subscription)
 
           {:error, changeset} ->
             %{success: false, room_subscription: subscription, errors: format_errors(changeset)}
