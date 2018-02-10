@@ -196,7 +196,7 @@ defmodule Level.SpacesTest do
       {:ok, %{user: user}} =
         Spaces.accept_invitation(invitation, params)
 
-      assert {:ok, _} = Rooms.get_room_subscription(room, user)
+      assert {:ok, _} = Rooms.get_room_subscription(room.id, user.id)
     end
 
     test "handles invalid params", %{invitation: invitation} do

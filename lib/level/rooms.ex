@@ -33,7 +33,7 @@ defmodule Level.Rooms do
   def get_room(%Level.Spaces.User{} = user, id) do
     case Repo.get_by(Room, id: id, space_id: user.space_id, state: "ACTIVE") do
       %Room{subscriber_policy: "INVITE_ONLY"} = room ->
-        case get_room_subscription(room, user) do
+        case get_room_subscription(room.id, user.id) do
           {:error, _} ->
             not_found(dgettext("errors", "Room not found"))
           {:ok, _} ->
@@ -122,14 +122,14 @@ defmodule Level.Rooms do
   ## Examples
 
       # If user is subscribed to the room, returns success.
-      get_room_subscription(room, user)
+      get_room_subscription(room_id, user_id)
       => {:ok, %RoomSubscription{...}}
 
       # Otherwise, returns an error.
       => {:error, %{message: "...", code: "NOT_FOUND"}}
   """
-  def get_room_subscription(room, user) do
-    case Repo.get_by(RoomSubscription, room_id: room.id, user_id: user.id) do
+  def get_room_subscription(room_id, user_id) do
+    case Repo.get_by(RoomSubscription, room_id: room_id, user_id: user_id) do
       nil ->
         not_found(dgettext("errors", "User is not subscribed to the room"))
       subscription ->
@@ -233,17 +233,25 @@ defmodule Level.Rooms do
   ## Examples
 
       # If the message is valid, returns success.
-      create_message(room, user, %{body: "Hello world"})
-      => {:ok, %Message{...}}
+      create_message(room_subscription, %{body: "Hello world"})
+      => {:ok, %{room_message: %Message{...}, room_subscription: %RoomSubscription{...}}}
 
       # Otherwise, returns an error.
       => {:error, %Ecto.Changeset{...}}
   """
-  def create_message(room, user, params \\ %{}) do
-    with {:ok, message} <- room
-      |> create_room_message_changeset(user, params)
+  def create_message(subscription, params \\ %{}) do
+    operation =
+      subscription
+      |> create_room_message_changeset(params)
       |> Repo.insert()
+
+    with {:ok, message} <- operation,
+         {:ok, updated_subscription} <- mark_message_as_read(subscription, message)
     do
+      # Preload the associated room
+      updated_subscription = Repo.preload(updated_subscription, :room)
+      room = updated_subscription.room
+
       # Figure out all the users that need to receive a notification
       # that this message was created and broadcast the message to those
       # individual topics.
@@ -264,7 +272,7 @@ defmodule Level.Rooms do
       payload = message_created_payload(room, message)
       publish_to_listeners(payload, topics)
 
-      {:ok, message}
+      {:ok, %{room_message: message, room_subscription: updated_subscription}}
     else
       err -> err
     end
@@ -398,12 +406,12 @@ defmodule Level.Rooms do
   end
 
   # Builds a changeset for creating a room message.
-  defp create_room_message_changeset(room, user, params) do
+  defp create_room_message_changeset(subscription, params) do
     params_with_relations =
       params
-      |> Map.put(:space_id, user.space_id)
-      |> Map.put(:user_id, user.id)
-      |> Map.put(:room_id, room.id)
+      |> Map.put(:space_id, subscription.space_id)
+      |> Map.put(:user_id, subscription.user_id)
+      |> Map.put(:room_id, subscription.room_id)
 
     Message.create_changeset(%Message{}, params_with_relations)
   end

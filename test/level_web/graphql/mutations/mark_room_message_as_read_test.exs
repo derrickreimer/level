@@ -45,9 +45,15 @@ defmodule LevelWeb.GraphQL.MarkRoomMessageAsReadTest do
   end
 
   test "sets the last read message",
-    %{conn: conn, query: query, user: user, room: room, room_subscription: room_subscription} do
+    %{conn: conn, query: query, room: room, room_subscription: room_subscription} do
 
-    {:ok, message} = Rooms.create_message(room, user, valid_room_message_params())
+    {:ok, %{room_message: message, room_subscription: room_subscription}} =
+      Rooms.create_message(room_subscription, valid_room_message_params())
+
+    # Forcibly ensure that there is not last read message set on the subscription
+    room_subscription
+    |> Ecto.Changeset.change(last_read_message_id: nil)
+    |> Repo.update()
 
     variables = %{
       roomId: to_string(room.id),

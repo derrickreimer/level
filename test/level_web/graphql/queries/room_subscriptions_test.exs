@@ -58,9 +58,8 @@ defmodule LevelWeb.GraphQL.RoomSubscriptionsTest do
       |> Repo.preload(:room)
 
     # Insert a message
-    {:ok, message} =
-      subscription.room
-      |> Rooms.create_message(user, valid_room_message_params())
+    {:ok, %{room_message: message, room_subscription: subscription}} =
+      Rooms.create_message(subscription, valid_room_message_params())
 
     # Set the newly-created message as the last read one
     subscription

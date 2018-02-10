@@ -6,8 +6,8 @@ defmodule LevelWeb.GraphQL.RoomMessagesTest do
     {:ok, %{user: user, space: space}} = insert_signup()
     conn = authenticate_with_jwt(conn, space, user)
 
-    {:ok, %{room: room}} = Level.Rooms.create_room(user, valid_room_params())
-    {:ok, message} = Level.Rooms.create_message(room, user, valid_room_message_params())
+    {:ok, %{room: room, room_subscription: room_subscription}} = Level.Rooms.create_room(user, valid_room_params())
+    {:ok, %{room_message: message}} = Level.Rooms.create_message(room_subscription, valid_room_message_params())
 
     {:ok, %{conn: conn, user: user, room: room, message: message}}
   end

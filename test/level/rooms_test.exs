@@ -61,12 +61,12 @@ defmodule Level.RoomsTest do
     test "returns the subscription if user is subscribed to the room",
       %{user: user} do
       {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
-      {:ok, subscription} = Rooms.get_room_subscription(room, user)
+      {:ok, subscription} = Rooms.get_room_subscription(room.id, user.id)
       assert subscription.room_id == room.id
       assert subscription.user_id == user.id
     end
 
-    test "returns nil if user is not subscribed to the room",
+    test "returns an error if user is not subscribed to the room",
       %{space: space, user: user} do
       {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
 
@@ -78,7 +78,7 @@ defmodule Level.RoomsTest do
         |> put_change(:role, "MEMBER")
         |> Repo.insert()
 
-      assert {:error, _} = Rooms.get_room_subscription(room, another_user)
+      assert {:error, _} = Rooms.get_room_subscription(room.id, another_user.id)
     end
   end
 
@@ -113,7 +113,7 @@ defmodule Level.RoomsTest do
       %{user: user, room: room} do
       # TODO: Implement an #update_policy function and use that here
       Repo.update(Ecto.Changeset.change(room, subscriber_policy: "INVITE_ONLY"))
-      {:ok, subscription} = Rooms.get_room_subscription(room, user)
+      {:ok, subscription} = Rooms.get_room_subscription(room.id, user.id)
       Rooms.delete_room_subscription(subscription)
       assert {:error, _} = Rooms.get_room(user, room.id)
     end
@@ -135,9 +135,9 @@ defmodule Level.RoomsTest do
     end
 
     test "deletes the room subscription record", %{user: user, room: room} do
-      {:ok, subscription} = Rooms.get_room_subscription(room, user)
+      {:ok, subscription} = Rooms.get_room_subscription(room.id, user.id)
       {:ok, _} = Rooms.delete_room_subscription(subscription)
-      assert {:error, _} = Rooms.get_room_subscription(room, user)
+      assert {:error, _} = Rooms.get_room_subscription(room.id, user.id)
     end
   end
 
@@ -146,9 +146,9 @@ defmodule Level.RoomsTest do
       create_user_and_room()
     end
 
-    test "returns the message if it exists", %{room: room, user: user} do
+    test "returns the message if it exists", %{room: room, room_subscription: subscription} do
       params = valid_room_message_params()
-      {:ok, message} = Rooms.create_message(room, user, params)
+      {:ok, %{room_message: message}} = Rooms.create_message(subscription, params)
       {:ok, result} = Rooms.get_message(room, message.id)
       assert result.id == message.id
     end
@@ -164,22 +164,30 @@ defmodule Level.RoomsTest do
       create_user_and_room()
     end
 
-    test "creates a message given valid params", %{room: room, user: user} do
+    test "creates a message given valid params", %{room_subscription: subscription} do
       params = valid_room_message_params()
-      {:ok, message} = Rooms.create_message(room, user, params)
-      assert message.user_id == user.id
-      assert message.room_id == room.id
+      {:ok, %{room_message: message}} = Rooms.create_message(subscription, params)
+      assert message.user_id == subscription.user_id
+      assert message.room_id == subscription.room_id
       assert message.body == params.body
     end
 
+    test "sets the last read room message", %{room_subscription: subscription} do
+      params = valid_room_message_params()
+      {:ok, %{room_message: message, room_subscription: updated_subscription}} =
+        Rooms.create_message(subscription, params)
+
+      assert updated_subscription.last_read_message_id == message.id
+    end
+
     test "returns an error with changeset if invalid",
-      %{room: room, user: user} do
+      %{room_subscription: subscription} do
 
       params =
         valid_room_message_params()
         |> Map.put(:body, nil)
 
-      {:error, changeset} = Rooms.create_message(room, user, params)
+      {:error, changeset} = Rooms.create_message(subscription, params)
 
       assert %Ecto.Changeset{
         errors: [body: {"can't be blank", [validation: :required]}]
@@ -197,11 +205,11 @@ defmodule Level.RoomsTest do
       assert message == nil
     end
 
-    test "returns the most recent message", %{room: room, user: user} do
+    test "returns the most recent message", %{room: room, room_subscription: subscription} do
       params = valid_room_message_params()
 
-      {:ok, message1} = Rooms.create_message(room, user, params)
-      {:ok, message2} = Rooms.create_message(room, user, params)
+      {:ok, %{room_message: message1}} = Rooms.create_message(subscription, params)
+      {:ok, %{room_message: message2}} = Rooms.create_message(subscription, params)
 
       Repo.update(Ecto.Changeset.change(message1, %{inserted_at: ~N[2018-02-08 00:10:00]}))
       Repo.update(Ecto.Changeset.change(message2, %{inserted_at: ~N[2018-02-08 00:00:00]}))
@@ -214,12 +222,19 @@ defmodule Level.RoomsTest do
   describe "mark_message_as_read/2" do
     setup do
       {:ok, %{user: user, room: room, room_subscription: room_subscription}} = create_user_and_room()
-      {:ok, message} = Rooms.create_message(room, user, valid_room_message_params())
+      {:ok, %{room_message: message, room_subscription: room_subscription}} =
+        Rooms.create_message(room_subscription, valid_room_message_params())
       {:ok, %{user: user, message: message, room: room, room_subscription: room_subscription}}
     end
 
     test "sets the last read message state",
       %{message: message, room_subscription: room_subscription} do
+
+      # Forcibly ensure that there is not last read message set on the subscription
+      {:ok, room_subscription} =
+        room_subscription
+        |> Ecto.Changeset.change(last_read_message_id: nil)
+        |> Repo.update()
 
       {:ok, updated_subscription} =
         Rooms.mark_message_as_read(room_subscription, message)
@@ -228,10 +243,10 @@ defmodule Level.RoomsTest do
     end
 
     test "does not set the last read message state if message is old",
-      %{user: user, message: old_message, room: room, room_subscription: room_subscription} do
+      %{message: old_message, room_subscription: room_subscription} do
 
-      {:ok, new_message} = Rooms.create_message(room, user, valid_room_message_params())
-      {:ok, room_subscription} = Rooms.mark_message_as_read(room_subscription, new_message)
+      {:ok, %{room_message: new_message, room_subscription: room_subscription}} =
+        Rooms.create_message(room_subscription, valid_room_message_params())
       {:ok, updated_subscription} = Rooms.mark_message_as_read(room_subscription, old_message)
 
       assert old_message.id < new_message.id # verify that monatonicity is maintained
