@@ -559,7 +559,7 @@ view model =
                     [ div [ class "sidebar-left__head" ]
                         [ spaceSelector appState.space
                         , div [ class "sidebar__button-container" ]
-                            [ button [ class "button button--primary button--short button--convo" ]
+                            [ button [ class "button button--subdued button--short button--convo" ]
                                 [ text "New Conversation"
                                 ]
                             ]
