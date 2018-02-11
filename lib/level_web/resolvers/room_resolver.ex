@@ -52,6 +52,10 @@ defmodule LevelWeb.RoomResolver do
     Level.Connections.room_messages(room, args, %{})
   end
 
+  def last_message(room, _args, _info) do
+    Rooms.get_last_message(room)
+  end
+
   def users(room, args, _info) do
     Level.Connections.room_users(room, args, %{})
   end

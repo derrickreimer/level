@@ -96,6 +96,14 @@ defmodule LevelWeb.Schema do
 
       resolve &LevelWeb.RoomMessageResolver.create/2
     end
+
+    @desc "Mark a particular room message as read."
+    field :mark_room_message_as_read, type: :mark_room_message_as_read_payload do
+      arg :room_id, non_null(:id)
+      arg :message_id, non_null(:id)
+
+      resolve &LevelWeb.RoomMessageResolver.mark_as_read/2
+    end
   end
 
   subscription do
@@ -114,6 +122,19 @@ defmodule LevelWeb.Schema do
       # trigger :create_room_message, topic: fn payload ->
       #   payload.room.id
       # end
+    end
+
+    @desc "Triggered when the last read room message is updated."
+    field :last_read_room_message_updated, :mark_room_message_as_read_payload do
+      arg :user_id, non_null(:id)
+
+      config fn %{user_id: user_id}, %{context: %{current_user: user}} ->
+        if user_id == to_string(user.id) do
+          {:ok, topic: user_id}
+        else
+          {:error, "User is not authenticated"}
+        end
+      end
     end
   end
 end

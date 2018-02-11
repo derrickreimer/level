@@ -8,9 +8,12 @@ defmodule Level.Rooms.RoomSubscription do
   import Ecto.Changeset
 
   schema "room_subscriptions" do
+    field :last_read_message_at, :utc_datetime
+
     belongs_to :space, Level.Spaces.Space
     belongs_to :user, Level.Spaces.User
     belongs_to :room, Level.Rooms.Room
+    belongs_to :last_read_message, Level.Rooms.Message
 
     timestamps()
   end

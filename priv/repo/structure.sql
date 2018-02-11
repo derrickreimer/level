@@ -192,7 +192,9 @@ CREATE TABLE room_subscriptions (
     user_id bigint NOT NULL,
     room_id bigint NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    last_read_message_id bigint,
+    last_read_message_at timestamp without time zone
 );
 
 
@@ -520,6 +522,14 @@ ALTER TABLE ONLY room_messages
 
 
 --
+-- Name: room_subscriptions room_subscriptions_last_read_message_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY room_subscriptions
+    ADD CONSTRAINT room_subscriptions_last_read_message_id_fkey FOREIGN KEY (last_read_message_id) REFERENCES room_messages(id);
+
+
+--
 -- Name: room_subscriptions room_subscriptions_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -571,5 +581,5 @@ ALTER TABLE ONLY users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345), (20171028185025), (20180206160730);
+INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345), (20171028185025), (20180206160730), (20180206173101);
 

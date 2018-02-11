@@ -39,6 +39,9 @@ query =
             name
             description
             subscriberPolicy
+            lastMessage {
+              id
+            }
             users(first: 10) {
               pageInfo {
                 hasPreviousPage

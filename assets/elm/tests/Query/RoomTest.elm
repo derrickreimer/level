@@ -25,6 +25,9 @@ decoders =
                                     "name": "Everyone",
                                     "description": "All the things",
                                     "subscriberPolicy": "PUBLIC",
+                                    "lastMessage": {
+                                      "id": "8888"
+                                    },
                                     "users": {
                                       "pageInfo": {
                                         "hasPreviousPage": false,
@@ -77,6 +80,7 @@ decoders =
                                 , name = "Everyone"
                                 , description = "All the things"
                                 , subscriberPolicy = Data.Room.Public
+                                , lastMessageId = Just "8888"
                                 }
                             , users =
                                 { edges =
@@ -132,6 +136,7 @@ decoders =
                                     "name": "Everyone",
                                     "description": "All the things",
                                     "subscriberPolicy": "PUBLIC",
+                                    "lastMessage": null,
                                     "users": {
                                       "pageInfo": {
                                         "hasPreviousPage": false,
@@ -172,6 +177,7 @@ decoders =
                                 , name = "Everyone"
                                 , description = "All the things"
                                 , subscriberPolicy = Data.Room.Public
+                                , lastMessageId = Nothing
                                 }
                             , users =
                                 { edges =

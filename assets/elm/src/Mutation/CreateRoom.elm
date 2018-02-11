@@ -40,7 +40,14 @@ query =
               name
               description
               subscriberPolicy
+              lastMessage {
+                id
+              }
             }
+            lastReadMessage {
+              id
+            }
+            lastReadMessageAt
           }
           success
           errors {

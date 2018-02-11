@@ -55,8 +55,13 @@ decoders =
                                         "id": "9999",
                                         "name": "Development",
                                         "description": "A place for devs to hang out.",
-                                        "subscriberPolicy": "PUBLIC"
-                                      }
+                                        "subscriberPolicy": "PUBLIC",
+                                        "lastMessage": {
+                                          "id": "8888"
+                                        }
+                                      },
+                                      "lastReadMessage": null,
+                                      "lastReadMessageAt": null
                                     },
                                     "success": true,
                                     "errors": []
@@ -75,7 +80,10 @@ decoders =
                                     , name = "Development"
                                     , description = "A place for devs to hang out."
                                     , subscriberPolicy = Data.Room.Public
+                                    , lastMessageId = Just "8888"
                                     }
+                                , lastReadMessageId = Nothing
+                                , lastReadMessageAt = Nothing
                                 }
                     in
                         Expect.equal (Ok expected) result

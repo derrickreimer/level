@@ -55,7 +55,14 @@ query =
                   name
                   description
                   subscriberPolicy
+                  lastMessage {
+                    id
+                  }
                 }
+                lastReadMessage {
+                  id
+                }
+                lastReadMessageAt
               }
             }
           }

@@ -5,10 +5,12 @@ defmodule Level.Rooms do
   for small disparate discussions.
   """
 
+  alias Level.Pubsub
   alias Level.Repo
   alias Level.Rooms.Room
   alias Level.Rooms.RoomSubscription
   alias Level.Rooms.Message
+  alias Ecto.Changeset
   alias Ecto.Multi
 
   import Level.Gettext
@@ -32,7 +34,7 @@ defmodule Level.Rooms do
   def get_room(%Level.Spaces.User{} = user, id) do
     case Repo.get_by(Room, id: id, space_id: user.space_id, state: "ACTIVE") do
       %Room{subscriber_policy: "INVITE_ONLY"} = room ->
-        case get_room_subscription(room, user) do
+        case get_room_subscription(room.id, user.id) do
           {:error, _} ->
             not_found(dgettext("errors", "Room not found"))
           {:ok, _} ->
@@ -121,14 +123,14 @@ defmodule Level.Rooms do
   ## Examples
 
       # If user is subscribed to the room, returns success.
-      get_room_subscription(room, user)
+      get_room_subscription(room_id, user_id)
       => {:ok, %RoomSubscription{...}}
 
       # Otherwise, returns an error.
       => {:error, %{message: "...", code: "NOT_FOUND"}}
   """
-  def get_room_subscription(room, user) do
-    case Repo.get_by(RoomSubscription, room_id: room.id, user_id: user.id) do
+  def get_room_subscription(room_id, user_id) do
+    case Repo.get_by(RoomSubscription, room_id: room_id, user_id: user_id) do
       nil ->
         not_found(dgettext("errors", "User is not subscribed to the room"))
       subscription ->
@@ -177,22 +179,80 @@ defmodule Level.Rooms do
   end
 
   @doc """
+  Fetches a room message by id.
+
+  ## Examples
+
+      # Returns the message in a success tuple if found.
+      get_message(room, id)
+      => {:ok, %Message{...}}
+
+      # Otherwise, returns an error.
+      => {:error, %{message: "...", code: "NOT_FOUND"}}
+  """
+  def get_message(room, id) do
+    case Repo.get_by(Message, %{room_id: room.id, id: id}) do
+      nil ->
+        not_found(dgettext("errors", "Message not found"))
+
+      message ->
+        {:ok, message}
+    end
+  end
+
+  @doc """
+  Fetches the most recently posted message.
+
+  ## Examples
+
+      # If there are any messages, returns the most recent in a success tuple.
+      get_last_message(room)
+      => {:ok, %Message{...}}
+
+      # Otherwise, returns nil.
+      => {:ok, nil}
+  """
+  def get_last_message(room) do
+    query =
+      from m in Message,
+        where: m.room_id == ^room.id,
+        order_by: [desc: m.inserted_at],
+        limit: 1
+
+    case Repo.all(query) do
+      [message | _] ->
+        {:ok, message}
+
+      _ ->
+        {:ok, nil}
+    end
+  end
+
+  @doc """
   Posts a new message to a given room.
 
   ## Examples
 
       # If the message is valid, returns success.
-      create_message(room, user, %{body: "Hello world"})
-      => {:ok, %Message{...}}
+      create_message(room_subscription, %{body: "Hello world"})
+      => {:ok, %{room_message: %Message{...}, room_subscription: %RoomSubscription{...}}}
 
       # Otherwise, returns an error.
       => {:error, %Ecto.Changeset{...}}
   """
-  def create_message(room, user, params \\ %{}) do
-    with {:ok, message} <- room
-      |> create_room_message_changeset(user, params)
+  def create_message(subscription, params \\ %{}) do
+    operation =
+      subscription
+      |> create_room_message_changeset(params)
       |> Repo.insert()
+
+    with {:ok, message} <- operation,
+         {:ok, updated_subscription} <- mark_message_as_read(subscription, message)
     do
+      # Preload the associated room
+      updated_subscription = Repo.preload(updated_subscription, :room)
+      room = updated_subscription.room
+
       # Figure out all the users that need to receive a notification
       # that this message was created and broadcast the message to those
       # individual topics.
@@ -210,11 +270,50 @@ defmodule Level.Rooms do
         {:room_message_created, to_string(id)}
       end)
 
-      payload = message_created_payload(room, message)
+      Pubsub.publish(message_created_payload(room, message), topics)
 
-      Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
+      {:ok, %{room_message: message, room_subscription: updated_subscription}}
+    else
+      err -> err
+    end
+  end
 
-      {:ok, message}
+  @doc """
+  Marks a message read by updating the last read message state on the given
+  subscription (if this message is more recent than the previous last read
+  message).
+
+  ## Examples
+
+      mark_message_as_read(room_subscription, message)
+      => {:ok, %RoomSubscription{...}}
+  """
+  def mark_message_as_read(%RoomSubscription{last_read_message_id: nil} = room_subscription, message) do
+    set_last_read_message(room_subscription, message)
+  end
+  def mark_message_as_read(room_subscription, message) do
+    if room_subscription.last_read_message_id < message.id do
+      set_last_read_message(room_subscription, message)
+    else
+      {:ok, room_subscription}
+    end
+  end
+
+  defp set_last_read_message(room_subscription, message) do
+    with {:ok, updated_subscription} <- room_subscription
+      |> Changeset.change(last_read_message_id: message.id, last_read_message_at: Timex.now)
+      |> Repo.update()
+    do
+      topics = [{
+        :last_read_room_message_updated,
+        to_string(updated_subscription.user_id)
+      }]
+
+      updated_subscription
+      |> mark_message_as_read_payload()
+      |> Pubsub.publish(topics)
+
+      {:ok, updated_subscription}
     else
       err -> err
     end
@@ -236,6 +335,22 @@ defmodule Level.Rooms do
   """
   def message_created_payload(room, message) do
     %{success: true, room: room, room_message: message, errors: []}
+  end
+
+  @doc """
+  Builds a payload (to return via GraphQL) when a message is marked as read.
+
+  ## Examples
+
+      mark_message_as_read_payload(room_subscription)
+      => %{
+        success: true,
+        room_subscription: subscription,
+        errors: []
+      }
+  """
+  def mark_message_as_read_payload(room_subscription) do
+    %{success: true, room_subscription: room_subscription, errors: []}
   end
 
   @doc """
@@ -287,12 +402,12 @@ defmodule Level.Rooms do
   end
 
   # Builds a changeset for creating a room message.
-  defp create_room_message_changeset(room, user, params) do
+  defp create_room_message_changeset(subscription, params) do
     params_with_relations =
       params
-      |> Map.put(:space_id, user.space_id)
-      |> Map.put(:user_id, user.id)
-      |> Map.put(:room_id, room.id)
+      |> Map.put(:space_id, subscription.space_id)
+      |> Map.put(:user_id, subscription.user_id)
+      |> Map.put(:room_id, subscription.room_id)
 
     Message.create_changeset(%Message{}, params_with_relations)
   end

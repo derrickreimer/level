@@ -8,7 +8,7 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
-import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge)
+import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge, RoomSubscription)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Icons exposing (privacyIcon)
@@ -24,6 +24,7 @@ import Query.RoomSettings
 import Route exposing (Route)
 import Session exposing (Session)
 import Subscription.RoomMessageCreated
+import Subscription.LastReadRoomMessageUpdated
 import Util exposing (Lazy(..))
 
 
@@ -99,8 +100,8 @@ buildModel flags =
 succession. Returns a ( model, Cmd msg ), where the Cmd is a batch of accumulated
 commands and the model is the original model with all mutations applied to it.
 -}
-commandPipeline : List (model -> ( model, Cmd msg )) -> model -> ( model, Cmd msg )
-commandPipeline transforms model =
+updatePipeline : List (model -> ( model, Cmd msg )) -> model -> ( model, Cmd msg )
+updatePipeline transforms model =
     let
         reducer transform ( model, cmds ) =
             transform model
@@ -155,7 +156,7 @@ update msg model =
 
             ( AppStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
                 { model | appState = Loaded response, session = session }
-                    |> commandPipeline [ navigateTo maybeRoute, setupSockets ]
+                    |> updatePipeline [ navigateTo maybeRoute, setupSockets ]
 
             ( AppStateLoaded maybeRoute (Err Session.Expired), _ ) ->
                 ( model, Route.toLogin )
@@ -166,13 +167,17 @@ update msg model =
             ( RoomLoaded slug (Ok ( session, response )), _ ) ->
                 case response of
                     Query.Room.Found data ->
-                        ( { model
-                            | page = Room (Page.Room.buildModel data)
-                            , session = session
-                            , isTransitioning = False
-                          }
-                        , Cmd.map RoomMsg Page.Room.loaded
-                        )
+                        let
+                            pageModel =
+                                Page.Room.buildModel data
+                        in
+                            ( { model
+                                | page = Room pageModel
+                                , session = session
+                                , isTransitioning = False
+                              }
+                            , Cmd.map RoomMsg <| Page.Room.loaded session pageModel
+                            )
 
                     Query.Room.NotFound ->
                         ( { model
@@ -278,13 +283,11 @@ update msg model =
                     ( newModel, externalCmd ) =
                         case externalMsg of
                             Page.RoomSettings.RoomUpdated session room ->
-                                let
-                                    newModel =
-                                        model
-                                            |> setFlashNotice "Room updated"
-                                            |> updateRoom room
-                                in
-                                    ( { newModel | session = session }, expireFlashNotice )
+                                { model | session = session }
+                                    |> updatePipeline
+                                        [ setFlashNotice "Room updated"
+                                        , updateRoom room.id (\_ -> room)
+                                        ]
 
                             Page.RoomSettings.SessionRefreshed session ->
                                 ( { model | session = session }, Cmd.none )
@@ -304,12 +307,8 @@ update msg model =
                     ( newModel, externalCmd ) =
                         case externalMsg of
                             Page.NewInvitation.InvitationCreated session _ ->
-                                let
-                                    newModel =
-                                        { model | session = session }
-                                            |> setFlashNotice "Invitation sent"
-                                in
-                                    ( newModel, expireFlashNotice )
+                                { model | session = session }
+                                    |> updatePipeline [ setFlashNotice "Invitation sent" ]
 
                             Page.NewInvitation.SessionRefreshed session ->
                                 ( { model | session = session }, Cmd.none )
@@ -333,25 +332,45 @@ update msg model =
             ( SocketResult value, page ) ->
                 case decodeMessage value of
                     RoomMessageCreated result ->
-                        case page of
-                            Room pageModel ->
-                                if pageModel.room.id == result.roomId then
-                                    let
-                                        ( ( newPageModel, cmd ), _ ) =
-                                            Page.Room.receiveMessage result.roomMessage pageModel
-                                    in
-                                        ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
-                                else
-                                    ( model, Cmd.none )
+                        let
+                            sendMessageToRooms model =
+                                case page of
+                                    Room pageModel ->
+                                        if pageModel.room.id == result.roomId then
+                                            let
+                                                ( ( newPageModel, cmd ), _ ) =
+                                                    Page.Room.receiveMessage model.session result.roomMessage pageModel
+                                            in
+                                                ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
+                                        else
+                                            ( model, Cmd.none )
 
-                            _ ->
-                                ( model, Cmd.none )
+                                    _ ->
+                                        ( model, Cmd.none )
+
+                            lastMessageUpdater room =
+                                { room | lastMessageId = Just result.roomMessage.id }
+                        in
+                            model
+                                |> updatePipeline
+                                    [ sendMessageToRooms
+                                    , updateRoom result.roomId lastMessageUpdater
+                                    ]
+
+                    LastReadRoomMessageUpdated result ->
+                        let
+                            mutator subscription =
+                                { subscription | lastReadMessageId = Just result.messageId }
+                        in
+                            model
+                                |> updatePipeline
+                                    [ updateRoomSubscription result.roomId mutator
+                                    ]
 
                     UnknownMessage ->
                         ( model, Cmd.none )
 
             ( SocketError value, _ ) ->
-                -- Debug.log (Encode.encode 0 value) ( model, Cmd.none )
                 let
                     cmd =
                         model.session
@@ -377,11 +396,11 @@ update msg model =
                 ( model, Cmd.none )
 
 
-{-| Propagates changes made to room to all the places where that room might be
-stored in the model.
+{-| Finds all instances of where a room with given id is stored and updates
+using the given mutator function.
 -}
-updateRoom : Room -> Model -> Model
-updateRoom room model =
+updateRoom : String -> (Room -> Room) -> Model -> ( Model, Cmd Msg )
+updateRoom roomId mutator model =
     case model.appState of
         Loaded data ->
             let
@@ -392,12 +411,12 @@ updateRoom room model =
                     roomSubscriptions.edges
 
                 update edge =
-                    if room.id == edge.node.room.id then
+                    if roomId == edge.node.room.id then
                         let
                             node =
                                 edge.node
                         in
-                            { edge | node = { node | room = room } }
+                            { edge | node = { node | room = mutator node.room } }
                     else
                         edge
 
@@ -407,15 +426,47 @@ updateRoom room model =
                 newData =
                     { data | roomSubscriptions = newRoomSubscriptions }
             in
-                { model | appState = Loaded newData }
+                ( { model | appState = Loaded newData }, Cmd.none )
 
         NotLoaded ->
-            model
+            ( model, Cmd.none )
 
 
-setFlashNotice : String -> Model -> Model
+{-| Finds all instances of where a room subscription with given room id is
+stored and updates using the given mutator function.
+-}
+updateRoomSubscription : String -> (RoomSubscription -> RoomSubscription) -> Model -> ( Model, Cmd Msg )
+updateRoomSubscription roomId mutator model =
+    case model.appState of
+        Loaded data ->
+            let
+                roomSubscriptions =
+                    data.roomSubscriptions
+
+                edges =
+                    roomSubscriptions.edges
+
+                update edge =
+                    if roomId == edge.node.room.id then
+                        { edge | node = mutator edge.node }
+                    else
+                        edge
+
+                newRoomSubscriptions =
+                    { roomSubscriptions | edges = List.map update edges }
+
+                newData =
+                    { data | roomSubscriptions = newRoomSubscriptions }
+            in
+                ( { model | appState = Loaded newData }, Cmd.none )
+
+        NotLoaded ->
+            ( model, Cmd.none )
+
+
+setFlashNotice : String -> Model -> ( Model, Cmd Msg )
 setFlashNotice message model =
-    { model | flashNotice = Just message }
+    ( { model | flashNotice = Just message }, expireFlashNotice )
 
 
 expireFlashNotice : Cmd Msg
@@ -497,13 +548,14 @@ setupSockets model =
 
         Loaded state ->
             let
-                operation =
-                    Subscription.RoomMessageCreated.operation
-
-                variables =
-                    Just (Subscription.RoomMessageCreated.variables { user = state.user })
+                frames =
+                    [ Ports.Frame Subscription.RoomMessageCreated.operation
+                        (Just (Subscription.RoomMessageCreated.variables { user = state.user }))
+                    , Ports.Frame Subscription.LastReadRoomMessageUpdated.operation
+                        (Just (Subscription.LastReadRoomMessageUpdated.variables { user = state.user }))
+                    ]
             in
-                ( model, Ports.sendFrame <| Ports.Frame operation variables )
+                ( model, Cmd.batch <| List.map Ports.sendFrame frames )
 
 
 
@@ -551,7 +603,7 @@ view model =
                     [ div [ class "sidebar-left__head" ]
                         [ spaceSelector appState.space
                         , div [ class "sidebar__button-container" ]
-                            [ button [ class "button button--primary button--short button--convo" ]
+                            [ button [ class "button button--subdued button--short button--convo" ]
                                 [ text "New Conversation"
                                 ]
                             ]
@@ -807,7 +859,7 @@ roomSubscriptionItem page edge =
 
         -- Placeholder for when we implement "unread" indicator
         dot =
-            if True == False then
+            if hasUnreadMessages edge.node then
                 span [ class "side-nav__item-indicator" ]
                     [ span [ class "side-nav__dot" ] []
                     ]
@@ -828,12 +880,34 @@ roomSubscriptionItem page edge =
             ]
 
 
+hasUnreadMessages : RoomSubscription -> Bool
+hasUnreadMessages sub =
+    case ( sub.lastReadMessageId, sub.room.lastMessageId ) of
+        ( Nothing, Nothing ) ->
+            False
+
+        ( Nothing, Just _ ) ->
+            True
+
+        ( Just _, Nothing ) ->
+            False
+
+        ( Just lastReadMessageId, Just lastMessageId ) ->
+            case ( String.toInt lastReadMessageId, String.toInt lastMessageId ) of
+                ( Ok lastReadMessageIdInt, Ok lastMessageIdInt ) ->
+                    lastReadMessageIdInt < lastMessageIdInt
+
+                ( _, _ ) ->
+                    False
+
+
 
 -- MESSAGE DECODERS
 
 
 type Message
     = RoomMessageCreated Subscription.RoomMessageCreated.Result
+    | LastReadRoomMessageUpdated Subscription.LastReadRoomMessageUpdated.Result
     | UnknownMessage
 
 
@@ -847,9 +921,15 @@ messageDecoder : Decode.Decoder Message
 messageDecoder =
     Decode.oneOf
         [ roomMessageCreatedDecoder
+        , lastReadRoomMessageUpdatedDecoder
         ]
 
 
 roomMessageCreatedDecoder : Decode.Decoder Message
 roomMessageCreatedDecoder =
     Decode.map RoomMessageCreated Subscription.RoomMessageCreated.decoder
+
+
+lastReadRoomMessageUpdatedDecoder : Decode.Decoder Message
+lastReadRoomMessageUpdatedDecoder =
+    Decode.map LastReadRoomMessageUpdated Subscription.LastReadRoomMessageUpdated.decoder

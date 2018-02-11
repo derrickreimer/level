@@ -49,6 +49,8 @@ type alias RoomSubscriptionEdge =
 
 type alias RoomSubscription =
     { room : Room
+    , lastReadMessageId : Maybe String
+    , lastReadMessageAt : Maybe Date
     }
 
 
@@ -77,6 +79,7 @@ type alias Room =
     , name : String
     , description : String
     , subscriberPolicy : SubscriberPolicy
+    , lastMessageId : Maybe String
     }
 
 
@@ -100,6 +103,8 @@ roomSubscriptionDecoder : Decode.Decoder RoomSubscription
 roomSubscriptionDecoder =
     Pipeline.decode RoomSubscription
         |> Pipeline.custom (Decode.at [ "room" ] roomDecoder)
+        |> Pipeline.custom (messageIdDecoder "lastReadMessage")
+        |> Pipeline.required "lastReadMessageAt" (Decode.maybe dateDecoder)
 
 
 roomDecoder : Decode.Decoder Room
@@ -109,6 +114,7 @@ roomDecoder =
         |> Pipeline.required "name" Decode.string
         |> Pipeline.required "description" Decode.string
         |> Pipeline.required "subscriberPolicy" subscriberPolicyDecoder
+        |> Pipeline.custom (messageIdDecoder "lastMessage")
 
 
 roomMessageConnectionDecoder : Decode.Decoder RoomMessageConnection
@@ -153,6 +159,12 @@ subscriberPolicyDecoder =
                     Decode.fail "Subscriber policy not valid"
     in
         Decode.string |> Decode.andThen convert
+
+
+messageIdDecoder : String -> Decode.Decoder (Maybe String)
+messageIdDecoder field =
+    Decode.maybe <|
+        Decode.at [ field, "id" ] Decode.string
 
 
 

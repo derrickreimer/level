@@ -1,5 +1,6 @@
 module Data.RoomTest exposing (..)
 
+import Date
 import Expect exposing (Expectation)
 import Data.Room as Room
 import Test exposing (..)
@@ -22,7 +23,10 @@ decoders =
                                 "id": "9999",
                                 "name": "Everyone",
                                 "description": "All the things",
-                                "subscriberPolicy": "PUBLIC"
+                                "subscriberPolicy": "PUBLIC",
+                                "lastMessage": {
+                                  "id": "8888"
+                                }
                               }
                             """
 
@@ -34,6 +38,7 @@ decoders =
                             , name = "Everyone"
                             , description = "All the things"
                             , subscriberPolicy = Room.Public
+                            , lastMessageId = Just "8888"
                             }
                     in
                         Expect.equal (Ok expected) result
@@ -65,8 +70,15 @@ decoders =
                                       "id": "123",
                                       "name": "Everyone",
                                       "description": "All the things",
-                                      "subscriberPolicy": "PUBLIC"
-                                    }
+                                      "subscriberPolicy": "PUBLIC",
+                                      "lastMessage": {
+                                        "id": "8888"
+                                      }
+                                    },
+                                    "lastReadMessage": {
+                                      "id": "444"
+                                    },
+                                    "lastReadMessageAt": "2017-12-29T01:45:32Z"
                                   }
                                 }]
                               }
@@ -83,7 +95,10 @@ decoders =
                                             , name = "Everyone"
                                             , description = "All the things"
                                             , subscriberPolicy = Room.Public
+                                            , lastMessageId = Just "8888"
                                             }
+                                        , lastReadMessageId = Just "444"
+                                        , lastReadMessageAt = Just (Date.fromTime 1514511932000)
                                         }
                                   }
                                 ]

@@ -56,7 +56,10 @@ decoders =
                                       "id": "9999",
                                       "name": "Development",
                                       "description": "A place for devs to hang out.",
-                                      "subscriberPolicy": "PUBLIC"
+                                      "subscriberPolicy": "PUBLIC",
+                                      "lastMessage": {
+                                        "id": "8888"
+                                      }
                                     },
                                     "success": true,
                                     "errors": []
@@ -74,6 +77,7 @@ decoders =
                                 , name = "Development"
                                 , description = "A place for devs to hang out."
                                 , subscriberPolicy = Data.Room.Public
+                                , lastMessageId = Just "8888"
                                 }
                     in
                         Expect.equal (Ok expected) result
@@ -89,7 +93,10 @@ decoders =
                                       "id": "9999",
                                       "name": "Development",
                                       "description": "A place for devs to hang out.",
-                                      "subscriberPolicy": "PUBLIC"
+                                      "subscriberPolicy": "PUBLIC",
+                                      "lastMessage": {
+                                        "id": "8888"
+                                      }
                                     },
                                     "success": false,
                                     "errors": [{

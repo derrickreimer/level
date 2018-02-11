@@ -140,6 +140,11 @@ defmodule LevelWeb.Schema.Types do
 
     field :creator, non_null(:user), resolve: dataloader(Spaces)
     field :space, non_null(:space), resolve: dataloader(Spaces)
+
+    # TODO: This presents an N+1 query. Investigate using dataloader instead.
+    field :last_message, :room_message do
+      resolve &LevelWeb.RoomResolver.last_message/3
+    end
   end
 
   @desc "A room subscription represents a user's membership in a room."
@@ -148,6 +153,8 @@ defmodule LevelWeb.Schema.Types do
     field :user, non_null(:user), resolve: dataloader(Spaces)
     field :space, non_null(:space), resolve: dataloader(Spaces)
     field :room, non_null(:room), resolve: dataloader(Spaces)
+    field :last_read_message, :room_message, resolve: dataloader(Rooms)
+    field :last_read_message_at, :time
   end
 
   @desc "A room message is message posted to a room."
@@ -162,7 +169,8 @@ defmodule LevelWeb.Schema.Types do
     end
 
     field :space, non_null(:space), resolve: dataloader(Spaces)
-    field :room, non_null(:room), resolve: dataloader(Rooms)
     field :user, non_null(:user), resolve: dataloader(Spaces)
+    field :room, non_null(:room), resolve: dataloader(Rooms)
+    field :last_read_message, :room_message, resolve: dataloader(Rooms)
   end
 end
