@@ -26,8 +26,7 @@ defmodule Level.PaginationTest do
         }
       }
 
-      {:ok, %Result{edges: edges}} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+      {:ok, %Result{edges: edges}} = Pagination.fetch_result(Level.Repo, base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.take(users, 2))
     end
@@ -36,7 +35,7 @@ defmodule Level.PaginationTest do
       args = %{
         first: 2,
         before: nil,
-      after: Enum.at(users, 0).id,
+        after: Enum.at(users, 0).id,
         order_by: %{
           field: :id,
           direction: :asc
@@ -111,8 +110,7 @@ defmodule Level.PaginationTest do
         }
       }
 
-      {:ok, %Result{edges: edges}} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+      {:ok, %Result{edges: edges}} = Pagination.fetch_result(Level.Repo, base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.take(Enum.reverse(users), 2))
     end
@@ -126,8 +124,7 @@ defmodule Level.PaginationTest do
         order_by: nil
       }
 
-      {:error, "order_by is required"} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+      {:error, "order_by is required"} = Pagination.fetch_result(Level.Repo, base_query, args)
     end
 
     test "fails when neither first nor last is non-nil", %{base_query: base_query} do
@@ -165,6 +162,7 @@ defmodule Level.PaginationTest do
 
   defp create_members(space, count, list \\ [])
   defp create_members(_space, count, list) when count < 1, do: list
+
   defp create_members(space, count, list) do
     {:ok, user} = insert_member(space)
     create_members(space, count - 1, [user | list])

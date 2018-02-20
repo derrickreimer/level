@@ -23,6 +23,7 @@ defmodule Level.Connections.Drafts do
       {:ok, args} ->
         base_query = from d in Draft, where: d.user_id == ^user.id
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
+
       error ->
         error
     end

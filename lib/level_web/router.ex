@@ -46,7 +46,8 @@ defmodule LevelWeb.Router do
 
   # Launcher-scoped routes
   scope "/", LevelWeb, host: "launch." do
-    pipe_through :browser # Use the default browser stack
+    # Use the default browser stack
+    pipe_through :browser
 
     get "/", SpaceController, :index
     get "/spaces/new", SpaceController, :new
@@ -70,6 +71,7 @@ defmodule LevelWeb.Router do
   # GraphQL explorer
   scope "/" do
     pipe_through [:browser, :space]
+
     forward "/graphiql", Absinthe.Plug.GraphiQL,
       schema: LevelWeb.Schema,
       socket: LevelWeb.UserSocket,
@@ -83,12 +85,12 @@ defmodule LevelWeb.Router do
   end
 
   def graphiql_url(conn) do
-    URI.to_string %URI{
+    URI.to_string(%URI{
       scheme: Atom.to_string(conn.scheme),
       port: conn.port,
       host: conn.host,
       path: "/graphql"
-    }
+    })
   end
 
   # Space-scoped routes requiring authentication
@@ -114,7 +116,7 @@ defmodule LevelWeb.Router do
   end
 
   # Preview sent emails in development mode
-  if Mix.env == :dev do
+  if Mix.env() == :dev do
     forward "/sent_emails", Bamboo.EmailPreviewPlug
   end
 end

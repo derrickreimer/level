@@ -20,13 +20,16 @@ defmodule LevelWeb.API.SignupErrorsControllerTest do
     test "returns errors if invalid", %{conn: conn, params: params} do
       params = Map.put(params, :slug, "Wr*ng")
       conn = post conn, "/api/signup/errors", %{signup: params}
+
       assert json_response(conn, 200) == %{
-        "errors" => [%{
-          "attribute" => "slug",
-          "message" => "must be lowercase and alphanumeric",
-          "properties" => %{"validation" => "format"}
-        }]
-      }
+               "errors" => [
+                 %{
+                   "attribute" => "slug",
+                   "message" => "must be lowercase and alphanumeric",
+                   "properties" => %{"validation" => "format"}
+                 }
+               ]
+             }
     end
   end
 end

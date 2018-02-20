@@ -10,34 +10,48 @@ defmodule LevelWeb.API.SpaceViewTest do
       space = %Level.Spaces.Space{slug: "level"}
       redirect_url = "foo.bar"
 
-      assert SpaceView.render("create.json", %{user: user, space: space, redirect_url: redirect_url}) ==
-        %{space: SpaceView.space_json(space), user: UserView.user_json(user), redirect_url: redirect_url}
+      assert SpaceView.render("create.json", %{
+               user: user,
+               space: space,
+               redirect_url: redirect_url
+             }) ==
+               %{
+                 space: SpaceView.space_json(space),
+                 user: UserView.user_json(user),
+                 redirect_url: redirect_url
+               }
     end
   end
 
   describe "render/2 errors.json" do
     test "includes attribute, message, and properties" do
       errors = [{:username, {"is required", [validation: :required]}}]
+
       assert SpaceView.render("errors.json", %{changeset: %{errors: errors}}) ==
-        %{errors: [
-          %{
-            attribute: :username,
-            message: "is required",
-            properties: %{validation: :required}
-          }
-        ]}
+               %{
+                 errors: [
+                   %{
+                     attribute: :username,
+                     message: "is required",
+                     properties: %{validation: :required}
+                   }
+                 ]
+               }
     end
 
     test "interpolates properties" do
       errors = [{:username, {"must be %{count} characters", [count: 2]}}]
+
       assert SpaceView.render("errors.json", %{changeset: %{errors: errors}}) ==
-        %{errors: [
-          %{
-            attribute: :username,
-            message: "must be 2 characters",
-            properties: %{count: 2}
-          }
-        ]}
+               %{
+                 errors: [
+                   %{
+                     attribute: :username,
+                     message: "must be 2 characters",
+                     properties: %{count: 2}
+                   }
+                 ]
+               }
     end
   end
 
@@ -55,8 +69,13 @@ defmodule LevelWeb.API.SpaceViewTest do
       }
 
       assert SpaceView.space_json(space) ==
-        %{id: 999, name: "Level", slug: "level",
-          inserted_at: inserted_at, updated_at: updated_at}
+               %{
+                 id: 999,
+                 name: "Level",
+                 slug: "level",
+                 inserted_at: inserted_at,
+                 updated_at: updated_at
+               }
     end
   end
 end

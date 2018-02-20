@@ -19,10 +19,10 @@ defmodule LevelWeb.SpaceResolverTest do
       insert_member(space, %{last_name: "bbb"})
       {:ok, %{edges: edges}} = SpaceResolver.users(space, %{first: 10}, %{})
 
-      nodes = Enum.map(edges, &(&1.node))
-      cursors = Enum.map(edges, &(&1.cursor))
+      nodes = Enum.map(edges, & &1.node)
+      cursors = Enum.map(edges, & &1.cursor)
 
-      assert Enum.map(nodes, &(&1.last_name)) == ["aaa", "bbb"]
+      assert Enum.map(nodes, & &1.last_name) == ["aaa", "bbb"]
       assert cursors == ["aaa", "bbb"]
     end
 

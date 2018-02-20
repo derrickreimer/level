@@ -36,29 +36,33 @@ defmodule LevelWeb.GraphQL.InvitationsTest do
       |> post("/graphql", %{query: query})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "space" => %{
-            "invitations" => %{
-              "edges" => [%{
-                "node" => %{
-                  "id" => to_string(invitation.id),
-                  "email" => invitation.email,
-                  "insertedAt" => invitation.inserted_at |> Timex.to_datetime() |> DateTime.to_iso8601()
-                }
-              }],
-              "totalCount" => 1
-            }
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "space" => %{
+                   "invitations" => %{
+                     "edges" => [
+                       %{
+                         "node" => %{
+                           "id" => to_string(invitation.id),
+                           "email" => invitation.email,
+                           "insertedAt" =>
+                             invitation.inserted_at |> Timex.to_datetime()
+                             |> DateTime.to_iso8601()
+                         }
+                       }
+                     ],
+                     "totalCount" => 1
+                   }
+                 }
+               }
+             }
+           }
   end
 
   test "excludes non-pending invitations", %{conn: conn, invitation: invitation} do
     invitation
     |> Ecto.Changeset.change(%{state: "ACCEPTED"})
-    |> Level.Repo.update
+    |> Level.Repo.update()
 
     query = """
       query GetInvitations {
@@ -78,15 +82,15 @@ defmodule LevelWeb.GraphQL.InvitationsTest do
       |> post("/graphql", %{query: query})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "space" => %{
-            "invitations" => %{
-              "totalCount" => 0
-            }
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "space" => %{
+                   "invitations" => %{
+                     "totalCount" => 0
+                   }
+                 }
+               }
+             }
+           }
   end
 end

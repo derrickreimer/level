@@ -20,8 +20,7 @@ defmodule LevelWeb.AcceptInvitationControllerTest do
       {:ok, %{conn: conn, space: space, invitor: owner, invitation: invitation}}
     end
 
-    test "signs in and redirects the user",
-      %{conn: conn, invitation: invitation} do
+    test "signs in and redirects the user", %{conn: conn, invitation: invitation} do
       params = valid_user_params()
 
       conn =
@@ -32,8 +31,7 @@ defmodule LevelWeb.AcceptInvitationControllerTest do
       assert conn.assigns[:current_user]
     end
 
-    test "renders validation errors",
-      %{conn: conn, invitation: invitation} do
+    test "renders validation errors", %{conn: conn, invitation: invitation} do
       params =
         valid_user_params()
         |> Map.put(:username, "i am not valid")

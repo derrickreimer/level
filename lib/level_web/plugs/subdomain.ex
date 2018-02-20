@@ -41,7 +41,8 @@ defmodule LevelWeb.Subdomain do
   A plug that parses out the subdomain and sets it in the connection assigns.
   """
   def extract_subdomain(conn, _opts \\ []) do
-    subdomain = conn.host
+    subdomain =
+      conn.host
       |> String.trim_trailing(default_host())
       |> String.trim_trailing(".")
 

@@ -97,14 +97,13 @@ defmodule Level.SpacesTest do
 
     test "sends an invitation email", %{user: user, params: params} do
       {:ok, invitation} = Spaces.create_invitation(user, params)
-      assert_delivered_email LevelWeb.Email.invitation_email(invitation)
+      assert_delivered_email(LevelWeb.Email.invitation_email(invitation))
     end
 
     test "returns error when params are invalid", %{user: user, params: params} do
       params = Map.put(params, :email, "invalid")
       {:error, error_changeset} = Spaces.create_invitation(user, params)
-      assert {:email, {"is invalid", validation: :format}}
-        in error_changeset.errors
+      assert {:email, {"is invalid", validation: :format}} in error_changeset.errors
     end
   end
 
@@ -116,15 +115,17 @@ defmodule Level.SpacesTest do
       {:ok, %{space: space, invitation: invitation}}
     end
 
-    test "returns pending invitation with a matching token",
-      %{invitation: invitation, space: space} do
-      assert Spaces.get_pending_invitation!(space, invitation.token).id ==
-        invitation.id
+    test "returns pending invitation with a matching token", %{
+      invitation: invitation,
+      space: space
+    } do
+      assert Spaces.get_pending_invitation!(space, invitation.token).id == invitation.id
     end
 
-    test "raises a not found error if invitation is already accepted",
-      %{invitation: invitation, space: space} do
-
+    test "raises a not found error if invitation is already accepted", %{
+      invitation: invitation,
+      space: space
+    } do
       invitation
       |> Ecto.Changeset.change(state: "ACCEPTED")
       |> Repo.update()
@@ -143,15 +144,11 @@ defmodule Level.SpacesTest do
       {:ok, %{space: space, invitation: invitation}}
     end
 
-    test "returns pending invitation with a matching id",
-      %{invitation: invitation, space: space} do
-      assert Spaces.get_pending_invitation(space, invitation.id).id ==
-        invitation.id
+    test "returns pending invitation with a matching id", %{invitation: invitation, space: space} do
+      assert Spaces.get_pending_invitation(space, invitation.id).id == invitation.id
     end
 
-    test "returns nil if invitation is already accepted",
-      %{invitation: invitation, space: space} do
-
+    test "returns nil if invitation is already accepted", %{invitation: invitation, space: space} do
       invitation
       |> Ecto.Changeset.change(state: "ACCEPTED")
       |> Repo.update()
@@ -166,10 +163,11 @@ defmodule Level.SpacesTest do
 
   describe "accept_invitation/2" do
     setup do
-      {:ok, %{
-        user: invitor,
-        default_room: %{room: room}
-      }} = insert_signup()
+      {:ok,
+       %{
+         user: invitor,
+         default_room: %{room: room}
+       }} = insert_signup()
 
       params = valid_invitation_params()
       {:ok, invitation} = Spaces.create_invitation(invitor, params)
@@ -177,24 +175,23 @@ defmodule Level.SpacesTest do
       {:ok, %{invitation: invitation, default_room: room}}
     end
 
-    test "creates a user and flag invitation as accepted",
-      %{invitation: invitation} do
+    test "creates a user and flag invitation as accepted", %{invitation: invitation} do
       params = valid_user_params()
 
-      {:ok, %{user: user, invitation: invitation}} =
-        Spaces.accept_invitation(invitation, params)
+      {:ok, %{user: user, invitation: invitation}} = Spaces.accept_invitation(invitation, params)
 
       assert user.email == params.email
       assert invitation.state == "ACCEPTED"
       assert invitation.acceptor_id == user.id
     end
 
-    test "subscribes the user to all mandatory rooms",
-      %{invitation: invitation, default_room: room} do
+    test "subscribes the user to all mandatory rooms", %{
+      invitation: invitation,
+      default_room: room
+    } do
       params = valid_user_params()
 
-      {:ok, %{user: user}} =
-        Spaces.accept_invitation(invitation, params)
+      {:ok, %{user: user}} = Spaces.accept_invitation(invitation, params)
 
       assert {:ok, _} = Rooms.get_room_subscription(room.id, user.id)
     end
@@ -204,8 +201,7 @@ defmodule Level.SpacesTest do
         valid_user_params()
         |> Map.put(:username, "i am not valid")
 
-      {:error, failed_operation, _, _} =
-        Spaces.accept_invitation(invitation, params)
+      {:error, failed_operation, _, _} = Spaces.accept_invitation(invitation, params)
 
       assert failed_operation == :user
     end

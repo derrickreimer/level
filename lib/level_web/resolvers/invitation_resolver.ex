@@ -9,13 +9,14 @@ defmodule LevelWeb.InvitationResolver do
   alias Level.Repo
 
   def create(args, %{context: %{current_user: user}}) do
-    resp = case Spaces.create_invitation(user, args) do
-      {:ok, invitation} ->
-        %{success: true, invitation: invitation, errors: []}
+    resp =
+      case Spaces.create_invitation(user, args) do
+        {:ok, invitation} ->
+          %{success: true, invitation: invitation, errors: []}
 
-      {:error, changeset} ->
-        %{success: false, invitation: nil, errors: format_errors(changeset)}
-    end
+        {:error, changeset} ->
+          %{success: false, invitation: nil, errors: format_errors(changeset)}
+      end
 
     {:ok, resp}
   end
@@ -26,10 +27,16 @@ defmodule LevelWeb.InvitationResolver do
     resp =
       case Spaces.get_pending_invitation(user.space, args.id) do
         nil ->
-          %{success: false, invitation: nil, errors: [%{
-            attribute: "base",
-            message: dgettext("errors", "Invitation not found")
-          }]}
+          %{
+            success: false,
+            invitation: nil,
+            errors: [
+              %{
+                attribute: "base",
+                message: dgettext("errors", "Invitation not found")
+              }
+            ]
+          }
 
         invitation ->
           case Spaces.revoke_invitation(invitation) do

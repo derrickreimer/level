@@ -11,7 +11,9 @@ defmodule LevelWeb.Endpoint do
   # You should set gzip to true if you are running phoenix.digest
   # when deploying your static files in production.
   plug Plug.Static,
-    at: "/", from: :level, gzip: false,
+    at: "/",
+    from: :level,
+    gzip: false,
     only: ~w(css fonts images js favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the
@@ -41,7 +43,7 @@ defmodule LevelWeb.Endpoint do
     key: "_level_key",
     signing_salt: "Yx0Th4sC",
     domain: Application.get_env(:level, LevelWeb.Endpoint)[:url][:host],
-    max_age: 31_557_600 # 1 year
+    max_age: 31_557_600
 
   plug LevelWeb.Router
 end

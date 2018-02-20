@@ -48,8 +48,7 @@ defmodule LevelWeb.Auth do
 
         with %{^space_id => [user_id, salt, _]} <- decode_user_sessions(sessions),
              %Spaces.User{} = user <- Spaces.get_user(user_id),
-             true <- user.session_salt == salt
-        do
+             true <- user.session_salt == salt do
           put_current_user(conn, user)
         else
           _ ->
@@ -131,8 +130,10 @@ defmodule LevelWeb.Auth do
     cond do
       user && checkpw(given_pass, user.password_hash) ->
         {:ok, sign_in(conn, space, user)}
+
       user ->
         {:error, :unauthorized, conn}
+
       true ->
         dummy_checkpw()
         {:error, :not_found, conn}
@@ -167,7 +168,8 @@ defmodule LevelWeb.Auth do
 
   @doc """
   Generates a JSON Web Token (JWT) for a particular user for use by front end
-  clients. Returns a Joken.Token struct.
+  clients. Returns a Joken.Token struct. The token is set to expire within 15
+  minutes from generation time.
 
   Use the `generate_signed_jwt/1` function to generate a fully-signed
   token in binary format.
@@ -175,9 +177,9 @@ defmodule LevelWeb.Auth do
   def generate_jwt(user) do
     %Joken.Token{}
     |> with_json_module(Poison)
-    |> with_exp(current_time() + 15 * 60) # 15 minutes from now
+    |> with_exp(current_time() + 15 * 60)
     |> with_iat(current_time())
-    |> with_nbf(current_time() - 1) # 1 second ago
+    |> with_nbf(current_time() - 1)
     |> with_sub(to_string(user.id))
     |> with_signer(hs256(jwt_secret()))
   end
@@ -221,7 +223,9 @@ defmodule LevelWeb.Auth do
 
     if sessions_json = get_session(conn, :sessions) do
       case decode_user_sessions(sessions_json) do
-        nil -> []
+        nil ->
+          []
+
         sessions ->
           space_ids = Map.keys(sessions)
 

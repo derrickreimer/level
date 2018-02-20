@@ -122,6 +122,6 @@ defmodule Level.TestHelpers do
     8
     |> :crypto.strong_rand_bytes()
     |> Base.encode16()
-    |> String.downcase
+    |> String.downcase()
   end
 end

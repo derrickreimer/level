@@ -7,10 +7,10 @@ defmodule Level.Rooms.Room do
   import Ecto.Changeset
 
   schema "rooms" do
-    field :state, :string, read_after_writes: true # room_state
+    field :state, :string, read_after_writes: true
     field :name, :string
     field :description, :string, read_after_writes: true, default: ""
-    field :subscriber_policy, :string, read_after_writes: true # room_subscriber_policy
+    field :subscriber_policy, :string, read_after_writes: true
 
     belongs_to :space, Level.Spaces.Space
     belongs_to :creator, Level.Spaces.User

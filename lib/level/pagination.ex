@@ -9,7 +9,6 @@ defmodule Level.Pagination do
   alias Level.Pagination.PageInfo
   alias Level.Pagination.Result
 
-
   @doc """
   Builds a pagination result that is compatible with GraphQL connections queries.
 
@@ -70,12 +69,15 @@ defmodule Level.Pagination do
   defp validate(%{first: nil, last: nil}) do
     {:error, "first or last is required"}
   end
+
   defp validate(%{first: first, last: last}) when is_integer(first) and is_integer(last) do
     {:error, "first and last cannot both be set"}
   end
+
   defp validate(%{order_by: nil}) do
     {:error, "order_by is required"}
   end
+
   defp validate(args) do
     {:ok, args}
   end
@@ -87,6 +89,7 @@ defmodule Level.Pagination do
   defp normalize(%{last: last} = args) when is_nil(last) do
     {args, false}
   end
+
   defp normalize(%{before: before, last: last, order_by: order_by} = args) do
     flipped_order_by =
       order_by
@@ -102,6 +105,7 @@ defmodule Level.Pagination do
 
     {flipped_args, true}
   end
+
   defp normalize(args) do
     {args, false}
   end
@@ -114,6 +118,7 @@ defmodule Level.Pagination do
   end
 
   defp prepare_result(result, false), do: result
+
   defp prepare_result(%Result{page_info: page_info} = result, _) do
     edges = Enum.reverse(result.edges)
 
@@ -130,16 +135,19 @@ defmodule Level.Pagination do
   defp fetch_nodes(repo, query, order_field, args) do
     sorted_query = apply_sort(query, args)
 
-    nodes = repo.all(
-      sorted_query
-      |> apply_limit(args)
-      |> apply_before_cursor(order_field, args)
-      |> apply_after_cursor(order_field, args)
-    )
+    nodes =
+      repo.all(
+        sorted_query
+        |> apply_limit(args)
+        |> apply_before_cursor(order_field, args)
+        |> apply_after_cursor(order_field, args)
+      )
 
     {has_previous_page, has_next_page} =
       case nodes do
-        [] -> {false, false}
+        [] ->
+          {false, false}
+
         _ ->
           has_previous_page =
             case repo.one(from r in sorted_query, limit: 1) do
@@ -155,18 +163,20 @@ defmodule Level.Pagination do
   end
 
   defp build_edges(nodes, order_field) do
-    Enum.map nodes, fn node ->
+    Enum.map(nodes, fn node ->
       cursor = Map.get(node, order_field)
       %Edge{node: node, cursor: cursor}
-    end
+    end)
   end
 
   defp start_cursor([]), do: nil
+
   defp start_cursor([edge | _]) do
     edge.cursor
   end
 
   defp end_cursor([]), do: nil
+
   defp end_cursor(edges) do
     List.last(edges).cursor
   end
@@ -185,20 +195,27 @@ defmodule Level.Pagination do
   end
 
   defp apply_after_cursor(query, _, %{after: cursor}) when is_nil(cursor), do: query
+
   defp apply_after_cursor(query, order_field, %{after: cursor, order_by: %{direction: direction}}) do
     case direction do
       :asc ->
         where(query, [r], field(r, ^order_field) > ^cursor)
+
       :desc ->
         where(query, [r], field(r, ^order_field) < ^cursor)
     end
   end
 
   defp apply_before_cursor(query, _, %{before: cursor}) when is_nil(cursor), do: query
-  defp apply_before_cursor(query, order_field, %{before: cursor, order_by: %{direction: direction}}) do
+
+  defp apply_before_cursor(query, order_field, %{
+         before: cursor,
+         order_by: %{direction: direction}
+       }) do
     case direction do
       :asc ->
         where(query, [r], field(r, ^order_field) < ^cursor)
+
       :desc ->
         where(query, [r], field(r, ^order_field) > ^cursor)
     end

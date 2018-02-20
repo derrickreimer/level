@@ -25,14 +25,14 @@ defmodule LevelWeb.GraphQL.ViewerTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "username" => user.username,
-          "recipient_id" => "u:#{user.id}",
-          "state" => user.state
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "username" => user.username,
+                 "recipient_id" => "u:#{user.id}",
+                 "state" => user.state
+               }
+             }
+           }
   end
 
   test "has a space connection", %{conn: conn, space: space} do
@@ -52,13 +52,13 @@ defmodule LevelWeb.GraphQL.ViewerTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "space" => %{
-            "name" => space.name
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "space" => %{
+                   "name" => space.name
+                 }
+               }
+             }
+           }
   end
 end

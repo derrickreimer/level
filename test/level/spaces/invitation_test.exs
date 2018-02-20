@@ -14,15 +14,13 @@ defmodule Level.Spaces.InvitationTest do
     test "requires a valid email address" do
       params = Map.put(valid_invitation_params(), :email, "invalid")
       changeset = Invitation.changeset(%Invitation{}, params)
-      assert {:email, {"is invalid", validation: :format}}
-        in changeset.errors
+      assert {:email, {"is invalid", validation: :format}} in changeset.errors
     end
 
     test "requires an email address" do
       params = Map.put(valid_invitation_params(), :email, nil)
       changeset = Invitation.changeset(%Invitation{}, params)
-      assert {:email, {"can't be blank", validation: :required}}
-        in changeset.errors
+      assert {:email, {"can't be blank", validation: :required}} in changeset.errors
     end
 
     # See InvitationRepoTest for more tests involving uniqueness constraints

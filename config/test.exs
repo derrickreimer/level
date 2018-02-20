@@ -1,7 +1,6 @@
 use Mix.Config
 
-config :level,
-  mailer_host: "level.test"
+config :level, mailer_host: "level.test"
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
@@ -32,5 +31,4 @@ config :comeonin, :bcrypt_log_rounds, 4
 config :comeonin, :pbkdf2_rounds, 1
 
 # Mailer
-config :level, Level.Mailer,
-  adapter: Bamboo.TestAdapter
+config :level, Level.Mailer, adapter: Bamboo.TestAdapter

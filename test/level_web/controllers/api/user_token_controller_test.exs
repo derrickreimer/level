@@ -14,9 +14,7 @@ defmodule LevelWeb.API.UserTokenControllerTest do
       {:ok, %{conn: conn, space: space, user: user}}
     end
 
-    test "generates a JWT for signed in user",
-      %{conn: conn, space: space, user: user} do
-
+    test "generates a JWT for signed in user", %{conn: conn, space: space, user: user} do
       conn =
         conn
         |> sign_in(space, user)

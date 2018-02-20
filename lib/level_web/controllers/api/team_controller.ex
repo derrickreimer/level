@@ -14,7 +14,12 @@ defmodule LevelWeb.API.SpaceController do
           conn
           |> LevelWeb.Auth.sign_in(space, user)
           |> put_status(:created)
-          |> render("create.json", %{space: space, user: user, redirect_url: threads_url(conn, space)})
+          |> render("create.json", %{
+            space: space,
+            user: user,
+            redirect_url: threads_url(conn, space)
+          })
+
         {:error, _, _, _} ->
           conn
           |> put_status(:unprocessable_entity)

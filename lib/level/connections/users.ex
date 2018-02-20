@@ -21,10 +21,10 @@ defmodule Level.Connections.Users do
   def get(space, args, _context) do
     case validate_args(args) do
       {:ok, args} ->
-        base_query = from u in User,
-          where: u.space_id == ^space.id and u.state == "ACTIVE"
+        base_query = from u in User, where: u.space_id == ^space.id and u.state == "ACTIVE"
 
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
+
       error ->
         error
     end

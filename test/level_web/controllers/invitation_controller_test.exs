@@ -21,9 +21,12 @@ defmodule LevelWeb.InvitationControllerTest do
       {:ok, %{conn: conn, space: space, invitor: owner, invitation: invitation}}
     end
 
-    test "displays the correct copy",
-      %{conn: conn, space: space, invitor: invitor, invitation: invitation} do
-
+    test "displays the correct copy", %{
+      conn: conn,
+      space: space,
+      invitor: invitor,
+      invitation: invitation
+    } do
       conn =
         conn
         |> get("/invitations/#{invitation.token}")

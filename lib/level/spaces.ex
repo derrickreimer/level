@@ -62,11 +62,12 @@ defmodule Level.Spaces do
       # Otherwise, returns `nil`.
   """
   def get_user_by_identifier(space, identifier) do
-    column = if Regex.match?(~r/@/, identifier) do
-      :email
-    else
-      :username
-    end
+    column =
+      if Regex.match?(~r/@/, identifier) do
+        :email
+      else
+        :username
+      end
 
     params = Map.put(%{space_id: space.id}, column, identifier)
     Repo.get_by(User, params)

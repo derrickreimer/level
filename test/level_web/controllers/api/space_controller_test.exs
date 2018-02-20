@@ -20,11 +20,9 @@ defmodule LevelWeb.API.SpaceControllerTest do
       assert Repo.get_by!(Level.Spaces.Space, %{slug: slug})
     end
 
-    test "creates new user as the owner of the space",
-      %{params: %{slug: slug, email: email}} do
-
+    test "creates new user as the owner of the space", %{params: %{slug: slug, email: email}} do
       user = Repo.get_by!(Level.Spaces.User, %{email: email})
-      space = user |> Ecto.assoc(:space) |> Repo.one
+      space = user |> Ecto.assoc(:space) |> Repo.one()
 
       assert user.email == email
       assert space.slug == slug
@@ -36,16 +34,20 @@ defmodule LevelWeb.API.SpaceControllerTest do
       assert conn.assigns.current_user.id == user.id
     end
 
-    test "returns a created response",
-      %{conn: conn, params: %{email: email}} do
-
+    test "returns a created response", %{conn: conn, params: %{email: email}} do
       user = Repo.get_by!(Level.Spaces.User, %{email: email})
-      space = user |> Ecto.assoc(:space) |> Repo.one
+      space = user |> Ecto.assoc(:space) |> Repo.one()
 
       redirect_url = threads_url(conn, space)
 
       assert json_response(conn, 201) ==
-        render_json(SpaceView, "create.json", space: space, user: user, redirect_url: redirect_url)
+               render_json(
+                 SpaceView,
+                 "create.json",
+                 space: space,
+                 user: user,
+                 redirect_url: redirect_url
+               )
     end
   end
 

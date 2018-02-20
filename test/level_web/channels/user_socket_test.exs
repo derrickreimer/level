@@ -3,22 +3,24 @@ defmodule LevelWeb.UserSocketTest do
 
   describe "connect/2" do
     setup do
+      # A dummy value to demonstrate that it doesn't matter
       absinthe_socket =
-        "asdf" # A dummy value to demonstrate that it doesn't matter
+        "asdf"
         |> socket(absinthe: %{schema: Schema, opts: []})
 
       {:ok, %{absinthe_socket: absinthe_socket}}
     end
 
-    test "returns socket with user set in context if token is valid",
-      %{absinthe_socket: absinthe_socket} do
+    test "returns socket with user set in context if token is valid", %{
+      absinthe_socket: absinthe_socket
+    } do
       {:ok, %{user: user}} = insert_signup()
       token = LevelWeb.Auth.generate_signed_jwt(user)
       params = %{"Authorization" => "Bearer #{token}"}
 
-      {:ok, %Phoenix.Socket{assigns: %{
-        absinthe: %{opts: [context: %{current_user: current_user}]}}
-      }} = LevelWeb.UserSocket.connect(params, absinthe_socket)
+      {:ok,
+       %Phoenix.Socket{assigns: %{absinthe: %{opts: [context: %{current_user: current_user}]}}}} =
+        LevelWeb.UserSocket.connect(params, absinthe_socket)
 
       assert current_user.id == user.id
     end

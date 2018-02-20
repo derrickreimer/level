@@ -34,9 +34,7 @@ defmodule LevelWeb.AuthTest do
   end
 
   describe "fetch_current_user_by_session/2" do
-    test "does not attach a current user when space is not specified",
-      %{conn: conn} do
-
+    test "does not attach a current user when space is not specified", %{conn: conn} do
       conn =
         conn
         |> assign(:space, nil)
@@ -50,9 +48,7 @@ defmodule LevelWeb.AuthTest do
       assert conn.assigns.current_user == nil
     end
 
-    test "sets the current user to nil if a space is assigned but no sessions",
-      %{conn: conn} do
-
+    test "sets the current user to nil if a space is assigned but no sessions", %{conn: conn} do
       conn =
         conn
         |> assign(:space, "space")
@@ -68,7 +64,10 @@ defmodule LevelWeb.AuthTest do
       conn =
         conn
         |> assign(:space, space)
-        |> put_session(:sessions, to_user_session(space, %Level.Spaces.User{id: 999, session_salt: "nacl"}))
+        |> put_session(
+          :sessions,
+          to_user_session(space, %Level.Spaces.User{id: 999, session_salt: "nacl"})
+        )
         |> Auth.fetch_current_user_by_session()
 
       assert conn.assigns.current_user == nil
@@ -106,9 +105,7 @@ defmodule LevelWeb.AuthTest do
   end
 
   describe "authenticate_with_token/2" do
-    test "does not attach a current user when space is not specified",
-      %{conn: conn} do
-
+    test "does not attach a current user when space is not specified", %{conn: conn} do
       conn =
         conn
         |> assign(:space, nil)
@@ -126,9 +123,7 @@ defmodule LevelWeb.AuthTest do
       assert conn.halted
     end
 
-    test "sets the current user to nil if a space is assigned but no token",
-      %{conn: conn} do
-
+    test "sets the current user to nil if a space is assigned but no token", %{conn: conn} do
       conn =
         conn
         |> assign(:space, "space")
@@ -194,7 +189,7 @@ defmodule LevelWeb.AuthTest do
       %{^space_id => [user_id | _]} =
         conn
         |> get_session(:sessions)
-        |> Poison.decode!
+        |> Poison.decode!()
 
       assert user_id == user.id
     end
@@ -217,7 +212,7 @@ defmodule LevelWeb.AuthTest do
       sessions =
         conn
         |> get_session(:sessions)
-        |> Poison.decode!
+        |> Poison.decode!()
 
       refute Map.has_key?(sessions, "1")
       assert Map.has_key?(sessions, "2")
@@ -231,34 +226,38 @@ defmodule LevelWeb.AuthTest do
       {:ok, %{conn: conn, space: space, user: user, password: password}}
     end
 
-    test "signs in user with username credentials",
-      %{conn: conn, space: space, user: user, password: password} do
-
-      {:ok, conn} =
-        Auth.sign_in_with_credentials(conn, space, user.username, password)
-
-      assert conn.assigns.current_user.id == user.id
-    end
-
-    test "signs in user with email credentials",
-      %{conn: conn, space: space, user: user, password: password} do
-
-      {:ok, conn} =
-        Auth.sign_in_with_credentials(conn, space, user.email, password)
+    test "signs in user with username credentials", %{
+      conn: conn,
+      space: space,
+      user: user,
+      password: password
+    } do
+      {:ok, conn} = Auth.sign_in_with_credentials(conn, space, user.username, password)
 
       assert conn.assigns.current_user.id == user.id
     end
 
-    test "returns unauthorized if password does not match",
-      %{conn: conn, space: space, user: user} do
+    test "signs in user with email credentials", %{
+      conn: conn,
+      space: space,
+      user: user,
+      password: password
+    } do
+      {:ok, conn} = Auth.sign_in_with_credentials(conn, space, user.email, password)
 
+      assert conn.assigns.current_user.id == user.id
+    end
+
+    test "returns unauthorized if password does not match", %{
+      conn: conn,
+      space: space,
+      user: user
+    } do
       {:error, :unauthorized, _conn} =
         Auth.sign_in_with_credentials(conn, space, user.email, "wrongo")
     end
 
-    test "returns unauthorized if user is not found",
-      %{conn: conn, space: space} do
-
+    test "returns unauthorized if user is not found", %{conn: conn, space: space} do
       {:error, :not_found, _conn} =
         Auth.sign_in_with_credentials(conn, space, "foo@bar.co", "wrongo")
     end
@@ -337,11 +336,11 @@ defmodule LevelWeb.AuthTest do
     past = 1_499_951_920
 
     user
-    |> Auth.generate_jwt
+    |> Auth.generate_jwt()
     |> Joken.with_exp(past + 1)
     |> Joken.with_iat(past)
     |> Joken.with_nbf(past - 1)
-    |> Joken.sign
-    |> Joken.get_compact
+    |> Joken.sign()
+    |> Joken.get_compact()
   end
 end

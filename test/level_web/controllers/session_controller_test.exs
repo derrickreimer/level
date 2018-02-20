@@ -40,9 +40,12 @@ defmodule LevelWeb.SessionControllerTest do
       {:ok, %{conn: conn, user: user, space: space, password: password}}
     end
 
-    test "signs in the user by username",
-      %{conn: conn, user: user, space: space, password: password} do
-
+    test "signs in the user by username", %{
+      conn: conn,
+      user: user,
+      space: space,
+      password: password
+    } do
       conn =
         conn
         |> put_space_host(space)
@@ -53,9 +56,7 @@ defmodule LevelWeb.SessionControllerTest do
       assert redirected_to(conn, 302) =~ "/"
     end
 
-    test "signs in the user by email",
-      %{conn: conn, user: user, space: space, password: password} do
-
+    test "signs in the user by email", %{conn: conn, user: user, space: space, password: password} do
       conn =
         conn
         |> put_space_host(space)
@@ -66,13 +67,11 @@ defmodule LevelWeb.SessionControllerTest do
       assert redirected_to(conn, 302) =~ "/"
     end
 
-    test "renders an error with invalid credentials",
-      %{conn: conn, user: user, space: space} do
-
-        conn =
-          conn
-          |> put_space_host(space)
-          |> post("/login", %{"session" => %{"username" => user.email, "password" => "wrong"}})
+    test "renders an error with invalid credentials", %{conn: conn, user: user, space: space} do
+      conn =
+        conn
+        |> put_space_host(space)
+        |> post("/login", %{"session" => %{"username" => user.email, "password" => "wrong"}})
 
       assert conn.assigns.current_user == nil
       assert html_response(conn, 200) =~ "Oops, those credentials are not correct"

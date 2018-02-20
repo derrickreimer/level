@@ -35,19 +35,19 @@ defmodule LevelWeb.GraphQL.InviteUserTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "inviteUser" => %{
-          "success" => true,
-          "invitation" => %{
-            "email" => email,
-            "invitor" => %{
-              "email" => user.email
-            }
-          },
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "inviteUser" => %{
+                 "success" => true,
+                 "invitation" => %{
+                   "email" => email,
+                   "invitor" => %{
+                     "email" => user.email
+                   }
+                 },
+                 "errors" => []
+               }
+             }
+           }
   end
 
   test "returns validation errors when data is valid", %{conn: conn} do
@@ -74,15 +74,15 @@ defmodule LevelWeb.GraphQL.InviteUserTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "inviteUser" => %{
-          "success" => false,
-          "invitation" => nil,
-          "errors" => [
-            %{"attribute" => "email", "message" => "is invalid"}
-          ]
-        }
-      }
-    }
+             "data" => %{
+               "inviteUser" => %{
+                 "success" => false,
+                 "invitation" => nil,
+                 "errors" => [
+                   %{"attribute" => "email", "message" => "is invalid"}
+                 ]
+               }
+             }
+           }
   end
 end

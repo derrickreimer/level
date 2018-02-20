@@ -23,6 +23,7 @@ defmodule Level.Connections.RoomSubscriptions do
       {:ok, args} ->
         base_query = from s in RoomSubscription, where: s.user_id == ^user.id
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
+
       error ->
         error
     end

@@ -9,12 +9,10 @@ defmodule Level.RoomsTest do
       insert_signup()
     end
 
-    test "creates a room and subscription given a valid params",
-      %{space: space, user: user} do
+    test "creates a room and subscription given a valid params", %{space: space, user: user} do
       params = valid_room_params()
 
-      {:ok, %{room: room, room_subscription: subscription}} =
-        Rooms.create_room(user, params)
+      {:ok, %{room: room, room_subscription: subscription}} = Rooms.create_room(user, params)
 
       assert room.space_id == space.id
       assert room.creator_id == user.id
@@ -25,8 +23,7 @@ defmodule Level.RoomsTest do
       assert subscription.room_id == room.id
     end
 
-    test "returns an error tuple given invalid params",
-      %{user: user} do
+    test "returns an error tuple given invalid params", %{user: user} do
       params =
         valid_room_params()
         |> Map.put(:name, nil)
@@ -34,8 +31,8 @@ defmodule Level.RoomsTest do
       {:error, :room, changeset, _} = Rooms.create_room(user, params)
 
       assert %Ecto.Changeset{
-        errors: [name: {"can't be blank", [validation: :required]}]
-      } = changeset
+               errors: [name: {"can't be blank", [validation: :required]}]
+             } = changeset
     end
   end
 
@@ -58,16 +55,14 @@ defmodule Level.RoomsTest do
       insert_signup()
     end
 
-    test "returns the subscription if user is subscribed to the room",
-      %{user: user} do
+    test "returns the subscription if user is subscribed to the room", %{user: user} do
       {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
       {:ok, subscription} = Rooms.get_room_subscription(room.id, user.id)
       assert subscription.room_id == room.id
       assert subscription.user_id == user.id
     end
 
-    test "returns an error if user is not subscribed to the room",
-      %{space: space, user: user} do
+    test "returns an error if user is not subscribed to the room", %{space: space, user: user} do
       {:ok, %{room: room}} = Rooms.create_room(user, valid_room_params())
 
       # TODO: implement a helper method for adding a user like this
@@ -93,7 +88,8 @@ defmodule Level.RoomsTest do
     end
 
     test "returns the room if the room is public", %{user: user, room: room} do
-      Repo.delete_all(Rooms.RoomSubscription) # delete the subscription
+      # delete the subscription
+      Repo.delete_all(Rooms.RoomSubscription)
       {:ok, %Rooms.Room{id: fetched_room_id}} = Rooms.get_room(user, room.id)
       assert fetched_room_id == room.id
     end
@@ -109,8 +105,10 @@ defmodule Level.RoomsTest do
       assert {:error, _} = Rooms.get_room(user, room.id)
     end
 
-    test "returns an error if the room is invite-only and user doesn't have access",
-      %{user: user, room: room} do
+    test "returns an error if the room is invite-only and user doesn't have access", %{
+      user: user,
+      room: room
+    } do
       # TODO: Implement an #update_policy function and use that here
       Repo.update(Ecto.Changeset.change(room, subscriber_policy: "INVITE_ONLY"))
       {:ok, subscription} = Rooms.get_room_subscription(room.id, user.id)
@@ -174,15 +172,14 @@ defmodule Level.RoomsTest do
 
     test "sets the last read room message", %{room_subscription: subscription} do
       params = valid_room_message_params()
+
       {:ok, %{room_message: message, room_subscription: updated_subscription}} =
         Rooms.create_message(subscription, params)
 
       assert updated_subscription.last_read_message_id == message.id
     end
 
-    test "returns an error with changeset if invalid",
-      %{room_subscription: subscription} do
-
+    test "returns an error with changeset if invalid", %{room_subscription: subscription} do
       params =
         valid_room_message_params()
         |> Map.put(:body, nil)
@@ -190,8 +187,8 @@ defmodule Level.RoomsTest do
       {:error, changeset} = Rooms.create_message(subscription, params)
 
       assert %Ecto.Changeset{
-        errors: [body: {"can't be blank", [validation: :required]}]
-      } = changeset
+               errors: [body: {"can't be blank", [validation: :required]}]
+             } = changeset
     end
   end
 
@@ -221,35 +218,41 @@ defmodule Level.RoomsTest do
 
   describe "mark_message_as_read/2" do
     setup do
-      {:ok, %{user: user, room: room, room_subscription: room_subscription}} = create_user_and_room()
+      {:ok, %{user: user, room: room, room_subscription: room_subscription}} =
+        create_user_and_room()
+
       {:ok, %{room_message: message, room_subscription: room_subscription}} =
         Rooms.create_message(room_subscription, valid_room_message_params())
+
       {:ok, %{user: user, message: message, room: room, room_subscription: room_subscription}}
     end
 
-    test "sets the last read message state",
-      %{message: message, room_subscription: room_subscription} do
-
+    test "sets the last read message state", %{
+      message: message,
+      room_subscription: room_subscription
+    } do
       # Forcibly ensure that there is not last read message set on the subscription
       {:ok, room_subscription} =
         room_subscription
         |> Ecto.Changeset.change(last_read_message_id: nil)
         |> Repo.update()
 
-      {:ok, updated_subscription} =
-        Rooms.mark_message_as_read(room_subscription, message)
+      {:ok, updated_subscription} = Rooms.mark_message_as_read(room_subscription, message)
 
       assert updated_subscription.last_read_message_id == message.id
     end
 
-    test "does not set the last read message state if message is old",
-      %{message: old_message, room_subscription: room_subscription} do
-
+    test "does not set the last read message state if message is old", %{
+      message: old_message,
+      room_subscription: room_subscription
+    } do
       {:ok, %{room_message: new_message, room_subscription: room_subscription}} =
         Rooms.create_message(room_subscription, valid_room_message_params())
+
       {:ok, updated_subscription} = Rooms.mark_message_as_read(room_subscription, old_message)
 
-      assert old_message.id < new_message.id # verify that monatonicity is maintained
+      # verify that monatonicity is maintained
+      assert old_message.id < new_message.id
       assert updated_subscription.last_read_message_id == new_message.id
     end
   end
@@ -261,11 +264,11 @@ defmodule Level.RoomsTest do
 
     test "builds a GraphQL payload", %{room: room, message: message} do
       assert Rooms.message_created_payload(room, message) == %{
-        success: true,
-        room: room,
-        room_message: message,
-        errors: []
-      }
+               success: true,
+               room: room,
+               room_message: message,
+               errors: []
+             }
     end
   end
 
@@ -276,18 +279,14 @@ defmodule Level.RoomsTest do
       {:ok, %{owner: owner, room: room, user: another_user}}
     end
 
-    test "creates a room subscription if not already subscribed",
-      %{room: room, user: user} do
-
+    test "creates a room subscription if not already subscribed", %{room: room, user: user} do
       {:ok, subscription} = Rooms.subscribe_to_room(room, user)
       assert subscription.user_id == user.id
       assert subscription.room_id == room.id
     end
 
-    test "returns an error if already subscribed",
-      %{room: room, owner: owner} do
-      {:error, %Ecto.Changeset{errors: errors}} =
-        Rooms.subscribe_to_room(room, owner)
+    test "returns an error if already subscribed", %{room: room, owner: owner} do
+      {:error, %Ecto.Changeset{errors: errors}} = Rooms.subscribe_to_room(room, owner)
 
       assert errors == [user_id: {"is already subscribed to this room", []}]
     end
@@ -300,8 +299,11 @@ defmodule Level.RoomsTest do
       {:ok, %{user: user, room: room, room_in_other_space: room_in_other_space}}
     end
 
-    test "returns mandatory rooms in the user's space",
-      %{user: user, room: room, room_in_other_space: room_in_other_space} do
+    test "returns mandatory rooms in the user's space", %{
+      user: user,
+      room: room,
+      room_in_other_space: room_in_other_space
+    } do
       room_ids = Enum.map(Rooms.get_mandatory_rooms(user), fn item -> item.id end)
       assert Enum.member?(room_ids, room.id)
       refute Enum.member?(room_ids, room_in_other_space.id)
@@ -310,8 +312,10 @@ defmodule Level.RoomsTest do
 
   defp create_user_and_room do
     {:ok, %{user: user, space: space}} = insert_signup()
+
     {:ok, %{room: room, room_subscription: room_subscription}} =
       Rooms.create_room(user, valid_room_params())
+
     {:ok, %{user: user, room: room, room_subscription: room_subscription, space: space}}
   end
 end

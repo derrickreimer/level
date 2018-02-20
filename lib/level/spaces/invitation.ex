@@ -17,9 +17,9 @@ defmodule Level.Spaces.Invitation do
   # @states ["PENDING", "ACCEPTED", "REVOKED"]
 
   schema "invitations" do
-    field :state, :string, read_after_writes: true # invitation_state
-    field :role, :string, read_after_writes: true # user_role
-    field :token, :binary_id # uuid
+    field :state, :string, read_after_writes: true
+    field :role, :string, read_after_writes: true
+    field :token, :binary_id
     field :email, :string
 
     belongs_to :space, Space
@@ -36,11 +36,14 @@ defmodule Level.Spaces.Invitation do
     struct
     |> cast(params, [:invitor_id, :space_id, :email])
     |> validate_required([:email])
-    |> validate_format(:email, User.email_format, message: dgettext("errors", "is invalid"))
+    |> validate_format(:email, User.email_format(), message: dgettext("errors", "is invalid"))
     |> put_change(:token, generate_token())
-    |> unique_constraint(:email, name: :invitations_unique_pending_email,
-        message: dgettext("errors", "already has an invitation"),
-        validation: :uniqueness)
+    |> unique_constraint(
+      :email,
+      name: :invitations_unique_pending_email,
+      message: dgettext("errors", "already has an invitation"),
+      validation: :uniqueness
+    )
   end
 
   @doc """
@@ -61,7 +64,7 @@ defmodule Level.Spaces.Invitation do
       |> put_change(:space_id, invitation.space_id)
       |> put_change(:role, invitation.role)
 
-    Multi.new
+    Multi.new()
     |> Multi.insert(:user, user_changeset)
     |> Multi.run(:invitation, mark_accepted_operation(invitation))
     |> Multi.run(:room_subscriptions, subscribe_to_rooms_operation())

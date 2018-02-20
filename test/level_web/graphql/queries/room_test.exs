@@ -51,25 +51,27 @@ defmodule LevelWeb.GraphQL.RoomTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "room" => %{
-            "id" => to_string(room.id),
-            "name" => room.name,
-            "description" => room.description,
-            "creator" => %{
-              "id" => to_string(user.id)
-            },
-            "users" => %{
-              "edges" => [%{
-                "node" => %{
-                  "id" => to_string(user.id)
-                }
-              }]
-            }
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "room" => %{
+                   "id" => to_string(room.id),
+                   "name" => room.name,
+                   "description" => room.description,
+                   "creator" => %{
+                     "id" => to_string(user.id)
+                   },
+                   "users" => %{
+                     "edges" => [
+                       %{
+                         "node" => %{
+                           "id" => to_string(user.id)
+                         }
+                       }
+                     ]
+                   }
+                 }
+               }
+             }
+           }
   end
 end

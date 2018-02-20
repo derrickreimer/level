@@ -28,10 +28,12 @@ defmodule LevelWeb.RoomResolver do
     resp =
       case Rooms.get_room(user, args.id) do
         {:error, _} ->
-          errors = [%{
-            attribute: "base",
-            message: dgettext("errors", "Room not found")
-          }]
+          errors = [
+            %{
+              attribute: "base",
+              message: dgettext("errors", "Room not found")
+            }
+          ]
 
           %{success: false, room: nil, errors: errors}
 

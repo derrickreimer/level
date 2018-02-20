@@ -8,8 +8,7 @@ defmodule Level.Spaces.RegistrationRepoTest do
       insert_signup(%{slug: "foo"})
       params = Map.put(valid_signup_params(), :slug, "foo")
       changeset = Registration.changeset(%{}, params)
-      assert {:slug, {"is already taken", validation: :uniqueness}}
-        in changeset.errors
+      assert {:slug, {"is already taken", validation: :uniqueness}} in changeset.errors
     end
   end
 end

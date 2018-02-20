@@ -23,6 +23,7 @@ defmodule Level.Connections.RoomMessages do
       {:ok, args} ->
         base_query = from m in Message, where: m.room_id == ^room.id
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
+
       error ->
         error
     end

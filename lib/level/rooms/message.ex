@@ -17,9 +17,10 @@ defmodule Level.Rooms.Message do
   end
 
   def create_changeset(struct, params \\ %{}) do
+    # TODO: think about max length
     struct
     |> cast(params, [:space_id, :user_id, :room_id, :body])
     |> validate_required([:body])
-    |> validate_length(:body, min: 1, max: 1000) # TODO: think about max length
+    |> validate_length(:body, min: 1, max: 1000)
   end
 end

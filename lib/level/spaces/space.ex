@@ -13,7 +13,7 @@ defmodule Level.Spaces.Space do
   # @states ["ACTIVE", "DISABLED"]
 
   schema "spaces" do
-    field :state, :string, read_after_writes: true # space_state
+    field :state, :string, read_after_writes: true
     field :name, :string
     field :slug, :string
     has_many :users, Level.Spaces.User

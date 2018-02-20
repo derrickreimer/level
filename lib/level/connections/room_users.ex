@@ -22,11 +22,13 @@ defmodule Level.Connections.RoomUsers do
   def get(room, args, _context) do
     case validate_args(args) do
       {:ok, args} ->
-        base_query = from u in User,
-          join: s in RoomSubscription,
-          on: s.user_id == u.id and s.room_id == ^room.id
+        base_query =
+          from u in User,
+            join: s in RoomSubscription,
+            on: s.user_id == u.id and s.room_id == ^room.id
 
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
+
       error ->
         error
     end

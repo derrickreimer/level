@@ -9,17 +9,14 @@ defmodule Level.Rooms.RoomTest do
     end
 
     test "validates given valid params", %{params: params} do
-      assert %Ecto.Changeset{valid?: true} =
-        Room.create_changeset(%Room{}, params)
+      assert %Ecto.Changeset{valid?: true} = Room.create_changeset(%Room{}, params)
     end
 
     test "requires a name", %{params: params} do
-      invalid_params =
-        %{params | name: nil}
+      invalid_params = %{params | name: nil}
 
-      assert %Ecto.Changeset{errors:
-        [name: {"can't be blank", [validation: :required]}]
-      } = Room.create_changeset(%Room{}, invalid_params)
+      assert %Ecto.Changeset{errors: [name: {"can't be blank", [validation: :required]}]} =
+               Room.create_changeset(%Room{}, invalid_params)
     end
   end
 end

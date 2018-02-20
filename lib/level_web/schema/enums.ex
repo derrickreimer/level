@@ -9,13 +9,13 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :user_state do
     @desc "The default state for a user."
-    value :active, as: "ACTIVE"
+    value(:active, as: "ACTIVE")
 
     @desc """
     The state when a user's membership has been revoked or the user has
     opted-out of the space.
     """
-    value :disabled, as: "DISABLED"
+    value(:disabled, as: "DISABLED")
   end
 
   @desc """
@@ -24,16 +24,16 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :user_role do
     @desc "The default, lowest level permissions for a user."
-    value :member, as: "MEMBER"
+    value(:member, as: "MEMBER")
 
     @desc """
     Elevated permissions that allow the user to administrate the space,
     but not manage billing and other vital functions.
     """
-    value :admin, as: "ADMIN"
+    value(:admin, as: "ADMIN")
 
     @desc "The highest level of permissions a user can have."
-    value :owner, as: "OWNER"
+    value(:owner, as: "OWNER")
   end
 
   @desc """
@@ -42,10 +42,10 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :space_state do
     @desc "The default state for a space."
-    value :active, as: "ACTIVE"
+    value(:active, as: "ACTIVE")
 
     @desc "The state when a space has been shut down."
-    value :disabled, as: "DISABLED"
+    value(:disabled, as: "DISABLED")
   end
 
   @desc """
@@ -54,13 +54,13 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :invitation_state do
     @desc "The default state for an invitation."
-    value :pending, as: "PENDING"
+    value(:pending, as: "PENDING")
 
     @desc "The state when the invitation has been accepted."
-    value :accepted, as: "ACCEPTED"
+    value(:accepted, as: "ACCEPTED")
 
     @desc "The state when an invitation has been revoked."
-    value :revoked, as: "REVOKED"
+    value(:revoked, as: "REVOKED")
   end
 
   @desc """
@@ -69,10 +69,10 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :user_order_field do
     @desc "Order by the username field."
-    value :username
+    value(:username)
 
     @desc "Order by the last name field."
-    value :last_name
+    value(:last_name)
   end
 
   @desc """
@@ -81,7 +81,7 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :draft_order_field do
     @desc "Order by the updated_at field."
-    value :updated_at
+    value(:updated_at)
   end
 
   @desc """
@@ -90,13 +90,13 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :room_subscriber_policy do
     @desc "All users must be subscribed to the room."
-    value :mandatory, as: "MANDATORY"
+    value(:mandatory, as: "MANDATORY")
 
     @desc "The room is visible to all users, and users may freely choose to subscribe."
-    value :public, as: "PUBLIC"
+    value(:public, as: "PUBLIC")
 
     @desc "The room may only be subscribed to by invitation."
-    value :invite_only, as: "INVITE_ONLY"
+    value(:invite_only, as: "INVITE_ONLY")
   end
 
   @desc """
@@ -104,7 +104,7 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :room_subscription_order_field do
     @desc "Order by the inserted_at field."
-    value :inserted_at
+    value(:inserted_at)
   end
 
   @desc """
@@ -112,7 +112,7 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :room_message_order_field do
     @desc "Order by the inserted_at field."
-    value :inserted_at
+    value(:inserted_at)
   end
 
   @desc """
@@ -120,7 +120,7 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :invitation_order_field do
     @desc "Order by the email field."
-    value :email
+    value(:email)
   end
 
   @desc """
@@ -128,9 +128,9 @@ defmodule LevelWeb.Schema.Enums do
   """
   enum :order_direction do
     @desc "Sort in ascending order."
-    value :asc
+    value(:asc)
 
     @desc "Sort in descending order."
-    value :desc
+    value(:desc)
   end
 end

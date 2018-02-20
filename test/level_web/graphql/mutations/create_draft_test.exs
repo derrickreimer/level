@@ -8,8 +8,7 @@ defmodule LevelWeb.GraphQL.CreateDraftTest do
     {:ok, %{conn: conn, user: user, space: space}}
   end
 
-  test "creates a draft with valid data",
-    %{conn: conn, space: space, user: user} do
+  test "creates a draft with valid data", %{conn: conn, space: space, user: user} do
     subject = "Foo"
     body = "The body"
 
@@ -42,28 +41,29 @@ defmodule LevelWeb.GraphQL.CreateDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "createDraft" => %{
-          "success" => true,
-          "draft" => %{
-            "subject" => subject,
-            "body" => body,
-            "recipientIds" => [],
-            "space" => %{
-              "name" => space.name
-            },
-            "user" => %{
-              "email" => user.email
-            }
-          },
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "createDraft" => %{
+                 "success" => true,
+                 "draft" => %{
+                   "subject" => subject,
+                   "body" => body,
+                   "recipientIds" => [],
+                   "space" => %{
+                     "name" => space.name
+                   },
+                   "user" => %{
+                     "email" => user.email
+                   }
+                 },
+                 "errors" => []
+               }
+             }
+           }
   end
 
   test "returns validation errors when data is invalid", %{conn: conn} do
-    subject = String.duplicate("a", 260) # too long
+    # too long
+    subject = String.duplicate("a", 260)
 
     query = """
       mutation {
@@ -86,15 +86,15 @@ defmodule LevelWeb.GraphQL.CreateDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "createDraft" => %{
-          "success" => false,
-          "draft" => nil,
-          "errors" => [
-            %{"attribute" => "subject", "message" => "should be at most 255 character(s)"}
-          ]
-        }
-      }
-    }
+             "data" => %{
+               "createDraft" => %{
+                 "success" => false,
+                 "draft" => nil,
+                 "errors" => [
+                   %{"attribute" => "subject", "message" => "should be at most 255 character(s)"}
+                 ]
+               }
+             }
+           }
   end
 end

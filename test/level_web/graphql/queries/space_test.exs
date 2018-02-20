@@ -35,23 +35,25 @@ defmodule LevelWeb.GraphQL.SpaceTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "space" => %{
-            "users" => %{
-              "edges" => [%{
-                "node" => %{
-                  "id" => to_string(user.id)
-                }
-              }],
-              "total_count" => 1,
-              "page_info" => %{
-                "hasPreviousPage" => false
-              }
-            }
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "space" => %{
+                   "users" => %{
+                     "edges" => [
+                       %{
+                         "node" => %{
+                           "id" => to_string(user.id)
+                         }
+                       }
+                     ],
+                     "total_count" => 1,
+                     "page_info" => %{
+                       "hasPreviousPage" => false
+                     }
+                   }
+                 }
+               }
+             }
+           }
   end
 end

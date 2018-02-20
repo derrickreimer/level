@@ -38,9 +38,7 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
     {:ok, %{conn: conn, user: user, space: space, query: query}}
   end
 
-  test "creates a room with valid data",
-    %{conn: conn, query: query} do
-
+  test "creates a room with valid data", %{conn: conn, query: query} do
     variables = %{
       name: "Development",
       description: "A cool room",
@@ -53,27 +51,25 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "createRoom" => %{
-          "success" => true,
-          "room" => %{
-            "name" => variables.name,
-            "subscriberPolicy" => "INVITE_ONLY"
-          },
-          "roomSubscription" => %{
-            "room" => %{
-              "name" => variables.name
-            }
-          },
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "createRoom" => %{
+                 "success" => true,
+                 "room" => %{
+                   "name" => variables.name,
+                   "subscriberPolicy" => "INVITE_ONLY"
+                 },
+                 "roomSubscription" => %{
+                   "room" => %{
+                     "name" => variables.name
+                   }
+                 },
+                 "errors" => []
+               }
+             }
+           }
   end
 
-  test "returns validation errors when data is invalid",
-    %{conn: conn, user: user, query: query} do
-
+  test "returns validation errors when data is invalid", %{conn: conn, user: user, query: query} do
     # create an existing room with the same name
     Level.Rooms.create_room(user, %{name: "Development"})
 
@@ -88,16 +84,16 @@ defmodule LevelWeb.GraphQL.CreateRoomTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "createRoom" => %{
-          "success" => false,
-          "room" => nil,
-          "roomSubscription" => nil,
-          "errors" => [
-            %{"attribute" => "name", "message" => "has already been taken"}
-          ]
-        }
-      }
-    }
+             "data" => %{
+               "createRoom" => %{
+                 "success" => false,
+                 "room" => nil,
+                 "roomSubscription" => nil,
+                 "errors" => [
+                   %{"attribute" => "name", "message" => "has already been taken"}
+                 ]
+               }
+             }
+           }
   end
 end

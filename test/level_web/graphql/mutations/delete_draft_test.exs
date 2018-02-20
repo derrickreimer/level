@@ -31,13 +31,13 @@ defmodule LevelWeb.GraphQL.DeleteDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "deleteDraft" => %{
-          "success" => true,
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "deleteDraft" => %{
+                 "success" => true,
+                 "errors" => []
+               }
+             }
+           }
 
     assert Threads.get_draft(draft.id) == nil
   end
@@ -61,21 +61,24 @@ defmodule LevelWeb.GraphQL.DeleteDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "deleteDraft" => %{
-          "success" => false,
-          "errors" => [%{
-            "attribute" => "base",
-            "message" => "Draft not found"
-          }]
-        }
-      }
-    }
+             "data" => %{
+               "deleteDraft" => %{
+                 "success" => false,
+                 "errors" => [
+                   %{
+                     "attribute" => "base",
+                     "message" => "Draft not found"
+                   }
+                 ]
+               }
+             }
+           }
   end
 
-  test "returns errors if draft does not belong to authenticated user",
-    %{conn: conn, space: space} do
-
+  test "returns errors if draft does not belong to authenticated user", %{
+    conn: conn,
+    space: space
+  } do
     {:ok, %{user: other_user}} = insert_signup(%{space: space})
     {:ok, draft} = insert_draft(space, other_user)
 
@@ -97,15 +100,17 @@ defmodule LevelWeb.GraphQL.DeleteDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "deleteDraft" => %{
-          "success" => false,
-          "errors" => [%{
-            "attribute" => "base",
-            "message" => "Draft not found"
-          }]
-        }
-      }
-    }
+             "data" => %{
+               "deleteDraft" => %{
+                 "success" => false,
+                 "errors" => [
+                   %{
+                     "attribute" => "base",
+                     "message" => "Draft not found"
+                   }
+                 ]
+               }
+             }
+           }
   end
 end

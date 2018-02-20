@@ -40,8 +40,7 @@ defmodule Level.ThreadsTest do
 
         changeset = Threads.create_draft_changeset(params)
         refute changeset.valid?
-        assert changeset.errors ==
-          [{param, {"can't be blank", [validation: :required]}}]
+        assert changeset.errors == [{param, {"can't be blank", [validation: :required]}}]
       end
     end
 
@@ -53,9 +52,13 @@ defmodule Level.ThreadsTest do
 
       changeset = Threads.create_draft_changeset(params)
       refute changeset.valid?
+
       assert changeset.errors ==
-        [subject: {"should be at most %{count} character(s)",
-          [count: 255, validation: :length, max: 255]}]
+               [
+                 subject:
+                   {"should be at most %{count} character(s)",
+                    [count: 255, validation: :length, max: 255]}
+               ]
     end
   end
 
@@ -147,9 +150,13 @@ defmodule Level.ThreadsTest do
       subject = String.duplicate("a", 256)
       changeset = Threads.update_draft_changeset(draft, %{subject: subject})
       refute changeset.valid?
+
       assert changeset.errors ==
-        [subject: {"should be at most %{count} character(s)",
-          [count: 255, validation: :length, max: 255]}]
+               [
+                 subject:
+                   {"should be at most %{count} character(s)",
+                    [count: 255, validation: :length, max: 255]}
+               ]
     end
   end
 
@@ -169,9 +176,13 @@ defmodule Level.ThreadsTest do
     test "does not update if invalid", %{draft: draft} do
       changeset = Threads.update_draft_changeset(draft, %{subject: String.duplicate("a", 256)})
       {:error, changeset} = Threads.update_draft(changeset)
+
       assert changeset.errors ==
-        [subject: {"should be at most %{count} character(s)",
-          [count: 255, validation: :length, max: 255]}]
+               [
+                 subject:
+                   {"should be at most %{count} character(s)",
+                    [count: 255, validation: :length, max: 255]}
+               ]
     end
   end
 
@@ -188,12 +199,14 @@ defmodule Level.ThreadsTest do
     end
 
     test "does not update if invalid", %{draft: draft} do
-      {:error, changeset} =
-        Threads.update_draft(draft, %{subject: String.duplicate("a", 256)})
+      {:error, changeset} = Threads.update_draft(draft, %{subject: String.duplicate("a", 256)})
 
       assert changeset.errors ==
-        [subject: {"should be at most %{count} character(s)",
-          [count: 255, validation: :length, max: 255]}]
+               [
+                 subject:
+                   {"should be at most %{count} character(s)",
+                    [count: 255, validation: :length, max: 255]}
+               ]
     end
   end
 

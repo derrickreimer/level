@@ -11,14 +11,19 @@ defmodule LevelWeb.SessionController do
     render conn, "new.html"
   end
 
-  def create(conn, %{"session" => %{"username" => username,
-                                    "password" => pass}}) do
+  def create(conn, %{"session" => %{"username" => username, "password" => pass}}) do
     case LevelWeb.Auth.sign_in_with_credentials(
-      conn, conn.assigns.space, username, pass, repo: Repo) do
+           conn,
+           conn.assigns.space,
+           username,
+           pass,
+           repo: Repo
+         ) do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")
         |> redirect(to: cockpit_path(conn, :index))
+
       {:error, _reason, conn} ->
         conn
         |> put_flash(:error, "Oops, those credentials are not correct")

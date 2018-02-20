@@ -37,11 +37,14 @@ defmodule Level.Rooms do
         case get_room_subscription(room.id, user.id) do
           {:error, _} ->
             not_found(dgettext("errors", "Room not found"))
+
           {:ok, _} ->
             {:ok, room}
         end
+
       nil ->
         not_found(dgettext("errors", "Room not found"))
+
       room ->
         {:ok, room}
     end
@@ -133,6 +136,7 @@ defmodule Level.Rooms do
     case Repo.get_by(RoomSubscription, room_id: room_id, user_id: user_id) do
       nil ->
         not_found(dgettext("errors", "User is not subscribed to the room"))
+
       subscription ->
         {:ok, subscription}
     end
@@ -143,8 +147,7 @@ defmodule Level.Rooms do
   """
   def get_mandatory_rooms(%Level.Spaces.User{space_id: space_id}) do
     Repo.all(
-      from r in Room,
-        where: r.space_id == ^space_id and r.subscriber_policy == "MANDATORY"
+      from r in Room, where: r.space_id == ^space_id and r.subscriber_policy == "MANDATORY"
     )
   end
 
@@ -247,8 +250,7 @@ defmodule Level.Rooms do
       |> Repo.insert()
 
     with {:ok, message} <- operation,
-         {:ok, updated_subscription} <- mark_message_as_read(subscription, message)
-    do
+         {:ok, updated_subscription} <- mark_message_as_read(subscription, message) do
       # Preload the associated room
       updated_subscription = Repo.preload(updated_subscription, :room)
       room = updated_subscription.room
@@ -260,15 +262,17 @@ defmodule Level.Rooms do
       # TODO: Is this the ideal pattern to employ? Should this happen
       # in an asynchronous process? Should we have more aggressive caching
       # on room member ids? Is there a better way to structure topics?
-      room_member_ids = Repo.all(
-        from s in "room_subscriptions",
-          where: s.room_id == ^room.id,
-          select: s.user_id
-      )
+      room_member_ids =
+        Repo.all(
+          from s in "room_subscriptions",
+            where: s.room_id == ^room.id,
+            select: s.user_id
+        )
 
-      topics = Enum.map(room_member_ids, fn(id) ->
-        {:room_message_created, to_string(id)}
-      end)
+      topics =
+        Enum.map(room_member_ids, fn id ->
+          {:room_message_created, to_string(id)}
+        end)
 
       Pubsub.publish(message_created_payload(room, message), topics)
 
@@ -288,9 +292,13 @@ defmodule Level.Rooms do
       mark_message_as_read(room_subscription, message)
       => {:ok, %RoomSubscription{...}}
   """
-  def mark_message_as_read(%RoomSubscription{last_read_message_id: nil} = room_subscription, message) do
+  def mark_message_as_read(
+        %RoomSubscription{last_read_message_id: nil} = room_subscription,
+        message
+      ) do
     set_last_read_message(room_subscription, message)
   end
+
   def mark_message_as_read(room_subscription, message) do
     if room_subscription.last_read_message_id < message.id do
       set_last_read_message(room_subscription, message)
@@ -300,14 +308,19 @@ defmodule Level.Rooms do
   end
 
   defp set_last_read_message(room_subscription, message) do
-    with {:ok, updated_subscription} <- room_subscription
-      |> Changeset.change(last_read_message_id: message.id, last_read_message_at: Timex.now)
-      |> Repo.update()
-    do
-      topics = [{
-        :last_read_room_message_updated,
-        to_string(updated_subscription.user_id)
-      }]
+    with {:ok, updated_subscription} <-
+           room_subscription
+           |> Changeset.change(
+             last_read_message_id: message.id,
+             last_read_message_at: Timex.now()
+           )
+           |> Repo.update() do
+      topics = [
+        {
+          :last_read_room_message_updated,
+          to_string(updated_subscription.user_id)
+        }
+      ]
 
       updated_subscription
       |> mark_message_as_read_payload()
@@ -372,7 +385,7 @@ defmodule Level.Rooms do
   # inserts a new record into the room subscriptions table for the user that
   # created the room.
   defp create_room_operation(user, params) do
-    Multi.new
+    Multi.new()
     |> Multi.insert(:room, create_room_changeset(user, params))
     |> Multi.run(:room_subscription, create_room_subscription_operation(user))
   end
@@ -397,8 +410,11 @@ defmodule Level.Rooms do
 
   # Builds a changeset for creating a new room subscription.
   defp create_room_subscription_changeset(room, user) do
-    RoomSubscription.create_changeset(%RoomSubscription{},
-      %{space_id: user.space_id, user_id: user.id, room_id: room.id})
+    RoomSubscription.create_changeset(%RoomSubscription{}, %{
+      space_id: user.space_id,
+      user_id: user.id,
+      room_id: room.id
+    })
   end
 
   # Builds a changeset for creating a room message.

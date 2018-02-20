@@ -27,9 +27,21 @@ defmodule Level.Spaces.Registration do
   def changeset(struct, params \\ %{}) do
     {struct, @types}
     |> cast(params, Map.keys(@types))
-    |> validate_required([:slug, :space_name, :first_name, :last_name, :username, :email, :password])
+    |> validate_required([
+      :slug,
+      :space_name,
+      :first_name,
+      :last_name,
+      :username,
+      :email,
+      :password
+    ])
     |> validate_length(:slug, min: 1, max: 20)
-    |> validate_format(:slug, Space.slug_format, message: dgettext("errors", "must be lowercase and alphanumeric"))
+    |> validate_format(
+      :slug,
+      Space.slug_format(),
+      message: dgettext("errors", "must be lowercase and alphanumeric")
+    )
     |> validate_length(:space_name, min: 1, max: 255)
     |> User.validate_user_params()
     |> validate_slug_uniqueness
@@ -42,7 +54,7 @@ defmodule Level.Spaces.Registration do
   def create_operation(changeset) do
     space_changeset = Space.signup_changeset(%Space{}, space_params(changeset))
 
-    Multi.new
+    Multi.new()
     |> Multi.insert(:space, space_changeset)
     |> Multi.run(:user, create_user_operation(user_params(changeset)))
     |> Multi.run(:default_room, create_default_room_operation())
@@ -81,11 +93,11 @@ defmodule Level.Spaces.Registration do
   end
 
   def validate_slug_uniqueness(changeset, _opts \\ []) do
-    validate_change changeset, :slug, {:uniqueness}, fn _, value ->
+    validate_change(changeset, :slug, {:uniqueness}, fn _, value ->
       case Repo.get_by(Space, slug: value) do
         nil -> []
         _ -> [{:slug, {dgettext("errors", "is already taken"), [validation: :uniqueness]}}]
       end
-    end
+    end)
   end
 end

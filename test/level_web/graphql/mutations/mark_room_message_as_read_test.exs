@@ -34,19 +34,23 @@ defmodule LevelWeb.GraphQL.MarkRoomMessageAsReadTest do
     {:ok, %{room: room, room_subscription: room_subscription}} =
       Rooms.create_room(user, %{name: "Development"})
 
-    {:ok, %{
-      conn: conn,
-      user: user,
-      space: space,
-      query: query,
-      room: room,
-      room_subscription: room_subscription
-    }}
+    {:ok,
+     %{
+       conn: conn,
+       user: user,
+       space: space,
+       query: query,
+       room: room,
+       room_subscription: room_subscription
+     }}
   end
 
-  test "sets the last read message",
-    %{conn: conn, query: query, room: room, room_subscription: room_subscription} do
-
+  test "sets the last read message", %{
+    conn: conn,
+    query: query,
+    room: room,
+    room_subscription: room_subscription
+  } do
     {:ok, %{room_message: message, room_subscription: room_subscription}} =
       Rooms.create_message(room_subscription, valid_room_message_params())
 
@@ -66,18 +70,18 @@ defmodule LevelWeb.GraphQL.MarkRoomMessageAsReadTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "markRoomMessageAsRead" => %{
-          "success" => true,
-          "roomSubscription" => %{
-            "lastReadMessage" => %{
-              "id" => to_string(message.id)
-            }
-          },
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "markRoomMessageAsRead" => %{
+                 "success" => true,
+                 "roomSubscription" => %{
+                   "lastReadMessage" => %{
+                     "id" => to_string(message.id)
+                   }
+                 },
+                 "errors" => []
+               }
+             }
+           }
 
     mutated_subscription = Repo.get(Rooms.RoomSubscription, room_subscription.id)
     assert mutated_subscription.last_read_message_id == message.id

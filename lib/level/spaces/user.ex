@@ -14,8 +14,8 @@ defmodule Level.Spaces.User do
   # @roles ["OWNER", "ADMIN", "MEMBER"]
 
   schema "users" do
-    field :state, :string, read_after_writes: true # user_state
-    field :role, :string, read_after_writes: true # user_role
+    field :state, :string, read_after_writes: true
+    field :role, :string, read_after_writes: true
     field :email, :string
     field :username, :string
     field :first_name, :string
@@ -51,7 +51,16 @@ defmodule Level.Spaces.User do
   """
   def signup_changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:space_id, :role, :email, :first_name, :last_name, :username, :time_zone, :password])
+    |> cast(params, [
+      :space_id,
+      :role,
+      :email,
+      :first_name,
+      :last_name,
+      :username,
+      :time_zone,
+      :password
+    ])
     |> validate_user_params()
     |> put_default_time_zone
     |> put_pass_hash
@@ -69,7 +78,11 @@ defmodule Level.Spaces.User do
     |> validate_length(:last_name, min: 1, max: 255)
     |> validate_length(:username, min: 3, max: 20)
     |> validate_length(:password, min: 6)
-    |> validate_format(:username, username_format(), message: dgettext("errors", "must be lowercase and alphanumeric"))
+    |> validate_format(
+      :username,
+      username_format(),
+      message: dgettext("errors", "must be lowercase and alphanumeric")
+    )
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
     |> unique_constraint(:email, name: :users_space_id_email_index)
     |> unique_constraint(:username, name: :users_space_id_username_index)
@@ -79,13 +92,14 @@ defmodule Level.Spaces.User do
     16
     |> :crypto.strong_rand_bytes()
     |> Base.encode16()
-    |> String.downcase
+    |> String.downcase()
   end
 
   defp put_pass_hash(changeset) do
     case changeset do
       %Changeset{valid?: true, changes: %{password: pass}} ->
         put_change(changeset, :password_hash, Bcrypt.hashpwsalt(pass))
+
       _ ->
         changeset
     end
@@ -95,8 +109,10 @@ defmodule Level.Spaces.User do
     case changeset do
       %Changeset{changes: %{time_zone: ""}} ->
         put_change(changeset, :time_zone, "UTC")
+
       %Changeset{changes: %{time_zone: _}} ->
         changeset
+
       _ ->
         put_change(changeset, :time_zone, "UTC")
     end

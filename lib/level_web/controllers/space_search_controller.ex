@@ -15,6 +15,7 @@ defmodule LevelWeb.SpaceSearchController do
         conn
         |> put_flash(:error, "We could not find your space")
         |> render("new.html")
+
       space ->
         redirect(conn, external: space_login_url(conn, space))
     end

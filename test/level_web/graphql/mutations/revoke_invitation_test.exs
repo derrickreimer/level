@@ -11,8 +11,7 @@ defmodule LevelWeb.GraphQL.RevokeInvitationTest do
     {:ok, %{conn: conn, user: user, space: space, invitation: invitation}}
   end
 
-  test "transitions the invitation to revoked",
-    %{conn: conn, invitation: invitation} do
+  test "transitions the invitation to revoked", %{conn: conn, invitation: invitation} do
     query = """
       mutation RevokeInvitation(
         $id: ID!
@@ -40,16 +39,16 @@ defmodule LevelWeb.GraphQL.RevokeInvitationTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "revokeInvitation" => %{
-          "success" => true,
-          "invitation" => %{
-            "id" => to_string(invitation.id)
-          },
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "revokeInvitation" => %{
+                 "success" => true,
+                 "invitation" => %{
+                   "id" => to_string(invitation.id)
+                 },
+                 "errors" => []
+               }
+             }
+           }
 
     revoked_invitation = Repo.get(Spaces.Invitation, invitation.id)
     assert revoked_invitation.state == "REVOKED"
@@ -80,15 +79,17 @@ defmodule LevelWeb.GraphQL.RevokeInvitationTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "revokeInvitation" => %{
-          "success" => false,
-          "errors" => [%{
-            "attribute" => "base",
-            "message" => "Invitation not found"
-          }]
-        }
-      }
-    }
+             "data" => %{
+               "revokeInvitation" => %{
+                 "success" => false,
+                 "errors" => [
+                   %{
+                     "attribute" => "base",
+                     "message" => "Invitation not found"
+                   }
+                 ]
+               }
+             }
+           }
   end
 end

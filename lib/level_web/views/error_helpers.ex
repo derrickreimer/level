@@ -10,7 +10,7 @@ defmodule LevelWeb.ErrorHelpers do
   """
   def error_tag(form, field) do
     if error = form.errors[field] do
-      content_tag :div, translate_error(error), class: "form-errors"
+      content_tag(:div, translate_error(error), class: "form-errors")
     end
   end
 
@@ -40,13 +40,15 @@ defmodule LevelWeb.ErrorHelpers do
 
   def json_validation_errors(changeset) do
     %{
-      errors: Enum.map(changeset.errors, fn({attr, {msg, props}}) ->
-        message = Enum.reduce props, msg, fn {k, v}, acc ->
-          String.replace(acc, "%{#{k}}", to_string(v))
-        end
+      errors:
+        Enum.map(changeset.errors, fn {attr, {msg, props}} ->
+          message =
+            Enum.reduce(props, msg, fn {k, v}, acc ->
+              String.replace(acc, "%{#{k}}", to_string(v))
+            end)
 
-        %{attribute: attr, message: message, properties: Map.new(props)}
-      end)
+          %{attribute: attr, message: message, properties: Map.new(props)}
+        end)
     }
   end
 end

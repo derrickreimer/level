@@ -10,7 +10,7 @@ defmodule Level.ConnCaseHelpers do
     conn
     |> LevelWeb.Auth.sign_in(space, user)
     |> send_resp(:ok, "")
-    |> Phoenix.ConnTest.recycle
+    |> Phoenix.ConnTest.recycle()
   end
 
   def authenticate_with_jwt(conn, space, user) do
@@ -31,7 +31,7 @@ defmodule Level.ConnCaseHelpers do
 
   defp format_json(data) do
     data
-    |> Poison.encode!
-    |> Poison.decode!
+    |> Poison.encode!()
+    |> Poison.decode!()
   end
 end

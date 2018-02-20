@@ -2,8 +2,7 @@ defmodule LevelWeb.UserSocket do
   @moduledoc false
 
   use Phoenix.Socket
-  use Absinthe.Phoenix.Socket,
-    schema: LevelWeb.Schema
+  use Absinthe.Phoenix.Socket, schema: LevelWeb.Schema
 
   alias LevelWeb.Auth
 
@@ -13,17 +12,21 @@ defmodule LevelWeb.UserSocket do
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket,
     timeout: 45_000,
-    check_origin: false # TODO: investigate if this is the right move
+    # TODO: investigate if this is the right move
+    check_origin: false
 
   # transport :longpoll, Phoenix.Transports.LongPoll
 
   def connect(%{"Authorization" => auth}, socket) do
     with "Bearer " <> token <- auth,
-         {:ok, %{user: user}} <- Auth.get_user_by_token(token)
-    do
-      socket = Absinthe.Phoenix.Socket.put_opts(socket, context: %{
-        current_user: user
-      })
+         {:ok, %{user: user}} <- Auth.get_user_by_token(token) do
+      socket =
+        Absinthe.Phoenix.Socket.put_opts(
+          socket,
+          context: %{
+            current_user: user
+          }
+        )
 
       {:ok, socket}
     else

@@ -37,22 +37,23 @@ defmodule LevelWeb.GraphQL.UpdateDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "updateDraft" => %{
-          "success" => true,
-          "draft" => %{
-            "subject" => new_subject,
-            "body" => original_body
-          },
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "updateDraft" => %{
+                 "success" => true,
+                 "draft" => %{
+                   "subject" => new_subject,
+                   "body" => original_body
+                 },
+                 "errors" => []
+               }
+             }
+           }
   end
 
-  test "returns errors when draft does not belong to the authenticated user",
-    %{conn: conn, space: space} do
-
+  test "returns errors when draft does not belong to the authenticated user", %{
+    conn: conn,
+    space: space
+  } do
     {:ok, %{user: other_user}} = insert_signup(%{space_id: space.id})
     {:ok, non_owned_draft} = insert_draft(space, other_user)
 
@@ -77,22 +78,22 @@ defmodule LevelWeb.GraphQL.UpdateDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "updateDraft" => %{
-          "success" => false,
-          "draft" => nil,
-          "errors" => [
-            %{"attribute" => "base", "message" => "Draft not found"}
-          ]
-        }
-      }
-    }
+             "data" => %{
+               "updateDraft" => %{
+                 "success" => false,
+                 "draft" => nil,
+                 "errors" => [
+                   %{"attribute" => "base", "message" => "Draft not found"}
+                 ]
+               }
+             }
+           }
   end
 
-  test "returns validation errors when data is invalid",
-    %{conn: conn, draft: draft} do
+  test "returns validation errors when data is invalid", %{conn: conn, draft: draft} do
     old_subject = draft.subject
-    new_subject = String.duplicate("a", 260) # too long
+    # too long
+    new_subject = String.duplicate("a", 260)
 
     query = """
       mutation {
@@ -115,17 +116,17 @@ defmodule LevelWeb.GraphQL.UpdateDraftTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "updateDraft" => %{
-          "success" => false,
-          "draft" => %{
-            "subject" => old_subject
-          },
-          "errors" => [
-            %{"attribute" => "subject", "message" => "should be at most 255 character(s)"}
-          ]
-        }
-      }
-    }
+             "data" => %{
+               "updateDraft" => %{
+                 "success" => false,
+                 "draft" => %{
+                   "subject" => old_subject
+                 },
+                 "errors" => [
+                   %{"attribute" => "subject", "message" => "should be at most 255 character(s)"}
+                 ]
+               }
+             }
+           }
   end
 end

@@ -24,10 +24,12 @@ defmodule LevelWeb.DraftResolver do
     resp =
       case Threads.get_draft_for_user(user, args.id) do
         nil ->
-          errors = [%{
-            attribute: "base",
-            message: dgettext("errors", "Draft not found")
-          }]
+          errors = [
+            %{
+              attribute: "base",
+              message: dgettext("errors", "Draft not found")
+            }
+          ]
 
           %{success: false, draft: nil, errors: errors}
 
@@ -48,10 +50,12 @@ defmodule LevelWeb.DraftResolver do
     resp =
       case Threads.get_draft_for_user(user, id) do
         nil ->
-          errors = [%{
-            attribute: "base",
-            message: dgettext("errors", "Draft not found")
-          }]
+          errors = [
+            %{
+              attribute: "base",
+              message: dgettext("errors", "Draft not found")
+            }
+          ]
 
           %{success: false, errors: errors}
 

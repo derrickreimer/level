@@ -17,8 +17,13 @@ defmodule LevelWeb.API.UserViewTest do
       }
 
       assert UserView.user_json(user) ==
-        %{id: 999, email: "derrick@level.live", username: "derrick",
-          inserted_at: inserted_at, updated_at: updated_at}
+               %{
+                 id: 999,
+                 email: "derrick@level.live",
+                 username: "derrick",
+                 inserted_at: inserted_at,
+                 updated_at: updated_at
+               }
     end
   end
 end

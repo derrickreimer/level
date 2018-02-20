@@ -34,21 +34,23 @@ defmodule LevelWeb.GraphQL.RoomSubscriptionsTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "roomSubscriptions" => %{
-            "edges" => [%{
-              "node" => %{
-                "room" => %{
-                  "name" => "Everyone"
-                }
-              }
-            }],
-            "total_count" => 1
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "roomSubscriptions" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "room" => %{
+                           "name" => "Everyone"
+                         }
+                       }
+                     }
+                   ],
+                   "total_count" => 1
+                 }
+               }
+             }
+           }
   end
 
   test "fetches the last read message", %{conn: conn, user: user} do
@@ -89,20 +91,22 @@ defmodule LevelWeb.GraphQL.RoomSubscriptionsTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "roomSubscriptions" => %{
-            "edges" => [%{
-              "node" => %{
-                "lastReadMessage" => %{
-                  "id" => to_string(message.id)
-                }
-              }
-            }],
-            "total_count" => 1
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "roomSubscriptions" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "lastReadMessage" => %{
+                           "id" => to_string(message.id)
+                         }
+                       }
+                     }
+                   ],
+                   "total_count" => 1
+                 }
+               }
+             }
+           }
   end
 end

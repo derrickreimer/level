@@ -37,17 +37,19 @@ defmodule LevelWeb do
       import LevelWeb.Router.Helpers
       import Level.Gettext
 
-      import LevelWeb.Auth, only: [
-        fetch_space: 2,
-        fetch_current_user_by_session: 2,
-        authenticate_with_token: 2,
-        authenticate_user: 2
-      ]
+      import LevelWeb.Auth,
+        only: [
+          fetch_space: 2,
+          fetch_current_user_by_session: 2,
+          authenticate_with_token: 2,
+          authenticate_user: 2
+        ]
 
-      import LevelWeb.Subdomain, only: [
-        validate_host: 2,
-        extract_subdomain: 2
-      ]
+      import LevelWeb.Subdomain,
+        only: [
+          validate_host: 2,
+          extract_subdomain: 2
+        ]
 
       import LevelWeb.UrlHelpers
     end
@@ -55,15 +57,17 @@ defmodule LevelWeb do
 
   def view do
     quote do
-      use Phoenix.View, root: "lib/level_web/templates",
-                        namespace: LevelWeb
+      use Phoenix.View,
+        root: "lib/level_web/templates",
+        namespace: LevelWeb
 
       # Import convenience functions from controllers
-      import Phoenix.Controller, only: [
-        get_csrf_token: 0,
-        get_flash: 2,
-        view_module: 1
-      ]
+      import Phoenix.Controller,
+        only: [
+          get_csrf_token: 0,
+          get_flash: 2,
+          view_module: 1
+        ]
 
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
@@ -79,17 +83,19 @@ defmodule LevelWeb do
     quote do
       use Phoenix.Router
 
-      import LevelWeb.Auth, only: [
-        fetch_space: 2,
-        fetch_current_user_by_session: 2,
-        authenticate_with_token: 2,
-        authenticate_user: 2
-      ]
+      import LevelWeb.Auth,
+        only: [
+          fetch_space: 2,
+          fetch_current_user_by_session: 2,
+          authenticate_with_token: 2,
+          authenticate_user: 2
+        ]
 
-      import LevelWeb.Subdomain, only: [
-        validate_host: 2,
-        extract_subdomain: 2
-      ]
+      import LevelWeb.Subdomain,
+        only: [
+          validate_host: 2,
+          extract_subdomain: 2
+        ]
     end
   end
 

@@ -12,25 +12,25 @@ defmodule Level.Spaces.SpaceTest do
 
   describe "slug_format/0" do
     test "matches lowercase alphanumeric and dash chars" do
-      assert Regex.match?(Space.slug_format, "level")
-      assert Regex.match?(Space.slug_format, "level-inc")
+      assert Regex.match?(Space.slug_format(), "level")
+      assert Regex.match?(Space.slug_format(), "level-inc")
     end
 
     test "does not match whitespace" do
-      refute Regex.match?(Space.slug_format, "level inc")
+      refute Regex.match?(Space.slug_format(), "level inc")
     end
 
     test "does not match leading or trailing dashes" do
-      refute Regex.match?(Space.slug_format, "level-")
-      refute Regex.match?(Space.slug_format, "-level")
+      refute Regex.match?(Space.slug_format(), "level-")
+      refute Regex.match?(Space.slug_format(), "-level")
     end
 
     test "does not match special chars" do
-      refute Regex.match?(Space.slug_format, "level$")
+      refute Regex.match?(Space.slug_format(), "level$")
     end
 
     test "does not match uppercase chars" do
-      refute Regex.match?(Space.slug_format, "Level")
+      refute Regex.match?(Space.slug_format(), "Level")
     end
   end
 

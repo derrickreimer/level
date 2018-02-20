@@ -7,27 +7,35 @@ defmodule LevelWeb.UrlHelpers do
   alias LevelWeb.Endpoint
 
   def signup_url(conn) do
-    URI.to_string %{build_uri_from_conn(conn) |
-      host: "launch.#{default_host()}",
-      path: Helpers.space_path(conn, :new)}
+    URI.to_string(%{
+      build_uri_from_conn(conn)
+      | host: "launch.#{default_host()}",
+        path: Helpers.space_path(conn, :new)
+    })
   end
 
   def space_login_url(conn, space) do
-    URI.to_string %{build_uri_from_conn(conn) |
-      host: "#{space.slug}.#{default_host()}",
-      path: Helpers.session_path(conn, :new)}
+    URI.to_string(%{
+      build_uri_from_conn(conn)
+      | host: "#{space.slug}.#{default_host()}",
+        path: Helpers.session_path(conn, :new)
+    })
   end
 
   def space_search_url(conn) do
-    URI.to_string %{build_uri_from_conn(conn) |
-      host: "launch.#{default_host()}",
-      path: Helpers.space_search_path(conn, :new)}
+    URI.to_string(%{
+      build_uri_from_conn(conn)
+      | host: "launch.#{default_host()}",
+        path: Helpers.space_search_path(conn, :new)
+    })
   end
 
   def threads_url(conn, space) do
-    URI.to_string %{build_uri_from_conn(conn) |
-      host: "#{space.slug}.#{default_host()}",
-      path: Helpers.cockpit_path(conn, :index)}
+    URI.to_string(%{
+      build_uri_from_conn(conn)
+      | host: "#{space.slug}.#{default_host()}",
+        path: Helpers.cockpit_path(conn, :index)
+    })
   end
 
   def build_url_with_subdomain(subdomain, path, config \\ nil) do
@@ -37,10 +45,11 @@ defmodule LevelWeb.UrlHelpers do
     scheme = Keyword.get(config, :scheme, "http")
     port = Keyword.get(config, :port)
 
-    host = case subdomain do
-      nil -> base_host
-      val -> "#{val}.#{base_host}"
-    end
+    host =
+      case subdomain do
+        nil -> base_host
+        val -> "#{val}.#{base_host}"
+      end
 
     base_uri = %URI{
       scheme: scheme,
@@ -48,12 +57,13 @@ defmodule LevelWeb.UrlHelpers do
       path: path
     }
 
-    uri = case port do
-      nil -> base_uri
-      80 -> base_uri
-      443 -> base_uri
-      port -> %{base_uri | port: port}
-    end
+    uri =
+      case port do
+        nil -> base_uri
+        80 -> base_uri
+        443 -> base_uri
+        port -> %{base_uri | port: port}
+      end
 
     URI.to_string(uri)
   end
@@ -69,7 +79,7 @@ defmodule LevelWeb.UrlHelpers do
   defp build_uri_from_conn(conn) do
     %URI{
       scheme: Atom.to_string(conn.scheme),
-      port: conn.port,
+      port: conn.port
     }
   end
 end

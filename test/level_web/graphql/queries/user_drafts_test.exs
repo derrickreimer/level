@@ -10,8 +10,7 @@ defmodule LevelWeb.GraphQL.UserDraftsTest do
     {:ok, %{conn: conn, user: user, space: space}}
   end
 
-  test "returns drafts belonging to the user",
-    %{conn: conn, user: user, space: space} do
+  test "returns drafts belonging to the user", %{conn: conn, user: user, space: space} do
     query = """
       {
         viewer {
@@ -41,22 +40,24 @@ defmodule LevelWeb.GraphQL.UserDraftsTest do
       |> post("/graphql", query)
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "viewer" => %{
-          "drafts" => %{
-            "edges" => [%{
-              "node" => %{
-                "id" => to_string(draft.id),
-                "subject" => draft.subject,
-                "user" => %{
-                  "id" => to_string(user.id)
-                }
-              }
-            }],
-            "total_count" => 1
-          }
-        }
-      }
-    }
+             "data" => %{
+               "viewer" => %{
+                 "drafts" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "id" => to_string(draft.id),
+                         "subject" => draft.subject,
+                         "user" => %{
+                           "id" => to_string(user.id)
+                         }
+                       }
+                     }
+                   ],
+                   "total_count" => 1
+                 }
+               }
+             }
+           }
   end
 end

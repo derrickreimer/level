@@ -10,15 +10,13 @@ defmodule Level.ConnectionsTest do
     end
 
     test "returns edges", %{space: space, user: user} do
-      {:ok, %Result{edges: [first_edge | _]}} =
-        Connections.users(space, %{first: 1})
+      {:ok, %Result{edges: [first_edge | _]}} = Connections.users(space, %{first: 1})
 
       assert first_edge.node.id == user.id
     end
 
     test "returns total count", %{space: space} do
-      {:ok, %Result{total_count: total_count}} =
-        Connections.users(space, %{first: 1})
+      {:ok, %Result{total_count: total_count}} = Connections.users(space, %{first: 1})
 
       assert total_count == 1
     end
@@ -32,15 +30,13 @@ defmodule Level.ConnectionsTest do
     end
 
     test "returns edges", %{room_subscription: room_subscription, user: user} do
-      {:ok, %Result{edges: [first_edge | _]}} =
-        Connections.room_subscriptions(user, %{first: 1})
+      {:ok, %Result{edges: [first_edge | _]}} = Connections.room_subscriptions(user, %{first: 1})
 
       assert first_edge.node.id == room_subscription.id
     end
 
     test "returns total count", %{user: user} do
-      {:ok, %Result{total_count: total_count}} =
-        Connections.room_subscriptions(user, %{first: 1})
+      {:ok, %Result{total_count: total_count}} = Connections.room_subscriptions(user, %{first: 1})
 
       assert total_count == 1
     end
@@ -52,15 +48,13 @@ defmodule Level.ConnectionsTest do
     end
 
     test "returns edges", %{user: user, default_room: %{room: room}} do
-      {:ok, %Result{edges: [first_edge | _]}} =
-        Connections.room_users(room, %{first: 1})
+      {:ok, %Result{edges: [first_edge | _]}} = Connections.room_users(room, %{first: 1})
 
       assert first_edge.node.id == user.id
     end
 
     test "returns total count", %{default_room: %{room: room}} do
-      {:ok, %Result{total_count: total_count}} =
-        Connections.room_users(room, %{first: 1})
+      {:ok, %Result{total_count: total_count}} = Connections.room_users(room, %{first: 1})
 
       assert total_count == 1
     end

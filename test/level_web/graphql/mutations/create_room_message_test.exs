@@ -34,9 +34,7 @@ defmodule LevelWeb.GraphQL.CreateRoomMessageTest do
     {:ok, %{conn: conn, user: user, space: space, query: query, room: room}}
   end
 
-  test "creates a room with valid data",
-    %{conn: conn, query: query, room: room} do
-
+  test "creates a room with valid data", %{conn: conn, query: query, room: room} do
     variables = %{
       roomId: room.id,
       body: "Hello world"
@@ -48,28 +46,27 @@ defmodule LevelWeb.GraphQL.CreateRoomMessageTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "createRoomMessage" => %{
-          "success" => true,
-          "room" => %{
-            "id" => to_string(room.id)
-          },
-          "roomMessage" => %{
-            "body" => variables.body
-          },
-          "errors" => []
-        }
-      }
-    }
+             "data" => %{
+               "createRoomMessage" => %{
+                 "success" => true,
+                 "room" => %{
+                   "id" => to_string(room.id)
+                 },
+                 "roomMessage" => %{
+                   "body" => variables.body
+                 },
+                 "errors" => []
+               }
+             }
+           }
   end
 
-  test "returns validation errors when data is invalid",
-    %{conn: conn, query: query, room: room} do
-
-      variables = %{
-        roomId: room.id,
-        body: "" # body is required
-      }
+  test "returns validation errors when data is invalid", %{conn: conn, query: query, room: room} do
+    variables = %{
+      roomId: room.id,
+      # body is required
+      body: ""
+    }
 
     conn =
       conn
@@ -77,28 +74,26 @@ defmodule LevelWeb.GraphQL.CreateRoomMessageTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "createRoomMessage" => %{
-          "success" => false,
-          "room" => %{
-            "id" => to_string(room.id)
-          },
-          "roomMessage" => nil,
-          "errors" => [
-            %{"attribute" => "body", "message" => "can't be blank"}
-          ]
-        }
-      }
-    }
+             "data" => %{
+               "createRoomMessage" => %{
+                 "success" => false,
+                 "room" => %{
+                   "id" => to_string(room.id)
+                 },
+                 "roomMessage" => nil,
+                 "errors" => [
+                   %{"attribute" => "body", "message" => "can't be blank"}
+                 ]
+               }
+             }
+           }
   end
 
-  test "errors out if room is not found",
-    %{conn: conn, query: query} do
-
-      variables = %{
-        roomId: "999999",
-        body: "Hello world"
-      }
+  test "errors out if room is not found", %{conn: conn, query: query} do
+    variables = %{
+      roomId: "999999",
+      body: "Hello world"
+    }
 
     conn =
       conn
@@ -106,15 +101,17 @@ defmodule LevelWeb.GraphQL.CreateRoomMessageTest do
       |> post("/graphql", %{query: query, variables: variables})
 
     assert json_response(conn, 200) == %{
-      "data" => %{
-        "createRoomMessage" => nil
-      },
-      "errors" => [%{
-        "code" => "NOT_FOUND",
-        "locations" => [%{"column" => 0, "line" => 5}],
-        "message" => "Room not found",
-        "path" => ["createRoomMessage"]
-      }]
-    }
+             "data" => %{
+               "createRoomMessage" => nil
+             },
+             "errors" => [
+               %{
+                 "code" => "NOT_FOUND",
+                 "locations" => [%{"column" => 0, "line" => 5}],
+                 "message" => "Room not found",
+                 "path" => ["createRoomMessage"]
+               }
+             ]
+           }
   end
 end
