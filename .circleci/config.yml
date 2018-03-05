@@ -64,7 +64,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-dependencies-v4-{{ checksum "assets/package.json" }}
+            - node-dependencies-v5-{{ checksum "assets/package.json" }}
       - restore_cache:
           keys:
             - elm-stuff-v3-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
@@ -88,19 +88,19 @@ jobs:
               cd ..;
             fi
 
-            if [ ! -f $(yarn bin)/elm-make-old ];
+            if [ ! -f $(yarn bin)/elm-make-original ];
             then
               # Replace the elm-make binstub with an optimized one
               cd assets;
-              mv $(yarn bin)/elm-make $(yarn bin)/elm-make-old;
-              printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 2\"\n\n$CIRCLE_WORKING_DIRECTORY/sysconfcpus/bin/sysconfcpus -n 2 $(yarn bin)/elm-make-old \"\$@\"" > $(yarn bin)/elm-make;
+              mv $(yarn bin)/elm-make $(yarn bin)/elm-make-original;
+              printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 2\"\n\n$CIRCLE_WORKING_DIRECTORY/sysconfcpus/bin/sysconfcpus -n 2 $(yarn bin)/elm-make-original \"\$@\"" > $(yarn bin)/elm-make;
               chmod +x $(yarn bin)/elm-make;
             fi
       - run:
           name: "Run Elm test suite"
           command: script/elm-test
       - save_cache:
-          key: node-dependencies-v4-{{ checksum "assets/package.json" }}
+          key: node-dependencies-v5-{{ checksum "assets/package.json" }}
           paths:
             - 'assets/node_modules'
             - 'sysconfcpus'
