@@ -38,21 +38,17 @@ defmodule Level.SpacesTest do
     end
   end
 
-  describe "get_user_by_identifier/1" do
+  describe "get_user_by_email/1" do
     setup do
       insert_signup()
     end
 
     test "looks up user by email address", %{space: space, user: user} do
-      assert Spaces.get_user_by_identifier(space, user.email).id == user.id
-    end
-
-    test "looks up user by username", %{space: space, user: user} do
-      assert Spaces.get_user_by_identifier(space, user.username).id == user.id
+      assert Spaces.get_user_by_email(space, user.email).id == user.id
     end
 
     test "handles when the user is not found", %{space: space} do
-      assert Spaces.get_user_by_identifier(space, "doesnotexist") == nil
+      assert Spaces.get_user_by_email(space, "doesnotexist") == nil
     end
   end
 
@@ -199,7 +195,7 @@ defmodule Level.SpacesTest do
     test "handles invalid params", %{invitation: invitation} do
       params =
         valid_user_params()
-        |> Map.put(:username, "i am not valid")
+        |> Map.put(:email, "i am not valid")
 
       {:error, failed_operation, _, _} = Spaces.accept_invitation(invitation, params)
 

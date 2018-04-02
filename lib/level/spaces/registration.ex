@@ -15,7 +15,6 @@ defmodule Level.Spaces.Registration do
     space_name: :string,
     first_name: :string,
     last_name: :string,
-    username: :string,
     email: :string,
     password: :string,
     time_zone: :string
@@ -32,7 +31,6 @@ defmodule Level.Spaces.Registration do
       :space_name,
       :first_name,
       :last_name,
-      :username,
       :email,
       :password
     ])
@@ -88,7 +86,7 @@ defmodule Level.Spaces.Registration do
 
   defp user_params(changeset) do
     changeset.changes
-    |> Map.take([:first_name, :last_name, :username, :email, :password, :time_zone])
+    |> Map.take([:first_name, :last_name, :email, :password, :time_zone])
     |> Map.put(:role, "OWNER")
   end
 

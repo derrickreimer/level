@@ -25,7 +25,6 @@ defmodule LevelWeb.Schema.Types do
     field :state, non_null(:user_state)
     field :role, non_null(:user_role)
     field :email, non_null(:string)
-    field :username, non_null(:string)
     field :first_name, :string
     field :last_name, :string
     field :time_zone, :string

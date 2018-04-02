@@ -12,7 +12,7 @@ defmodule LevelWeb.GraphQL.ViewerTest do
     query = """
       {
         viewer {
-          username
+          email
           recipient_id
           state
         }
@@ -27,7 +27,7 @@ defmodule LevelWeb.GraphQL.ViewerTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "viewer" => %{
-                 "username" => user.username,
+                 "email" => user.email,
                  "recipient_id" => "u:#{user.id}",
                  "state" => user.state
                }

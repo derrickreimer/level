@@ -34,13 +34,13 @@ defmodule LevelWeb.AcceptInvitationControllerTest do
     test "renders validation errors", %{conn: conn, invitation: invitation} do
       params =
         valid_user_params()
-        |> Map.put(:username, "i am not valid")
+        |> Map.put(:email, "i am not valid")
 
       conn =
         conn
         |> post("/invitations/#{invitation.token}/accept", %{"user" => params})
 
-      assert html_response(conn, 200) =~ "must be lowercase and alphanumeric"
+      assert html_response(conn, 200) =~ "is invalid"
     end
   end
 end

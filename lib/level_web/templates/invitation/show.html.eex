@@ -38,12 +38,6 @@
           </div>
         </div>
 
-        <div class="form-field <%= if f.errors[:username], do: "form-field--error" %>">
-          <%= label f, :username, gettext("Username"), class: "form-label" %>
-          <%= text_input f, :username, class: "text-field text-field--full text-field--large" %>
-          <%= error_tag f, :username %>
-        </div>
-
         <div class="form-field <%= if f.errors[:password], do: "form-field--error" %>">
           <%= label f, :password, gettext("Password"), class: "form-label" %>
           <%= password_input f, :password, class: "text-field text-field--full text-field--large" %>

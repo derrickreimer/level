@@ -17,7 +17,6 @@ defmodule Level.Spaces.User do
     field :state, :string, read_after_writes: true
     field :role, :string, read_after_writes: true
     field :email, :string
-    field :username, :string
     field :first_name, :string
     field :last_name, :string
     field :time_zone, :string
@@ -28,13 +27,6 @@ defmodule Level.Spaces.User do
     has_many :room_subscriptions, Level.Rooms.RoomSubscription
 
     timestamps()
-  end
-
-  @doc """
-  The regex format for a username.
-  """
-  def username_format do
-    ~r/^(?>[a-z][a-z0-9-\.]*[a-z0-9])$/
   end
 
   @doc """
@@ -57,7 +49,6 @@ defmodule Level.Spaces.User do
       :email,
       :first_name,
       :last_name,
-      :username,
       :time_zone,
       :password
     ])
@@ -72,20 +63,13 @@ defmodule Level.Spaces.User do
   """
   def validate_user_params(changeset) do
     changeset
-    |> validate_required([:first_name, :last_name, :username, :email, :password])
+    |> validate_required([:first_name, :last_name, :email, :password])
     |> validate_length(:email, min: 1, max: 254)
     |> validate_length(:first_name, min: 1, max: 255)
     |> validate_length(:last_name, min: 1, max: 255)
-    |> validate_length(:username, min: 3, max: 20)
     |> validate_length(:password, min: 6)
-    |> validate_format(
-      :username,
-      username_format(),
-      message: dgettext("errors", "must be lowercase and alphanumeric")
-    )
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
     |> unique_constraint(:email, name: :users_space_id_email_index)
-    |> unique_constraint(:username, name: :users_space_id_username_index)
   end
 
   defp generate_salt do

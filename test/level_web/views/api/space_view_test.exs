@@ -25,13 +25,13 @@ defmodule LevelWeb.API.SpaceViewTest do
 
   describe "render/2 errors.json" do
     test "includes attribute, message, and properties" do
-      errors = [{:username, {"is required", [validation: :required]}}]
+      errors = [{:email, {"is required", [validation: :required]}}]
 
       assert SpaceView.render("errors.json", %{changeset: %{errors: errors}}) ==
                %{
                  errors: [
                    %{
-                     attribute: :username,
+                     attribute: :email,
                      message: "is required",
                      properties: %{validation: :required}
                    }
@@ -40,13 +40,13 @@ defmodule LevelWeb.API.SpaceViewTest do
     end
 
     test "interpolates properties" do
-      errors = [{:username, {"must be %{count} characters", [count: 2]}}]
+      errors = [{:email, {"must be %{count} characters", [count: 2]}}]
 
       assert SpaceView.render("errors.json", %{changeset: %{errors: errors}}) ==
                %{
                  errors: [
                    %{
-                     attribute: :username,
+                     attribute: :email,
                      message: "must be 2 characters",
                      properties: %{count: 2}
                    }

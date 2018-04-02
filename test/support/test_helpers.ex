@@ -12,7 +12,6 @@ defmodule Level.TestHelpers do
     %{
       slug: "#{salt}",
       space_name: "Level, Inc.",
-      username: "user#{salt}",
       first_name: "Jane",
       last_name: "Doe",
       email: "user#{salt}@level.live",
@@ -26,7 +25,6 @@ defmodule Level.TestHelpers do
     %{
       first_name: "Jane",
       last_name: "Doe",
-      username: "user#{salt}",
       email: "user#{salt}@level.live",
       password: "$ecret$"
     }

@@ -226,17 +226,6 @@ defmodule LevelWeb.AuthTest do
       {:ok, %{conn: conn, space: space, user: user, password: password}}
     end
 
-    test "signs in user with username credentials", %{
-      conn: conn,
-      space: space,
-      user: user,
-      password: password
-    } do
-      {:ok, conn} = Auth.sign_in_with_credentials(conn, space, user.username, password)
-
-      assert conn.assigns.current_user.id == user.id
-    end
-
     test "signs in user with email credentials", %{
       conn: conn,
       space: space,

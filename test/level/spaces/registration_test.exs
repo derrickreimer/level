@@ -27,12 +27,6 @@ defmodule Level.Spaces.RegistrationTest do
       assert {:last_name, {"can't be blank", validation: :required}} in changeset.errors
     end
 
-    test "requires a username" do
-      params = Map.put(valid_signup_params(), :username, "")
-      changeset = Registration.changeset(%{}, params)
-      assert {:username, {"can't be blank", validation: :required}} in changeset.errors
-    end
-
     test "requires an email" do
       params = Map.put(valid_signup_params(), :email, "")
       changeset = Registration.changeset(%{}, params)
@@ -66,14 +60,6 @@ defmodule Level.Spaces.RegistrationTest do
                count: 255, validation: :length, max: 255}} in changeset.errors
     end
 
-    test "requires a username longer than 2 chars" do
-      params = Map.put(valid_signup_params(), :username, "xx")
-      changeset = Registration.changeset(%{}, params)
-
-      assert {:username,
-              {"should be at least %{count} character(s)", count: 3, validation: :length, min: 3}} in changeset.errors
-    end
-
     test "requires a password" do
       params = Map.put(valid_signup_params(), :password, "")
       changeset = Registration.changeset(%{}, params)
@@ -99,13 +85,6 @@ defmodule Level.Spaces.RegistrationTest do
       params = Map.put(valid_signup_params(), :email, "derrick@nowhere")
       changeset = Registration.changeset(%{}, params)
       assert {:email, {"is invalid", validation: :format}} in changeset.errors
-    end
-
-    test "requires a valid username" do
-      params = Map.put(valid_signup_params(), :username, "$upercool")
-      changeset = Registration.changeset(%{}, params)
-
-      assert {:username, {"must be lowercase and alphanumeric", validation: :format}} in changeset.errors
     end
   end
 end

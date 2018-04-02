@@ -33,7 +33,6 @@ type alias Model =
     , slug : String
     , firstName : String
     , lastName : String
-    , username : String
     , email : String
     , password : String
     , errors : List ValidationError
@@ -64,7 +63,6 @@ initialState flags =
     , slug = ""
     , firstName = ""
     , lastName = ""
-    , username = ""
     , email = ""
     , password = ""
     , errors = []
@@ -80,14 +78,12 @@ initialState flags =
 type Msg
     = SpaceNameChanged String
     | SlugChanged String
-    | UsernameChanged String
     | FirstNameChanged String
     | LastNameChanged String
     | EmailChanged String
     | PasswordChanged String
     | SpaceNameBlurred
     | SlugBlurred
-    | UsernameBlurred
     | FirstNameBlurred
     | LastNameBlurred
     | EmailBlurred
@@ -114,9 +110,6 @@ update msg model =
         LastNameChanged val ->
             ( { model | lastName = val }, Cmd.none )
 
-        UsernameChanged val ->
-            ( { model | username = val }, Cmd.none )
-
         EmailChanged val ->
             ( { model | email = val }, Cmd.none )
 
@@ -134,9 +127,6 @@ update msg model =
 
         LastNameBlurred ->
             validateIfPresent model "lastName" model.lastName
-
-        UsernameBlurred ->
-            validateIfPresent model "username" model.username
 
         EmailBlurred ->
             validateIfPresent model "email" model.email
@@ -239,7 +229,6 @@ view model =
                     [ textField (FormField "text" "first_name" "First Name" model.firstName FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
                     , textField (FormField "text" "last_name" "Last Name" model.lastName LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
                     ]
-                , textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
                 , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
                 , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
                 ]
@@ -368,7 +357,6 @@ buildBody model =
                     , ( "slug", Encode.string model.slug )
                     , ( "first_name", Encode.string model.firstName )
                     , ( "last_name", Encode.string model.lastName )
-                    , ( "username", Encode.string model.username )
                     , ( "email", Encode.string model.email )
                     , ( "password", Encode.string model.password )
                     ]
