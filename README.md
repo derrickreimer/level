@@ -1,10 +1,8 @@
-# Level [![CircleCI](https://circleci.com/gh/djreimer/level.svg?style=svg&circle-token=2fe7b2b3bc5f5f1b2ad1c6bcb8267cd9bfeb0e9a)](https://circleci.com/gh/djreimer/level)
+# Level [![CircleCI](https://circleci.com/gh/levelspace/level.svg?style=svg)](https://circleci.com/gh/levelspace/level)
 
-Smarter communication for teams that value focus.
+The communication platform for software teams.
 
-## One-Click Deployment
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/djreimer/level/tree/master)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/levelspace/level/tree/master)
 
 ## Development Environment
 
@@ -13,7 +11,6 @@ You'll need to install the following dependencies first:
 - [Elixir](https://elixir-lang.org/install.html) (>= 1.4.2)
 - [PostgreSQL](https://postgresapp.com/) (>= 9.6.2)
 - [Yarn](https://yarnpkg.com/en/docs/install) (>= 0.24.6)
-- [Elm](https://guide.elm-lang.org/install.html) (0.18.0)
 - [nvm](https://github.com/creationix/nvm) ([optional](#nodejs))
 
 Run the bootstrap script to install the remaining dependencies and create your
