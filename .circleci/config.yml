@@ -67,10 +67,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-dependencies-v5-{{ checksum "assets/package.json" }}
+            - node-dependencies-v6-{{ checksum "assets/package.json" }}
       - restore_cache:
           keys:
-            - elm-stuff-v4-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
+            - elm-stuff-v5-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
       - restore_cache:
           keys:
             - elixir-build-v2-{{ checksum "mix.exs" }}
@@ -103,12 +103,12 @@ jobs:
           name: "Run Elm test suite"
           command: script/elm-test
       - save_cache:
-          key: node-dependencies-v5-{{ checksum "assets/package.json" }}
+          key: node-dependencies-v6-{{ checksum "assets/package.json" }}
           paths:
             - 'assets/node_modules'
             - 'sysconfcpus'
       - save_cache:
-          key: elm-stuff-v4-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
+          key: elm-stuff-v5-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
           paths:
             - 'assets/elm/elm-stuff'
             - 'assets/elm/tests/elm-stuff'
