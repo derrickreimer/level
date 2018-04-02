@@ -53,7 +53,7 @@ jobs:
           command: mix ecto.create
       - run:
           name: "Run Elixir test suite (with coveralls)"
-          command: mix coveralls.circle
+          command: mix coveralls
       - run:
           name: "Run Elixir linting"
           command: mix credo
