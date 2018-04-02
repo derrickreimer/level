@@ -70,7 +70,7 @@ jobs:
             - node-dependencies-v5-{{ checksum "assets/package.json" }}
       - restore_cache:
           keys:
-            - elm-stuff-v3-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
+            - elm-stuff-v4-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
       - restore_cache:
           keys:
             - elixir-build-v2-{{ checksum "mix.exs" }}
@@ -108,7 +108,7 @@ jobs:
             - 'assets/node_modules'
             - 'sysconfcpus'
       - save_cache:
-          key: elm-stuff-v3-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
+          key: elm-stuff-v4-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
           paths:
             - 'assets/elm/elm-stuff'
             - 'assets/elm/tests/elm-stuff'

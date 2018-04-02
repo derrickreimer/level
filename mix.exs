@@ -56,7 +56,7 @@ defmodule Level.Mixfile do
       {:joken, "~> 1.5"},
       {:bamboo, "~> 0.8"},
       {:bamboo_smtp, "~> 1.4"},
-      {:excoveralls, "~> 0.7", only: :test}
+      {:excoveralls, "~> 0.8", only: :test}
     ]
   end
 
