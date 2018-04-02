@@ -28,11 +28,11 @@ main =
 
 
 type alias Model =
-    { csrf_token : String
-    , space_name : String
+    { csrfToken : String
+    , spaceName : String
     , slug : String
-    , first_name : String
-    , last_name : String
+    , firstName : String
+    , lastName : String
     , username : String
     , email : String
     , password : String
@@ -48,7 +48,7 @@ type FormState
 
 
 type alias Flags =
-    { csrf_token : String
+    { csrfToken : String
     }
 
 
@@ -59,11 +59,11 @@ init flags =
 
 initialState : Flags -> Model
 initialState flags =
-    { csrf_token = flags.csrf_token
-    , space_name = ""
+    { csrfToken = flags.csrfToken
+    , spaceName = ""
     , slug = ""
-    , first_name = ""
-    , last_name = ""
+    , firstName = ""
+    , lastName = ""
     , username = ""
     , email = ""
     , password = ""
@@ -103,16 +103,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SpaceNameChanged val ->
-            ( { model | space_name = val, slug = (slugify val) }, Cmd.none )
+            ( { model | spaceName = val, slug = (slugify val) }, Cmd.none )
 
         SlugChanged val ->
             ( { model | slug = val }, Cmd.none )
 
         FirstNameChanged val ->
-            ( { model | first_name = val }, Cmd.none )
+            ( { model | firstName = val }, Cmd.none )
 
         LastNameChanged val ->
-            ( { model | last_name = val }, Cmd.none )
+            ( { model | lastName = val }, Cmd.none )
 
         UsernameChanged val ->
             ( { model | username = val }, Cmd.none )
@@ -124,16 +124,16 @@ update msg model =
             ( { model | password = val }, Cmd.none )
 
         SpaceNameBlurred ->
-            validateIfPresent model "space_name" model.space_name
+            validateIfPresent model "spaceName" model.spaceName
 
         SlugBlurred ->
             validateIfPresent model "slug" model.slug
 
         FirstNameBlurred ->
-            validateIfPresent model "first_name" model.first_name
+            validateIfPresent model "firstName" model.firstName
 
         LastNameBlurred ->
-            validateIfPresent model "last_name" model.last_name
+            validateIfPresent model "lastName" model.lastName
 
         UsernameBlurred ->
             validateIfPresent model "username" model.username
@@ -236,8 +236,8 @@ view model =
                 ]
             , div [ class "signup-form__section-body" ]
                 [ div [ class "inline-field-group" ]
-                    [ textField (FormField "text" "first_name" "First Name" model.first_name FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
-                    , textField (FormField "text" "last_name" "Last Name" model.last_name LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
+                    [ textField (FormField "text" "first_name" "First Name" model.firstName FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
+                    , textField (FormField "text" "last_name" "Last Name" model.lastName LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
                     ]
                 , textField (FormField "text" "username" "Username" model.username UsernameChanged UsernameBlurred) (errorsFor "username" model.errors)
                 , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
@@ -250,7 +250,7 @@ view model =
                 , text "Configure your space"
                 ]
             , div [ class "signup-form__section-body" ]
-                [ textField (FormField "text" "space_name" "Space Name" model.space_name SpaceNameChanged SpaceNameBlurred) (errorsFor "space_name" model.errors)
+                [ textField (FormField "text" "space_name" "Space Name" model.spaceName SpaceNameChanged SpaceNameBlurred) (errorsFor "space_name" model.errors)
                 , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
                 ]
             ]
@@ -350,12 +350,12 @@ validate attribute model =
 
 buildSubmitRequest : Model -> Http.Request String
 buildSubmitRequest model =
-    postWithCsrfToken model.csrf_token "/api/spaces" (buildBody model) successDecoder
+    postWithCsrfToken model.csrfToken "/api/spaces" (buildBody model) successDecoder
 
 
 buildValidationRequest : Model -> Http.Request (List ValidationError)
 buildValidationRequest model =
-    postWithCsrfToken model.csrf_token "/api/signup/errors" (buildBody model) failureDecoder
+    postWithCsrfToken model.csrfToken "/api/signup/errors" (buildBody model) failureDecoder
 
 
 buildBody : Model -> Http.Body
@@ -364,10 +364,10 @@ buildBody model =
         (Encode.object
             [ ( "signup"
               , Encode.object
-                    [ ( "space_name", Encode.string model.space_name )
+                    [ ( "space_name", Encode.string model.spaceName )
                     , ( "slug", Encode.string model.slug )
-                    , ( "first_name", Encode.string model.first_name )
-                    , ( "last_name", Encode.string model.last_name )
+                    , ( "first_name", Encode.string model.firstName )
+                    , ( "last_name", Encode.string model.lastName )
                     , ( "username", Encode.string model.username )
                     , ( "email", Encode.string model.email )
                     , ( "password", Encode.string model.password )
