@@ -33,6 +33,9 @@ jobs:
       - image: circleci/elixir:1.5.2
       - image: circleci/postgres:9.6.2
 
+    environment:
+      COVERALLS_REPO_TOKEN: WQJAD2rl0QMcK0OukyWM49Aq1gXqQEJXY
+
     working_directory: /home/circleci/repo
     steps:
       - checkout
@@ -50,7 +53,7 @@ jobs:
           command: mix ecto.create
       - run:
           name: "Run Elixir test suite (with coveralls)"
-          command: mix coveralls
+          command: mix coveralls.circle
       - run:
           name: "Run Elixir linting"
           command: mix credo
