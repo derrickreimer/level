@@ -2,7 +2,6 @@ module Mutation.RevokeInvitationTest exposing (..)
 
 import Expect exposing (Expectation)
 import Test exposing (..)
-import TestHelpers exposing (roomFixture)
 import Data.ValidationError exposing (ValidationError)
 import Mutation.RevokeInvitation as RevokeInvitation
 import Json.Decode exposing (decodeString)
