@@ -41,5 +41,14 @@ defmodule LevelWeb.Schema do
 
       resolve(&LevelWeb.InvitationResolver.revoke/2)
     end
+
+    @desc "Create a group."
+    field :create_group, type: :create_group_payload do
+      arg(:name, non_null(:string))
+      arg(:description, :string)
+      arg(:is_private, :boolean)
+
+      resolve(&LevelWeb.GroupResolver.create/2)
+    end
   end
 end

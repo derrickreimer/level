@@ -37,7 +37,7 @@ defmodule Level.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.3.0"},
+      {:phoenix, "~> 1.3.2"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.2"},
       {:postgrex, ">= 0.0.0"},
@@ -45,7 +45,7 @@ defmodule Level.Mixfile do
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      {:credo, "~> 0.7", only: [:dev, :test]},
+      {:credo, "~> 0.9", only: [:dev, :test]},
       {:comeonin, "~> 3.0"},
       {:timex, "~> 3.0"},
       {:ex_doc, "~> 0.18.1"},

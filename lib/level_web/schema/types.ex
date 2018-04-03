@@ -63,4 +63,17 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
   end
+
+  @desc "A group is consists of a collection of users within a space."
+  object :group do
+    field :id, non_null(:id)
+    field :state, non_null(:group_state)
+    field :name, non_null(:string)
+    field :description, :string
+    field :is_private, non_null(:boolean)
+    field :inserted_at, non_null(:time)
+    field :updated_at, non_null(:time)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
+    field :creator, non_null(:user), resolve: dataloader(Spaces)
+  end
 end

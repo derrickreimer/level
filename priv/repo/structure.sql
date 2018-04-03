@@ -44,6 +44,16 @@ COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings
 
 
 --
+-- Name: group_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.group_state AS ENUM (
+    'OPEN',
+    'CLOSED'
+);
+
+
+--
 -- Name: invitation_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -88,6 +98,23 @@ CREATE TYPE public.user_state AS ENUM (
 SET default_tablespace = '';
 
 SET default_with_oids = false;
+
+--
+-- Name: groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.groups (
+    id uuid NOT NULL,
+    state public.group_state DEFAULT 'OPEN'::public.group_state NOT NULL,
+    name text NOT NULL,
+    description text,
+    is_private boolean DEFAULT false NOT NULL,
+    space_id uuid NOT NULL,
+    creator_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
 
 --
 -- Name: invitations; Type: TABLE; Schema: public; Owner: -
@@ -152,6 +179,14 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: invitations invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -181,6 +216,27 @@ ALTER TABLE ONLY public.spaces
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: groups_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX groups_id_index ON public.groups USING btree (id);
+
+
+--
+-- Name: groups_space_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX groups_space_id_index ON public.groups USING btree (space_id);
+
+
+--
+-- Name: groups_unique_names_when_open; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX groups_unique_names_when_open ON public.groups USING btree (lower(name)) WHERE (state = 'OPEN'::public.group_state);
 
 
 --
@@ -240,6 +296,22 @@ CREATE UNIQUE INDEX users_space_id_lower_email_index ON public.users USING btree
 
 
 --
+-- Name: groups groups_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: groups groups_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: invitations invitations_acceptor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -275,5 +347,5 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20180403181445);
 
