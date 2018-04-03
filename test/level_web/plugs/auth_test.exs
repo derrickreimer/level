@@ -66,7 +66,10 @@ defmodule LevelWeb.AuthTest do
         |> assign(:space, space)
         |> put_session(
           :sessions,
-          to_user_session(space, %Level.Spaces.User{id: Ecto.UUID.generate(), session_salt: "nacl"})
+          to_user_session(space, %Level.Spaces.User{
+            id: Ecto.UUID.generate(),
+            session_salt: "nacl"
+          })
         )
         |> Auth.fetch_current_user_by_session()
 
