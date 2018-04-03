@@ -90,31 +90,21 @@ defmodule Level.Mixfile do
         Level.Connections,
         Level.Mailer,
         Level.Pagination,
-        Level.Rooms,
-        Level.Spaces,
-        Level.Threads
+        Level.Spaces
       ],
       "Repo and Schemas": [
         Level.Repo,
-        Level.Rooms.Message,
-        Level.Rooms.RoomSubscription,
-        Level.Rooms.Room,
         Level.Spaces.Invitation,
         Level.Spaces.Space,
-        Level.Spaces.User,
-        Level.Threads.Draft
+        Level.Spaces.User
       ],
       Plugs: [
         LevelWeb.Auth,
         LevelWeb.Subdomain
       ],
       "GraphQL Resolvers": [
-        LevelWeb.DraftResolver,
         LevelWeb.InvitationResolver,
-        LevelWeb.RoomMessageResolver,
-        LevelWeb.RoomResolver,
-        LevelWeb.SpaceResolver,
-        LevelWeb.UserResolver
+        LevelWeb.SpaceResolver
       ],
       "Transactional Email": [
         Level.Mailer,

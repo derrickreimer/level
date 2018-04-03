@@ -44,7 +44,7 @@ defmodule LevelWeb.Auth do
         put_current_user(conn, user)
 
       sessions = get_session(conn, :sessions) ->
-        space_id = Integer.to_string(conn.assigns.space.id)
+        space_id = conn.assigns.space.id
 
         with %{^space_id => [user_id, salt, _]} <- decode_user_sessions(sessions),
              %Spaces.User{} = user <- Spaces.get_user(user_id),
@@ -272,26 +272,22 @@ defmodule LevelWeb.Auth do
   end
 
   defp put_user_session(conn, space, user) do
-    space_id = Integer.to_string(space.id)
-
     sessions =
       conn
       |> get_session(:sessions)
       |> decode_user_sessions()
-      |> Map.put(space_id, [user.id, user.session_salt, now_timestamp()])
+      |> Map.put(space.id, [user.id, user.session_salt, now_timestamp()])
       |> encode_user_sessions()
 
     put_session(conn, :sessions, sessions)
   end
 
   defp delete_user_session(conn, space) do
-    space_id = Integer.to_string(space.id)
-
     sessions =
       conn
       |> get_session(:sessions)
       |> decode_user_sessions()
-      |> Map.delete(space_id)
+      |> Map.delete(space.id)
       |> encode_user_sessions()
 
     put_session(conn, :sessions, sessions)

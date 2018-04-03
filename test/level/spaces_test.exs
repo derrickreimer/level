@@ -3,7 +3,6 @@ defmodule Level.SpacesTest do
   use Bamboo.Test
 
   alias Level.Spaces
-  alias Level.Rooms
 
   describe "get_space_by_slug(!)/1" do
     setup do
@@ -34,7 +33,7 @@ defmodule Level.SpacesTest do
     end
 
     test "handles when the user is not found" do
-      assert Spaces.get_user(99_999) == nil
+      assert Spaces.get_user(Ecto.UUID.generate()) == nil
     end
   end
 
@@ -69,18 +68,6 @@ defmodule Level.SpacesTest do
       {:ok, %{user: user, space: space}} = Spaces.register(changeset)
       assert space.slug == changeset.changes.slug
       assert user.space_id == space.id
-    end
-
-    test "inserts a new 'Everyone' room", %{changeset: changeset} do
-      {:ok, %{default_room: %{room: room}, space: space, user: user}} = Spaces.register(changeset)
-
-      assert room.name == "Everyone"
-      assert room.space_id == space.id
-      assert room.subscriber_policy == "MANDATORY"
-
-      user_with_subscriptions = Repo.preload(user, :room_subscriptions)
-      [subscription | _] = user_with_subscriptions.room_subscriptions
-      assert subscription.room_id == room.id
     end
   end
 
@@ -153,22 +140,18 @@ defmodule Level.SpacesTest do
     end
 
     test "returns nil if invitation does not exist", %{space: space} do
-      assert Spaces.get_pending_invitation(space, "99999") == nil
+      assert Spaces.get_pending_invitation(space, Ecto.UUID.generate()) == nil
     end
   end
 
   describe "accept_invitation/2" do
     setup do
-      {:ok,
-       %{
-         user: invitor,
-         default_room: %{room: room}
-       }} = insert_signup()
+      {:ok, %{user: invitor}} = insert_signup()
 
       params = valid_invitation_params()
       {:ok, invitation} = Spaces.create_invitation(invitor, params)
 
-      {:ok, %{invitation: invitation, default_room: room}}
+      {:ok, %{invitation: invitation}}
     end
 
     test "creates a user and flag invitation as accepted", %{invitation: invitation} do
@@ -179,17 +162,6 @@ defmodule Level.SpacesTest do
       assert user.email == params.email
       assert invitation.state == "ACCEPTED"
       assert invitation.acceptor_id == user.id
-    end
-
-    test "subscribes the user to all mandatory rooms", %{
-      invitation: invitation,
-      default_room: room
-    } do
-      params = valid_user_params()
-
-      {:ok, %{user: user}} = Spaces.accept_invitation(invitation, params)
-
-      assert {:ok, _} = Rooms.get_room_subscription(room.id, user.id)
     end
 
     test "handles invalid params", %{invitation: invitation} do

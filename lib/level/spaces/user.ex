@@ -10,6 +10,9 @@ defmodule Level.Spaces.User do
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
+
   # @states ["ACTIVE", "DISABLED"]
   # @roles ["OWNER", "ADMIN", "MEMBER"]
 
@@ -24,7 +27,6 @@ defmodule Level.Spaces.User do
     field :password_hash, :string
     field :session_salt, :string
     belongs_to :space, Level.Spaces.Space
-    has_many :room_subscriptions, Level.Rooms.RoomSubscription
 
     timestamps()
   end

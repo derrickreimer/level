@@ -79,7 +79,7 @@ defmodule Level.Spaces do
 
       # If successful, returns the newly created records.
       register(%Ecto.Changeset{...})
-      => {:ok, %{default_room: %{room: room}, space: space, user: user}}
+      => {:ok, %{space: space, user: user}}
 
       # Otherwise, returns an error.
       => {:error, failed_operation, failed_value, changes_so_far}
