@@ -1,4 +1,8 @@
 defmodule Level.Groups.Group do
+  @moduledoc """
+  The Group schema.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

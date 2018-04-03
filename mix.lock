@@ -12,7 +12,7 @@
   "connection": {:hex, :connection, "1.0.4", "a1cae72211f0eef17705aaededacac3eb30e6625b04a6117c1b2db6ace7d5976", [:mix], []},
   "cowboy": {:hex, :cowboy, "1.1.2", "61ac29ea970389a88eca5a65601460162d370a70018afe6f949a29dca91f3bb0", [:rebar3], [{:cowlib, "~> 1.0.2", [hex: :cowlib, optional: false]}, {:ranch, "~> 1.3.2", [hex: :ranch, optional: false]}]},
   "cowlib": {:hex, :cowlib, "1.0.2", "9d769a1d062c9c3ac753096f868ca121e2730b9a377de23dec0f7e08b1df84ee", [:make], []},
-  "credo": {:hex, :credo, "0.7.3", "9827ab04002186af1aec014a811839a06f72aaae6cd5eed3919b248c8767dbf3", [:mix], [{:bunt, "~> 0.2.0", [hex: :bunt, optional: false]}]},
+  "credo": {:hex, :credo, "0.9.0", "5d1b494e4f2dc672b8318e027bd833dda69be71eaac6eedd994678be74ef7cb4", [:mix], [{:bunt, "~> 0.2.0", [hex: :bunt, repo: "hexpm", optional: false]}, {:poison, ">= 0.0.0", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm"},
   "dataloader": {:hex, :dataloader, "1.0.0", "d461598ddaa822d32bd7aca59f4b592fb6c8b21d74723d9ce9a5b8e32c301a4d", [:mix], [{:ecto, ">= 0.0.0", [hex: :ecto, optional: true]}]},
   "db_connection": {:hex, :db_connection, "1.1.3", "89b30ca1ef0a3b469b1c779579590688561d586694a3ce8792985d4d7e575a61", [:mix], [{:connection, "~> 1.0.2", [hex: :connection, optional: false]}, {:poolboy, "~> 1.5", [hex: :poolboy, optional: true]}, {:sbroker, "~> 1.0", [hex: :sbroker, optional: true]}]},
   "decimal": {:hex, :decimal, "1.4.1", "ad9e501edf7322f122f7fc151cce7c2a0c9ada96f2b0155b8a09a795c2029770", [:mix], []},

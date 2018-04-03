@@ -45,7 +45,7 @@ defmodule Level.Mixfile do
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      {:credo, "~> 0.7", only: [:dev, :test]},
+      {:credo, "~> 0.9", only: [:dev, :test]},
       {:comeonin, "~> 3.0"},
       {:timex, "~> 3.0"},
       {:ex_doc, "~> 0.18.1"},
