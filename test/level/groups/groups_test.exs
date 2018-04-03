@@ -18,5 +18,11 @@ defmodule Level.GroupsTest do
       assert group.creator_id == user.id
       assert group.space_id == space.id
     end
+
+    test "returns errors given invalid data", %{user: user, space: space} do
+      params = Map.put(valid_group_params(), :name, "")
+      {:error, changeset} = Groups.create_group(space, user, params)
+      assert changeset.errors == [name: {"can't be blank", [validation: :required]}]
+    end
   end
 end
