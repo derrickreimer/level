@@ -4,6 +4,7 @@ defmodule Level.TestHelpers do
   """
 
   alias Level.Repo
+  alias Level.Groups
 
   def valid_signup_params do
     salt = random_string()
@@ -35,6 +36,14 @@ defmodule Level.TestHelpers do
     }
   end
 
+  def valid_group_params do
+    %{
+      name: "Group#{random_string()}",
+      description: "Some description",
+      is_private: false
+    }
+  end
+
   def insert_signup(params \\ %{}) do
     params =
       valid_signup_params()
@@ -62,6 +71,14 @@ defmodule Level.TestHelpers do
     %Level.Spaces.User{}
     |> Level.Spaces.User.signup_changeset(params)
     |> Repo.insert()
+  end
+
+  def insert_group(space, creator, params \\ %{}) do
+    params =
+      valid_group_params()
+      |> Map.merge(params)
+
+    Groups.create_group(space, creator, params)
   end
 
   def put_launch_host(conn) do
