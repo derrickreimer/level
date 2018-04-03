@@ -24,5 +24,13 @@ defmodule Level.GroupsTest do
       {:error, changeset} = Groups.create_group(user, params)
       assert changeset.errors == [name: {"can't be blank", [validation: :required]}]
     end
+
+    test "returns errors given duplicate name", %{user: user} do
+      params = valid_group_params()
+      Groups.create_group(user, params)
+      {:error, changeset} = Groups.create_group(user, params)
+
+      assert changeset.errors == [name: {"has already been taken", []}]
+    end
   end
 end

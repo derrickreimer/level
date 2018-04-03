@@ -30,5 +30,6 @@ defmodule Level.Groups.Group do
     group
     |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_private])
     |> validate_required([:name])
+    |> unique_constraint(:name, name: :groups_unique_names_when_open)
   end
 end

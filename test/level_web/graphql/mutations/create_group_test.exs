@@ -2,6 +2,8 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
   use LevelWeb.ConnCase
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Groups
+
   @query """
     mutation CreateGroup(
       $name: String!
@@ -54,7 +56,7 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
            }
   end
 
-  test "returns validation errors when data is valid", %{conn: conn} do
+  test "returns validation errors when data is invalid", %{conn: conn} do
     variables =
       valid_group_params()
       |> Map.put(:name, "")
@@ -71,6 +73,28 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
                  "group" => nil,
                  "errors" => [
                    %{"attribute" => "name", "message" => "can't be blank"}
+                 ]
+               }
+             }
+           }
+  end
+
+  test "returns validation errors when uniqueness error occurs", %{conn: conn, user: user} do
+    variables = valid_group_params()
+    Groups.create_group(user, variables)
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "createGroup" => %{
+                 "success" => false,
+                 "group" => nil,
+                 "errors" => [
+                   %{"attribute" => "name", "message" => "has already been taken"}
                  ]
                }
              }
