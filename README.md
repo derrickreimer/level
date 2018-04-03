@@ -1,8 +1,8 @@
-# Level [![CircleCI](https://circleci.com/gh/levelspace/level.svg?style=svg)](https://circleci.com/gh/levelspace/level)
+# Level [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
 The communication platform for software teams.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/levelspace/level/tree/master)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/levelhq/level/tree/master)
 
 ## Development Environment
 
