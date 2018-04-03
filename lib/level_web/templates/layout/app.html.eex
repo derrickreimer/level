@@ -17,7 +17,7 @@
     <% end %>
 
     <title>Level</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/themes/dark.css") %>">
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/prototype.css") %>">
   </head>
 
   <body>

@@ -1,14 +1,12 @@
 {
     "version": "1.0.0",
     "summary": "Test Suites",
-    "repository": "https://github.com/djreimer/level.git",
+    "repository": "https://github.com/levelhq/level.git",
     "license": "Apache-2.0",
     "source-directories": [
         "..",
         ".",
-        "../src",
-        "../src/Mutation",
-        "../src/Query"
+        "../src"
     ],
     "exposed-modules": [],
     "dependencies": {

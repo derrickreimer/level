@@ -21,7 +21,8 @@ exports.config = {
     },
     stylesheets: {
       joinTo: {
-        "css/themes/dark.css": /^(css\/dark)/
+        "css/prototype.css": "css/prototype.scss",
+        "css/app.css": "css/app.css"
       }
     },
     templates: {
@@ -65,6 +66,11 @@ exports.config = {
       outputFolder: '../../priv/static/js',
       outputFile: 'elm-bundle.js',
       makeParameters: ['--warn']
+    },
+    postcss: {
+      processors: [
+        require('tailwindcss')('./tailwind.js')
+      ]
     }
   },
 
