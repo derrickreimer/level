@@ -73,12 +73,12 @@ defmodule Level.TestHelpers do
     |> Repo.insert()
   end
 
-  def insert_group(space, creator, params \\ %{}) do
+  def insert_group(creator, params \\ %{}) do
     params =
       valid_group_params()
       |> Map.merge(params)
 
-    Groups.create_group(space, creator, params)
+    Groups.create_group(creator, params)
   end
 
   def put_launch_host(conn) do

@@ -13,17 +13,17 @@ defmodule Level.Groups do
 
   ## Examples
 
-      iex> create_group(%Space{}, %User{}, %{name: value})
+      iex> create_group(%User{}, %{name: value})
       {:ok, %Group{}}
 
-      iex> create_group(%Space{}, %User{}, %{name: bad_value})
+      iex> create_group(%User{}, %{name: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_group(space, creator, params \\ %{}) do
+  def create_group(creator, params \\ %{}) do
     params_with_relations =
       params
-      |> Map.put(:space_id, space.id)
+      |> Map.put(:space_id, creator.space_id)
       |> Map.put(:creator_id, creator.id)
 
     %Group{}
