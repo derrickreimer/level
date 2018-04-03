@@ -24,7 +24,6 @@ query =
       {
         viewer {
           id
-          username
           firstName
           lastName
           space {
