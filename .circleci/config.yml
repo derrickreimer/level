@@ -67,7 +67,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-dependencies-v6-{{ checksum "assets/package.json" }}
+            - sysconfcpus-v1
       - restore_cache:
           keys:
             - elm-stuff-v5-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
@@ -103,9 +103,8 @@ jobs:
           name: "Run Elm test suite"
           command: script/elm-test
       - save_cache:
-          key: node-dependencies-v6-{{ checksum "assets/package.json" }}
+          key: sysconfcpus-v1
           paths:
-            - 'assets/node_modules'
             - 'sysconfcpus'
       - save_cache:
           key: elm-stuff-v5-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}

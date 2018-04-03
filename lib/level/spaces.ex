@@ -51,26 +51,18 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Fetches a user by space and identifier (either email or username).
+  Fetches a user by space and email address.
 
   ## Examples
 
       # If found, returns the user.
-      get_user_by_identifier(space, "derrick@level.com")
+      get_user_by_email(space, "derrick@level.com")
       => %User{...}
 
       # Otherwise, returns `nil`.
   """
-  def get_user_by_identifier(space, identifier) do
-    column =
-      if Regex.match?(~r/@/, identifier) do
-        :email
-      else
-        :username
-      end
-
-    params = Map.put(%{space_id: space.id}, column, identifier)
-    Repo.get_by(User, params)
+  def get_user_by_email(space, email) do
+    Repo.get_by(User, space_id: space.id, email: email)
   end
 
   @doc """

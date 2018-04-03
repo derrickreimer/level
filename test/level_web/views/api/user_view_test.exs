@@ -11,7 +11,6 @@ defmodule LevelWeb.API.UserViewTest do
       user = %Level.Spaces.User{
         id: 999,
         email: "derrick@level.live",
-        username: "derrick",
         inserted_at: inserted_at,
         updated_at: updated_at
       }
@@ -20,7 +19,6 @@ defmodule LevelWeb.API.UserViewTest do
                %{
                  id: 999,
                  email: "derrick@level.live",
-                 username: "derrick",
                  inserted_at: inserted_at,
                  updated_at: updated_at
                }

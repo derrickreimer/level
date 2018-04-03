@@ -119,13 +119,13 @@ defmodule LevelWeb.Auth do
   end
 
   @doc """
-  Looks up the user for a given space by identifier (either username or email
-  address) and compares the given password with the password hash.
+  Looks up the user for a given space by email address and compares the given
+  password with the password hash.
   If the user is found and password is valid, signs the user in and returns
   an :ok tuple. Otherwise, returns an :error tuple.
   """
-  def sign_in_with_credentials(conn, space, identifier, given_pass, _opts \\ []) do
-    user = Spaces.get_user_by_identifier(space, identifier)
+  def sign_in_with_credentials(conn, space, email, given_pass, _opts \\ []) do
+    user = Spaces.get_user_by_email(space, email)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->

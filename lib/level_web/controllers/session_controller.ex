@@ -11,11 +11,11 @@ defmodule LevelWeb.SessionController do
     render conn, "new.html"
   end
 
-  def create(conn, %{"session" => %{"username" => username, "password" => pass}}) do
+  def create(conn, %{"session" => %{"email" => email, "password" => pass}}) do
     case LevelWeb.Auth.sign_in_with_credentials(
            conn,
            conn.assigns.space,
-           username,
+           email,
            pass,
            repo: Repo
          ) do
