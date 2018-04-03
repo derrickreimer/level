@@ -32,7 +32,7 @@ export LEVEL_DB_PASSWORD=yyy
 
 Then run the bootstrap script again.
 
-Use the `mix phx.server` command to start up your local server and visit
+Use the `script/server` command to start up your local server and visit
 [`localhost:4000`](http://localhost:4000) from your browser.
 
 ### Node.js
@@ -43,8 +43,8 @@ with a newer version of Node, but the most guaranteed route is to install
 [Node Version Manager](https://github.com/creationix/nvm) and run `nvm install` from
 the project root.
 
-Then, be sure to run `script/bootstrap` or `cd assets && yarn` to install node dependencies
-with the correct version of node.
+Then, be sure to run `script/bootstrap` to install node dependencies with the
+correct version of node.
 
 ### Elm
 
@@ -54,8 +54,19 @@ live in the `assets/elm/tests` directory.
 
 To run the Elm test suite, execute `script/elm-test` from the project root.
 
-Note: When you install a new Elm package dependency, make sure you also add the same
-dependency in the `tests` directory (the tests maintain their own set of dependencies).
+When you install a new Elm package dependency, make sure you also add the same
+dependency in the `tests` directory (the tests maintain their own set of dependencies):
+
+```sh
+# Install in the main elm package file
+cd assets
+./node_modules/.bin/elm-package install [package name]
+
+# Install in the tests elm package file
+cd tests
+../node_modules/.bin/elm-package install [package name]
+```
+
 
 ### Routing
 
