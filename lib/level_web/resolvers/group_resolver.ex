@@ -4,7 +4,6 @@ defmodule LevelWeb.GroupResolver do
   """
 
   import LevelWeb.ResolverHelpers
-  import Level.Gettext
 
   alias Level.Groups
 
