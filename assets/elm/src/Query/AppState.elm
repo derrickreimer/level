@@ -1,6 +1,5 @@
 module Query.AppState exposing (request, Response)
 
-import Data.Room exposing (RoomSubscriptionConnection, roomSubscriptionConnectionDecoder)
 import Session exposing (Session)
 import Data.Space exposing (Space, spaceDecoder)
 import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
@@ -13,7 +12,6 @@ import GraphQL
 type alias Response =
     { user : User
     , space : Space
-    , roomSubscriptions : RoomSubscriptionConnection
     , users : UserConnection
     }
 
@@ -46,25 +44,6 @@ query =
               }
             }
           }
-          roomSubscriptions(first: 10) {
-            edges {
-              node {
-                room {
-                  id
-                  name
-                  description
-                  subscriberPolicy
-                  lastMessage {
-                    id
-                  }
-                }
-                lastReadMessage {
-                  id
-                }
-                lastReadMessageAt
-              }
-            }
-          }
         }
       }
     """
@@ -76,7 +55,6 @@ decoder =
         (Pipeline.decode Response
             |> Pipeline.custom userDecoder
             |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
-            |> Pipeline.custom (Decode.at [ "roomSubscriptions" ] roomSubscriptionConnectionDecoder)
             |> Pipeline.custom (Decode.at [ "space", "users" ] userConnectionDecoder)
         )
 

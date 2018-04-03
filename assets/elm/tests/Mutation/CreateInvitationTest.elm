@@ -2,7 +2,6 @@ module Mutation.CreateInvitationTest exposing (..)
 
 import Expect exposing (Expectation)
 import Test exposing (..)
-import TestHelpers exposing (roomFixture)
 import Data.ValidationError exposing (ValidationError)
 import Mutation.CreateInvitation as CreateInvitation
 import Date

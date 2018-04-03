@@ -30,6 +30,20 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
 --
+-- Name: citext; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION citext; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings';
+
+
+--
 -- Name: invitation_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -37,27 +51,6 @@ CREATE TYPE public.invitation_state AS ENUM (
     'PENDING',
     'ACCEPTED',
     'REVOKED'
-);
-
-
---
--- Name: room_state; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.room_state AS ENUM (
-    'ACTIVE',
-    'DELETED'
-);
-
-
---
--- Name: room_subscriber_policy; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.room_subscriber_policy AS ENUM (
-    'MANDATORY',
-    'PUBLIC',
-    'INVITE_ONLY'
 );
 
 
@@ -92,125 +85,25 @@ CREATE TYPE public.user_state AS ENUM (
 );
 
 
---
--- Name: next_global_id(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.next_global_id(OUT result bigint) RETURNS bigint
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    our_epoch bigint := 1501268767000;
-    seq_id bigint;
-    now_millis bigint;
-    shard_id int := 1;
-BEGIN
-    SELECT nextval('global_id_seq') % 1024 INTO seq_id;
-
-    SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000) INTO now_millis;
-    result := (now_millis - our_epoch) << 23;
-    result := result | (shard_id << 10);
-    result := result | (seq_id);
-END;
-$$;
-
-
 SET default_tablespace = '';
 
 SET default_with_oids = false;
-
---
--- Name: drafts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.drafts (
-    id bigint DEFAULT public.next_global_id() NOT NULL,
-    space_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    recipient_ids text[] DEFAULT ARRAY[]::text[] NOT NULL,
-    subject text DEFAULT ''::text NOT NULL,
-    body text DEFAULT ''::text NOT NULL,
-    is_truncated boolean DEFAULT false NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: global_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.global_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 --
 -- Name: invitations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.invitations (
-    id bigint DEFAULT public.next_global_id() NOT NULL,
-    space_id bigint NOT NULL,
-    invitor_id bigint NOT NULL,
-    acceptor_id bigint,
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    invitor_id uuid NOT NULL,
+    acceptor_id uuid,
     state public.invitation_state DEFAULT 'PENDING'::public.invitation_state NOT NULL,
     role public.user_role DEFAULT 'MEMBER'::public.user_role NOT NULL,
-    email text NOT NULL,
+    email public.citext NOT NULL,
     token uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: room_messages; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.room_messages (
-    id bigint DEFAULT public.next_global_id() NOT NULL,
-    space_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    room_id bigint NOT NULL,
-    body text NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: room_subscriptions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.room_subscriptions (
-    id bigint DEFAULT public.next_global_id() NOT NULL,
-    space_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    room_id bigint NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    last_read_message_id bigint,
-    last_read_message_at timestamp without time zone
-);
-
-
---
--- Name: rooms; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.rooms (
-    id bigint DEFAULT public.next_global_id() NOT NULL,
-    space_id bigint NOT NULL,
-    creator_id bigint NOT NULL,
-    state public.room_state DEFAULT 'ACTIVE'::public.room_state NOT NULL,
-    name text NOT NULL,
-    description text DEFAULT ''::text NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    subscriber_policy public.room_subscriber_policy DEFAULT 'PUBLIC'::public.room_subscriber_policy
 );
 
 
@@ -229,10 +122,10 @@ CREATE TABLE public.schema_migrations (
 --
 
 CREATE TABLE public.spaces (
-    id bigint DEFAULT public.next_global_id() NOT NULL,
+    id uuid NOT NULL,
     state public.space_state DEFAULT 'ACTIVE'::public.space_state NOT NULL,
     name text NOT NULL,
-    slug text NOT NULL,
+    slug public.citext NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -243,27 +136,19 @@ CREATE TABLE public.spaces (
 --
 
 CREATE TABLE public.users (
-    id bigint DEFAULT public.next_global_id() NOT NULL,
-    space_id bigint NOT NULL,
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
     state public.user_state DEFAULT 'ACTIVE'::public.user_state NOT NULL,
     role public.user_role DEFAULT 'MEMBER'::public.user_role NOT NULL,
-    email text NOT NULL,
-    first_name text,
-    last_name text,
+    email public.citext NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
     time_zone text NOT NULL,
-    password_hash text NOT NULL,
+    password_hash text,
+    session_salt text DEFAULT 'salt'::text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    session_salt text DEFAULT 'salt'::text NOT NULL
+    updated_at timestamp without time zone NOT NULL
 );
-
-
---
--- Name: drafts drafts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.drafts
-    ADD CONSTRAINT drafts_pkey PRIMARY KEY (id);
 
 
 --
@@ -272,30 +157,6 @@ ALTER TABLE ONLY public.drafts
 
 ALTER TABLE ONLY public.invitations
     ADD CONSTRAINT invitations_pkey PRIMARY KEY (id);
-
-
---
--- Name: room_messages room_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_messages
-    ADD CONSTRAINT room_messages_pkey PRIMARY KEY (id);
-
-
---
--- Name: room_subscriptions room_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_subscriptions
-    ADD CONSTRAINT room_subscriptions_pkey PRIMARY KEY (id);
-
-
---
--- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.rooms
-    ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
 
 
 --
@@ -323,24 +184,10 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: drafts_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: invitations_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX drafts_id_index ON public.drafts USING btree (id);
-
-
---
--- Name: drafts_user_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX drafts_user_id_index ON public.drafts USING btree (user_id);
-
-
---
--- Name: invitations_invitor_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX invitations_invitor_id_index ON public.invitations USING btree (invitor_id);
+CREATE INDEX invitations_id_index ON public.invitations USING btree (id);
 
 
 --
@@ -351,94 +198,31 @@ CREATE INDEX invitations_space_id_index ON public.invitations USING btree (space
 
 
 --
--- Name: invitations_token_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX invitations_token_index ON public.invitations USING btree (token);
-
-
---
 -- Name: invitations_unique_pending_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX invitations_unique_pending_email ON public.invitations USING btree (lower(email)) WHERE (state = 'PENDING'::public.invitation_state);
+CREATE UNIQUE INDEX invitations_unique_pending_email ON public.invitations USING btree (lower((email)::text)) WHERE (state = 'PENDING'::public.invitation_state);
 
 
 --
--- Name: room_messages_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: spaces_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX room_messages_id_index ON public.room_messages USING btree (id);
-
-
---
--- Name: room_messages_room_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX room_messages_room_id_index ON public.room_messages USING btree (room_id);
+CREATE INDEX spaces_id_index ON public.spaces USING btree (id);
 
 
 --
--- Name: room_subscriptions_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: spaces_lower_slug_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX room_subscriptions_id_index ON public.room_subscriptions USING btree (id);
-
-
---
--- Name: room_subscriptions_room_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX room_subscriptions_room_id_index ON public.room_subscriptions USING btree (room_id);
+CREATE UNIQUE INDEX spaces_lower_slug_index ON public.spaces USING btree (lower((slug)::text));
 
 
 --
--- Name: room_subscriptions_unique; Type: INDEX; Schema: public; Owner: -
+-- Name: users_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX room_subscriptions_unique ON public.room_subscriptions USING btree (user_id, room_id);
-
-
---
--- Name: room_subscriptions_user_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX room_subscriptions_user_id_index ON public.room_subscriptions USING btree (user_id);
-
-
---
--- Name: rooms_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX rooms_id_index ON public.rooms USING btree (id);
-
-
---
--- Name: rooms_space_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX rooms_space_id_index ON public.rooms USING btree (space_id);
-
-
---
--- Name: rooms_unique_ci_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX rooms_unique_ci_name ON public.rooms USING btree (space_id, lower(name)) WHERE (NOT (state = 'DELETED'::public.room_state));
-
-
---
--- Name: spaces_slug_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX spaces_slug_index ON public.spaces USING btree (slug);
-
-
---
--- Name: users_space_id_email_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX users_space_id_email_index ON public.users USING btree (space_id, email);
+CREATE INDEX users_id_index ON public.users USING btree (id);
 
 
 --
@@ -449,19 +233,10 @@ CREATE INDEX users_space_id_index ON public.users USING btree (space_id);
 
 
 --
--- Name: drafts drafts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: users_space_id_lower_email_index; Type: INDEX; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.drafts
-    ADD CONSTRAINT drafts_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
--- Name: drafts drafts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.drafts
-    ADD CONSTRAINT drafts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+CREATE UNIQUE INDEX users_space_id_lower_email_index ON public.users USING btree (space_id, lower((email)::text));
 
 
 --
@@ -489,78 +264,6 @@ ALTER TABLE ONLY public.invitations
 
 
 --
--- Name: room_messages room_messages_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_messages
-    ADD CONSTRAINT room_messages_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id);
-
-
---
--- Name: room_messages room_messages_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_messages
-    ADD CONSTRAINT room_messages_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
--- Name: room_messages room_messages_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_messages
-    ADD CONSTRAINT room_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: room_subscriptions room_subscriptions_last_read_message_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_subscriptions
-    ADD CONSTRAINT room_subscriptions_last_read_message_id_fkey FOREIGN KEY (last_read_message_id) REFERENCES public.room_messages(id);
-
-
---
--- Name: room_subscriptions room_subscriptions_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_subscriptions
-    ADD CONSTRAINT room_subscriptions_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id);
-
-
---
--- Name: room_subscriptions room_subscriptions_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_subscriptions
-    ADD CONSTRAINT room_subscriptions_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
--- Name: room_subscriptions room_subscriptions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.room_subscriptions
-    ADD CONSTRAINT room_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: rooms rooms_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.rooms
-    ADD CONSTRAINT rooms_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.users(id);
-
-
---
--- Name: rooms rooms_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.rooms
-    ADD CONSTRAINT rooms_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
 -- Name: users users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -572,5 +275,5 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170526045329), (20170527220454), (20170528000152), (20170715050656), (20170822002819), (20171005144526), (20171005223147), (20171006221016), (20171006224345), (20171028185025), (20180206160730), (20180206173101), (20180402172104);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656);
 

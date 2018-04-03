@@ -70,7 +70,7 @@ defmodule LevelWeb.GraphQL.RevokeInvitationTest do
     """
 
     variables = %{
-      id: "99999999"
+      id: Ecto.UUID.generate()
     }
 
     conn =

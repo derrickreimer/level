@@ -1,4 +1,4 @@
-module TestHelpers exposing (success, userFixture, roomFixture)
+module TestHelpers exposing (success, userFixture)
 
 {-| A collection of helper functions for tests.
 
@@ -9,7 +9,6 @@ module TestHelpers exposing (success, userFixture, roomFixture)
 
 -}
 
-import Data.Room
 import Data.User
 
 
@@ -39,8 +38,3 @@ success result =
 userFixture : Data.User.User
 userFixture =
     Data.User.User "999" "Derrick" "Reimer"
-
-
-roomFixture : Data.Room.Room
-roomFixture =
-    Data.Room.Room "999" "Everyone" "The cool room." Data.Room.Public (Just "888")

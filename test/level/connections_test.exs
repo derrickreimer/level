@@ -21,42 +21,4 @@ defmodule Level.ConnectionsTest do
       assert total_count == 1
     end
   end
-
-  describe "room_subscriptions/3" do
-    setup do
-      {:ok, %{user: user}} = insert_signup()
-      room_subscription = Level.Repo.get_by(Level.Rooms.RoomSubscription, user_id: user.id)
-      {:ok, %{room_subscription: room_subscription, user: user}}
-    end
-
-    test "returns edges", %{room_subscription: room_subscription, user: user} do
-      {:ok, %Result{edges: [first_edge | _]}} = Connections.room_subscriptions(user, %{first: 1})
-
-      assert first_edge.node.id == room_subscription.id
-    end
-
-    test "returns total count", %{user: user} do
-      {:ok, %Result{total_count: total_count}} = Connections.room_subscriptions(user, %{first: 1})
-
-      assert total_count == 1
-    end
-  end
-
-  describe "room_users/3" do
-    setup do
-      insert_signup()
-    end
-
-    test "returns edges", %{user: user, default_room: %{room: room}} do
-      {:ok, %Result{edges: [first_edge | _]}} = Connections.room_users(room, %{first: 1})
-
-      assert first_edge.node.id == user.id
-    end
-
-    test "returns total count", %{default_room: %{room: room}} do
-      {:ok, %Result{total_count: total_count}} = Connections.room_users(room, %{first: 1})
-
-      assert total_count == 1
-    end
-  end
 end

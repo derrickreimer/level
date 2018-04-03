@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -8,23 +7,14 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
-import Data.Room exposing (Room, RoomSubscriptionConnection, RoomSubscriptionEdge, RoomSubscription)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
-import Icons exposing (privacyIcon)
-import Page.Room
-import Page.NewRoom
-import Page.RoomSettings
 import Page.Conversations
 import Page.NewInvitation
 import Ports
 import Query.AppState
-import Query.Room
-import Query.RoomSettings
 import Route exposing (Route)
 import Session exposing (Session)
-import Subscription.RoomMessageCreated
-import Subscription.LastReadRoomMessageUpdated
 import Util exposing (Lazy(..))
 
 
@@ -54,7 +44,6 @@ type alias Model =
 type alias AppState =
     { space : Space
     , user : User
-    , roomSubscriptions : RoomSubscriptionConnection
     , users : UserConnection
     }
 
@@ -63,9 +52,6 @@ type Page
     = Blank
     | NotFound
     | Conversations -- TODO: add a model to this type
-    | Room Page.Room.Model
-    | NewRoom Page.NewRoom.Model
-    | RoomSettings Page.RoomSettings.Model
     | NewInvitation Page.NewInvitation.Model
 
 
@@ -118,12 +104,7 @@ updatePipeline transforms model =
 type Msg
     = UrlChanged Navigation.Location
     | AppStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.AppState.Response ))
-    | RoomLoaded String (Result Session.Error ( Session, Query.Room.Response ))
-    | RoomSettingsLoaded String (Result Session.Error ( Session, Query.RoomSettings.Response ))
     | ConversationsMsg Page.Conversations.Msg
-    | RoomMsg Page.Room.Msg
-    | NewRoomMsg Page.NewRoom.Msg
-    | RoomSettingsMsg Page.RoomSettings.Msg
     | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
     | SocketAbort Decode.Value
@@ -164,140 +145,9 @@ update msg model =
             ( AppStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
 
-            ( RoomLoaded slug (Ok ( session, response )), _ ) ->
-                case response of
-                    Query.Room.Found data ->
-                        let
-                            pageModel =
-                                Page.Room.buildModel data
-                        in
-                            ( { model
-                                | page = Room pageModel
-                                , session = session
-                                , isTransitioning = False
-                              }
-                            , Cmd.map RoomMsg <| Page.Room.loaded session pageModel
-                            )
-
-                    Query.Room.NotFound ->
-                        ( { model
-                            | page = NotFound
-                            , session = session
-                            , isTransitioning = False
-                          }
-                        , Cmd.none
-                        )
-
-            ( RoomLoaded slug (Err Session.Expired), _ ) ->
-                ( model, Route.toLogin )
-
-            ( RoomLoaded slug (Err _), _ ) ->
-                -- TODO: display an unexpected error page?
-                ( model, Cmd.none )
-
-            ( RoomSettingsLoaded slug (Ok ( session, response )), _ ) ->
-                case response of
-                    Query.RoomSettings.Found data ->
-                        ( { model
-                            | page = RoomSettings (Page.RoomSettings.buildModel data.room data.users)
-                            , session = session
-                            , isTransitioning = False
-                          }
-                        , Cmd.none
-                        )
-
-                    Query.RoomSettings.NotFound ->
-                        ( { model
-                            | page = NotFound
-                            , session = session
-                            , isTransitioning = False
-                          }
-                        , Cmd.none
-                        )
-
-            ( RoomSettingsLoaded slug (Err Session.Expired), _ ) ->
-                ( model, Route.toLogin )
-
-            ( RoomSettingsLoaded slug (Err _), _ ) ->
-                -- TODO: display an unexpected error page?
-                ( model, Cmd.none )
-
             ( ConversationsMsg _, _ ) ->
                 -- TODO: implement this
                 ( model, Cmd.none )
-
-            ( RoomMsg msg, Room pageModel ) ->
-                let
-                    ( ( newPageModel, cmd ), externalMsg ) =
-                        Page.Room.update msg model.session pageModel
-
-                    ( newModel, externalCmd ) =
-                        case externalMsg of
-                            Page.Room.SessionRefreshed session ->
-                                ( { model | session = session }, Cmd.none )
-
-                            Page.Room.ExternalNoOp ->
-                                ( model, Cmd.none )
-                in
-                    ( { newModel | page = Room newPageModel }
-                    , Cmd.batch [ externalCmd, Cmd.map RoomMsg cmd ]
-                    )
-
-            ( NewRoomMsg msg, NewRoom pageModel ) ->
-                let
-                    ( ( newPageModel, cmd ), externalMsg ) =
-                        Page.NewRoom.update msg model.session pageModel
-
-                    ( newModel, externalCmd ) =
-                        case externalMsg of
-                            Page.NewRoom.RoomCreated session roomSubscription ->
-                                case model.appState of
-                                    Loaded appState ->
-                                        let
-                                            newEdges =
-                                                { node = roomSubscription } :: appState.roomSubscriptions.edges
-
-                                            newAppState =
-                                                { appState | roomSubscriptions = { edges = newEdges } }
-                                        in
-                                            ( { model | appState = Loaded newAppState, session = session }, Cmd.none )
-
-                                    NotLoaded ->
-                                        ( { model | session = session }, Cmd.none )
-
-                            Page.NewRoom.SessionRefreshed session ->
-                                ( { model | session = session }, Cmd.none )
-
-                            Page.NewRoom.NoOp ->
-                                ( model, Cmd.none )
-                in
-                    ( { newModel | page = NewRoom newPageModel }
-                    , Cmd.batch [ externalCmd, Cmd.map NewRoomMsg cmd ]
-                    )
-
-            ( RoomSettingsMsg msg, RoomSettings pageModel ) ->
-                let
-                    ( ( newPageModel, cmd ), externalMsg ) =
-                        Page.RoomSettings.update msg model.session pageModel
-
-                    ( newModel, externalCmd ) =
-                        case externalMsg of
-                            Page.RoomSettings.RoomUpdated session room ->
-                                { model | session = session }
-                                    |> updatePipeline
-                                        [ setFlashNotice "Room updated"
-                                        , updateRoom room.id (\_ -> room)
-                                        ]
-
-                            Page.RoomSettings.SessionRefreshed session ->
-                                ( { model | session = session }, Cmd.none )
-
-                            Page.RoomSettings.NoOp ->
-                                ( model, Cmd.none )
-                in
-                    ( { newModel | page = RoomSettings newPageModel }
-                    , Cmd.batch [ externalCmd, Cmd.map RoomSettingsMsg cmd ]
-                    )
 
             ( NewInvitationMsg msg, NewInvitation pageModel ) ->
                 let
@@ -331,42 +181,6 @@ update msg model =
 
             ( SocketResult value, page ) ->
                 case decodeMessage value of
-                    RoomMessageCreated result ->
-                        let
-                            sendMessageToRooms model =
-                                case page of
-                                    Room pageModel ->
-                                        if pageModel.room.id == result.roomId then
-                                            let
-                                                ( ( newPageModel, cmd ), _ ) =
-                                                    Page.Room.receiveMessage model.session result.roomMessage pageModel
-                                            in
-                                                ( { model | page = Room newPageModel }, Cmd.map RoomMsg cmd )
-                                        else
-                                            ( model, Cmd.none )
-
-                                    _ ->
-                                        ( model, Cmd.none )
-
-                            lastMessageUpdater room =
-                                { room | lastMessageId = Just result.roomMessage.id }
-                        in
-                            model
-                                |> updatePipeline
-                                    [ sendMessageToRooms
-                                    , updateRoom result.roomId lastMessageUpdater
-                                    ]
-
-                    LastReadRoomMessageUpdated result ->
-                        let
-                            mutator subscription =
-                                { subscription | lastReadMessageId = Just result.messageId }
-                        in
-                            model
-                                |> updatePipeline
-                                    [ updateRoomSubscription result.roomId mutator
-                                    ]
-
                     UnknownMessage ->
                         ( model, Cmd.none )
 
@@ -395,73 +209,6 @@ update msg model =
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
 
-
-{-| Finds all instances of where a room with given id is stored and updates
-using the given mutator function.
--}
-updateRoom : String -> (Room -> Room) -> Model -> ( Model, Cmd Msg )
-updateRoom roomId mutator model =
-    case model.appState of
-        Loaded data ->
-            let
-                roomSubscriptions =
-                    data.roomSubscriptions
-
-                edges =
-                    roomSubscriptions.edges
-
-                update edge =
-                    if roomId == edge.node.room.id then
-                        let
-                            node =
-                                edge.node
-                        in
-                            { edge | node = { node | room = mutator node.room } }
-                    else
-                        edge
-
-                newRoomSubscriptions =
-                    { roomSubscriptions | edges = List.map update edges }
-
-                newData =
-                    { data | roomSubscriptions = newRoomSubscriptions }
-            in
-                ( { model | appState = Loaded newData }, Cmd.none )
-
-        NotLoaded ->
-            ( model, Cmd.none )
-
-
-{-| Finds all instances of where a room subscription with given room id is
-stored and updates using the given mutator function.
--}
-updateRoomSubscription : String -> (RoomSubscription -> RoomSubscription) -> Model -> ( Model, Cmd Msg )
-updateRoomSubscription roomId mutator model =
-    case model.appState of
-        Loaded data ->
-            let
-                roomSubscriptions =
-                    data.roomSubscriptions
-
-                edges =
-                    roomSubscriptions.edges
-
-                update edge =
-                    if roomId == edge.node.room.id then
-                        { edge | node = mutator edge.node }
-                    else
-                        edge
-
-                newRoomSubscriptions =
-                    { roomSubscriptions | edges = List.map update edges }
-
-                newData =
-                    { data | roomSubscriptions = newRoomSubscriptions }
-            in
-                ( { model | appState = Loaded newData }, Cmd.none )
-
-        NotLoaded ->
-            ( model, Cmd.none )
 
 
 setFlashNotice : String -> Model -> ( Model, Cmd Msg )
@@ -502,34 +249,6 @@ navigateTo maybeRoute model =
                         -- TODO: implement this
                         ( { model | page = Conversations }, Cmd.none )
 
-                    Just (Route.Room slug) ->
-                        Page.Room.fetchRoom slug
-                            |> Session.request model.session
-                            |> transition model (RoomLoaded slug)
-
-                    Just Route.NewRoom ->
-                        let
-                            pageModel =
-                                Page.NewRoom.buildModel
-                        in
-                            ( { model | page = NewRoom pageModel }
-                            , Cmd.map NewRoomMsg Page.NewRoom.initialCmd
-                            )
-
-                    Just (Route.RoomSettings slug) ->
-                        case model.page of
-                            Room currentPageModel ->
-                                let
-                                    pageModel =
-                                        Page.RoomSettings.buildModel currentPageModel.room currentPageModel.users
-                                in
-                                    ( { model | page = RoomSettings pageModel }, Cmd.none )
-
-                            _ ->
-                                Page.RoomSettings.fetchRoomSettings slug
-                                    |> Session.request model.session
-                                    |> transition model (RoomSettingsLoaded slug)
-
                     Just Route.NewInvitation ->
                         let
                             pageModel =
@@ -547,15 +266,7 @@ setupSockets model =
             ( model, Cmd.none )
 
         Loaded state ->
-            let
-                frames =
-                    [ Ports.Frame Subscription.RoomMessageCreated.operation
-                        (Just (Subscription.RoomMessageCreated.variables { user = state.user }))
-                    , Ports.Frame Subscription.LastReadRoomMessageUpdated.operation
-                        (Just (Subscription.LastReadRoomMessageUpdated.variables { user = state.user }))
-                    ]
-            in
-                ( model, Cmd.batch <| List.map Ports.sendFrame frames )
+            ( model, Cmd.none )
 
 
 
@@ -576,15 +287,7 @@ subscriptions model =
 
 pageSubscription : Model -> Sub Msg
 pageSubscription model =
-    case model.page of
-        Room pageModel ->
-            Sub.map RoomMsg <| Page.Room.subscriptions pageModel
-
-        RoomSettings _ ->
-            Sub.map RoomSettingsMsg <| Page.RoomSettings.subscriptions
-
-        _ ->
-            Sub.none
+    Sub.none
 
 
 
@@ -635,21 +338,6 @@ pageContent page =
         Conversations ->
             Page.Conversations.view
                 |> Html.map ConversationsMsg
-
-        Room model ->
-            model
-                |> Page.Room.view
-                |> Html.map RoomMsg
-
-        NewRoom model ->
-            model
-                |> Page.NewRoom.view
-                |> Html.map NewRoomMsg
-
-        RoomSettings model ->
-            model
-                |> Page.RoomSettings.view
-                |> Html.map RoomSettingsMsg
 
         NewInvitation model ->
             model
@@ -721,22 +409,12 @@ sideNav page appState =
             [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
             ]
         ]
-    , roomSubscriptionsList page appState
     ]
 
 
 rightSidebar : Model -> List (Html Msg)
 rightSidebar model =
     case model.page of
-        Room pageModel ->
-            userList "Members" model.page pageModel.users
-
-        NewRoom _ ->
-            mainDirectory model
-
-        RoomSettings pageModel ->
-            userList "Members" model.page pageModel.users
-
         Conversations ->
             mainDirectory model
 
@@ -794,142 +472,13 @@ userItem page edge =
         ]
 
 
-roomSubscriptionsList : Page -> AppState -> Html Msg
-roomSubscriptionsList page appState =
-    let
-        rooms =
-            List.map (roomSubscriptionItem page) appState.roomSubscriptions.edges
-    in
-        div [ class "side-nav" ] (rooms ++ [ createRoomLink page ])
-
-
-createRoomLink : Page -> Html Msg
-createRoomLink page =
-    let
-        isActive =
-            case page of
-                NewRoom _ ->
-                    True
-
-                _ ->
-                    False
-    in
-        a
-            [ classList
-                [ ( "side-nav__item", True )
-                , ( "side-nav__item--action", True )
-                , ( "side-nav__item--selected", isActive )
-                ]
-            , Route.href Route.NewRoom
-            ]
-            [ span [ class "side-nav__item-name" ] [ text "Create a room..." ]
-            ]
-
-
-roomSubscriptionItem : Page -> RoomSubscriptionEdge -> Html Msg
-roomSubscriptionItem page edge =
-    let
-        room =
-            edge.node.room
-
-        isActive =
-            case page of
-                Room pageModel ->
-                    if pageModel.room.id == room.id then
-                        True
-                    else
-                        False
-
-                RoomSettings pageModel ->
-                    if pageModel.id == room.id then
-                        True
-                    else
-                        False
-
-                _ ->
-                    False
-
-        icon =
-            case room.subscriberPolicy of
-                Data.Room.InviteOnly ->
-                    span [ class "side-nav__item-icon" ] [ privacyIcon (Color.rgb 144 150 162) 12 ]
-
-                _ ->
-                    text ""
-
-        -- Placeholder for when we implement "unread" indicator
-        dot =
-            if hasUnreadMessages edge.node then
-                span [ class "side-nav__item-indicator" ]
-                    [ span [ class "side-nav__dot" ] []
-                    ]
-            else
-                text ""
-    in
-        a
-            [ classList
-                [ ( "side-nav__item", True )
-                , ( "side-nav__item--room", True )
-                , ( "side-nav__item--selected", isActive )
-                ]
-            , Route.href (Route.Room room.id)
-            ]
-            [ span [ class "side-nav__item-name" ] [ text room.name ]
-            , icon
-            , dot
-            ]
-
-
-hasUnreadMessages : RoomSubscription -> Bool
-hasUnreadMessages sub =
-    case ( sub.lastReadMessageId, sub.room.lastMessageId ) of
-        ( Nothing, Nothing ) ->
-            False
-
-        ( Nothing, Just _ ) ->
-            True
-
-        ( Just _, Nothing ) ->
-            False
-
-        ( Just lastReadMessageId, Just lastMessageId ) ->
-            case ( String.toInt lastReadMessageId, String.toInt lastMessageId ) of
-                ( Ok lastReadMessageIdInt, Ok lastMessageIdInt ) ->
-                    lastReadMessageIdInt < lastMessageIdInt
-
-                ( _, _ ) ->
-                    False
-
-
-
 -- MESSAGE DECODERS
 
 
 type Message
-    = RoomMessageCreated Subscription.RoomMessageCreated.Result
-    | LastReadRoomMessageUpdated Subscription.LastReadRoomMessageUpdated.Result
-    | UnknownMessage
+    = UnknownMessage
 
 
 decodeMessage : Decode.Value -> Message
 decodeMessage value =
-    Decode.decodeValue messageDecoder value
-        |> Result.withDefault UnknownMessage
-
-
-messageDecoder : Decode.Decoder Message
-messageDecoder =
-    Decode.oneOf
-        [ roomMessageCreatedDecoder
-        , lastReadRoomMessageUpdatedDecoder
-        ]
-
-
-roomMessageCreatedDecoder : Decode.Decoder Message
-roomMessageCreatedDecoder =
-    Decode.map RoomMessageCreated Subscription.RoomMessageCreated.decoder
-
-
-lastReadRoomMessageUpdatedDecoder : Decode.Decoder Message
-lastReadRoomMessageUpdatedDecoder =
-    Decode.map LastReadRoomMessageUpdated Subscription.LastReadRoomMessageUpdated.decoder
+    UnknownMessage

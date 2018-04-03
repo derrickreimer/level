@@ -13,7 +13,6 @@ defmodule LevelWeb.GraphQL.ViewerTest do
       {
         viewer {
           email
-          recipient_id
           state
         }
       }
@@ -28,7 +27,6 @@ defmodule LevelWeb.GraphQL.ViewerTest do
              "data" => %{
                "viewer" => %{
                  "email" => user.email,
-                 "recipient_id" => "u:#{user.id}",
                  "state" => user.state
                }
              }

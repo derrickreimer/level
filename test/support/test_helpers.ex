@@ -4,7 +4,6 @@ defmodule Level.TestHelpers do
   """
 
   alias Level.Repo
-  alias Level.Threads
 
   def valid_signup_params do
     salt = random_string()
@@ -36,30 +35,6 @@ defmodule Level.TestHelpers do
     }
   end
 
-  def valid_draft_params(%{space: space, user: user}) do
-    %{
-      space_id: space.id,
-      user_id: user.id,
-      subject: "This is the subject",
-      body: "I am the body",
-      recipient_ids: []
-    }
-  end
-
-  def valid_room_params do
-    %{
-      name: "room#{random_string()}",
-      description: "This is a room",
-      subscriber_policy: "PUBLIC"
-    }
-  end
-
-  def valid_room_message_params do
-    %{
-      body: "Hello world"
-    }
-  end
-
   def insert_signup(params \\ %{}) do
     params =
       valid_signup_params()
@@ -87,25 +62,6 @@ defmodule Level.TestHelpers do
     %Level.Spaces.User{}
     |> Level.Spaces.User.signup_changeset(params)
     |> Repo.insert()
-  end
-
-  def insert_draft(space, user, params \\ %{}) do
-    params =
-      %{space: space, user: user}
-      |> valid_draft_params()
-      |> Map.merge(params)
-
-    params
-    |> Threads.create_draft_changeset()
-    |> Threads.create_draft()
-  end
-
-  def insert_room(user, params \\ %{}) do
-    params =
-      valid_room_params()
-      |> Map.merge(params)
-
-    Level.Rooms.create_room(user, params)
   end
 
   def put_launch_host(conn) do

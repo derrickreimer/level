@@ -12,7 +12,9 @@ defmodule Level.Spaces.Invitation do
   alias Level.Repo
   alias Level.Spaces.Space
   alias Level.Spaces.User
-  alias Level.Rooms
+
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
 
   # @states ["PENDING", "ACCEPTED", "REVOKED"]
 
@@ -67,7 +69,6 @@ defmodule Level.Spaces.Invitation do
     Multi.new()
     |> Multi.insert(:user, user_changeset)
     |> Multi.run(:invitation, mark_accepted_operation(invitation))
-    |> Multi.run(:room_subscriptions, subscribe_to_rooms_operation())
   end
 
   def revoke_operation(invitation) do
@@ -80,12 +81,6 @@ defmodule Level.Spaces.Invitation do
       invitation
       |> accept_changeset(%{acceptor_id: user.id, state: "ACCEPTED"})
       |> Repo.update()
-    end
-  end
-
-  defp subscribe_to_rooms_operation do
-    fn %{user: user} ->
-      {:ok, Rooms.subscribe_to_mandatory_rooms(user)}
     end
   end
 

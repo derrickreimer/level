@@ -66,7 +66,7 @@ defmodule LevelWeb.AuthTest do
         |> assign(:space, space)
         |> put_session(
           :sessions,
-          to_user_session(space, %Level.Spaces.User{id: 999, session_salt: "nacl"})
+          to_user_session(space, %Level.Spaces.User{id: Ecto.UUID.generate(), session_salt: "nacl"})
         )
         |> Auth.fetch_current_user_by_session()
 
@@ -184,7 +184,7 @@ defmodule LevelWeb.AuthTest do
     end
 
     test "sets the user session", %{conn: conn, space: space, user: user} do
-      space_id = Integer.to_string(space.id)
+      space_id = space.id
 
       %{^space_id => [user_id | _]} =
         conn
@@ -197,11 +197,11 @@ defmodule LevelWeb.AuthTest do
 
   describe "sign_out/2" do
     test "signs out of the given space only", %{conn: conn} do
-      space1 = %Level.Spaces.Space{id: 1}
-      space2 = %Level.Spaces.Space{id: 2}
+      space1 = %Level.Spaces.Space{id: Ecto.UUID.generate()}
+      space2 = %Level.Spaces.Space{id: Ecto.UUID.generate()}
 
-      user1 = %Level.Spaces.User{id: 1}
-      user2 = %Level.Spaces.User{id: 2}
+      user1 = %Level.Spaces.User{id: Ecto.UUID.generate()}
+      user2 = %Level.Spaces.User{id: Ecto.UUID.generate()}
 
       conn =
         conn
@@ -214,8 +214,8 @@ defmodule LevelWeb.AuthTest do
         |> get_session(:sessions)
         |> Poison.decode!()
 
-      refute Map.has_key?(sessions, "1")
-      assert Map.has_key?(sessions, "2")
+      refute Map.has_key?(sessions, space1.id)
+      assert Map.has_key?(sessions, space2.id)
     end
   end
 
@@ -318,7 +318,7 @@ defmodule LevelWeb.AuthTest do
   end
 
   defp to_user_session(space, user, ts \\ 123) do
-    Poison.encode!(%{Integer.to_string(space.id) => [user.id, user.session_salt, ts]})
+    Poison.encode!(%{space.id => [user.id, user.session_salt, ts]})
   end
 
   defp generate_expired_token(user) do
