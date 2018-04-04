@@ -30,4 +30,22 @@ defmodule Level.Groups do
     |> Group.changeset(params_with_relations)
     |> Repo.insert()
   end
+
+  @doc """
+  Closes a group.
+
+  ## Examples
+
+      iex> close_group(%Group{state: "OPEN"})
+      {:ok, %Group{state: "CLOSED"}}
+
+      iex> close_group(%Group{})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def close_group(group) do
+    group
+    |> Ecto.Changeset.change(state: "CLOSED")
+    |> Repo.update()
+  end
 end

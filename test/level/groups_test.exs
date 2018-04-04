@@ -33,4 +33,16 @@ defmodule Level.GroupsTest do
       assert changeset.errors == [name: {"has already been taken", []}]
     end
   end
+
+  describe "close_group/1" do
+    setup do
+      insert_signup()
+    end
+
+    test "transitions open groups to closed", %{user: user} do
+      {:ok, group} = insert_group(user)
+      {:ok, closed_group} = Groups.close_group(group)
+      assert closed_group.state == "CLOSED"
+    end
+  end
 end

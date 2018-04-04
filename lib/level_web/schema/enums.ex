@@ -33,6 +33,10 @@ defmodule LevelWeb.Schema.Enums do
     value(:email)
   end
 
+  enum :group_order_field do
+    value(:name)
+  end
+
   enum :order_direction do
     value(:asc)
     value(:desc)
