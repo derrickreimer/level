@@ -59,6 +59,7 @@ defmodule LevelWeb.Schema.Types do
       arg(:before, :cursor)
       arg(:after, :cursor)
       arg(:order_by, :group_order)
+      arg(:state, :group_state)
       resolve(&Level.Connections.groups/3)
     end
   end

@@ -15,7 +15,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       {
         viewer {
           space {
-            groups(first:2) {
+            groups(first: 2) {
               edges {
                 node {
                   name
@@ -42,6 +42,57 @@ defmodule LevelWeb.GraphQL.GroupsTest do
                        %{
                          "node" => %{
                            "name" => group.name
+                         }
+                       }
+                     ],
+                     "total_count" => 1
+                   }
+                 }
+               }
+             }
+           }
+  end
+
+  test "filtering groups by state", %{conn: conn, user: user} do
+    insert_group(user)
+    {:ok, closed_group} = insert_group(user)
+
+    {:ok, closed_group} =
+      closed_group
+      |> Ecto.Changeset.change(state: "CLOSED")
+      |> Repo.update()
+
+    query = """
+      {
+        viewer {
+          space {
+            groups(first: 2, state: CLOSED) {
+              edges {
+                node {
+                  name
+                }
+              }
+              total_count
+            }
+          }
+        }
+      }
+    """
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", query)
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "viewer" => %{
+                 "space" => %{
+                   "groups" => %{
+                     "edges" => [
+                       %{
+                         "node" => %{
+                           "name" => closed_group.name
                          }
                        }
                      ],
