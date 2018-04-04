@@ -4,20 +4,23 @@ defmodule Level.Groups do
   """
 
   import Ecto.Query, warn: false
-  alias Level.Repo
 
+  alias Ecto.Multi
+  alias Level.Repo
   alias Level.Groups.Group
+  alias Level.Groups.GroupMembership
 
   @doc """
   Creates a group.
 
   ## Examples
 
-      iex> create_group(%User{}, %{name: value})
-      {:ok, %Group{}}
+      # Returns the newly created group and membership if successful.
+      create_group(%User{}, %{name: value})
+      => {:ok, %{group: %Group{}, membership: %GroupMembership{}}}
 
-      iex> create_group(%User{}, %{name: bad_value})
-      {:error, %Ecto.Changeset{}}
+      # Otherwise, returns an error.
+      => {:error, failed_operation, failed_value, changes_so_far}
 
   """
   def create_group(creator, params \\ %{}) do
@@ -26,8 +29,38 @@ defmodule Level.Groups do
       |> Map.put(:space_id, creator.space_id)
       |> Map.put(:creator_id, creator.id)
 
-    %Group{}
-    |> Group.changeset(params_with_relations)
+    changeset = Group.changeset(%Group{}, params_with_relations)
+
+    Multi.new()
+    |> Multi.insert(:group, changeset)
+    |> Multi.run(:membership, fn %{group: group} ->
+      create_group_membership(group, creator)
+    end)
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Creates a group membership.
+
+  ## Examples
+
+      # Returns the newly created group membership if successful.
+      create_group_membership(%Group{}, %User{})
+      => {:ok, %GroupMembership{}}
+
+      # Otherwise, returns an error changeset.
+      => {:error, %Ecto.Changeset{}}
+
+  """
+  def create_group_membership(group, user) do
+    params = %{
+      space_id: user.space_id,
+      group_id: group.id,
+      user_id: user.id
+    }
+
+    %GroupMembership{}
+    |> GroupMembership.changeset(params)
     |> Repo.insert()
   end
 
