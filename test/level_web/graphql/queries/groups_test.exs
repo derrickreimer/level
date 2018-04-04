@@ -2,6 +2,8 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   use LevelWeb.ConnCase
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Groups
+
   setup %{conn: conn} do
     {:ok, %{user: user, space: space}} = insert_signup()
     conn = authenticate_with_jwt(conn, space, user)
@@ -54,13 +56,9 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   end
 
   test "filtering groups by state", %{conn: conn, user: user} do
-    insert_group(user)
-    {:ok, closed_group} = insert_group(user)
-
-    {:ok, closed_group} =
-      closed_group
-      |> Ecto.Changeset.change(state: "CLOSED")
-      |> Repo.update()
+    insert_group(user) # an open group
+    {:ok, group} = insert_group(user)
+    {:ok, closed_group} = Groups.close_group(group)
 
     query = """
       {
