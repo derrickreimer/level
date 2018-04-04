@@ -19,7 +19,7 @@ defmodule LevelWeb.Subdomain do
         Serving Level over localhost is not supported.
 
         Level relies on subdomains for routing. Configure your hosts accordingly.
-        See https://github.com/djreimer/level#routing for more information.
+        See https://github.com/levelhq/level#routing for more information.
         """
 
       String.ends_with?(conn.host, default_host()) ->
@@ -32,7 +32,7 @@ defmodule LevelWeb.Subdomain do
         Your configured host is #{default_host()}, but this request came via #{conn.host}.
 
         This is required to ensure cookie-setting and subdomain routing functions properly.
-        See https://github.com/djreimer/level#routing for more information.
+        See https://github.com/levelhq/level#routing for more information.
         """
     end
   end

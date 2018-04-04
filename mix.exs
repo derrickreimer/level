@@ -78,7 +78,7 @@ defmodule Level.Mixfile do
 
   defp docs do
     [
-      source_url: "https://github.com/djreimer/level",
+      source_url: "https://github.com/levelhq/level",
       extras: ["README.md"],
       groups_for_modules: groups_for_modules()
     ]
