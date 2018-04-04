@@ -34,4 +34,20 @@ defmodule Level.Connections do
   def invitations(space, args, context \\ %{}) do
     Level.Connections.Invitations.get(space, args, context)
   end
+
+  @doc """
+  Fetch groups for given a space.
+
+  ## Examples
+
+      groups(space, args)
+      => {:ok, %Level.Pagination.Result{
+        edges: [%Group{...}],
+        page_info: %PageInfo{...},
+        total_count: 10
+      }}
+  """
+  def groups(space, args, context \\ %{}) do
+    Level.Connections.Groups.get(space, args, context)
+  end
 end

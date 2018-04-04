@@ -2,7 +2,6 @@ defmodule Level.ConnectionsTest do
   use Level.DataCase
 
   alias Level.Connections
-  alias Level.Pagination.Result
 
   describe "users/3" do
     setup do

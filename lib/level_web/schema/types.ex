@@ -52,6 +52,15 @@ defmodule LevelWeb.Schema.Types do
       arg(:order_by, :invitation_order)
       resolve(&Level.Connections.invitations/3)
     end
+
+    field :groups, non_null(:group_connection) do
+      arg(:first, :integer)
+      arg(:last, :integer)
+      arg(:before, :cursor)
+      arg(:after, :cursor)
+      arg(:order_by, :group_order)
+      resolve(&Level.Connections.groups/3)
+    end
   end
 
   @desc "An invitation is the means by which a new user joins an existing space."
