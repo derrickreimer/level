@@ -41,7 +41,7 @@ defmodule LevelWeb.Schema.Types do
       arg(:before, :cursor)
       arg(:after, :cursor)
       arg(:order_by, :user_order)
-      resolve(&LevelWeb.SpaceResolver.users/3)
+      resolve(&Level.Connections.users/3)
     end
 
     field :invitations, non_null(:invitation_connection) do
@@ -50,7 +50,7 @@ defmodule LevelWeb.Schema.Types do
       arg(:before, :cursor)
       arg(:after, :cursor)
       arg(:order_by, :invitation_order)
-      resolve(&LevelWeb.SpaceResolver.invitations/3)
+      resolve(&Level.Connections.invitations/3)
     end
   end
 
