@@ -2,7 +2,7 @@ defmodule Level.Repo.Migrations.CreateSpace do
   use Ecto.Migration
 
   def up do
-    execute("CREATE EXTENSION citext")
+    execute("CREATE EXTENSION IF NOT EXISTS citext")
     execute("CREATE TYPE space_state AS ENUM ('ACTIVE','DISABLED')")
 
     create table(:spaces, primary_key: false) do
