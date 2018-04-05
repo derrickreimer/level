@@ -1,5 +1,5 @@
 defmodule Level.Spaces.RegistrationRepoTest do
-  use Level.DataCase
+  use Level.DataCase, async: true
 
   alias Level.Spaces.Registration
 

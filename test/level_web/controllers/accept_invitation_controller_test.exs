@@ -1,5 +1,5 @@
 defmodule LevelWeb.AcceptInvitationControllerTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
 
   alias Level.Spaces
 

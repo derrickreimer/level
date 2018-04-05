@@ -1,5 +1,5 @@
 defmodule Level.GroupsTest do
-  use Level.DataCase
+  use Level.DataCase, async: true
 
   alias Level.Groups
   alias Level.Groups.Group

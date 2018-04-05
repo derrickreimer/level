@@ -1,5 +1,5 @@
 defmodule LevelWeb.AuthTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
   alias LevelWeb.Auth
 
   setup %{conn: conn} do

@@ -1,5 +1,5 @@
 defmodule LevelWeb.SpaceSearchControllerTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
 
   describe "GET /spaces/search" do
     test "includes the correct heading", %{conn: conn} do

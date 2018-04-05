@@ -1,5 +1,5 @@
 defmodule LevelWeb.EmailTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Bamboo.Test
 
   describe "invitation_email/1" do

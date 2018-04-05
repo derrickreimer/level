@@ -1,5 +1,5 @@
 defmodule LevelWeb.SessionControllerTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
 
   describe "GET /login" do
     test "includes the correct heading", %{conn: conn} do
