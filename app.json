@@ -1,7 +1,7 @@
 {
   "name": "Level",
   "description": "Smarter communication platform for teams that value focus",
-  "repository": "https://github.com/djreimer/level",
+  "repository": "https://github.com/levelhq/level",
   "keywords": ["chat", "elixir", "phoenix"],
   "addons": [
     {
