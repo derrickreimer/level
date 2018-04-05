@@ -2,7 +2,7 @@ version: 2
 jobs:
   build_elixir:
     docker:
-      - image: circleci/elixir:1.5.2
+      - image: circleci/elixir:1.6.4
 
     working_directory: /home/circleci/repo
     steps:
@@ -30,7 +30,7 @@ jobs:
 
   test_elixir:
     docker:
-      - image: circleci/elixir:1.5.2
+      - image: circleci/elixir:1.6.4
       - image: circleci/postgres:9.6.2
 
     environment:
