@@ -11,7 +11,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   end
 
   test "spaces have a paginated groups field", %{conn: conn, user: user} do
-    {:ok, group} = insert_group(user)
+    {:ok, %{group: group}} = insert_group(user)
 
     query = """
       {
@@ -56,8 +56,9 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   end
 
   test "filtering groups by state", %{conn: conn, user: user} do
-    insert_group(user) # an open group
-    {:ok, group} = insert_group(user)
+    # an open group
+    insert_group(user)
+    {:ok, %{group: group}} = insert_group(user)
     {:ok, closed_group} = Groups.close_group(group)
 
     query = """

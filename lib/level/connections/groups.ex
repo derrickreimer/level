@@ -22,8 +22,7 @@ defmodule Level.Connections.Groups do
   def get(space, args, _context) do
     case validate_args(args) do
       {:ok, args} ->
-        base_query = from g in Group,
-          where: g.space_id == ^space.id and g.state == ^args.state
+        base_query = from g in Group, where: g.space_id == ^space.id and g.state == ^args.state
 
         Level.Pagination.fetch_result(Level.Repo, base_query, args)
 

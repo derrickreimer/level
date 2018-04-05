@@ -10,11 +10,14 @@ defmodule LevelWeb.GroupResolver do
   def create(args, %{context: %{current_user: user}}) do
     resp =
       case Groups.create_group(user, args) do
-        {:ok, group} ->
+        {:ok, %{group: group}} ->
           %{success: true, group: group, errors: []}
 
-        {:error, changeset} ->
+        {:error, :group, changeset, _} ->
           %{success: false, group: nil, errors: format_errors(changeset)}
+
+        _ ->
+          %{success: false, group: nil, errors: []}
       end
 
     {:ok, resp}
