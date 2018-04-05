@@ -116,9 +116,10 @@ defmodule Level.Spaces do
           invitation
           |> Repo.preload([:space, :invitor])
 
-        invitation_with_relations
-        |> LevelWeb.Email.invitation_email()
-        |> Level.Mailer.deliver_later()
+        _delivered_email =
+          invitation_with_relations
+          |> LevelWeb.Email.invitation_email()
+          |> Level.Mailer.deliver_later()
 
         {:ok, invitation_with_relations}
 

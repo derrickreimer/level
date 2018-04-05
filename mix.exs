@@ -9,6 +9,7 @@ defmodule Level.Mixfile do
       version: @version,
       elixir: "~> 1.6",
       elixirc_paths: elixirc_paths(Mix.env()),
+      consolidate_protocols: true,
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [coveralls: :test],
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
@@ -17,6 +18,10 @@ defmodule Level.Mixfile do
       aliases: aliases(),
       deps: deps(),
       name: "Level",
+      dialyzer: [
+        flags: [:unmatched_returns, :error_handling, :race_conditions, :underspecs],
+        ignore_warnings: "dialyzer.ignore-warnings"
+      ],
       docs: docs()
     ]
   end
@@ -56,7 +61,8 @@ defmodule Level.Mixfile do
       {:joken, "~> 1.5"},
       {:bamboo, "~> 0.8"},
       {:bamboo_smtp, "~> 1.4"},
-      {:excoveralls, "~> 0.8", only: :test}
+      {:excoveralls, "~> 0.8", only: :test},
+      {:dialyxir, "~> 0.5", only: :dev, runtime: false}
     ]
   end
 

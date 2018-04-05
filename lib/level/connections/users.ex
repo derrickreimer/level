@@ -2,6 +2,8 @@ defmodule Level.Connections.Users do
   @moduledoc false
 
   alias Level.Spaces.User
+  alias Level.Pagination
+  alias Level.Repo
   import Ecto.Query
 
   @default_args %{
@@ -23,10 +25,7 @@ defmodule Level.Connections.Users do
       {:ok, args} ->
         base_query = from u in User, where: u.space_id == ^space.id and u.state == "ACTIVE"
 
-        Level.Pagination.fetch_result(Level.Repo, base_query, args)
-
-      error ->
-        error
+        Pagination.fetch_result(Repo, base_query, args)
     end
   end
 

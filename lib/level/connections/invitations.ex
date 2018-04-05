@@ -2,6 +2,8 @@ defmodule Level.Connections.Invitations do
   @moduledoc false
 
   alias Level.Spaces.Invitation
+  alias Level.Pagination
+  alias Level.Repo
   import Ecto.Query
 
   @default_args %{
@@ -23,10 +25,7 @@ defmodule Level.Connections.Invitations do
       {:ok, args} ->
         base_query = from i in Invitation, where: i.space_id == ^space.id and i.state == "PENDING"
 
-        Level.Pagination.fetch_result(Level.Repo, base_query, args)
-
-      error ->
-        error
+        Pagination.fetch_result(Repo, base_query, args)
     end
   end
 

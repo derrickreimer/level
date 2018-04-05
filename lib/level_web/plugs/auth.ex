@@ -160,9 +160,6 @@ defmodule LevelWeb.Auth do
 
       %Joken.Token{error: error} ->
         {:error, error}
-
-      _ ->
-        {:error, ""}
     end
   end
 

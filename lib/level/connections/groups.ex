@@ -2,6 +2,8 @@ defmodule Level.Connections.Groups do
   @moduledoc false
 
   alias Level.Groups.Group
+  alias Level.Pagination
+  alias Level.Repo
   import Ecto.Query
 
   @default_args %{
@@ -24,10 +26,7 @@ defmodule Level.Connections.Groups do
       {:ok, args} ->
         base_query = from g in Group, where: g.space_id == ^space.id and g.state == ^args.state
 
-        Level.Pagination.fetch_result(Level.Repo, base_query, args)
-
-      error ->
-        error
+        Pagination.fetch_result(Repo, base_query, args)
     end
   end
 
