@@ -60,6 +60,9 @@ jobs:
       - run:
           name: "Run Elixir formatter check"
           command: mix format --check-formatted
+      - run:
+          name: "Run dialyzer"
+          command: mix dialyzer --plt
 
   build_and_test_elm:
     docker:

@@ -4,6 +4,8 @@ defmodule LevelWeb.AcceptInvitationController do
   use LevelWeb, :controller
 
   alias Level.Spaces
+  alias LevelWeb.Auth
+  alias LevelWeb.InvitationView
 
   plug :fetch_space
 
@@ -13,14 +15,14 @@ defmodule LevelWeb.AcceptInvitationController do
     case Spaces.accept_invitation(invitation, user_params) do
       {:ok, %{user: user}} ->
         conn
-        |> LevelWeb.Auth.sign_in(invitation.space, user)
+        |> Auth.sign_in(invitation.space, user)
         |> redirect(to: cockpit_path(conn, :index))
 
       {:error, :user, changeset, _} ->
         conn
         |> assign(:changeset, changeset)
         |> assign(:invitation, invitation)
-        |> render(LevelWeb.InvitationView, "show.html")
+        |> render(InvitationView, "show.html", [])
 
       _ ->
         conn
