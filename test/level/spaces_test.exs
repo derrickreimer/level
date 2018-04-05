@@ -1,5 +1,5 @@
 defmodule Level.SpacesTest do
-  use Level.DataCase
+  use Level.DataCase, async: true
   use Bamboo.Test
 
   alias Level.Spaces

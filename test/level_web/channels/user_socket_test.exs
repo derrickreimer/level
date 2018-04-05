@@ -1,5 +1,5 @@
 defmodule LevelWeb.UserSocketTest do
-  use LevelWeb.ChannelCase
+  use LevelWeb.ChannelCase, async: true
 
   describe "connect/2" do
     setup do

@@ -1,5 +1,5 @@
 defmodule LevelWeb.API.SpaceControllerTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
 
   alias LevelWeb.API.SpaceView
 

@@ -1,5 +1,5 @@
 defmodule LevelWeb.API.UserTokenControllerTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
 
   describe "POST /api/tokens" do
     setup %{conn: conn} do

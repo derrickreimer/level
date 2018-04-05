@@ -1,5 +1,5 @@
 defmodule LevelWeb.GraphQL.InviteUserTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   setup %{conn: conn} do

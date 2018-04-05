@@ -1,5 +1,5 @@
 defmodule LevelWeb.SpaceControllerTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
 
   describe "GET /" do
     setup %{conn: conn} do

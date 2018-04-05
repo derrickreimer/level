@@ -1,5 +1,5 @@
 defmodule LevelWeb.API.SignupErrorsControllerTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
 
   describe "POST /api/signup/errors" do
     setup %{conn: conn} do

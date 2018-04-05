@@ -1,5 +1,5 @@
 defmodule Level.ConnectionsTest do
-  use Level.DataCase
+  use Level.DataCase, async: true
 
   alias Level.Connections
 

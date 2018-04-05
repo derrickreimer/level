@@ -1,5 +1,5 @@
 defmodule LevelWeb.SubdomainTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
   alias LevelWeb.Subdomain
 
   describe "validate_host/2" do

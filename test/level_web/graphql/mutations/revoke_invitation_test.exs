@@ -1,5 +1,5 @@
 defmodule LevelWeb.GraphQL.RevokeInvitationTest do
-  use LevelWeb.ConnCase
+  use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Spaces
