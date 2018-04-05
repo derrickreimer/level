@@ -46,7 +46,8 @@ defmodule LevelWeb.GraphQL.InvitationsTest do
                            "id" => to_string(invitation.id),
                            "email" => invitation.email,
                            "insertedAt" =>
-                             invitation.inserted_at |> Timex.to_datetime()
+                             invitation.inserted_at
+                             |> Timex.to_datetime()
                              |> DateTime.to_iso8601()
                          }
                        }
