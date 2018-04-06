@@ -1,34 +1,6 @@
 version: 2
 jobs:
-  build_elixir:
-    docker:
-      - image: circleci/elixir:1.6.4
-
-    working_directory: /home/circleci/repo
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - elixir-build-v2-{{ checksum "mix.exs" }}
-      - run:
-          name: "Install Hex"
-          command: mix local.hex --force
-      - run:
-          name: "Install Rebar"
-          command: mix local.rebar --force
-      - run:
-          name: "Install Elixir dependencies"
-          command: mix deps.get
-      - run:
-          name: "Compile Elixir source"
-          command: mix compile
-      - save_cache:
-          key: elixir-build-v2-{{ checksum "mix.exs" }}
-          paths:
-            - '_build'
-            - 'deps'
-
-  test_elixir:
+  build_and_test_elixir:
     docker:
       - image: circleci/elixir:1.6.4
       - image: circleci/postgres:9.6.2
@@ -49,6 +21,12 @@ jobs:
           name: "Install Rebar"
           command: mix local.rebar --force
       - run:
+          name: "Install Elixir dependencies"
+          command: mix deps.get
+      - run:
+          name: "Compile Elixir source"
+          command: mix compile
+      - run:
           name: "Create the test database"
           command: mix ecto.create
       - run:
@@ -62,7 +40,13 @@ jobs:
           command: mix format --check-formatted
       - run:
           name: "Run dialyzer"
-          command: mix dialyzer --plt
+          command: mix dialyzer
+      - save_cache:
+          key: elixir-build-v2-{{ checksum "mix.lock" }}
+          paths:
+            - '_build'
+            - 'deps'
+            - '~/.mix'
 
   build_and_test_elm:
     docker:
@@ -79,7 +63,7 @@ jobs:
             - elm-stuff-v5-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
       - restore_cache:
           keys:
-            - elixir-build-v2-{{ checksum "mix.exs" }}
+            - elixir-build-v2-{{ checksum "mix.lock" }}
       - run:
           name: "Install yarn packages"
           command: cd assets && yarn install
@@ -121,10 +105,7 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - build_elixir
-      - test_elixir:
-          requires:
-            - build_elixir
+      - build_and_test_elixir
       - build_and_test_elm:
           requires:
-            - build_elixir
+            - build_and_test_elixir
