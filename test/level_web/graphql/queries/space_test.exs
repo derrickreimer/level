@@ -56,4 +56,43 @@ defmodule LevelWeb.GraphQL.SpaceTest do
              }
            }
   end
+
+  test "propagates pagination errors", %{conn: conn} do
+    query = """
+      {
+        viewer {
+          space {
+            users(first: 2, last: 2) {
+              edges {
+                node {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    """
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", query)
+
+    assert json_response(conn, 200) == %{
+             "data" => %{"viewer" => %{"space" => nil}},
+             "errors" => [
+               %{
+                 "locations" => [%{"column" => 0, "line" => 4}],
+                 "message" => "Cannot return null for non-nullable field",
+                 "path" => ["viewer", "space", "users"]
+               },
+               %{
+                 "locations" => [%{"column" => 0, "line" => 4}],
+                 "message" => "You must provide either a `first` or `last` value",
+                 "path" => ["viewer", "space", "users"]
+               }
+             ]
+           }
+  end
 end

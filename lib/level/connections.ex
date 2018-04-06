@@ -14,6 +14,10 @@ defmodule Level.Connections do
         page_info: %PageInfo{...},
         total_count: 10
       }}
+
+      users(space, invalid_args)
+      => {:error, "You cannot provide both a `before` and `after` value"}
+
   """
   def users(space, args, context \\ %{}) do
     Level.Connections.Users.get(space, args, context)
@@ -30,6 +34,10 @@ defmodule Level.Connections do
         page_info: %PageInfo{...},
         total_count: 10
       }}
+
+      invitations(space, invalid_args)
+      => {:error, "You cannot provide both a `before` and `after` value"}
+
   """
   def invitations(space, args, context \\ %{}) do
     Level.Connections.Invitations.get(space, args, context)
@@ -46,6 +54,10 @@ defmodule Level.Connections do
         page_info: %PageInfo{...},
         total_count: 10
       }}
+
+      groups(space, invalid_args)
+      => {:error, "You cannot provide both a `before` and `after` value"}
+
   """
   def groups(space, args, context \\ %{}) do
     Level.Connections.Groups.get(space, args, context)

@@ -5,6 +5,7 @@ defmodule Level.Connections.Invitations do
   alias Level.Pagination
   alias Level.Repo
   import Ecto.Query
+  import Level.Pagination.Validations
 
   @default_args %{
     first: nil,
@@ -24,13 +25,21 @@ defmodule Level.Connections.Invitations do
     case validate_args(args) do
       {:ok, args} ->
         base_query = from i in Invitation, where: i.space_id == ^space.id and i.state == "PENDING"
-
         Pagination.fetch_result(Repo, base_query, args)
+
+      err ->
+        err
     end
   end
 
   defp validate_args(args) do
-    # TODO: return {:error, message} if args are not valid
-    {:ok, Map.merge(@default_args, args)}
+    args = Map.merge(@default_args, args)
+
+    with {:ok, args} <- validate_cursor(args),
+         {:ok, args} <- validate_limit(args) do
+      {:ok, args}
+    else
+      err -> err
+    end
   end
 end

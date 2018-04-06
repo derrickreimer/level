@@ -3,13 +3,12 @@ defmodule Level.Pagination.Validations do
   Validation helpers for pagination.
   """
 
+  import Level.Gettext
+
   @doc """
   Validates the cursor arguments for pagination.
 
   ## Examples
-
-      validate_cursor(%{before: nil, after: nil})
-      => {:error, "You must provide either a `before` or `after` value}
 
       validate_cursor(%{before: "aaa", after: "aaa"})
       => {:error, "You must provide either a `before` or `after` value"}
@@ -18,13 +17,9 @@ defmodule Level.Pagination.Validations do
       => {:ok, %{before: "aaa", after: nil}}
 
   """
-  def validate_cursor(%{before: nil, after: nil}) do
-    {:error, "You must provide either a `before` or `after` value"}
-  end
-
   def validate_cursor(%{before: before_cursor, after: after_cursor})
       when is_binary(before_cursor) and is_binary(after_cursor) do
-    {:error, "You must provide either a `before` or `after` value"}
+    {:error, dgettext("errors", "You cannot provide both a `before` and `after` value")}
   end
 
   def validate_cursor(args), do: {:ok, args}
@@ -45,12 +40,12 @@ defmodule Level.Pagination.Validations do
 
   """
   def validate_limit(%{first: nil, last: nil}) do
-    {:error, "You must provide either a `first` or `last` value"}
+    {:error, dgettext("errors", "You must provide either a `first` or `last` value")}
   end
 
   def validate_limit(%{first: first, last: last})
       when is_integer(first) and is_integer(last) do
-    {:error, "You must provide either a `first` or `last` value"}
+    {:error, dgettext("errors", "You must provide either a `first` or `last` value")}
   end
 
   def validate_limit(args), do: {:ok, args}
