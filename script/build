@@ -1,5 +1,14 @@
 #!/bin/sh
 
-script/test
-script/lint
+# script/build: Run tests suites and static analysis.
+
+set -e
+
+echo "==> Running Elixir tests"
+script/elixir-test
+
+echo "==> Running Elm tests"
 script/elm-test
+
+echo "==> Running static analysis"
+script/static-analysis

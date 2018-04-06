@@ -1,4 +1,8 @@
 #!/bin/sh
 
+# script/test: Run the Elixir and Elm test suites.
+
+set -e
+
 script/elixir-test
 script/elm-test

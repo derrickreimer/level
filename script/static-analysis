@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# script/static-analysis: Run all static analysis processes (Credo, Dialyzer, formatting check).
+
+set -e
+
+mix credo
+mix dialyzer --plt
+mix format --check-formatted

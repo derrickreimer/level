@@ -1,4 +1,8 @@
 #!/bin/sh
 
+# script/stylelint: Run stylelint (linting for SCSS).
+
+set -e
+
 cd assets
 node_modules/stylelint/bin/stylelint.js "css/**/*.scss" --fix
