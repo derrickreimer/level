@@ -42,6 +42,10 @@ jobs:
       - restore_cache:
           keys:
             - elixir-build-v2-{{ checksum "mix.exs" }}
+      - restore_cache:
+          keys:
+            - v1-plt-cache-{{ checksum "mix.lock" }}
+            - v1-plt-cache
       - run:
           name: "Install Hex"
           command: mix local.hex --force
@@ -62,7 +66,12 @@ jobs:
           command: mix format --check-formatted
       - run:
           name: "Run dialyzer"
-          command: mix dialyzer --plt
+          command: mix dialyzer
+      - save_cache:
+          key: v1-plt-cache-{{ checksum "mix.lock" }}
+          paths:
+            - '_build'
+            - '~/.mix'
 
   build_and_test_elm:
     docker:
