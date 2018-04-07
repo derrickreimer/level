@@ -1,4 +1,8 @@
 #!/bin/sh
 
+# script/elm-test: Run the Elm test suite.
+
+set -e
+
 cd assets/elm
 ../node_modules/.bin/elm-test --compiler ../node_modules/.bin/elm-make

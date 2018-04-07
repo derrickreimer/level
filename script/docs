@@ -1,9 +1,11 @@
 #!/bin/sh
 
+# script/docs: Generate documentation.
+
 set -e
 
-echo "* Compiling docs"
+echo "==> Compiling docs"
 mix docs
 
-echo "* Opening docs"
+echo "==> Opening docs"
 open doc/index.html

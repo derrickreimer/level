@@ -1,4 +1,8 @@
 #!/bin/sh
 
+# script/prettier: Run Prettier (code formatting for Javascript and SCSS).
+
+set -e
+
 cd assets
 node_modules/.bin/prettier --write "{css,js}/**/*.@(scss|js)"

@@ -2,6 +2,7 @@ defmodule Level.ConnectionsTest do
   use Level.DataCase, async: true
 
   alias Level.Connections
+  alias Level.Groups
 
   describe "users/3" do
     setup do
@@ -49,5 +50,40 @@ defmodule Level.ConnectionsTest do
       refute page_info2.has_next_page
       assert page_info2.has_previous_page
     end
+  end
+
+  describe "groups/3" do
+    setup do
+      insert_signup()
+    end
+
+    test "includes open groups by default", %{space: space, user: user} do
+      {:ok, %{group: open_group}} = insert_group(user)
+      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10})
+
+      assert edges_include?(edges, open_group.id)
+    end
+
+    test "does not include closed groups by default", %{space: space, user: user} do
+      {:ok, %{group: group}} = insert_group(user)
+      {:ok, closed_group} = Groups.close_group(group)
+      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10})
+
+      refute edges_include?(edges, closed_group.id)
+    end
+
+    test "filters by closed state", %{space: space, user: user} do
+      {:ok, %{group: open_group}} = insert_group(user)
+      {:ok, %{group: closed_group}} = insert_group(user)
+      {:ok, closed_group} = Groups.close_group(closed_group)
+      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10, state: "CLOSED"})
+
+      assert edges_include?(edges, closed_group.id)
+      refute edges_include?(edges, open_group.id)
+    end
+  end
+
+  def edges_include?(edges, node_id) do
+    Enum.any?(edges, fn edge -> edge.node.id == node_id end)
   end
 end
