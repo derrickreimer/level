@@ -50,5 +50,15 @@ defmodule LevelWeb.Schema do
 
       resolve(&LevelWeb.GroupResolver.create/2)
     end
+
+    @desc "Update a group."
+    field :update_group, type: :update_group_payload do
+      arg(:id, non_null(:id))
+      arg(:name, :string)
+      arg(:description, :string)
+      arg(:is_private, :boolean)
+
+      resolve(&LevelWeb.GroupResolver.update/2)
+    end
   end
 end

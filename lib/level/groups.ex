@@ -11,6 +11,46 @@ defmodule Level.Groups do
   alias Level.Groups.GroupMembership
 
   @doc """
+  Fetch a group by id.
+
+  ## Example
+
+      find_group(good_id)
+      => {:ok, %Group{}}
+
+      find_group(bad_id)
+      => {:error, "Group not found"}
+
+  """
+  def find_group(id) do
+    case Repo.get(Group, id) do
+      %Group{} = group ->
+        {:ok, group}
+
+      _ ->
+        {:error, "Group not found"}
+    end
+  end
+
+  @doc """
+  Updates a group.
+
+  ## Examples
+
+      update_group(group, valid_params)
+      => {:ok, %Group{}}
+
+      update_group(group, invalid_params)
+      => {:error, %Ecto.Changeset{}}
+
+  """
+  def update_group(group, params) do
+    group
+    |> Group.update_changeset(params)
+    |> Repo.update()
+  end
+
+  @doc """
   Creates a group.
 
   ## Examples
