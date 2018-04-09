@@ -13,6 +13,7 @@ defmodule Level.Spaces.Invitation do
   alias Level.Spaces.Space
   alias Level.Spaces.User
 
+  @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
