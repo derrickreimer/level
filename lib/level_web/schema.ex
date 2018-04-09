@@ -4,12 +4,14 @@ defmodule LevelWeb.Schema do
   use Absinthe.Schema
   import_types(LevelWeb.Schema.Types)
 
+  alias Level.Groups
+  alias Level.Repo
   alias Level.Spaces
 
   def context(ctx) do
     loader =
       Dataloader.new()
-      |> Dataloader.add_source(Spaces, Spaces.data())
+      |> Dataloader.add_source(:db, Dataloader.Ecto.new(Repo))
 
     Map.put(ctx, :loader, loader)
   end

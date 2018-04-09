@@ -37,8 +37,7 @@ defmodule Level.Pagination do
     case validate(args) do
       {:ok, _} ->
         {normalized_args, is_flipped} = normalize(args)
-
-        order_field = normalized_args.order_by.field
+        %{order_by: %{field: order_field}} = normalized_args
         total_count = repo.one(apply_count(base_query))
 
         {:ok, nodes, has_previous_page, has_next_page} =
@@ -183,6 +182,7 @@ defmodule Level.Pagination do
 
   defp apply_count(query) do
     query
+    |> Ecto.Query.exclude(:select)
     |> select([r], count(r.id))
   end
 
@@ -190,8 +190,8 @@ defmodule Level.Pagination do
     from r in query, limit: ^(limit + 1)
   end
 
-  defp apply_sort(query, %{order_by: %{field: field, direction: direction}}) do
-    from r in query, order_by: [{^direction, ^field}]
+  defp apply_sort(query, %{order_by: %{field: order_field, direction: direction}}) do
+    order_by(query, [r], [{^direction, field(r, ^order_field)}])
   end
 
   defp apply_after_cursor(query, _, %{after: cursor}) when is_nil(cursor), do: query

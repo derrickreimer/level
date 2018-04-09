@@ -20,6 +20,9 @@ defmodule Level.Groups.GroupMembership do
     belongs_to :user, User
     belongs_to :group, Group
 
+    # Holds the group name when loaded via a join
+    field :name, :string, virtual: true
+
     timestamps()
   end
 
