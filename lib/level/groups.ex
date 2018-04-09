@@ -13,13 +13,23 @@ defmodule Level.Groups do
   alias Level.Groups.GroupMembership
 
   @doc """
-  Fetch a group by id.
+  Fetches a group by id.
   """
   @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-  def get_group(%User{space_id: space_id}, id) do
+  def get_group(%User{space_id: space_id} = user, id) do
     case Repo.get_by(Group, id: id, space_id: space_id) do
       %Group{} = group ->
-        {:ok, group}
+        if group.is_private do
+          case get_group_membership(group, user) do
+            {:ok, _} ->
+              {:ok, group}
+
+            _ ->
+              {:error, dgettext("errors", "Group not found")}
+          end
+        else
+          {:ok, group}
+        end
 
       _ ->
         {:error, dgettext("errors", "Group not found")}
@@ -56,6 +66,21 @@ defmodule Level.Groups do
     group
     |> Group.update_changeset(params)
     |> Repo.update()
+  end
+
+  @doc """
+  Fetches a group membership by group and user.
+  """
+  @spec get_group_membership(Group.t(), User.t()) ::
+          {:ok, GroupMembership.t()} | {:error, String.t()}
+  def get_group_membership(%Group{id: group_id}, %User{id: user_id}) do
+    case Repo.get_by(GroupMembership, user_id: user_id, group_id: group_id) do
+      %GroupMembership{} = membership ->
+        {:ok, membership}
+
+      _ ->
+        {:error, dgettext("errors", "The user is a not a group member")}
+    end
   end
 
   @doc """
