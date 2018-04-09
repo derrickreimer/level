@@ -14,8 +14,8 @@ defmodule Level.Groups do
   @doc """
   Fetch a group by id.
   """
-  @spec find_group(String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-  def find_group(id) do
+  @spec get_group(String.t()) :: {:ok, Group.t()} | {:error, String.t()}
+  def get_group(id) do
     case Repo.get(Group, id) do
       %Group{} = group ->
         {:ok, group}
