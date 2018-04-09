@@ -23,8 +23,8 @@ defmodule LevelWeb.GroupResolver do
     {:ok, resp}
   end
 
-  def update(%{id: id} = args, _) do
-    with {:ok, group} <- Groups.get_group(id),
+  def update(%{id: id} = args, %{context: %{current_user: user}}) do
+    with {:ok, group} <- Groups.get_group(user, id),
          {:ok, group} <- Groups.update_group(group, args) do
       {:ok, %{success: true, group: group, errors: []}}
     else

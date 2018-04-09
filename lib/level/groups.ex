@@ -14,9 +14,9 @@ defmodule Level.Groups do
   @doc """
   Fetch a group by id.
   """
-  @spec get_group(String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-  def get_group(id) do
-    case Repo.get(Group, id) do
+  @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
+  def get_group(%User{space_id: space_id}, id) do
+    case Repo.get_by(Group, id: id, space_id: space_id) do
       %Group{} = group ->
         {:ok, group}
 

@@ -4,6 +4,27 @@ defmodule Level.GroupsTest do
   alias Level.Groups
   alias Level.Groups.Group
 
+  describe "get_group/2" do
+    setup do
+      insert_signup()
+    end
+
+    test "returns the group when public", %{user: user} do
+      {:ok, %{group: %Group{id: group_id}}} = insert_group(user, %{is_private: false})
+      assert {:ok, %Group{id: ^group_id}} = Groups.get_group(user, group_id)
+    end
+
+    test "does not return the group if it's outside the space", %{user: user} do
+      {:ok, %{user: another_user}} = insert_signup()
+      {:ok, %{group: %Group{id: group_id}}} = insert_group(user, %{is_private: false})
+      assert {:error, "Group not found"} = Groups.get_group(another_user, group_id)
+    end
+
+    test "returns an error if the group does not exist", %{user: user} do
+      assert {:error, "Group not found"} = Groups.get_group(user, Ecto.UUID.generate())
+    end
+  end
+
   describe "create_group/3" do
     setup do
       insert_signup()
