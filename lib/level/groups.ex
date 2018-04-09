@@ -7,21 +7,14 @@ defmodule Level.Groups do
 
   alias Ecto.Multi
   alias Level.Repo
+  alias Level.Spaces.User
   alias Level.Groups.Group
   alias Level.Groups.GroupMembership
 
   @doc """
   Fetch a group by id.
-
-  ## Example
-
-      find_group(good_id)
-      => {:ok, %Group{}}
-
-      find_group(bad_id)
-      => {:error, "Group not found"}
-
   """
+  @spec find_group(String.t()) :: {:ok, Group.t()} | {:error, String.t()}
   def find_group(id) do
     case Repo.get(Group, id) do
       %Group{} = group ->
@@ -34,17 +27,10 @@ defmodule Level.Groups do
 
   @doc """
   Creates a group.
-
-  ## Examples
-
-      # Returns the newly created group and membership if successful.
-      create_group(%User{}, %{name: value})
-      => {:ok, %{group: %Group{}, membership: %GroupMembership{}}}
-
-      # Otherwise, returns an error.
-      => {:error, failed_operation, failed_value, changes_so_far}
-
   """
+  @spec create_group(User.t(), map()) ::
+          {:ok, %{group: Group.t(), membership: GroupMembership.t()}}
+          | {:error, :group | :membership, any(), %{optional(:group | :membership) => any()}}
   def create_group(creator, params \\ %{}) do
     params_with_relations =
       params
@@ -63,16 +49,8 @@ defmodule Level.Groups do
 
   @doc """
   Updates a group.
-
-  ## Examples
-
-      update_group(group, valid_params)
-      => {:ok, %Group{}}
-
-      update_group(group, invalid_params)
-      => {:error, %Ecto.Changeset{}}
-
   """
+  @spec update_group(Group.t(), map()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
   def update_group(group, params) do
     group
     |> Group.update_changeset(params)
@@ -81,17 +59,9 @@ defmodule Level.Groups do
 
   @doc """
   Creates a group membership.
-
-  ## Examples
-
-      # Returns the newly created group membership if successful.
-      create_group_membership(%Group{}, %User{})
-      => {:ok, %GroupMembership{}}
-
-      # Otherwise, returns an error changeset.
-      => {:error, %Ecto.Changeset{}}
-
   """
+  @spec create_group_membership(Group.t(), User.t()) ::
+          {:ok, GroupMembership.t()} | {:error, Ecto.Changeset.t()}
   def create_group_membership(group, user) do
     params = %{
       space_id: user.space_id,
@@ -106,16 +76,8 @@ defmodule Level.Groups do
 
   @doc """
   Closes a group.
-
-  ## Examples
-
-      iex> close_group(%Group{state: "OPEN"})
-      {:ok, %Group{state: "CLOSED"}}
-
-      iex> close_group(%Group{})
-      {:error, %Ecto.Changeset{}}
-
   """
+  @spec close_group(Group.t()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
   def close_group(group) do
     group
     |> Ecto.Changeset.change(state: "CLOSED")
