@@ -5,5 +5,5 @@
 set -e
 
 mix credo
-mix dialyzer --plt
+mix dialyzer
 mix format --check-formatted
