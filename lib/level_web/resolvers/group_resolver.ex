@@ -28,6 +28,9 @@ defmodule LevelWeb.GroupResolver do
          {:ok, group} <- Groups.update_group(group, args) do
       {:ok, %{success: true, group: group, errors: []}}
     else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
       err ->
         err
     end

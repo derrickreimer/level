@@ -33,24 +33,6 @@ defmodule Level.Groups do
   end
 
   @doc """
-  Updates a group.
-
-  ## Examples
-
-      update_group(group, valid_params)
-      => {:ok, %Group{}}
-
-      update_group(group, invalid_params)
-      => {:error, %Ecto.Changeset{}}
-
-  """
-  def update_group(group, params) do
-    group
-    |> Group.update_changeset(params)
-    |> Repo.update()
-  end
-
-  @doc """
   Creates a group.
 
   ## Examples
@@ -69,7 +51,7 @@ defmodule Level.Groups do
       |> Map.put(:space_id, creator.space_id)
       |> Map.put(:creator_id, creator.id)
 
-    changeset = Group.changeset(%Group{}, params_with_relations)
+    changeset = Group.create_changeset(%Group{}, params_with_relations)
 
     Multi.new()
     |> Multi.insert(:group, changeset)
@@ -77,6 +59,24 @@ defmodule Level.Groups do
       create_group_membership(group, creator)
     end)
     |> Repo.transaction()
+  end
+
+  @doc """
+  Updates a group.
+
+  ## Examples
+
+      update_group(group, valid_params)
+      => {:ok, %Group{}}
+
+      update_group(group, invalid_params)
+      => {:error, %Ecto.Changeset{}}
+
+  """
+  def update_group(group, params) do
+    group
+    |> Group.update_changeset(params)
+    |> Repo.update()
   end
 
   @doc """
