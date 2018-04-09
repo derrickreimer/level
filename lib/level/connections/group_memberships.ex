@@ -38,9 +38,6 @@ defmodule Level.Connections.GroupMemberships do
     end
   end
 
-  def order do
-  end
-
   defp validate_args(args) do
     args = Map.merge(@default_args, args)
 
