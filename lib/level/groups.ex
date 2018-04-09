@@ -4,6 +4,7 @@ defmodule Level.Groups do
   """
 
   import Ecto.Query, warn: false
+  import Level.Gettext
 
   alias Ecto.Multi
   alias Level.Repo
@@ -21,7 +22,7 @@ defmodule Level.Groups do
         {:ok, group}
 
       _ ->
-        {:error, "Group not found"}
+        {:error, dgettext("errors", "Group not found")}
     end
   end
 
