@@ -13,7 +13,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - elixir-build-v3-{{ checksum "mix.exs" }}
+            - elixir-build-v3-{{ checksum "mix.lock" }}
       - run:
           name: "Install Hex"
           command: mix local.hex --force
