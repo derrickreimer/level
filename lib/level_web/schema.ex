@@ -4,9 +4,7 @@ defmodule LevelWeb.Schema do
   use Absinthe.Schema
   import_types(LevelWeb.Schema.Types)
 
-  alias Level.Groups
   alias Level.Repo
-  alias Level.Spaces
 
   def context(ctx) do
     loader =

@@ -83,6 +83,25 @@ defmodule Level.ConnectionsTest do
     end
   end
 
+  describe "group_memberships/3" do
+    setup do
+      insert_signup()
+    end
+
+    test "includes groups the user is a member of", %{user: user} do
+      {:ok, %{group: group}} = insert_group(user)
+      {:ok, %{edges: edges}} = Connections.group_memberships(user, %{first: 10})
+      assert Enum.any?(edges, fn edge -> edge.node.group_id == group.id end)
+    end
+
+    test "does not include groups the user is not a member of", %{user: user, space: space} do
+      {:ok, %{group: group}} = insert_group(user)
+      {:ok, another_user} = insert_member(space)
+      {:ok, %{edges: edges}} = Connections.group_memberships(another_user, %{first: 10})
+      refute Enum.any?(edges, fn edge -> edge.node.group_id == group.id end)
+    end
+  end
+
   def edges_include?(edges, node_id) do
     Enum.any?(edges, fn edge -> edge.node.id == node_id end)
   end

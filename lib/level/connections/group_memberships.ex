@@ -20,12 +20,13 @@ defmodule Level.Connections.GroupMemberships do
     }
   }
 
-  def get(%User{space_id: space_id} = user, args, _context) do
+  @spec get(User.t(), map(), term()) :: {:ok, Pagination.Result.t()} | {:error, String.t()}
+  def get(%User{id: user_id, space_id: space_id}, args, _context) do
     case validate_args(args) do
       {:ok, args} ->
         base_query =
           from gm in GroupMembership,
-            where: gm.space_id == ^space_id,
+            where: gm.space_id == ^space_id and gm.user_id == ^user_id,
             join: g in Group,
             on: g.id == gm.group_id,
             select: %{gm | name: g.name}
