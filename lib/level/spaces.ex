@@ -14,8 +14,9 @@ defmodule Level.Spaces do
   alias Level.Repo
 
   @doc """
-  Fetches a space by slug and returns `nil` if not found.
+  Fetches a space by slug.
   """
+  @spec get_space_by_slug(String.t()) :: Space.t() | nil
   def get_space_by_slug(slug) do
     Repo.get_by(Space, %{slug: slug})
   end
@@ -23,44 +24,25 @@ defmodule Level.Spaces do
   @doc """
   Fetches a space by slug.
 
-  ## Examples
-
-      # If found, returns the space.
-      get_space_by_slug!("level")
-      => %Space{slug: "level", ...}
-
-      # Otherwise, raises an `Ecto.NoResultsError` exception.
+  Raises an `Ecto.NoResultsError` exception if not found.
   """
+  @spec get_space_by_slug!(String.t()) :: Space.t()
   def get_space_by_slug!(slug) do
     Repo.get_by!(Space, %{slug: slug})
   end
 
   @doc """
   Fetches a user by id.
-
-  ## Examples
-
-      # If found, returns the user.
-      get_user(123)
-      => %User{id: 123, ...}
-
-      # Otherwise, returns `nil`.
   """
+  @spec get_user(String.t()) :: User.t() | nil
   def get_user(id) do
     Repo.get(User, id)
   end
 
   @doc """
   Fetches a user by space and email address.
-
-  ## Examples
-
-      # If found, returns the user.
-      get_user_by_email(space, "derrick@level.com")
-      => %User{...}
-
-      # Otherwise, returns `nil`.
   """
+  @spec get_user_by_email(Space.t(), String.t()) :: User.t() | nil
   def get_user_by_email(space, email) do
     Repo.get_by(User, space_id: space.id, email: email)
   end
@@ -68,22 +50,17 @@ defmodule Level.Spaces do
   @doc """
   Builds a changeset for performing user registration.
   """
+  @spec registration_changeset(map(), map()) :: Ecto.Changeset.t()
   def registration_changeset(struct, params \\ %{}) do
     Registration.changeset(struct, params)
   end
 
   @doc """
   Performs user registration from a given changeset.
-
-  ## Examples
-
-      # If successful, returns the newly created records.
-      register(%Ecto.Changeset{...})
-      => {:ok, %{space: space, user: user}}
-
-      # Otherwise, returns an error.
-      => {:error, failed_operation, failed_value, changes_so_far}
   """
+  @spec register(Ecto.Changeset.t()) ::
+          {:ok, %{space: Space.t(), user: User.t()}}
+          | {:error, :space | :user, any(), %{optional(:space | :user) => any()}}
   def register(changeset) do
     changeset
     |> Registration.create_operation()
@@ -92,16 +69,8 @@ defmodule Level.Spaces do
 
   @doc """
   Creates an invitation and sends an email to the invited person.
-
-  ## Examples
-
-      # If successful, returns the newly-created invitation.
-      create_invitation(%User{...}, %{email: "foo@bar.com"})
-      => {:ok, %Invitation{...}}
-
-      # Otherwise, returns an error.
-      => {:error, %Ecto.Changeset{...}}
   """
+  @spec create_invitation(User.t(), map()) :: {:ok, Invitation.t()} | {:error, Ecto.Changeset.t()}
   def create_invitation(user, params \\ %{}) do
     params_with_relations =
       params
@@ -131,14 +100,9 @@ defmodule Level.Spaces do
   @doc """
   Fetches a pending invitation by space and token.
 
-  ## Examples
-
-      # If found, returns the invitation with preloaded space and invitor.
-      get_pending_invitation!(space, "xxxxxxx")
-      => %Invitation{space: %Space{...}, invitor: %User{...}, ...}
-
-      # Otherwise, raises an `Ecto.NoResultsError` exception.
+  Raises an `Ecto.NoResultsError` exception if invitation is not found.
   """
+  @spec get_pending_invitation!(Space.t(), String.t()) :: Invitation.t()
   def get_pending_invitation!(space, token) do
     Invitation
     |> Repo.get_by!(space_id: space.id, state: "PENDING", token: token)
@@ -147,31 +111,18 @@ defmodule Level.Spaces do
 
   @doc """
   Fetches a pending invitation by space and id.
-
-  ## Examples
-
-      # If found, returns the invitation with preloaded space and invitor.
-      get_pending_invitation(space, 123)
-      => %Invitation{space: %Space{...}, invitor: %User{...}, ...}
-
-      # Otherwise, returns nil.
   """
+  @spec get_pending_invitation(Space.t(), String.t()) :: Invitation.t() | nil
   def get_pending_invitation(space, id) do
     Repo.get_by(Invitation, space_id: space.id, state: "PENDING", id: id)
   end
 
   @doc """
   Registers a user and marks the given invitation as accepted.
-
-  ## Examples
-
-      # If successful, returns the user and invitation.
-      accept_invitation(invitation, %{email: "...", password: "..."})
-      => {:ok, %{user: user, invitation: invitation}}
-
-      # Otherwise, returns an error.
-      => {:error, failed_operation, failed_value, changes_so_far}
   """
+  @spec accept_invitation(Invitation.t(), map()) ::
+          {:ok, %{user: User.t(), invitation: Invitation.t()}}
+          | {:error, :user | :invitation, any(), %{optional(:user | :invitation) => any()}}
   def accept_invitation(invitation, params \\ %{}) do
     invitation
     |> Invitation.accept_operation(params)
@@ -190,6 +141,7 @@ defmodule Level.Spaces do
       # Otherwise, returns an error.
       => {:error, message}
   """
+  @spec revoke_invitation(Invitation.t()) :: {:ok, Invitation.t()} | {:error, String.t()}
   def revoke_invitation(invitation) do
     invitation
     |> Invitation.revoke_operation()
@@ -199,6 +151,7 @@ defmodule Level.Spaces do
   @doc """
   The Ecto data source for use by dataloader.
   """
+  @spec data() :: Dataloader.Ecto.t()
   def data do
     Dataloader.Ecto.new(Repo, query: &query/2)
   end

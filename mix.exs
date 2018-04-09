@@ -94,12 +94,15 @@ defmodule Level.Mixfile do
     [
       Contexts: [
         Level.Connections,
+        Level.Groups,
         Level.Mailer,
         Level.Pagination,
         Level.Spaces
       ],
       "Repo and Schemas": [
         Level.Repo,
+        Level.Groups.Group,
+        Level.Groups.GroupMembership,
         Level.Spaces.Invitation,
         Level.Spaces.Space,
         Level.Spaces.User
@@ -109,6 +112,7 @@ defmodule Level.Mixfile do
         LevelWeb.Subdomain
       ],
       "GraphQL Resolvers": [
+        LevelWeb.GroupResolver,
         LevelWeb.InvitationResolver,
         LevelWeb.SpaceResolver
       ],
@@ -123,7 +127,8 @@ defmodule Level.Mixfile do
         LevelWeb.ErrorHelpers,
         LevelWeb.ResolverHelpers,
         LevelWeb.Router.Helpers,
-        LevelWeb.UrlHelpers
+        LevelWeb.UrlHelpers,
+        Level.Pagination.Validations
       ]
     ]
   end
