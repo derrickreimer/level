@@ -22,4 +22,17 @@ defmodule LevelWeb.GroupResolver do
 
     {:ok, resp}
   end
+
+  def update(%{id: id} = args, %{context: %{current_user: user}}) do
+    with {:ok, group} <- Groups.get_group(user, id),
+         {:ok, group} <- Groups.update_group(group, args) do
+      {:ok, %{success: true, group: group, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
 end

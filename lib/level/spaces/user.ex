@@ -10,6 +10,7 @@ defmodule Level.Spaces.User do
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
 
+  @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 

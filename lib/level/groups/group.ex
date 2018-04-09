@@ -10,6 +10,7 @@ defmodule Level.Groups.Group do
   alias Level.Spaces.Space
   alias Level.Spaces.User
 
+  @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -26,9 +27,22 @@ defmodule Level.Groups.Group do
   end
 
   @doc false
-  def changeset(%Group{} = group, attrs) do
+  def create_changeset(%Group{} = group, attrs) do
     group
     |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_private])
+    |> validate()
+  end
+
+  @doc false
+  def update_changeset(%Group{} = group, attrs) do
+    group
+    |> cast(attrs, [:name, :description, :is_private])
+    |> validate()
+  end
+
+  @doc false
+  def validate(changeset) do
+    changeset
     |> validate_required([:name])
     |> unique_constraint(:name, name: :groups_unique_names_when_open)
   end

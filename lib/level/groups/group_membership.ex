@@ -11,6 +11,7 @@ defmodule Level.Groups.GroupMembership do
   alias Level.Spaces.User
   alias Level.Groups.Group
 
+  @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
