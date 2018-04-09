@@ -62,4 +62,11 @@ defmodule Level.Connections do
   def groups(space, args, context \\ %{}) do
     Level.Connections.Groups.get(space, args, context)
   end
+
+  @doc """
+  Fetch group memberships for a given user.
+  """
+  def group_memberships(user, args, context \\ %{}) do
+    Level.Connections.GroupMemberships.get(user, args, context)
+  end
 end

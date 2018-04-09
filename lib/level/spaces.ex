@@ -147,19 +147,4 @@ defmodule Level.Spaces do
     |> Invitation.revoke_operation()
     |> Repo.update()
   end
-
-  @doc """
-  The Ecto data source for use by dataloader.
-  """
-  @spec data() :: Dataloader.Ecto.t()
-  def data do
-    Dataloader.Ecto.new(Repo, query: &query/2)
-  end
-
-  @doc """
-  The query function for dataloader data.
-  """
-  def query(queryable, _params) do
-    queryable
-  end
 end
