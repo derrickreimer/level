@@ -20,7 +20,7 @@ defmodule Level.Groups do
     from g in Group,
       where: g.space_id == ^space_id,
       left_join: gm in GroupMembership,
-      on: gm.user_id == ^user_id,
+      on: gm.group_id == g.id and gm.user_id == ^user_id,
       where: g.is_private == false or (g.is_private == true and not is_nil(gm.id))
   end
 

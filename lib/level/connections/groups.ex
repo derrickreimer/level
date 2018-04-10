@@ -1,7 +1,7 @@
 defmodule Level.Connections.Groups do
   @moduledoc false
 
-  alias Level.Groups.Group
+  alias Level.Groups
   alias Level.Pagination
   alias Level.Repo
   import Ecto.Query
@@ -22,10 +22,14 @@ defmodule Level.Connections.Groups do
   @doc """
   Execute a paginated query for groups belonging to a given space.
   """
-  def get(space, args, _context) do
+  def get(_space, args, %{context: %{current_user: user}}) do
     case validate_args(args) do
-      {:ok, args} ->
-        base_query = from g in Group, where: g.space_id == ^space.id and g.state == ^args.state
+      {:ok, %{state: state} = args} ->
+        base_query =
+          user
+          |> Groups.list_groups_query()
+          |> where(state: ^state)
+
         Pagination.fetch_result(Repo, base_query, args)
 
       err ->

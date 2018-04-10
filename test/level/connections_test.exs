@@ -59,7 +59,7 @@ defmodule Level.ConnectionsTest do
 
     test "includes open groups by default", %{space: space, user: user} do
       {:ok, %{group: open_group}} = insert_group(user)
-      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10})
+      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
 
       assert edges_include?(edges, open_group.id)
     end
@@ -67,7 +67,7 @@ defmodule Level.ConnectionsTest do
     test "does not include closed groups by default", %{space: space, user: user} do
       {:ok, %{group: group}} = insert_group(user)
       {:ok, closed_group} = Groups.close_group(group)
-      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10})
+      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
 
       refute edges_include?(edges, closed_group.id)
     end
@@ -76,7 +76,9 @@ defmodule Level.ConnectionsTest do
       {:ok, %{group: open_group}} = insert_group(user)
       {:ok, %{group: closed_group}} = insert_group(user)
       {:ok, closed_group} = Groups.close_group(closed_group)
-      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10, state: "CLOSED"})
+
+      {:ok, %{edges: edges}} =
+        Connections.groups(space, %{first: 10, state: "CLOSED"}, build_context(user))
 
       assert edges_include?(edges, closed_group.id)
       refute edges_include?(edges, open_group.id)
@@ -104,5 +106,9 @@ defmodule Level.ConnectionsTest do
 
   def edges_include?(edges, node_id) do
     Enum.any?(edges, fn edge -> edge.node.id == node_id end)
+  end
+
+  def build_context(user) do
+    %{context: %{current_user: user}}
   end
 end
