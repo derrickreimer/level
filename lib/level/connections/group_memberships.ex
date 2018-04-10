@@ -1,27 +1,38 @@
 defmodule Level.Connections.GroupMemberships do
-  @moduledoc false
+  @moduledoc """
+  A paginated connection for fetching a user's group memberships.
+  """
+
+  import Ecto.Query
+  import Level.Pagination.Validations
 
   alias Level.Groups.Group
   alias Level.Groups.GroupMembership
   alias Level.Spaces.User
   alias Level.Pagination
   alias Level.Repo
-  import Ecto.Query
-  import Level.Pagination.Validations
 
-  @default_args %{
-    first: nil,
-    last: nil,
-    before: nil,
-    after: nil,
-    order_by: %{
-      field: :name,
-      direction: :asc
-    }
-  }
+  defstruct first: nil,
+            last: nil,
+            before: nil,
+            after: nil,
+            order_by: %{
+              field: :name,
+              direction: :asc
+            }
 
-  @spec get(User.t(), map(), term()) :: {:ok, Pagination.Result.t()} | {:error, String.t()}
-  def get(%User{id: user_id, space_id: space_id}, args, _context) do
+  @type t :: %__MODULE__{
+          first: integer() | nil,
+          last: integer() | nil,
+          before: String.t() | nil,
+          after: String.t() | nil,
+          order_by: %{field: :name, direction: :asc | :desc}
+        }
+
+  @doc """
+  Executes a paginated query for a user's group memberships.
+  """
+  def get(%User{id: user_id, space_id: space_id} = _user, %__MODULE__{} = args, _context) do
     case validate_args(args) do
       {:ok, args} ->
         base_query =
@@ -40,8 +51,6 @@ defmodule Level.Connections.GroupMemberships do
   end
 
   defp validate_args(args) do
-    args = Map.merge(@default_args, args)
-
     with {:ok, args} <- validate_cursor(args),
          {:ok, args} <- validate_limit(args) do
       {:ok, args}

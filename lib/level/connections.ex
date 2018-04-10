@@ -20,17 +20,17 @@ defmodule Level.Connections do
   @doc """
   Fetches users belonging to a space.
   """
-  @spec users(Space.t(), map(), authenticated_context()) :: result()
+  @spec users(Space.t(), Users.t(), authenticated_context()) :: result()
   def users(space, args, %{context: %{current_user: _}} = context) do
-    Users.get(space, args, context)
+    Users.get(space, struct(Users, args), context)
   end
 
   @doc """
   Fetches pending invitations for given a space.
   """
-  @spec invitations(Space.t(), map(), authenticated_context()) :: result()
+  @spec invitations(Space.t(), Invitations.t(), authenticated_context()) :: result()
   def invitations(space, args, %{context: %{current_user: _}} = context) do
-    Invitations.get(space, args, context)
+    Invitations.get(space, struct(Invitations, args), context)
   end
 
   @doc """
@@ -44,8 +44,8 @@ defmodule Level.Connections do
   @doc """
   Fetches group memberships for a given user.
   """
-  @spec group_memberships(User.t(), map(), authenticated_context()) :: result()
+  @spec group_memberships(User.t(), GroupMemberships.t(), authenticated_context()) :: result()
   def group_memberships(user, args, %{context: %{current_user: _}} = context) do
-    GroupMemberships.get(user, args, context)
+    GroupMemberships.get(user, struct(GroupMemberships, args), context)
   end
 end

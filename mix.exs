@@ -100,7 +100,9 @@ defmodule Level.Mixfile do
       ],
       Connections: [
         Level.Connections,
-        Level.Connections.Groups
+        Level.Connections.Groups,
+        Level.Connections.Invitations,
+        Level.Connections.Users
       ],
       "Repo and Schemas": [
         Level.Repo,
