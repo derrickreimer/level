@@ -9,15 +9,15 @@ defmodule Level.ConnectionsTest do
       insert_signup(%{last_name: "aaa"})
     end
 
-    test "includes a total count", %{space: space} do
+    test "includes a total count", %{space: space, user: user} do
       insert_member(space)
-      {:ok, %{total_count: count}} = Connections.users(space, %{first: 10}, %{})
+      {:ok, %{total_count: count}} = Connections.users(space, %{first: 10}, build_context(user))
       assert count == 2
     end
 
-    test "includes edges", %{space: space} do
+    test "includes edges", %{space: space, user: user} do
       insert_member(space, %{last_name: "bbb"})
-      {:ok, %{edges: edges}} = Connections.users(space, %{first: 10}, %{})
+      {:ok, %{edges: edges}} = Connections.users(space, %{first: 10}, build_context(user))
 
       nodes = Enum.map(edges, & &1.node)
       cursors = Enum.map(edges, & &1.cursor)
@@ -26,24 +26,25 @@ defmodule Level.ConnectionsTest do
       assert cursors == ["aaa", "bbb"]
     end
 
-    test "includes page info", %{space: space} do
+    test "includes page info", %{space: space, user: user} do
       insert_member(space, %{last_name: "bbb"})
-      {:ok, %{page_info: page_info}} = Connections.users(space, %{first: 10}, %{})
+      {:ok, %{page_info: page_info}} = Connections.users(space, %{first: 10}, build_context(user))
 
       assert page_info.start_cursor == "aaa"
       assert page_info.end_cursor == "bbb"
     end
 
-    test "includes previous/next page flags", %{space: space} do
+    test "includes previous/next page flags", %{space: space, user: user} do
       insert_member(space, %{last_name: "bbb"})
-      {:ok, %{page_info: page_info}} = Connections.users(space, %{first: 1}, %{})
+      {:ok, %{page_info: page_info}} = Connections.users(space, %{first: 1}, build_context(user))
 
       assert page_info.start_cursor == "aaa"
       assert page_info.end_cursor == "aaa"
       assert page_info.has_next_page
       refute page_info.has_previous_page
 
-      {:ok, %{page_info: page_info2}} = Connections.users(space, %{first: 1, after: "aaa"}, %{})
+      {:ok, %{page_info: page_info2}} =
+        Connections.users(space, %{first: 1, after: "aaa"}, build_context(user))
 
       assert page_info2.start_cursor == "bbb"
       assert page_info2.end_cursor == "bbb"
@@ -92,14 +93,20 @@ defmodule Level.ConnectionsTest do
 
     test "includes groups the user is a member of", %{user: user} do
       {:ok, %{group: group}} = insert_group(user)
-      {:ok, %{edges: edges}} = Connections.group_memberships(user, %{first: 10})
+
+      {:ok, %{edges: edges}} =
+        Connections.group_memberships(user, %{first: 10}, build_context(user))
+
       assert Enum.any?(edges, fn edge -> edge.node.group_id == group.id end)
     end
 
     test "does not include groups the user is not a member of", %{user: user, space: space} do
       {:ok, %{group: group}} = insert_group(user)
       {:ok, another_user} = insert_member(space)
-      {:ok, %{edges: edges}} = Connections.group_memberships(another_user, %{first: 10})
+
+      {:ok, %{edges: edges}} =
+        Connections.group_memberships(another_user, %{first: 10}, build_context(user))
+
       refute Enum.any?(edges, fn edge -> edge.node.group_id == group.id end)
     end
   end
