@@ -4,13 +4,13 @@ defmodule Level.Connections.GroupMemberships do
   """
 
   import Ecto.Query
-  import Level.Pagination.Validations
 
   alias Level.Groups.Group
   alias Level.Groups.GroupMembership
-  alias Level.Spaces.User
   alias Level.Pagination
+  alias Level.Pagination.Args
   alias Level.Repo
+  alias Level.Spaces.User
 
   defstruct first: nil,
             last: nil,
@@ -33,29 +33,14 @@ defmodule Level.Connections.GroupMemberships do
   Executes a paginated query for a user's group memberships.
   """
   def get(%User{id: user_id, space_id: space_id} = _user, %__MODULE__{} = args, _context) do
-    case validate_args(args) do
-      {:ok, args} ->
-        base_query =
-          from gm in GroupMembership,
-            where: gm.space_id == ^space_id and gm.user_id == ^user_id,
-            join: g in Group,
-            on: g.id == gm.group_id,
-            select: %{gm | name: g.name}
+    base_query =
+      from gm in GroupMembership,
+        where: gm.space_id == ^space_id and gm.user_id == ^user_id,
+        join: g in Group,
+        on: g.id == gm.group_id,
+        select: %{gm | name: g.name}
 
-        wrapped_query = from(gm in subquery(base_query))
-        Pagination.fetch_result(Repo, wrapped_query, args)
-
-      err ->
-        err
-    end
-  end
-
-  defp validate_args(args) do
-    with {:ok, args} <- validate_cursor(args),
-         {:ok, args} <- validate_limit(args) do
-      {:ok, args}
-    else
-      err -> err
-    end
+    wrapped_query = from(gm in subquery(base_query))
+    Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
   end
 end

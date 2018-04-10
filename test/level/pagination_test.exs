@@ -2,6 +2,7 @@ defmodule Level.PaginationTest do
   use Level.DataCase, async: true
 
   alias Level.Pagination
+  alias Level.Pagination.Args
   alias Level.Spaces.User
   alias Level.Pagination.Result
   import Ecto.Query
@@ -16,7 +17,7 @@ defmodule Level.PaginationTest do
     end
 
     test "only first param provided", %{users: users, base_query: base_query} do
-      args = %{
+      args = %Args{
         first: 2,
         before: nil,
         after: nil,
@@ -32,7 +33,7 @@ defmodule Level.PaginationTest do
     end
 
     test "first with after cursor provided", %{users: users, base_query: base_query} do
-      args = %{
+      args = %Args{
         first: 2,
         before: nil,
         after: Enum.at(users, 0).id,
@@ -49,7 +50,7 @@ defmodule Level.PaginationTest do
     end
 
     test "only last provider", %{users: users, base_query: base_query} do
-      args = %{
+      args = %Args{
         last: 2,
         before: nil,
         after: nil,
@@ -66,7 +67,7 @@ defmodule Level.PaginationTest do
     end
 
     test "last with before cursor provided", %{users: users, base_query: base_query} do
-      args = %{
+      args = %Args{
         last: 2,
         before: Enum.at(users, 3).id,
         after: nil,
@@ -83,7 +84,7 @@ defmodule Level.PaginationTest do
     end
 
     test "last with before and after cursors provided", %{users: users, base_query: base_query} do
-      args = %{
+      args = %Args{
         last: 2,
         after: Enum.at(users, 1).id,
         before: Enum.at(users, 3).id,
@@ -100,7 +101,7 @@ defmodule Level.PaginationTest do
     end
 
     test "descending order", %{users: users, base_query: base_query} do
-      args = %{
+      args = %Args{
         first: 2,
         before: nil,
         after: nil,
@@ -115,20 +116,8 @@ defmodule Level.PaginationTest do
       assert map_edge_ids(edges) == map_ids(Enum.take(Enum.reverse(users), 2))
     end
 
-    test "fails when order is nil", %{base_query: base_query} do
-      args = %{
-        first: 2,
-        last: nil,
-        before: nil,
-        after: nil,
-        order_by: nil
-      }
-
-      {:error, "order_by is required"} = Pagination.fetch_result(Level.Repo, base_query, args)
-    end
-
     test "fails when neither first nor last is non-nil", %{base_query: base_query} do
-      args = %{
+      args = %Args{
         first: nil,
         last: nil,
         before: nil,
@@ -139,12 +128,12 @@ defmodule Level.PaginationTest do
         }
       }
 
-      {:error, "first or last is required"} =
+      {:error, "You must provide either a `first` or `last` value"} =
         Pagination.fetch_result(Level.Repo, base_query, args)
     end
 
     test "fails when first and last is set", %{base_query: base_query} do
-      args = %{
+      args = %Args{
         first: 10,
         last: 10,
         before: nil,
@@ -155,7 +144,7 @@ defmodule Level.PaginationTest do
         }
       }
 
-      {:error, "first and last cannot both be set"} =
+      {:error, "You must provide either a `first` or `last` value"} =
         Pagination.fetch_result(Level.Repo, base_query, args)
     end
   end

@@ -4,9 +4,9 @@ defmodule Level.Connections.Users do
   """
 
   import Ecto.Query
-  import Level.Pagination.Validations
 
   alias Level.Pagination
+  alias Level.Pagination.Args
   alias Level.Repo
   alias Level.Spaces.Space
   alias Level.Spaces.User
@@ -32,22 +32,7 @@ defmodule Level.Connections.Users do
   Executes a paginated query for a space's users.
   """
   def get(%Space{id: space_id} = _space, %__MODULE__{} = args, _context) do
-    case validate_args(args) do
-      {:ok, args} ->
-        base_query = from u in User, where: u.space_id == ^space_id and u.state == "ACTIVE"
-        Pagination.fetch_result(Repo, base_query, args)
-
-      err ->
-        err
-    end
-  end
-
-  defp validate_args(args) do
-    with {:ok, args} <- validate_cursor(args),
-         {:ok, args} <- validate_limit(args) do
-      {:ok, args}
-    else
-      err -> err
-    end
+    base_query = from u in User, where: u.space_id == ^space_id and u.state == "ACTIVE"
+    Pagination.fetch_result(Repo, base_query, Args.build(args))
   end
 end
