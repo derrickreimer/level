@@ -95,7 +95,6 @@ defmodule Level.Mixfile do
       Contexts: [
         Level.Groups,
         Level.Mailer,
-        Level.Pagination,
         Level.Spaces
       ],
       Connections: [
@@ -103,6 +102,10 @@ defmodule Level.Mixfile do
         Level.Connections.Groups,
         Level.Connections.Invitations,
         Level.Connections.Users
+      ],
+      Pagination: [
+        Level.Pagination,
+        Level.Pagination.Args
       ],
       "Repo and Schemas": [
         Level.Repo,
@@ -132,8 +135,7 @@ defmodule Level.Mixfile do
         LevelWeb.ErrorHelpers,
         LevelWeb.ResolverHelpers,
         LevelWeb.Router.Helpers,
-        LevelWeb.UrlHelpers,
-        Level.Pagination.Validations
+        LevelWeb.UrlHelpers
       ]
     ]
   end
