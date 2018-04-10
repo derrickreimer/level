@@ -93,11 +93,14 @@ defmodule Level.Mixfile do
   defp groups_for_modules do
     [
       Contexts: [
-        Level.Connections,
         Level.Groups,
         Level.Mailer,
         Level.Pagination,
         Level.Spaces
+      ],
+      Connections: [
+        Level.Connections,
+        Level.Connections.Groups
       ],
       "Repo and Schemas": [
         Level.Repo,
