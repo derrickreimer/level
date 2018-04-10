@@ -4,6 +4,35 @@ defmodule Level.GroupsTest do
   alias Level.Groups
   alias Level.Groups.Group
 
+  describe "list_groups_query/2" do
+    setup do
+      insert_signup()
+    end
+
+    test "returns a query that includes public non-member groups", %{user: user, space: space} do
+      {:ok, %{group: %Group{id: group_id}}} = insert_group(user, %{is_public: true})
+      {:ok, another_user} = insert_member(space)
+      query = Groups.list_groups_query(another_user)
+      result = Repo.all(query)
+      assert Enum.any?(result, fn group -> group.id == group_id end)
+    end
+
+    test "returns a query that includes public member groups", %{user: user} do
+      {:ok, %{group: %Group{id: group_id}}} = insert_group(user, %{is_public: true})
+      query = Groups.list_groups_query(user)
+      result = Repo.all(query)
+      assert Enum.any?(result, fn group -> group.id == group_id end)
+    end
+
+    test "returns a query that excludes private non-member groups", %{user: user, space: space} do
+      {:ok, %{group: %Group{id: group_id}}} = insert_group(user, %{is_private: true})
+      {:ok, another_user} = insert_member(space)
+      query = Groups.list_groups_query(another_user)
+      result = Repo.all(query)
+      refute Enum.any?(result, fn group -> group.id == group_id end)
+    end
+  end
+
   describe "get_group/2" do
     setup do
       insert_signup()

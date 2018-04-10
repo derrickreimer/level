@@ -13,6 +13,18 @@ defmodule Level.Groups do
   alias Level.Groups.GroupMembership
 
   @doc """
+  Generate the query for listing all groups visible to a given user.
+  """
+  @spec list_groups_query(User.t()) :: Ecto.Query.t()
+  def list_groups_query(%User{id: user_id, space_id: space_id}) do
+    from g in Group,
+      where: g.space_id == ^space_id,
+      left_join: gm in GroupMembership,
+      on: gm.user_id == ^user_id,
+      where: g.is_private == false or (g.is_private == true and not is_nil(gm.id))
+  end
+
+  @doc """
   Fetches a group by id.
   """
   @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
