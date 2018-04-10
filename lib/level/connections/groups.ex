@@ -32,7 +32,7 @@ defmodule Level.Connections.Groups do
   @doc """
   Executes a paginated query for groups belonging to a given space.
   """
-  def get(_space, %__MODULE__{} = args, %{context: %{current_user: user}} = _context) do
+  def get(_space, args, %{context: %{current_user: user}} = _context) do
     base_query =
       user
       |> Groups.list_groups_query()

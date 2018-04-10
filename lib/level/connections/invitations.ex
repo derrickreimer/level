@@ -31,7 +31,7 @@ defmodule Level.Connections.Invitations do
   @doc """
   Executes a paginated query for a space's pending invitations.
   """
-  def get(%Space{id: space_id} = _space, %__MODULE__{} = args, _context) do
+  def get(%Space{id: space_id} = _space, args, _context) do
     base_query = from i in Invitation, where: i.space_id == ^space_id and i.state == "PENDING"
     Pagination.fetch_result(Repo, base_query, Args.build(args))
   end

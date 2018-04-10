@@ -4,13 +4,13 @@ defmodule Level.Connections.GroupMemberships do
   """
 
   import Ecto.Query
+  import Level.Gettext
 
   alias Level.Groups.Group
   alias Level.Groups.GroupMembership
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Repo
-  alias Level.Spaces.User
 
   defstruct first: nil,
             last: nil,
@@ -32,15 +32,20 @@ defmodule Level.Connections.GroupMemberships do
   @doc """
   Executes a paginated query for a user's group memberships.
   """
-  def get(%User{id: user_id, space_id: space_id} = _user, %__MODULE__{} = args, _context) do
-    base_query =
-      from gm in GroupMembership,
-        where: gm.space_id == ^space_id and gm.user_id == ^user_id,
-        join: g in Group,
-        on: g.id == gm.group_id,
-        select: %{gm | name: g.name}
+  def get(user, args, %{context: %{current_user: authenticated_user}} = _context) do
+    if authenticated_user == user do
+      base_query =
+        from gm in GroupMembership,
+          where: gm.space_id == ^user.space_id and gm.user_id == ^user.id,
+          join: g in Group,
+          on: g.id == gm.group_id,
+          select: %{gm | name: g.name}
 
-    wrapped_query = from(gm in subquery(base_query))
-    Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
+      wrapped_query = from(gm in subquery(base_query))
+      Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
+    else
+      {:error,
+       dgettext("errors", "Group memberships are only readable for the authenticated user")}
+    end
   end
 end

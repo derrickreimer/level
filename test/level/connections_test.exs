@@ -105,9 +105,16 @@ defmodule Level.ConnectionsTest do
       {:ok, another_user} = insert_member(space)
 
       {:ok, %{edges: edges}} =
-        Connections.group_memberships(another_user, %{first: 10}, build_context(user))
+        Connections.group_memberships(another_user, %{first: 10}, build_context(another_user))
 
       refute Enum.any?(edges, fn edge -> edge.node.group_id == group.id end)
+    end
+
+    test "only exposes memberships for authenticated user", %{user: user, space: space} do
+      {:ok, another_user} = insert_member(space)
+
+      assert {:error, "Group memberships are only readable for the authenticated user"} ==
+               Connections.group_memberships(user, %{first: 10}, build_context(another_user))
     end
   end
 

@@ -31,7 +31,7 @@ defmodule Level.Connections.Users do
   @doc """
   Executes a paginated query for a space's users.
   """
-  def get(%Space{id: space_id} = _space, %__MODULE__{} = args, _context) do
+  def get(%Space{id: space_id} = _space, args, _context) do
     base_query = from u in User, where: u.space_id == ^space_id and u.state == "ACTIVE"
     Pagination.fetch_result(Repo, base_query, Args.build(args))
   end
