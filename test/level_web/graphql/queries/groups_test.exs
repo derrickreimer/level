@@ -56,8 +56,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   end
 
   test "filtering groups by state", %{conn: conn, user: user} do
-    # an open group
-    insert_group(user)
+    {:ok, %{group: _open_group}} = insert_group(user)
     {:ok, %{group: group}} = insert_group(user)
     {:ok, closed_group} = Groups.close_group(group)
 

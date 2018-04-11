@@ -5,9 +5,14 @@ defmodule Level.Pagination do
 
   import Ecto.Query
 
+  alias Level.Pagination.Args
   alias Level.Pagination.Edge
   alias Level.Pagination.PageInfo
   alias Level.Pagination.Result
+  alias Level.Pagination.Validations
+
+  @typedoc "The return value for fetching a result"
+  @type result :: {:ok, Result.t()} | {:error, String.t()}
 
   @doc """
   Builds a pagination result that is compatible with GraphQL connections queries.
@@ -33,8 +38,9 @@ defmodule Level.Pagination do
         total_count: 10
       }}
   """
+  # @spec fetch_result(Ecto.Repo.t(), Ecto.Query.t(), Args.t()) :: result()
   def fetch_result(repo, base_query, args) do
-    case validate(args) do
+    case validate_args(args) do
       {:ok, _} ->
         {normalized_args, is_flipped} = normalize(args)
         %{order_by: %{field: order_field}} = normalized_args
@@ -65,31 +71,27 @@ defmodule Level.Pagination do
     end
   end
 
-  defp validate(%{first: nil, last: nil}) do
-    {:error, "first or last is required"}
-  end
-
-  defp validate(%{first: first, last: last}) when is_integer(first) and is_integer(last) do
-    {:error, "first and last cannot both be set"}
-  end
-
-  defp validate(%{order_by: nil}) do
-    {:error, "order_by is required"}
-  end
-
-  defp validate(args) do
-    {:ok, args}
+  @doc """
+  Performs basic validations on pagination arguments.
+  """
+  @spec validate_args(Args.t()) :: {:ok, Args.t()} | {:error, String.t()}
+  def validate_args(args) do
+    with {:ok, args} <- Validations.validate_limit(args) do
+      {:ok, args}
+    else
+      err -> err
+    end
   end
 
   # If we are doing backwards pagination, then flip the sort direction and
   # set `after` to `before` and `first` to `last`. This way we can use all the
   # same logic that transforms the paginated request into `LIMIT` and `OFFSET`
   # in SQL. Returns a tuple of `{args, is_flipped}`.
-  defp normalize(%{last: last} = args) when is_nil(last) do
+  defp normalize(%Args{last: last} = args) when is_nil(last) do
     {args, false}
   end
 
-  defp normalize(%{before: before, last: last, order_by: order_by} = args) do
+  defp normalize(%Args{before: before, last: last, order_by: order_by} = args) do
     flipped_order_by =
       order_by
       |> Map.put(:direction, flip(order_by.direction))
@@ -103,10 +105,6 @@ defmodule Level.Pagination do
       |> Map.put(:order_by, flipped_order_by)
 
     {flipped_args, true}
-  end
-
-  defp normalize(args) do
-    {args, false}
   end
 
   defp flip(direction) do

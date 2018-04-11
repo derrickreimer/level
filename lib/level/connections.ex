@@ -1,72 +1,51 @@
 defmodule Level.Connections do
   @moduledoc """
-  A context for exposing connections between nodes.
+  Functions for loading connections between resources, designed to be used in GraphQL query resolution.
   """
+
+  alias Level.Connections.Invitations
+  alias Level.Connections.GroupMemberships
+  alias Level.Connections.Groups
+  alias Level.Connections.Users
+  alias Level.Pagination
+  alias Level.Spaces.Space
+  alias Level.Spaces.User
+
+  @typedoc "A context map containing the current user"
+  @type authenticated_context :: %{context: %{current_user: User.t()}}
+
+  @typedoc "The return value for connections"
+  @type result :: {:ok, Pagination.Result.t()} | {:error, String.t()}
 
   @doc """
-  Fetch users belonging to a space.
-
-  ## Examples
-
-      users(space, args)
-      => {:ok, %Level.Pagination.Result{
-        edges: [%User{...}],
-        page_info: %PageInfo{...},
-        total_count: 10
-      }}
-
-      users(space, invalid_args)
-      => {:error, "You cannot provide both a `before` and `after` value"}
-
+  Fetches users belonging to a space.
   """
-  def users(space, args, context \\ %{}) do
-    Level.Connections.Users.get(space, args, context)
+  @spec users(Space.t(), Users.t(), authenticated_context()) :: result()
+  def users(space, args, %{context: %{current_user: _}} = context) do
+    Users.get(space, struct(Users, args), context)
   end
 
   @doc """
-  Fetch pending invitations for given a space.
-
-  ## Examples
-
-      invitations(space, args)
-      => {:ok, %Level.Pagination.Result{
-        edges: [%Invitation{...}],
-        page_info: %PageInfo{...},
-        total_count: 10
-      }}
-
-      invitations(space, invalid_args)
-      => {:error, "You cannot provide both a `before` and `after` value"}
-
+  Fetches pending invitations for given a space.
   """
-  def invitations(space, args, context \\ %{}) do
-    Level.Connections.Invitations.get(space, args, context)
+  @spec invitations(Space.t(), Invitations.t(), authenticated_context()) :: result()
+  def invitations(space, args, %{context: %{current_user: _}} = context) do
+    Invitations.get(space, struct(Invitations, args), context)
   end
 
   @doc """
-  Fetch groups for given a space.
-
-  ## Examples
-
-      groups(space, args)
-      => {:ok, %Level.Pagination.Result{
-        edges: [%Group{...}],
-        page_info: %PageInfo{...},
-        total_count: 10
-      }}
-
-      groups(space, invalid_args)
-      => {:error, "You cannot provide both a `before` and `after` value"}
-
+  Fetches groups for given a space that are visible to the current user.
   """
-  def groups(space, args, context \\ %{}) do
-    Level.Connections.Groups.get(space, args, context)
+  @spec groups(Space.t(), Groups.t(), authenticated_context()) :: result()
+  def groups(space, args, %{context: %{current_user: _}} = context) do
+    Groups.get(space, struct(Groups, args), context)
   end
 
   @doc """
-  Fetch group memberships for a given user.
+  Fetches group memberships for a given user.
   """
-  def group_memberships(user, args, context \\ %{}) do
-    Level.Connections.GroupMemberships.get(user, args, context)
+  @spec group_memberships(User.t(), GroupMemberships.t(), authenticated_context()) :: result()
+  def group_memberships(user, args, %{context: %{current_user: _}} = context) do
+    GroupMemberships.get(user, struct(GroupMemberships, args), context)
   end
 end
