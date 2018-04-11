@@ -32,14 +32,14 @@ defmodule LevelWeb.Schema do
     field :invite_user, type: :invite_user_payload do
       arg(:email, non_null(:string))
 
-      resolve(&LevelWeb.InvitationResolver.create/2)
+      resolve(&Level.Mutations.create_invitation/2)
     end
 
     @desc "Revoke an invitation."
     field :revoke_invitation, type: :revoke_invitation_payload do
       arg(:id, non_null(:id))
 
-      resolve(&LevelWeb.InvitationResolver.revoke/2)
+      resolve(&Level.Mutations.revoke_invitation/2)
     end
 
     @desc "Create a group."
@@ -48,7 +48,7 @@ defmodule LevelWeb.Schema do
       arg(:description, :string)
       arg(:is_private, :boolean)
 
-      resolve(&LevelWeb.GroupResolver.create/2)
+      resolve(&Level.Mutations.create_group/2)
     end
 
     @desc "Update a group."
@@ -58,7 +58,7 @@ defmodule LevelWeb.Schema do
       arg(:description, :string)
       arg(:is_private, :boolean)
 
-      resolve(&LevelWeb.GroupResolver.update/2)
+      resolve(&Level.Mutations.update_group/2)
     end
   end
 end
