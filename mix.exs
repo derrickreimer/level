@@ -22,6 +22,7 @@ defmodule Level.Mixfile do
         flags: [:unmatched_returns, :error_handling, :race_conditions, :underspecs],
         ignore_warnings: "dialyzer.ignore-warnings"
       ],
+      source_url: "https://github.com/levelhq/level",
       docs: docs()
     ]
   end
@@ -84,9 +85,10 @@ defmodule Level.Mixfile do
 
   defp docs do
     [
-      source_url: "https://github.com/levelhq/level",
       extras: ["README.md"],
-      groups_for_modules: groups_for_modules()
+      main: "readme",
+      groups_for_modules: groups_for_modules(),
+      logo: "avatar.png"
     ]
   end
 
@@ -100,8 +102,12 @@ defmodule Level.Mixfile do
       Connections: [
         Level.Connections,
         Level.Connections.Groups,
+        Level.Connections.GroupMemberships,
         Level.Connections.Invitations,
         Level.Connections.Users
+      ],
+      Mutations: [
+        Level.Mutations
       ],
       Pagination: [
         Level.Pagination,
@@ -118,11 +124,6 @@ defmodule Level.Mixfile do
       Plugs: [
         LevelWeb.Auth,
         LevelWeb.Subdomain
-      ],
-      "GraphQL Resolvers": [
-        LevelWeb.GroupResolver,
-        LevelWeb.InvitationResolver,
-        LevelWeb.SpaceResolver
       ],
       "Transactional Email": [
         Level.Mailer,
