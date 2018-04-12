@@ -298,38 +298,10 @@ view : Model -> Html Msg
 view model =
     case model.appState of
         NotLoaded ->
-            div [ id "cockpit" ] [ text "Loading..." ]
+            text "Loading..."
 
         Loaded appState ->
-            div [ id "cockpit" ]
-                [ div [ id "sidebar-left", class "sidebar sidebar-left" ]
-                    [ div [ class "sidebar-left__head" ]
-                        [ spaceSelector appState.space
-                        , div [ class "sidebar__button-container" ]
-                            [ button [ class "button button--subdued button--short button--convo" ]
-                                [ text "New Conversation"
-                                ]
-                            ]
-                        ]
-                    , div [ class "sidebar-left__nav" ] (sideNav model.page appState)
-                    ]
-                , div [ id "sidebar-right", class "sidebar sidebar-right" ]
-                    [ div [ class "sidebar-right__head" ] [ identityMenu appState.user ]
-                    , div [ class "sidebar-right__nav" ] (rightSidebar model)
-                    ]
-                , pageContent model.page
-                , flashNotice model
-                ]
-
-
-flashNotice : Model -> Html Msg
-flashNotice model =
-    case model.flashNotice of
-        Just message ->
-            div [ class "flash flash--notice" ] [ text message ]
-
-        Nothing ->
-            text ""
+            pageContent model.page
 
 
 pageContent : Page -> Html Msg
@@ -345,131 +317,10 @@ pageContent page =
                 |> Html.map NewInvitationMsg
 
         Blank ->
-            -- TODO: implement this
-            div [] []
+            text ""
 
         NotFound ->
-            div [ class "blank-slate" ]
-                [ h2 [ class "blank-slate__heading" ]
-                    [ text "Hmm, we couldn't find what you were looking for." ]
-                ]
-
-
-spaceSelector : Space -> Html Msg
-spaceSelector space =
-    div [ class "space-selector" ]
-        [ a [ class "space-selector__toggle", href "#" ]
-            [ div [ class "space-selector__avatar" ] []
-            , div [ class "space-selector__content" ] [ text space.name ]
-            ]
-        ]
-
-
-stubbedAvatarUrl : String
-stubbedAvatarUrl =
-    "https://pbs.twimg.com/profile_images/952064552287453185/T_QMnFac_400x400.jpg"
-
-
-identityMenu : User -> Html Msg
-identityMenu user =
-    div [ class "identity-menu" ]
-        [ a [ class "identity-menu__toggle", href "#" ]
-            [ img [ class "identity-menu__avatar", src stubbedAvatarUrl ] []
-            , div [ class "identity-menu__content" ]
-                [ div [ class "identity-menu__name" ] [ text (Data.User.displayName user) ]
-                ]
-            ]
-        ]
-
-
-inboxLink : Page -> Html Msg
-inboxLink page =
-    let
-        selectedClass =
-            case page of
-                Conversations ->
-                    "side-nav__item--selected"
-
-                _ ->
-                    ""
-    in
-        a [ class ("side-nav__item " ++ selectedClass), Route.href Route.Conversations ]
-            [ span [ class "side-nav__item-name" ] [ text "Inbox" ]
-            ]
-
-
-sideNav : Page -> AppState -> List (Html Msg)
-sideNav page appState =
-    [ div [ class "side-nav" ]
-        [ inboxLink page
-        , a [ class "side-nav__item", href "#" ]
-            [ span [ class "side-nav__item-name" ] [ text "Everything" ]
-            ]
-        , a [ class "side-nav__item", href "#" ]
-            [ span [ class "side-nav__item-name" ] [ text "Drafts" ]
-            ]
-        ]
-    ]
-
-
-rightSidebar : Model -> List (Html Msg)
-rightSidebar model =
-    case model.page of
-        Conversations ->
-            mainDirectory model
-
-        NewInvitation _ ->
-            mainDirectory model
-
-        _ ->
-            []
-
-
-mainDirectory : Model -> List (Html Msg)
-mainDirectory model =
-    let
-        isInviteActive =
-            case model.page of
-                NewInvitation _ ->
-                    True
-
-                _ ->
-                    False
-
-        inviteLink =
-            div [ class "side-nav side-nav--right" ]
-                [ a
-                    [ classList
-                        [ ( "side-nav__item", True )
-                        , ( "side-nav__item--action", True )
-                        , ( "side-nav__item--selected", isInviteActive )
-                        ]
-                    , Route.href Route.NewInvitation
-                    ]
-                    [ span [ class "side-nav__item-name" ] [ text "Invite people..." ] ]
-                ]
-    in
-        case model.appState of
-            Loaded appState ->
-                (userList "Directory" model.page appState.users) ++ [ inviteLink ]
-
-            NotLoaded ->
-                []
-
-
-userList : String -> Page -> UserConnection -> List (Html Msg)
-userList heading page users =
-    [ h3 [ class "side-nav-heading" ] [ text heading ]
-    , div [ class "side-nav side-nav--right" ] (List.map (userItem page) users.edges)
-    ]
-
-
-userItem : Page -> UserEdge -> Html Msg
-userItem page edge =
-    a [ class "side-nav__item", href "#" ]
-        [ span [ class "side-nav__state-indicator side-nav__state-indicator--available" ] []
-        , span [ class "side-nav__item-name" ] [ text (displayName edge.node) ]
-        ]
+            text "404"
 
 
 -- MESSAGE DECODERS
