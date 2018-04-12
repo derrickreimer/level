@@ -1,4 +1,4 @@
-defmodule Level.Repo.Migrations.CreateUser do
+defmodule Level.Repo.Migrations.CreateUsers do
   use Ecto.Migration
 
   def up do
@@ -14,19 +14,19 @@ defmodule Level.Repo.Migrations.CreateUser do
       add :first_name, :text, null: false
       add :last_name, :text, null: false
       add :time_zone, :text, null: false
-      add :password_hash, :text
+      add(:password_hash, :text)
       add :session_salt, :text, null: false, default: "salt"
 
       timestamps()
     end
 
-    create index(:users, [:id])
-    create index(:users, [:space_id])
-    create unique_index(:users, [:space_id, "lower(email)"])
+    create(index(:users, [:id]))
+    create(index(:users, [:space_id]))
+    create(unique_index(:users, [:space_id, "lower(email)"]))
   end
 
   def down do
-    drop table(:users)
+    drop(table(:users))
     execute("DROP TYPE user_role")
     execute("DROP TYPE user_state")
   end

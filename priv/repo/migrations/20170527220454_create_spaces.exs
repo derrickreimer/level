@@ -1,4 +1,4 @@
-defmodule Level.Repo.Migrations.CreateSpace do
+defmodule Level.Repo.Migrations.CreateSpaces do
   use Ecto.Migration
 
   def up do
@@ -14,12 +14,12 @@ defmodule Level.Repo.Migrations.CreateSpace do
       timestamps()
     end
 
-    create index(:spaces, [:id])
-    create unique_index(:spaces, ["lower(slug)"])
+    create(index(:spaces, [:id]))
+    create(unique_index(:spaces, ["lower(slug)"]))
   end
 
   def down do
-    drop table(:spaces)
+    drop(table(:spaces))
     execute("DROP TYPE space_state")
   end
 end

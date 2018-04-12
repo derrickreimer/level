@@ -11,7 +11,7 @@ defmodule Level.Repo.Migrations.CreateGroupMemberships do
       timestamps()
     end
 
-    create index(:group_memberships, [:id])
-    create unique_index(:group_memberships, [:user_id, :group_id])
+    create(index(:group_memberships, [:id]))
+    create(unique_index(:group_memberships, [:user_id, :group_id]))
   end
 end

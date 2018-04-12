@@ -8,7 +8,7 @@ defmodule Level.Repo.Migrations.CreateGroups do
       add :id, :binary_id, primary_key: true
       add :state, :group_state, default: "OPEN", null: false
       add :name, :text, null: false
-      add :description, :text
+      add(:description, :text)
       add :is_private, :boolean, default: false, null: false
       add :space_id, references(:spaces, on_delete: :nothing, type: :binary_id), null: false
       add :creator_id, references(:users, on_delete: :nothing, type: :binary_id), null: false
@@ -16,13 +16,21 @@ defmodule Level.Repo.Migrations.CreateGroups do
       timestamps()
     end
 
-    create index(:groups, [:id])
-    create index(:groups, [:space_id])
-    create unique_index(:groups, ["lower(name)"], where: "state = 'OPEN'", name: :groups_unique_names_when_open)
+    create(index(:groups, [:id]))
+    create(index(:groups, [:space_id]))
+
+    create(
+      unique_index(
+        :groups,
+        ["lower(name)"],
+        where: "state = 'OPEN'",
+        name: :groups_unique_names_when_open
+      )
+    )
   end
 
   def down do
-    drop table(:groups)
+    drop(table(:groups))
     execute("DROP TYPE group_state")
   end
 end
