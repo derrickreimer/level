@@ -5,6 +5,8 @@ defmodule Level.Posts.Post do
 
   use Ecto.Schema
 
+  import Ecto.Changeset
+
   alias Level.Spaces.Space
   alias Level.Spaces.User
 
@@ -20,5 +22,14 @@ defmodule Level.Posts.Post do
     belongs_to :user, User
 
     timestamps()
+  end
+
+  @doc """
+  Generates a changeset for creating a new post.
+  """
+  def create_changeset(struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [:space_id, :user_id, :body])
+    |> validate_required([:body])
   end
 end
