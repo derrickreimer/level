@@ -1,13 +1,14 @@
 defmodule Level.Mixfile do
   use Mix.Project
 
+  @elixir_version "~> 1.6"
   @version "0.0.1"
 
   def project do
     [
       app: :level,
       version: @version,
-      elixir: "~> 1.6",
+      elixir: @elixir_version,
       elixirc_paths: elixirc_paths(Mix.env()),
       consolidate_protocols: true,
       test_coverage: [tool: ExCoveralls],

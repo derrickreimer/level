@@ -8,7 +8,7 @@ The communication platform for software teams.
 
 You'll need to install the following dependencies first:
 
-- [Elixir](https://elixir-lang.org/install.html) (>= 1.4.2)
+- [Elixir](https://elixir-lang.org/install.html) ([version](https://github.com/levelhq/level/blob/master/mix.exs#L4))
 - [PostgreSQL](https://postgresapp.com/) (>= 9.6.2)
 - [Yarn](https://yarnpkg.com/en/docs/install) (>= 0.24.6)
 - [nvm](https://github.com/creationix/nvm) ([optional](#nodejs))
