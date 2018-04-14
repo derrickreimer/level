@@ -1,13 +1,14 @@
 {
   "name": "Level",
-  "description": "Smarter communication platform for teams that value focus",
+  "description": "Distraction-free communication for software teams",
   "repository": "https://github.com/levelhq/level",
-  "keywords": ["chat", "elixir", "phoenix"],
+  "keywords": ["productivity"],
+  "logo": "https://raw.githubusercontent.com/levelhq/level/master/avatar.png",
   "addons": [
     {
       "plan": "heroku-postgresql",
       "options": {
-        "version": "9.6"
+        "version": "10"
       }
     }
   ],
