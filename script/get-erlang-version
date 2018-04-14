@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# script/get-erlang-version: Looks up the currently installed version of Erlang/OTP.
+# Borrowed from https://stackoverflow.com/a/34326368.
+
+set -e
+
+erl -eval "{ok, Version} = file:read_file(filename:join([code:root_dir(), 'releases', erlang:system_info(otp_release), 'OTP_VERSION'])), io:fwrite(Version), halt()." -noshell
