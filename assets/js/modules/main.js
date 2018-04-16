@@ -1,8 +1,9 @@
 import { getApiToken, getCsrfToken } from "../token";
 import { attachPorts } from "../ports";
+import { Main } from "../../elm/src/Main.elm";
 
 export function initialize() {
-  const app = Elm.Main.fullscreen({
+  const app = Main.fullscreen({
     apiToken: getApiToken()
   });
 
