@@ -36,6 +36,7 @@ module.exports = (env, argv) => ({
             cwd: path.resolve(__dirname, 'elm'),
             pathToMake: path.resolve(__dirname, 'node_modules/.bin/elm-make'),
             debug: argv.mode === 'development',
+            verbose: argv.mode === 'development',
             warn: true
           }
         }
