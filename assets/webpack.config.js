@@ -1,5 +1,4 @@
 const path = require('path');
-const elmPath = path.resolve(__dirname, 'elm');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -34,7 +33,7 @@ module.exports = {
         use: {
           loader: 'elm-webpack-loader',
           options: {
-            cwd: elmPath,
+            cwd: path.resolve(__dirname, 'elm'),
             pathToMake: path.resolve(__dirname, 'node_modules/.bin/elm-make')
           }
         }
