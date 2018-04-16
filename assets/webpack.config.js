@@ -2,7 +2,7 @@ const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-module.exports = {
+module.exports = (env, argv) => ({
   entry: './js/app.js',
   output: {
     filename: 'app.js',
@@ -34,7 +34,9 @@ module.exports = {
           loader: 'elm-webpack-loader',
           options: {
             cwd: path.resolve(__dirname, 'elm'),
-            pathToMake: path.resolve(__dirname, 'node_modules/.bin/elm-make')
+            pathToMake: path.resolve(__dirname, 'node_modules/.bin/elm-make'),
+            debug: argv.mode === 'development',
+            warn: true
           }
         }
       }
@@ -44,4 +46,4 @@ module.exports = {
     new ExtractTextPlugin('../css/app.css'),
     new CopyWebpackPlugin([{ from: 'static/', to: '../' }])
   ]
-};
+});
