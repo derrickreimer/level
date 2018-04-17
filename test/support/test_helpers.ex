@@ -3,6 +3,7 @@ defmodule Level.TestHelpers do
   Miscellaneous helper functions for tests.
   """
 
+  alias Level.Posts
   alias Level.Repo
   alias Level.Groups
 
@@ -44,6 +45,12 @@ defmodule Level.TestHelpers do
     }
   end
 
+  def valid_post_params do
+    %{
+      body: "Hello world"
+    }
+  end
+
   def insert_signup(params \\ %{}) do
     params =
       valid_signup_params()
@@ -79,6 +86,14 @@ defmodule Level.TestHelpers do
       |> Map.merge(params)
 
     Groups.create_group(creator, params)
+  end
+
+  def insert_post(user, params \\ %{}) do
+    params =
+      valid_post_params()
+      |> Map.merge(params)
+
+    Posts.create_post(user, params)
   end
 
   def put_launch_host(conn) do

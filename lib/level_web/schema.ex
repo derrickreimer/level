@@ -60,5 +60,12 @@ defmodule LevelWeb.Schema do
 
       resolve(&Level.Mutations.update_group/2)
     end
+
+    @desc "Create a post."
+    field :create_post, type: :create_post_payload do
+      arg(:body, non_null(:string))
+
+      resolve(&Level.Mutations.create_post/2)
+    end
   end
 end

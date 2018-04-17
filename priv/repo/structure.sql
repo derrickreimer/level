@@ -65,6 +65,16 @@ CREATE TYPE public.invitation_state AS ENUM (
 
 
 --
+-- Name: post_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.post_state AS ENUM (
+    'OPEN',
+    'CLOSED'
+);
+
+
+--
 -- Name: space_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -149,6 +159,21 @@ CREATE TABLE public.invitations (
 
 
 --
+-- Name: posts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.posts (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    state public.post_state DEFAULT 'OPEN'::public.post_state NOT NULL,
+    body text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -214,6 +239,14 @@ ALTER TABLE ONLY public.groups
 
 ALTER TABLE ONLY public.invitations
     ADD CONSTRAINT invitations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.posts
+    ADD CONSTRAINT posts_pkey PRIMARY KEY (id);
 
 
 --
@@ -294,6 +327,13 @@ CREATE INDEX invitations_space_id_index ON public.invitations USING btree (space
 --
 
 CREATE UNIQUE INDEX invitations_unique_pending_email ON public.invitations USING btree (lower((email)::text)) WHERE (state = 'PENDING'::public.invitation_state);
+
+
+--
+-- Name: posts_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX posts_id_index ON public.posts USING btree (id);
 
 
 --
@@ -396,6 +436,22 @@ ALTER TABLE ONLY public.invitations
 
 
 --
+-- Name: posts posts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.posts
+    ADD CONSTRAINT posts_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: posts posts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.posts
+    ADD CONSTRAINT posts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: users users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -407,5 +463,5 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20180403181445), (20180404204544);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20180403181445), (20180404204544), (20180413214033);
 
