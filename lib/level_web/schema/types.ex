@@ -99,4 +99,13 @@ defmodule LevelWeb.Schema.Types do
   object :group_membership do
     field :group, non_null(:group), resolve: dataloader(:db)
   end
+
+  @desc "A post represents a conversation."
+  object :post do
+    field :id, non_null(:id)
+    field :state, non_null(:post_state)
+    field :body, non_null(:string)
+    field :space, non_null(:space), resolve: dataloader(:db)
+    field :user, non_null(:user), resolve: dataloader(:db)
+  end
 end

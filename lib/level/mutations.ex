@@ -6,6 +6,7 @@ defmodule Level.Mutations do
   import Level.Gettext
 
   alias Level.Groups
+  alias Level.Posts
   alias Level.Repo
   alias Level.Spaces
   alias Level.Spaces.User
@@ -28,6 +29,11 @@ defmodule Level.Mutations do
   @typedoc "The result of a group mutation"
   @type group_mutation_result ::
           {:ok, %{success: boolean(), group: Groups.Group.t() | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+
+  @typedoc "The result of a post mutation"
+  @type post_mutation_result ::
+          {:ok, %{success: boolean(), post: Posts.Post.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
 
   @doc """
@@ -115,6 +121,20 @@ defmodule Level.Mutations do
 
       err ->
         err
+    end
+  end
+
+  @doc """
+  Creates a post.
+  """
+  @spec create_post(map(), authenticated_context()) :: post_mutation_result()
+  def create_post(args, %{context: %{current_user: user}}) do
+    case Posts.create_post(user, args) do
+      {:ok, post} ->
+        {:ok, %{success: true, post: post, errors: []}}
+
+      {:error, changeset} ->
+        {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
     end
   end
 

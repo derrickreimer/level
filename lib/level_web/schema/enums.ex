@@ -25,6 +25,11 @@ defmodule LevelWeb.Schema.Enums do
     value(:revoked, as: "REVOKED")
   end
 
+  enum :post_state do
+    value(:open, as: "OPEN")
+    value(:closed, as: "CLOSED")
+  end
+
   enum :user_order_field do
     value(:last_name)
   end

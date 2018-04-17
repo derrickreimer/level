@@ -8,7 +8,7 @@ defmodule Level.Posts do
   alias Level.Spaces.User
 
   @typedoc "Valid params for creating a post"
-  @type create_post_params :: %{required(:post) => String.t()}
+  @type create_post_params :: %{required(:body) => String.t()}
 
   @doc """
   Creates a new post.
