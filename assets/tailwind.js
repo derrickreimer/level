@@ -127,6 +127,15 @@ let colors = {
   'pink-light': '#fa7ea8',
   'pink-lighter': '#ffbbca',
   'pink-lightest': '#ffebef',
+
+  // Brand colors
+  'turquoise': '#12c1d5',
+  'blue-darkest': '#22384c',
+  'blue-darker': '#374b61',
+  'blue-dark': '#50667a',
+  'blue': '#4b73e1',
+  'grey': '#e2e6e8',
+  'grey-light': '#f7f8f8',
 }
 
 module.exports = {
