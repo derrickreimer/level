@@ -75,6 +75,10 @@
   @apply .border-red;
 }
 
+.form-errors {
+  @apply .mt-2 .text-sm .text-red .font-bold;
+}
+
 .btn {
   @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2;
   transition: background-color 0.2s ease, border-color 0.2s ease;

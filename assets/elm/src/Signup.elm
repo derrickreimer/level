@@ -294,7 +294,7 @@ formErrors : List ValidationError -> Html Msg
 formErrors errors =
     case errors of
         error :: _ ->
-            div [ class "text-sm font-bold text-red mt-2" ] [ text error.message ]
+            div [ class "form-errors" ] [ text error.message ]
 
         [] ->
             text ""

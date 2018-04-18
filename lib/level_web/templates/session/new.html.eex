@@ -1,34 +1,34 @@
 <%= if get_flash(@conn, :error) do %>
-  <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
+  <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="cform">
-  <div class="cform__header cform__header--centered">
-    <h2 class="cform__heading"><%= gettext "Sign in to Level" %></h2>
-  </div>
-
-  <%= form_for @conn, session_path(@conn, :create), [as: :session, class: "cform__form cform__form--bordered"], fn f -> %>
-    <div class="form-field <%= if f.errors[:email], do: "form-field--error" %>">
-      <%= label f, :email, gettext("Email Address"), class: "form-label" %>
-      <%= text_input f, :email, class: "text-field text-field--full text-field--large", autofocus: true %>
-      <%= error_tag f, :email %>
+<div class="container mx-auto px-4 py-24 flex justify-center">
+  <div>
+    <div class="mb-8 text-center">
+      <img src="/images/logo-md.svg" class="logo-md" alt="Level">
     </div>
 
-    <div class="form-field <%= if f.errors[:password], do: "form-field--error" %>">
-      <%= label f, :password, gettext("Password"), class: "form-label" %>
-      <%= password_input f, :password, class: "text-field text-field--full text-field--large" %>
-      <%= error_tag f, :password %>
-    </div>
+    <%= form_for @conn, session_path(@conn, :create), [as: :session], fn f -> %>
+      <div class="px-16 py-8 bg-white rounded-lg border max-w-430px">
+        <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darker pb-8">Sign in to Level</h1>
+        <div class="pb-6">
+          <%= label f, :email, gettext("Email address"), class: "input-label" %>
+          <%= text_input f, :email, class: "input-field", autofocus: true, placeholder: "jane@smithco.com" %>
+          <%= error_tag f, :email, class: "form-errors" %>
+        </div>
 
-    <div class="form-controls">
-      <%= submit gettext("Sign in"), class: "button button--primary button--full button--large" %>
-    </div>
-  <% end %>
+        <div class="pb-6">
+          <%= label f, :password, gettext("Password"), class: "input-label" %>
+          <%= password_input f, :password, class: "input-field", autofocus: true %>
+          <%= error_tag f, :password, class: "form-errors" %>
+        </div>
 
-  <div class="cform__footer cform__footer--centered">
-    <p>
-      <%= gettext "Want to create a space instead?" %>
-      <%= link gettext("Sign up"), to: signup_url(@conn) %>.
-    </p>
+        <%= submit gettext("Sign in"), class: "btn btn-blue w-full" %>
+      </div>
+      <div class="px-16 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
+        <%= gettext "Want to create a space instead?" %>
+        <%= link gettext("Sign up"), to: signup_url(@conn), class: "text-blue" %>
+      </div>
+    <% end %>
   </div>
 </div>

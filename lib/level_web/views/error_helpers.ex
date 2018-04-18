@@ -8,9 +8,9 @@ defmodule LevelWeb.ErrorHelpers do
   @doc """
   Generates tag for inlined form input errors.
   """
-  def error_tag(form, field) do
+  def error_tag(form, field, opts \\ %{}) do
     if error = form.errors[field] do
-      content_tag(:div, translate_error(error), class: "form-errors")
+      content_tag(:div, translate_error(error), class: opts[:class])
     end
   end
 
