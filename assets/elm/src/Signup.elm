@@ -214,52 +214,7 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "signup-form" ]
-        [ div [ class "signup-form__header" ]
-            [ h1 [ class "signup-form__heading" ] [ text "Join Level" ]
-            , p [ class "signup-form__description" ] [ text "Level is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
-            ]
-        , div [ class "signup-form__section" ]
-            [ div [ class "signup-form__section-header" ]
-                [ span [ class "signup-form__section-number" ] [ text "1" ]
-                , text "Tell us about yourself!"
-                ]
-            , div [ class "signup-form__section-body" ]
-                [ div [ class "inline-field-group" ]
-                    [ textField (FormField "text" "first_name" "First Name" model.firstName FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
-                    , textField (FormField "text" "last_name" "Last Name" model.lastName LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
-                    ]
-                , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
-                , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
-                ]
-            ]
-        , div [ class "signup-form__section" ]
-            [ div [ class "signup-form__section-header" ]
-                [ span [ class "signup-form__section-number" ] [ text "2" ]
-                , text "Configure your space"
-                ]
-            , div [ class "signup-form__section-body" ]
-                [ textField (FormField "text" "space_name" "Space Name" model.spaceName SpaceNameChanged SpaceNameBlurred) (errorsFor "space_name" model.errors)
-                , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
-                ]
-            ]
-        , div [ class "signup-form__controls" ]
-            [ button
-                [ type_ "submit"
-                , class "button button--primary button--full button--large"
-                , onClick Submit
-                , disabled (model.formState == Submitting)
-                ]
-                [ text "Sign up" ]
-            ]
-        , div [ class "signup-form__footer" ]
-            [ p []
-                [ text "Already have a space? "
-                , a [ href "/spaces/search" ] [ text "Sign in" ]
-                , text "."
-                ]
-            ]
-        ]
+    div [] []
 
 
 textField : FormField -> List ValidationError -> Html Msg
