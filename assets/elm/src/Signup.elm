@@ -205,7 +205,7 @@ subscriptions model =
 type alias FormField =
     { type_ : String
     , name : String
-    , label : String
+    , placeholder : String
     , value : String
     , onInput : String -> Msg
     , onBlur : Msg
@@ -214,49 +214,53 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "signup-form" ]
-        [ div [ class "signup-form__header" ]
-            [ h1 [ class "signup-form__heading" ] [ text "Join Level" ]
-            , p [ class "signup-form__description" ] [ text "Level is a smarter communication platform built for teams that value their focus. Take it for a spin!" ]
-            ]
-        , div [ class "signup-form__section" ]
-            [ div [ class "signup-form__section-header" ]
-                [ span [ class "signup-form__section-number" ] [ text "1" ]
-                , text "Tell us about yourself!"
+    div [ class "container mx-auto px-4 py-24 flex justify-center" ]
+        [ div []
+            [ div [ class "mb-8 text-center" ]
+                [ img [ src "/images/logo-md.svg", class "logo-md", alt "Level" ] []
                 ]
-            , div [ class "signup-form__section-body" ]
-                [ div [ class "inline-field-group" ]
-                    [ textField (FormField "text" "first_name" "First Name" model.firstName FirstNameChanged FirstNameBlurred) (errorsFor "first_name" model.errors)
-                    , textField (FormField "text" "last_name" "Last Name" model.lastName LastNameChanged LastNameBlurred) (errorsFor "last_name" model.errors)
+            , div
+                [ classList
+                    [ ( "px-16 py-8 bg-white rounded-lg border max-w-430px", True )
+                    , ( "shake", not (List.isEmpty model.errors) )
                     ]
-                , textField (FormField "email" "email" "Email Address" model.email EmailChanged EmailBlurred) (errorsFor "email" model.errors)
-                , textField (FormField "password" "password" "Password" model.password PasswordChanged PasswordBlurred) (errorsFor "password" model.errors)
                 ]
-            ]
-        , div [ class "signup-form__section" ]
-            [ div [ class "signup-form__section-header" ]
-                [ span [ class "signup-form__section-number" ] [ text "2" ]
-                , text "Configure your space"
+                [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darker pb-8" ]
+                    [ text "Create a new space" ]
+                , div [ class "pb-6" ]
+                    [ label [ for "first_name", class "input-label" ] [ text "Your name" ]
+                    , div [ class "flex" ]
+                        [ div [ class "flex-1 mr-2" ]
+                            [ textField (FormField "text" "first_name" "Jane" model.firstName FirstNameChanged FirstNameBlurred)
+                                (errorsFor "first_name" model.errors)
+                            ]
+                        , div [ class "flex-1" ]
+                            [ textField (FormField "text" "last_name" "Smith" model.lastName LastNameChanged LastNameBlurred)
+                                (errorsFor "last_name" model.errors)
+                            ]
+                        ]
+                    ]
+                , div [ class "pb-6" ]
+                    [ label [ for "email", class "input-label" ] [ text "Email address" ]
+                    , textField (FormField "email" "email" "jane@smithco.com" model.email EmailChanged EmailBlurred)
+                        (errorsFor "email" model.errors)
+                    ]
+                , div [ class "pb-6" ]
+                    [ label [ for "space_name", class "input-label" ] [ text "Name of your organization" ]
+                    , textField (FormField "text" "space_name" "Smith, Co." model.spaceName SpaceNameChanged SpaceNameBlurred)
+                        (errorsFor "space_name" model.errors)
+                    ]
+                , button
+                    [ type_ "submit"
+                    , class "btn btn-blue w-full"
+                    , onClick Submit
+                    , disabled (model.formState == Submitting)
+                    ]
+                    [ text "Let's get started" ]
                 ]
-            , div [ class "signup-form__section-body" ]
-                [ textField (FormField "text" "space_name" "Space Name" model.spaceName SpaceNameChanged SpaceNameBlurred) (errorsFor "space_name" model.errors)
-                , slugField (FormField "text" "slug" "URL" model.slug SlugChanged SlugBlurred) (errorsFor "slug" model.errors)
-                ]
-            ]
-        , div [ class "signup-form__controls" ]
-            [ button
-                [ type_ "submit"
-                , class "button button--primary button--full button--large"
-                , onClick Submit
-                , disabled (model.formState == Submitting)
-                ]
-                [ text "Sign up" ]
-            ]
-        , div [ class "signup-form__footer" ]
-            [ p []
+            , div [ class "px-16 pt-6 pb-24 text-sm text-dusty-blue-dark text-center" ]
                 [ text "Already have a space? "
-                , a [ href "/spaces/search" ] [ text "Sign in" ]
-                , text "."
+                , a [ href "/spaces/search", class "text-blue" ] [ text "Sign in" ]
                 ]
             ]
         ]
@@ -264,53 +268,26 @@ view model =
 
 textField : FormField -> List ValidationError -> Html Msg
 textField field errors =
-    div [ class (String.join " " [ "form-field", (errorClass errors) ]) ]
-        [ label [ for field.name, class "form-label" ] [ text field.label ]
-        , input
-            [ id field.name
-            , type_ field.type_
-            , class "text-field text-field--full text-field--large"
-            , name field.name
-            , value field.value
-            , onInput field.onInput
-            , onBlur field.onBlur
+    let
+        classes =
+            [ ( "input-field", True )
+            , ( "input-field-error", not (List.isEmpty errors) )
             ]
-            []
-        , formErrors errors
-        ]
-
-
-slugField : FormField -> List ValidationError -> Html Msg
-slugField field errors =
-    div [ class (String.join " " [ "form-field", (errorClass errors) ]) ]
-        [ label [ for "slug", class "form-label" ] [ text "URL" ]
-        , div [ class "slug-field" ]
-            [ div [ class "slug-field__slug" ]
-                [ input
-                    [ id field.name
-                    , type_ field.type_
-                    , class "text-field text-field--large"
-                    , name field.name
-                    , value field.value
-                    , onInput field.onInput
-                    , onBlur field.onBlur
-                    ]
-                    []
+    in
+        div []
+            [ input
+                [ id field.name
+                , type_ field.type_
+                , classList classes
+                , name field.name
+                , placeholder field.placeholder
+                , value field.value
+                , onInput field.onInput
+                , onBlur field.onBlur
                 ]
-            , div [ class "slug-field__domain" ] [ text ".level.live" ]
+                []
+            , formErrors errors
             ]
-        , formErrors errors
-        ]
-
-
-errorClass : List ValidationError -> String
-errorClass errors =
-    case errors of
-        [] ->
-            ""
-
-        _ ->
-            "form-field--error"
 
 
 formErrors : List ValidationError -> Html Msg

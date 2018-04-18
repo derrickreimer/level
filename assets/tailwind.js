@@ -127,6 +127,17 @@ let colors = {
   'pink-light': '#fa7ea8',
   'pink-lighter': '#ffbbca',
   'pink-lightest': '#ffebef',
+
+  // Brand colors
+  'turquoise': '#12c1d5',
+  'dusty-blue-darkest': '#22384c',
+  'dusty-blue-darker': '#374b61',
+  'dusty-blue-dark': '#50667a',
+  'blue-dark': '#4265c7',
+  'blue': '#4b73e1',
+  'grey': '#e2e6e8',
+  'grey-light': '#f7f8f8',
+  'red': '#ff1e12',
 }
 
 module.exports = {
@@ -419,7 +430,7 @@ module.exports = {
   |
   */
 
-  borderColors: global.Object.assign({ default: colors['grey-light'] }, colors),
+  borderColors: global.Object.assign({ default: colors['grey'] }, colors),
 
 
   /*
@@ -649,6 +660,8 @@ module.exports = {
     '4': '1rem',
     '6': '1.5rem',
     '8': '2rem',
+    '16': '4rem',
+    '24': '6rem',
   },
 
 

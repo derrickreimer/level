@@ -36,6 +36,93 @@
  * @import "components/forms";
  */
 
+.logo-md {
+  width: 99px;
+  height: 20px;
+  margin-left: -1rem;
+}
+
+.font-antialised {
+  -webkit-font-smoothing: antialiased;
+}
+
+.max-w-430px {
+  max-width: 430px;
+}
+
+.input-label {
+  @apply .text-sm .font-bold .text-dusty-blue-darker .pb-2 .block;
+}
+
+.input-field {
+  @apply .border-2 .rounded-lg .p-3 .w-full .text-dusty-blue-darker;
+}
+
+.input-field:focus {
+  @apply .border-turquoise;
+  outline: none;
+}
+
+.input-field::placeholder {
+  @apply .text-dusty-blue-dark;
+}
+
+.input-field-error {
+  @apply .border-red;
+}
+
+.input-field-error:focus {
+  @apply .border-red;
+}
+
+.form-errors {
+  @apply .mt-2 .text-sm .text-red .font-bold;
+}
+
+.btn {
+  @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:focus {
+  outline: none;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-blue {
+  @apply .bg-blue .border-blue;
+}
+
+.btn-blue:hover {
+  @apply .bg-blue-dark .border-blue-dark;
+}
+
+/* Borrowed from https://css-tricks.com/snippets/css/shake-css-keyframe-animation/ */
+.shake {
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
 
 /**
  * This injects all of Tailwind's utility classes, generated based on your
