@@ -36,6 +36,65 @@
  * @import "components/forms";
  */
 
+.logo-md {
+  width: 99px;
+  height: 20px;
+  margin-left: -1rem;
+}
+
+.font-antialised {
+  -webkit-font-smoothing: antialiased;
+}
+
+.max-w-430px {
+  max-width: 430px;
+}
+
+.input-label {
+  @apply .text-sm .font-bold .text-dusty-blue-darker .pb-2 .block;
+}
+
+.input-field {
+  @apply .border-2 .rounded-lg .p-3 .w-full .text-dusty-blue-darker;
+}
+
+.input-field:focus {
+  @apply .border-turquoise;
+  outline: none;
+}
+
+.input-field::placeholder {
+  @apply .text-dusty-blue-dark;
+}
+
+.input-field-error {
+  @apply .border-red;
+}
+
+.input-field-error:focus {
+  @apply .border-red;
+}
+
+.btn {
+  @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:focus {
+  outline: none;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-blue {
+  @apply .bg-blue .border-blue;
+}
+
+.btn-blue:hover {
+  @apply .bg-blue-dark .border-blue-dark;
+}
 
 /**
  * This injects all of Tailwind's utility classes, generated based on your

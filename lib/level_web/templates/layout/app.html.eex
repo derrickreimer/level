@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>
 
-  <body>
+  <body class="bg-grey-light font-sans font-antialised">
     <%= render @view_module, @view_template, assigns %>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>

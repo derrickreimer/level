@@ -130,12 +130,14 @@ let colors = {
 
   // Brand colors
   'turquoise': '#12c1d5',
-  'blue-darkest': '#22384c',
-  'blue-darker': '#374b61',
-  'blue-dark': '#50667a',
+  'dusty-blue-darkest': '#22384c',
+  'dusty-blue-darker': '#374b61',
+  'dusty-blue-dark': '#50667a',
+  'blue-dark': '#4265c7',
   'blue': '#4b73e1',
   'grey': '#e2e6e8',
   'grey-light': '#f7f8f8',
+  'red': '#ff1e12',
 }
 
 module.exports = {
@@ -658,6 +660,8 @@ module.exports = {
     '4': '1rem',
     '6': '1.5rem',
     '8': '2rem',
+    '16': '4rem',
+    '24': '6rem',
   },
 
 
