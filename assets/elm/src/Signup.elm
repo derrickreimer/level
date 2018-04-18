@@ -219,7 +219,12 @@ view model =
             [ div [ class "mb-8 text-center" ]
                 [ img [ src "/images/logo-md.svg", class "logo-md", alt "Level" ] []
                 ]
-            , div [ class "px-16 py-8 bg-white rounded-lg border max-w-430px" ]
+            , div
+                [ classList
+                    [ ( "px-16 py-8 bg-white rounded-lg border max-w-430px", True )
+                    , ( "shake", not (List.isEmpty model.errors) )
+                    ]
+                ]
                 [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darker pb-8" ]
                     [ text "Create a new space" ]
                 , div [ class "pb-6" ]
