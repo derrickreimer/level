@@ -12,15 +12,14 @@ defmodule LevelWeb.SpaceControllerTest do
       {:ok, %{conn: conn}}
     end
 
-    test "redirects to search if not signed in to any spaces", %{conn: conn} do
+    test "redirects to login page if not signed in", %{conn: conn} do
       conn =
         conn
         |> recycle()
         |> put_launch_host()
         |> get("/")
 
-      assert conn.host == "launch.level.test"
-      assert redirected_to(conn, 302) =~ "/spaces/search"
+      assert redirected_to(conn, 302) =~ "/login"
     end
 
     test "renders the list of signed in spaces", %{conn: conn} do

@@ -22,14 +22,6 @@ defmodule LevelWeb.UrlHelpers do
     })
   end
 
-  def space_search_url(conn) do
-    URI.to_string(%{
-      build_uri_from_conn(conn)
-      | host: "launch.#{default_host()}",
-        path: Helpers.space_search_path(conn, :new)
-    })
-  end
-
   def threads_url(conn, space) do
     URI.to_string(%{
       build_uri_from_conn(conn)

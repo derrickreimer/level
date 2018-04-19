@@ -51,8 +51,6 @@ defmodule LevelWeb.Router do
 
     get "/", SpaceController, :index
     get "/spaces/new", SpaceController, :new
-    get "/spaces/search", SpaceSearchController, :new
-    post "/spaces/search", SpaceSearchController, :create
   end
 
   # Space-scoped routes not requiring authentication

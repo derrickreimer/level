@@ -11,17 +11,15 @@ defmodule LevelWeb.Auth do
   alias Level.Repo
   alias Level.Spaces
   alias LevelWeb.Router.Helpers
-  alias LevelWeb.UrlHelpers
 
   @doc """
   A plug that looks up the space in scope and sets it in the connection assigns.
   """
   def fetch_space(conn, _opts \\ []) do
+    # TODO: pull this out of the path instead of subdomain
     case conn.assigns[:subdomain] do
       "" ->
         conn
-        |> redirect(external: UrlHelpers.space_search_url(conn))
-        |> halt()
 
       subdomain ->
         space = Spaces.get_space_by_slug!(subdomain)

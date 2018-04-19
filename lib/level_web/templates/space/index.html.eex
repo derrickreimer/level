@@ -20,10 +20,4 @@
       </li>
     <% end %>
   </ul>
-
-  <div class="cform__footer cform__footer--centered">
-    <a href="<%= space_search_url(@conn) %>" class="space-switcher__add">
-      Sign in to another space...
-    </a>
-  </div>
 </div>

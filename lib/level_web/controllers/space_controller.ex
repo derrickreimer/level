@@ -7,7 +7,7 @@ defmodule LevelWeb.SpaceController do
     case LevelWeb.Auth.signed_in_spaces(conn) do
       [] ->
         conn
-        |> redirect(to: space_search_path(conn, :new))
+        |> redirect(to: session_path(conn, :new))
 
       spaces ->
         conn
