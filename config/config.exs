@@ -12,7 +12,6 @@ config :level,
 
 # Configures the endpoint
 config :level, LevelWeb.Endpoint,
-  url: [host: System.get_env("LEVEL_HOST") || "level.test"],
   secret_key_base: "88kKPFnN/WU+4j79qm1tucW43qkoNjH0Ju54I8X2+BpKzMqYbiq4yVwXuhf7HDzr",
   render_errors: [view: LevelWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Level.PubSub, adapter: Phoenix.PubSub.PG2]

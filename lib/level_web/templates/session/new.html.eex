@@ -5,7 +5,7 @@
 <div class="container mx-auto px-4 py-24 flex justify-center">
   <div>
     <div class="mb-8 text-center">
-      <img src="/images/logo-md.svg" class="logo-md" alt="Level">
+      <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>
     </div>
 
     <%= form_for @conn, session_path(@conn, :create), [as: :session], fn f -> %>
