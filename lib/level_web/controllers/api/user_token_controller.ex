@@ -5,7 +5,6 @@ defmodule LevelWeb.API.UserTokenController do
 
   alias LevelWeb.Auth
 
-  plug :fetch_space
   plug :fetch_current_user_by_session
 
   def create(conn, _params) do

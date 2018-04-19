@@ -4,15 +4,8 @@ defmodule LevelWeb.SpaceController do
   use LevelWeb, :controller
 
   def index(conn, _params) do
-    case LevelWeb.Auth.signed_in_spaces(conn) do
-      [] ->
-        conn
-        |> redirect(to: session_path(conn, :new))
-
-      spaces ->
-        conn
-        |> render("index.html", spaces: spaces)
-    end
+    # TODO: fetch spaces the user has access to
+    render conn, "index.html"
   end
 
   def new(conn, _params) do

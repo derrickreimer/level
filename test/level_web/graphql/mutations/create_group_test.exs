@@ -29,7 +29,7 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space}} = insert_signup()
+    {:ok, %{user: user, space: space}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, space, user)
     {:ok, %{conn: conn, user: user, space: space}}
   end

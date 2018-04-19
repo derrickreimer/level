@@ -6,7 +6,7 @@ defmodule Level.GroupsTest do
 
   describe "list_groups_query/2" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "returns a query that includes public non-member groups", %{user: user, space: space} do
@@ -35,7 +35,7 @@ defmodule Level.GroupsTest do
 
   describe "get_group/2" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "returns the group when public", %{user: user} do
@@ -44,7 +44,7 @@ defmodule Level.GroupsTest do
     end
 
     test "does not return the group if it's outside the space", %{user: user} do
-      {:ok, %{user: another_user}} = insert_signup()
+      {:ok, %{user: another_user}} = create_user_and_space()
       {:ok, %{group: %Group{id: group_id}}} = insert_group(user, %{is_private: false})
       assert {:error, "Group not found"} = Groups.get_group(another_user, group_id)
     end
@@ -75,7 +75,7 @@ defmodule Level.GroupsTest do
 
   describe "create_group/3" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "creates a group given valid data", %{user: user} do
@@ -112,7 +112,7 @@ defmodule Level.GroupsTest do
 
   describe "close_group/1" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "transitions open groups to closed", %{user: user} do
@@ -124,7 +124,7 @@ defmodule Level.GroupsTest do
 
   describe "get_group_membership/2" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "fetches the group membership if user is a member", %{user: user} do
@@ -145,7 +145,7 @@ defmodule Level.GroupsTest do
 
   describe "create_group_membership/2" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "establishes a new membership if not already one", %{user: user, space: space} do

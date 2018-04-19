@@ -4,12 +4,7 @@ defmodule LevelWeb.AcceptInvitationControllerTest do
   alias Level.Spaces
 
   setup %{conn: conn} do
-    {:ok, %{space: space, user: owner}} = insert_signup()
-
-    conn =
-      conn
-      |> put_space_host(space)
-
+    {:ok, %{space: space, user: owner}} = create_user_and_space()
     {:ok, %{conn: conn, space: space, owner: owner}}
   end
 

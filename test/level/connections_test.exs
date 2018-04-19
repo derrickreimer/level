@@ -6,7 +6,7 @@ defmodule Level.ConnectionsTest do
 
   describe "users/3" do
     setup do
-      insert_signup(%{last_name: "aaa"})
+      create_user_and_space(%{last_name: "aaa"})
     end
 
     test "includes a total count", %{space: space, user: user} do
@@ -55,7 +55,7 @@ defmodule Level.ConnectionsTest do
 
   describe "groups/3" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "includes open groups by default", %{space: space, user: user} do
@@ -88,7 +88,7 @@ defmodule Level.ConnectionsTest do
 
   describe "group_memberships/3" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "includes groups the user is a member of", %{user: user} do

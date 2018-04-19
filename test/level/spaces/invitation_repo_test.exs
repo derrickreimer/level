@@ -6,7 +6,7 @@ defmodule Level.Spaces.InvitationRepoTest do
 
   describe "changeset/2" do
     setup do
-      {:ok, %{space: space, user: invitor}} = insert_signup()
+      {:ok, %{space: space, user: invitor}} = create_user_and_space()
       {:ok, %{space: space, invitor: invitor}}
     end
 

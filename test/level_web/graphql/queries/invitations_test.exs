@@ -3,7 +3,7 @@ defmodule LevelWeb.GraphQL.InvitationsTest do
   import LevelWeb.GraphQL.TestHelpers
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space}} = insert_signup()
+    {:ok, %{user: user, space: space}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, space, user)
 
     {:ok, invitation} = insert_invitation(user)

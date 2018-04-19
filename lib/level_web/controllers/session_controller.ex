@@ -3,7 +3,6 @@ defmodule LevelWeb.SessionController do
 
   use LevelWeb, :controller
 
-  plug :fetch_space
   plug :fetch_current_user_by_session
   plug :redirect_if_signed_in
 
@@ -12,17 +11,11 @@ defmodule LevelWeb.SessionController do
   end
 
   def create(conn, %{"session" => %{"email" => email, "password" => pass}}) do
-    case LevelWeb.Auth.sign_in_with_credentials(
-           conn,
-           conn.assigns.space,
-           email,
-           pass,
-           repo: Repo
-         ) do
+    case LevelWeb.Auth.sign_in_with_credentials(conn, email, pass) do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")
-        |> redirect(to: cockpit_path(conn, :index))
+        |> redirect(to: space_path(conn, :index))
 
       {:error, _reason, conn} ->
         conn
@@ -34,7 +27,7 @@ defmodule LevelWeb.SessionController do
   defp redirect_if_signed_in(conn, _opts) do
     if conn.assigns.current_user do
       conn
-      |> redirect(to: cockpit_path(conn, :index))
+      |> redirect(to: space_path(conn, :index))
       |> halt()
     else
       conn

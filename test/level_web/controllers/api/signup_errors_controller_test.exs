@@ -4,11 +4,6 @@ defmodule LevelWeb.API.SignupErrorsControllerTest do
   describe "POST /api/signup/errors" do
     setup %{conn: conn} do
       params = valid_signup_params()
-
-      conn =
-        conn
-        |> put_launch_host()
-
       {:ok, %{conn: conn, params: params}}
     end
 

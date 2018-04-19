@@ -12,7 +12,7 @@ defmodule LevelWeb.API.SpaceController do
       case Spaces.register(changeset) do
         {:ok, %{space: space, user: user}} ->
           conn
-          |> LevelWeb.Auth.sign_in(space, user)
+          |> LevelWeb.Auth.sign_in(user)
           |> put_status(:created)
           |> render("create.json", %{
             space: space,

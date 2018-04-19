@@ -13,41 +13,20 @@ defmodule LevelWeb.Auth do
   alias LevelWeb.Router.Helpers
 
   @doc """
-  A plug that looks up the space in scope and sets it in the connection assigns.
-  """
-  def fetch_space(conn, _opts \\ []) do
-    # TODO: pull this out of the path instead of subdomain
-    case conn.assigns[:subdomain] do
-      "" ->
-        conn
-
-      subdomain ->
-        space = Spaces.get_space_by_slug!(subdomain)
-        assign(conn, :space, space)
-    end
-  end
-
-  @doc """
   A plug that looks up the currently logged in user for the current space
   and assigns it to the `current_user` key. If space is not specified or user is
   not logged in, sets the `current_user` to `nil`.
   """
   def fetch_current_user_by_session(conn, _opts \\ []) do
     cond do
-      conn.assigns[:space] == nil ->
-        delete_current_user(conn)
-
       # This is a backdoor that makes auth testing easier
       user = conn.assigns[:current_user] ->
-        put_current_user(conn, user)
+        sign_in(conn, user)
 
-      sessions = get_session(conn, :sessions) ->
-        space_id = conn.assigns.space.id
-
-        with %{^space_id => [user_id, salt, _]} <- decode_user_sessions(sessions),
-             %Spaces.User{} = user <- Spaces.get_user(user_id),
-             true <- user.session_salt == salt do
-          put_current_user(conn, user)
+      user_id = get_session(conn, :user_id) ->
+        with %Spaces.User{} = user <- Spaces.get_user(user_id),
+             true <- user.session_salt == get_session(conn, :salt) do
+          sign_in(conn, user)
         else
           _ ->
             delete_current_user(conn)
@@ -70,24 +49,18 @@ defmodule LevelWeb.Auth do
     absinthe context.
   """
   def authenticate_with_token(conn, _opts \\ []) do
-    cond do
-      conn.assigns[:space] == nil ->
-        conn
-        |> delete_current_user()
-        |> send_resp(400, "")
-        |> halt()
+    case conn.assigns[:current_user] do
+      %Spaces.User{} = user ->
+        # This is a backdoor that makes auth testing easier
+        sign_in(conn, user)
 
-      # This is a backdoor that makes auth testing easier
-      user = conn.assigns[:current_user] ->
-        put_current_user(conn, user)
-
-      true ->
+      _ ->
         verify_bearer_token(conn)
     end
   end
 
   @doc """
-  A plug for ensuring that a user is currently logged in to the particular space.
+  A plug for ensuring that a user is currently logged in.
   """
   def authenticate_user(conn, _opts \\ []) do
     if conn.assigns[:current_user] do
@@ -100,34 +73,34 @@ defmodule LevelWeb.Auth do
   end
 
   @doc """
-  Signs a user in to a particular space.
+  Signs a user in.
   """
-  def sign_in(conn, space, user) do
+  def sign_in(conn, user) do
     conn
     |> put_current_user(user)
-    |> put_user_session(space, user)
+    |> put_session(:user_id, user.id)
+    |> put_session(:salt, user.session_salt)
   end
 
   @doc """
-  Signs a user out of a particular space.
+  Signs a user out.
   """
-  def sign_out(conn, space) do
+  def sign_out(conn) do
     conn
-    |> delete_user_session(space)
+    |> delete_session(:user_id)
   end
 
   @doc """
-  Looks up the user for a given space by email address and compares the given
-  password with the password hash.
+  Looks up the user by email address and checks the password.
   If the user is found and password is valid, signs the user in and returns
   an :ok tuple. Otherwise, returns an :error tuple.
   """
-  def sign_in_with_credentials(conn, space, email, given_pass, _opts \\ []) do
-    user = Spaces.get_user_by_email(space, email)
+  def sign_in_with_credentials(conn, email, given_pass, _opts \\ []) do
+    user = Repo.get_by(Spaces.User, email: email)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->
-        {:ok, sign_in(conn, space, user)}
+        {:ok, sign_in(conn, user)}
 
       user ->
         {:error, :unauthorized, conn}
@@ -210,42 +183,12 @@ defmodule LevelWeb.Auth do
     Application.get_env(:level, LevelWeb.Endpoint)[:secret_key_base]
   end
 
-  @doc """
-  Returns a list of spaces currently signed-in via the browser session.
-  """
-  def signed_in_spaces(conn) do
-    import Ecto.Query, only: [from: 2]
-
-    if sessions_json = get_session(conn, :sessions) do
-      case decode_user_sessions(sessions_json) do
-        nil ->
-          []
-
-        sessions ->
-          space_ids = Map.keys(sessions)
-
-          Repo.all(
-            from t in Level.Spaces.Space,
-              where: t.id in ^space_ids,
-              select: t,
-              order_by: [asc: t.name]
-          )
-      end
-    else
-      []
-    end
-  end
-
   defp verify_bearer_token(conn) do
     case get_req_header(conn, "authorization") do
       ["Bearer " <> token] ->
         case get_user_by_token(token) do
           {:ok, %{user: user}} ->
-            if user.space_id == conn.assigns.space.id do
-              put_current_user(conn, user)
-            else
-              send_unauthorized(conn, "")
-            end
+            put_current_user(conn, user)
 
           {:error, message} ->
             send_unauthorized(conn, message)
@@ -266,50 +209,13 @@ defmodule LevelWeb.Auth do
     |> halt()
   end
 
-  defp put_user_session(conn, space, user) do
-    sessions =
-      conn
-      |> get_session(:sessions)
-      |> decode_user_sessions()
-      |> Map.put(space.id, [user.id, user.session_salt, now_timestamp()])
-      |> encode_user_sessions()
-
-    put_session(conn, :sessions, sessions)
-  end
-
-  defp delete_user_session(conn, space) do
-    sessions =
-      conn
-      |> get_session(:sessions)
-      |> decode_user_sessions()
-      |> Map.delete(space.id)
-      |> encode_user_sessions()
-
-    put_session(conn, :sessions, sessions)
-  end
-
-  defp decode_user_sessions(data) do
-    case data do
-      nil -> %{}
-      json -> Poison.decode!(json)
-    end
-  end
-
-  defp encode_user_sessions(data) do
-    Poison.encode!(data)
-  end
-
-  defp delete_current_user(conn) do
-    assign(conn, :current_user, nil)
-  end
-
   defp put_current_user(conn, user) do
     conn
     |> assign(:current_user, user)
     |> put_private(:absinthe, %{context: %{current_user: user}})
   end
 
-  defp now_timestamp do
-    Timex.to_unix(Timex.now())
+  defp delete_current_user(conn) do
+    assign(conn, :current_user, nil)
   end
 end

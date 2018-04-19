@@ -6,18 +6,4 @@
   <div class="cform__header cform__header--centered">
     <h2 class="cform__heading"><%= gettext "My Spaces" %></h2>
   </div>
-
-  <ul class="space-switcher__spaces">
-    <%= for space <- @spaces do %>
-      <li>
-        <a href="<%= threads_url(@conn, space) %>">
-          <div class="space-switcher__avatar"></div>
-          <div class="space-switcher__details">
-            <h3 class="space-switcher__name"><%= space.name %></h3>
-            <p class="space-switcher__url"><%= space_host(space) %></p>
-          </div>
-        </a>
-      </li>
-    <% end %>
-  </ul>
 </div>

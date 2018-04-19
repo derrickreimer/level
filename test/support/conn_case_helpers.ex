@@ -3,22 +3,18 @@ defmodule Level.ConnCaseHelpers do
   Test helpers specifically for conn-based tests.
   """
 
-  import Level.TestHelpers
   import Plug.Conn
 
-  def sign_in(conn, space, user) do
+  def sign_in(conn, user) do
     conn
-    |> LevelWeb.Auth.sign_in(space, user)
+    |> LevelWeb.Auth.sign_in(user)
     |> send_resp(:ok, "")
     |> Phoenix.ConnTest.recycle()
   end
 
   def authenticate_with_jwt(conn, space, user) do
     token = LevelWeb.Auth.generate_signed_jwt(user)
-
-    conn
-    |> put_space_host(space)
-    |> put_req_header("authorization", "Bearer #{token}")
+    put_req_header(conn, "authorization", "Bearer #{token}")
   end
 
   def render_json(view, template, assigns) do

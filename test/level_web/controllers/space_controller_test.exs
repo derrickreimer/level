@@ -1,13 +1,12 @@
 defmodule LevelWeb.SpaceControllerTest do
   use LevelWeb.ConnCase, async: true
 
-  describe "GET /" do
+  describe "GET /spaces" do
     setup %{conn: conn} do
       conn =
         conn
-        |> put_launch_host()
         |> bypass_through(LevelWeb.Router, :browser)
-        |> get("/")
+        |> get("/spaces")
 
       {:ok, %{conn: conn}}
     end
@@ -16,32 +15,49 @@ defmodule LevelWeb.SpaceControllerTest do
       conn =
         conn
         |> recycle()
-        |> put_launch_host()
-        |> get("/")
+        |> get("/spaces")
 
       assert redirected_to(conn, 302) =~ "/login"
     end
 
     test "renders the list of signed in spaces", %{conn: conn} do
-      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, %{user: user}} = create_user_and_space()
 
       conn =
         conn
-        |> sign_in(space, user)
-        |> put_launch_host()
-        |> get("/")
+        |> sign_in(user)
+        |> get("/spaces")
 
       body = html_response(conn, 200)
       assert body =~ "My Spaces"
-      assert body =~ space.name
     end
   end
 
   describe "GET /spaces/new" do
-    test "returns ok status", %{conn: conn} do
+    setup %{conn: conn} do
       conn =
         conn
-        |> put_launch_host()
+        |> bypass_through(LevelWeb.Router, :browser)
+        |> get("/spaces/new")
+
+      {:ok, %{conn: conn}}
+    end
+
+    test "redirects to login page if not signed in", %{conn: conn} do
+      conn =
+        conn
+        |> recycle()
+        |> get("/spaces/new")
+
+      assert redirected_to(conn, 302) =~ "/login"
+    end
+
+    test "returns ok status if logged in", %{conn: conn} do
+      {:ok, %{user: user}} = create_user_and_space()
+
+      conn =
+        conn
+        |> sign_in(user)
         |> get("/spaces/new")
 
       assert html_response(conn, 200)

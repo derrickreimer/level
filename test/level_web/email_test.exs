@@ -30,8 +30,8 @@ defmodule LevelWeb.EmailTest do
     end
 
     test "includes the invitation url", %{email: email} do
-      assert email.html_body =~ "http://acme.level.test:4001/invitations/xxx"
-      assert email.text_body =~ "http://acme.level.test:4001/invitations/xxx"
+      assert email.html_body =~ "/invitations/xxx"
+      assert email.text_body =~ "/invitations/xxx"
     end
 
     test "sends from support", %{email: email} do

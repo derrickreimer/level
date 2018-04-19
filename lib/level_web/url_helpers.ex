@@ -30,36 +30,6 @@ defmodule LevelWeb.UrlHelpers do
     })
   end
 
-  def build_url_with_subdomain(subdomain, path, config \\ nil) do
-    config = config || default_url_config()
-
-    base_host = Keyword.get(config, :host)
-    scheme = Keyword.get(config, :scheme, "http")
-    port = Keyword.get(config, :port)
-
-    host =
-      case subdomain do
-        nil -> base_host
-        val -> "#{val}.#{base_host}"
-      end
-
-    base_uri = %URI{
-      scheme: scheme,
-      host: host,
-      path: path
-    }
-
-    uri =
-      case port do
-        nil -> base_uri
-        80 -> base_uri
-        443 -> base_uri
-        port -> %{base_uri | port: port}
-      end
-
-    URI.to_string(uri)
-  end
-
   def default_host do
     Keyword.get(default_url_config(), :host)
   end

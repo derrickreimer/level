@@ -5,7 +5,7 @@ defmodule Level.PostsTest do
 
   describe "create_post/2" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "creates a new post given valid params", %{user: user} do

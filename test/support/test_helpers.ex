@@ -51,7 +51,7 @@ defmodule Level.TestHelpers do
     }
   end
 
-  def insert_signup(params \\ %{}) do
+  def create_user_and_space(params \\ %{}) do
     params =
       valid_signup_params()
       |> Map.merge(params)
@@ -94,14 +94,6 @@ defmodule Level.TestHelpers do
       |> Map.merge(params)
 
     Posts.create_post(user, params)
-  end
-
-  def put_launch_host(conn) do
-    %{conn | host: "launch.level.test"}
-  end
-
-  def put_space_host(conn, space) do
-    %{conn | host: "#{space.slug}.level.test"}
   end
 
   defp random_string do

@@ -16,8 +16,7 @@ defmodule LevelWeb.Email do
     space = invitation.space
     invitor = invitation.invitor
 
-    invitation_url =
-      build_url_with_subdomain(space.slug, invitation_path(LevelWeb.Endpoint, :show, invitation))
+    invitation_url = invitation_path(LevelWeb.Endpoint, :show, invitation)
 
     new_email()
     |> to(invitation.email)

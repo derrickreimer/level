@@ -14,7 +14,7 @@ defmodule LevelWeb.UserSocketTest do
     test "returns socket with user set in context if token is valid", %{
       absinthe_socket: absinthe_socket
     } do
-      {:ok, %{user: user}} = insert_signup()
+      {:ok, %{user: user}} = create_user_and_space()
       token = LevelWeb.Auth.generate_signed_jwt(user)
       params = %{"Authorization" => "Bearer #{token}"}
 

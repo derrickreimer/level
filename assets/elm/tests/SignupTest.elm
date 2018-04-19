@@ -120,7 +120,7 @@ isAlphanumeric str =
         |> not
 
 
-{-| Determines if a given subdomain slug is valid for URLs.
+{-| Determines if a given slug is valid for URLs.
 
     isValidUrl "FOO" == False
     isValidUrl "yay~~" == False

@@ -39,16 +39,9 @@ defmodule LevelWeb do
 
       import LevelWeb.Auth,
         only: [
-          fetch_space: 2,
           fetch_current_user_by_session: 2,
           authenticate_with_token: 2,
           authenticate_user: 2
-        ]
-
-      import LevelWeb.Subdomain,
-        only: [
-          validate_host: 2,
-          extract_subdomain: 2
         ]
 
       import LevelWeb.UrlHelpers
@@ -85,16 +78,9 @@ defmodule LevelWeb do
 
       import LevelWeb.Auth,
         only: [
-          fetch_space: 2,
           fetch_current_user_by_session: 2,
           authenticate_with_token: 2,
           authenticate_user: 2
-        ]
-
-      import LevelWeb.Subdomain,
-        only: [
-          validate_host: 2,
-          extract_subdomain: 2
         ]
     end
   end

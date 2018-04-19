@@ -6,7 +6,7 @@ defmodule Level.SpacesTest do
 
   describe "get_space_by_slug(!)/1" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "returns the space if found", %{space: space} do
@@ -25,7 +25,7 @@ defmodule Level.SpacesTest do
 
   describe "get_user/1" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "returns the user if found", %{user: user} do
@@ -39,7 +39,7 @@ defmodule Level.SpacesTest do
 
   describe "get_user_by_email/1" do
     setup do
-      insert_signup()
+      create_user_and_space()
     end
 
     test "looks up user by email address", %{space: space, user: user} do
@@ -73,7 +73,7 @@ defmodule Level.SpacesTest do
 
   describe "create_invitation/3" do
     setup do
-      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = create_user_and_space()
       params = valid_invitation_params()
       {:ok, %{space: space, user: user, params: params}}
     end
@@ -92,7 +92,7 @@ defmodule Level.SpacesTest do
 
   describe "get_pending_invitation!/2" do
     setup do
-      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = create_user_and_space()
       params = valid_invitation_params()
       {:ok, invitation} = Spaces.create_invitation(user, params)
       {:ok, %{space: space, invitation: invitation}}
@@ -121,7 +121,7 @@ defmodule Level.SpacesTest do
 
   describe "get_pending_invitation/2" do
     setup do
-      {:ok, %{space: space, user: user}} = insert_signup()
+      {:ok, %{space: space, user: user}} = create_user_and_space()
       params = valid_invitation_params()
       {:ok, invitation} = Spaces.create_invitation(user, params)
       {:ok, %{space: space, invitation: invitation}}
@@ -146,7 +146,7 @@ defmodule Level.SpacesTest do
 
   describe "accept_invitation/2" do
     setup do
-      {:ok, %{user: invitor}} = insert_signup()
+      {:ok, %{user: invitor}} = create_user_and_space()
 
       params = valid_invitation_params()
       {:ok, invitation} = Spaces.create_invitation(invitor, params)

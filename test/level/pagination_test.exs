@@ -9,7 +9,7 @@ defmodule Level.PaginationTest do
 
   describe "fetch_result/3" do
     setup do
-      {:ok, %{user: owner, space: space}} = insert_signup()
+      {:ok, %{user: owner, space: space}} = create_user_and_space()
       members = [owner | create_members(space, 3)]
       sorted_users = Enum.sort_by(members, fn user -> user.id end)
       base_query = from u in User, where: u.space_id == ^space.id

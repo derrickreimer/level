@@ -123,8 +123,7 @@ defmodule Level.Mixfile do
         Level.Spaces.User
       ],
       Plugs: [
-        LevelWeb.Auth,
-        LevelWeb.Subdomain
+        LevelWeb.Auth
       ],
       "Transactional Email": [
         Level.Mailer,

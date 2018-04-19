@@ -7,8 +7,6 @@ defmodule LevelWeb.AcceptInvitationController do
   alias LevelWeb.Auth
   alias LevelWeb.InvitationView
 
-  plug :fetch_space
-
   def create(conn, %{"id" => id, "user" => user_params}) do
     invitation = Spaces.get_pending_invitation!(conn.assigns[:space], id)
 

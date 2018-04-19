@@ -9,7 +9,6 @@ defmodule LevelWeb.API.SpaceControllerTest do
 
       conn =
         conn
-        |> put_launch_host()
         |> put_req_header("content-type", "application/json")
         |> post("/api/spaces", %{signup: params})
 
@@ -59,7 +58,6 @@ defmodule LevelWeb.API.SpaceControllerTest do
 
       conn =
         conn
-        |> put_launch_host()
         |> put_req_header("content-type", "application/json")
         |> post("/api/spaces", %{signup: params})
 

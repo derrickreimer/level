@@ -5,7 +5,7 @@ defmodule LevelWeb.GraphQL.RevokeInvitationTest do
   alias Level.Spaces
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space}} = insert_signup()
+    {:ok, %{user: user, space: space}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, space, user)
     {:ok, invitation} = Spaces.create_invitation(user, valid_invitation_params())
     {:ok, %{conn: conn, user: user, space: space, invitation: invitation}}
