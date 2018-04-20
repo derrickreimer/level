@@ -14,7 +14,7 @@ defmodule Level.Repo.Migrations.CreateUsers do
       add :first_name, :text, null: false
       add :last_name, :text, null: false
       add :time_zone, :text, null: false
-      add(:password_hash, :text)
+      add :password_hash, :text
       add :session_salt, :text, null: false, default: "salt"
 
       timestamps()

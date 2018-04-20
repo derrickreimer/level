@@ -38,7 +38,9 @@
     embeds_many: 3,
     many_to_many: 2,
     many_to_many: 3,
-    add: 3,
+    add: :*,
+    create: :*,
+    drop: :*,
 
     # Ecto Query
     from: 2,

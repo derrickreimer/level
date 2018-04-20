@@ -75,6 +75,27 @@ CREATE TYPE public.post_state AS ENUM (
 
 
 --
+-- Name: space_member_role; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.space_member_role AS ENUM (
+    'OWNER',
+    'ADMIN',
+    'MEMBER'
+);
+
+
+--
+-- Name: space_member_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.space_member_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
+);
+
+
+--
 -- Name: space_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -184,6 +205,21 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: space_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.space_members (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    state public.space_member_state DEFAULT 'ACTIVE'::public.space_member_state NOT NULL,
+    role public.space_member_role DEFAULT 'MEMBER'::public.space_member_role NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: spaces; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -255,6 +291,14 @@ ALTER TABLE ONLY public.posts
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: space_members space_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_members
+    ADD CONSTRAINT space_members_pkey PRIMARY KEY (id);
 
 
 --
@@ -334,6 +378,20 @@ CREATE UNIQUE INDEX invitations_unique_pending_email ON public.invitations USING
 --
 
 CREATE INDEX posts_id_index ON public.posts USING btree (id);
+
+
+--
+-- Name: space_members_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX space_members_id_index ON public.space_members USING btree (id);
+
+
+--
+-- Name: space_members_space_id_user_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX space_members_space_id_user_id_index ON public.space_members USING btree (space_id, user_id);
 
 
 --
@@ -452,6 +510,22 @@ ALTER TABLE ONLY public.posts
 
 
 --
+-- Name: space_members space_members_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_members
+    ADD CONSTRAINT space_members_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: space_members space_members_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_members
+    ADD CONSTRAINT space_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: users users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -463,5 +537,5 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20180403181445), (20180404204544), (20180413214033);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20180403181445), (20180404204544), (20180413214033), (20180419214118);
 
