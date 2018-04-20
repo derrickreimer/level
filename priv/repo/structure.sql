@@ -106,17 +106,6 @@ CREATE TYPE public.space_state AS ENUM (
 
 
 --
--- Name: user_role; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.user_role AS ENUM (
-    'OWNER',
-    'ADMIN',
-    'MEMBER'
-);
-
-
---
 -- Name: user_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -137,7 +126,7 @@ SET default_with_oids = false;
 CREATE TABLE public.group_memberships (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
-    user_id uuid NOT NULL,
+    space_member_id uuid NOT NULL,
     group_id uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -150,12 +139,12 @@ CREATE TABLE public.group_memberships (
 
 CREATE TABLE public.groups (
     id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    creator_id uuid NOT NULL,
     state public.group_state DEFAULT 'OPEN'::public.group_state NOT NULL,
     name text NOT NULL,
     description text,
     is_private boolean DEFAULT false NOT NULL,
-    space_id uuid NOT NULL,
-    creator_id uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -170,8 +159,8 @@ CREATE TABLE public.invitations (
     space_id uuid NOT NULL,
     invitor_id uuid NOT NULL,
     acceptor_id uuid,
+    role public.space_member_role DEFAULT 'MEMBER'::public.space_member_role NOT NULL,
     state public.invitation_state DEFAULT 'PENDING'::public.invitation_state NOT NULL,
-    role public.user_role DEFAULT 'MEMBER'::public.user_role NOT NULL,
     email public.citext NOT NULL,
     token uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
@@ -186,7 +175,7 @@ CREATE TABLE public.invitations (
 CREATE TABLE public.posts (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
-    user_id uuid NOT NULL,
+    space_member_id uuid NOT NULL,
     state public.post_state DEFAULT 'OPEN'::public.post_state NOT NULL,
     body text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
@@ -239,9 +228,7 @@ CREATE TABLE public.spaces (
 
 CREATE TABLE public.users (
     id uuid NOT NULL,
-    space_id uuid NOT NULL,
     state public.user_state DEFAULT 'ACTIVE'::public.user_state NOT NULL,
-    role public.user_role DEFAULT 'MEMBER'::public.user_role NOT NULL,
     email public.citext NOT NULL,
     first_name text NOT NULL,
     last_name text NOT NULL,
@@ -325,10 +312,10 @@ CREATE INDEX group_memberships_id_index ON public.group_memberships USING btree 
 
 
 --
--- Name: group_memberships_user_id_group_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: group_memberships_space_member_id_group_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX group_memberships_user_id_group_id_index ON public.group_memberships USING btree (user_id, group_id);
+CREATE UNIQUE INDEX group_memberships_space_member_id_group_id_index ON public.group_memberships USING btree (space_member_id, group_id);
 
 
 --
@@ -349,7 +336,7 @@ CREATE INDEX groups_space_id_index ON public.groups USING btree (space_id);
 -- Name: groups_unique_names_when_open; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX groups_unique_names_when_open ON public.groups USING btree (lower(name)) WHERE (state = 'OPEN'::public.group_state);
+CREATE UNIQUE INDEX groups_unique_names_when_open ON public.groups USING btree (space_id, lower(name)) WHERE (state = 'OPEN'::public.group_state);
 
 
 --
@@ -367,10 +354,17 @@ CREATE INDEX invitations_space_id_index ON public.invitations USING btree (space
 
 
 --
+-- Name: invitations_token_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX invitations_token_index ON public.invitations USING btree (token);
+
+
+--
 -- Name: invitations_unique_pending_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX invitations_unique_pending_email ON public.invitations USING btree (lower((email)::text)) WHERE (state = 'PENDING'::public.invitation_state);
+CREATE UNIQUE INDEX invitations_unique_pending_email ON public.invitations USING btree (space_id, lower((email)::text)) WHERE (state = 'PENDING'::public.invitation_state);
 
 
 --
@@ -416,17 +410,10 @@ CREATE INDEX users_id_index ON public.users USING btree (id);
 
 
 --
--- Name: users_space_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: users_lower_email_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX users_space_id_index ON public.users USING btree (space_id);
-
-
---
--- Name: users_space_id_lower_email_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX users_space_id_lower_email_index ON public.users USING btree (space_id, lower((email)::text));
+CREATE UNIQUE INDEX users_lower_email_index ON public.users USING btree (lower((email)::text));
 
 
 --
@@ -446,11 +433,11 @@ ALTER TABLE ONLY public.group_memberships
 
 
 --
--- Name: group_memberships group_memberships_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: group_memberships group_memberships_space_member_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.group_memberships
-    ADD CONSTRAINT group_memberships_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT group_memberships_space_member_id_fkey FOREIGN KEY (space_member_id) REFERENCES public.space_members(id);
 
 
 --
@@ -458,7 +445,7 @@ ALTER TABLE ONLY public.group_memberships
 --
 
 ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT groups_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.users(id);
+    ADD CONSTRAINT groups_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.space_members(id);
 
 
 --
@@ -474,7 +461,7 @@ ALTER TABLE ONLY public.groups
 --
 
 ALTER TABLE ONLY public.invitations
-    ADD CONSTRAINT invitations_acceptor_id_fkey FOREIGN KEY (acceptor_id) REFERENCES public.users(id);
+    ADD CONSTRAINT invitations_acceptor_id_fkey FOREIGN KEY (acceptor_id) REFERENCES public.space_members(id);
 
 
 --
@@ -482,7 +469,7 @@ ALTER TABLE ONLY public.invitations
 --
 
 ALTER TABLE ONLY public.invitations
-    ADD CONSTRAINT invitations_invitor_id_fkey FOREIGN KEY (invitor_id) REFERENCES public.users(id);
+    ADD CONSTRAINT invitations_invitor_id_fkey FOREIGN KEY (invitor_id) REFERENCES public.space_members(id);
 
 
 --
@@ -502,11 +489,11 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- Name: posts posts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: posts posts_space_member_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.posts
-    ADD CONSTRAINT posts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT posts_space_member_id_fkey FOREIGN KEY (space_member_id) REFERENCES public.space_members(id);
 
 
 --
@@ -526,16 +513,8 @@ ALTER TABLE ONLY public.space_members
 
 
 --
--- Name: users users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170715050656), (20180403181445), (20180404204544), (20180413214033), (20180419214118);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20170715050656), (20180403181445), (20180404204544), (20180413214033);
 

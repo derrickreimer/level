@@ -14,12 +14,12 @@ defmodule Level.Repo.Migrations.CreateSpaces do
       timestamps()
     end
 
-    create(index(:spaces, [:id]))
-    create(unique_index(:spaces, ["lower(slug)"]))
+    create index(:spaces, [:id])
+    create unique_index(:spaces, ["lower(slug)"])
   end
 
   def down do
-    drop(table(:spaces))
+    drop table(:spaces)
     execute("DROP TYPE space_state")
   end
 end

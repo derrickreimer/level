@@ -39,6 +39,7 @@
     many_to_many: 2,
     many_to_many: 3,
     add: :*,
+    remove: :*,
     create: :*,
     drop: :*,
 
