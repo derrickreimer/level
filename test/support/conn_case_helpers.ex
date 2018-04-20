@@ -12,7 +12,7 @@ defmodule Level.ConnCaseHelpers do
     |> Phoenix.ConnTest.recycle()
   end
 
-  def authenticate_with_jwt(conn, space, user) do
+  def authenticate_with_jwt(conn, user) do
     token = LevelWeb.Auth.generate_signed_jwt(user)
     put_req_header(conn, "authorization", "Bearer #{token}")
   end

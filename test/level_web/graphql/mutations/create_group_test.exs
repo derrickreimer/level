@@ -6,14 +6,16 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
 
   @query """
     mutation CreateGroup(
-      $name: String!
+      $space_id: ID!,
+      $name: String!,
       $description: String,
-      $isPrivate: Boolean
+      $is_private: Boolean
     ) {
       createGroup(
+        spaceId: $space_id,
         name: $name,
         description: $description,
-        isPrivate: $isPrivate
+        isPrivate: $is_private
       ) {
         success
         group {
@@ -29,13 +31,15 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space}} = create_user_and_space()
-    conn = authenticate_with_jwt(conn, space, user)
-    {:ok, %{conn: conn, user: user, space: space}}
+    {:ok, %{user: user, space: space, member: member}} = create_user_and_space()
+    conn = authenticate_with_jwt(conn, user)
+    {:ok, %{conn: conn, user: user, space: space, member: member}}
   end
 
-  test "creates a group given valid data", %{conn: conn} do
-    variables = valid_group_params()
+  test "creates a group given valid data", %{conn: conn, space: space} do
+    variables =
+      valid_group_params()
+      |> Map.put(:space_id, space.id)
 
     conn =
       conn
@@ -56,9 +60,10 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
            }
   end
 
-  test "returns validation errors when data is invalid", %{conn: conn} do
+  test "returns validation errors when data is invalid", %{conn: conn, space: space} do
     variables =
       valid_group_params()
+      |> Map.put(:space_id, space.id)
       |> Map.put(:name, "")
 
     conn =
@@ -79,9 +84,14 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
            }
   end
 
-  test "returns validation errors when uniqueness error occurs", %{conn: conn, user: user} do
+  test "returns validation errors when uniqueness error occurs", %{conn: conn, member: member} do
     variables = valid_group_params()
-    Groups.create_group(user, variables)
+
+    Groups.create_group(member, variables)
+
+    variables =
+      variables
+      |> Map.put(:space_id, member.space_id)
 
     conn =
       conn

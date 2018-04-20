@@ -3,11 +3,8 @@ defmodule Level.Mutations do
   Functions for performing GraphQL mutations.
   """
 
-  import Level.Gettext
-
   alias Level.Groups
   alias Level.Posts
-  alias Level.Repo
   alias Level.Spaces
   alias Level.Users.User
 
@@ -16,15 +13,6 @@ defmodule Level.Mutations do
 
   @typedoc "A list of validation errors"
   @type validation_errors :: [%{attribute: String.t(), message: String.t()}]
-
-  @typedoc "The result of an invitation mutation"
-  @type invitation_mutation_result ::
-          {:ok,
-           %{
-             success: boolean(),
-             invitation: Spaces.Invitation.t() | nil,
-             errors: validation_errors()
-           }}
 
   @typedoc "The result of a group mutation"
   @type group_mutation_result ::
@@ -37,66 +25,15 @@ defmodule Level.Mutations do
           | {:error, String.t()}
 
   @doc """
-  Creates a new invitation.
-  """
-  @spec create_invitation(map(), authenticated_context()) :: invitation_mutation_result()
-  def create_invitation(args, %{context: %{current_user: user}}) do
-    resp =
-      case Spaces.create_invitation(user, args) do
-        {:ok, invitation} ->
-          %{success: true, invitation: invitation, errors: []}
-
-        {:error, changeset} ->
-          %{success: false, invitation: nil, errors: format_errors(changeset)}
-      end
-
-    {:ok, resp}
-  end
-
-  @doc """
-  Revokes an invitation.
-  """
-  @spec revoke_invitation(map(), authenticated_context()) :: invitation_mutation_result()
-  def revoke_invitation(args, %{context: %{current_user: user}}) do
-    user = Repo.preload(user, :space)
-
-    resp =
-      case Spaces.get_pending_invitation(user.space, args.id) do
-        nil ->
-          %{
-            success: false,
-            invitation: nil,
-            errors: [
-              %{
-                attribute: "base",
-                message: dgettext("errors", "Invitation not found")
-              }
-            ]
-          }
-
-        invitation ->
-          case Spaces.revoke_invitation(invitation) do
-            {:ok, _} ->
-              %{success: true, invitation: invitation, errors: []}
-
-            {:error, _} ->
-              %{success: false, invitation: invitation, errors: []}
-          end
-      end
-
-    {:ok, resp}
-  end
-
-  @doc """
   Creates a new group.
   """
   @spec create_group(map(), authenticated_context()) :: group_mutation_result()
   def create_group(args, %{context: %{current_user: user}}) do
     resp =
-      case Groups.create_group(user, args) do
-        {:ok, %{group: group}} ->
-          %{success: true, group: group, errors: []}
-
+      with {:ok, %{member: member}} <- Spaces.get_space_by_id(user, args.space_id),
+           {:ok, %{group: group}} <- Groups.create_group(member, args) do
+        %{success: true, group: group, errors: []}
+      else
         {:error, :group, changeset, _} ->
           %{success: false, group: nil, errors: format_errors(changeset)}
 

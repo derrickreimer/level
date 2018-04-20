@@ -16,6 +16,21 @@ defmodule Level.Spaces do
           | {:error, :space | :member, any(), %{optional(:space | :member) => any()}}
 
   @doc """
+  Fetches a space by id.
+  """
+  @spec get_space_by_id(User.t(), String.t()) ::
+          {:ok, %{space: Space.t(), member: Member.t()}} | {:error, String.t()}
+  def get_space_by_id(%User{} = user, id) do
+    with %Space{} = space <- Repo.get(Space, id),
+         %Member{} = member <- Repo.get_by(Member, user_id: user.id, space_id: space.id) do
+      {:ok, %{space: space, member: member}}
+    else
+      _ ->
+        {:error, "Space not found"}
+    end
+  end
+
+  @doc """
   Fetches a space by slug.
   """
   @spec get_space_by_slug(String.t()) :: Space.t() | nil

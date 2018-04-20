@@ -30,6 +30,7 @@ defmodule LevelWeb.Schema do
   mutation do
     @desc "Create a group."
     field :create_group, type: :create_group_payload do
+      arg(:space_id, non_null(:id))
       arg(:name, non_null(:string))
       arg(:description, :string)
       arg(:is_private, :boolean)
@@ -49,6 +50,7 @@ defmodule LevelWeb.Schema do
 
     @desc "Create a post."
     field :create_post, type: :create_post_payload do
+      arg(:space_id, non_null(:id))
       arg(:body, non_null(:string))
 
       resolve(&Level.Mutations.create_post/2)

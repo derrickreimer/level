@@ -14,7 +14,6 @@ defmodule LevelWeb.Schema.Types do
   object :user do
     field :id, non_null(:id)
     field :state, non_null(:user_state)
-    field :role, non_null(:user_role)
     field :email, non_null(:string)
     field :first_name, :string
     field :last_name, :string
@@ -22,16 +21,30 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
-    field :space, non_null(:space), resolve: dataloader(:db)
-
-    field :group_memberships, non_null(:group_membership_connection) do
+    field :space_memberships, non_null(:space_membership_connection) do
       arg(:first, :integer)
       arg(:last, :integer)
       arg(:before, :cursor)
       arg(:after, :cursor)
-      arg(:order_by, :group_order)
-      resolve(&Level.Connections.group_memberships/3)
+      arg(:order_by, :space_order)
+      resolve(&Level.Connections.space_memberships/3)
     end
+
+    # field :group_memberships, non_null(:group_membership_connection) do
+    #   arg(:first, :integer)
+    #   arg(:last, :integer)
+    #   arg(:before, :cursor)
+    #   arg(:after, :cursor)
+    #   arg(:order_by, :group_order)
+    #   resolve(&Level.Connections.group_memberships/3)
+    # end
+  end
+
+  @desc "A space membership defines the relationship between a user and a space."
+  object :space_membership do
+    field :state, non_null(:space_member_state)
+    field :role, non_null(:space_member_role)
+    field :space, non_null(:space), resolve: dataloader(:db)
   end
 
   @desc "A space is the main organizational unit, typically representing a company or organization."

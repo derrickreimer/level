@@ -39,6 +39,27 @@ defmodule LevelWeb.Schema.Connections do
     field :total_count, non_null(:integer)
   end
 
+  @desc "An edge in the group membership connection."
+  object :space_membership_edge do
+    @desc "The item at the edge of the node."
+    field :node, :space_membership
+
+    @desc "A cursor for use in pagination."
+    field :cursor, non_null(:cursor)
+  end
+
+  @desc "A list of space memberships for a user."
+  object :space_membership_connection do
+    @desc "A list of edges."
+    field :edges, list_of(:space_membership_edge)
+
+    @desc "Pagination data for the connection."
+    field :page_info, non_null(:page_info)
+
+    @desc "The total count of items in the connection."
+    field :total_count, non_null(:integer)
+  end
+
   @desc "An edge in the group connection."
   object :group_edge do
     @desc "The item at the edge of the node."

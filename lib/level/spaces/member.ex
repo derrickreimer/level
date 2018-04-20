@@ -17,6 +17,9 @@ defmodule Level.Spaces.Member do
     belongs_to :space, Level.Spaces.Space
     belongs_to :user, Level.Users.User
 
+    # Holds the group name when loaded via a join
+    field :name, :string, virtual: true
+
     timestamps()
   end
 

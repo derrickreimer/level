@@ -5,7 +5,6 @@ defmodule Level.TestHelpers do
 
   alias Level.Groups
   alias Level.Posts
-  alias Level.Repo
   alias Level.Spaces
   alias Level.Users
 
@@ -57,12 +56,20 @@ defmodule Level.TestHelpers do
     {:ok, %{user: user, space: space, member: member}}
   end
 
-  def insert_invitation(user, params \\ %{}) do
+  def create_user(params \\ %{}) do
     params =
-      valid_invitation_params()
+      valid_user_params()
       |> Map.merge(params)
 
-    Level.Spaces.create_invitation(user, params)
+    Users.create_user(params)
+  end
+
+  def create_space(user, params \\ %{}) do
+    params =
+      valid_space_params()
+      |> Map.merge(params)
+
+    Spaces.create_space(user, params)
   end
 
   def insert_member(space, user_params \\ %{}) do

@@ -8,7 +8,12 @@ defmodule LevelWeb.Schema.Enums do
     value(:disabled, as: "DISABLED")
   end
 
-  enum :user_role do
+  enum :space_member_state do
+    value(:active, as: "ACTIVE")
+    value(:disabled, as: "DISABLED")
+  end
+
+  enum :space_member_role do
     value(:member, as: "MEMBER")
     value(:admin, as: "ADMIN")
     value(:owner, as: "OWNER")
@@ -26,6 +31,10 @@ defmodule LevelWeb.Schema.Enums do
 
   enum :user_order_field do
     value(:last_name)
+  end
+
+  enum :space_order_field do
+    value(:name)
   end
 
   enum :invitation_order_field do
