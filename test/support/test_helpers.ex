@@ -3,22 +3,11 @@ defmodule Level.TestHelpers do
   Miscellaneous helper functions for tests.
   """
 
+  alias Level.Groups
   alias Level.Posts
   alias Level.Repo
-  alias Level.Groups
-
-  def valid_signup_params do
-    salt = random_string()
-
-    %{
-      slug: "#{salt}",
-      space_name: "Level, Inc.",
-      first_name: "Jane",
-      last_name: "Doe",
-      email: "user#{salt}@level.live",
-      password: "$ecret$"
-    }
-  end
+  alias Level.Spaces
+  alias Level.Users
 
   def valid_user_params do
     salt = random_string()
@@ -28,6 +17,14 @@ defmodule Level.TestHelpers do
       last_name: "Doe",
       email: "user#{salt}@level.live",
       password: "$ecret$"
+    }
+  end
+
+  def valid_space_params do
+    salt = random_string()
+
+    %{
+      name: "Space#{salt}"
     }
   end
 
@@ -51,14 +48,13 @@ defmodule Level.TestHelpers do
     }
   end
 
-  def create_user_and_space(params \\ %{}) do
-    params =
-      valid_signup_params()
-      |> Map.merge(params)
+  def create_user_and_space(user_params \\ %{}, space_params \\ %{}) do
+    user_params = valid_user_params() |> Map.merge(user_params)
+    space_params = valid_space_params() |> Map.merge(space_params)
 
-    %{}
-    |> Level.Spaces.registration_changeset(params)
-    |> Level.Spaces.register()
+    {:ok, user} = Users.create_user(user_params)
+    {:ok, %{member: member, space: space}} = Spaces.create_space(user, space_params)
+    {:ok, %{user: user, space: space, member: member}}
   end
 
   def insert_invitation(user, params \\ %{}) do
@@ -69,23 +65,22 @@ defmodule Level.TestHelpers do
     Level.Spaces.create_invitation(user, params)
   end
 
-  def insert_member(space, params \\ %{}) do
-    params =
+  def insert_member(space, user_params \\ %{}) do
+    user_params =
       valid_user_params()
-      |> Map.put(:space_id, space.id)
-      |> Map.merge(params)
+      |> Map.merge(user_params)
 
-    %Level.Spaces.User{}
-    |> Level.Spaces.User.signup_changeset(params)
-    |> Repo.insert()
+    {:ok, user} = Users.create_user(user_params)
+    {:ok, member} = Spaces.create_member(user, space)
+    {:ok, %{user: user, member: member}}
   end
 
-  def insert_group(creator, params \\ %{}) do
+  def insert_group(member, params \\ %{}) do
     params =
       valid_group_params()
       |> Map.merge(params)
 
-    Groups.create_group(creator, params)
+    Groups.create_group(member, params)
   end
 
   def insert_post(user, params \\ %{}) do

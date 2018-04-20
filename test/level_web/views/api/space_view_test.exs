@@ -6,7 +6,7 @@ defmodule LevelWeb.API.SpaceViewTest do
 
   describe "render/2 create.json" do
     test "includes the new space" do
-      user = %Level.Spaces.User{email: "derrick@level.live"}
+      user = %Level.Users.User{email: "derrick@level.live"}
       space = %Level.Spaces.Space{slug: "level"}
       redirect_url = "foo.bar"
 

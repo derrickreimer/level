@@ -3,7 +3,7 @@ defmodule LevelWeb.Router do
 
   use LevelWeb, :router
 
-  pipeline :browser do
+  pipeline :anonymous_browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
@@ -11,32 +11,36 @@ defmodule LevelWeb.Router do
     plug :put_secure_browser_headers
   end
 
-  pipeline :browser_api do
+  pipeline :authenticated_browser do
+    plug :anonymous_browser
+    plug :fetch_current_user_by_session
+    plug :authenticate_user
+  end
+
+  pipeline :browser_api_without_csrf do
     plug :accepts, ["json"]
     plug :fetch_session
     plug :put_secure_browser_headers
+    plug :fetch_current_user_by_session
   end
 
   pipeline :graphql do
     plug :authenticate_with_token
   end
 
-  # GraphQL API
   scope "/" do
     pipe_through :graphql
     forward "/graphql", Absinthe.Plug, schema: LevelWeb.Schema
   end
 
-  # Graphiql Explorer
   forward "/graphiql", Absinthe.Plug.GraphiQL,
     schema: LevelWeb.Schema,
     socket: LevelWeb.UserSocket,
     default_headers: {__MODULE__, :graphiql_headers},
     default_url: "/graphql"
 
-  # Unauthenticated routes
   scope "/", LevelWeb do
-    pipe_through :browser
+    pipe_through :anonymous_browser
 
     get "/login", SessionController, :new
     post "/login", SessionController, :create
@@ -45,26 +49,15 @@ defmodule LevelWeb.Router do
     post "/invitations/:id/accept", AcceptInvitationController, :create
   end
 
-  # Authenticated routes
   scope "/", LevelWeb do
-    pipe_through [:browser, :fetch_current_user_by_session, :authenticate_user]
+    pipe_through :authenticated_browser
 
     resources "/spaces", SpaceController
     get "/", CockpitController, :index
   end
 
-  # RESTful API endpoints authenticated via browser cookies
   scope "/api", LevelWeb.API do
-    pipe_through :browser_api
-    resources "/tokens", UserTokenController, only: [:create]
-  end
-
-  scope "/api", LevelWeb.API do
-    pipe_through [:browser_api, :protect_from_forgery]
-
-    resources "/spaces", SpaceController, only: [:create]
-    post "/signup/errors", SignupErrorsController, :index
-
+    pipe_through :browser_api_without_csrf
     resources "/tokens", UserTokenController, only: [:create]
   end
 

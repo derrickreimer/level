@@ -1,6 +1,6 @@
-defmodule Level.Spaces.User do
+defmodule Level.Users.User do
   @moduledoc """
-  A User always belongs to a space and has a specific role in the space.
+  The User schema.
   """
 
   use Ecto.Schema
@@ -9,6 +9,7 @@ defmodule Level.Spaces.User do
 
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
+  alias Level.Spaces.Member
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -19,7 +20,6 @@ defmodule Level.Spaces.User do
 
   schema "users" do
     field :state, :string, read_after_writes: true
-    field :role, :string, read_after_writes: true
     field :email, :string
     field :first_name, :string
     field :last_name, :string
@@ -27,7 +27,7 @@ defmodule Level.Spaces.User do
     field :password, :string, virtual: true
     field :password_hash, :string
     field :session_salt, :string
-    belongs_to :space, Level.Spaces.Space
+    has_many :members, Member
 
     timestamps()
   end
@@ -38,6 +38,16 @@ defmodule Level.Spaces.User do
   """
   def email_format do
     ~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+  end
+
+  @doc false
+  def create_changeset(struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [:email, :first_name, :last_name, :password, :time_zone])
+    |> validate()
+    |> put_default_time_zone()
+    |> put_password_hash()
+    |> put_change(:session_salt, generate_salt())
   end
 
   @doc """
@@ -55,16 +65,16 @@ defmodule Level.Spaces.User do
       :time_zone,
       :password
     ])
-    |> validate_user_params()
+    |> validate()
     |> put_default_time_zone
-    |> put_pass_hash
+    |> put_password_hash
     |> put_change(:session_salt, generate_salt())
   end
 
   @doc """
   Applies user attribute validations to a changeset.
   """
-  def validate_user_params(changeset) do
+  def validate(changeset) do
     changeset
     |> validate_required([:first_name, :last_name, :email, :password])
     |> validate_length(:email, min: 1, max: 254)
@@ -82,7 +92,7 @@ defmodule Level.Spaces.User do
     |> String.downcase()
   end
 
-  defp put_pass_hash(changeset) do
+  defp put_password_hash(changeset) do
     case changeset do
       %Changeset{valid?: true, changes: %{password: pass}} ->
         put_change(changeset, :password_hash, Bcrypt.hashpwsalt(pass))

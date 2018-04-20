@@ -7,7 +7,7 @@ defmodule LevelWeb.API.UserTokenControllerTest do
 
       conn =
         conn
-        |> bypass_through(LevelWeb.Router, :browser)
+        |> bypass_through(LevelWeb.Router, :anonymous_browser)
         |> get("/")
 
       {:ok, %{conn: conn, space: space, user: user}}

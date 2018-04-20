@@ -52,15 +52,6 @@ defmodule LevelWeb.Schema.Types do
       resolve(&Level.Connections.users/3)
     end
 
-    field :invitations, non_null(:invitation_connection) do
-      arg(:first, :integer)
-      arg(:last, :integer)
-      arg(:before, :cursor)
-      arg(:after, :cursor)
-      arg(:order_by, :invitation_order)
-      resolve(&Level.Connections.invitations/3)
-    end
-
     field :groups, non_null(:group_connection) do
       arg(:first, :integer)
       arg(:last, :integer)
@@ -70,16 +61,6 @@ defmodule LevelWeb.Schema.Types do
       arg(:state, :group_state)
       resolve(&Level.Connections.groups/3)
     end
-  end
-
-  @desc "An invitation is the means by which a new user joins an existing space."
-  object :invitation do
-    field :id, non_null(:id)
-    field :state, non_null(:invitation_state)
-    field :invitor, non_null(:user), resolve: dataloader(:db)
-    field :email, non_null(:string)
-    field :inserted_at, non_null(:time)
-    field :updated_at, non_null(:time)
   end
 
   @desc "A group is a collection of users within a space."

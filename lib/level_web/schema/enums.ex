@@ -19,12 +19,6 @@ defmodule LevelWeb.Schema.Enums do
     value(:disabled, as: "DISABLED")
   end
 
-  enum :invitation_state do
-    value(:pending, as: "PENDING")
-    value(:accepted, as: "ACCEPTED")
-    value(:revoked, as: "REVOKED")
-  end
-
   enum :post_state do
     value(:open, as: "OPEN")
     value(:closed, as: "CLOSED")

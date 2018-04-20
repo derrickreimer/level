@@ -3,13 +3,6 @@ defmodule Level.Spaces.SpaceTest do
 
   alias Level.Spaces.Space
 
-  describe "signup_changeset/2" do
-    test "validates with valid data" do
-      changeset = Space.signup_changeset(%Space{}, valid_signup_params())
-      assert changeset.valid?
-    end
-  end
-
   describe "slug_format/0" do
     test "matches lowercase alphanumeric and dash chars" do
       assert Regex.match?(Space.slug_format(), "level")

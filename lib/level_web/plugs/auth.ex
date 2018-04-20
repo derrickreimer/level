@@ -10,6 +10,8 @@ defmodule LevelWeb.Auth do
 
   alias Level.Repo
   alias Level.Spaces
+  alias Level.Users
+  alias Level.Users.User
   alias LevelWeb.Router.Helpers
 
   @doc """
@@ -24,7 +26,7 @@ defmodule LevelWeb.Auth do
         sign_in(conn, user)
 
       user_id = get_session(conn, :user_id) ->
-        with %Spaces.User{} = user <- Spaces.get_user(user_id),
+        with {:ok, user} <- Users.get_user_by_id(user_id),
              true <- user.session_salt == get_session(conn, :salt) do
           sign_in(conn, user)
         else
@@ -50,7 +52,7 @@ defmodule LevelWeb.Auth do
   """
   def authenticate_with_token(conn, _opts \\ []) do
     case conn.assigns[:current_user] do
-      %Spaces.User{} = user ->
+      %User{} = user ->
         # This is a backdoor that makes auth testing easier
         sign_in(conn, user)
 
@@ -96,7 +98,7 @@ defmodule LevelWeb.Auth do
   an :ok tuple. Otherwise, returns an :error tuple.
   """
   def sign_in_with_credentials(conn, email, given_pass, _opts \\ []) do
-    user = Repo.get_by(Spaces.User, email: email)
+    user = Repo.get_by(User, email: email)
 
     cond do
       user && checkpw(given_pass, user.password_hash) ->
@@ -126,7 +128,7 @@ defmodule LevelWeb.Auth do
   def get_user_by_token(token) do
     case verify_signed_jwt(token) do
       %Joken.Token{claims: %{"sub" => user_id}, error: nil} ->
-        user = Repo.get(Level.Spaces.User, user_id)
+        user = Repo.get(User, user_id)
         {:ok, %{user: user}}
 
       %Joken.Token{error: error} ->

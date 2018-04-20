@@ -1,17 +1,19 @@
 defmodule Level.Spaces do
   @moduledoc """
-  A space is the fundamental organizational unit in Level. Think of a space like
-  a "company" or "organization", just more concise and generically-named.
-
-  All users must be related to a particular space, either as the the owner or
-  some other role.
+  The Spaces context.
   """
 
+  alias Ecto.Multi
+  alias Level.Spaces.Member
   alias Level.Spaces.Space
-  alias Level.Spaces.User
-  alias Level.Spaces.Registration
   alias Level.Spaces.Invitation
   alias Level.Repo
+  alias Level.Users.User
+
+  @typedoc "The result of creating a space"
+  @type create_space_result ::
+          {:ok, %{space: Space.t(), member: Member.t()}}
+          | {:error, :space | :member, any(), %{optional(:space | :member) => any()}}
 
   @doc """
   Fetches a space by slug.
@@ -22,129 +24,41 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Fetches a space by slug.
-
-  Raises an `Ecto.NoResultsError` exception if not found.
+  Fetches a space by slug and raises an exception if not found.
   """
-  @spec get_space_by_slug!(String.t()) :: Space.t()
+  @spec get_space_by_slug!(String.t()) :: Space.t() | no_return()
   def get_space_by_slug!(slug) do
     Repo.get_by!(Space, %{slug: slug})
   end
 
   @doc """
-  Fetches a user by id.
+  Creates a new space.
   """
-  @spec get_user(String.t()) :: User.t() | nil
-  def get_user(id) do
-    Repo.get(User, id)
-  end
-
-  @doc """
-  Fetches a user by space and email address.
-  """
-  @spec get_user_by_email(Space.t(), String.t()) :: User.t() | nil
-  def get_user_by_email(space, email) do
-    Repo.get_by(User, space_id: space.id, email: email)
-  end
-
-  @doc """
-  Builds a changeset for performing user registration.
-  """
-  @spec registration_changeset(map(), map()) :: Ecto.Changeset.t()
-  def registration_changeset(struct, params \\ %{}) do
-    Registration.changeset(struct, params)
-  end
-
-  @doc """
-  Performs user registration from a given changeset.
-  """
-  @spec register(Ecto.Changeset.t()) ::
-          {:ok, %{space: Space.t(), user: User.t()}}
-          | {:error, :space | :user, any(), %{optional(:space | :user) => any()}}
-  def register(changeset) do
-    changeset
-    |> Registration.create_operation()
+  @spec create_space(User.t(), map()) :: create_space_result()
+  def create_space(user, params) do
+    Multi.new()
+    |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
+    |> Multi.run(:member, fn %{space: space} -> create_owner(user, space) end)
     |> Repo.transaction()
   end
 
   @doc """
-  Creates an invitation and sends an email to the invited person.
+  Establishes a user as an owner of space.
   """
-  @spec create_invitation(User.t(), map()) :: {:ok, Invitation.t()} | {:error, Ecto.Changeset.t()}
-  def create_invitation(user, params \\ %{}) do
-    params_with_relations =
-      params
-      |> Map.put(:space_id, user.space_id)
-      |> Map.put(:invitor_id, user.id)
-
-    changeset = Invitation.changeset(%Invitation{}, params_with_relations)
-
-    case Repo.insert(changeset) do
-      {:ok, invitation} ->
-        invitation_with_relations =
-          invitation
-          |> Repo.preload([:space, :invitor])
-
-        _delivered_email =
-          invitation_with_relations
-          |> LevelWeb.Email.invitation_email()
-          |> Level.Mailer.deliver_later()
-
-        {:ok, invitation_with_relations}
-
-      error ->
-        error
-    end
+  @spec create_owner(User.t(), Space.t()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  def create_owner(user, space) do
+    %Member{}
+    |> Member.create_changeset(%{user_id: user.id, space_id: space.id, role: "OWNER"})
+    |> Repo.insert()
   end
 
   @doc """
-  Fetches a pending invitation by space and token.
-
-  Raises an `Ecto.NoResultsError` exception if invitation is not found.
+  Establishes a user as a member of space.
   """
-  @spec get_pending_invitation!(Space.t(), String.t()) :: Invitation.t()
-  def get_pending_invitation!(space, token) do
-    Invitation
-    |> Repo.get_by!(space_id: space.id, state: "PENDING", token: token)
-    |> Repo.preload([:space, :invitor])
-  end
-
-  @doc """
-  Fetches a pending invitation by space and id.
-  """
-  @spec get_pending_invitation(Space.t(), String.t()) :: Invitation.t() | nil
-  def get_pending_invitation(space, id) do
-    Repo.get_by(Invitation, space_id: space.id, state: "PENDING", id: id)
-  end
-
-  @doc """
-  Registers a user and marks the given invitation as accepted.
-  """
-  @spec accept_invitation(Invitation.t(), map()) ::
-          {:ok, %{user: User.t(), invitation: Invitation.t()}}
-          | {:error, :user | :invitation, any(), %{optional(:user | :invitation) => any()}}
-  def accept_invitation(invitation, params \\ %{}) do
-    invitation
-    |> Invitation.accept_operation(params)
-    |> Repo.transaction()
-  end
-
-  @doc """
-  Transitions an invitation to revoked.
-
-  ## Examples
-
-      # If successful, returns the mutated invitation.
-      revoke_invitation(invitation)
-      => {:ok, %Invitation{...}}
-
-      # Otherwise, returns an error.
-      => {:error, message}
-  """
-  @spec revoke_invitation(Invitation.t()) :: {:ok, Invitation.t()} | {:error, String.t()}
-  def revoke_invitation(invitation) do
-    invitation
-    |> Invitation.revoke_operation()
-    |> Repo.update()
+  @spec create_owner(User.t(), Space.t()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  def create_member(user, space) do
+    %Member{}
+    |> Member.create_changeset(%{user_id: user.id, space_id: space.id, role: "MEMBER"})
+    |> Repo.insert()
   end
 end

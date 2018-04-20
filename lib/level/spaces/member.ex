@@ -1,25 +1,21 @@
-defmodule Level.Posts.Post do
+defmodule Level.Spaces.Member do
   @moduledoc """
-  The Post schema.
+  The Space Member context.
   """
 
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Level.Spaces.Space
-  alias Level.Spaces.Member
-
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "posts" do
+  schema "space_members" do
     field :state, :string, read_after_writes: true
-    field :body, :string
-
-    belongs_to :space, Space
-    belongs_to :space_member, Member
+    field :role, :string, read_after_writes: true
+    belongs_to :space, Level.Spaces.Space
+    belongs_to :user, Level.Users.User
 
     timestamps()
   end
@@ -27,7 +23,9 @@ defmodule Level.Posts.Post do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_member_id, :body])
-    |> validate_required([:body])
+    |> cast(attrs, [:user_id, :space_id, :role])
+    |> validate_required([:role])
+
+    # TODO: add unique validation
   end
 end

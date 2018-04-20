@@ -120,7 +120,7 @@ defmodule Level.Mixfile do
         Level.Groups.GroupMembership,
         Level.Spaces.Invitation,
         Level.Spaces.Space,
-        Level.Spaces.User
+        Level.Users.User
       ],
       Plugs: [
         LevelWeb.Auth

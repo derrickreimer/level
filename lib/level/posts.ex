@@ -5,21 +5,17 @@ defmodule Level.Posts do
 
   alias Level.Posts.Post
   alias Level.Repo
-  alias Level.Spaces.User
-
-  @typedoc "Valid params for creating a post"
-  @type create_post_params :: %{required(:body) => String.t()}
+  alias Level.Spaces.Member
 
   @doc """
   Creates a new post.
   """
-  @spec create_post(User.t(), create_post_params()) ::
-          {:ok, Post.t()} | {:error, Ecto.Changeset.t()}
-  def create_post(user, params) do
+  @spec create_post(Member.t(), map()) :: {:ok, Post.t()} | {:error, Ecto.Changeset.t()}
+  def create_post(member, params) do
     params_with_relations =
       params
-      |> Map.put(:space_id, user.space_id)
-      |> Map.put(:user_id, user.id)
+      |> Map.put(:space_id, member.space_id)
+      |> Map.put(:space_member_id, member.id)
 
     %Post{}
     |> Post.create_changeset(params_with_relations)

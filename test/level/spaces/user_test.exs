@@ -1,17 +1,17 @@
-defmodule Level.Spaces.UserTest do
+defmodule Level.Users.UserTest do
   use Level.DataCase, async: true
 
-  alias Level.Spaces.User
+  alias Level.Users.User
 
-  describe "signup_changeset/2" do
+  describe "create_changeset/2" do
     test "validates with valid data" do
-      changeset = User.signup_changeset(%User{}, valid_signup_params())
+      changeset = User.create_changeset(%User{}, valid_user_params())
       assert changeset.valid?
     end
 
     test "sets the default time zone if one is not provided" do
-      {_value, params} = Map.pop(valid_signup_params(), :time_zone)
-      changeset = User.signup_changeset(%User{}, params)
+      {_value, params} = Map.pop(valid_user_params(), :time_zone)
+      changeset = User.create_changeset(%User{}, params)
       %{time_zone: time_zone} = changeset.changes
 
       assert changeset.valid?
@@ -19,8 +19,8 @@ defmodule Level.Spaces.UserTest do
     end
 
     test "sets the default time zone if provided value is blank" do
-      params = Map.put(valid_signup_params(), :time_zone, "")
-      changeset = User.signup_changeset(%User{}, params)
+      params = Map.put(valid_user_params(), :time_zone, "")
+      changeset = User.create_changeset(%User{}, params)
       %{time_zone: time_zone} = changeset.changes
 
       assert changeset.valid?
@@ -28,7 +28,7 @@ defmodule Level.Spaces.UserTest do
     end
 
     test "hashes the password" do
-      changeset = User.signup_changeset(%User{}, valid_signup_params())
+      changeset = User.create_changeset(%User{}, valid_user_params())
       %{password: password, password_hash: password_hash} = changeset.changes
 
       assert password_hash
@@ -36,7 +36,7 @@ defmodule Level.Spaces.UserTest do
     end
 
     test "sets random session salt" do
-      changeset = User.signup_changeset(%User{}, valid_signup_params())
+      changeset = User.create_changeset(%User{}, valid_user_params())
       %{session_salt: salt} = changeset.changes
       assert String.length(salt) == 32
     end

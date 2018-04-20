@@ -5,7 +5,7 @@ defmodule LevelWeb.SpaceControllerTest do
     setup %{conn: conn} do
       conn =
         conn
-        |> bypass_through(LevelWeb.Router, :browser)
+        |> bypass_through(LevelWeb.Router, :anonymous_browser)
         |> get("/spaces")
 
       {:ok, %{conn: conn}}
@@ -37,7 +37,7 @@ defmodule LevelWeb.SpaceControllerTest do
     setup %{conn: conn} do
       conn =
         conn
-        |> bypass_through(LevelWeb.Router, :browser)
+        |> bypass_through(LevelWeb.Router, :anonymous_browser)
         |> get("/spaces/new")
 
       {:ok, %{conn: conn}}

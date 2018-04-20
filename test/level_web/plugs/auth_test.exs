@@ -5,7 +5,7 @@ defmodule LevelWeb.AuthTest do
   setup %{conn: conn} do
     conn =
       conn
-      |> bypass_through(LevelWeb.Router, :browser)
+      |> bypass_through(LevelWeb.Router, :anonymous_browser)
       |> get("/")
 
     {:ok, %{conn: conn}}
@@ -145,7 +145,7 @@ defmodule LevelWeb.AuthTest do
 
   describe "generate_signed_jwt/1" do
     setup do
-      user = %Level.Spaces.User{id: 999}
+      user = %Level.Users.User{id: 999}
       {:ok, %{user: user}}
     end
 
@@ -159,7 +159,7 @@ defmodule LevelWeb.AuthTest do
 
   describe "verify_signed_jwt/1" do
     setup do
-      user = %Level.Spaces.User{id: 999}
+      user = %Level.Users.User{id: 999}
       {:ok, %{user: user}}
     end
 

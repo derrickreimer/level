@@ -3,17 +3,17 @@ defmodule Level.PaginationTest do
 
   alias Level.Pagination
   alias Level.Pagination.Args
-  alias Level.Spaces.User
+  alias Level.Spaces.Member
   alias Level.Pagination.Result
   import Ecto.Query
 
   describe "fetch_result/3" do
     setup do
-      {:ok, %{user: owner, space: space}} = create_user_and_space()
+      {:ok, %{member: owner, space: space}} = create_user_and_space()
       members = [owner | create_members(space, 3)]
-      sorted_users = Enum.sort_by(members, fn user -> user.id end)
-      base_query = from u in User, where: u.space_id == ^space.id
-      {:ok, users: sorted_users, base_query: base_query, space: space}
+      sorted_member = Enum.sort_by(members, fn m -> m.id end)
+      base_query = from m in Member, where: m.space_id == ^space.id
+      {:ok, users: sorted_member, base_query: base_query, space: space}
     end
 
     test "only first param provided", %{users: users, base_query: base_query} do
@@ -153,8 +153,8 @@ defmodule Level.PaginationTest do
   defp create_members(_space, count, list) when count < 1, do: list
 
   defp create_members(space, count, list) do
-    {:ok, user} = insert_member(space)
-    create_members(space, count - 1, [user | list])
+    {:ok, %{member: member}} = insert_member(space)
+    create_members(space, count - 1, [member | list])
   end
 
   defp map_edge_ids(edges) do

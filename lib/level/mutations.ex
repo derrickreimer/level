@@ -9,7 +9,7 @@ defmodule Level.Mutations do
   alias Level.Posts
   alias Level.Repo
   alias Level.Spaces
-  alias Level.Spaces.User
+  alias Level.Users.User
 
   @typedoc "A context map containing the current user"
   @type authenticated_context :: %{context: %{current_user: User.t()}}

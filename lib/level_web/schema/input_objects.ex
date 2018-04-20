@@ -12,15 +12,6 @@ defmodule LevelWeb.Schema.InputObjects do
     field :direction, non_null(:order_direction)
   end
 
-  @desc "The field and direction to sort invitations."
-  input_object :invitation_order do
-    @desc "The field by which to sort."
-    field :field, non_null(:invitation_order_field)
-
-    @desc "The sort direction."
-    field :direction, non_null(:order_direction)
-  end
-
   @desc "The field and direction to sort groups."
   input_object :group_order do
     @desc "The field by which to sort."

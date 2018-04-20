@@ -8,7 +8,7 @@ defmodule LevelWeb.API.UserViewTest do
       {:ok, inserted_at, _} = DateTime.from_iso8601("2017-06-21T23:50:07Z")
       updated_at = inserted_at
 
-      user = %Level.Spaces.User{
+      user = %Level.Users.User{
         id: 999,
         email: "derrick@level.live",
         inserted_at: inserted_at,

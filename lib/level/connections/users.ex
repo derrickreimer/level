@@ -9,7 +9,7 @@ defmodule Level.Connections.Users do
   alias Level.Pagination.Args
   alias Level.Repo
   alias Level.Spaces.Space
-  alias Level.Spaces.User
+  alias Level.Users.User
 
   defstruct first: nil,
             last: nil,

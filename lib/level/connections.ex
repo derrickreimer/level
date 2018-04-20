@@ -9,7 +9,7 @@ defmodule Level.Connections do
   alias Level.Connections.Users
   alias Level.Pagination
   alias Level.Spaces.Space
-  alias Level.Spaces.User
+  alias Level.Users.User
 
   @typedoc "A context map containing the current user"
   @type authenticated_context :: %{context: %{current_user: User.t()}}
