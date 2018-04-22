@@ -4,16 +4,18 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
 
   @query """
     mutation UpdateGroup(
-      $id: ID!,
+      $space_id: ID!,
+      $group_id: ID!,
       $name: String,
       $description: String,
-      $isPrivate: Boolean
+      $is_private: Boolean
     ) {
       updateGroup(
-        id: $id,
+        spaceId: $space_id,
+        groupId: $group_id,
         name: $name,
         description: $description,
-        isPrivate: $isPrivate
+        isPrivate: $is_private
       ) {
         success
         group {
@@ -28,14 +30,14 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space}} = create_user_and_space()
-    conn = authenticate_with_jwt(conn, space, user)
-    {:ok, %{conn: conn, user: user, space: space}}
+    {:ok, %{user: user, space: space, member: member}} = create_user_and_space()
+    conn = authenticate_with_jwt(conn, user)
+    {:ok, %{conn: conn, user: user, space: space, member: member}}
   end
 
-  test "updates a group given valid data", %{conn: conn, user: user} do
-    {:ok, %{group: group}} = insert_group(user, %{name: "Old name"})
-    variables = %{id: group.id, name: "New name"}
+  test "updates a group given valid data", %{conn: conn, member: member} do
+    {:ok, %{group: group}} = insert_group(member, %{name: "Old name"})
+    variables = %{space_id: group.space_id, group_id: group.id, name: "New name"}
 
     conn =
       conn
@@ -55,9 +57,9 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
            }
   end
 
-  test "returns validation errors given invalid data", %{conn: conn, user: user} do
-    {:ok, %{group: group}} = insert_group(user, %{name: "Old name"})
-    variables = %{id: group.id, name: ""}
+  test "returns validation errors given invalid data", %{conn: conn, member: member} do
+    {:ok, %{group: group}} = insert_group(member, %{name: "Old name"})
+    variables = %{space_id: group.space_id, group_id: group.id, name: ""}
 
     conn =
       conn
@@ -80,8 +82,8 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
            }
   end
 
-  test "returns top-level error out if group does not exist", %{conn: conn} do
-    variables = %{id: Ecto.UUID.generate(), name: "New name"}
+  test "returns top-level error out if group does not exist", %{conn: conn, space: space} do
+    variables = %{space_id: space.id, group_id: Ecto.UUID.generate(), name: "New name"}
 
     conn =
       conn
@@ -92,7 +94,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
              "data" => %{"updateGroup" => nil},
              "errors" => [
                %{
-                 "locations" => [%{"column" => 0, "line" => 7}],
+                 "locations" => [%{"column" => 0, "line" => 8}],
                  "message" => "Group not found",
                  "path" => ["updateGroup"]
                }

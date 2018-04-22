@@ -30,7 +30,7 @@ defmodule Level.Mutations do
   @spec create_group(map(), authenticated_context()) :: group_mutation_result()
   def create_group(args, %{context: %{current_user: user}}) do
     resp =
-      with {:ok, %{member: member}} <- Spaces.get_space_by_id(user, args.space_id),
+      with {:ok, %{member: member}} <- Spaces.get_space(user, args.space_id),
            {:ok, %{group: group}} <- Groups.create_group(member, args) do
         %{success: true, group: group, errors: []}
       else
@@ -48,10 +48,11 @@ defmodule Level.Mutations do
   Updates a group.
   """
   @spec update_group(map(), authenticated_context()) :: group_mutation_result()
-  def update_group(%{id: id} = args, %{context: %{current_user: user}}) do
-    with {:ok, group} <- Groups.get_group(user, id),
-         {:ok, group} <- Groups.update_group(group, args) do
-      {:ok, %{success: true, group: group, errors: []}}
+  def update_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{member: member}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(member, args.group_id),
+         {:ok, updated_group} <- Groups.update_group(group, args) do
+      {:ok, %{success: true, group: updated_group, errors: []}}
     else
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
@@ -66,12 +67,15 @@ defmodule Level.Mutations do
   """
   @spec create_post(map(), authenticated_context()) :: post_mutation_result()
   def create_post(args, %{context: %{current_user: user}}) do
-    case Posts.create_post(user, args) do
-      {:ok, post} ->
-        {:ok, %{success: true, post: post, errors: []}}
-
-      {:error, changeset} ->
+    with {:ok, %{member: member}} <- Spaces.get_space(user, args.space_id),
+         {:ok, post} <- Posts.create_post(member, args) do
+      {:ok, %{success: true, post: post, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
     end
   end
 

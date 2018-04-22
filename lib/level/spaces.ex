@@ -6,7 +6,6 @@ defmodule Level.Spaces do
   alias Ecto.Multi
   alias Level.Spaces.Member
   alias Level.Spaces.Space
-  alias Level.Spaces.Invitation
   alias Level.Repo
   alias Level.Users.User
 
@@ -18,9 +17,9 @@ defmodule Level.Spaces do
   @doc """
   Fetches a space by id.
   """
-  @spec get_space_by_id(User.t(), String.t()) ::
+  @spec get_space(User.t(), String.t()) ::
           {:ok, %{space: Space.t(), member: Member.t()}} | {:error, String.t()}
-  def get_space_by_id(%User{} = user, id) do
+  def get_space(%User{} = user, id) do
     with %Space{} = space <- Repo.get(Space, id),
          %Member{} = member <- Repo.get_by(Member, user_id: user.id, space_id: space.id) do
       {:ok, %{space: space, member: member}}

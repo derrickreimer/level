@@ -40,7 +40,8 @@ defmodule LevelWeb.Schema do
 
     @desc "Update a group."
     field :update_group, type: :update_group_payload do
-      arg(:id, non_null(:id))
+      arg(:space_id, non_null(:id))
+      arg(:group_id, non_null(:id))
       arg(:name, :string)
       arg(:description, :string)
       arg(:is_private, :boolean)
