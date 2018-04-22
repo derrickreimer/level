@@ -36,7 +36,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
   end
 
   test "updates a group given valid data", %{conn: conn, member: member} do
-    {:ok, %{group: group}} = insert_group(member, %{name: "Old name"})
+    {:ok, %{group: group}} = create_group(member, %{name: "Old name"})
     variables = %{space_id: group.space_id, group_id: group.id, name: "New name"}
 
     conn =
@@ -58,7 +58,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
   end
 
   test "returns validation errors given invalid data", %{conn: conn, member: member} do
-    {:ok, %{group: group}} = insert_group(member, %{name: "Old name"})
+    {:ok, %{group: group}} = create_group(member, %{name: "Old name"})
     variables = %{space_id: group.space_id, group_id: group.id, name: ""}
 
     conn =

@@ -25,7 +25,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   end
 
   test "users can list their group memberships", %{conn: conn, user: user} do
-    {:ok, %{group: _group}} = insert_group(user, %{name: "Cool peeps"})
+    {:ok, %{group: _group}} = create_group(user, %{name: "Cool peeps"})
 
     conn =
       conn

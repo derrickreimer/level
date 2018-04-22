@@ -82,7 +82,7 @@ defmodule Level.TestHelpers do
     {:ok, %{user: user, member: member}}
   end
 
-  def insert_group(member, params \\ %{}) do
+  def create_group(member, params \\ %{}) do
     params =
       valid_group_params()
       |> Map.merge(params)

@@ -59,14 +59,14 @@ defmodule Level.ConnectionsTest do
     end
 
     test "includes open groups by default", %{space: space, user: user} do
-      {:ok, %{group: open_group}} = insert_group(user)
+      {:ok, %{group: open_group}} = create_group(user)
       {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
 
       assert edges_include?(edges, open_group.id)
     end
 
     test "does not include closed groups by default", %{space: space, user: user} do
-      {:ok, %{group: group}} = insert_group(user)
+      {:ok, %{group: group}} = create_group(user)
       {:ok, closed_group} = Groups.close_group(group)
       {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
 
@@ -74,8 +74,8 @@ defmodule Level.ConnectionsTest do
     end
 
     test "filters by closed state", %{space: space, user: user} do
-      {:ok, %{group: open_group}} = insert_group(user)
-      {:ok, %{group: closed_group}} = insert_group(user)
+      {:ok, %{group: open_group}} = create_group(user)
+      {:ok, %{group: closed_group}} = create_group(user)
       {:ok, closed_group} = Groups.close_group(closed_group)
 
       {:ok, %{edges: edges}} =
@@ -92,7 +92,7 @@ defmodule Level.ConnectionsTest do
     end
 
     test "includes groups the user is a member of", %{user: user} do
-      {:ok, %{group: group}} = insert_group(user)
+      {:ok, %{group: group}} = create_group(user)
 
       {:ok, %{edges: edges}} =
         Connections.group_memberships(user, %{first: 10}, build_context(user))
@@ -101,7 +101,7 @@ defmodule Level.ConnectionsTest do
     end
 
     test "does not include groups the user is not a member of", %{user: user, space: space} do
-      {:ok, %{group: group}} = insert_group(user)
+      {:ok, %{group: group}} = create_group(user)
       {:ok, another_user} = insert_member(space)
 
       {:ok, %{edges: edges}} =
