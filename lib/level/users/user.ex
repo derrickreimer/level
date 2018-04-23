@@ -51,27 +51,6 @@ defmodule Level.Users.User do
   end
 
   @doc """
-  Builds a changeset for signup based on the `struct` and `params`.
-  This method gets used within the Signup.multi function.
-  """
-  def signup_changeset(struct, params \\ %{}) do
-    struct
-    |> cast(params, [
-      :space_id,
-      :role,
-      :email,
-      :first_name,
-      :last_name,
-      :time_zone,
-      :password
-    ])
-    |> validate()
-    |> put_default_time_zone
-    |> put_password_hash
-    |> put_change(:session_salt, generate_salt())
-  end
-
-  @doc """
   Applies user attribute validations to a changeset.
   """
   def validate(changeset) do

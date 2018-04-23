@@ -12,7 +12,7 @@ defmodule Level.GroupsTest do
 
     test "returns a query that includes public non-member groups", %{member: member, space: space} do
       {:ok, %{group: %Group{id: group_id}}} = create_group(member, %{is_public: true})
-      {:ok, %{member: another_member}} = insert_member(space)
+      {:ok, %{member: another_member}} = create_space_member(space)
       query = Groups.list_groups_query(another_member)
       result = Repo.all(query)
       assert Enum.any?(result, fn group -> group.id == group_id end)
@@ -30,7 +30,7 @@ defmodule Level.GroupsTest do
       space: space
     } do
       {:ok, %{group: %Group{id: group_id}}} = create_group(member, %{is_private: true})
-      {:ok, %{member: another_member}} = insert_member(space)
+      {:ok, %{member: another_member}} = create_space_member(space)
       query = Groups.list_groups_query(another_member)
       result = Repo.all(query)
       refute Enum.any?(result, fn group -> group.id == group_id end)
@@ -57,7 +57,7 @@ defmodule Level.GroupsTest do
       member: member,
       space: space
     } do
-      {:ok, %{member: another_member}} = insert_member(space)
+      {:ok, %{member: another_member}} = create_space_member(space)
       {:ok, %{group: %Group{id: group_id}}} = create_group(member, %{is_private: true})
       assert {:error, "Group not found"} = Groups.get_group(another_member, group_id)
     end
@@ -66,7 +66,7 @@ defmodule Level.GroupsTest do
       member: member,
       space: space
     } do
-      {:ok, %{member: another_member}} = insert_member(space)
+      {:ok, %{member: another_member}} = create_space_member(space)
       {:ok, %{group: %Group{id: group_id} = group}} = create_group(member, %{is_private: true})
       Groups.create_group_membership(group, another_member)
       assert {:ok, %Group{id: ^group_id}} = Groups.get_group(another_member, group_id)
@@ -140,7 +140,7 @@ defmodule Level.GroupsTest do
 
     test "returns an error if user is not a member", %{member: member, space: space} do
       {:ok, %{group: group}} = create_group(member)
-      {:ok, %{member: another_member}} = insert_member(space)
+      {:ok, %{member: another_member}} = create_space_member(space)
 
       assert {:error, "The user is a not a group member"} =
                Groups.get_group_membership(group, another_member)
@@ -154,7 +154,7 @@ defmodule Level.GroupsTest do
 
     test "establishes a new membership if not already one", %{member: member, space: space} do
       {:ok, %{group: group}} = create_group(member)
-      {:ok, %{member: another_member}} = insert_member(space)
+      {:ok, %{member: another_member}} = create_space_member(space)
 
       {:ok, membership} = Groups.create_group_membership(group, another_member)
       assert membership.group_id == group.id

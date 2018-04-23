@@ -25,6 +25,12 @@ defmodule LevelWeb.Schema do
         {:ok, current_user}
       end)
     end
+
+    @desc "Fetches a space by ID."
+    field :space, :space do
+      arg :id, non_null(:id)
+      resolve &Level.Connections.space/3
+    end
   end
 
   mutation do

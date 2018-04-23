@@ -4,7 +4,7 @@ defmodule LevelWeb.GraphQL.ViewerTest do
 
   setup %{conn: conn} do
     {:ok, %{user: user, space: space}} = create_user_and_space()
-    conn = authenticate_with_jwt(conn, space, user)
+    conn = authenticate_with_jwt(conn, user)
     {:ok, %{conn: conn, user: user, space: space}}
   end
 
@@ -28,33 +28,6 @@ defmodule LevelWeb.GraphQL.ViewerTest do
                "viewer" => %{
                  "email" => user.email,
                  "state" => user.state
-               }
-             }
-           }
-  end
-
-  test "has a space connection", %{conn: conn, space: space} do
-    query = """
-      {
-        viewer {
-          space {
-            name
-          }
-        }
-      }
-    """
-
-    conn =
-      conn
-      |> put_graphql_headers()
-      |> post("/graphql", query)
-
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "viewer" => %{
-                 "space" => %{
-                   "name" => space.name
-                 }
                }
              }
            }

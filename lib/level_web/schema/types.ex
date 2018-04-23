@@ -22,22 +22,23 @@ defmodule LevelWeb.Schema.Types do
     field :updated_at, non_null(:time)
 
     field :space_memberships, non_null(:space_membership_connection) do
-      arg(:first, :integer)
-      arg(:last, :integer)
-      arg(:before, :cursor)
-      arg(:after, :cursor)
-      arg(:order_by, :space_order)
-      resolve(&Level.Connections.space_memberships/3)
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :space_order
+      resolve &Level.Connections.space_memberships/3
     end
 
-    # field :group_memberships, non_null(:group_membership_connection) do
-    #   arg(:first, :integer)
-    #   arg(:last, :integer)
-    #   arg(:before, :cursor)
-    #   arg(:after, :cursor)
-    #   arg(:order_by, :group_order)
-    #   resolve(&Level.Connections.group_memberships/3)
-    # end
+    field :group_memberships, non_null(:group_membership_connection) do
+      arg :space_id, non_null(:id)
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :group_order
+      resolve &Level.Connections.group_memberships/3
+    end
   end
 
   @desc "A space membership defines the relationship between a user and a space."
@@ -47,7 +48,7 @@ defmodule LevelWeb.Schema.Types do
     field :space, non_null(:space), resolve: dataloader(:db)
   end
 
-  @desc "A space is the main organizational unit, typically representing a company or organization."
+  @desc "A space represents a company or organization."
   object :space do
     field :id, non_null(:id)
     field :state, non_null(:space_state)
@@ -56,23 +57,14 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
-    field :users, non_null(:user_connection) do
-      arg(:first, :integer)
-      arg(:last, :integer)
-      arg(:before, :cursor)
-      arg(:after, :cursor)
-      arg(:order_by, :user_order)
-      resolve(&Level.Connections.users/3)
-    end
-
     field :groups, non_null(:group_connection) do
-      arg(:first, :integer)
-      arg(:last, :integer)
-      arg(:before, :cursor)
-      arg(:after, :cursor)
-      arg(:order_by, :group_order)
-      arg(:state, :group_state)
-      resolve(&Level.Connections.groups/3)
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :group_order
+      arg :state, :group_state
+      resolve &Level.Connections.groups/3
     end
   end
 

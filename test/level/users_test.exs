@@ -19,7 +19,7 @@ defmodule Level.UsersTest do
         |> Map.put(:email, "invalid")
 
       {:error, %Ecto.Changeset{errors: errors}} = Users.create_user(params)
-      assert errors == []
+      assert errors == [email: {"is invalid", [validation: :format]}]
     end
   end
 end

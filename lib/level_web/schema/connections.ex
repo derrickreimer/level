@@ -18,28 +18,7 @@ defmodule LevelWeb.Schema.Connections do
     field :has_previous_page, non_null(:boolean)
   end
 
-  @desc "An edge in the user connection."
-  object :user_edge do
-    @desc "The item at the edge of the node."
-    field :node, :user
-
-    @desc "A cursor for use in pagination."
-    field :cursor, non_null(:cursor)
-  end
-
-  @desc "A list of users belonging to a space."
-  object :user_connection do
-    @desc "A list of edges."
-    field :edges, list_of(:user_edge)
-
-    @desc "Pagination data for the connection."
-    field :page_info, non_null(:page_info)
-
-    @desc "The total count of items in the connection."
-    field :total_count, non_null(:integer)
-  end
-
-  @desc "An edge in the group membership connection."
+  @desc "An edge in the space membership connection."
   object :space_membership_edge do
     @desc "The item at the edge of the node."
     field :node, :space_membership

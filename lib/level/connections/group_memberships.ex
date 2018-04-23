@@ -11,11 +11,13 @@ defmodule Level.Connections.GroupMemberships do
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Repo
+  alias Level.Spaces
 
   defstruct first: nil,
             last: nil,
             before: nil,
             after: nil,
+            space_id: nil,
             order_by: %{
               field: :name,
               direction: :asc
@@ -26,6 +28,7 @@ defmodule Level.Connections.GroupMemberships do
           last: integer() | nil,
           before: String.t() | nil,
           after: String.t() | nil,
+          space_id: String.t(),
           order_by: %{field: :name, direction: :asc | :desc}
         }
 
@@ -34,15 +37,21 @@ defmodule Level.Connections.GroupMemberships do
   """
   def get(user, args, %{context: %{current_user: authenticated_user}} = _context) do
     if authenticated_user == user do
-      base_query =
-        from gm in GroupMembership,
-          where: gm.space_id == ^user.space_id and gm.user_id == ^user.id,
-          join: g in Group,
-          on: g.id == gm.group_id,
-          select: %{gm | name: g.name}
+      case Spaces.get_space(user, args.space_id) do
+        {:ok, %{member: member}} ->
+          base_query =
+            from gm in GroupMembership,
+              where: gm.space_member_id == ^member.id,
+              join: g in Group,
+              on: g.id == gm.group_id,
+              select: %{gm | name: g.name}
 
-      wrapped_query = from(gm in subquery(base_query))
-      Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
+          wrapped_query = from(gm in subquery(base_query))
+          Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
+
+        error ->
+          error
+      end
     else
       {:error,
        dgettext("errors", "Group memberships are only readable for the authenticated user")}

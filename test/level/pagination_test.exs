@@ -153,7 +153,7 @@ defmodule Level.PaginationTest do
   defp create_members(_space, count, list) when count < 1, do: list
 
   defp create_members(space, count, list) do
-    {:ok, %{member: member}} = insert_member(space)
+    {:ok, %{member: member}} = create_space_member(space)
     create_members(space, count - 1, [member | list])
   end
 

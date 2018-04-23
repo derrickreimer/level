@@ -72,7 +72,7 @@ defmodule Level.TestHelpers do
     Spaces.create_space(user, params)
   end
 
-  def insert_member(space, user_params \\ %{}) do
+  def create_space_member(space, user_params \\ %{}) do
     user_params =
       valid_user_params()
       |> Map.merge(user_params)

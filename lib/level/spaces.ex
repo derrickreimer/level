@@ -3,6 +3,8 @@ defmodule Level.Spaces do
   The Spaces context.
   """
 
+  import Level.Gettext
+
   alias Ecto.Multi
   alias Level.Spaces.Member
   alias Level.Spaces.Space
@@ -25,7 +27,7 @@ defmodule Level.Spaces do
       {:ok, %{space: space, member: member}}
     else
       _ ->
-        {:error, "Space not found"}
+        {:error, dgettext("errors", "Space not found")}
     end
   end
 

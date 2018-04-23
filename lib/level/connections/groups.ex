@@ -9,6 +9,7 @@ defmodule Level.Connections.Groups do
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Repo
+  alias Level.Spaces
 
   defstruct first: nil,
             last: nil,
@@ -32,12 +33,18 @@ defmodule Level.Connections.Groups do
   @doc """
   Executes a paginated query for groups belonging to a given space.
   """
-  def get(_space, args, %{context: %{current_user: user}} = _context) do
-    base_query =
-      user
-      |> Groups.list_groups_query()
-      |> where(state: ^args.state)
+  def get(space, args, %{context: %{current_user: user}} = _context) do
+    case Spaces.get_space(user, space.id) do
+      {:ok, %{member: member}} ->
+        base_query =
+          member
+          |> Groups.list_groups_query()
+          |> where(state: ^args.state)
 
-    Pagination.fetch_result(Repo, base_query, Args.build(args))
+        Pagination.fetch_result(Repo, base_query, Args.build(args))
+
+      error ->
+        error
+    end
   end
 end

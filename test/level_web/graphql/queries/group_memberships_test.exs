@@ -3,9 +3,11 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   import LevelWeb.GraphQL.TestHelpers
 
   @query """
-    {
+    query GetGroupMemberships(
+      $space_id: ID!
+    ) {
       viewer {
-        groupMemberships(first: 10) {
+        groupMemberships(spaceId: $space_id, first: 10) {
           edges {
             node {
               group {
@@ -19,18 +21,20 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space}} = create_user_and_space()
+    {:ok, %{user: user, space: space, member: member}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, user)
-    {:ok, %{conn: conn, user: user, space: space}}
+    {:ok, %{conn: conn, user: user, space: space, member: member}}
   end
 
-  test "users can list their group memberships", %{conn: conn, user: user} do
-    {:ok, %{group: _group}} = create_group(user, %{name: "Cool peeps"})
+  test "users can list their group memberships", %{conn: conn, member: member} do
+    {:ok, %{group: _group}} = create_group(member, %{name: "Cool peeps"})
+
+    variables = %{space_id: member.space_id}
 
     conn =
       conn
       |> put_graphql_headers()
-      |> post("/graphql", @query)
+      |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
              "data" => %{
