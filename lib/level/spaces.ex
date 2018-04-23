@@ -71,7 +71,7 @@ defmodule Level.Spaces do
   @doc """
   Establishes a user as a member of space.
   """
-  @spec create_owner(User.t(), Space.t()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  @spec create_member(User.t(), Space.t()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
   def create_member(user, space) do
     %Member{}
     |> Member.create_changeset(%{user_id: user.id, space_id: space.id, role: "MEMBER"})

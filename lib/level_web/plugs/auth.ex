@@ -9,7 +9,6 @@ defmodule LevelWeb.Auth do
   import Joken
 
   alias Level.Repo
-  alias Level.Spaces
   alias Level.Users
   alias Level.Users.User
   alias LevelWeb.Router.Helpers

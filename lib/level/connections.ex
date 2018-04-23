@@ -7,7 +7,6 @@ defmodule Level.Connections do
   alias Level.Connections.GroupMemberships
   alias Level.Connections.Groups
   alias Level.Connections.SpaceMemberships
-  alias Level.Connections.Users
   alias Level.Pagination
   alias Level.Spaces
   alias Level.Spaces.Space
@@ -23,8 +22,10 @@ defmodule Level.Connections do
   Fetches a space by id.
   """
   @spec space(User.t(), map(), authenticated_context()) :: {:ok, Space.t()} | {:error, String.t()}
-  def space(_parent, %{id: id} = args, %{context: %{current_user: authenticated_user}} = context) do
-    case Spaces.get_space(authenticated_user, id) do
+  def space(parent, args, context)
+
+  def space(_parent, %{id: id}, %{context: %{current_user: user}}) do
+    case Spaces.get_space(user, id) do
       {:ok, %{space: space}} ->
         {:ok, space}
 
