@@ -66,9 +66,14 @@ defmodule LevelWeb.Router do
     forward "/sent_emails", Bamboo.EmailPreviewPlug
   end
 
-  # TODO: Set no headers if there is no current user
   def graphiql_headers(conn) do
-    token = LevelWeb.Auth.generate_signed_jwt(conn.assigns.current_user)
-    %{"Authorization" => "Bearer #{token}"}
+    case conn.assigns do
+      %{current_user: user} ->
+        token = LevelWeb.Auth.generate_signed_jwt(user)
+        %{"Authorization" => "Bearer #{token}"}
+
+      _ ->
+        %{}
+    end
   end
 end
