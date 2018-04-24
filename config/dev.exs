@@ -17,7 +17,7 @@ config :level, LevelWeb.Endpoint,
       "node_modules/webpack/bin/webpack.js",
       "--mode",
       "development",
-      "--watch",
+      "--watch-stdin",
       cd: Path.expand("../assets", __DIR__)
     ]
   ]
