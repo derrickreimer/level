@@ -8,13 +8,13 @@
       <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>
     </div>
 
-    <%= form_for @conn, user_path(@conn, :create), [as: :user], fn f -> %>
+    <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
       <div class="px-16 py-8 bg-white rounded-lg border max-w-430px">
         <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darker pb-8">Sign up for Level</h1>
 
         <div class="pb-6">
           <%= label f, :email, gettext("Email address"), class: "input-label" %>
-          <%= text_input f, :email, class: input_classes(f, :first_name), autofocus: true, placeholder: "jane@smithco.com" %>
+          <%= text_input f, :email, class: input_classes(f, :email), autofocus: true, placeholder: "jane@smithco.com" %>
           <%= error_tag f, :email, class: "form-errors" %>
         </div>
 
@@ -27,7 +27,7 @@
             </div>
 
             <div class="flex-1">
-              <%= text_input f, :last_name, class: input_classes(f, :first_name), placeholder: "Smith" %>
+              <%= text_input f, :last_name, class: input_classes(f, :last_name), placeholder: "Smith" %>
               <%= error_tag f, :last_name, class: "form-errors" %>
             </div>
           </div>
@@ -35,7 +35,7 @@
 
         <div class="pb-6">
           <%= label f, :password, gettext("Password"), class: "input-label" %>
-          <%= password_input f, :password, class: input_classes(f, :first_name) %>
+          <%= password_input f, :password, class: input_classes(f, :password) %>
           <%= error_tag f, :password, class: "form-errors" %>
         </div>
 

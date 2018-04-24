@@ -33,12 +33,6 @@ defmodule LevelWeb.Router do
     forward "/graphql", Absinthe.Plug, schema: LevelWeb.Schema
   end
 
-  forward "/graphiql", Absinthe.Plug.GraphiQL,
-    schema: LevelWeb.Schema,
-    socket: LevelWeb.UserSocket,
-    default_headers: {__MODULE__, :graphiql_headers},
-    default_url: "/graphql"
-
   scope "/", LevelWeb do
     pipe_through :anonymous_browser
 
@@ -47,6 +41,16 @@ defmodule LevelWeb.Router do
 
     get "/signup", UserController, :new
     post "/signup", UserController, :create
+  end
+
+  scope "/" do
+    pipe_through [:anonymous_browser, :fetch_current_user_by_session]
+
+    forward "/graphiql", Absinthe.Plug.GraphiQL,
+      schema: LevelWeb.Schema,
+      socket: LevelWeb.UserSocket,
+      default_headers: {__MODULE__, :graphiql_headers},
+      default_url: "/graphql"
   end
 
   scope "/", LevelWeb do
