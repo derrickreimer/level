@@ -1,4 +1,4 @@
-defmodule LevelWeb.SpaceView do
+defmodule LevelWeb.UserView do
   @moduledoc false
 
   use LevelWeb, :view

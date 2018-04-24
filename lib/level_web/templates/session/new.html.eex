@@ -27,7 +27,7 @@
       </div>
       <div class="px-16 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
         <%= gettext "Want to create a space instead?" %>
-        <%= link gettext("Sign up"), to: signup_url(@conn), class: "text-blue" %>
+        <%= link gettext("Sign up"), to: user_path(@conn, :new), class: "text-blue" %>
       </div>
     <% end %>
   </div>

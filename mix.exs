@@ -134,9 +134,9 @@ defmodule Level.Mixfile do
       ],
       Helpers: [
         LevelWeb.ErrorHelpers,
+        LevelWeb.FormHelpers,
         LevelWeb.ResolverHelpers,
-        LevelWeb.Router.Helpers,
-        LevelWeb.UrlHelpers
+        LevelWeb.Router.Helpers
       ]
     ]
   end

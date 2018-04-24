@@ -45,8 +45,8 @@ defmodule LevelWeb.Router do
     get "/login", SessionController, :new
     post "/login", SessionController, :create
 
-    resources "/invitations", InvitationController
-    post "/invitations/:id/accept", AcceptInvitationController, :create
+    get "/signup", UserController, :new
+    post "/signup", UserController, :create
   end
 
   scope "/", LevelWeb do
