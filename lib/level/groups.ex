@@ -8,18 +8,18 @@ defmodule Level.Groups do
 
   alias Ecto.Multi
   alias Level.Repo
+  alias Level.Groups
   alias Level.Groups.Group
-  alias Level.Groups.GroupMembership
-  alias Level.Spaces.Member
+  alias Level.Spaces
 
   @doc """
   Generate the query for listing all groups visible to a given member.
   """
-  @spec list_groups_query(Member.t()) :: Ecto.Query.t()
-  def list_groups_query(%Member{id: member_id, space_id: space_id}) do
+  @spec list_groups_query(Spaces.Member.t()) :: Ecto.Query.t()
+  def list_groups_query(%Spaces.Member{id: member_id, space_id: space_id}) do
     from g in Group,
       where: g.space_id == ^space_id,
-      left_join: gm in GroupMembership,
+      left_join: gm in Groups.Member,
       on: gm.group_id == g.id and gm.space_member_id == ^member_id,
       where: g.is_private == false or (g.is_private == true and not is_nil(gm.id))
   end
@@ -27,8 +27,8 @@ defmodule Level.Groups do
   @doc """
   Fetches a group by id.
   """
-  @spec get_group(Member.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-  def get_group(%Member{space_id: space_id} = member, id) do
+  @spec get_group(Spaces.Member.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
+  def get_group(%Spaces.Member{space_id: space_id} = member, id) do
     case Repo.get_by(Group, id: id, space_id: space_id) do
       %Group{} = group ->
         if group.is_private do
@@ -51,9 +51,9 @@ defmodule Level.Groups do
   @doc """
   Creates a group.
   """
-  @spec create_group(Member.t(), map()) ::
-          {:ok, %{group: Group.t(), membership: GroupMembership.t()}}
-          | {:error, :group | :membership, any(), %{optional(:group | :membership) => any()}}
+  @spec create_group(Spaces.Member.t(), map()) ::
+          {:ok, %{group: Group.t(), member: Groups.Member.t()}}
+          | {:error, :group | :member, any(), %{optional(:group | :member) => any()}}
   def create_group(member, params \\ %{}) do
     params_with_relations =
       params
@@ -64,7 +64,7 @@ defmodule Level.Groups do
 
     Multi.new()
     |> Multi.insert(:group, changeset)
-    |> Multi.run(:membership, fn %{group: group} ->
+    |> Multi.run(:member, fn %{group: group} ->
       create_group_membership(group, member)
     end)
     |> Repo.transaction()
@@ -83,11 +83,11 @@ defmodule Level.Groups do
   @doc """
   Fetches a group membership by group and user.
   """
-  @spec get_group_membership(Group.t(), Member.t()) ::
-          {:ok, GroupMembership.t()} | {:error, String.t()}
-  def get_group_membership(%Group{id: group_id}, %Member{id: member_id}) do
-    case Repo.get_by(GroupMembership, space_member_id: member_id, group_id: group_id) do
-      %GroupMembership{} = membership ->
+  @spec get_group_membership(Group.t(), Spaces.Member.t()) ::
+          {:ok, Groups.Member.t()} | {:error, String.t()}
+  def get_group_membership(%Group{id: group_id}, %Spaces.Member{id: member_id}) do
+    case Repo.get_by(Groups.Member, space_member_id: member_id, group_id: group_id) do
+      %Groups.Member{} = membership ->
         {:ok, membership}
 
       _ ->
@@ -98,8 +98,8 @@ defmodule Level.Groups do
   @doc """
   Creates a group membership.
   """
-  @spec create_group_membership(Group.t(), Member.t()) ::
-          {:ok, GroupMembership.t()} | {:error, Ecto.Changeset.t()}
+  @spec create_group_membership(Group.t(), Spaces.Member.t()) ::
+          {:ok, Groups.Member.t()} | {:error, Ecto.Changeset.t()}
   def create_group_membership(group, member) do
     params = %{
       space_id: member.space_id,
@@ -107,8 +107,8 @@ defmodule Level.Groups do
       space_member_id: member.id
     }
 
-    %GroupMembership{}
-    |> GroupMembership.changeset(params)
+    %Groups.Member{}
+    |> Groups.Member.changeset(params)
     |> Repo.insert()
   end
 

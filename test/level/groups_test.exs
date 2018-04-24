@@ -3,7 +3,6 @@ defmodule Level.GroupsTest do
 
   alias Level.Groups
   alias Level.Groups.Group
-  alias Level.Groups.GroupMembership
 
   describe "list_groups_query/2" do
     setup do
@@ -96,7 +95,7 @@ defmodule Level.GroupsTest do
     test "establishes membership", %{member: member} do
       params = valid_group_params()
       {:ok, %{group: group}} = Groups.create_group(member, params)
-      assert Repo.one(GroupMembership, space_member_id: member.id, group_id: group.id)
+      assert Repo.one(Groups.Member, space_member_id: member.id, group_id: group.id)
     end
 
     test "returns errors given invalid data", %{member: member} do
