@@ -52,8 +52,8 @@ defmodule Level.TestHelpers do
     space_params = valid_space_params() |> Map.merge(space_params)
 
     {:ok, user} = Users.create_user(user_params)
-    {:ok, %{member: member, space: space}} = Spaces.create_space(user, space_params)
-    {:ok, %{user: user, space: space, member: member}}
+    {:ok, space_and_space_user} = Spaces.create_space(user, space_params)
+    {:ok, Map.put(space_and_space_user, :user, user)}
   end
 
   def create_user(params \\ %{}) do
@@ -78,8 +78,8 @@ defmodule Level.TestHelpers do
       |> Map.merge(user_params)
 
     {:ok, user} = Users.create_user(user_params)
-    {:ok, member} = Spaces.create_member(user, space)
-    {:ok, %{user: user, member: member}}
+    {:ok, space_user} = Spaces.create_member(user, space)
+    {:ok, %{user: user, space_user: space_user}}
   end
 
   def create_group(member, params \\ %{}) do

@@ -7,7 +7,7 @@ defmodule Level.Connections.GroupMemberships do
   import Level.Gettext
 
   alias Level.Groups.Group
-  alias Level.Groups.Member
+  alias Level.Groups.GroupUser
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Repo
@@ -38,15 +38,15 @@ defmodule Level.Connections.GroupMemberships do
   def get(user, args, %{context: %{current_user: authenticated_user}} = _context) do
     if authenticated_user == user do
       case Spaces.get_space(user, args.space_id) do
-        {:ok, %{member: space_member}} ->
+        {:ok, %{space_user: space_user}} ->
           base_query =
-            from m in Member,
-              where: m.space_member_id == ^space_member.id,
+            from gu in GroupUser,
+              where: gu.space_user_id == ^space_user.id,
               join: g in Group,
-              on: g.id == m.group_id,
-              select: %{m | name: g.name}
+              on: g.id == gu.group_id,
+              select: %{gu | name: g.name}
 
-          wrapped_query = from(gm in subquery(base_query))
+          wrapped_query = from(gu in subquery(base_query))
           Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
 
         error ->

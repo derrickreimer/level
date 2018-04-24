@@ -9,7 +9,7 @@ defmodule Level.Users.User do
 
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
-  alias Level.Spaces.Member
+  alias Level.Spaces.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -27,7 +27,7 @@ defmodule Level.Users.User do
     field :password, :string, virtual: true
     field :password_hash, :string
     field :session_salt, :string
-    has_many :members, Member
+    has_many :space_users, SpaceUser
 
     timestamps()
   end

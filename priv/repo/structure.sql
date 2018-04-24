@@ -64,10 +64,20 @@ CREATE TYPE public.post_state AS ENUM (
 
 
 --
--- Name: space_member_role; Type: TYPE; Schema: public; Owner: -
+-- Name: space_state; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public.space_member_role AS ENUM (
+CREATE TYPE public.space_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
+);
+
+
+--
+-- Name: space_user_role; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.space_user_role AS ENUM (
     'OWNER',
     'ADMIN',
     'MEMBER'
@@ -75,20 +85,10 @@ CREATE TYPE public.space_member_role AS ENUM (
 
 
 --
--- Name: space_member_state; Type: TYPE; Schema: public; Owner: -
+-- Name: space_user_state; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public.space_member_state AS ENUM (
-    'ACTIVE',
-    'DISABLED'
-);
-
-
---
--- Name: space_state; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.space_state AS ENUM (
+CREATE TYPE public.space_user_state AS ENUM (
     'ACTIVE',
     'DISABLED'
 );
@@ -109,13 +109,13 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: group_members; Type: TABLE; Schema: public; Owner: -
+-- Name: group_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_members (
+CREATE TABLE public.group_users (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
-    space_member_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
     group_id uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -146,7 +146,7 @@ CREATE TABLE public.groups (
 CREATE TABLE public.posts (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
-    space_member_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
     state public.post_state DEFAULT 'OPEN'::public.post_state NOT NULL,
     body text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
@@ -165,15 +165,15 @@ CREATE TABLE public.schema_migrations (
 
 
 --
--- Name: space_members; Type: TABLE; Schema: public; Owner: -
+-- Name: space_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.space_members (
+CREATE TABLE public.space_users (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    state public.space_member_state DEFAULT 'ACTIVE'::public.space_member_state NOT NULL,
-    role public.space_member_role DEFAULT 'MEMBER'::public.space_member_role NOT NULL,
+    state public.space_user_state DEFAULT 'ACTIVE'::public.space_user_state NOT NULL,
+    role public.space_user_role DEFAULT 'MEMBER'::public.space_user_role NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -212,11 +212,11 @@ CREATE TABLE public.users (
 
 
 --
--- Name: group_members group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: group_users group_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT group_members_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.group_users
+    ADD CONSTRAINT group_users_pkey PRIMARY KEY (id);
 
 
 --
@@ -244,11 +244,11 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: space_members space_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: space_users space_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.space_members
-    ADD CONSTRAINT space_members_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.space_users
+    ADD CONSTRAINT space_users_pkey PRIMARY KEY (id);
 
 
 --
@@ -268,17 +268,17 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: group_members_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: group_users_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX group_members_id_index ON public.group_members USING btree (id);
+CREATE INDEX group_users_id_index ON public.group_users USING btree (id);
 
 
 --
--- Name: group_members_space_member_id_group_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: group_users_space_user_id_group_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX group_members_space_member_id_group_id_index ON public.group_members USING btree (space_member_id, group_id);
+CREATE UNIQUE INDEX group_users_space_user_id_group_id_index ON public.group_users USING btree (space_user_id, group_id);
 
 
 --
@@ -310,17 +310,17 @@ CREATE INDEX posts_id_index ON public.posts USING btree (id);
 
 
 --
--- Name: space_members_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: space_users_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX space_members_id_index ON public.space_members USING btree (id);
+CREATE INDEX space_users_id_index ON public.space_users USING btree (id);
 
 
 --
--- Name: space_members_space_id_user_id_index; Type: INDEX; Schema: public; Owner: -
+-- Name: space_users_space_id_user_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX space_members_space_id_user_id_index ON public.space_members USING btree (space_id, user_id);
+CREATE UNIQUE INDEX space_users_space_id_user_id_index ON public.space_users USING btree (space_id, user_id);
 
 
 --
@@ -352,27 +352,27 @@ CREATE UNIQUE INDEX users_lower_email_index ON public.users USING btree (lower((
 
 
 --
--- Name: group_members group_members_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: group_users group_users_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT group_members_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
-
-
---
--- Name: group_members group_members_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT group_members_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+ALTER TABLE ONLY public.group_users
+    ADD CONSTRAINT group_users_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
 
 
 --
--- Name: group_members group_members_space_member_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: group_users group_users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT group_members_space_member_id_fkey FOREIGN KEY (space_member_id) REFERENCES public.space_members(id);
+ALTER TABLE ONLY public.group_users
+    ADD CONSTRAINT group_users_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: group_users group_users_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_users
+    ADD CONSTRAINT group_users_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
 
 
 --
@@ -380,7 +380,7 @@ ALTER TABLE ONLY public.group_members
 --
 
 ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT groups_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.space_members(id);
+    ADD CONSTRAINT groups_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.space_users(id);
 
 
 --
@@ -400,27 +400,27 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- Name: posts posts_space_member_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: posts posts_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.posts
-    ADD CONSTRAINT posts_space_member_id_fkey FOREIGN KEY (space_member_id) REFERENCES public.space_members(id);
+    ADD CONSTRAINT posts_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
 
 
 --
--- Name: space_members space_members_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: space_users space_users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.space_members
-    ADD CONSTRAINT space_members_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+ALTER TABLE ONLY public.space_users
+    ADD CONSTRAINT space_users_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
 
 
 --
--- Name: space_members space_members_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: space_users space_users_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.space_members
-    ADD CONSTRAINT space_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+ALTER TABLE ONLY public.space_users
+    ADD CONSTRAINT space_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --

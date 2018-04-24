@@ -8,7 +8,7 @@ defmodule Level.Groups.Group do
 
   alias Level.Groups.Group
   alias Level.Spaces.Space
-  alias Level.Spaces.Member
+  alias Level.Spaces.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -21,7 +21,7 @@ defmodule Level.Groups.Group do
     field :is_private, :boolean, default: false
 
     belongs_to :space, Space
-    belongs_to :creator, Member
+    belongs_to :creator, SpaceUser
 
     timestamps()
   end

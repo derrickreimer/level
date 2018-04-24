@@ -30,13 +30,13 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space, member: member}} = create_user_and_space()
+    {:ok, %{user: user, space: space, space_user: space_user}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, user)
-    {:ok, %{conn: conn, user: user, space: space, member: member}}
+    {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "updates a group given valid data", %{conn: conn, member: member} do
-    {:ok, %{group: group}} = create_group(member, %{name: "Old name"})
+  test "updates a group given valid data", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user, %{name: "Old name"})
     variables = %{space_id: group.space_id, group_id: group.id, name: "New name"}
 
     conn =
@@ -57,8 +57,8 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
            }
   end
 
-  test "returns validation errors given invalid data", %{conn: conn, member: member} do
-    {:ok, %{group: group}} = create_group(member, %{name: "Old name"})
+  test "returns validation errors given invalid data", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user, %{name: "Old name"})
     variables = %{space_id: group.space_id, group_id: group.id, name: ""}
 
     conn =

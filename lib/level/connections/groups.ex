@@ -35,9 +35,9 @@ defmodule Level.Connections.Groups do
   """
   def get(space, args, %{context: %{current_user: user}} = _context) do
     case Spaces.get_space(user, space.id) do
-      {:ok, %{member: member}} ->
+      {:ok, %{space_user: space_user}} ->
         base_query =
-          member
+          space_user
           |> Groups.list_groups_query()
           |> where(state: ^args.state)
 

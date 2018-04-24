@@ -21,15 +21,15 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space, member: member}} = create_user_and_space()
+    {:ok, %{user: user, space: space, space_user: space_user}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, user)
-    {:ok, %{conn: conn, user: user, space: space, member: member}}
+    {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "users can list their group memberships", %{conn: conn, member: member} do
-    {:ok, %{group: _group}} = create_group(member, %{name: "Cool peeps"})
+  test "users can list their group memberships", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: _group}} = create_group(space_user, %{name: "Cool peeps"})
 
-    variables = %{space_id: member.space_id}
+    variables = %{space_id: space_user.space_id}
 
     conn =
       conn

@@ -5,13 +5,13 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   alias Level.Groups
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space, member: member}} = create_user_and_space()
+    {:ok, %{user: user, space: space, space_user: space_user}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, user)
-    {:ok, %{conn: conn, user: user, space: space, member: member}}
+    {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "spaces have a paginated groups field", %{conn: conn, member: member} do
-    {:ok, %{group: group}} = create_group(member)
+  test "spaces have a paginated groups field", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
 
     query = """
       query Groups(
@@ -30,7 +30,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       }
     """
 
-    variables = %{space_id: member.space_id}
+    variables = %{space_id: space_user.space_id}
 
     conn =
       conn
@@ -55,9 +55,9 @@ defmodule LevelWeb.GraphQL.GroupsTest do
            }
   end
 
-  test "filtering groups by state", %{conn: conn, member: member} do
-    {:ok, %{group: _open_group}} = create_group(member)
-    {:ok, %{group: group}} = create_group(member)
+  test "filtering groups by state", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: _open_group}} = create_group(space_user)
+    {:ok, %{group: group}} = create_group(space_user)
     {:ok, closed_group} = Groups.close_group(group)
 
     query = """
@@ -77,7 +77,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       }
     """
 
-    variables = %{space_id: member.space_id}
+    variables = %{space_id: space_user.space_id}
 
     conn =
       conn

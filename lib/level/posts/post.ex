@@ -8,7 +8,7 @@ defmodule Level.Posts.Post do
   import Ecto.Changeset
 
   alias Level.Spaces.Space
-  alias Level.Spaces.Member
+  alias Level.Spaces.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -19,7 +19,7 @@ defmodule Level.Posts.Post do
     field :body, :string
 
     belongs_to :space, Space
-    belongs_to :space_member, Member
+    belongs_to :space_user, SpaceUser
 
     timestamps()
   end
@@ -27,7 +27,7 @@ defmodule Level.Posts.Post do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_member_id, :body])
+    |> cast(attrs, [:space_id, :space_user_id, :body])
     |> validate_required([:body])
   end
 end

@@ -9,24 +9,28 @@ defmodule Level.ConnectionsTest do
       create_user_and_space()
     end
 
-    test "includes open groups by default", %{space: space, user: user, member: member} do
-      {:ok, %{group: open_group}} = create_group(member)
+    test "includes open groups by default", %{space: space, user: user, space_user: space_user} do
+      {:ok, %{group: open_group}} = create_group(space_user)
       {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
 
       assert edges_include?(edges, open_group.id)
     end
 
-    test "does not include closed groups by default", %{space: space, user: user, member: member} do
-      {:ok, %{group: group}} = create_group(member)
+    test "does not include closed groups by default", %{
+      space: space,
+      user: user,
+      space_user: space_user
+    } do
+      {:ok, %{group: group}} = create_group(space_user)
       {:ok, closed_group} = Groups.close_group(group)
       {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
 
       refute edges_include?(edges, closed_group.id)
     end
 
-    test "filters by closed state", %{space: space, user: user, member: member} do
-      {:ok, %{group: open_group}} = create_group(member)
-      {:ok, %{group: closed_group}} = create_group(member)
+    test "filters by closed state", %{space: space, user: user, space_user: space_user} do
+      {:ok, %{group: open_group}} = create_group(space_user)
+      {:ok, %{group: closed_group}} = create_group(space_user)
       {:ok, closed_group} = Groups.close_group(closed_group)
 
       {:ok, %{edges: edges}} =
@@ -42,13 +46,13 @@ defmodule Level.ConnectionsTest do
       create_user_and_space()
     end
 
-    test "includes groups the user is a member of", %{user: user, member: member} do
-      {:ok, %{group: group}} = create_group(member)
+    test "includes groups the user is a member of", %{user: user, space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user)
 
       {:ok, %{edges: edges}} =
         Connections.group_memberships(
           user,
-          %{space_id: member.space_id, first: 10},
+          %{space_id: space_user.space_id, first: 10},
           build_context(user)
         )
 

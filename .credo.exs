@@ -71,10 +71,9 @@
         # set this value to 0 (zero).
         {Credo.Check.Design.TagTODO, exit_status: 0},
         {Credo.Check.Design.TagFIXME},
-
         {Credo.Check.Readability.FunctionNames},
         {Credo.Check.Readability.LargeNumbers},
-        {Credo.Check.Readability.MaxLineLength, priority: :low, max_length: 100},
+        {Credo.Check.Readability.MaxLineLength, priority: :low, max_length: 110},
         {Credo.Check.Readability.ModuleAttributeNames},
         {Credo.Check.Readability.ModuleDoc},
         {Credo.Check.Readability.ModuleNames},
@@ -89,7 +88,6 @@
         {Credo.Check.Readability.VariableNames},
         {Credo.Check.Readability.Semicolons},
         {Credo.Check.Readability.SpaceAfterCommas},
-
         {Credo.Check.Refactor.DoubleBooleanNegation},
         {Credo.Check.Refactor.CondStatements},
         {Credo.Check.Refactor.CyclomaticComplexity},
@@ -100,7 +98,6 @@
         {Credo.Check.Refactor.Nesting},
         {Credo.Check.Refactor.PipeChainStart},
         {Credo.Check.Refactor.UnlessWithElse},
-
         {Credo.Check.Warning.BoolOperationOnSameValues},
         {Credo.Check.Warning.IExPry},
         {Credo.Check.Warning.IoInspect},
@@ -124,7 +121,7 @@
         {Credo.Check.Warning.MapGetUnsafePass},
 
         # Deprecated checks (these will be deleted after a grace period)
-        {Credo.Check.Readability.Specs, false},
+        {Credo.Check.Readability.Specs, false}
 
         # Custom checks can be created using `mix credo.gen.check`.
         #

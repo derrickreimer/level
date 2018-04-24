@@ -1,21 +1,24 @@
-defmodule Level.Spaces.Member do
+defmodule Level.Spaces.SpaceUser do
   @moduledoc """
-  The Space Member context.
+  The SpaceUser context.
   """
 
   use Ecto.Schema
 
   import Ecto.Changeset
 
+  alias Level.Spaces.Space
+  alias Level.Users.User
+
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "space_members" do
+  schema "space_users" do
     field :state, :string, read_after_writes: true
     field :role, :string, read_after_writes: true
-    belongs_to :space, Level.Spaces.Space
-    belongs_to :user, Level.Users.User
+    belongs_to :space, Space
+    belongs_to :user, User
 
     # Holds the group name when loaded via a join
     field :name, :string, virtual: true

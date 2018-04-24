@@ -6,25 +6,25 @@ defmodule Level.Spaces do
   import Level.Gettext
 
   alias Ecto.Multi
-  alias Level.Spaces.Member
   alias Level.Spaces.Space
+  alias Level.Spaces.SpaceUser
   alias Level.Repo
   alias Level.Users.User
 
   @typedoc "The result of creating a space"
   @type create_space_result ::
-          {:ok, %{space: Space.t(), member: Member.t()}}
-          | {:error, :space | :member, any(), %{optional(:space | :member) => any()}}
+          {:ok, %{space: Space.t(), space_user: SpaceUser.t()}}
+          | {:error, :space | :space_user, any(), %{optional(:space | :member) => any()}}
 
   @doc """
   Fetches a space by id.
   """
   @spec get_space(User.t(), String.t()) ::
-          {:ok, %{space: Space.t(), member: Member.t()}} | {:error, String.t()}
-  def get_space(%User{} = user, id) do
+          {:ok, %{space: Space.t(), space_user: SpaceUser.t()}} | {:error, String.t()}
+  def get_space(user, id) do
     with %Space{} = space <- Repo.get(Space, id),
-         %Member{} = member <- Repo.get_by(Member, user_id: user.id, space_id: space.id) do
-      {:ok, %{space: space, member: member}}
+         %SpaceUser{} = space_user <- Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+      {:ok, %{space: space, space_user: space_user}}
     else
       _ ->
         {:error, dgettext("errors", "Space not found")}
@@ -54,27 +54,27 @@ defmodule Level.Spaces do
   def create_space(user, params) do
     Multi.new()
     |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
-    |> Multi.run(:member, fn %{space: space} -> create_owner(user, space) end)
+    |> Multi.run(:space_user, fn %{space: space} -> create_owner(user, space) end)
     |> Repo.transaction()
   end
 
   @doc """
   Establishes a user as an owner of space.
   """
-  @spec create_owner(User.t(), Space.t()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  @spec create_owner(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
   def create_owner(user, space) do
-    %Member{}
-    |> Member.create_changeset(%{user_id: user.id, space_id: space.id, role: "OWNER"})
+    %SpaceUser{}
+    |> SpaceUser.create_changeset(%{user_id: user.id, space_id: space.id, role: "OWNER"})
     |> Repo.insert()
   end
 
   @doc """
-  Establishes a user as a member of space.
+  Establishes a user as a member of a space.
   """
-  @spec create_member(User.t(), Space.t()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  @spec create_member(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
   def create_member(user, space) do
-    %Member{}
-    |> Member.create_changeset(%{user_id: user.id, space_id: space.id, role: "MEMBER"})
+    %SpaceUser{}
+    |> SpaceUser.create_changeset(%{user_id: user.id, space_id: space.id, role: "MEMBER"})
     |> Repo.insert()
   end
 end

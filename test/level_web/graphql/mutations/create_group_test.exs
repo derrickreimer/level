@@ -31,9 +31,9 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space, member: member}} = create_user_and_space()
+    {:ok, %{user: user, space: space, space_user: space_user}} = create_user_and_space()
     conn = authenticate_with_jwt(conn, user)
-    {:ok, %{conn: conn, user: user, space: space, member: member}}
+    {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
   test "creates a group given valid data", %{conn: conn, space: space} do
@@ -84,14 +84,17 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
            }
   end
 
-  test "returns validation errors when uniqueness error occurs", %{conn: conn, member: member} do
+  test "returns validation errors when uniqueness error occurs", %{
+    conn: conn,
+    space_user: space_user
+  } do
     variables = valid_group_params()
 
-    Groups.create_group(member, variables)
+    Groups.create_group(space_user, variables)
 
     variables =
       variables
-      |> Map.put(:space_id, member.space_id)
+      |> Map.put(:space_id, space_user.space_id)
 
     conn =
       conn

@@ -10,7 +10,7 @@ defmodule Level.Connections.SpaceMemberships do
   alias Level.Pagination.Args
   alias Level.Repo
   alias Level.Spaces.Space
-  alias Level.Spaces.Member
+  alias Level.Spaces.SpaceUser
 
   defstruct first: nil,
             last: nil,
@@ -35,13 +35,13 @@ defmodule Level.Connections.SpaceMemberships do
   def get(user, args, %{context: %{current_user: authenticated_user}} = _context) do
     if authenticated_user == user do
       base_query =
-        from m in Member,
-          where: m.user_id == ^user.id,
+        from su in SpaceUser,
+          where: su.user_id == ^user.id,
           join: s in Space,
-          on: s.id == m.space_id,
-          select: %{m | name: s.name}
+          on: s.id == su.space_id,
+          select: %{su | name: s.name}
 
-      wrapped_query = from(m in subquery(base_query))
+      wrapped_query = from(su in subquery(base_query))
       Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
     else
       {:error,

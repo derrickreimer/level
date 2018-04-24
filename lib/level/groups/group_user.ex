@@ -1,6 +1,6 @@
-defmodule Level.Groups.Member do
+defmodule Level.Groups.GroupUser do
   @moduledoc """
-  The Group Member schema.
+  The GroupUser schema.
   """
 
   use Ecto.Schema
@@ -8,16 +8,16 @@ defmodule Level.Groups.Member do
   import Level.Gettext
 
   alias Level.Groups.Group
-  alias Level.Spaces.Member
   alias Level.Spaces.Space
+  alias Level.Spaces.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "group_members" do
+  schema "group_users" do
     belongs_to :space, Space
-    belongs_to :space_member, Member
+    belongs_to :space_user, SpaceUser
     belongs_to :group, Group
 
     # Holds the group name when loaded via a join
@@ -29,10 +29,10 @@ defmodule Level.Groups.Member do
   @doc false
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:space_id, :space_member_id, :group_id])
+    |> cast(params, [:space_id, :space_user_id, :group_id])
     |> unique_constraint(
       :user,
-      name: :group_members_space_member_id_group_id_index,
+      name: :group_users_space_user_id_group_id_index,
       message: dgettext("errors", "is already a member")
     )
   end
