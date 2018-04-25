@@ -36,6 +36,8 @@ defmodule LevelWeb.Router do
   scope "/", LevelWeb do
     pipe_through :anonymous_browser
 
+    get "/", PageController, :index
+
     get "/login", SessionController, :new
     post "/login", SessionController, :create
 
@@ -53,13 +55,6 @@ defmodule LevelWeb.Router do
       default_url: "/graphql"
   end
 
-  scope "/", LevelWeb do
-    pipe_through :authenticated_browser
-
-    resources "/spaces", SpaceController
-    get "/", CockpitController, :index
-  end
-
   scope "/api", LevelWeb.API do
     pipe_through :browser_api_without_csrf
     resources "/tokens", UserTokenController, only: [:create]
@@ -68,6 +63,16 @@ defmodule LevelWeb.Router do
   # Preview sent emails in development mode
   if Mix.env() == :dev do
     forward "/sent_emails", Bamboo.EmailPreviewPlug
+  end
+
+  scope "/", LevelWeb do
+    pipe_through :authenticated_browser
+
+    get "/spaces", SpaceController, :index
+    get "/spaces/new", SpaceController, :new
+
+    # Important: this must be the last route defined
+    get "/:slug", SpaceController, :show
   end
 
   def graphiql_headers(conn) do

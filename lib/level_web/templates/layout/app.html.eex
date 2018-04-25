@@ -9,11 +9,15 @@
     <meta name="csrf_token" content="<%= Plug.CSRFProtection.get_csrf_token() %>">
 
     <%= if assigns[:api_token] do %>
-      <meta name="api_token" content="<%= @api_token %>">
+    <meta name="api_token" content="<%= @api_token %>">
     <% end %>
 
     <%= if assigns[:module] do %>
-      <meta name="module" content="<%= @module %>">
+    <meta name="module" content="<%= @module %>">
+    <% end %>
+
+    <%= if assigns[:space_id] do %>
+    <meta name="space_id" content="<%= @space_id %>">
     <% end %>
 
     <title>Level</title>
