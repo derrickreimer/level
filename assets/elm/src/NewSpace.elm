@@ -122,6 +122,7 @@ type alias FormField =
     , placeholder : String
     , value : String
     , onInput : String -> Msg
+    , autofocus : Bool
     }
 
 
@@ -151,7 +152,7 @@ view model =
                         [ text "Create a new space" ]
                     , div [ class "pb-6" ]
                         [ label [ for "name", class "input-label" ] [ text "Name your space" ]
-                        , textField (FormField "text" "name" "Smith, Co." model.name NameChanged)
+                        , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True)
                             (errorsFor "name" model.errors)
                         ]
                     , div [ class "pb-6" ]
@@ -187,6 +188,7 @@ textField field errors =
                 , placeholder field.placeholder
                 , value field.value
                 , onInput field.onInput
+                , autofocus field.autofocus
                 ]
                 []
             , formErrors errors
