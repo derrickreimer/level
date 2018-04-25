@@ -3,9 +3,14 @@ defmodule LevelWeb.CockpitController do
 
   use LevelWeb, :controller
 
+  alias LevelWeb.Auth
+
   def index(conn, _params) do
     user = conn.assigns[:current_user]
-    api_token = LevelWeb.Auth.generate_signed_jwt(user)
-    render conn, "index.html", api_token: api_token, module: "main"
+
+    conn
+    |> assign(:api_token, Auth.generate_signed_jwt(user))
+    |> assign(:module, "main")
+    |> render("index.html")
   end
 end

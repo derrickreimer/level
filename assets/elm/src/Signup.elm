@@ -3,14 +3,11 @@ module Signup exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onBlur)
-import Regex exposing (regex)
 import Http
-import Json.Encode as Encode
-import Json.Decode as Decode exposing (decodeString)
-import Time exposing (Time, second)
-import Navigation
+import Regex exposing (regex)
 import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
-import Util exposing (postWithCsrfToken)
+import Mutation.CreateSpace as CreateSpace
+import Session exposing (Session)
 
 
 main : Program Flags Model Msg
@@ -28,13 +25,9 @@ main =
 
 
 type alias Model =
-    { csrfToken : String
-    , spaceName : String
+    { session : Session
+    , name : String
     , slug : String
-    , firstName : String
-    , lastName : String
-    , email : String
-    , password : String
     , errors : List ValidationError
     , lastCheckedSlug : String
     , formState : FormState
@@ -47,7 +40,7 @@ type FormState
 
 
 type alias Flags =
-    { csrfToken : String
+    { apiToken : String
     }
 
 
@@ -58,13 +51,9 @@ init flags =
 
 initialState : Flags -> Model
 initialState flags =
-    { csrfToken = flags.csrfToken
-    , spaceName = ""
+    { session = Session.init flags.apiToken
+    , name = ""
     , slug = ""
-    , firstName = ""
-    , lastName = ""
-    , email = ""
-    , password = ""
     , errors = []
     , lastCheckedSlug = ""
     , formState = Idle
@@ -76,113 +65,39 @@ initialState flags =
 
 
 type Msg
-    = SpaceNameChanged String
+    = NameChanged String
     | SlugChanged String
-    | FirstNameChanged String
-    | LastNameChanged String
-    | EmailChanged String
-    | PasswordChanged String
-    | SpaceNameBlurred
-    | SlugBlurred
-    | FirstNameBlurred
-    | LastNameBlurred
-    | EmailBlurred
-    | PasswordBlurred
     | Submit
-    | Submitted (Result Http.Error String)
-    | Validate
-    | Validated String (Result Http.Error (List ValidationError))
-    | Tick Time
+    | Submitted (Result Http.Error CreateSpace.Response)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SpaceNameChanged val ->
-            ( { model | spaceName = val, slug = (slugify val) }, Cmd.none )
+        NameChanged val ->
+            ( { model | name = val, slug = (slugify val) }, Cmd.none )
 
         SlugChanged val ->
             ( { model | slug = val }, Cmd.none )
 
-        FirstNameChanged val ->
-            ( { model | firstName = val }, Cmd.none )
-
-        LastNameChanged val ->
-            ( { model | lastName = val }, Cmd.none )
-
-        EmailChanged val ->
-            ( { model | email = val }, Cmd.none )
-
-        PasswordChanged val ->
-            ( { model | password = val }, Cmd.none )
-
-        SpaceNameBlurred ->
-            validateIfPresent model "spaceName" model.spaceName
-
-        SlugBlurred ->
-            validateIfPresent model "slug" model.slug
-
-        FirstNameBlurred ->
-            validateIfPresent model "firstName" model.firstName
-
-        LastNameBlurred ->
-            validateIfPresent model "lastName" model.lastName
-
-        EmailBlurred ->
-            validateIfPresent model "email" model.email
-
-        PasswordBlurred ->
-            validateIfPresent model "password" model.password
-
         Submit ->
             ( { model | formState = Submitting }, submit model )
 
-        Submitted (Ok redirectUrl) ->
-            ( model, Navigation.load redirectUrl )
+        Submitted (Ok (CreateSpace.Success space)) ->
+            -- TODO
+            ( model, Cmd.none )
 
-        Submitted (Err (Http.BadStatus resp)) ->
-            case decodeString failureDecoder resp.body of
-                Ok value ->
-                    ( { model | formState = Idle, errors = value }, Cmd.none )
-
-                Err _ ->
-                    ( { model | formState = Idle }, Cmd.none )
+        Submitted (Ok (CreateSpace.Invalid errors)) ->
+            -- TODO
+            ( model, Cmd.none )
 
         Submitted (Err _) ->
             ( { model | formState = Idle }, Cmd.none )
 
-        Validate ->
-            ( model, Cmd.none )
-
-        Validated attribute (Ok errors) ->
-            let
-                newErrors =
-                    (errorsFor attribute errors)
-                        ++ (errorsNotFor attribute model.errors)
-            in
-                ( { model | errors = newErrors }, Cmd.none )
-
-        Validated _ (Err _) ->
-            ( model, Cmd.none )
-
-        Tick _ ->
-            if not (model.slug == "") && not (model.slug == model.lastCheckedSlug) then
-                ( { model | lastCheckedSlug = model.slug }, validate "slug" model )
-            else
-                ( model, Cmd.none )
-
-
-validateIfPresent : Model -> String -> String -> ( Model, Cmd Msg )
-validateIfPresent model attribute value =
-    if not (value == "") then
-        ( model, validate attribute model )
-    else
-        ( model, Cmd.none )
-
 
 slugify : String -> String
-slugify spaceName =
-    spaceName
+slugify name =
+    name
         |> String.toLower
         |> (Regex.replace Regex.All (regex "[^a-z0-9]+") (\_ -> "-"))
         |> (Regex.replace Regex.All (regex "(^-|-$)") (\_ -> ""))
@@ -195,7 +110,7 @@ slugify spaceName =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every second Tick
+    Sub.none
 
 
 
@@ -208,7 +123,6 @@ type alias FormField =
     , placeholder : String
     , value : String
     , onInput : String -> Msg
-    , onBlur : Msg
     }
 
 
@@ -228,27 +142,14 @@ view model =
                 [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darker pb-8" ]
                     [ text "Create a new space" ]
                 , div [ class "pb-6" ]
-                    [ label [ for "first_name", class "input-label" ] [ text "Your name" ]
-                    , div [ class "flex" ]
-                        [ div [ class "flex-1 mr-2" ]
-                            [ textField (FormField "text" "first_name" "Jane" model.firstName FirstNameChanged FirstNameBlurred)
-                                (errorsFor "first_name" model.errors)
-                            ]
-                        , div [ class "flex-1" ]
-                            [ textField (FormField "text" "last_name" "Smith" model.lastName LastNameChanged LastNameBlurred)
-                                (errorsFor "last_name" model.errors)
-                            ]
-                        ]
+                    [ label [ for "name", class "input-label" ] [ text "Name your space" ]
+                    , textField (FormField "text" "name" "Smith, Co." model.name NameChanged)
+                        (errorsFor "name" model.errors)
                     ]
                 , div [ class "pb-6" ]
-                    [ label [ for "email", class "input-label" ] [ text "Email address" ]
-                    , textField (FormField "email" "email" "jane@smithco.com" model.email EmailChanged EmailBlurred)
-                        (errorsFor "email" model.errors)
-                    ]
-                , div [ class "pb-6" ]
-                    [ label [ for "space_name", class "input-label" ] [ text "Name of your organization" ]
-                    , textField (FormField "text" "space_name" "Smith, Co." model.spaceName SpaceNameChanged SpaceNameBlurred)
-                        (errorsFor "space_name" model.errors)
+                    [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
+                    , textField (FormField "text" "slug" "smith-co" model.slug SlugChanged)
+                        (errorsFor "slug" model.errors)
                     ]
                 , button
                     [ type_ "submit"
@@ -257,10 +158,6 @@ view model =
                     , disabled (model.formState == Submitting)
                     ]
                     [ text "Let's get started" ]
-                ]
-            , div [ class "px-16 pt-6 pb-24 text-sm text-dusty-blue-dark text-center" ]
-                [ text "Already have a space? "
-                , a [ href "/spaces/search", class "text-blue" ] [ text "Sign in" ]
                 ]
             ]
         ]
@@ -283,7 +180,6 @@ textField field errors =
                 , placeholder field.placeholder
                 , value field.value
                 , onInput field.onInput
-                , onBlur field.onBlur
                 ]
                 []
             , formErrors errors
@@ -306,51 +202,5 @@ formErrors errors =
 
 submit : Model -> Cmd Msg
 submit model =
-    Http.send Submitted (buildSubmitRequest model)
-
-
-validate : String -> Model -> Cmd Msg
-validate attribute model =
-    Http.send (Validated attribute) (buildValidationRequest model)
-
-
-buildSubmitRequest : Model -> Http.Request String
-buildSubmitRequest model =
-    postWithCsrfToken model.csrfToken "/api/spaces" (buildBody model) successDecoder
-
-
-buildValidationRequest : Model -> Http.Request (List ValidationError)
-buildValidationRequest model =
-    postWithCsrfToken model.csrfToken "/api/signup/errors" (buildBody model) failureDecoder
-
-
-buildBody : Model -> Http.Body
-buildBody model =
-    Http.jsonBody
-        (Encode.object
-            [ ( "signup"
-              , Encode.object
-                    [ ( "space_name", Encode.string model.spaceName )
-                    , ( "slug", Encode.string model.slug )
-                    , ( "first_name", Encode.string model.firstName )
-                    , ( "last_name", Encode.string model.lastName )
-                    , ( "email", Encode.string model.email )
-                    , ( "password", Encode.string model.password )
-                    ]
-              )
-            ]
-        )
-
-
-
--- DECODERS
-
-
-successDecoder : Decode.Decoder String
-successDecoder =
-    Decode.at [ "redirect_url" ] Decode.string
-
-
-failureDecoder : Decode.Decoder (List ValidationError)
-failureDecoder =
-    Decode.field "errors" (Decode.list errorDecoder)
+    CreateSpace.request (CreateSpace.Params model.name model.slug) model.session
+        |> Http.send Submitted

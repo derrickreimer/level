@@ -3,12 +3,19 @@ defmodule LevelWeb.SpaceController do
 
   use LevelWeb, :controller
 
+  alias LevelWeb.Auth
+
   def index(conn, _params) do
     # TODO: fetch spaces the user has access to
     render conn, "index.html"
   end
 
   def new(conn, _params) do
-    render conn, "new.html", module: "signup"
+    user = conn.assigns[:current_user]
+
+    conn
+    |> assign(:api_token, Auth.generate_signed_jwt(user))
+    |> assign(:module, "signup")
+    |> render("new.html")
   end
 end
