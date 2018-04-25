@@ -26,6 +26,7 @@ defmodule Level.Spaces.Space do
     struct
     |> cast(attrs, [:name, :slug])
     |> validate_required([:name, :slug])
+    |> unique_constraint(:slug, name: :spaces_lower_slug_index)
   end
 
   @doc """

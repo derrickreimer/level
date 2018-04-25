@@ -127,7 +127,7 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container mx-auto px-4 py-24 flex justify-center max-w-sm" ]
+    div [ class "container mx-auto px-4 py-24 flex justify-center max-w-430px" ]
         [ div [ class "w-full" ]
             [ div [ class "mb-8 text-center" ]
                 [ img [ src "/images/logo-md.svg", class "logo-md", alt "Level" ] []
