@@ -15,7 +15,7 @@ defmodule LevelWeb.SpaceController do
 
     conn
     |> assign(:api_token, Auth.generate_signed_jwt(user))
-    |> assign(:module, "signup")
+    |> assign(:module, "new_space")
     |> render("new.html")
   end
 end

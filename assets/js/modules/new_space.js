@@ -1,8 +1,8 @@
 import { getApiToken } from "../token";
-import { Signup } from "../../elm/src/Signup.elm";
+import { NewSpace } from "../../elm/src/NewSpace.elm";
 
 export function initialize() {
-  const app = Signup.fullscreen({
+  const app = NewSpace.fullscreen({
     apiToken: getApiToken()
   });
 }

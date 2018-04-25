@@ -17,7 +17,7 @@ import "phoenix_html";
 // paths "./socket" or full ones "web/static/js/socket".
 
 import * as Main from "./modules/main";
-import * as Signup from "./modules/signup";
+import * as NewSpace from "./modules/new_space";
 
 const moduleNode = document.head.querySelector("meta[name='module']");
 
@@ -27,8 +27,8 @@ if (moduleNode) {
       Main.initialize();
       break;
 
-    case "signup":
-      Signup.initialize();
+    case "new_space":
+      NewSpace.initialize();
       break;
 
     default:

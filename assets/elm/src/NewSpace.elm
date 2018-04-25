@@ -1,4 +1,4 @@
-module Signup exposing (..)
+module NewSpace exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
