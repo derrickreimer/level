@@ -40,6 +40,14 @@
    max-width: 430px;
  }
 
+ .no-outline {
+   outline: none;
+ }
+
+ .no-outline:focus {
+   outline: none;
+ }
+
 .logo-md {
   width: 99px;
   height: 20px;
@@ -58,7 +66,8 @@
   @apply .border-2 .rounded-lg .p-3 .w-full .text-dusty-blue-darker;
 }
 
-.input-field:focus {
+.input-field:focus,
+.input-field:focus-within {
   @apply .border-turquoise;
   outline: none;
 }
@@ -71,7 +80,8 @@
   @apply .border-red;
 }
 
-.input-field-error:focus {
+.input-field-error:focus,
+.input-field-error:focus-within {
   @apply .border-red;
 }
 
