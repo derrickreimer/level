@@ -10,6 +10,17 @@ defmodule LevelWeb.UserControllerTest do
       body = html_response(conn, 200)
       assert body =~ "Sign up for Level"
     end
+
+    test "redirects to spaces if already logged in", %{conn: conn} do
+      {:ok, user} = create_user()
+
+      conn =
+        conn
+        |> assign(:current_user, user)
+        |> get("/signup")
+
+      assert redirected_to(conn, 302) =~ "/spaces"
+    end
   end
 
   describe "POST /signup" do

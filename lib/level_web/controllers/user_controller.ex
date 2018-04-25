@@ -7,9 +7,16 @@ defmodule LevelWeb.UserController do
   alias Level.Users.User
 
   def new(conn, _params) do
-    conn
-    |> assign(:changeset, Users.create_user_changeset(%User{}))
-    |> render("new.html")
+    case conn.assigns[:current_user] do
+      %User{} ->
+        conn
+        |> redirect(to: space_path(conn, :index))
+
+      _ ->
+        conn
+        |> assign(:changeset, Users.create_user_changeset(%User{}))
+        |> render("new.html")
+    end
   end
 
   def create(conn, %{"user" => user_params}) do
