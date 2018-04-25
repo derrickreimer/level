@@ -46,10 +46,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.max-w-430px {
-  max-width: 430px;
-}
-
 .input-label {
   @apply .text-sm .font-bold .text-dusty-blue-darker .pb-2 .block;
 }

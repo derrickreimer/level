@@ -14,7 +14,7 @@ defmodule Level.Spaces do
   @typedoc "The result of creating a space"
   @type create_space_result ::
           {:ok, %{space: Space.t(), space_user: SpaceUser.t()}}
-          | {:error, :space | :space_user, any(), %{optional(:space | :member) => any()}}
+          | {:error, :space | :space_user, any(), %{optional(:space | :space_user) => any()}}
 
   @doc """
   Fetches a space by id.

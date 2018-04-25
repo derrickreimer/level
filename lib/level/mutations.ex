@@ -14,6 +14,11 @@ defmodule Level.Mutations do
   @typedoc "A list of validation errors"
   @type validation_errors :: [%{attribute: String.t(), message: String.t()}]
 
+  @typedoc "The result of a space mutation"
+  @type space_mutation_result ::
+          {:ok, %{success: boolean(), space: Spaces.Space.t() | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+
   @typedoc "The result of a group mutation"
   @type group_mutation_result ::
           {:ok, %{success: boolean(), group: Groups.Group.t() | nil, errors: validation_errors()}}
@@ -23,6 +28,26 @@ defmodule Level.Mutations do
   @type post_mutation_result ::
           {:ok, %{success: boolean(), post: Posts.Post.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
+
+  @doc """
+  Creates a new space.
+  """
+  @spec create_space(map(), authenticated_context()) :: space_mutation_result()
+  def create_space(args, %{context: %{current_user: user}}) do
+    resp =
+      case Spaces.create_space(user, args) do
+        {:ok, %{space: space}} ->
+          %{success: true, space: space, errors: []}
+
+        {:error, :space, changeset, _} ->
+          %{success: false, space: nil, errors: format_errors(changeset)}
+
+        _ ->
+          %{success: false, space: nil, errors: []}
+      end
+
+    {:ok, resp}
+  end
 
   @doc """
   Creates a new group.

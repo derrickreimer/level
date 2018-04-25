@@ -88,8 +88,7 @@ update msg model =
             ( model, Cmd.none )
 
         Submitted (Ok (CreateSpace.Invalid errors)) ->
-            -- TODO
-            ( model, Cmd.none )
+            ( { model | errors = errors, formState = Idle }, Cmd.none )
 
         Submitted (Err _) ->
             ( { model | formState = Idle }, Cmd.none )
@@ -128,14 +127,14 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container mx-auto px-4 py-24 flex justify-center" ]
-        [ div []
+    div [ class "container mx-auto px-4 py-24 flex justify-center max-w-sm" ]
+        [ div [ class "w-full" ]
             [ div [ class "mb-8 text-center" ]
                 [ img [ src "/images/logo-md.svg", class "logo-md", alt "Level" ] []
                 ]
             , div
                 [ classList
-                    [ ( "px-16 py-8 bg-white rounded-lg border max-w-430px", True )
+                    [ ( "px-16 py-8 bg-white rounded-lg border", True )
                     , ( "shake", not (List.isEmpty model.errors) )
                     ]
                 ]
