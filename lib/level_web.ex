@@ -43,8 +43,6 @@ defmodule LevelWeb do
           authenticate_with_token: 2,
           authenticate_user: 2
         ]
-
-      import LevelWeb.UrlHelpers
     end
   end
 
@@ -67,8 +65,8 @@ defmodule LevelWeb do
 
       import LevelWeb.Router.Helpers
       import LevelWeb.ErrorHelpers
+      import LevelWeb.FormHelpers
       import Level.Gettext
-      import LevelWeb.UrlHelpers
     end
   end
 

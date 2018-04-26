@@ -2,14 +2,14 @@
   <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="container mx-auto px-4 py-24 flex justify-center">
-  <div>
+<div class="container mx-auto px-4 py-24 flex justify-center max-w-430px">
+  <div class="w-full">
     <div class="mb-8 text-center">
       <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>
     </div>
 
     <%= form_for @conn, session_path(@conn, :create), [as: :session], fn f -> %>
-      <div class="px-16 py-8 bg-white rounded-lg border max-w-430px">
+      <div class="px-16 py-8 bg-white rounded-lg border">
         <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darker pb-8">Sign in to Level</h1>
         <div class="pb-6">
           <%= label f, :email, gettext("Email address"), class: "input-label" %>
@@ -27,7 +27,7 @@
       </div>
       <div class="px-16 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
         <%= gettext "Want to create a space instead?" %>
-        <%= link gettext("Sign up"), to: signup_url(@conn), class: "text-blue" %>
+        <%= link gettext("Sign up"), to: user_path(@conn, :new), class: "text-blue" %>
       </div>
     <% end %>
   </div>

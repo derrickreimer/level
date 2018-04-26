@@ -26,7 +26,6 @@ defmodule LevelWeb.ConnCase do
       import Ecto.Query
 
       import LevelWeb.Router.Helpers
-      import LevelWeb.UrlHelpers
       import Level.TestHelpers
       import Level.ConnCaseHelpers
 

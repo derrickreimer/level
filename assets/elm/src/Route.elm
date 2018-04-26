@@ -1,4 +1,4 @@
-module Route exposing (Route(..), route, href, fromLocation, modifyUrl, toLogin)
+module Route exposing (Route(..), route, href, fromLocation, modifyUrl, toLogin, toSpace)
 
 {-| Routing logic for the application.
 -}
@@ -7,6 +7,7 @@ import Navigation exposing (Location)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string)
+import Data.Space exposing (Space)
 
 
 -- ROUTING --
@@ -68,3 +69,8 @@ fromLocation location =
 toLogin : Cmd msg
 toLogin =
     Navigation.load "/login"
+
+
+toSpace : Space -> Cmd msg
+toSpace space =
+    Navigation.load ("/" ++ space.slug)

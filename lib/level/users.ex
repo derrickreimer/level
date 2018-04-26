@@ -23,12 +23,20 @@ defmodule Level.Users do
   end
 
   @doc """
+  Generates a changeset for creating a user.
+  """
+  @spec create_user_changeset(User.t(), map()) :: Ecto.Changeset.t()
+  def create_user_changeset(user, params \\ %{}) do
+    User.create_changeset(user, params)
+  end
+
+  @doc """
   Creates a new user.
   """
   @spec create_user(map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def create_user(params) do
     %User{}
-    |> User.create_changeset(params)
+    |> create_user_changeset(params)
     |> Repo.insert()
   end
 end

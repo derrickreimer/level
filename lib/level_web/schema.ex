@@ -34,33 +34,41 @@ defmodule LevelWeb.Schema do
   end
 
   mutation do
+    @desc "Create a space."
+    field :create_space, type: :create_space_payload do
+      arg :name, non_null(:string)
+      arg :slug, non_null(:string)
+
+      resolve &Level.Mutations.create_space/2
+    end
+
     @desc "Create a group."
     field :create_group, type: :create_group_payload do
-      arg(:space_id, non_null(:id))
-      arg(:name, non_null(:string))
-      arg(:description, :string)
-      arg(:is_private, :boolean)
+      arg :space_id, non_null(:id)
+      arg :name, non_null(:string)
+      arg :description, :string
+      arg :is_private, :boolean
 
-      resolve(&Level.Mutations.create_group/2)
+      resolve &Level.Mutations.create_group/2
     end
 
     @desc "Update a group."
     field :update_group, type: :update_group_payload do
-      arg(:space_id, non_null(:id))
-      arg(:group_id, non_null(:id))
-      arg(:name, :string)
-      arg(:description, :string)
-      arg(:is_private, :boolean)
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+      arg :name, :string
+      arg :description, :string
+      arg :is_private, :boolean
 
-      resolve(&Level.Mutations.update_group/2)
+      resolve &Level.Mutations.update_group/2
     end
 
     @desc "Create a post."
     field :create_post, type: :create_post_payload do
-      arg(:space_id, non_null(:id))
-      arg(:body, non_null(:string))
+      arg :space_id, non_null(:id)
+      arg :body, non_null(:string)
 
-      resolve(&Level.Mutations.create_post/2)
+      resolve &Level.Mutations.create_post/2
     end
   end
 end

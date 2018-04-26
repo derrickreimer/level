@@ -14,13 +14,16 @@ defmodule Level.Spaces do
   @typedoc "The result of creating a space"
   @type create_space_result ::
           {:ok, %{space: Space.t(), space_user: SpaceUser.t()}}
-          | {:error, :space | :space_user, any(), %{optional(:space | :member) => any()}}
+          | {:error, :space | :space_user, any(), %{optional(:space | :space_user) => any()}}
+
+  @typedoc "The result of getting a space"
+  @type get_space_result ::
+          {:ok, %{space: Space.t(), space_user: SpaceUser.t()}} | {:error, String.t()}
 
   @doc """
   Fetches a space by id.
   """
-  @spec get_space(User.t(), String.t()) ::
-          {:ok, %{space: Space.t(), space_user: SpaceUser.t()}} | {:error, String.t()}
+  @spec get_space(User.t(), String.t()) :: get_space_result()
   def get_space(user, id) do
     with %Space{} = space <- Repo.get(Space, id),
          %SpaceUser{} = space_user <- Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
@@ -34,17 +37,15 @@ defmodule Level.Spaces do
   @doc """
   Fetches a space by slug.
   """
-  @spec get_space_by_slug(String.t()) :: Space.t() | nil
-  def get_space_by_slug(slug) do
-    Repo.get_by(Space, %{slug: slug})
-  end
-
-  @doc """
-  Fetches a space by slug and raises an exception if not found.
-  """
-  @spec get_space_by_slug!(String.t()) :: Space.t() | no_return()
-  def get_space_by_slug!(slug) do
-    Repo.get_by!(Space, %{slug: slug})
+  @spec get_space_by_slug(User.t(), String.t()) :: get_space_result()
+  def get_space_by_slug(user, slug) do
+    with %Space{} = space <- Repo.get_by(Space, %{slug: slug}),
+         %SpaceUser{} = space_user <- Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+      {:ok, %{space: space, space_user: space_user}}
+    else
+      _ ->
+        {:error, dgettext("errors", "Space not found")}
+    end
   end
 
   @doc """

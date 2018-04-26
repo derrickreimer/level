@@ -10,6 +10,7 @@ import Json.Decode.Pipeline as Pipeline
 type alias Space =
     { id : String
     , name : String
+    , slug : String
     }
 
 
@@ -22,3 +23,4 @@ spaceDecoder =
     Pipeline.decode Space
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
+        |> Pipeline.required "slug" Decode.string

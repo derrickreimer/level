@@ -1,4 +1,4 @@
-import { getApiToken, getCsrfToken } from "../token";
+import { getApiToken } from "../token";
 import { attachPorts } from "../ports";
 import { Main } from "../../elm/src/Main.elm";
 

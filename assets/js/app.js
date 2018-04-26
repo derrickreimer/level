@@ -16,19 +16,19 @@ import "phoenix_html";
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-import * as Main from "./modules/main";
-import * as Signup from "./modules/signup";
+import * as Space from "./modules/space";
+import * as NewSpace from "./modules/new_space";
 
 const moduleNode = document.head.querySelector("meta[name='module']");
 
 if (moduleNode) {
   switch (moduleNode.content) {
-    case "main":
-      Main.initialize();
+    case "space":
+      Space.initialize();
       break;
 
-    case "signup":
-      Signup.initialize();
+    case "new_space":
+      NewSpace.initialize();
       break;
 
     default:

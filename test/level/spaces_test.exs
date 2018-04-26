@@ -4,22 +4,30 @@ defmodule Level.SpacesTest do
 
   alias Level.Spaces
 
-  describe "get_space_by_slug(!)/1" do
+  describe "get_space_by_slug/2" do
     setup do
       create_user_and_space()
     end
 
-    test "returns the space if found", %{space: space} do
-      assert Spaces.get_space_by_slug(space.slug).id == space.id
-      assert Spaces.get_space_by_slug!(space.slug).id == space.id
+    test "returns the space if the user can access it", %{user: user, space: space} do
+      {:ok, %{space: found_space, space_user: space_user}} =
+        Spaces.get_space_by_slug(user, space.slug)
+
+      assert found_space.id == space.id
+      assert space_user.space_id == space.id
+      assert space_user.user_id == user.id
     end
 
-    test "handles when the space is not found" do
-      assert Spaces.get_space_by_slug("doesnotexist") == nil
+    test "returns an error if user cannot access the space", %{space: space} do
+      {:ok, another_user} = create_user()
 
-      assert_raise(Ecto.NoResultsError, fn ->
-        Spaces.get_space_by_slug!("doesnotexist")
-      end)
+      {:error, message} = Spaces.get_space_by_slug(another_user, space.slug)
+      assert message == "Space not found"
+    end
+
+    test "returns an error if the space does not exist", %{user: user} do
+      {:error, message} = Spaces.get_space_by_slug(user, "idontexist")
+      assert message == "Space not found"
     end
   end
 end

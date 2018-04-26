@@ -12,6 +12,25 @@ defmodule LevelWeb.Schema.Mutations do
     field :message, non_null(:string)
   end
 
+  @desc "The response to creating a space."
+  object :create_space_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, :boolean
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The mutated object. If the mutation was not successful,
+    this field may be null.
+    """
+    field :space, :space
+  end
+
   @desc "The response to creating a group."
   object :create_group_payload do
     @desc """

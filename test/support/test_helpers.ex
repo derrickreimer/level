@@ -23,7 +23,8 @@ defmodule Level.TestHelpers do
     salt = random_string()
 
     %{
-      name: "Space#{salt}"
+      name: "Space#{salt}",
+      slug: "space-#{salt}"
     }
   end
 
