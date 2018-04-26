@@ -10,8 +10,8 @@ You'll need to install the following dependencies first:
 
 - [Elixir](https://elixir-lang.org/install.html) ([version](https://github.com/levelhq/level/blob/master/mix.exs#L4))
 - [PostgreSQL](https://postgresapp.com/) 10
-- [Yarn](https://yarnpkg.com/en/docs/install) (>= 0.24.6)
-- [nvm](https://github.com/creationix/nvm) ([optional](#nodejs))
+- [Yarn](https://yarnpkg.com/en/docs/install)
+- [Node](#nodejs) ([version](https://github.com/levelhq/level/blob/master/.nvmrc))
 
 Run the bootstrap script to install the remaining dependencies and create your
 development database:
@@ -38,7 +38,7 @@ Use the `script/server` command to start up your local server and visit
 ### Node.js
 
 This repository includes a `.nvmrc` file targeting a specific version of Node
-that is known the be compatibile with all current node dependencies. Things might work
+that is known the be compatible with all current node dependencies. Things might work
 with a newer version of Node, but the most guaranteed route is to install
 [Node Version Manager](https://github.com/creationix/nvm) and run `nvm install` from
 the project root.
@@ -56,7 +56,7 @@ To run the Elm test suite, execute `script/elm-test` from the project root.
 
 ## Documentation
 
-To generate and view low-level API documentation locally, run the following script:
+To generate and view the project documentation locally, run the following script:
 
 ```
 script/docs
@@ -64,6 +64,6 @@ script/docs
 
 ## Copyright
 
-:copyright: 2018 Derrick Reimer
+&copy; 2018 Derrick Reimer
 
 Licensed under the Apache License, Version 2.0.
