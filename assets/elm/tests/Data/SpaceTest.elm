@@ -20,7 +20,8 @@ decoders =
                             """
                               {
                                 "id": "9999",
-                                "name": "Drip"
+                                "name": "Drip",
+                                "slug": "drip"
                               }
                             """
 
@@ -30,6 +31,7 @@ decoders =
                         expected =
                             { id = "9999"
                             , name = "Drip"
+                            , slug = "drip"
                             }
                     in
                         Expect.equal (Ok expected) result
