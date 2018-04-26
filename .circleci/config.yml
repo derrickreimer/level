@@ -50,7 +50,7 @@ jobs:
 
   build_and_test_elm:
     docker:
-      - image: circleci/node:8.9.1
+      - image: circleci/node:8
 
     working_directory: /home/circleci/repo
     steps:
