@@ -32,7 +32,8 @@ main =
 
 
 type alias Model =
-    { session : Session
+    { spaceId : String
+    , session : Session
     , appState : Lazy AppState
     , page : Page
     , isTransitioning : Bool
@@ -56,6 +57,7 @@ type Page
 
 type alias Flags =
     { apiToken : String
+    , spaceId : String
     }
 
 
@@ -78,7 +80,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Session.init flags.apiToken) NotLoaded Blank True Nothing
+    Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -209,7 +211,6 @@ update msg model =
                 ( model, Cmd.none )
 
 
-
 setFlashNotice : String -> Model -> ( Model, Cmd Msg )
 setFlashNotice message model =
     ( { model | flashNotice = Just message }, expireFlashNotice )
@@ -320,6 +321,7 @@ pageContent page =
 
         NotFound ->
             text "404"
+
 
 
 -- MESSAGE DECODERS
