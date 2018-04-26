@@ -1,6 +1,6 @@
 # Level [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
-The communication platform for software teams.
+Distraction-free communication for software teams.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/levelhq/level/tree/master)
 
@@ -53,19 +53,6 @@ The Elm code lives in the `assets/elm/src` directory and the corresponding test 
 live in the `assets/elm/tests` directory.
 
 To run the Elm test suite, execute `script/elm-test` from the project root.
-
-When you install a new Elm package dependency, make sure you also add the same
-dependency in the `tests` directory (the tests maintain their own set of dependencies):
-
-```sh
-# Install in the main elm package file
-cd assets
-./node_modules/.bin/elm-package install [package name]
-
-# Install in the tests elm package file
-cd tests
-../node_modules/.bin/elm-package install [package name]
-```
 
 ## Documentation
 
