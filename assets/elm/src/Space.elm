@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Space exposing (..)
 
 import Html exposing (..)
 import Json.Decode as Decode
