@@ -1,4 +1,4 @@
-module Mutation.CreateSpace exposing (Params, Response(..), request, variables, decoder)
+module Mutation.CreateSpace exposing (Params, Response(..), request, decoder)
 
 import Http
 import Json.Encode as Encode

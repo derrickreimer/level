@@ -7,6 +7,7 @@ import Http
 import Regex exposing (regex)
 import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
 import Mutation.CreateSpace as CreateSpace
+import Route
 import Session exposing (Session)
 
 
@@ -84,8 +85,7 @@ update msg model =
             ( { model | formState = Submitting }, submit model )
 
         Submitted (Ok (CreateSpace.Success space)) ->
-            -- TODO
-            ( model, Cmd.none )
+            ( model, Route.toSpace space )
 
         Submitted (Ok (CreateSpace.Invalid errors)) ->
             ( { model | errors = errors, formState = Idle }, Cmd.none )
