@@ -11,7 +11,7 @@ import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Page.Conversations
 import Page.NewInvitation
 import Ports
-import Query.AppState
+import Query.InitSpace
 import Route exposing (Route)
 import Session exposing (Session)
 import Util exposing (Lazy(..))
@@ -34,17 +34,16 @@ main =
 type alias Model =
     { spaceId : String
     , session : Session
-    , appState : Lazy AppState
+    , sharedState : Lazy SharedState
     , page : Page
     , isTransitioning : Bool
     , flashNotice : Maybe String
     }
 
 
-type alias AppState =
+type alias SharedState =
     { space : Space
     , user : User
-    , users : UserConnection
     }
 
 
@@ -104,7 +103,7 @@ updatePipeline transforms model =
 
 type Msg
     = UrlChanged Navigation.Location
-    | AppStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.AppState.Response ))
+    | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
     | ConversationsMsg Page.Conversations.Msg
     | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
@@ -136,14 +135,14 @@ update msg model =
             ( UrlChanged location, _ ) ->
                 navigateTo (Route.fromLocation location) model
 
-            ( AppStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
-                { model | appState = Loaded response, session = session }
+            ( SharedStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
+                { model | sharedState = Loaded response, session = session }
                     |> updatePipeline [ navigateTo maybeRoute, setupSockets ]
 
-            ( AppStateLoaded maybeRoute (Err Session.Expired), _ ) ->
+            ( SharedStateLoaded maybeRoute (Err Session.Expired), _ ) ->
                 ( model, Route.toLogin )
 
-            ( AppStateLoaded maybeRoute (Err _), _ ) ->
+            ( SharedStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
 
             ( ConversationsMsg _, _ ) ->
@@ -221,11 +220,11 @@ expireFlashNotice =
     Task.perform (\_ -> FlashNoticeExpired) <| Process.sleep (3 * second)
 
 
-bootstrap : Session -> Maybe Route -> Cmd Msg
-bootstrap session maybeRoute =
-    Query.AppState.request
+bootstrap : String -> Session -> Maybe Route -> Cmd Msg
+bootstrap spaceId session maybeRoute =
+    Query.InitSpace.request (Query.InitSpace.Params spaceId)
         |> Session.request session
-        |> Task.attempt (AppStateLoaded maybeRoute)
+        |> Task.attempt (SharedStateLoaded maybeRoute)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -236,9 +235,9 @@ navigateTo maybeRoute model =
             , Task.attempt toMsg task
             )
     in
-        case model.appState of
+        case model.sharedState of
             NotLoaded ->
-                ( model, bootstrap model.session maybeRoute )
+                ( model, bootstrap model.spaceId model.session maybeRoute )
 
             Loaded _ ->
                 case maybeRoute of
@@ -261,7 +260,7 @@ navigateTo maybeRoute model =
 
 setupSockets : Model -> ( Model, Cmd Msg )
 setupSockets model =
-    case model.appState of
+    case model.sharedState of
         NotLoaded ->
             ( model, Cmd.none )
 
@@ -296,11 +295,11 @@ pageSubscription model =
 
 view : Model -> Html Msg
 view model =
-    case model.appState of
+    case model.sharedState of
         NotLoaded ->
             text "Loading..."
 
-        Loaded appState ->
+        Loaded sharedState ->
             pageContent model.page
 
 
