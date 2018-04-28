@@ -1,6 +1,7 @@
 module Space exposing (..)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Json.Decode as Decode
 import Navigation
 import Process
@@ -297,10 +298,46 @@ view : Model -> Html Msg
 view model =
     case model.sharedState of
         NotLoaded ->
-            text "Loading..."
+            text ""
 
         Loaded sharedState ->
-            pageContent model.page
+            div []
+                [ leftSidebar sharedState
+                , pageContent model.page
+                ]
+
+
+leftSidebar : SharedState -> Html Msg
+leftSidebar sharedState =
+    div [ class "bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
+        [ div [ class "ml-2" ]
+            [ spaceAvatar sharedState.space
+            , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker" ] [ text sharedState.space.name ]
+            ]
+        , ul [ class "list-reset leading-semi-loose" ]
+            [ li [ class "flex items-center font-bold" ]
+                [ div [ class "-ml-1 w-1 h-6 bg-turquoise rounded-full" ] []
+                , a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Inbox" ]
+                ]
+            , li []
+                [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Everything" ] ]
+            , li []
+                [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Drafts" ] ]
+            , li []
+                [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Private" ] ]
+            ]
+        ]
+
+
+spaceAvatar : Space -> Html Msg
+spaceAvatar space =
+    let
+        initials =
+            space.name
+                |> String.left 1
+                |> String.toUpper
+    in
+        div [ class "w-9 h-9 mb-2 bg-turquoise rounded-full flex items-center justify-center font-bold text-white select-none" ] [ text initials ]
 
 
 pageContent : Page -> Html Msg

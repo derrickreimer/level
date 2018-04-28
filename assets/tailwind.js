@@ -316,6 +316,7 @@ module.exports = {
     'none': 1,
     'tight': 1.25,
     'normal': 1.5,
+    'semi-loose': 1.75,
     'loose': 2,
   },
 
@@ -487,6 +488,7 @@ module.exports = {
     '4': '1rem',
     '6': '1.5rem',
     '8': '2rem',
+    '9': '2.25rem',
     '10': '2.5rem',
     '12': '3rem',
     '16': '4rem',
@@ -534,6 +536,7 @@ module.exports = {
     '4': '1rem',
     '6': '1.5rem',
     '8': '2rem',
+    '9': '2.25rem',
     '10': '2.5rem',
     '12': '3rem',
     '16': '4rem',
