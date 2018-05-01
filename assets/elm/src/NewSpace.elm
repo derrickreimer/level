@@ -216,7 +216,7 @@ slugField slug errors =
                     [ input
                         [ id "slug"
                         , type_ "text"
-                        , class "w-full p-0 ml-1 no-outline text-dusty-blue-darker"
+                        , class "w-full p-0 no-outline text-dusty-blue-darker"
                         , name "slug"
                         , placeholder "smith-co"
                         , value slug

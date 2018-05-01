@@ -309,35 +309,49 @@ view model =
 
 leftSidebar : SharedState -> Html Msg
 leftSidebar sharedState =
-    div [ class "bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
+    div [ class "relative bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
         [ div [ class "ml-2" ]
             [ spaceAvatar sharedState.space
             , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker" ] [ text sharedState.space.name ]
             ]
-        , ul [ class "list-reset leading-semi-loose" ]
+        , ul [ class "list-reset leading-semi-loose select-none" ]
             [ li [ class "flex items-center font-bold" ]
-                [ div [ class "-ml-1 w-1 h-6 bg-turquoise rounded-full" ] []
+                [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
                 , a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Inbox" ]
                 ]
-            , li []
-                [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Everything" ] ]
-            , li []
-                [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Drafts" ] ]
-            , li []
-                [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Private" ] ]
+            , li [] [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Everything" ] ]
+            , li [] [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Drafts" ] ]
+            , li [] [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Private" ] ]
+            ]
+        , div [ class "absolute pin-b ml-1 mb-2 flex" ]
+            [ div [] [ userAvatar sharedState.user ]
+            , div [ class "ml-2 text-xs text-dusty-blue-darker leading-normal" ]
+                [ div [] [ text "Signed in as" ]
+                , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
+                ]
             ]
         ]
 
 
 spaceAvatar : Space -> Html Msg
 spaceAvatar space =
-    let
-        initials =
-            space.name
-                |> String.left 1
-                |> String.toUpper
-    in
-        div [ class "w-9 h-9 mb-2 bg-turquoise rounded-full flex items-center justify-center font-bold text-white select-none" ] [ text initials ]
+    space.name
+        |> String.left 1
+        |> String.toUpper
+        |> picturelessAvatar
+
+
+userAvatar : User -> Html Msg
+userAvatar user =
+    user.firstName
+        |> String.left 1
+        |> String.toUpper
+        |> picturelessAvatar
+
+
+picturelessAvatar : String -> Html Msg
+picturelessAvatar initials =
+    div [ class "w-9 h-9 mb-2 bg-turquoise rounded-full flex items-center justify-center font-bold text-white select-none" ] [ text initials ]
 
 
 pageContent : Page -> Html Msg
