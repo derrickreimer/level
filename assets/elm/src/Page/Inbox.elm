@@ -1,4 +1,4 @@
-module Page.Conversations exposing (..)
+module Page.Inbox exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

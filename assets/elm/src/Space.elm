@@ -9,7 +9,7 @@ import Task exposing (Task)
 import Time exposing (second)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
-import Page.Conversations
+import Page.Inbox
 import Page.NewInvitation
 import Ports
 import Query.InitSpace
@@ -51,7 +51,7 @@ type alias SharedState =
 type Page
     = Blank
     | NotFound
-    | Conversations -- TODO: add a model to this type
+    | Inbox -- TODO: add a model to this type
     | NewInvitation Page.NewInvitation.Model
 
 
@@ -105,7 +105,7 @@ updatePipeline transforms model =
 type Msg
     = UrlChanged Navigation.Location
     | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
-    | ConversationsMsg Page.Conversations.Msg
+    | InboxMsg Page.Inbox.Msg
     | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
     | SocketAbort Decode.Value
@@ -146,7 +146,7 @@ update msg model =
             ( SharedStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
 
-            ( ConversationsMsg _, _ ) ->
+            ( InboxMsg _, _ ) ->
                 -- TODO: implement this
                 ( model, Cmd.none )
 
@@ -245,9 +245,9 @@ navigateTo maybeRoute model =
                     Nothing ->
                         ( { model | page = NotFound }, Cmd.none )
 
-                    Just Route.Conversations ->
+                    Just Route.Inbox ->
                         -- TODO: implement this
-                        ( { model | page = Conversations }, Cmd.none )
+                        ( { model | page = Inbox }, Cmd.none )
 
                     Just Route.NewInvitation ->
                         let
@@ -357,9 +357,9 @@ picturelessAvatar initials =
 pageContent : Page -> Html Msg
 pageContent page =
     case page of
-        Conversations ->
-            Page.Conversations.view
-                |> Html.map ConversationsMsg
+        Inbox ->
+            Page.Inbox.view
+                |> Html.map InboxMsg
 
         NewInvitation model ->
             model
