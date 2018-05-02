@@ -51,7 +51,7 @@ type alias SharedState =
 type Page
     = Blank
     | NotFound
-    | Inbox -- TODO: add a model to this type
+    | Inbox
     | NewInvitation Page.NewInvitation.Model
 
 
@@ -302,26 +302,22 @@ view model =
 
         Loaded sharedState ->
             div []
-                [ leftSidebar sharedState
+                [ leftSidebar sharedState model
                 , pageContent model.page
                 ]
 
 
-leftSidebar : SharedState -> Html Msg
-leftSidebar sharedState =
+leftSidebar : SharedState -> Model -> Html Msg
+leftSidebar sharedState model =
     div [ class "relative bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
         [ div [ class "ml-2" ]
             [ spaceAvatar sharedState.space
             , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker" ] [ text sharedState.space.name ]
             ]
         , ul [ class "list-reset leading-semi-loose select-none" ]
-            [ li [ class "flex items-center font-bold" ]
-                [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
-                , a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Inbox" ]
-                ]
-            , li [] [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Everything" ] ]
-            , li [] [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Drafts" ] ]
-            , li [] [ a [ href "#", class "ml-2 text-dusty-blue-darker no-underline" ] [ text "Private" ] ]
+            [ sidebarLink "Inbox" (Just Route.Inbox) model.page
+            , sidebarLink "Everything" Nothing model.page
+            , sidebarLink "Drafts" Nothing model.page
             ]
         , div [ class "absolute pin-b ml-1 mb-2 flex" ]
             [ div [] [ userAvatar sharedState.user ]
@@ -331,6 +327,41 @@ leftSidebar sharedState =
                 ]
             ]
         ]
+
+
+{-| Build a link for the sidebar navigation with a special indicator for the
+current page. Pass Nothing for the route to make it a placeholder link.
+-}
+sidebarLink : String -> Maybe Route -> Page -> Html Msg
+sidebarLink title maybeRoute currentPage =
+    case maybeRoute of
+        Just route ->
+            if route == routeFor currentPage then
+                li [ class "flex items-center font-bold" ]
+                    [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
+                    , a
+                        [ Route.href route
+                        , class "ml-2 text-dusty-blue-darker no-underline"
+                        ]
+                        [ text title ]
+                    ]
+            else
+                li []
+                    [ a
+                        [ Route.href route
+                        , class "ml-2 text-dusty-blue-darker no-underline"
+                        ]
+                        [ text title ]
+                    ]
+
+        Nothing ->
+            li []
+                [ a
+                    [ href "#"
+                    , class "ml-2 text-dusty-blue-darker no-underline"
+                    ]
+                    [ text title ]
+                ]
 
 
 spaceAvatar : Space -> Html Msg
@@ -371,6 +402,22 @@ pageContent page =
 
         NotFound ->
             text "404"
+
+
+routeFor : Page -> Route
+routeFor page =
+    case page of
+        Inbox ->
+            Route.Inbox
+
+        NewInvitation _ ->
+            Route.NewInvitation
+
+        Blank ->
+            Route.Inbox
+
+        NotFound ->
+            Route.Inbox
 
 
 
