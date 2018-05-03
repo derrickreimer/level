@@ -1,7 +1,6 @@
 {
   "private": true,
   "scripts": {
-    "build": "brunch build",
     "deploy": "webpack --mode production",
     "watch": "webpack --mode development --watch"
   },
@@ -18,7 +17,6 @@
     "copy-webpack-plugin": "^4.5.0",
     "css-loader": "^0.28.10",
     "elm": "^0.18.0",
-    "elm-brunch": "^0.8.0",
     "elm-test": "^0.18.12",
     "elm-webpack-loader": "^4.5.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
