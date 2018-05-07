@@ -36,26 +36,10 @@
  * @import "components/forms";
  */
 
-.max-w-430px {
-  max-width: 430px;
-}
-
-.no-outline {
-  outline: none;
-}
-
-.no-outline:focus {
-  outline: none;
-}
-
 .logo-md {
   width: 99px;
   height: 20px;
   margin-left: -1rem;
-}
-
-.font-antialised {
-  -webkit-font-smoothing: antialiased;
 }
 
 .input-label {
@@ -63,17 +47,17 @@
 }
 
 .input-field {
-  @apply .border-2 .rounded-lg .p-3 .w-full .text-dusty-blue-darker;
+  @apply .text-dusty-blue-darker .border-2 .rounded-lg .p-3 .w-full;
+}
+
+.input-field::placeholder {
+  @apply .text-dusty-blue-dark .opacity-50;
 }
 
 .input-field:focus,
 .input-field:focus-within {
   @apply .border-turquoise;
   outline: none;
-}
-
-.input-field::placeholder {
-  @apply .text-dusty-blue-dark;
 }
 
 .input-field-error {
@@ -110,30 +94,6 @@
   @apply .bg-blue-dark .border-blue-dark;
 }
 
-/* Borrowed from https://css-tricks.com/snippets/css/shake-css-keyframe-animation/ */
-.shake {
-  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
-  transform: translate3d(0, 0, 0);
-}
-
-@keyframes shake {
-  10%, 90% {
-    transform: translate3d(-1px, 0, 0);
-  }
-
-  20%, 80% {
-    transform: translate3d(2px, 0, 0);
-  }
-
-  30%, 50%, 70% {
-    transform: translate3d(-4px, 0, 0);
-  }
-
-  40%, 60% {
-    transform: translate3d(4px, 0, 0);
-  }
-}
-
 /**
  * This injects all of Tailwind's utility classes, generated based on your
  * config file.
@@ -158,3 +118,47 @@
  * @import "utilities/background-patterns";
  * @import "utilities/skew-transforms";
  */
+
+ .font-antialised {
+   -webkit-font-smoothing: antialiased;
+ }
+
+ .max-w-430px {
+   max-width: 430px;
+ }
+
+ .no-outline {
+   outline: none;
+ }
+
+ .no-outline:focus {
+   outline: none;
+ }
+
+ .placeholder-blue::placeholder {
+   @apply .text-dusty-blue-dark .opacity-50;
+ }
+
+ /* Borrowed from https://css-tricks.com/snippets/css/shake-css-keyframe-animation/ */
+ .shake {
+   animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+   transform: translate3d(0, 0, 0);
+ }
+
+ @keyframes shake {
+   10%, 90% {
+     transform: translate3d(-1px, 0, 0);
+   }
+
+   20%, 80% {
+     transform: translate3d(2px, 0, 0);
+   }
+
+   30%, 50%, 70% {
+     transform: translate3d(-4px, 0, 0);
+   }
+
+   40%, 60% {
+     transform: translate3d(4px, 0, 0);
+   }
+ }

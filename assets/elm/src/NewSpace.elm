@@ -209,14 +209,14 @@ slugField slug errors =
             [ div [ classList classes ]
                 [ label
                     [ for "slug"
-                    , class "flex-none text-dusty-blue-dark select-none"
+                    , class "flex-none text-dusty-blue-dark opacity-50 select-none"
                     ]
                     [ text "https://level.space/" ]
                 , div [ class "flex-1" ]
                     [ input
                         [ id "slug"
                         , type_ "text"
-                        , class "w-full p-0 no-outline text-dusty-blue-darker"
+                        , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
                         , name "slug"
                         , placeholder "smith-co"
                         , value slug
