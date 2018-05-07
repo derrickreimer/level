@@ -209,9 +209,9 @@ slugField slug errors =
             [ div [ classList classes ]
                 [ label
                     [ for "slug"
-                    , class "flex-none text-dusty-blue-dark opacity-50 select-none"
+                    , class "flex-none text-dusty-blue-darker select-none"
                     ]
-                    [ text "https://level.space/" ]
+                    [ text "level.app/" ]
                 , div [ class "flex-1" ]
                     [ input
                         [ id "slug"
