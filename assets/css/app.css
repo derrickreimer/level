@@ -36,17 +36,17 @@
  * @import "components/forms";
  */
 
- .max-w-430px {
-   max-width: 430px;
- }
+.max-w-430px {
+  max-width: 430px;
+}
 
- .no-outline {
-   outline: none;
- }
+.no-outline {
+  outline: none;
+}
 
- .no-outline:focus {
-   outline: none;
- }
+.no-outline:focus {
+  outline: none;
+}
 
 .logo-md {
   width: 99px;

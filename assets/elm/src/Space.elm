@@ -309,7 +309,7 @@ view model =
 
 leftSidebar : SharedState -> Model -> Html Msg
 leftSidebar sharedState model =
-    div [ class "relative bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
+    div [ class "absolute bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
         [ div [ class "ml-2" ]
             [ spaceAvatar sharedState.space
             , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker" ] [ text sharedState.space.name ]
@@ -319,9 +319,9 @@ leftSidebar sharedState model =
             , sidebarLink "Everything" Nothing model.page
             , sidebarLink "Drafts" Nothing model.page
             ]
-        , div [ class "absolute pin-b ml-1 mb-2 flex" ]
+        , div [ class "absolute pin-b mb-2 flex" ]
             [ div [] [ userAvatar sharedState.user ]
-            , div [ class "ml-2 text-xs text-dusty-blue-darker leading-normal" ]
+            , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                 [ div [] [ text "Signed in as" ]
                 , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
                 ]
