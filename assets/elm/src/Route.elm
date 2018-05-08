@@ -14,14 +14,18 @@ import Data.Space exposing (Space)
 
 
 type Route
-    = Inbox
+    = Root
+    | Inbox
+    | SetupGroups
     | NewInvitation
 
 
 route : Parser (Route -> a) a
 route =
     oneOf
-        [ Url.map Inbox (s "")
+        [ Url.map Root (s "")
+        , Url.map Inbox (s "inbox")
+        , Url.map SetupGroups (s "setup" </> s "groups")
         , Url.map NewInvitation (s "invitations" </> s "new")
         ]
 
@@ -35,11 +39,17 @@ routeToString page =
     let
         pieces =
             case page of
-                Inbox ->
+                Root ->
                     []
+
+                Inbox ->
+                    [ "inbox" ]
 
                 NewInvitation ->
                     [ "invitations", "new" ]
+
+                SetupGroups ->
+                    [ "setup", "groups" ]
     in
         "#/" ++ String.join "/" pieces
 
@@ -61,7 +71,7 @@ modifyUrl =
 fromLocation : Location -> Maybe Route
 fromLocation location =
     if String.isEmpty location.hash then
-        Just Inbox
+        Just Root
     else
         parseHash route location
 

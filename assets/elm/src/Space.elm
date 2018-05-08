@@ -10,6 +10,7 @@ import Time exposing (second)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Page.Inbox
+import Page.SetupGroups
 import Page.NewInvitation
 import Ports
 import Query.InitSpace
@@ -53,6 +54,7 @@ type Page
     | NotFound
     | Inbox
     | NewInvitation Page.NewInvitation.Model
+    | SetupGroups Page.SetupGroups.Model
 
 
 type alias Flags =
@@ -106,6 +108,7 @@ type Msg
     = UrlChanged Navigation.Location
     | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
     | InboxMsg Page.Inbox.Msg
+    | SetupGroupsMsg Page.SetupGroups.Msg
     | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
     | SocketAbort Decode.Value
@@ -147,6 +150,10 @@ update msg model =
                 ( model, Cmd.none )
 
             ( InboxMsg _, _ ) ->
+                -- TODO: implement this
+                ( model, Cmd.none )
+
+            ( NewInvitationMsg _, SetupGroups _ ) ->
                 -- TODO: implement this
                 ( model, Cmd.none )
 
@@ -245,9 +252,22 @@ navigateTo maybeRoute model =
                     Nothing ->
                         ( { model | page = NotFound }, Cmd.none )
 
+                    Just Route.Root ->
+                        -- TODO: Navigate to the current setup step or the inbox
+                        navigateTo (Just Route.SetupGroups) model
+
                     Just Route.Inbox ->
                         -- TODO: implement this
                         ( { model | page = Inbox }, Cmd.none )
+
+                    Just Route.SetupGroups ->
+                        let
+                            pageModel =
+                                Page.SetupGroups.buildModel
+                        in
+                            ( { model | page = SetupGroups pageModel }
+                            , Cmd.none
+                            )
 
                     Just Route.NewInvitation ->
                         let
@@ -392,8 +412,13 @@ pageContent page =
             Page.Inbox.view
                 |> Html.map InboxMsg
 
-        NewInvitation model ->
-            model
+        SetupGroups pageModel ->
+            pageModel
+                |> Page.SetupGroups.view
+                |> Html.map SetupGroupsMsg
+
+        NewInvitation pageModel ->
+            pageModel
                 |> Page.NewInvitation.view
                 |> Html.map NewInvitationMsg
 
@@ -409,6 +434,9 @@ routeFor page =
     case page of
         Inbox ->
             Route.Inbox
+
+        SetupGroups _ ->
+            Route.SetupGroups
 
         NewInvitation _ ->
             Route.NewInvitation
