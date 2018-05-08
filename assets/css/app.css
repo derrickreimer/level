@@ -105,7 +105,7 @@
   z-index: -1; /* Put the input behind the label so it doesn't overlay text */
 }
 .control-indicator {
-  @apply .flex-no-grow .flex-no-shrink .w-7 .h-7 .border-blue .border-2 .mr-3;
+  @apply .flex-no-grow .flex-no-shrink .w-7 .h-7 .border-grey .border-2 .mr-3;
   display: block;
   line-height: 1rem;
   font-size: 65%;
@@ -125,7 +125,7 @@
 
 /* Checked state */
 .control input:checked ~ .control-indicator {
-  @apply .bg-blue .text-white;
+  @apply .bg-blue .text-white .border-blue;
 }
 
 /* Active */

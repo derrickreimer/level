@@ -247,7 +247,7 @@ navigateTo maybeRoute model =
             NotLoaded ->
                 ( model, bootstrap model.spaceId model.session maybeRoute )
 
-            Loaded _ ->
+            Loaded sharedState ->
                 case maybeRoute of
                     Nothing ->
                         ( { model | page = NotFound }, Cmd.none )
@@ -263,7 +263,7 @@ navigateTo maybeRoute model =
                     Just Route.SetupGroups ->
                         let
                             pageModel =
-                                Page.SetupGroups.buildModel
+                                Page.SetupGroups.buildModel sharedState.user.firstName
                         in
                             ( { model | page = SetupGroups pageModel }
                             , Cmd.none
