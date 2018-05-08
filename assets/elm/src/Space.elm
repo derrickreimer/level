@@ -309,7 +309,7 @@ view model =
 
 leftSidebar : SharedState -> Model -> Html Msg
 leftSidebar sharedState model =
-    div [ class "absolute bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
+    div [ class "fixed bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
         [ div [ class "ml-2" ]
             [ spaceAvatar sharedState.space
             , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker" ] [ text sharedState.space.name ]

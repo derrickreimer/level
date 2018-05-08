@@ -94,6 +94,54 @@
   @apply .bg-blue-dark .border-blue-dark;
 }
 
+.control {
+  @apply .flex .items-center;
+  position: relative;
+  cursor: pointer;
+}
+.control input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1; /* Put the input behind the label so it doesn't overlay text */
+}
+.control-indicator {
+  @apply .flex-no-grow .flex-no-shrink .w-7 .h-7 .border-blue .border-2 .mr-3;
+  display: block;
+  line-height: 1rem;
+  font-size: 65%;
+  color: #eee;
+  text-align: center;
+  background-size: 65% 65%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  user-select: none;
+}
+
+/* Focus */
+.control input:focus ~ .control-indicator {
+  /* @apply .border-turquoise; */
+}
+
+/* Checked state */
+.control input:checked ~ .control-indicator {
+  @apply text-white;
+  background-color: #0074d9;
+}
+
+/* Active */
+.control input:active ~ .control-indicator {
+  color: #fff;
+  background-color: #84c6ff;
+}
+
+/* Checkbox modifiers */
+.checkbox .control-indicator {
+  @apply .rounded-lg;
+}
+.checkbox input:checked ~ .control-indicator {
+  background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNy4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSIwIDAgOCA4IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA4IDgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTYuNCwxTDUuNywxLjdMMi45LDQuNUwyLjEsMy43TDEuNCwzTDAsNC40bDAuNywwLjdsMS41LDEuNWwwLjcsMC43bDAuNy0wLjdsMy41LTMuNWwwLjctMC43TDYuNCwxTDYuNCwxeiINCgkvPg0KPC9zdmc+DQo=);
+}
+
 /**
  * This injects all of Tailwind's utility classes, generated based on your
  * config file.
@@ -119,46 +167,50 @@
  * @import "utilities/skew-transforms";
  */
 
- .font-antialised {
-   -webkit-font-smoothing: antialiased;
- }
+.-z-1 {
+  z-index: -1;
+}
 
- .max-w-430px {
-   max-width: 430px;
- }
+.font-antialised {
+  -webkit-font-smoothing: antialiased;
+}
 
- .no-outline {
-   outline: none;
- }
+.max-w-430px {
+  max-width: 430px;
+}
 
- .no-outline:focus {
-   outline: none;
- }
+.no-outline {
+  outline: none;
+}
 
- .placeholder-blue::placeholder {
-   @apply .text-dusty-blue-dark .opacity-50;
- }
+.no-outline:focus {
+  outline: none;
+}
+
+.placeholder-blue::placeholder {
+  @apply .text-dusty-blue-dark .opacity-50;
+}
 
  /* Borrowed from https://css-tricks.com/snippets/css/shake-css-keyframe-animation/ */
- .shake {
-   animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
-   transform: translate3d(0, 0, 0);
- }
+.shake {
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+  transform: translate3d(0, 0, 0);
+}
 
- @keyframes shake {
-   10%, 90% {
-     transform: translate3d(-1px, 0, 0);
-   }
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
 
-   20%, 80% {
-     transform: translate3d(2px, 0, 0);
-   }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
 
-   30%, 50%, 70% {
-     transform: translate3d(-4px, 0, 0);
-   }
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
 
-   40%, 60% {
-     transform: translate3d(4px, 0, 0);
-   }
- }
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
