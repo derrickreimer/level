@@ -19,7 +19,7 @@ defmodule LevelWeb.Schema.Mutations do
     list will be empty. Otherwise, errors may contain objects describing why
     the mutation failed.
     """
-    field :success, :boolean
+    field :success, non_null(:boolean)
 
     @desc "A list of validation errors."
     field :errors, list_of(:error)
@@ -38,7 +38,7 @@ defmodule LevelWeb.Schema.Mutations do
     list will be empty. Otherwise, errors may contain objects describing why
     the mutation failed.
     """
-    field :success, :boolean
+    field :success, non_null(:boolean)
 
     @desc """
     The next state.
@@ -53,7 +53,7 @@ defmodule LevelWeb.Schema.Mutations do
     list will be empty. Otherwise, errors may contain objects describing why
     the mutation failed.
     """
-    field :success, :boolean
+    field :success, non_null(:boolean)
 
     @desc "A list of validation errors."
     field :errors, list_of(:error)
@@ -72,7 +72,7 @@ defmodule LevelWeb.Schema.Mutations do
     list will be empty. Otherwise, errors may contain objects describing why
     the mutation failed.
     """
-    field :success, :boolean
+    field :success, non_null(:boolean)
 
     @desc "A list of validation errors."
     field :errors, list_of(:error)
@@ -84,6 +84,40 @@ defmodule LevelWeb.Schema.Mutations do
     field :group, :group
   end
 
+  @desc "The response to bulk creating groups."
+  object :bulk_create_groups_payload do
+    @desc "A list of result payloads for each group."
+    field :payloads, non_null(list_of(:bulk_create_group_payload))
+  end
+
+  @desc "The payload for an individual group in a bulk create payload."
+  object :bulk_create_group_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The mutated object. If the mutation was not successful,
+    this field may be null.
+    """
+    field :group, :group
+
+    @desc "The original arguments for this particular object."
+    field :args, non_null(:bulk_create_group_args)
+  end
+
+  @desc "The arguments for an individual bulk-created group."
+  object :bulk_create_group_args do
+    @desc "The name of the group."
+    field :name, non_null(:string)
+  end
+
   @desc "The response to creating a post."
   object :create_post_payload do
     @desc """
@@ -91,7 +125,7 @@ defmodule LevelWeb.Schema.Mutations do
     list will be empty. Otherwise, errors may contain objects describing why
     the mutation failed.
     """
-    field :success, :boolean
+    field :success, non_null(:boolean)
 
     @desc "A list of validation errors."
     field :errors, list_of(:error)

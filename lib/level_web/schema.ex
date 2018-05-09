@@ -61,6 +61,14 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.create_group/2
     end
 
+    @desc "Create multiple groups."
+    field :bulk_create_groups, type: :bulk_create_groups_payload do
+      arg :space_id, non_null(:id)
+      arg :names, non_null(list_of(:string))
+
+      resolve &Level.Mutations.bulk_create_groups/2
+    end
+
     @desc "Update a group."
     field :update_group, type: :update_group_payload do
       arg :space_id, non_null(:id)
