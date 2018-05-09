@@ -44,7 +44,7 @@ defmodule Level.SpacesTest do
       space_user: space_user
     } do
       Spaces.complete_setup_step(space_user, space, %{
-        state: "CREATE_GROUPS",
+        state: :create_groups,
         is_skipped: false
       })
 
@@ -56,7 +56,7 @@ defmodule Level.SpacesTest do
       space_user: space_user
     } do
       Spaces.complete_setup_step(space_user, space, %{
-        state: "INVITE_USERS",
+        state: :invite_users,
         is_skipped: false
       })
 
@@ -75,7 +75,7 @@ defmodule Level.SpacesTest do
     } do
       {:ok, next_state} =
         Spaces.complete_setup_step(space_user, space, %{
-          state: "CREATE_GROUPS",
+          state: :create_groups,
           is_skipped: false
         })
 
@@ -90,7 +90,7 @@ defmodule Level.SpacesTest do
 
     test "gracefully absorbs duplicate transitions", %{space: space, space_user: space_user} do
       params = %{
-        state: "CREATE_GROUPS",
+        state: :create_groups,
         is_skipped: false
       }
 

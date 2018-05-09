@@ -42,6 +42,15 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.create_space/2
     end
 
+    @desc "Mark a space setup step as complete."
+    field :complete_setup_step, type: :complete_setup_step_payload do
+      arg :space_id, non_null(:id)
+      arg :state, non_null(:space_setup_state)
+      arg :is_skipped, non_null(:boolean)
+
+      resolve &Level.Mutations.complete_setup_step/2
+    end
+
     @desc "Create a group."
     field :create_group, type: :create_group_payload do
       arg :space_id, non_null(:id)

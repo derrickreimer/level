@@ -31,6 +31,21 @@ defmodule LevelWeb.Schema.Mutations do
     field :space, :space
   end
 
+  @desc "The response to completing a setup step."
+  object :complete_setup_step_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, :boolean
+
+    @desc """
+    The next state.
+    """
+    field :state, :space_setup_state
+  end
+
   @desc "The response to creating a group."
   object :create_group_payload do
     @desc """

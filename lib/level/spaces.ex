@@ -108,13 +108,16 @@ defmodule Level.Spaces do
   Uniqueness of state transition records is enforced, but attempting to
   transition the same state multiple times will not result in an error.
   """
-  @spec complete_setup_step(SpaceUser.t(), Space.t(), map()) ::
-          {:ok, space_setup_states()} | {:error, Ecto.Changeset.t()}
+  @spec complete_setup_step(SpaceUser.t(), Space.t(), %{
+          state: space_setup_states(),
+          is_skipped: boolean()
+        }) :: {:ok, space_setup_states()} | {:error, Ecto.Changeset.t()}
   def complete_setup_step(space_user, space, params) do
     params_with_relations =
       params
       |> Map.put(:space_id, space.id)
       |> Map.put(:space_user_id, space_user.id)
+      |> Map.put(:state, params.state |> Atom.to_string() |> String.upcase())
 
     changeset =
       %SpaceSetupTransition{}

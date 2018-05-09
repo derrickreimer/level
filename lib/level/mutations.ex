@@ -29,6 +29,9 @@ defmodule Level.Mutations do
           {:ok, %{success: boolean(), post: Posts.Post.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
 
+  @typedoc "The result of a setup step mutation"
+  @type setup_step_mutation_result :: {:ok, %{success: boolean(), state: atom()}}
+
   @doc """
   Creates a new space.
   """
@@ -99,6 +102,20 @@ defmodule Level.Mutations do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
 
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Marks a space setup step complete.
+  """
+  @spec complete_setup_step(map(), authenticated_context()) :: setup_step_mutation_result()
+  def complete_setup_step(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space: space, space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, next_state} <- Spaces.complete_setup_step(space_user, space, args) do
+      {:ok, %{success: true, state: next_state}}
+    else
       err ->
         err
     end
