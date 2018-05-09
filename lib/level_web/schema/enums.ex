@@ -26,6 +26,7 @@ defmodule LevelWeb.Schema.Enums do
 
   enum :space_setup_state do
     value :create_groups
+    value :invite_users
     value :complete
   end
 
