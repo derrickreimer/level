@@ -79,7 +79,7 @@ defmodule Level.SpacesTest do
           is_skipped: false
         })
 
-      assert Repo.get_by(Spaces.SpaceSetupTransition, %{
+      assert Repo.get_by(Spaces.SpaceSetupStep, %{
                space_id: space.id,
                space_user_id: space_user.id,
                state: "CREATE_GROUPS"

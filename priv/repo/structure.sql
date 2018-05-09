@@ -176,10 +176,10 @@ CREATE TABLE public.schema_migrations (
 
 
 --
--- Name: space_setup_transitions; Type: TABLE; Schema: public; Owner: -
+-- Name: space_setup_steps; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.space_setup_transitions (
+CREATE TABLE public.space_setup_steps (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
     space_user_id uuid NOT NULL,
@@ -270,11 +270,11 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: space_setup_transitions space_setup_transitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: space_setup_steps space_setup_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.space_setup_transitions
-    ADD CONSTRAINT space_setup_transitions_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.space_setup_steps
+    ADD CONSTRAINT space_setup_steps_pkey PRIMARY KEY (id);
 
 
 --
@@ -344,10 +344,10 @@ CREATE INDEX posts_id_index ON public.posts USING btree (id);
 
 
 --
--- Name: space_setup_transitions_space_id_state_index; Type: INDEX; Schema: public; Owner: -
+-- Name: space_setup_steps_space_id_state_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX space_setup_transitions_space_id_state_index ON public.space_setup_transitions USING btree (space_id, state);
+CREATE UNIQUE INDEX space_setup_steps_space_id_state_index ON public.space_setup_steps USING btree (space_id, state);
 
 
 --
@@ -449,19 +449,19 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- Name: space_setup_transitions space_setup_transitions_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: space_setup_steps space_setup_steps_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.space_setup_transitions
-    ADD CONSTRAINT space_setup_transitions_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+ALTER TABLE ONLY public.space_setup_steps
+    ADD CONSTRAINT space_setup_steps_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
 
 
 --
--- Name: space_setup_transitions space_setup_transitions_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: space_setup_steps space_setup_steps_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.space_setup_transitions
-    ADD CONSTRAINT space_setup_transitions_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+ALTER TABLE ONLY public.space_setup_steps
+    ADD CONSTRAINT space_setup_steps_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
 
 
 --

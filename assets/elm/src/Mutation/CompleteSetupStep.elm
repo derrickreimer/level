@@ -3,7 +3,7 @@ module Mutation.CompleteSetupStep exposing (Params, Response(..), request, decod
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Space exposing (Space, SetupState, spaceDecoder)
+import Data.Space exposing (Space, SetupState, spaceDecoder, setupStateDecoder, setupStateEncoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import Session exposing (Session)
 import GraphQL

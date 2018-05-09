@@ -3,6 +3,10 @@ module Page.Setup.CreateGroups exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Task
+import Session exposing (Session)
+import Data.Space
+import Mutation.CompleteSetupStep as CompleteSetupStep
 
 
 -- MODEL
@@ -33,10 +37,16 @@ defaultGroups =
 type Msg
     = GroupToggled String
     | Submit
+    | Submitted (Result Session.Error ( Session, CompleteSetupStep.Response ))
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+type ExternalMsg
+    = SessionRefreshed Session
+    | NoOp
+
+
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+update msg session model =
     let
         groups =
             model.selectedGroups
@@ -44,12 +54,25 @@ update msg model =
         case msg of
             GroupToggled name ->
                 if List.member name groups then
-                    ( { model | selectedGroups = remove name groups }, Cmd.none )
+                    ( ( { model | selectedGroups = remove name groups }, Cmd.none ), NoOp )
                 else
-                    ( { model | selectedGroups = name :: groups }, Cmd.none )
+                    ( ( { model | selectedGroups = name :: groups }, Cmd.none ), NoOp )
 
             Submit ->
-                ( model, Cmd.none )
+                let
+                    cmd =
+                        CompleteSetupStep.Params model.spaceId Data.Space.CreateGroups False
+                            |> CompleteSetupStep.request
+                            |> Session.request session
+                            |> Task.attempt Submitted
+                in
+                    ( ( { model | isSubmitting = True }, cmd ), NoOp )
+
+            Submitted (Ok ( session, CompleteSetupStep.Success nextState )) ->
+                ( ( model, Cmd.none ), SessionRefreshed session )
+
+            Submitted (Err _) ->
+                ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
 
 
 remove : String -> List String -> List String
@@ -69,7 +92,7 @@ view model =
             , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
             , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
             , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
-            , button [ class "btn btn-blue", onClick Submit ] [ text "Create these groups" ]
+            , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Create these groups" ]
             ]
         ]
 
@@ -85,5 +108,5 @@ groupCheckbox selectedGroups name =
             ]
             []
         , span [ class "control-indicator" ] []
-        , text name
+        , span [ class "select-none" ] [ text name ]
         ]

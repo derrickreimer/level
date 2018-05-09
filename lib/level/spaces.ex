@@ -8,7 +8,7 @@ defmodule Level.Spaces do
 
   alias Ecto.Multi
   alias Level.Spaces.Space
-  alias Level.Spaces.SpaceSetupTransition
+  alias Level.Spaces.SpaceSetupStep
   alias Level.Spaces.SpaceUser
   alias Level.Repo
   alias Level.Users.User
@@ -90,7 +90,7 @@ defmodule Level.Spaces do
   @spec get_setup_state(Space.t()) :: {:ok, space_setup_states()}
   def get_setup_state(space) do
     completed_states =
-      Repo.all(from t in SpaceSetupTransition, where: t.space_id == ^space.id, select: t.state)
+      Repo.all(from t in SpaceSetupStep, where: t.space_id == ^space.id, select: t.state)
 
     next_state =
       cond do
@@ -120,8 +120,8 @@ defmodule Level.Spaces do
       |> Map.put(:state, params.state |> Atom.to_string() |> String.upcase())
 
     changeset =
-      %SpaceSetupTransition{}
-      |> SpaceSetupTransition.create_changeset(params_with_relations)
+      %SpaceSetupStep{}
+      |> SpaceSetupStep.create_changeset(params_with_relations)
 
     case Repo.insert(changeset) do
       {:ok, _} ->

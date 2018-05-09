@@ -1,6 +1,6 @@
-defmodule Level.Spaces.SpaceSetupTransition do
+defmodule Level.Spaces.SpaceSetupStep do
   @moduledoc """
-  The SpaceSetupTransition schema.
+  The SpaceSetupStep schema.
   """
 
   use Ecto.Schema
@@ -14,7 +14,7 @@ defmodule Level.Spaces.SpaceSetupTransition do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "space_setup_transitions" do
+  schema "space_setup_steps" do
     field :state, :string, read_after_writes: true
     field :is_skipped, :boolean
     belongs_to :space, Space
@@ -28,6 +28,6 @@ defmodule Level.Spaces.SpaceSetupTransition do
     struct
     |> cast(attrs, [:space_user_id, :space_id, :state, :is_skipped])
     |> validate_required([:state, :is_skipped])
-    |> unique_constraint(:state, name: :space_setup_transitions_space_id_state_index)
+    |> unique_constraint(:state, name: :space_setup_steps_space_id_state_index)
   end
 end

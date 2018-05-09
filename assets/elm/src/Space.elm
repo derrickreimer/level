@@ -155,10 +155,18 @@ update msg model =
 
             ( SetupCreateGroupsMsg msg, SetupCreateGroups pageModel ) ->
                 let
-                    ( newPageModel, cmd ) =
-                        Page.Setup.CreateGroups.update msg pageModel
+                    ( ( newPageModel, cmd ), externalMsg ) =
+                        Page.Setup.CreateGroups.update msg model.session pageModel
+
+                    ( newModel, externalCmd ) =
+                        case externalMsg of
+                            Page.Setup.CreateGroups.SessionRefreshed session ->
+                                ( { model | session = session }, Cmd.none )
+
+                            Page.Setup.CreateGroups.NoOp ->
+                                ( model, Cmd.none )
                 in
-                    ( { model | page = SetupCreateGroups newPageModel }
+                    ( { newModel | page = SetupCreateGroups newPageModel }
                     , Cmd.map SetupCreateGroupsMsg cmd
                     )
 

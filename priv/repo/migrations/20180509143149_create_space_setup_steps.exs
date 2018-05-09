@@ -4,7 +4,7 @@ defmodule Level.Repo.Migrations.CreateSpaceSetupSteps do
   def up do
     execute("CREATE TYPE space_setup_state AS ENUM ('CREATE_GROUPS','INVITE_USERS','COMPLETE')")
 
-    create table(:space_setup_transitions, primary_key: false) do
+    create table(:space_setup_steps, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :space_id, references(:spaces, on_delete: :nothing, type: :binary_id), null: false
 
@@ -17,7 +17,7 @@ defmodule Level.Repo.Migrations.CreateSpaceSetupSteps do
       timestamps()
     end
 
-    create unique_index(:space_setup_transitions, [:space_id, :state])
+    create unique_index(:space_setup_steps, [:space_id, :state])
   end
 
   def down do
