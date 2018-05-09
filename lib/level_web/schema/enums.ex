@@ -24,6 +24,11 @@ defmodule LevelWeb.Schema.Enums do
     value(:disabled, as: "DISABLED")
   end
 
+  enum :space_setup_state do
+    value(:create_groups, as: "CREATE_GROUPS")
+    value(:complete, as: "COMPLETE")
+  end
+
   enum :post_state do
     value(:open, as: "OPEN")
     value(:closed, as: "CLOSED")

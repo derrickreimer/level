@@ -57,6 +57,10 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
+    field :setup_state, non_null(:space_setup_state) do
+      resolve fn _space, _args, _context -> {:ok, "CREATE_GROUPS"} end
+    end
+
     field :groups, non_null(:group_connection) do
       arg :first, :integer
       arg :last, :integer

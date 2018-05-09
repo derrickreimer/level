@@ -253,8 +253,12 @@ navigateTo maybeRoute model =
                         ( { model | page = NotFound }, Cmd.none )
 
                     Just Route.Root ->
-                        -- TODO: Navigate to the current setup step or the inbox
-                        navigateTo (Just Route.SetupGroups) model
+                        case sharedState.space.setupState of
+                            Data.Space.CreateGroups ->
+                                navigateTo (Just Route.SetupGroups) model
+
+                            Data.Space.Complete ->
+                                navigateTo (Just Route.Inbox) model
 
                     Just Route.Inbox ->
                         -- TODO: implement this
