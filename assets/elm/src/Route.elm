@@ -16,7 +16,7 @@ import Data.Space exposing (Space)
 type Route
     = Root
     | Inbox
-    | SetupGroups
+    | SetupCreateGroups
     | NewInvitation
 
 
@@ -25,7 +25,7 @@ route =
     oneOf
         [ Url.map Root (s "")
         , Url.map Inbox (s "inbox")
-        , Url.map SetupGroups (s "setup" </> s "groups")
+        , Url.map SetupCreateGroups (s "setup" </> s "groups")
         , Url.map NewInvitation (s "invitations" </> s "new")
         ]
 
@@ -48,7 +48,7 @@ routeToString page =
                 NewInvitation ->
                     [ "invitations", "new" ]
 
-                SetupGroups ->
+                SetupCreateGroups ->
                     [ "setup", "groups" ]
     in
         "#/" ++ String.join "/" pieces

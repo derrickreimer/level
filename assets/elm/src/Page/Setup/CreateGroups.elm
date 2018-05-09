@@ -1,4 +1,4 @@
-module Page.SetupGroups exposing (..)
+module Page.Setup.CreateGroups exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

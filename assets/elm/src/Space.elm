@@ -10,7 +10,7 @@ import Time exposing (second)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Page.Inbox
-import Page.SetupGroups
+import Page.Setup.CreateGroups
 import Page.NewInvitation
 import Ports
 import Query.InitSpace
@@ -54,7 +54,7 @@ type Page
     | NotFound
     | Inbox
     | NewInvitation Page.NewInvitation.Model
-    | SetupGroups Page.SetupGroups.Model
+    | SetupCreateGroups Page.Setup.CreateGroups.Model
 
 
 type alias Flags =
@@ -108,7 +108,7 @@ type Msg
     = UrlChanged Navigation.Location
     | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
     | InboxMsg Page.Inbox.Msg
-    | SetupGroupsMsg Page.SetupGroups.Msg
+    | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
     | SocketAbort Decode.Value
@@ -153,7 +153,7 @@ update msg model =
                 -- TODO: implement this
                 ( model, Cmd.none )
 
-            ( NewInvitationMsg _, SetupGroups _ ) ->
+            ( NewInvitationMsg _, SetupCreateGroups _ ) ->
                 -- TODO: implement this
                 ( model, Cmd.none )
 
@@ -255,7 +255,7 @@ navigateTo maybeRoute model =
                     Just Route.Root ->
                         case sharedState.space.setupState of
                             Data.Space.CreateGroups ->
-                                navigateTo (Just Route.SetupGroups) model
+                                navigateTo (Just Route.SetupCreateGroups) model
 
                             Data.Space.Complete ->
                                 navigateTo (Just Route.Inbox) model
@@ -264,12 +264,12 @@ navigateTo maybeRoute model =
                         -- TODO: implement this
                         ( { model | page = Inbox }, Cmd.none )
 
-                    Just Route.SetupGroups ->
+                    Just Route.SetupCreateGroups ->
                         let
                             pageModel =
-                                Page.SetupGroups.buildModel sharedState.user.firstName
+                                Page.Setup.CreateGroups.buildModel sharedState.user.firstName
                         in
-                            ( { model | page = SetupGroups pageModel }
+                            ( { model | page = SetupCreateGroups pageModel }
                             , Cmd.none
                             )
 
@@ -416,10 +416,10 @@ pageContent page =
             Page.Inbox.view
                 |> Html.map InboxMsg
 
-        SetupGroups pageModel ->
+        SetupCreateGroups pageModel ->
             pageModel
-                |> Page.SetupGroups.view
-                |> Html.map SetupGroupsMsg
+                |> Page.Setup.CreateGroups.view
+                |> Html.map SetupCreateGroupsMsg
 
         NewInvitation pageModel ->
             pageModel
@@ -439,8 +439,8 @@ routeFor page =
         Inbox ->
             Route.Inbox
 
-        SetupGroups _ ->
-            Route.SetupGroups
+        SetupCreateGroups _ ->
+            Route.SetupCreateGroups
 
         NewInvitation _ ->
             Route.NewInvitation
