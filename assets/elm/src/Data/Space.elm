@@ -1,6 +1,7 @@
-module Data.Space exposing (Space, SetupState(..), spaceDecoder)
+module Data.Space exposing (Space, SetupState(..), spaceDecoder, setupStateDecoder, setupStateEncoder)
 
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
 
 
@@ -50,3 +51,17 @@ setupStateDecoder =
     in
         Decode.string
             |> Decode.andThen convert
+
+
+
+-- ENCODERS
+
+
+setupStateEncoder : SetupState -> Encode.Value
+setupStateEncoder raw =
+    case raw of
+        CreateGroups ->
+            Encode.string "CREATE_GROUPS"
+
+        Complete ->
+            Encode.string "COMPLETE"

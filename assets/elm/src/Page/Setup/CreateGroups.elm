@@ -2,20 +2,28 @@ module Page.Setup.CreateGroups exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 
 
 -- MODEL
 
 
 type alias Model =
-    { firstName : String
+    { spaceId : String
+    , firstName : String
     , isSubmitting : Bool
+    , selectedGroups : List String
     }
 
 
-buildModel : String -> Model
-buildModel firstName =
-    Model firstName False
+buildModel : String -> String -> Model
+buildModel spaceId firstName =
+    Model spaceId firstName False [ "Announcements" ]
+
+
+defaultGroups : List String
+defaultGroups =
+    [ "Announcements", "Engineering", "Marketing", "Support", "Random" ]
 
 
 
@@ -23,7 +31,30 @@ buildModel firstName =
 
 
 type Msg
-    = Loaded
+    = GroupToggled String
+    | Submit
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    let
+        groups =
+            model.selectedGroups
+    in
+        case msg of
+            GroupToggled name ->
+                if List.member name groups then
+                    ( { model | selectedGroups = remove name groups }, Cmd.none )
+                else
+                    ( { model | selectedGroups = name :: groups }, Cmd.none )
+
+            Submit ->
+                ( model, Cmd.none )
+
+
+remove : String -> List String -> List String
+remove name list =
+    List.filter (\item -> not (item == name)) list
 
 
 
@@ -37,33 +68,22 @@ view model =
             [ h2 [ class "mb-6 font-extrabold text-2xl" ] [ text ("Welcome to Level, " ++ model.firstName ++ "!") ]
             , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
             , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
-            , div [ class "mb-6" ]
-                [ label [ class "control checkbox mb-2" ]
-                    [ input [ type_ "checkbox", class "checkbox" ] []
-                    , span [ class "control-indicator" ] []
-                    , text "Announcements"
-                    ]
-                , label [ class "control checkbox mb-2" ]
-                    [ input [ type_ "checkbox", class "checkbox" ] []
-                    , span [ class "control-indicator" ] []
-                    , text "Engineering"
-                    ]
-                , label [ class "control checkbox mb-2" ]
-                    [ input [ type_ "checkbox", class "checkbox" ] []
-                    , span [ class "control-indicator" ] []
-                    , text "Support"
-                    ]
-                , label [ class "control checkbox mb-2" ]
-                    [ input [ type_ "checkbox", class "checkbox" ] []
-                    , span [ class "control-indicator" ] []
-                    , text "Marketing"
-                    ]
-                , label [ class "control checkbox mb-2" ]
-                    [ input [ type_ "checkbox", class "checkbox" ] []
-                    , span [ class "control-indicator" ] []
-                    , text "Random"
-                    ]
-                ]
-            , button [ class "btn btn-blue" ] [ text "Create these groups" ]
+            , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
+            , button [ class "btn btn-blue", onClick Submit ] [ text "Create these groups" ]
             ]
+        ]
+
+
+groupCheckbox : List String -> String -> Html Msg
+groupCheckbox selectedGroups name =
+    label [ class "control checkbox mb-2" ]
+        [ input
+            [ type_ "checkbox"
+            , class "checkbox"
+            , onClick (GroupToggled name)
+            , checked (List.member name selectedGroups)
+            ]
+            []
+        , span [ class "control-indicator" ] []
+        , text name
         ]

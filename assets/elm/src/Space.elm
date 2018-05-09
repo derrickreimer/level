@@ -153,9 +153,14 @@ update msg model =
                 -- TODO: implement this
                 ( model, Cmd.none )
 
-            ( NewInvitationMsg _, SetupCreateGroups _ ) ->
-                -- TODO: implement this
-                ( model, Cmd.none )
+            ( SetupCreateGroupsMsg msg, SetupCreateGroups pageModel ) ->
+                let
+                    ( newPageModel, cmd ) =
+                        Page.Setup.CreateGroups.update msg pageModel
+                in
+                    ( { model | page = SetupCreateGroups newPageModel }
+                    , Cmd.map SetupCreateGroupsMsg cmd
+                    )
 
             ( NewInvitationMsg msg, NewInvitation pageModel ) ->
                 let
@@ -267,7 +272,7 @@ navigateTo maybeRoute model =
                     Just Route.SetupCreateGroups ->
                         let
                             pageModel =
-                                Page.Setup.CreateGroups.buildModel sharedState.user.firstName
+                                Page.Setup.CreateGroups.buildModel sharedState.space.id sharedState.user.firstName
                         in
                             ( { model | page = SetupCreateGroups pageModel }
                             , Cmd.none
