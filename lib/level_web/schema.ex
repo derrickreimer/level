@@ -2,7 +2,7 @@ defmodule LevelWeb.Schema do
   @moduledoc false
 
   use Absinthe.Schema
-  import_types(LevelWeb.Schema.Types)
+  import_types LevelWeb.Schema.Types
 
   alias Level.Repo
 

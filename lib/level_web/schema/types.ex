@@ -4,6 +4,8 @@ defmodule LevelWeb.Schema.Types do
   use Absinthe.Schema.Notation
   import Absinthe.Resolution.Helpers
 
+  alias Level.Spaces
+
   import_types LevelWeb.Schema.Enums
   import_types LevelWeb.Schema.Scalars
   import_types LevelWeb.Schema.InputObjects
@@ -58,7 +60,9 @@ defmodule LevelWeb.Schema.Types do
     field :updated_at, non_null(:time)
 
     field :setup_state, non_null(:space_setup_state) do
-      resolve fn _space, _args, _context -> {:ok, "CREATE_GROUPS"} end
+      resolve fn space, _args, _context ->
+        Spaces.get_setup_state(space)
+      end
     end
 
     field :groups, non_null(:group_connection) do

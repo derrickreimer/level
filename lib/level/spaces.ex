@@ -78,4 +78,13 @@ defmodule Level.Spaces do
     |> SpaceUser.create_changeset(%{user_id: user.id, space_id: space.id, role: "MEMBER"})
     |> Repo.insert()
   end
+
+  @doc """
+  Determines the setup state for a space.
+  """
+  @spec get_setup_state(Space.t()) :: {:ok, :create_groups | :complete}
+  def get_setup_state(space) do
+    # TODO: implement this
+    {:ok, :create_groups}
+  end
 end
