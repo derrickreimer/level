@@ -2,7 +2,7 @@ defmodule LevelWeb.Schema do
   @moduledoc false
 
   use Absinthe.Schema
-  import_types(LevelWeb.Schema.Types)
+  import_types LevelWeb.Schema.Types
 
   alias Level.Repo
 
@@ -42,6 +42,15 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.create_space/2
     end
 
+    @desc "Mark a space setup step as complete."
+    field :complete_setup_step, type: :complete_setup_step_payload do
+      arg :space_id, non_null(:id)
+      arg :state, non_null(:space_setup_state)
+      arg :is_skipped, non_null(:boolean)
+
+      resolve &Level.Mutations.complete_setup_step/2
+    end
+
     @desc "Create a group."
     field :create_group, type: :create_group_payload do
       arg :space_id, non_null(:id)
@@ -50,6 +59,14 @@ defmodule LevelWeb.Schema do
       arg :is_private, :boolean
 
       resolve &Level.Mutations.create_group/2
+    end
+
+    @desc "Create multiple groups."
+    field :bulk_create_groups, type: :bulk_create_groups_payload do
+      arg :space_id, non_null(:id)
+      arg :names, non_null(list_of(:string))
+
+      resolve &Level.Mutations.bulk_create_groups/2
     end
 
     @desc "Update a group."

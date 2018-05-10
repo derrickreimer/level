@@ -64,6 +64,17 @@ CREATE TYPE public.post_state AS ENUM (
 
 
 --
+-- Name: space_setup_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.space_setup_state AS ENUM (
+    'CREATE_GROUPS',
+    'INVITE_USERS',
+    'COMPLETE'
+);
+
+
+--
 -- Name: space_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -165,6 +176,21 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: space_setup_steps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.space_setup_steps (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    state public.space_setup_state NOT NULL,
+    is_skipped boolean NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: space_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -244,6 +270,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: space_setup_steps space_setup_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_setup_steps
+    ADD CONSTRAINT space_setup_steps_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: space_users space_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -307,6 +341,13 @@ CREATE UNIQUE INDEX groups_unique_names_when_open ON public.groups USING btree (
 --
 
 CREATE INDEX posts_id_index ON public.posts USING btree (id);
+
+
+--
+-- Name: space_setup_steps_space_id_state_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX space_setup_steps_space_id_state_index ON public.space_setup_steps USING btree (space_id, state);
 
 
 --
@@ -408,6 +449,22 @@ ALTER TABLE ONLY public.posts
 
 
 --
+-- Name: space_setup_steps space_setup_steps_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_setup_steps
+    ADD CONSTRAINT space_setup_steps_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: space_setup_steps space_setup_steps_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_setup_steps
+    ADD CONSTRAINT space_setup_steps_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: space_users space_users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -427,5 +484,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149);
 

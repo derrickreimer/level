@@ -36,6 +36,7 @@ query =
             id
             name
             slug
+            setupState
           }
           errors {
             attribute

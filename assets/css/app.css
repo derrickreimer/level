@@ -36,26 +36,10 @@
  * @import "components/forms";
  */
 
- .max-w-430px {
-   max-width: 430px;
- }
-
- .no-outline {
-   outline: none;
- }
-
- .no-outline:focus {
-   outline: none;
- }
-
 .logo-md {
   width: 99px;
   height: 20px;
   margin-left: -1rem;
-}
-
-.font-antialised {
-  -webkit-font-smoothing: antialiased;
 }
 
 .input-label {
@@ -63,17 +47,17 @@
 }
 
 .input-field {
-  @apply .border-2 .rounded-lg .p-3 .w-full .text-dusty-blue-darker;
+  @apply .text-dusty-blue-darker .border-2 .rounded-lg .p-3 .w-full;
+}
+
+.input-field::placeholder {
+  @apply .text-dusty-blue-dark .opacity-50;
 }
 
 .input-field:focus,
 .input-field:focus-within {
   @apply .border-turquoise;
   outline: none;
-}
-
-.input-field::placeholder {
-  @apply .text-dusty-blue-dark;
 }
 
 .input-field-error {
@@ -90,7 +74,7 @@
 }
 
 .btn {
-  @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2;
+  @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2 .whitespace-no-wrap;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -110,28 +94,51 @@
   @apply .bg-blue-dark .border-blue-dark;
 }
 
-/* Borrowed from https://css-tricks.com/snippets/css/shake-css-keyframe-animation/ */
-.shake {
-  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
-  transform: translate3d(0, 0, 0);
+.control {
+  @apply .flex .items-center;
+  position: relative;
+  cursor: pointer;
+}
+.control input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1; /* Put the input behind the label so it doesn't overlay text */
+}
+.control-indicator {
+  @apply .flex-no-grow .flex-no-shrink .w-7 .h-7 .border-grey .border-2 .mr-3;
+  display: block;
+  line-height: 1rem;
+  font-size: 65%;
+  color: #eee;
+  text-align: center;
+  background-size: 65% 65%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-@keyframes shake {
-  10%, 90% {
-    transform: translate3d(-1px, 0, 0);
-  }
+/* Focus */
+.control input:focus ~ .control-indicator {
+  /* @apply .border-turquoise; */
+}
 
-  20%, 80% {
-    transform: translate3d(2px, 0, 0);
-  }
+/* Checked state */
+.control input:checked ~ .control-indicator {
+  @apply .bg-blue .text-white .border-blue;
+}
 
-  30%, 50%, 70% {
-    transform: translate3d(-4px, 0, 0);
-  }
+/* Active */
+.control input:active ~ .control-indicator {
+  @apply .bg-blue-dark .text-white .border-blue-dark;
+}
 
-  40%, 60% {
-    transform: translate3d(4px, 0, 0);
-  }
+/* Checkbox modifiers */
+.checkbox .control-indicator {
+  @apply .rounded-lg;
+}
+.checkbox input:checked ~ .control-indicator {
+  background-image: url("data:image/svg+xml,%3Csvg width='16px' height='13px' viewBox='0 0 16 13' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-rule='nonzero'%3E%3Cpath d='M5.20018971,8.67665709 L13.8460109,0 L16,2.16167145 L7.35417882,10.8383285 L5.20018971,13 L0,7.78126346 L2.15398911,5.619592 L5.20018971,8.67665709 Z'%3E%3C/path%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 /**
@@ -158,3 +165,55 @@
  * @import "utilities/background-patterns";
  * @import "utilities/skew-transforms";
  */
+
+.-z-1 {
+  z-index: -1;
+}
+
+.font-antialised {
+  -webkit-font-smoothing: antialiased;
+}
+
+.max-w-430px {
+  max-width: 430px;
+}
+
+.max-w-90 {
+  max-width: 90%;
+}
+
+.no-outline {
+  outline: none;
+}
+
+.no-outline:focus {
+  outline: none;
+}
+
+.placeholder-blue::placeholder {
+  @apply .text-dusty-blue-dark .opacity-50;
+}
+
+ /* Borrowed from https://css-tricks.com/snippets/css/shake-css-keyframe-animation/ */
+.shake {
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}

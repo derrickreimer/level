@@ -53,6 +53,6 @@
     parse: 1,
     resolve: 1,
     serialize: 1,
-    value: 2
+    value: :*
   ]
 ]

@@ -1,6 +1,7 @@
-module Main exposing (..)
+module Space exposing (..)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Json.Decode as Decode
 import Navigation
 import Process
@@ -8,10 +9,10 @@ import Task exposing (Task)
 import Time exposing (second)
 import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
-import Page.Conversations
-import Page.NewInvitation
+import Page.Inbox
+import Page.Setup.CreateGroups
 import Ports
-import Query.AppState
+import Query.InitSpace
 import Route exposing (Route)
 import Session exposing (Session)
 import Util exposing (Lazy(..))
@@ -32,30 +33,31 @@ main =
 
 
 type alias Model =
-    { session : Session
-    , appState : Lazy AppState
+    { spaceId : String
+    , session : Session
+    , sharedState : Lazy SharedState
     , page : Page
     , isTransitioning : Bool
     , flashNotice : Maybe String
     }
 
 
-type alias AppState =
+type alias SharedState =
     { space : Space
     , user : User
-    , users : UserConnection
     }
 
 
 type Page
     = Blank
     | NotFound
-    | Conversations -- TODO: add a model to this type
-    | NewInvitation Page.NewInvitation.Model
+    | Inbox
+    | SetupCreateGroups Page.Setup.CreateGroups.Model
 
 
 type alias Flags =
     { apiToken : String
+    , spaceId : String
     }
 
 
@@ -78,7 +80,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model (Session.init flags.apiToken) NotLoaded Blank True Nothing
+    Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -102,9 +104,9 @@ updatePipeline transforms model =
 
 type Msg
     = UrlChanged Navigation.Location
-    | AppStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.AppState.Response ))
-    | ConversationsMsg Page.Conversations.Msg
-    | NewInvitationMsg Page.NewInvitation.Msg
+    | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
+    | InboxMsg Page.Inbox.Msg
+    | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SendFrame Ports.Frame
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
@@ -134,39 +136,35 @@ update msg model =
             ( UrlChanged location, _ ) ->
                 navigateTo (Route.fromLocation location) model
 
-            ( AppStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
-                { model | appState = Loaded response, session = session }
+            ( SharedStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
+                { model | sharedState = Loaded response, session = session }
                     |> updatePipeline [ navigateTo maybeRoute, setupSockets ]
 
-            ( AppStateLoaded maybeRoute (Err Session.Expired), _ ) ->
+            ( SharedStateLoaded maybeRoute (Err Session.Expired), _ ) ->
                 ( model, Route.toLogin )
 
-            ( AppStateLoaded maybeRoute (Err _), _ ) ->
+            ( SharedStateLoaded maybeRoute (Err _), _ ) ->
                 ( model, Cmd.none )
 
-            ( ConversationsMsg _, _ ) ->
+            ( InboxMsg _, _ ) ->
                 -- TODO: implement this
                 ( model, Cmd.none )
 
-            ( NewInvitationMsg msg, NewInvitation pageModel ) ->
+            ( SetupCreateGroupsMsg msg, SetupCreateGroups pageModel ) ->
                 let
                     ( ( newPageModel, cmd ), externalMsg ) =
-                        Page.NewInvitation.update msg model.session pageModel
+                        Page.Setup.CreateGroups.update msg model.session pageModel
 
                     ( newModel, externalCmd ) =
                         case externalMsg of
-                            Page.NewInvitation.InvitationCreated session _ ->
-                                { model | session = session }
-                                    |> updatePipeline [ setFlashNotice "Invitation sent" ]
-
-                            Page.NewInvitation.SessionRefreshed session ->
+                            Page.Setup.CreateGroups.SessionRefreshed session ->
                                 ( { model | session = session }, Cmd.none )
 
-                            Page.NewInvitation.NoOp ->
+                            Page.Setup.CreateGroups.NoOp ->
                                 ( model, Cmd.none )
                 in
-                    ( { newModel | page = NewInvitation newPageModel }
-                    , Cmd.batch [ externalCmd, Cmd.map NewInvitationMsg cmd ]
+                    ( { newModel | page = SetupCreateGroups newPageModel }
+                    , Cmd.map SetupCreateGroupsMsg cmd
                     )
 
             ( SendFrame frame, _ ) ->
@@ -209,7 +207,6 @@ update msg model =
                 ( model, Cmd.none )
 
 
-
 setFlashNotice : String -> Model -> ( Model, Cmd Msg )
 setFlashNotice message model =
     ( { model | flashNotice = Just message }, expireFlashNotice )
@@ -220,11 +217,11 @@ expireFlashNotice =
     Task.perform (\_ -> FlashNoticeExpired) <| Process.sleep (3 * second)
 
 
-bootstrap : Session -> Maybe Route -> Cmd Msg
-bootstrap session maybeRoute =
-    Query.AppState.request
+bootstrap : String -> Session -> Maybe Route -> Cmd Msg
+bootstrap spaceId session maybeRoute =
+    Query.InitSpace.request (Query.InitSpace.Params spaceId)
         |> Session.request session
-        |> Task.attempt (AppStateLoaded maybeRoute)
+        |> Task.attempt (SharedStateLoaded maybeRoute)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -235,32 +232,40 @@ navigateTo maybeRoute model =
             , Task.attempt toMsg task
             )
     in
-        case model.appState of
+        case model.sharedState of
             NotLoaded ->
-                ( model, bootstrap model.session maybeRoute )
+                ( model, bootstrap model.spaceId model.session maybeRoute )
 
-            Loaded _ ->
+            Loaded sharedState ->
                 case maybeRoute of
                     Nothing ->
                         ( { model | page = NotFound }, Cmd.none )
 
-                    Just Route.Conversations ->
-                        -- TODO: implement this
-                        ( { model | page = Conversations }, Cmd.none )
+                    Just Route.Root ->
+                        case sharedState.space.setupState of
+                            Data.Space.CreateGroups ->
+                                navigateTo (Just Route.SetupCreateGroups) model
 
-                    Just Route.NewInvitation ->
+                            Data.Space.Complete ->
+                                navigateTo (Just Route.Inbox) model
+
+                    Just Route.Inbox ->
+                        -- TODO: implement this
+                        ( { model | page = Inbox }, Cmd.none )
+
+                    Just Route.SetupCreateGroups ->
                         let
                             pageModel =
-                                Page.NewInvitation.buildModel
+                                Page.Setup.CreateGroups.buildModel sharedState.space.id sharedState.user.firstName
                         in
-                            ( { model | page = NewInvitation pageModel }
-                            , Cmd.map NewInvitationMsg (Page.NewInvitation.initialCmd model.session)
+                            ( { model | page = SetupCreateGroups pageModel }
+                            , Cmd.none
                             )
 
 
 setupSockets : Model -> ( Model, Cmd Msg )
 setupSockets model =
-    case model.appState of
+    case model.sharedState of
         NotLoaded ->
             ( model, Cmd.none )
 
@@ -295,31 +300,129 @@ pageSubscription model =
 
 view : Model -> Html Msg
 view model =
-    case model.appState of
+    case model.sharedState of
         NotLoaded ->
-            text "Loading..."
+            text ""
 
-        Loaded appState ->
-            pageContent model.page
+        Loaded sharedState ->
+            div []
+                [ leftSidebar sharedState model
+                , pageContent model.page
+                ]
+
+
+leftSidebar : SharedState -> Model -> Html Msg
+leftSidebar sharedState model =
+    div [ class "fixed bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
+        [ div [ class "ml-2" ]
+            [ spaceAvatar sharedState.space
+            , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker" ] [ text sharedState.space.name ]
+            ]
+        , ul [ class "list-reset leading-semi-loose select-none" ]
+            [ sidebarLink "Inbox" (Just Route.Inbox) model.page
+            , sidebarLink "Everything" Nothing model.page
+            , sidebarLink "Drafts" Nothing model.page
+            ]
+        , div [ class "absolute pin-b mb-2 flex" ]
+            [ div [] [ userAvatar sharedState.user ]
+            , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
+                [ div [] [ text "Signed in as" ]
+                , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
+                ]
+            ]
+        ]
+
+
+{-| Build a link for the sidebar navigation with a special indicator for the
+current page. Pass Nothing for the route to make it a placeholder link.
+-}
+sidebarLink : String -> Maybe Route -> Page -> Html Msg
+sidebarLink title maybeRoute currentPage =
+    case maybeRoute of
+        Just route ->
+            if route == routeFor currentPage then
+                li [ class "flex items-center font-bold" ]
+                    [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
+                    , a
+                        [ Route.href route
+                        , class "ml-2 text-dusty-blue-darker no-underline"
+                        ]
+                        [ text title ]
+                    ]
+            else
+                li []
+                    [ a
+                        [ Route.href route
+                        , class "ml-2 text-dusty-blue-darker no-underline"
+                        ]
+                        [ text title ]
+                    ]
+
+        Nothing ->
+            li []
+                [ a
+                    [ href "#"
+                    , class "ml-2 text-dusty-blue-darker no-underline"
+                    ]
+                    [ text title ]
+                ]
+
+
+spaceAvatar : Space -> Html Msg
+spaceAvatar space =
+    space.name
+        |> String.left 1
+        |> String.toUpper
+        |> picturelessAvatar
+
+
+userAvatar : User -> Html Msg
+userAvatar user =
+    user.firstName
+        |> String.left 1
+        |> String.toUpper
+        |> picturelessAvatar
+
+
+picturelessAvatar : String -> Html Msg
+picturelessAvatar initials =
+    div [ class "w-9 h-9 mb-2 bg-turquoise rounded-full flex items-center justify-center font-bold text-white select-none" ] [ text initials ]
 
 
 pageContent : Page -> Html Msg
 pageContent page =
     case page of
-        Conversations ->
-            Page.Conversations.view
-                |> Html.map ConversationsMsg
+        Inbox ->
+            Page.Inbox.view
+                |> Html.map InboxMsg
 
-        NewInvitation model ->
-            model
-                |> Page.NewInvitation.view
-                |> Html.map NewInvitationMsg
+        SetupCreateGroups pageModel ->
+            pageModel
+                |> Page.Setup.CreateGroups.view
+                |> Html.map SetupCreateGroupsMsg
 
         Blank ->
             text ""
 
         NotFound ->
             text "404"
+
+
+routeFor : Page -> Route
+routeFor page =
+    case page of
+        Inbox ->
+            Route.Inbox
+
+        SetupCreateGroups _ ->
+            Route.SetupCreateGroups
+
+        Blank ->
+            Route.Inbox
+
+        NotFound ->
+            Route.Inbox
+
 
 
 -- MESSAGE DECODERS

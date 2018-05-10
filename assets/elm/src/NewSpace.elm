@@ -137,35 +137,37 @@ view model =
             , ( "input-field-error", not (List.isEmpty slugErrors) )
             ]
     in
-        div [ class "container mx-auto px-4 py-24 flex justify-center max-w-430px" ]
-            [ div [ class "w-full" ]
-                [ div [ class "mb-8 text-center" ]
-                    [ img [ src "/images/logo-md.svg", class "logo-md", alt "Level" ] []
-                    ]
-                , div
-                    [ classList
-                        [ ( "px-16 py-8 bg-white rounded-lg border", True )
-                        , ( "shake", not (List.isEmpty model.errors) )
+        div [ class "bg-grey-light h-full min-h-screen" ]
+            [ div [ class "container mx-auto px-4 py-24 flex justify-center max-w-430px" ]
+                [ div [ class "w-full" ]
+                    [ div [ class "mb-8 text-center" ]
+                        [ img [ src "/images/logo-md.svg", class "logo-md", alt "Level" ] []
                         ]
-                    ]
-                    [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darker pb-8" ]
-                        [ text "Create a new space" ]
-                    , div [ class "pb-6" ]
-                        [ label [ for "name", class "input-label" ] [ text "Name your space" ]
-                        , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True)
-                            (errorsFor "name" model.errors)
+                    , div
+                        [ classList
+                            [ ( "px-16 py-8 bg-white rounded-lg border", True )
+                            , ( "shake", not (List.isEmpty model.errors) )
+                            ]
                         ]
-                    , div [ class "pb-6" ]
-                        [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
-                        , slugField model.slug (errorsFor "slug" model.errors)
+                        [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darker pb-8" ]
+                            [ text "Create a new space" ]
+                        , div [ class "pb-6" ]
+                            [ label [ for "name", class "input-label" ] [ text "Name your space" ]
+                            , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True)
+                                (errorsFor "name" model.errors)
+                            ]
+                        , div [ class "pb-6" ]
+                            [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
+                            , slugField model.slug (errorsFor "slug" model.errors)
+                            ]
+                        , button
+                            [ type_ "submit"
+                            , class "btn btn-blue w-full"
+                            , onClick Submit
+                            , disabled (model.formState == Submitting)
+                            ]
+                            [ text "Let's get started" ]
                         ]
-                    , button
-                        [ type_ "submit"
-                        , class "btn btn-blue w-full"
-                        , onClick Submit
-                        , disabled (model.formState == Submitting)
-                        ]
-                        [ text "Let's get started" ]
                     ]
                 ]
             ]
@@ -207,14 +209,14 @@ slugField slug errors =
             [ div [ classList classes ]
                 [ label
                     [ for "slug"
-                    , class "flex-none text-dusty-blue-dark select-none"
+                    , class "flex-none text-dusty-blue-darker select-none"
                     ]
-                    [ text "https://level.space/" ]
+                    [ text "level.app/" ]
                 , div [ class "flex-1" ]
                     [ input
                         [ id "slug"
                         , type_ "text"
-                        , class "w-full p-0 ml-1 no-outline text-dusty-blue-darker"
+                        , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
                         , name "slug"
                         , placeholder "smith-co"
                         , value slug

@@ -2,49 +2,51 @@
   <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="container mx-auto px-4 py-24 flex justify-center max-w-430px">
-  <div class="w-full">
-    <div class="mb-8 text-center">
-      <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>
-    </div>
+<div class="bg-grey-light h-full min-h-screen">
+  <div class="container mx-auto px-4 py-24 flex justify-center max-w-430px">
+    <div class="w-full">
+      <div class="mb-8 text-center">
+        <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>
+      </div>
 
-    <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
-      <div class="px-16 py-8 bg-white rounded-lg border">
-        <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darker pb-8">Sign up for Level</h1>
+      <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
+        <div class="px-16 py-8 bg-white rounded-lg border">
+          <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darker pb-8">Sign up for Level</h1>
 
-        <div class="pb-6">
-          <%= label f, :email, gettext("Email address"), class: "input-label" %>
-          <%= text_input f, :email, class: input_classes(f, :email), autofocus: true, placeholder: "jane@smithco.com" %>
-          <%= error_tag f, :email, class: "form-errors" %>
-        </div>
+          <div class="pb-6">
+            <%= label f, :email, gettext("Email address"), class: "input-label" %>
+            <%= text_input f, :email, class: input_classes(f, :email), autofocus: true, placeholder: "jane@smithco.com" %>
+            <%= error_tag f, :email, class: "form-errors" %>
+          </div>
 
-        <div class="pb-6">
-          <%= label f, :first_name, gettext("Full Name"), class: "input-label" %>
-          <div class="flex">
-            <div class="flex-1 mr-2">
-              <%= text_input f, :first_name, class: input_classes(f, :first_name), placeholder: "Jane" %>
-              <%= error_tag f, :first_name, class: "form-errors" %>
-            </div>
+          <div class="pb-6">
+            <%= label f, :first_name, gettext("Full Name"), class: "input-label" %>
+            <div class="flex">
+              <div class="flex-1 mr-2">
+                <%= text_input f, :first_name, class: input_classes(f, :first_name), placeholder: "Jane" %>
+                <%= error_tag f, :first_name, class: "form-errors" %>
+              </div>
 
-            <div class="flex-1">
-              <%= text_input f, :last_name, class: input_classes(f, :last_name), placeholder: "Smith" %>
-              <%= error_tag f, :last_name, class: "form-errors" %>
+              <div class="flex-1">
+                <%= text_input f, :last_name, class: input_classes(f, :last_name), placeholder: "Smith" %>
+                <%= error_tag f, :last_name, class: "form-errors" %>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="pb-6">
-          <%= label f, :password, gettext("Password"), class: "input-label" %>
-          <%= password_input f, :password, class: input_classes(f, :password) %>
-          <%= error_tag f, :password, class: "form-errors" %>
-        </div>
+          <div class="pb-6">
+            <%= label f, :password, gettext("Password"), class: "input-label" %>
+            <%= password_input f, :password, class: input_classes(f, :password) %>
+            <%= error_tag f, :password, class: "form-errors" %>
+          </div>
 
-        <%= submit gettext("Sign up"), class: "btn btn-blue w-full" %>
-      </div>
-      <div class="px-16 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
-        <%= gettext "Already have a user account?" %>
-        <%= link gettext("Sign in"), to: session_path(@conn, :new), class: "text-blue" %>
-      </div>
-    <% end %>
+          <%= submit gettext("Sign up"), class: "btn btn-blue w-full" %>
+        </div>
+        <div class="px-16 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
+          <%= gettext "Already have a user account?" %>
+          <%= link gettext("Sign in"), to: session_path(@conn, :new), class: "text-blue" %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>

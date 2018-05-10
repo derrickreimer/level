@@ -3,10 +3,12 @@ defmodule Level.Spaces do
   The Spaces context.
   """
 
+  import Ecto.Query
   import Level.Gettext
 
   alias Ecto.Multi
   alias Level.Spaces.Space
+  alias Level.Spaces.SpaceSetupStep
   alias Level.Spaces.SpaceUser
   alias Level.Repo
   alias Level.Users.User
@@ -19,6 +21,9 @@ defmodule Level.Spaces do
   @typedoc "The result of getting a space"
   @type get_space_result ::
           {:ok, %{space: Space.t(), space_user: SpaceUser.t()}} | {:error, String.t()}
+
+  @typedoc "Possible space setup states"
+  @type space_setup_states :: :create_groups | :invite_users | :complete
 
   @doc """
   Fetches a space by id.
@@ -77,5 +82,54 @@ defmodule Level.Spaces do
     %SpaceUser{}
     |> SpaceUser.create_changeset(%{user_id: user.id, space_id: space.id, role: "MEMBER"})
     |> Repo.insert()
+  end
+
+  @doc """
+  Determines the setup state for a space.
+  """
+  @spec get_setup_state(Space.t()) :: {:ok, space_setup_states()}
+  def get_setup_state(space) do
+    completed_states =
+      Repo.all(from t in SpaceSetupStep, where: t.space_id == ^space.id, select: t.state)
+
+    next_state =
+      cond do
+        Enum.member?(completed_states, "INVITE_USERS") -> :complete
+        Enum.member?(completed_states, "CREATE_GROUPS") -> :invite_users
+        true -> :create_groups
+      end
+
+    {:ok, next_state}
+  end
+
+  @doc """
+  Marks a setup state as complete and returns the current state.
+
+  Uniqueness of state transition records is enforced, but attempting to
+  transition the same state multiple times will not result in an error.
+  """
+  @spec complete_setup_step(SpaceUser.t(), Space.t(), map()) ::
+          {:ok, space_setup_states()} | {:error, Ecto.Changeset.t()}
+  def complete_setup_step(space_user, space, params) do
+    params_with_relations =
+      params
+      |> Map.put(:space_id, space.id)
+      |> Map.put(:space_user_id, space_user.id)
+      |> Map.put(:state, params.state |> Atom.to_string() |> String.upcase())
+
+    changeset =
+      %SpaceSetupStep{}
+      |> SpaceSetupStep.create_changeset(params_with_relations)
+
+    case Repo.insert(changeset) do
+      {:ok, _} ->
+        get_setup_state(space)
+
+      {:error, %Ecto.Changeset{errors: [state: _]}} ->
+        get_setup_state(space)
+
+      error ->
+        error
+    end
   end
 end

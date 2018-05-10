@@ -6,6 +6,7 @@ defmodule Level.Mutations do
   alias Level.Groups
   alias Level.Posts
   alias Level.Spaces
+  alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
   @typedoc "A context map containing the current user"
@@ -24,10 +25,26 @@ defmodule Level.Mutations do
           {:ok, %{success: boolean(), group: Groups.Group.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
 
+  @typedoc "The payload for a bulk-created group"
+  @type bulk_create_group_payload :: %{
+          success: boolean(),
+          args: %{name: String.t()},
+          group: Groups.Group.t() | nil,
+          errors: validation_errors
+        }
+
+  @typedoc "The result of a bulk create group mutation"
+  @type bulk_create_groups_result ::
+          {:ok, %{payloads: [bulk_create_group_payload()]}} | {:error, String.t()}
+
   @typedoc "The result of a post mutation"
   @type post_mutation_result ::
           {:ok, %{success: boolean(), post: Posts.Post.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
+
+  @typedoc "The result of a setup step mutation"
+  @type setup_step_mutation_result ::
+          {:ok, %{success: boolean(), state: atom()}} | {:error, String.t()}
 
   @doc """
   Creates a new space.
@@ -88,6 +105,41 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Create multiple groups.
+  """
+  @spec bulk_create_groups(map(), authenticated_context()) :: bulk_create_groups_result()
+  def bulk_create_groups(args, %{context: %{current_user: user}}) do
+    case Spaces.get_space(user, args.space_id) do
+      {:ok, %{space_user: space_user}} ->
+        payloads =
+          Enum.map(args.names, fn name ->
+            bulk_create_group(space_user, name)
+          end)
+
+        {:ok, %{payloads: payloads}}
+
+      err ->
+        err
+    end
+  end
+
+  @spec bulk_create_group(SpaceUser.t(), String.t()) :: bulk_create_group_payload()
+  defp bulk_create_group(space_user, name) do
+    args = %{name: name}
+
+    case Groups.create_group(space_user, args) do
+      {:ok, %{group: group}} ->
+        %{success: true, group: group, errors: [], args: args}
+
+      {:error, :group, changeset, _} ->
+        %{success: false, group: nil, errors: format_errors(changeset), args: args}
+
+      _ ->
+        %{success: false, group: nil, errors: [], args: args}
+    end
+  end
+
+  @doc """
   Creates a post.
   """
   @spec create_post(map(), authenticated_context()) :: post_mutation_result()
@@ -99,6 +151,20 @@ defmodule Level.Mutations do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
 
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Marks a space setup step complete.
+  """
+  @spec complete_setup_step(map(), authenticated_context()) :: setup_step_mutation_result()
+  def complete_setup_step(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space: space, space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, next_state} <- Spaces.complete_setup_step(space_user, space, args) do
+      {:ok, %{success: true, state: next_state}}
+    else
       err ->
         err
     end
