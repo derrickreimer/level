@@ -366,7 +366,7 @@ leftSidebar sharedState model =
     div [ class "fixed bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
         [ div [ class "ml-2" ]
             [ spaceAvatar sharedState.space
-            , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker" ] [ text sharedState.space.name ]
+            , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
             ]
         , ul [ class "list-reset leading-semi-loose select-none" ]
             [ sidebarLink "Inbox" (Just Route.Inbox) model.page
