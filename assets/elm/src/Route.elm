@@ -17,6 +17,7 @@ type Route
     = Root
     | Inbox
     | SetupCreateGroups
+    | SetupInviteUsers
 
 
 route : Parser (Route -> a) a
@@ -25,6 +26,7 @@ route =
         [ Url.map Root (s "")
         , Url.map Inbox (s "inbox")
         , Url.map SetupCreateGroups (s "setup" </> s "groups")
+        , Url.map SetupInviteUsers (s "setup" </> s "invites")
         ]
 
 
@@ -45,6 +47,9 @@ routeToString page =
 
                 SetupCreateGroups ->
                     [ "setup", "groups" ]
+
+                SetupInviteUsers ->
+                    [ "setup", "invites" ]
     in
         "#/" ++ String.join "/" pieces
 

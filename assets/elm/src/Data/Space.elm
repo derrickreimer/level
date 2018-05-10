@@ -18,6 +18,7 @@ type alias Space =
 
 type SetupState
     = CreateGroups
+    | InviteUsers
     | Complete
 
 
@@ -43,6 +44,9 @@ setupStateDecoder =
                 "CREATE_GROUPS" ->
                     Decode.succeed CreateGroups
 
+                "INVITE_USERS" ->
+                    Decode.succeed InviteUsers
+
                 "COMPLETE" ->
                     Decode.succeed Complete
 
@@ -62,6 +66,9 @@ setupStateEncoder raw =
     case raw of
         CreateGroups ->
             Encode.string "CREATE_GROUPS"
+
+        InviteUsers ->
+            Encode.string "INVITE_USERS"
 
         Complete ->
             Encode.string "COMPLETE"

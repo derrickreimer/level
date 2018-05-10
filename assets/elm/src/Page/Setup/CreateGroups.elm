@@ -8,7 +8,7 @@ import Session exposing (Session)
 import Data.Space
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
-import Route
+import Route exposing (Route)
 
 
 -- MODEL
@@ -88,7 +88,7 @@ update msg session model =
                 ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
 
             Advanced (Ok ( session, CompleteSetupStep.Success nextState )) ->
-                ( ( model, Cmd.none ), SessionRefreshed session )
+                ( ( model, Route.modifyUrl <| routeFor nextState ), SessionRefreshed session )
 
             Advanced (Err Session.Expired) ->
                 redirectToLogin model
@@ -105,6 +105,19 @@ remove name list =
 redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 redirectToLogin model =
     ( ( model, Route.toLogin ), NoOp )
+
+
+routeFor : Data.Space.SetupState -> Route
+routeFor setupState =
+    case setupState of
+        Data.Space.CreateGroups ->
+            Route.SetupCreateGroups
+
+        Data.Space.InviteUsers ->
+            Route.SetupInviteUsers
+
+        Data.Space.Complete ->
+            Route.Inbox
 
 
 

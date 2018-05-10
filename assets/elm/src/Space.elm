@@ -11,6 +11,7 @@ import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Page.Inbox
 import Page.Setup.CreateGroups
+import Page.Setup.InviteUsers
 import Ports
 import Query.InitSpace
 import Route exposing (Route)
@@ -53,6 +54,7 @@ type Page
     | NotFound
     | Inbox
     | SetupCreateGroups Page.Setup.CreateGroups.Model
+    | SetupInviteUsers Page.Setup.InviteUsers.Model
 
 
 type alias Flags =
@@ -107,6 +109,7 @@ type Msg
     | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
     | InboxMsg Page.Inbox.Msg
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
+    | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
     | SendFrame Ports.Frame
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
@@ -246,6 +249,9 @@ navigateTo maybeRoute model =
                             Data.Space.CreateGroups ->
                                 navigateTo (Just Route.SetupCreateGroups) model
 
+                            Data.Space.InviteUsers ->
+                                navigateTo (Just Route.SetupInviteUsers) model
+
                             Data.Space.Complete ->
                                 navigateTo (Just Route.Inbox) model
 
@@ -259,6 +265,15 @@ navigateTo maybeRoute model =
                                 Page.Setup.CreateGroups.buildModel sharedState.space.id sharedState.user.firstName
                         in
                             ( { model | page = SetupCreateGroups pageModel }
+                            , Cmd.none
+                            )
+
+                    Just Route.SetupInviteUsers ->
+                        let
+                            pageModel =
+                                Page.Setup.InviteUsers.buildModel sharedState.space.id
+                        in
+                            ( { model | page = SetupInviteUsers pageModel }
                             , Cmd.none
                             )
 
@@ -401,6 +416,11 @@ pageContent page =
                 |> Page.Setup.CreateGroups.view
                 |> Html.map SetupCreateGroupsMsg
 
+        SetupInviteUsers pageModel ->
+            pageModel
+                |> Page.Setup.InviteUsers.view
+                |> Html.map SetupInviteUsersMsg
+
         Blank ->
             text ""
 
@@ -416,6 +436,9 @@ routeFor page =
 
         SetupCreateGroups _ ->
             Route.SetupCreateGroups
+
+        SetupInviteUsers _ ->
+            Route.SetupInviteUsers
 
         Blank ->
             Route.Inbox
