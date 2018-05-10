@@ -11,7 +11,6 @@ import Data.Space exposing (Space)
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Page.Inbox
 import Page.Setup.CreateGroups
-import Page.NewInvitation
 import Ports
 import Query.InitSpace
 import Route exposing (Route)
@@ -53,7 +52,6 @@ type Page
     = Blank
     | NotFound
     | Inbox
-    | NewInvitation Page.NewInvitation.Model
     | SetupCreateGroups Page.Setup.CreateGroups.Model
 
 
@@ -109,7 +107,6 @@ type Msg
     | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
     | InboxMsg Page.Inbox.Msg
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
-    | NewInvitationMsg Page.NewInvitation.Msg
     | SendFrame Ports.Frame
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
@@ -168,27 +165,6 @@ update msg model =
                 in
                     ( { newModel | page = SetupCreateGroups newPageModel }
                     , Cmd.map SetupCreateGroupsMsg cmd
-                    )
-
-            ( NewInvitationMsg msg, NewInvitation pageModel ) ->
-                let
-                    ( ( newPageModel, cmd ), externalMsg ) =
-                        Page.NewInvitation.update msg model.session pageModel
-
-                    ( newModel, externalCmd ) =
-                        case externalMsg of
-                            Page.NewInvitation.InvitationCreated session _ ->
-                                { model | session = session }
-                                    |> updatePipeline [ setFlashNotice "Invitation sent" ]
-
-                            Page.NewInvitation.SessionRefreshed session ->
-                                ( { model | session = session }, Cmd.none )
-
-                            Page.NewInvitation.NoOp ->
-                                ( model, Cmd.none )
-                in
-                    ( { newModel | page = NewInvitation newPageModel }
-                    , Cmd.batch [ externalCmd, Cmd.map NewInvitationMsg cmd ]
                     )
 
             ( SendFrame frame, _ ) ->
@@ -284,15 +260,6 @@ navigateTo maybeRoute model =
                         in
                             ( { model | page = SetupCreateGroups pageModel }
                             , Cmd.none
-                            )
-
-                    Just Route.NewInvitation ->
-                        let
-                            pageModel =
-                                Page.NewInvitation.buildModel
-                        in
-                            ( { model | page = NewInvitation pageModel }
-                            , Cmd.map NewInvitationMsg (Page.NewInvitation.initialCmd model.session)
                             )
 
 
@@ -434,11 +401,6 @@ pageContent page =
                 |> Page.Setup.CreateGroups.view
                 |> Html.map SetupCreateGroupsMsg
 
-        NewInvitation pageModel ->
-            pageModel
-                |> Page.NewInvitation.view
-                |> Html.map NewInvitationMsg
-
         Blank ->
             text ""
 
@@ -454,9 +416,6 @@ routeFor page =
 
         SetupCreateGroups _ ->
             Route.SetupCreateGroups
-
-        NewInvitation _ ->
-            Route.NewInvitation
 
         Blank ->
             Route.Inbox
