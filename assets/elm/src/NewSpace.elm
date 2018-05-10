@@ -9,6 +9,7 @@ import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, 
 import Mutation.CreateSpace as CreateSpace
 import Route
 import Session exposing (Session)
+import Util exposing (onEnter)
 
 
 main : Program Flags Model Msg
@@ -191,6 +192,7 @@ textField field errors =
                 , value field.value
                 , onInput field.onInput
                 , autofocus field.autofocus
+                , onEnter Submit
                 ]
                 []
             , formErrors errors
@@ -221,6 +223,7 @@ slugField slug errors =
                         , placeholder "smith-co"
                         , value slug
                         , onInput SlugChanged
+                        , onEnter Submit
                         ]
                         []
                     ]
