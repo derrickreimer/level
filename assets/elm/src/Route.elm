@@ -83,4 +83,4 @@ toLogin =
 
 toSpace : Space -> Cmd msg
 toSpace space =
-    Navigation.load ("/" ++ space.slug)
+    Navigation.load ("/" ++ space.slug ++ "/")

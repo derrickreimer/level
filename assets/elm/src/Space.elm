@@ -157,19 +157,42 @@ update msg model =
 
             ( SetupCreateGroupsMsg msg, SetupCreateGroups pageModel ) ->
                 let
-                    ( ( newPageModel, cmd ), externalMsg ) =
+                    ( ( newPageModel, cmd ), session, externalMsg ) =
                         Page.Setup.CreateGroups.update msg model.session pageModel
 
-                    ( newModel, externalCmd ) =
+                    newModel =
                         case externalMsg of
-                            Page.Setup.CreateGroups.SessionRefreshed session ->
-                                ( { model | session = session }, Cmd.none )
+                            Page.Setup.CreateGroups.SetupStateChanged newState ->
+                                updateSetupState newState model
 
                             Page.Setup.CreateGroups.NoOp ->
-                                ( model, Cmd.none )
+                                model
                 in
-                    ( { newModel | page = SetupCreateGroups newPageModel }
+                    ( { newModel
+                        | session = session
+                        , page = SetupCreateGroups newPageModel
+                      }
                     , Cmd.map SetupCreateGroupsMsg cmd
+                    )
+
+            ( SetupInviteUsersMsg msg, SetupInviteUsers pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), session, externalMsg ) =
+                        Page.Setup.InviteUsers.update msg model.session pageModel
+
+                    newModel =
+                        case externalMsg of
+                            Page.Setup.InviteUsers.SetupStateChanged newState ->
+                                updateSetupState newState model
+
+                            Page.Setup.InviteUsers.NoOp ->
+                                model
+                in
+                    ( { newModel
+                        | session = session
+                        , page = SetupInviteUsers newPageModel
+                      }
+                    , Cmd.map SetupInviteUsersMsg cmd
                     )
 
             ( SendFrame frame, _ ) ->
@@ -288,6 +311,16 @@ setupSockets model =
 
         Loaded state ->
             ( model, Cmd.none )
+
+
+updateSetupState : Setup.State -> Model -> Model
+updateSetupState state model =
+    case model.sharedState of
+        NotLoaded ->
+            model
+
+        Loaded sharedState ->
+            { model | sharedState = Loaded { sharedState | setupState = state } }
 
 
 

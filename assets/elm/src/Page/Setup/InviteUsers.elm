@@ -7,7 +7,7 @@ import Task
 import Session exposing (Session)
 import Data.Setup as Setup
 import Mutation.CompleteSetupStep as CompleteSetupStep
-import Route
+import Route exposing (Route)
 
 
 -- MODEL
@@ -34,11 +34,11 @@ type Msg
 
 
 type ExternalMsg
-    = SessionRefreshed Session
+    = SetupStateChanged Setup.State
     | NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session, ExternalMsg )
 update msg session model =
     case msg of
         Submit ->
@@ -49,21 +49,34 @@ update msg session model =
                         |> Session.request session
                         |> Task.attempt Advanced
             in
-                ( ( { model | isSubmitting = True }, cmd ), NoOp )
+                ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
 
         Advanced (Ok ( session, CompleteSetupStep.Success nextState )) ->
-            ( ( model, Cmd.none ), SessionRefreshed session )
+            ( ( model, Route.modifyUrl <| routeFor nextState ), session, SetupStateChanged nextState )
 
         Advanced (Err Session.Expired) ->
-            redirectToLogin model
+            redirectToLogin session model
 
         Advanced (Err _) ->
-            ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
+            ( ( { model | isSubmitting = False }, Cmd.none ), session, NoOp )
 
 
-redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
-redirectToLogin model =
-    ( ( model, Route.toLogin ), NoOp )
+redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session, ExternalMsg )
+redirectToLogin session model =
+    ( ( model, Route.toLogin ), session, NoOp )
+
+
+routeFor : Setup.State -> Route
+routeFor setupState =
+    case setupState of
+        Setup.CreateGroups ->
+            Route.SetupCreateGroups
+
+        Setup.InviteUsers ->
+            Route.SetupInviteUsers
+
+        Setup.Complete ->
+            Route.Inbox
 
 
 
