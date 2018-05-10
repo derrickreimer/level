@@ -1,6 +1,7 @@
 module Query.InitSpace exposing (request, Params, Response)
 
 import Session exposing (Session)
+import Data.Setup as Setup exposing (setupStateDecoder)
 import Data.Space exposing (Space, spaceDecoder)
 import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
 import Http
@@ -18,6 +19,7 @@ type alias Params =
 type alias Response =
     { user : User
     , space : Space
+    , setupState : Setup.State
     }
 
 
@@ -55,6 +57,7 @@ decoder =
         (Pipeline.decode Response
             |> Pipeline.custom (Decode.at [ "viewer" ] userDecoder)
             |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
+            |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)
         )
 
 

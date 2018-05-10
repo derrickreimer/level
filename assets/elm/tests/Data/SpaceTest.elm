@@ -21,8 +21,7 @@ decoders =
                               {
                                 "id": "9999",
                                 "name": "Drip",
-                                "slug": "drip",
-                                "setupState": "COMPLETE"
+                                "slug": "drip"
                               }
                             """
 
@@ -33,7 +32,6 @@ decoders =
                             { id = "9999"
                             , name = "Drip"
                             , slug = "drip"
-                            , setupState = Space.Complete
                             }
                     in
                         Expect.equal (Ok expected) result

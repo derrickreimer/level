@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Task
 import Session exposing (Session)
-import Data.Space
+import Data.Setup as Setup
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
 import Route exposing (Route)
@@ -74,7 +74,7 @@ update msg session model =
             Submitted (Ok ( session, BulkCreateGroups.Success )) ->
                 let
                     cmd =
-                        CompleteSetupStep.Params model.spaceId Data.Space.CreateGroups False
+                        CompleteSetupStep.Params model.spaceId Setup.CreateGroups False
                             |> CompleteSetupStep.request
                             |> Session.request session
                             |> Task.attempt Advanced
@@ -107,16 +107,16 @@ redirectToLogin model =
     ( ( model, Route.toLogin ), NoOp )
 
 
-routeFor : Data.Space.SetupState -> Route
+routeFor : Setup.State -> Route
 routeFor setupState =
     case setupState of
-        Data.Space.CreateGroups ->
+        Setup.CreateGroups ->
             Route.SetupCreateGroups
 
-        Data.Space.InviteUsers ->
+        Setup.InviteUsers ->
             Route.SetupInviteUsers
 
-        Data.Space.Complete ->
+        Setup.Complete ->
             Route.Inbox
 
 

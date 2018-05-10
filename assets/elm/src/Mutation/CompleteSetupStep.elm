@@ -3,21 +3,20 @@ module Mutation.CompleteSetupStep exposing (Params, Response(..), request, decod
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Space exposing (Space, SetupState, spaceDecoder, setupStateDecoder, setupStateEncoder)
-import Data.ValidationError exposing (ValidationError, errorDecoder)
+import Data.Setup exposing (State, setupStateDecoder, setupStateEncoder)
 import Session exposing (Session)
 import GraphQL
 
 
 type alias Params =
     { spaceId : String
-    , state : SetupState
+    , state : State
     , isSkipped : Bool
     }
 
 
 type Response
-    = Success SetupState
+    = Success State
 
 
 query : String

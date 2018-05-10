@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Task
 import Session exposing (Session)
-import Data.Space
+import Data.Setup as Setup
 import Mutation.CompleteSetupStep as CompleteSetupStep
 import Route
 
@@ -44,7 +44,7 @@ update msg session model =
         Submit ->
             let
                 cmd =
-                    CompleteSetupStep.Params model.spaceId Data.Space.InviteUsers False
+                    CompleteSetupStep.Params model.spaceId Setup.InviteUsers False
                         |> CompleteSetupStep.request
                         |> Session.request session
                         |> Task.attempt Advanced
