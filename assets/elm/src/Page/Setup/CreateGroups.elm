@@ -6,7 +6,9 @@ import Html.Events exposing (onClick)
 import Task
 import Session exposing (Session)
 import Data.Space
+import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
+import Route
 
 
 -- MODEL
@@ -37,7 +39,8 @@ defaultGroups =
 type Msg
     = GroupToggled String
     | Submit
-    | Submitted (Result Session.Error ( Session, CompleteSetupStep.Response ))
+    | Submitted (Result Session.Error ( Session, BulkCreateGroups.Response ))
+    | Advanced (Result Session.Error ( Session, CompleteSetupStep.Response ))
 
 
 type ExternalMsg
@@ -61,23 +64,47 @@ update msg session model =
             Submit ->
                 let
                     cmd =
-                        CompleteSetupStep.Params model.spaceId Data.Space.CreateGroups False
-                            |> CompleteSetupStep.request
+                        BulkCreateGroups.Params model.spaceId groups
+                            |> BulkCreateGroups.request
                             |> Session.request session
                             |> Task.attempt Submitted
                 in
                     ( ( { model | isSubmitting = True }, cmd ), NoOp )
 
-            Submitted (Ok ( session, CompleteSetupStep.Success nextState )) ->
-                ( ( model, Cmd.none ), SessionRefreshed session )
+            Submitted (Ok ( session, BulkCreateGroups.Success )) ->
+                let
+                    cmd =
+                        CompleteSetupStep.Params model.spaceId Data.Space.CreateGroups False
+                            |> CompleteSetupStep.request
+                            |> Session.request session
+                            |> Task.attempt Advanced
+                in
+                    ( ( model, cmd ), SessionRefreshed session )
+
+            Submitted (Err Session.Expired) ->
+                redirectToLogin model
 
             Submitted (Err _) ->
+                ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
+
+            Advanced (Ok ( session, CompleteSetupStep.Success nextState )) ->
+                ( ( model, Cmd.none ), SessionRefreshed session )
+
+            Advanced (Err Session.Expired) ->
+                redirectToLogin model
+
+            Advanced (Err _) ->
                 ( ( { model | isSubmitting = False }, Cmd.none ), NoOp )
 
 
 remove : String -> List String -> List String
 remove name list =
     List.filter (\item -> not (item == name)) list
+
+
+redirectToLogin : Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+redirectToLogin model =
+    ( ( model, Route.toLogin ), NoOp )
 
 
 
