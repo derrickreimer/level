@@ -54,6 +54,16 @@ CREATE TYPE public.group_state AS ENUM (
 
 
 --
+-- Name: open_invitation_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.open_invitation_state AS ENUM (
+    'ACTIVE',
+    'REVOKED'
+);
+
+
+--
 -- Name: post_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -145,6 +155,20 @@ CREATE TABLE public.groups (
     name text NOT NULL,
     description text,
     is_private boolean DEFAULT false NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: open_invitations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.open_invitations (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    state public.open_invitation_state DEFAULT 'ACTIVE'::public.open_invitation_state NOT NULL,
+    token text,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -254,6 +278,14 @@ ALTER TABLE ONLY public.groups
 
 
 --
+-- Name: open_invitations open_invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.open_invitations
+    ADD CONSTRAINT open_invitations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -334,6 +366,20 @@ CREATE INDEX groups_space_id_index ON public.groups USING btree (space_id);
 --
 
 CREATE UNIQUE INDEX groups_unique_names_when_open ON public.groups USING btree (space_id, lower(name)) WHERE (state = 'OPEN'::public.group_state);
+
+
+--
+-- Name: open_invitations_token_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX open_invitations_token_index ON public.open_invitations USING btree (token);
+
+
+--
+-- Name: open_invitations_unique_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX open_invitations_unique_active ON public.open_invitations USING btree (space_id) WHERE (state = 'ACTIVE'::public.open_invitation_state);
 
 
 --
@@ -433,6 +479,14 @@ ALTER TABLE ONLY public.groups
 
 
 --
+-- Name: open_invitations open_invitations_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.open_invitations
+    ADD CONSTRAINT open_invitations_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: posts posts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -484,5 +538,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015);
 
