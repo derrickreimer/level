@@ -1,7 +1,10 @@
 defmodule Level.SpacesTest do
   use Level.DataCase, async: true
 
+  import Ecto.Query
+
   alias Level.Spaces
+  alias Level.Spaces.OpenInvitation
 
   describe "get_space_by_slug/2" do
     setup do
@@ -96,6 +99,32 @@ defmodule Level.SpacesTest do
 
       {:ok, _next_state} = Spaces.complete_setup_step(space_user, space, params)
       assert {:ok, _next_state} = Spaces.complete_setup_step(space_user, space, params)
+    end
+  end
+
+  describe "create_open_invitation/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "inserts a new open invitation", %{space: space} do
+      # make sure there are no active invitations conflicting with this operation
+      Repo.delete_all(from(i in OpenInvitation))
+
+      {:ok, invitation} = Spaces.create_open_invitation(space)
+      assert invitation.state == "ACTIVE"
+    end
+
+    test "revokes existing active invitations and creates a new one", %{space: space} do
+      # make sure there are no active invitations conflicting with this operation
+      Repo.delete_all(from(i in OpenInvitation))
+
+      {:ok, invitation} = Spaces.create_open_invitation(space)
+      {:ok, another_invitation} = Spaces.create_open_invitation(space)
+
+      assert %OpenInvitation{state: "REVOKED"} = Repo.get(OpenInvitation, invitation.id)
+      assert another_invitation.state == "ACTIVE"
+      refute invitation.token == another_invitation.token
     end
   end
 end

@@ -7,6 +7,7 @@ defmodule Level.Spaces do
   import Level.Gettext
 
   alias Ecto.Multi
+  alias Level.Spaces.OpenInvitation
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceSetupStep
   alias Level.Spaces.SpaceUser
@@ -81,6 +82,30 @@ defmodule Level.Spaces do
   def create_member(user, space) do
     %SpaceUser{}
     |> SpaceUser.create_changeset(%{user_id: user.id, space_id: space.id, role: "MEMBER"})
+    |> Repo.insert()
+  end
+
+  @doc """
+  Creates an open invitation.
+  """
+  @spec create_open_invitation(Space.t()) ::
+          {:ok, OpenInvitation.t()} | {:error, Ecto.Changeset.t()}
+  def create_open_invitation(space) do
+    case Repo.get_by(OpenInvitation, space_id: space.id, state: "ACTIVE") do
+      %OpenInvitation{} = existing_invitation ->
+        Ecto.Changeset.change(existing_invitation, state: "REVOKED")
+        |> Repo.update()
+
+        insert_open_invitation(space)
+
+      nil ->
+        insert_open_invitation(space)
+    end
+  end
+
+  defp insert_open_invitation(space) do
+    %OpenInvitation{}
+    |> OpenInvitation.create_changeset(%{space_id: space.id})
     |> Repo.insert()
   end
 
