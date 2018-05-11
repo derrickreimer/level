@@ -89,6 +89,20 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Fetches the active open invitation for a space.
+  """
+  @spec get_open_invitation(Space.t()) :: {:ok, OpenInvitation.t()} | :revoked
+  def get_open_invitation(space) do
+    case Repo.get_by(OpenInvitation, space_id: space.id, state: "ACTIVE") do
+      %OpenInvitation{} = invitation ->
+        {:ok, invitation}
+
+      nil ->
+        :revoked
+    end
+  end
+
+  @doc """
   Creates an open invitation.
   """
   @spec create_open_invitation(Space.t()) ::

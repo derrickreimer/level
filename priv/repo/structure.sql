@@ -168,7 +168,7 @@ CREATE TABLE public.open_invitations (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
     state public.open_invitation_state DEFAULT 'ACTIVE'::public.open_invitation_state NOT NULL,
-    token text,
+    token text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );

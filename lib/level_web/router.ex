@@ -71,6 +71,8 @@ defmodule LevelWeb.Router do
     get "/spaces", SpaceController, :index
     get "/spaces/new", SpaceController, :new
 
+    get "/join/:id", OpenInvitationController, :show
+
     # Important: this must be the last route defined
     get "/:slug", SpaceController, :show
   end

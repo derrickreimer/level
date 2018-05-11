@@ -5,6 +5,8 @@ defmodule LevelWeb.Schema.Types do
   import Absinthe.Resolution.Helpers
 
   alias Level.Spaces
+  alias LevelWeb.Endpoint
+  alias LevelWeb.Router.Helpers
 
   import_types LevelWeb.Schema.Enums
   import_types LevelWeb.Schema.Scalars
@@ -62,6 +64,18 @@ defmodule LevelWeb.Schema.Types do
     field :setup_state, non_null(:space_setup_state) do
       resolve fn space, _args, _context ->
         Spaces.get_setup_state(space)
+      end
+    end
+
+    field :open_invitation_url, :string do
+      resolve fn space, _args, _context ->
+        case Spaces.get_open_invitation(space) do
+          {:ok, invitation} ->
+            {:ok, Helpers.open_invitation_url(Endpoint, :show, invitation.token)}
+
+          :revoked ->
+            {:ok, nil}
+        end
       end
     end
 
