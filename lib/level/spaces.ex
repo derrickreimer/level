@@ -110,7 +110,8 @@ defmodule Level.Spaces do
   def create_open_invitation(space) do
     case Repo.get_by(OpenInvitation, space_id: space.id, state: "ACTIVE") do
       %OpenInvitation{} = existing_invitation ->
-        Ecto.Changeset.change(existing_invitation, state: "REVOKED")
+        existing_invitation
+        |> Ecto.Changeset.change(state: "REVOKED")
         |> Repo.update()
 
         insert_open_invitation(space)

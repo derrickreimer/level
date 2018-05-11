@@ -46,7 +46,8 @@ defmodule LevelWeb.GraphQL.OpenInvitationTest do
     space: space,
     open_invitation: open_invitation
   } do
-    Ecto.Changeset.change(open_invitation, state: "REVOKED")
+    open_invitation
+    |> Ecto.Changeset.change(state: "REVOKED")
     |> Repo.update()
 
     variables = %{space_id: space.id}

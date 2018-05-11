@@ -67,6 +67,7 @@ defmodule LevelWeb.Schema.Types do
       end
     end
 
+    @desc "The currently active open invitation URL for the space"
     field :open_invitation_url, :string do
       resolve fn space, _args, _context ->
         case Spaces.get_open_invitation(space) do
