@@ -24,7 +24,7 @@ defmodule LevelWeb.UserController do
       {:ok, user} ->
         conn
         |> LevelWeb.Auth.sign_in(user)
-        |> redirect(to: space_path(conn, :index))
+        |> redirect(to: space_path(conn, :new))
 
       {:error, changeset} ->
         conn
