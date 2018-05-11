@@ -80,11 +80,21 @@ defmodule LevelWeb.Router do
   def graphiql_headers(conn) do
     case conn.assigns do
       %{current_user: user} ->
-        token = LevelWeb.Auth.generate_signed_jwt(user)
+        token = generate_token(user)
         %{"Authorization" => "Bearer #{token}"}
 
       _ ->
         %{}
+    end
+  end
+
+  def generate_token(user) do
+    case Mix.env() do
+      :dev ->
+        LevelWeb.Auth.generate_signed_jwt(user, 604_800 * 52)
+
+      _ ->
+        LevelWeb.Auth.generate_signed_jwt(user)
     end
   end
 end
