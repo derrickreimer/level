@@ -6,6 +6,28 @@ defmodule Level.SpacesTest do
   alias Level.Spaces
   alias Level.Spaces.OpenInvitation
 
+  describe "create_space/2" do
+    setup do
+      {:ok, user} = create_user()
+      {:ok, %{user: user}}
+    end
+
+    test "creates a new space", %{user: user} do
+      params =
+        valid_space_params()
+        |> Map.put(:name, "MySpace")
+
+      {:ok, %{space: space}} = Spaces.create_space(user, params)
+      assert space.name == "MySpace"
+    end
+
+    test "creates an open invitation", %{user: user} do
+      params = valid_space_params()
+      {:ok, %{open_invitation: open_invitation}} = Spaces.create_space(user, params)
+      assert open_invitation.state == "ACTIVE"
+    end
+  end
+
   describe "get_space_by_slug/2" do
     setup do
       create_user_and_space()

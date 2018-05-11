@@ -16,8 +16,10 @@ defmodule Level.Spaces do
 
   @typedoc "The result of creating a space"
   @type create_space_result ::
-          {:ok, %{space: Space.t(), space_user: SpaceUser.t()}}
-          | {:error, :space | :space_user, any(), %{optional(:space | :space_user) => any()}}
+          {:ok,
+           %{space: Space.t(), space_user: SpaceUser.t(), open_invitation: OpenInvitation.t()}}
+          | {:error, :space | :space_user | :open_invitation, any(),
+             %{optional(:space | :space_user | :open_invitation) => any()}}
 
   @typedoc "The result of getting a space"
   @type get_space_result ::
@@ -62,6 +64,7 @@ defmodule Level.Spaces do
     Multi.new()
     |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
     |> Multi.run(:space_user, fn %{space: space} -> create_owner(user, space) end)
+    |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
     |> Repo.transaction()
   end
 
