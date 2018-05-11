@@ -48,6 +48,7 @@ type alias SharedState =
     { space : Space
     , user : User
     , setupState : Setup.State
+    , openInvitationUrl : Maybe String
     }
 
 
@@ -296,7 +297,7 @@ navigateTo maybeRoute model =
                     Just Route.SetupInviteUsers ->
                         let
                             pageModel =
-                                Page.Setup.InviteUsers.buildModel sharedState.space.id
+                                Page.Setup.InviteUsers.buildModel sharedState.space.id sharedState.openInvitationUrl
                         in
                             ( { model | page = SetupInviteUsers pageModel }
                             , Cmd.none

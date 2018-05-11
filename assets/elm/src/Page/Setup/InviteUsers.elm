@@ -16,12 +16,13 @@ import Route exposing (Route)
 type alias Model =
     { spaceId : String
     , isSubmitting : Bool
+    , openInvitationUrl : Maybe String
     }
 
 
-buildModel : String -> Model
-buildModel spaceId =
-    Model spaceId False
+buildModel : String -> Maybe String -> Model
+buildModel spaceId openInvitationUrl =
+    Model spaceId False openInvitationUrl
 
 
 
@@ -88,8 +89,20 @@ view model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto py-24 max-w-430px leading-normal text-dusty-blue-darker" ]
             [ h2 [ class "mb-6 font-extrabold text-2xl" ] [ text "Invite your colleagues" ]
-            , p [ class "mb-6" ] [ text "The best way to try out Level is with other people! Anyone with this link can join the space (click to copy it):" ]
-            , p [ class "mb-6" ] [ text "TODO: Add the shared invite link here" ]
+            , body model.openInvitationUrl
             , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]
             ]
         ]
+
+
+body : Maybe String -> Html Msg
+body maybeUrl =
+    case maybeUrl of
+        Just url ->
+            div []
+                [ p [ class "mb-6" ] [ text "The best way to try out Level is with other people! Anyone with this link can join the space:" ]
+                , input [ class "mb-6 input-field font-mono text-sm", value url ] []
+                ]
+
+        Nothing ->
+            p [ class "mb-6" ] [ text "Open invitations are disabled." ]

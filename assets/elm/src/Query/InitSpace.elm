@@ -20,6 +20,7 @@ type alias Response =
     { user : User
     , space : Space
     , setupState : Setup.State
+    , openInvitationUrl : Maybe String
     }
 
 
@@ -39,6 +40,7 @@ query =
           name
           slug
           setupState
+          openInvitationUrl
         }
       }
     """
@@ -58,6 +60,7 @@ decoder =
             |> Pipeline.custom (Decode.at [ "viewer" ] userDecoder)
             |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
             |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)
+            |> Pipeline.custom (Decode.at [ "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
         )
 
 
