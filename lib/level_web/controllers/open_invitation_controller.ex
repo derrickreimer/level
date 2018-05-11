@@ -3,7 +3,7 @@ defmodule LevelWeb.OpenInvitationController do
 
   use LevelWeb, :controller
 
-  def show(conn, %{"id" => invitation_token}) do
+  def show(conn, %{"id" => _invitation_token}) do
     render conn, "show.html"
   end
 end
