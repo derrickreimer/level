@@ -92,13 +92,34 @@ defmodule Level.Spaces do
   Fetches the active open invitation for a space.
   """
   @spec get_open_invitation(Space.t()) :: {:ok, OpenInvitation.t()} | :revoked
-  def get_open_invitation(space) do
+  def get_open_invitation(%Space{} = space) do
     case Repo.get_by(OpenInvitation, space_id: space.id, state: "ACTIVE") do
       %OpenInvitation{} = invitation ->
         {:ok, invitation}
 
       nil ->
         :revoked
+    end
+  end
+
+  @doc """
+  Fetches an open invitation by token.
+  """
+  @spec get_open_invitation_by_token(String.t()) ::
+          {:ok, OpenInvitation.t()} | {:error, :not_found | :revoked}
+  def get_open_invitation_by_token(token) do
+    case Repo.get_by(OpenInvitation, token: token) do
+      %OpenInvitation{} = invitation ->
+        case invitation.state do
+          "ACTIVE" ->
+            {:ok, invitation}
+
+          _ ->
+            {:error, :revoked}
+        end
+
+      nil ->
+        {:error, :not_found}
     end
   end
 
@@ -125,6 +146,16 @@ defmodule Level.Spaces do
     %OpenInvitation{}
     |> OpenInvitation.create_changeset(%{space_id: space.id})
     |> Repo.insert()
+  end
+
+  @doc """
+  Accepts an open invitation.
+  """
+  @spec accept_open_invitation(User.t(), OpenInvitation.t()) ::
+          {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
+  def accept_open_invitation(user, invitation) do
+    invitation = Repo.preload(invitation, :space)
+    create_member(user, invitation.space)
   end
 
   @doc """

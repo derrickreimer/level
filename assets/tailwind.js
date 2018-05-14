@@ -335,7 +335,7 @@ module.exports = {
 
   tracking: {
     'tight': '-0.05em',
-    'semi-tight': '-0.02em',
+    'semi-tight': '-0.01em',
     'normal': '0',
     'wide': '0.05em',
   },
@@ -697,7 +697,7 @@ module.exports = {
     '4': '1rem',
     '6': '1.5rem',
     '8': '2rem',
-    '48': '12rem',
+    '16': '4rem',
     '48': '12rem',
     '56': '14rem',
   },
@@ -727,6 +727,8 @@ module.exports = {
     '4': '1rem',
     '6': '1.5rem',
     '8': '2rem',
+    '16': '4rem',
+    '20': '5rem',
   },
 
 

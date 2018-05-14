@@ -36,6 +36,10 @@
  * @import "components/forms";
  */
 
+body {
+  @apply .text-dusty-blue-darker;
+}
+
 .logo-md {
   width: 99px;
   height: 20px;
@@ -74,7 +78,7 @@
 }
 
 .btn {
-  @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2 .whitespace-no-wrap;
+  @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2 .whitespace-no-wrap .cursor-pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -92,6 +96,14 @@
 
 .btn-blue:hover {
   @apply .bg-blue-dark .border-blue-dark;
+}
+
+.texitar {
+  @apply .w-9 .h-9 .text-base;
+  @apply .bg-turquoise;
+  @apply .rounded-full;
+  @apply .flex .items-center .justify-center;
+  @apply .font-bold .text-white .select-none;
 }
 
 .control {

@@ -43,6 +43,9 @@ defmodule LevelWeb.Router do
 
     get "/signup", UserController, :new
     post "/signup", UserController, :create
+
+    get "/invites/:id", OpenInvitationController, :show
+    post "/invites/:id/accept", OpenInvitationController, :accept
   end
 
   scope "/" do
@@ -70,8 +73,6 @@ defmodule LevelWeb.Router do
 
     get "/spaces", SpaceController, :index
     get "/spaces/new", SpaceController, :new
-
-    get "/join/:id", OpenInvitationController, :show
 
     # Important: this must be the last route defined
     get "/:slug", SpaceController, :show

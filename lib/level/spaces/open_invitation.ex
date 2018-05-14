@@ -38,3 +38,9 @@ defmodule Level.Spaces.OpenInvitation do
     put_change(changeset, :token, token)
   end
 end
+
+defimpl Phoenix.Param, for: Level.Spaces.OpenInvitation do
+  def to_param(%{token: token}) do
+    token
+  end
+end

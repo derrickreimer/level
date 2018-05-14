@@ -35,7 +35,7 @@ defmodule LevelWeb.GraphQL.OpenInvitationTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "space" => %{
-                 "openInvitationUrl" => "http://level.test:4001/join/#{open_invitation.token}"
+                 "openInvitationUrl" => "http://level.test:4001/invites/#{open_invitation.token}"
                }
              }
            }
