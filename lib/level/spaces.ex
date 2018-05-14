@@ -69,6 +69,20 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Fetches the space user.
+  """
+  @spec get_space_user(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
+  def get_space_user(user, space) do
+    case Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+      %SpaceUser{} = space_user ->
+        {:ok, space_user}
+
+      _ ->
+        {:error, dgettext("errors", "User is not a member")}
+    end
+  end
+
+  @doc """
   Establishes a user as an owner of space.
   """
   @spec create_owner(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}

@@ -41,6 +41,7 @@ query =
           slug
           setupState
           openInvitationUrl
+          viewerRole
         }
       }
     """

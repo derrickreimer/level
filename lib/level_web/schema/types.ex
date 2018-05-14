@@ -89,6 +89,19 @@ defmodule LevelWeb.Schema.Types do
       arg :state, :group_state
       resolve &Level.Connections.groups/3
     end
+
+    field :viewer_role, :space_member_role do
+      resolve fn space, _args, %{context: %{current_user: user}} ->
+        # TODO: eliminate N+1 with dataloader
+        case Spaces.get_space_user(user, space) do
+          {:ok, space_user} ->
+            {:ok, space_user.role}
+
+          _ ->
+            {:ok, nil}
+        end
+      end
+    end
   end
 
   @desc "A group is a collection of users within a space."
