@@ -3,6 +3,7 @@ defmodule Level.SpacesTest do
 
   import Ecto.Query
 
+  alias Level.Repo
   alias Level.Spaces
   alias Level.Spaces.OpenInvitation
 
@@ -147,6 +148,30 @@ defmodule Level.SpacesTest do
       assert %OpenInvitation{state: "REVOKED"} = Repo.get(OpenInvitation, invitation.id)
       assert another_invitation.state == "ACTIVE"
       refute invitation.token == another_invitation.token
+    end
+  end
+
+  describe "get_open_invitation_by_token/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "returns the invitation if it is active", %{open_invitation: invitation} do
+      {:ok, found_invitation} = Spaces.get_open_invitation_by_token(invitation.token)
+      assert invitation.id == found_invitation.id
+    end
+
+    test "returns a revoked result if invitation is revoked", %{open_invitation: invitation} do
+      {:ok, _revoked_invitation} =
+        invitation
+        |> Ecto.Changeset.change(state: "REVOKED")
+        |> Repo.update()
+
+      assert {:error, :revoked} = Spaces.get_open_invitation_by_token(invitation.token)
+    end
+
+    test "returns not found result if token does not exist" do
+      assert {:error, :not_found} = Spaces.get_open_invitation_by_token("notfound")
     end
   end
 end
