@@ -1,0 +1,21 @@
+<%= if get_flash(@conn, :error) do %>
+  <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
+<% end %>
+
+<div class="h-full min-h-screen">
+  <div class="container mx-auto py-6">
+    <div class="px-8 flex items-center">
+      <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>
+
+      <div class="flex flex-grow justify-end">
+        <a href="#" class="ml-8 text-blue no-underline">What is Level?</a>
+      </div>
+    </div>
+
+    <div class="mx-auto my-16 px-4 py-8 max-w-430px">
+      <h2 class="mb-6 text-2xl font-extrabold text-dusty-blue-darker leading-tight">Join the <%= @conn.assigns.space.name %> space</h2>
+      <p class="mb-6 leading-normal text-dusty-blue-darker"><%= @conn.assigns.space.name %> is trying out Level, an asynchronous-first alternative to realtime chat. You&rsquo;re invited to join the trial!</p>
+      <input type="submit" class="mb-2 btn btn-blue" name="submit" value="Let’s go!">
+    </div>
+  </div>
+</div>

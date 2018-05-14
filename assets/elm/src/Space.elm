@@ -424,7 +424,7 @@ spaceAvatar space =
     space.name
         |> String.left 1
         |> String.toUpper
-        |> picturelessAvatar
+        |> texitar
 
 
 userAvatar : User -> Html Msg
@@ -432,12 +432,12 @@ userAvatar user =
     user.firstName
         |> String.left 1
         |> String.toUpper
-        |> picturelessAvatar
+        |> texitar
 
 
-picturelessAvatar : String -> Html Msg
-picturelessAvatar initials =
-    div [ class "w-9 h-9 mb-2 bg-turquoise rounded-full flex items-center justify-center font-bold text-white select-none" ] [ text initials ]
+texitar : String -> Html Msg
+texitar initials =
+    div [ class "texitar mb-2" ] [ text initials ]
 
 
 pageContent : Page -> Html Msg
