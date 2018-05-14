@@ -2,7 +2,7 @@ module Query.InitSpace exposing (request, Params, Response)
 
 import Session exposing (Session)
 import Data.Setup as Setup exposing (setupStateDecoder)
-import Data.Space exposing (Space, spaceDecoder)
+import Data.Space exposing (Space, SpaceUserRole, spaceDecoder, spaceUserRoleDecoder)
 import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
 import Http
 import Json.Decode as Decode
@@ -21,6 +21,7 @@ type alias Response =
     , space : Space
     , setupState : Setup.State
     , openInvitationUrl : Maybe String
+    , role : Maybe SpaceUserRole
     }
 
 
@@ -62,6 +63,7 @@ decoder =
             |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
             |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)
             |> Pipeline.custom (Decode.at [ "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
+            |> Pipeline.custom (Decode.at [ "space", "viewerRole" ] (Decode.maybe spaceUserRoleDecoder))
         )
 
 

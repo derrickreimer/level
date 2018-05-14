@@ -7,7 +7,7 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
-import Data.Space exposing (Space)
+import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Page.Inbox
@@ -49,6 +49,7 @@ type alias SharedState =
     , user : User
     , setupState : Setup.State
     , openInvitationUrl : Maybe String
+    , role : Maybe SpaceUserRole
     }
 
 
@@ -271,14 +272,19 @@ navigateTo maybeRoute model =
                         ( { model | page = NotFound }, Cmd.none )
 
                     Just Route.Root ->
-                        case sharedState.setupState of
-                            Setup.CreateGroups ->
-                                navigateTo (Just Route.SetupCreateGroups) model
+                        case sharedState.role of
+                            Just Data.Space.Owner ->
+                                case sharedState.setupState of
+                                    Setup.CreateGroups ->
+                                        navigateTo (Just Route.SetupCreateGroups) model
 
-                            Setup.InviteUsers ->
-                                navigateTo (Just Route.SetupInviteUsers) model
+                                    Setup.InviteUsers ->
+                                        navigateTo (Just Route.SetupInviteUsers) model
 
-                            Setup.Complete ->
+                                    Setup.Complete ->
+                                        navigateTo (Just Route.Inbox) model
+
+                            _ ->
                                 navigateTo (Just Route.Inbox) model
 
                     Just Route.Inbox ->

@@ -1,4 +1,4 @@
-module Data.Space exposing (Space, spaceDecoder)
+module Data.Space exposing (Space, SpaceUserRole(..), spaceDecoder, spaceUserRoleDecoder)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -15,6 +15,11 @@ type alias Space =
     }
 
 
+type SpaceUserRole
+    = Member
+    | Owner
+
+
 
 -- DECODERS
 
@@ -25,3 +30,22 @@ spaceDecoder =
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
         |> Pipeline.required "slug" Decode.string
+
+
+spaceUserRoleDecoder : Decode.Decoder SpaceUserRole
+spaceUserRoleDecoder =
+    let
+        convert : String -> Decode.Decoder SpaceUserRole
+        convert raw =
+            case raw of
+                "MEMBER" ->
+                    Decode.succeed Member
+
+                "OWNER" ->
+                    Decode.succeed Owner
+
+                _ ->
+                    Decode.fail "Space user role not valid"
+    in
+        Decode.string
+            |> Decode.andThen convert
