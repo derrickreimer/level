@@ -149,6 +149,16 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Accepts an open invitation.
+  """
+  @spec accept_open_invitation(User.t(), OpenInvitation.t()) ::
+          {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
+  def accept_open_invitation(user, invitation) do
+    invitation = Repo.preload(invitation, :space)
+    create_member(user, invitation.space)
+  end
+
+  @doc """
   Determines the setup state for a space.
   """
   @spec get_setup_state(Space.t()) :: {:ok, space_setup_states()}
