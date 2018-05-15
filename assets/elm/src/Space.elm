@@ -7,6 +7,7 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
+import Data.Group exposing (Group)
 import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
@@ -370,11 +371,12 @@ leftSidebar sharedState model =
             [ spaceAvatar sharedState.space
             , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
             ]
-        , ul [ class "list-reset leading-semi-loose select-none" ]
+        , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
             [ sidebarLink "Inbox" (Just Route.Inbox) model.page
             , sidebarLink "Everything" Nothing model.page
             , sidebarLink "Drafts" Nothing model.page
             ]
+        , groupLinks sharedState.bookmarkedGroups model.page
         , div [ class "absolute pin-b mb-2 flex" ]
             [ div [] [ userAvatar sharedState.user ]
             , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
@@ -383,6 +385,20 @@ leftSidebar sharedState model =
                 ]
             ]
         ]
+
+
+groupLinks : List Group -> Page -> Html Msg
+groupLinks groups currentPage =
+    let
+        linkify group =
+            sidebarLink group.name Nothing currentPage
+
+        links =
+            groups
+                |> List.sortBy .name
+                |> List.map linkify
+    in
+        ul [ class "list-reset leading-semi-loose select-none" ] links
 
 
 {-| Build a link for the sidebar navigation with a special indicator for the
