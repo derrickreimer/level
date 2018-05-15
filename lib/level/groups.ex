@@ -54,8 +54,9 @@ defmodule Level.Groups do
   Creates a group.
   """
   @spec create_group(SpaceUser.t(), map()) ::
-          {:ok, %{group: Group.t(), group_user: GroupUser.t()}}
-          | {:error, :group | :group_user, any(), %{optional(:group | :group_user) => any()}}
+          {:ok, %{group: Group.t(), group_user: GroupUser.t(), bookmarked: boolean()}}
+          | {:error, :group | :group_user | :bookmark, any(),
+             %{optional(:group | :group_user | :bookmark) => any()}}
   def create_group(space_user, params \\ %{}) do
     params_with_relations =
       params
@@ -68,6 +69,12 @@ defmodule Level.Groups do
     |> Multi.insert(:group, changeset)
     |> Multi.run(:group_user, fn %{group: group} ->
       create_group_membership(group, space_user)
+    end)
+    |> Multi.run(:bookmarked, fn %{group: group} ->
+      case bookmark_group(group, space_user) do
+        :ok -> {:ok, true}
+        _ -> {:ok, false}
+      end
     end)
     |> Repo.transaction()
   end

@@ -108,6 +108,13 @@ defmodule Level.GroupsTest do
       assert Repo.one(GroupUser, space_user_id: space_user.id, group_id: group.id)
     end
 
+    test "bookmarks the group", %{space_user: space_user} do
+      params = valid_group_params()
+      {:ok, %{group: group, bookmarked: true}} = Groups.create_group(space_user, params)
+      groups = Groups.list_bookmarked_groups(space_user)
+      assert Enum.any?(groups, fn g -> g.id == group.id end)
+    end
+
     test "returns errors given invalid data", %{space_user: space_user} do
       params = Map.put(valid_group_params(), :name, "")
       {:error, :group, changeset, _} = Groups.create_group(space_user, params)
