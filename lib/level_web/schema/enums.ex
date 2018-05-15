@@ -8,12 +8,12 @@ defmodule LevelWeb.Schema.Enums do
     value :disabled, as: "DISABLED"
   end
 
-  enum :space_member_state do
+  enum :space_user_state do
     value :active, as: "ACTIVE"
     value :disabled, as: "DISABLED"
   end
 
-  enum :space_member_role do
+  enum :space_user_role do
     value :member, as: "MEMBER"
     value :admin, as: "ADMIN"
     value :owner, as: "OWNER"

@@ -47,8 +47,8 @@ defmodule LevelWeb.Schema.Types do
 
   @desc "A space membership defines the relationship between a user and a space."
   object :space_membership do
-    field :state, non_null(:space_member_state)
-    field :role, non_null(:space_member_role)
+    field :state, non_null(:space_user_state)
+    field :role, non_null(:space_user_role)
     field :space, non_null(:space), resolve: dataloader(:db)
   end
 
@@ -88,19 +88,6 @@ defmodule LevelWeb.Schema.Types do
       arg :order_by, :group_order
       arg :state, :group_state
       resolve &Level.Connections.groups/3
-    end
-
-    field :viewer_role, :space_member_role do
-      resolve fn space, _args, %{context: %{current_user: user}} ->
-        # TODO: eliminate N+1 with dataloader
-        case Spaces.get_space_user(user, space) do
-          {:ok, space_user} ->
-            {:ok, space_user.role}
-
-          _ ->
-            {:ok, nil}
-        end
-      end
     end
   end
 

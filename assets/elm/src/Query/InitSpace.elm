@@ -2,7 +2,7 @@ module Query.InitSpace exposing (request, Params, Response)
 
 import Session exposing (Session)
 import Data.Setup as Setup exposing (setupStateDecoder)
-import Data.Space exposing (Space, SpaceRole, spaceDecoder, spaceRoleDecoder)
+import Data.Space exposing (Space, SpaceUserRole, spaceDecoder, spaceRoleDecoder)
 import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
 import Http
 import Json.Decode as Decode
@@ -21,7 +21,7 @@ type alias Response =
     , space : Space
     , setupState : Setup.State
     , openInvitationUrl : Maybe String
-    , role : SpaceRole
+    , role : SpaceUserRole
     }
 
 
