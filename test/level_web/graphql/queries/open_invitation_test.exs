@@ -8,8 +8,10 @@ defmodule LevelWeb.GraphQL.OpenInvitationTest do
     query OpenInvitationURL(
       $space_id: ID!
     ) {
-      space(id: $space_id) {
-        openInvitationUrl
+      spaceMembership(spaceId: $space_id) {
+        space {
+          openInvitationUrl
+        }
       }
     }
   """
@@ -34,8 +36,11 @@ defmodule LevelWeb.GraphQL.OpenInvitationTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "openInvitationUrl" => "http://level.test:4001/invites/#{open_invitation.token}"
+               "spaceMembership" => %{
+                 "space" => %{
+                   "openInvitationUrl" =>
+                     "http://level.test:4001/invites/#{open_invitation.token}"
+                 }
                }
              }
            }
@@ -59,8 +64,10 @@ defmodule LevelWeb.GraphQL.OpenInvitationTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "openInvitationUrl" => nil
+               "spaceMembership" => %{
+                 "space" => %{
+                   "openInvitationUrl" => nil
+                 }
                }
              }
            }

@@ -17,14 +17,16 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       query Groups(
         $space_id: ID!
       ) {
-        space(id: $space_id) {
-          groups(first: 2) {
-            edges {
-              node {
-                name
+        spaceMembership(spaceId: $space_id) {
+          space {
+            groups(first: 2) {
+              edges {
+                node {
+                  name
+                }
               }
+              total_count
             }
-            total_count
           }
         }
       }
@@ -39,16 +41,18 @@ defmodule LevelWeb.GraphQL.GroupsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "groups" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "name" => group.name
+               "spaceMembership" => %{
+                 "space" => %{
+                   "groups" => %{
+                     "edges" => [
+                       %{
+                         "node" => %{
+                           "name" => group.name
+                         }
                        }
-                     }
-                   ],
-                   "total_count" => 1
+                     ],
+                     "total_count" => 1
+                   }
                  }
                }
              }
@@ -64,14 +68,16 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       query Groups(
         $space_id: ID!
       ) {
-        space(id: $space_id) {
-          groups(first: 2, state: CLOSED) {
-            edges {
-              node {
-                name
+        spaceMembership(spaceId: $space_id) {
+          space {
+            groups(first: 2, state: CLOSED) {
+              edges {
+                node {
+                  name
+                }
               }
+              total_count
             }
-            total_count
           }
         }
       }
@@ -86,16 +92,18 @@ defmodule LevelWeb.GraphQL.GroupsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "groups" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "name" => closed_group.name
+               "spaceMembership" => %{
+                 "space" => %{
+                   "groups" => %{
+                     "edges" => [
+                       %{
+                         "node" => %{
+                           "name" => closed_group.name
+                         }
                        }
-                     }
-                   ],
-                   "total_count" => 1
+                     ],
+                     "total_count" => 1
+                   }
                  }
                }
              }

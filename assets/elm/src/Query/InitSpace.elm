@@ -36,13 +36,15 @@ query =
           firstName
           lastName
         }
-        space(id: $spaceId) {
-          id
-          name
-          slug
-          setupState
-          openInvitationUrl
-          viewerRole
+        spaceMembership(spaceId: $spaceId) {
+          role
+          space {
+            id
+            name
+            slug
+            setupState
+            openInvitationUrl
+          }
         }
       }
     """
@@ -60,10 +62,10 @@ decoder =
     Decode.at [ "data" ] <|
         (Pipeline.decode Response
             |> Pipeline.custom (Decode.at [ "viewer" ] userDecoder)
-            |> Pipeline.custom (Decode.at [ "space" ] spaceDecoder)
-            |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)
-            |> Pipeline.custom (Decode.at [ "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
-            |> Pipeline.custom (Decode.at [ "space", "viewerRole" ] (Decode.maybe spaceUserRoleDecoder))
+            |> Pipeline.custom (Decode.at [ "spaceMembership", "space" ] spaceDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceMembership", "space", "setupState" ] setupStateDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceMembership", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
+            |> Pipeline.custom (Decode.at [ "spaceMembership", "role" ] (Decode.maybe spaceUserRoleDecoder))
         )
 
 

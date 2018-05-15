@@ -19,15 +19,16 @@ defmodule Level.Connections do
   @type paginated_result :: {:ok, Pagination.Result.t()} | {:error, String.t()}
 
   @doc """
-  Fetches a space by id.
+  Fetches a space membership by space id.
   """
-  @spec space(User.t(), map(), authenticated_context()) :: {:ok, Space.t()} | {:error, String.t()}
-  def space(parent, args, context)
+  @spec space_membership(User.t(), map(), authenticated_context()) ::
+          {:ok, SpaceUser.t()} | {:error, String.t()}
+  def space_membership(parent, args, context)
 
-  def space(_parent, %{id: id}, %{context: %{current_user: user}}) do
+  def space_membership(_parent, %{space_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space(user, id) do
-      {:ok, %{space: space}} ->
-        {:ok, space}
+      {:ok, %{space_user: space_user}} ->
+        {:ok, space_user}
 
       error ->
         error
