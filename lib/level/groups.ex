@@ -5,10 +5,12 @@ defmodule Level.Groups do
 
   import Ecto.Query, warn: false
   import Level.Gettext
+  import Ecto.Changeset, only: [change: 2, unique_constraint: 3]
 
   alias Ecto.Multi
   alias Level.Repo
   alias Level.Groups.Group
+  alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
   alias Level.Spaces.SpaceUser
 
@@ -110,6 +112,58 @@ defmodule Level.Groups do
     %GroupUser{}
     |> GroupUser.changeset(params)
     |> Repo.insert()
+  end
+
+  @doc """
+  Bookmarks a group.
+  """
+  @spec bookmark_group(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def bookmark_group(group, space_user) do
+    params = %{
+      space_id: group.space_id,
+      space_user_id: space_user.id,
+      group_id: group.id
+    }
+
+    changeset =
+      %GroupBookmark{}
+      |> change(params)
+      |> unique_constraint(:uniqueness, name: :group_bookmarks_space_user_id_group_id_index)
+
+    case Repo.insert(changeset) do
+      {:ok, _} -> :ok
+      {:error, %Ecto.Changeset{errors: [uniqueness: _]}} -> :ok
+      {:error, _} -> {:error, dgettext("errors", "An unexpected error occurred")}
+    end
+  end
+
+  @doc """
+  Unbookmarks a group.
+  """
+  @spec unbookmark_group(Group.t(), SpaceUser.t()) :: :ok | no_return()
+  def unbookmark_group(group, space_user) do
+    Repo.delete_all(
+      from b in GroupBookmark,
+        where: b.space_user_id == ^space_user.id and b.group_id == ^group.id
+    )
+
+    :ok
+  end
+
+  @doc """
+  Lists all bookmarked groups.
+  """
+  @spec list_bookmarked_groups(SpaceUser.t()) :: {:ok, [Group.t()]}
+  def list_bookmarked_groups(space_user) do
+    space_user
+    |> list_groups_query
+    |> join(
+      :inner,
+      [g],
+      b in GroupBookmark,
+      b.group_id == g.id and b.space_user_id == ^space_user.id
+    )
+    |> Repo.all()
   end
 
   @doc """

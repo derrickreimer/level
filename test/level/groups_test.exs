@@ -1,8 +1,11 @@
 defmodule Level.GroupsTest do
   use Level.DataCase, async: true
 
+  import Ecto.Query
+
   alias Level.Groups
   alias Level.Groups.Group
+  alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
 
   describe "list_groups_query/2" do
@@ -117,6 +120,65 @@ defmodule Level.GroupsTest do
       {:error, :group, changeset, _} = Groups.create_group(space_user, params)
 
       assert changeset.errors == [name: {"has already been taken", []}]
+    end
+  end
+
+  describe "bookmark_group/2" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "bookmarks the group for the user", %{space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user)
+      assert :ok = Groups.bookmark_group(group, space_user)
+      assert Repo.get_by(GroupBookmark, group_id: group.id, space_user_id: space_user.id)
+
+      # Gracefully handle duplicate bookmarking
+      assert :ok = Groups.bookmark_group(group, space_user)
+    end
+  end
+
+  describe "unbookmark_group/2" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "unbookmarks the group for the user", %{space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user)
+      Groups.bookmark_group(group, space_user)
+      assert :ok = Groups.unbookmark_group(group, space_user)
+      refute Repo.get_by(GroupBookmark, group_id: group.id, space_user_id: space_user.id)
+
+      # Gracefully handle duplicate unbookmarking
+      assert :ok = Groups.unbookmark_group(group, space_user)
+    end
+  end
+
+  describe "list_bookmarked_groups/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "includes bookmarked groups", %{space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user)
+      Groups.bookmark_group(group, space_user)
+      groups = Groups.list_bookmarked_groups(space_user)
+      assert Enum.any?(groups, fn g -> g.id == group.id end)
+    end
+
+    test "excludes non-bookmarked groups", %{space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user)
+      Groups.unbookmark_group(group, space_user)
+      groups = Groups.list_bookmarked_groups(space_user)
+      refute Enum.any?(groups, fn g -> g.id == group.id end)
+    end
+
+    test "excludes inaccessible bookmarked groups", %{space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user, %{is_private: true})
+      Groups.bookmark_group(group, space_user)
+      Repo.delete_all(from(g in GroupUser))
+      groups = Groups.list_bookmarked_groups(space_user)
+      refute Enum.any?(groups, fn g -> g.id == group.id end)
     end
   end
 
