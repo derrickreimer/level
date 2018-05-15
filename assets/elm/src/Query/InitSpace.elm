@@ -1,6 +1,7 @@
 module Query.InitSpace exposing (request, Params, Response)
 
 import Session exposing (Session)
+import Data.Group exposing (Group, groupDecoder)
 import Data.Setup as Setup exposing (setupStateDecoder)
 import Data.Space exposing (Space, SpaceUserRole, spaceDecoder, spaceRoleDecoder)
 import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
@@ -22,6 +23,7 @@ type alias Response =
     , setupState : Setup.State
     , openInvitationUrl : Maybe String
     , role : SpaceUserRole
+    , bookmarkedGroups : List Group
     }
 
 
@@ -45,6 +47,10 @@ query =
             setupState
             openInvitationUrl
           }
+          bookmarkedGroups {
+            id
+            name
+          }
         }
       }
     """
@@ -66,6 +72,7 @@ decoder =
             |> Pipeline.custom (Decode.at [ "spaceMembership", "space", "setupState" ] setupStateDecoder)
             |> Pipeline.custom (Decode.at [ "spaceMembership", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
             |> Pipeline.custom (Decode.at [ "spaceMembership", "role" ] spaceRoleDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceMembership", "bookmarkedGroups" ] (Decode.list groupDecoder))
         )
 
 

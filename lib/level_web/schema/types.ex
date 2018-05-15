@@ -52,6 +52,7 @@ defmodule LevelWeb.Schema.Types do
     field :role, non_null(:space_user_role)
     field :space, non_null(:space), resolve: dataloader(:db)
 
+    @desc "A list of groups the user has bookmarked."
     field :bookmarked_groups, list_of(:group) do
       resolve fn space_user, _args, _context ->
         {:ok, Groups.list_bookmarked_groups(space_user)}
@@ -74,7 +75,7 @@ defmodule LevelWeb.Schema.Types do
       end
     end
 
-    @desc "The currently active open invitation URL for the space"
+    @desc "The currently active open invitation URL for the space."
     field :open_invitation_url, :string do
       resolve fn space, _args, _context ->
         case Spaces.get_open_invitation(space) do

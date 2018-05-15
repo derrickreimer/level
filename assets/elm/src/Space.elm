@@ -45,12 +45,7 @@ type alias Model =
 
 
 type alias SharedState =
-    { space : Space
-    , user : User
-    , setupState : Setup.State
-    , openInvitationUrl : Maybe String
-    , role : SpaceUserRole
-    }
+    Query.InitSpace.Response
 
 
 type Page

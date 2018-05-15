@@ -1,4 +1,4 @@
-module Data.Group exposing (Group)
+module Data.Group exposing (Group, groupDecoder)
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -19,6 +19,6 @@ type alias Group =
 
 groupDecoder : Decode.Decoder Group
 groupDecoder =
-    Pipeline.decode Space
+    Pipeline.decode Group
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "name" Decode.string
