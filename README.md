@@ -64,6 +64,6 @@ script/docs
 
 ## Copyright
 
-&copy; 2018 Derrick Reimer
+&copy; 2018 Level Technologies, LLC
 
 Licensed under the Apache License, Version 2.0.
