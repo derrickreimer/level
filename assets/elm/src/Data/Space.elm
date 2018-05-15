@@ -1,4 +1,4 @@
-module Data.Space exposing (Space, SpaceUserRole(..), spaceDecoder, spaceUserRoleDecoder)
+module Data.Space exposing (Space, SpaceRole(..), spaceDecoder, spaceRoleDecoder)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -15,7 +15,7 @@ type alias Space =
     }
 
 
-type SpaceUserRole
+type SpaceRole
     = Member
     | Owner
 
@@ -32,10 +32,10 @@ spaceDecoder =
         |> Pipeline.required "slug" Decode.string
 
 
-spaceUserRoleDecoder : Decode.Decoder SpaceUserRole
-spaceUserRoleDecoder =
+spaceRoleDecoder : Decode.Decoder SpaceRole
+spaceRoleDecoder =
     let
-        convert : String -> Decode.Decoder SpaceUserRole
+        convert : String -> Decode.Decoder SpaceRole
         convert raw =
             case raw of
                 "MEMBER" ->
