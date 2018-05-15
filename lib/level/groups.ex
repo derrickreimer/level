@@ -153,7 +153,7 @@ defmodule Level.Groups do
   @doc """
   Lists all bookmarked groups.
   """
-  @spec list_bookmarked_groups(SpaceUser.t()) :: {:ok, [Group.t()]}
+  @spec list_bookmarked_groups(SpaceUser.t()) :: [Group.t()] | no_return()
   def list_bookmarked_groups(space_user) do
     space_user
     |> list_groups_query
