@@ -130,6 +130,20 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: group_bookmarks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.group_bookmarks (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    group_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: group_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -262,6 +276,14 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: group_bookmarks group_bookmarks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_bookmarks
+    ADD CONSTRAINT group_bookmarks_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: group_users group_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -331,6 +353,13 @@ ALTER TABLE ONLY public.spaces
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: group_bookmarks_space_user_id_group_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX group_bookmarks_space_user_id_group_id_index ON public.group_bookmarks USING btree (space_user_id, group_id);
 
 
 --
@@ -439,6 +468,30 @@ CREATE UNIQUE INDEX users_lower_email_index ON public.users USING btree (lower((
 
 
 --
+-- Name: group_bookmarks group_bookmarks_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_bookmarks
+    ADD CONSTRAINT group_bookmarks_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
+-- Name: group_bookmarks group_bookmarks_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_bookmarks
+    ADD CONSTRAINT group_bookmarks_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: group_bookmarks group_bookmarks_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_bookmarks
+    ADD CONSTRAINT group_bookmarks_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: group_users group_users_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -538,5 +591,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533);
 
