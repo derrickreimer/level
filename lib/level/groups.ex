@@ -55,8 +55,8 @@ defmodule Level.Groups do
   """
   @spec create_group(SpaceUser.t(), map()) ::
           {:ok, %{group: Group.t(), group_user: GroupUser.t(), bookmarked: boolean()}}
-          | {:error, :group | :group_user | :bookmark, any(),
-             %{optional(:group | :group_user | :bookmark) => any()}}
+          | {:error, :group | :group_user | :bookmarked, any(),
+             %{optional(:group | :group_user | :bookmarked) => any()}}
   def create_group(space_user, params \\ %{}) do
     params_with_relations =
       params
