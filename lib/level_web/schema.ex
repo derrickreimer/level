@@ -100,7 +100,7 @@ defmodule LevelWeb.Schema do
 
   def space_user_topic(%{space_membership_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space_user(user, id) do
-      {:ok, space_user} -> {:ok, topic: id}
+      {:ok, _space_user} -> {:ok, topic: id}
       err -> err
     end
   end
