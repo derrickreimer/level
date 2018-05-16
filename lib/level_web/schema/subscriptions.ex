@@ -3,8 +3,8 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   use Absinthe.Schema.Notation
 
-  @desc "The payload for the group bookmark created event."
-  object :group_bookmark_created_payload do
+  @desc "The payload for the group bookmarked event."
+  object :group_bookmarked_payload do
     @desc "The newly bookmarked group."
     field :group, :group
   end

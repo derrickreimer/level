@@ -89,7 +89,7 @@ defmodule Level.Spaces do
         {:ok, space_user}
 
       _ ->
-        {:error, dgettext("errors", "User not found")}
+        {:error, dgettext("errors", "Membership not found")}
     end
   end
 

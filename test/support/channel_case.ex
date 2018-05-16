@@ -14,6 +14,9 @@ defmodule LevelWeb.ChannelCase do
   """
 
   use ExUnit.CaseTemplate
+  use Phoenix.ChannelTest
+
+  @endpoint LevelWeb.Endpoint
 
   using do
     quote do
@@ -26,6 +29,7 @@ defmodule LevelWeb.ChannelCase do
       import Ecto.Query
 
       import Level.TestHelpers
+      import LevelWeb.ChannelCase
 
       # The default endpoint for testing
       @endpoint LevelWeb.Endpoint
@@ -40,5 +44,18 @@ defmodule LevelWeb.ChannelCase do
     end
 
     :ok
+  end
+
+  def build_socket(user) do
+    {:ok, _, socket} =
+      "asdf"
+      |> socket(absinthe: %{schema: LevelWeb.Schema, opts: [context: %{current_user: user}]})
+      |> subscribe_and_join(Absinthe.Phoenix.Channel, "__absinthe__:control")
+
+    socket
+  end
+
+  def push_subscription(socket, query, variables) do
+    push(socket, "doc", %{"query" => query, "variables" => variables})
   end
 end
