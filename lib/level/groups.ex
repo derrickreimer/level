@@ -156,10 +156,15 @@ defmodule Level.Groups do
   """
   @spec unbookmark_group(Group.t(), SpaceUser.t()) :: :ok | no_return()
   def unbookmark_group(group, space_user) do
-    Repo.delete_all(
-      from b in GroupBookmark,
-        where: b.space_user_id == ^space_user.id and b.group_id == ^group.id
-    )
+    {count, _} =
+      Repo.delete_all(
+        from b in GroupBookmark,
+          where: b.space_user_id == ^space_user.id and b.group_id == ^group.id
+      )
+
+    if count > 0 do
+      Pubsub.publish(%{group: group}, group_unbookmarked: space_user.id)
+    end
 
     :ok
   end

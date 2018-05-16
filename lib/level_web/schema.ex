@@ -91,8 +91,14 @@ defmodule LevelWeb.Schema do
   end
 
   subscription do
-    @desc "Triggered when a group bookmark is created."
+    @desc "Triggered when a group is bookmarked."
     field :group_bookmarked, :group_bookmarked_payload do
+      arg :space_membership_id, non_null(:id)
+      config &space_user_topic/2
+    end
+
+    @desc "Triggered when a group is unbookmarked."
+    field :group_unbookmarked, :group_unbookmarked_payload do
       arg :space_membership_id, non_null(:id)
       config &space_user_topic/2
     end
