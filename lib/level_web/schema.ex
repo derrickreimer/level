@@ -5,6 +5,7 @@ defmodule LevelWeb.Schema do
   import_types LevelWeb.Schema.Types
 
   alias Level.Repo
+  alias Level.Spaces
 
   def context(ctx) do
     loader =
@@ -86,6 +87,21 @@ defmodule LevelWeb.Schema do
       arg :body, non_null(:string)
 
       resolve &Level.Mutations.create_post/2
+    end
+  end
+
+  subscription do
+    @desc "Triggered when a group bookmark is created."
+    field :group_bookmark_created, :group_bookmark_created_payload do
+      arg :space_membership_id, non_null(:id)
+      config &space_user_topic/2
+    end
+  end
+
+  def space_user_topic(%{space_membership_id: id}, %{context: %{current_user: user}}) do
+    case Spaces.get_space_user(user, id) do
+      {:ok, space_user} -> {:ok, topic: id}
+      err -> err
     end
   end
 end

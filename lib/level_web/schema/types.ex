@@ -14,6 +14,7 @@ defmodule LevelWeb.Schema.Types do
   import_types LevelWeb.Schema.InputObjects
   import_types LevelWeb.Schema.Connections
   import_types LevelWeb.Schema.Mutations
+  import_types LevelWeb.Schema.Subscriptions
 
   @desc "A user represents a person belonging to a specific space."
   object :user do
@@ -48,6 +49,7 @@ defmodule LevelWeb.Schema.Types do
 
   @desc "A space membership defines the relationship between a user and a space."
   object :space_membership do
+    field :id, non_null(:id)
     field :state, non_null(:space_user_state)
     field :role, non_null(:space_user_role)
     field :space, non_null(:space), resolve: dataloader(:db)

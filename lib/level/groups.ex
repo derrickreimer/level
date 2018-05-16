@@ -8,6 +8,7 @@ defmodule Level.Groups do
   import Ecto.Changeset, only: [change: 2, unique_constraint: 3]
 
   alias Ecto.Multi
+  alias Level.Pubsub
   alias Level.Repo
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
@@ -138,9 +139,15 @@ defmodule Level.Groups do
       |> unique_constraint(:uniqueness, name: :group_bookmarks_space_user_id_group_id_index)
 
     case Repo.insert(changeset) do
-      {:ok, _} -> :ok
-      {:error, %Ecto.Changeset{errors: [uniqueness: _]}} -> :ok
-      {:error, _} -> {:error, dgettext("errors", "An unexpected error occurred")}
+      {:ok, _} ->
+        Pubsub.publish(%{group: group}, group_bookmark_created: space_user.id)
+        :ok
+
+      {:error, %Ecto.Changeset{errors: [uniqueness: _]}} ->
+        :ok
+
+      {:error, _} ->
+        {:error, dgettext("errors", "An unexpected error occurred")}
     end
   end
 
