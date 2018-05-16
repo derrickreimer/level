@@ -17,7 +17,7 @@ export const attachPorts = app => {
     app.ports.socketTokenUpdated.send();
   });
 
-  app.ports.sendFrame.subscribe(doc => {
+  app.ports.push.subscribe(doc => {
     const notifier = AbsintheSocket.send(absintheSocket, doc);
 
     const observedNotifier = AbsintheSocket.observe(absintheSocket, notifier, {

@@ -11,13 +11,17 @@ import Data.Group exposing (Group)
 import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
+import Event
 import Page.Inbox
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Ports
 import Query.InitSpace
+import Subscription.GroupBookmarked as GroupBookmarked
+import Subscription.GroupUnbookmarked as GroupUnbookmarked
 import Route exposing (Route)
 import Session exposing (Session)
+import Socket
 import Util exposing (Lazy(..))
 
 
@@ -110,7 +114,7 @@ type Msg
     | InboxMsg Page.Inbox.Msg
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
-    | SendFrame Ports.Frame
+    | Push Socket.Payload
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
     | SocketResult Decode.Value
@@ -141,7 +145,7 @@ update msg model =
 
             ( SharedStateLoaded maybeRoute (Ok ( session, response )), _ ) ->
                 { model | sharedState = Loaded response, session = session }
-                    |> updatePipeline [ navigateTo maybeRoute, setupSockets ]
+                    |> updatePipeline [ navigateTo maybeRoute, setupSockets response ]
 
             ( SharedStateLoaded maybeRoute (Err Session.Expired), _ ) ->
                 ( model, Route.toLogin )
@@ -193,8 +197,8 @@ update msg model =
                     , Cmd.map SetupInviteUsersMsg cmd
                     )
 
-            ( SendFrame frame, _ ) ->
-                ( model, Ports.sendFrame frame )
+            ( Push payload, _ ) ->
+                ( model, Ports.push payload )
 
             ( SocketAbort value, _ ) ->
                 ( model, Cmd.none )
@@ -203,8 +207,16 @@ update msg model =
                 ( model, Cmd.none )
 
             ( SocketResult value, page ) ->
-                case decodeMessage value of
-                    UnknownMessage ->
+                case Event.decodeEvent value of
+                    Event.GroupBookmarked data ->
+                        -- TODO: handle it
+                        ( model, Cmd.none )
+
+                    Event.GroupUnbookmarked data ->
+                        -- TODO: handle it
+                        ( model, Cmd.none )
+
+                    Event.Unknown ->
                         ( model, Cmd.none )
 
             ( SocketError value, _ ) ->
@@ -306,14 +318,15 @@ navigateTo maybeRoute model =
                             )
 
 
-setupSockets : Model -> ( Model, Cmd Msg )
-setupSockets model =
-    case model.sharedState of
-        NotLoaded ->
-            ( model, Cmd.none )
-
-        Loaded state ->
-            ( model, Cmd.none )
+setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
+setupSockets sharedState model =
+    let
+        payloads =
+            [ GroupBookmarked.payload sharedState.membershipId
+            , GroupUnbookmarked.payload sharedState.membershipId
+            ]
+    in
+        ( model, payloads |> List.map Ports.push |> Cmd.batch )
 
 
 updateSetupState : Setup.State -> Model -> Model
@@ -498,16 +511,3 @@ routeFor page =
 
         NotFound ->
             Route.Inbox
-
-
-
--- MESSAGE DECODERS
-
-
-type Message
-    = UnknownMessage
-
-
-decodeMessage : Decode.Value -> Message
-decodeMessage value =
-    UnknownMessage

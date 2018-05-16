@@ -18,7 +18,8 @@ type alias Params =
 
 
 type alias Response =
-    { user : User
+    { membershipId : String
+    , user : User
     , space : Space
     , setupState : Setup.State
     , openInvitationUrl : Maybe String
@@ -39,6 +40,7 @@ query =
           lastName
         }
         spaceMembership(spaceId: $spaceId) {
+          id
           role
           space {
             id
@@ -67,6 +69,7 @@ decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data" ] <|
         (Pipeline.decode Response
+            |> Pipeline.custom (Decode.at [ "spaceMembership", "id" ] Decode.string)
             |> Pipeline.custom (Decode.at [ "viewer" ] userDecoder)
             |> Pipeline.custom (Decode.at [ "spaceMembership", "space" ] spaceDecoder)
             |> Pipeline.custom (Decode.at [ "spaceMembership", "space", "setupState" ] setupStateDecoder)
