@@ -277,8 +277,14 @@ update msg model =
 
             ( PageInitialized pageInit, _ ) ->
                 case pageInit of
-                    GroupInit _ (Ok ( session, response )) ->
-                        ( model, Cmd.none )
+                    GroupInit _ (Ok ( session, pageModel )) ->
+                        ( { model
+                            | page = Group pageModel
+                            , session = session
+                            , isTransitioning = False
+                          }
+                        , Cmd.none
+                        )
 
                     GroupInit _ (Err Session.Expired) ->
                         ( model, Route.toLogin )

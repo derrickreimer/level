@@ -32,7 +32,7 @@ defmodule Level.Connections.SpaceMemberships do
   @doc """
   Executes a paginated query for groups belonging to a given space.
   """
-  def get(user, args, %{context: %{current_user: authenticated_user}} = _context) do
+  def get(user, args, %{context: %{current_user: authenticated_user}} = _info) do
     if authenticated_user == user do
       base_query =
         from su in SpaceUser,

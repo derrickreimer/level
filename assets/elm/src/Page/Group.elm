@@ -32,9 +32,11 @@ init spaceId groupId session =
                 $spaceId: ID!
                 $groupId: ID!
               ) {
-                group(spaceId: $spaceId, groupId: $groupId) {
-                  id
-                  name
+                space(id: $spaceId) {
+                  group(id: $groupId) {
+                    id
+                    name
+                  }
                 }
               }
             """
@@ -51,7 +53,7 @@ init spaceId groupId session =
 
 decoder : Decode.Decoder Model
 decoder =
-    Decode.at [ "data" ] <|
+    Decode.at [ "data", "space" ] <|
         (Pipeline.decode Model
             |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
         )
