@@ -22,7 +22,7 @@ import Subscription.GroupUnbookmarked as GroupUnbookmarked
 import Route exposing (Route)
 import Session exposing (Session)
 import Socket
-import Util exposing (Lazy(..))
+import Util exposing (Lazy(..), insertUniqueById, removeById)
 
 
 main : Program Flags Model Msg
@@ -209,12 +209,36 @@ update msg model =
             ( SocketResult value, page ) ->
                 case Event.decodeEvent value of
                     Event.GroupBookmarked data ->
-                        -- TODO: handle it
-                        ( model, Cmd.none )
+                        case model.sharedState of
+                            Loaded sharedState ->
+                                let
+                                    groups =
+                                        sharedState.bookmarkedGroups
+                                            |> insertUniqueById data.group
+
+                                    newSharedState =
+                                        { sharedState | bookmarkedGroups = groups }
+                                in
+                                    ( { model | sharedState = Loaded newSharedState }, Cmd.none )
+
+                            NotLoaded ->
+                                ( model, Cmd.none )
 
                     Event.GroupUnbookmarked data ->
-                        -- TODO: handle it
-                        ( model, Cmd.none )
+                        case model.sharedState of
+                            Loaded sharedState ->
+                                let
+                                    groups =
+                                        sharedState.bookmarkedGroups
+                                            |> removeById data.group.id
+
+                                    newSharedState =
+                                        { sharedState | bookmarkedGroups = groups }
+                                in
+                                    ( { model | sharedState = Loaded newSharedState }, Cmd.none )
+
+                            NotLoaded ->
+                                ( model, Cmd.none )
 
                     Event.Unknown ->
                         ( model, Cmd.none )

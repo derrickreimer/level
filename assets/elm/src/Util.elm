@@ -13,6 +13,10 @@ type Lazy a
     | Loaded a
 
 
+type alias Identifiable a =
+    { a | id : String }
+
+
 
 -- LIST HELPERS
 
@@ -37,6 +41,49 @@ last =
 size : List a -> Int
 size =
     List.foldl (\_ t -> t + 1) 0
+
+
+{-| Prepends an item to a list if there does not exist a list element with
+the same id.
+
+    insertUniqueById { id = "1" } [{ id = "1" }] == [{ id = "1" }]
+    insertUniqueById { id = "1" } [{ id = "2" }] == [{ id = "1" }, { id = "2" }]
+
+-}
+insertUniqueById : Identifiable a -> List (Identifiable a) -> List (Identifiable a)
+insertUniqueById item list =
+    if memberById item list then
+        list
+    else
+        item :: list
+
+
+{-| Determines whether an item is in the list with the same id.
+
+    memberById { id = "1" } [{ id = "1" }] == True
+    memberById { id = "1" } [{ id = "2" }] == False
+
+-}
+memberById : Identifiable a -> List (Identifiable a) -> Bool
+memberById item list =
+    let
+        id =
+            item.id
+    in
+        list
+            |> List.filter (\a -> a.id == id)
+            |> List.isEmpty
+            |> not
+
+
+{-| Filters out items from list with a given id.
+
+    removeById "1" [{ id = "1" }, { id = "2" }] == [{ id = "2" }]
+
+-}
+removeById : String -> List (Identifiable a) -> List (Identifiable a)
+removeById id =
+    List.filter (\a -> not (a.id == id))
 
 
 
