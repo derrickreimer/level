@@ -33,6 +33,12 @@ defmodule Level.Mutations do
           errors: validation_errors
         }
 
+  @typedoc "The payload for updating group bookmark state."
+  @type bookmark_group_payload :: %{
+          bookmarked: boolean(),
+          group: Groups.Group.t()
+        }
+
   @typedoc "The result of a bulk create group mutation"
   @type bulk_create_groups_result ::
           {:ok, %{payloads: [bulk_create_group_payload()]}} | {:error, String.t()}
@@ -136,6 +142,36 @@ defmodule Level.Mutations do
 
       _ ->
         %{success: false, group: nil, errors: [], args: args}
+    end
+  end
+
+  @doc """
+  Bookmarks a group.
+  """
+  @spec bookmark_group(map(), authenticated_context()) :: bookmark_group_payload()
+  def bookmark_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         :ok <- Groups.bookmark_group(group, space_user) do
+      {:ok, %{is_bookmarked: true, group: group}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Unbookmarks a group.
+  """
+  @spec bookmark_group(map(), authenticated_context()) :: bookmark_group_payload()
+  def unbookmark_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         :ok <- Groups.unbookmark_group(group, space_user) do
+      {:ok, %{is_bookmarked: false, group: group}}
+    else
+      err ->
+        err
     end
   end
 

@@ -5,6 +5,7 @@ defmodule LevelWeb.Schema do
   import_types LevelWeb.Schema.Types
 
   alias Level.Repo
+  alias Level.Spaces
 
   def context(ctx) do
     loader =
@@ -80,12 +81,49 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_group/2
     end
 
+    @desc "Bookmark a group."
+    field :bookmark_group, type: :bookmark_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.bookmark_group/2
+    end
+
+    @desc "Unbookmark a group."
+    field :unbookmark_group, type: :bookmark_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.unbookmark_group/2
+    end
+
     @desc "Create a post."
     field :create_post, type: :create_post_payload do
       arg :space_id, non_null(:id)
       arg :body, non_null(:string)
 
       resolve &Level.Mutations.create_post/2
+    end
+  end
+
+  subscription do
+    @desc "Triggered when a group is bookmarked."
+    field :group_bookmarked, :group_bookmarked_payload do
+      arg :space_membership_id, non_null(:id)
+      config &space_user_topic/2
+    end
+
+    @desc "Triggered when a group is unbookmarked."
+    field :group_unbookmarked, :group_unbookmarked_payload do
+      arg :space_membership_id, non_null(:id)
+      config &space_user_topic/2
+    end
+  end
+
+  def space_user_topic(%{space_membership_id: id}, %{context: %{current_user: user}}) do
+    case Spaces.get_space_user(user, id) do
+      {:ok, _space_user} -> {:ok, topic: id}
+      err -> err
     end
   end
 end

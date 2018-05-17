@@ -2,6 +2,7 @@ port module Ports exposing (..)
 
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Socket
 
 
 -- INBOUND
@@ -46,12 +47,6 @@ port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
 -- OUTBOUND
 
 
-type alias Frame =
-    { operation : String
-    , variables : Maybe Encode.Value
-    }
-
-
 type alias ScrollParams =
     { containerId : String
     , anchorId : String
@@ -65,7 +60,7 @@ type alias ScrollPositionArgs =
     }
 
 
-port sendFrame : Frame -> Cmd msg
+port push : Socket.Payload -> Cmd msg
 
 
 port updateToken : String -> Cmd msg
