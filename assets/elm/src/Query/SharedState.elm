@@ -1,4 +1,4 @@
-module Query.InitSpace exposing (request, Params, Response)
+module Query.SharedState exposing (request, Params, Response)
 
 import Session exposing (Session)
 import Data.Group exposing (Group, groupDecoder)
@@ -31,7 +31,7 @@ type alias Response =
 query : String
 query =
     """
-      query InitSpace(
+      query SharedState(
         $spaceId: ID!
       ) {
         viewer {

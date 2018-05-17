@@ -16,7 +16,7 @@ import Page.Inbox
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Ports
-import Query.InitSpace
+import Query.SharedState
 import Subscription.GroupBookmarked as GroupBookmarked
 import Subscription.GroupUnbookmarked as GroupUnbookmarked
 import Route exposing (Route)
@@ -50,7 +50,7 @@ type alias Model =
 
 
 type alias SharedState =
-    Query.InitSpace.Response
+    Query.SharedState.Response
 
 
 type Page
@@ -110,7 +110,7 @@ updatePipeline transforms model =
 
 type Msg
     = UrlChanged Navigation.Location
-    | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.InitSpace.Response ))
+    | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.SharedState.Response ))
     | InboxMsg Page.Inbox.Msg
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
@@ -281,7 +281,7 @@ expireFlashNotice =
 
 bootstrap : String -> Session -> Maybe Route -> Cmd Msg
 bootstrap spaceId session maybeRoute =
-    Query.InitSpace.request (Query.InitSpace.Params spaceId)
+    Query.SharedState.request (Query.SharedState.Params spaceId)
         |> Session.request session
         |> Task.attempt (SharedStateLoaded maybeRoute)
 
