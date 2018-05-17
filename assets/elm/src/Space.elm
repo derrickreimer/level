@@ -12,6 +12,7 @@ import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
 import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Event
+import Page.Group
 import Page.Inbox
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
@@ -56,9 +57,10 @@ type alias SharedState =
 type Page
     = Blank
     | NotFound
-    | Inbox
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
+    | Inbox
+    | Group Page.Group.Model
 
 
 type alias Flags =
@@ -111,17 +113,26 @@ updatePipeline transforms model =
 type Msg
     = UrlChanged Navigation.Location
     | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.SharedState.Response ))
-    | InboxMsg Page.Inbox.Msg
+      -- PAGES
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
+    | PageInitialized PageInit
+    | InboxMsg Page.Inbox.Msg
+    | GroupMsg Page.Group.Msg
+      -- PORTS
     | Push Socket.Payload
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
     | SocketResult Decode.Value
     | SocketError Decode.Value
     | SocketTokenUpdated Decode.Value
+      -- MISC
     | SessionRefreshed (Result Session.Error Session)
     | FlashNoticeExpired
+
+
+type PageInit
+    = GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
 
 
 getPage : Model -> Page
@@ -264,6 +275,18 @@ update msg model =
             ( FlashNoticeExpired, _ ) ->
                 ( { model | flashNotice = Nothing }, Cmd.none )
 
+            ( PageInitialized pageInit, _ ) ->
+                case pageInit of
+                    GroupInit _ (Ok ( session, response )) ->
+                        ( model, Cmd.none )
+
+                    GroupInit _ (Err Session.Expired) ->
+                        ( model, Route.toLogin )
+
+                    GroupInit _ (Err _) ->
+                        -- TODO: Handle other error modes
+                        ( model, Cmd.none )
+
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
@@ -291,7 +314,7 @@ navigateTo maybeRoute model =
     let
         transition model toMsg task =
             ( { model | isTransitioning = True }
-            , Task.attempt toMsg task
+            , Cmd.map PageInitialized <| Task.attempt toMsg task
             )
     in
         case model.sharedState of
@@ -319,10 +342,6 @@ navigateTo maybeRoute model =
                             _ ->
                                 navigateTo (Just Route.Inbox) model
 
-                    Just Route.Inbox ->
-                        -- TODO: implement this
-                        ( { model | page = Inbox }, Cmd.none )
-
                     Just Route.SetupCreateGroups ->
                         let
                             pageModel =
@@ -340,6 +359,15 @@ navigateTo maybeRoute model =
                             ( { model | page = SetupInviteUsers pageModel }
                             , Cmd.none
                             )
+
+                    Just Route.Inbox ->
+                        -- TODO: implement this
+                        ( { model | page = Inbox }, Cmd.none )
+
+                    Just (Route.Group id) ->
+                        model.session
+                            |> Page.Group.init sharedState.space.id id
+                            |> transition model (GroupInit id)
 
 
 setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
@@ -428,7 +456,7 @@ groupLinks : List Group -> Page -> Html Msg
 groupLinks groups currentPage =
     let
         linkify group =
-            sidebarLink group.name Nothing currentPage
+            sidebarLink group.name (Just <| Route.Group group.id) currentPage
 
         links =
             groups
@@ -497,10 +525,6 @@ texitar initials =
 pageContent : Page -> Html Msg
 pageContent page =
     case page of
-        Inbox ->
-            Page.Inbox.view
-                |> Html.map InboxMsg
-
         SetupCreateGroups pageModel ->
             pageModel
                 |> Page.Setup.CreateGroups.view
@@ -510,6 +534,15 @@ pageContent page =
             pageModel
                 |> Page.Setup.InviteUsers.view
                 |> Html.map SetupInviteUsersMsg
+
+        Inbox ->
+            Page.Inbox.view
+                |> Html.map InboxMsg
+
+        Group pageModel ->
+            pageModel
+                |> Page.Group.view
+                |> Html.map GroupMsg
 
         Blank ->
             text ""
@@ -529,6 +562,9 @@ routeFor page =
 
         SetupInviteUsers _ ->
             Route.SetupInviteUsers
+
+        Group pageModel ->
+            Route.Group pageModel.group.id
 
         Blank ->
             Route.Inbox

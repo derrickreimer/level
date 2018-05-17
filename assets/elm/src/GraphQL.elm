@@ -20,8 +20,8 @@ payload query maybeVariables =
                 ]
 
 
-request : Session -> String -> Maybe Encode.Value -> Decode.Decoder a -> Http.Request a
-request session query maybeVariables decoder =
+request : String -> Maybe Encode.Value -> Decode.Decoder a -> Session -> Http.Request a
+request query maybeVariables decoder session =
     let
         body =
             Encode.encode 0 (payload query maybeVariables)
