@@ -81,6 +81,22 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_group/2
     end
 
+    @desc "Bookmark a group."
+    field :bookmark_group, type: :bookmark_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.bookmark_group/2
+    end
+
+    @desc "Unbookmark a group."
+    field :unbookmark_group, type: :bookmark_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.unbookmark_group/2
+    end
+
     @desc "Create a post."
     field :create_post, type: :create_post_payload do
       arg :space_id, non_null(:id)

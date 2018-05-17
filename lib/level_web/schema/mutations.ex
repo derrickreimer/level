@@ -118,6 +118,15 @@ defmodule LevelWeb.Schema.Mutations do
     field :name, non_null(:string)
   end
 
+  @desc "The payload for an updating group bookmark state."
+  object :bookmark_group_payload do
+    @desc "The current bookmark status."
+    field :is_bookmarked, non_null(:boolean)
+
+    @desc "The group."
+    field :group, non_null(:group)
+  end
+
   @desc "The response to creating a post."
   object :create_post_payload do
     @desc """
