@@ -189,6 +189,20 @@ CREATE TABLE public.open_invitations (
 
 
 --
+-- Name: post_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_groups (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    group_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: posts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -308,6 +322,14 @@ ALTER TABLE ONLY public.open_invitations
 
 
 --
+-- Name: post_groups post_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_groups
+    ADD CONSTRAINT post_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -409,6 +431,13 @@ CREATE UNIQUE INDEX open_invitations_token_index ON public.open_invitations USIN
 --
 
 CREATE UNIQUE INDEX open_invitations_unique_active ON public.open_invitations USING btree (space_id) WHERE (state = 'ACTIVE'::public.open_invitation_state);
+
+
+--
+-- Name: post_groups_post_id_group_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX post_groups_post_id_group_id_index ON public.post_groups USING btree (post_id, group_id);
 
 
 --
@@ -540,6 +569,30 @@ ALTER TABLE ONLY public.open_invitations
 
 
 --
+-- Name: post_groups post_groups_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_groups
+    ADD CONSTRAINT post_groups_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
+-- Name: post_groups post_groups_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_groups
+    ADD CONSTRAINT post_groups_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_groups post_groups_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_groups
+    ADD CONSTRAINT post_groups_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: posts posts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -591,5 +644,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612);
 
