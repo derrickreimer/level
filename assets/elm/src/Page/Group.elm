@@ -113,23 +113,28 @@ view : Model -> Html Msg
 view model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto pt-4 max-w-90 leading-normal" ]
-            [ h2 [ class "mb-6 font-extrabold text-2xl" ] [ text model.group.name ]
-            , label [ class "composer" ]
-                [ div [ class "flex" ]
-                    [ div [ class "flex-no-shrink mr-2" ] [ userAvatar Avatar.Medium model.user ]
-                    , div [ class "flex-grow" ]
-                        [ textarea
-                            [ id "post-composer"
-                            , class "p-2 w-full no-outline bg-transparent text-dusty-blue-darker resize-none"
-                            , placeholder "Type something..."
-                            , onInput NewPostBodyChanged
-                            , value model.newPostBody
-                            ]
-                            []
-                        , div [ class "flex justify-end" ]
-                            [ button [ class "btn btn-blue btn-sm", onClick NewPostSubmit ] [ text ("Post to " ++ model.group.name) ] ]
-                        ]
+            [ h2 [ class "mb-4 font-extrabold text-2xl" ] [ text model.group.name ]
+            , newPostView model.newPostBody model.user model.group
+            ]
+        ]
+
+
+newPostView : String -> User -> Group -> Html Msg
+newPostView body user group =
+    label [ class "composer" ]
+        [ div [ class "flex" ]
+            [ div [ class "flex-no-shrink mr-2" ] [ userAvatar Avatar.Medium user ]
+            , div [ class "flex-grow" ]
+                [ textarea
+                    [ id "post-composer"
+                    , class "p-2 w-full no-outline bg-transparent text-dusty-blue-darker resize-none"
+                    , placeholder "Type something..."
+                    , onInput NewPostBodyChanged
+                    , value body
                     ]
+                    []
+                , div [ class "flex justify-end" ]
+                    [ button [ class "btn btn-blue btn-sm", onClick NewPostSubmit ] [ text ("Post to " ++ group.name) ] ]
                 ]
             ]
         ]

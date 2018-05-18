@@ -3,15 +3,24 @@ defmodule Level.Posts do
   The Posts context.
   """
 
+  alias Ecto.Multi
+  alias Level.Groups.Group
   alias Level.Posts.Post
   alias Level.Repo
   alias Level.Spaces.SpaceUser
 
   @doc """
-  Creates a new post.
+  Posts a message to a group.
   """
-  @spec create_post(SpaceUser.t(), map()) :: {:ok, Post.t()} | {:error, Ecto.Changeset.t()}
-  def create_post(space_user, params) do
+  @spec post_to_group(SpaceUser.t(), Group.t(), map()) ::
+          {:ok, Post.t()} | {:error, Ecto.Changeset.t()}
+  def post_to_group(space_user, group, params) do
+    Multi.new()
+    |> Multi.insert(:post, create_post_changeset(space_user, params))
+    |> Repo.transaction()
+  end
+
+  defp create_post_changeset(space_user, params) do
     params_with_relations =
       params
       |> Map.put(:space_id, space_user.space_id)
@@ -19,6 +28,5 @@ defmodule Level.Posts do
 
     %Post{}
     |> Post.create_changeset(params_with_relations)
-    |> Repo.insert()
   end
 end

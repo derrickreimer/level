@@ -176,15 +176,16 @@ defmodule Level.Mutations do
   end
 
   @doc """
-  Creates a post.
+  Posts a message to a group.
   """
-  @spec create_post(map(), authenticated_context()) :: post_mutation_result()
-  def create_post(args, %{context: %{current_user: user}}) do
+  @spec post_to_group(map(), authenticated_context()) :: post_mutation_result()
+  def post_to_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
-         {:ok, post} <- Posts.create_post(space_user, args) do
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, %{post: post}} <- Posts.post_to_group(space_user, group, args) do
       {:ok, %{success: true, post: post, errors: []}}
     else
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, :post, changeset, _} ->
         {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
 
       err ->
