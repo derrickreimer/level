@@ -209,6 +209,15 @@ update msg model =
                     , Cmd.map SetupInviteUsersMsg cmd
                     )
 
+            ( GroupMsg msg, Group pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), session ) =
+                        Page.Group.update msg model.session pageModel
+                in
+                    ( { model | session = session, page = Group newPageModel }
+                    , Cmd.map GroupMsg cmd
+                    )
+
             ( Push payload, _ ) ->
                 ( model, Ports.push payload )
 

@@ -3,6 +3,7 @@ module Page.Group exposing (..)
 import Dom exposing (focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
@@ -75,6 +76,22 @@ initialized =
 
 type Msg
     = NoOp
+    | PostSubmit
+
+
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session model =
+    case msg of
+        NoOp ->
+            noOp session model
+
+        PostSubmit ->
+            noOp session model
+
+
+noOp : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+noOp session model =
+    ( ( model, Cmd.none ), session )
 
 
 setFocus : String -> Cmd Msg
@@ -97,7 +114,7 @@ view model =
                     , div [ class "flex-grow" ]
                         [ textarea [ id "post-composer", class "p-2 w-full no-outline bg-transparent text-dusty-blue-darker resize-none", placeholder "Type something..." ] []
                         , div [ class "flex justify-end" ]
-                            [ button [ class "btn btn-blue btn-sm" ] [ text ("Post to " ++ model.group.name) ] ]
+                            [ button [ class "btn btn-blue btn-sm", onClick PostSubmit ] [ text ("Post to " ++ model.group.name) ] ]
                         ]
                     ]
                 ]
