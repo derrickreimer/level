@@ -7,7 +7,7 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
-import Avatar exposing (texitar)
+import Avatar exposing (userAvatar, texitar)
 import Data.Group exposing (Group)
 import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
@@ -293,7 +293,8 @@ handlePageInit pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Cmd.none
+            , Page.Group.initialized
+                |> Cmd.map GroupMsg
             )
 
         GroupInit _ (Err Session.Expired) ->
@@ -378,7 +379,7 @@ navigateTo maybeRoute model =
 
                     Just (Route.Group id) ->
                         model.session
-                            |> Page.Group.init sharedState.space.id id
+                            |> Page.Group.init sharedState.user sharedState.space.id id
                             |> transition model (GroupInit id)
 
 
@@ -455,7 +456,7 @@ leftSidebar sharedState model =
             ]
         , groupLinks sharedState.bookmarkedGroups model.page
         , div [ class "absolute pin-b mb-4 flex" ]
-            [ div [] [ userAvatar sharedState.user ]
+            [ div [] [ userAvatar Avatar.Small sharedState.user ]
             , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                 [ div [] [ text "Signed in as" ]
                 , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
@@ -516,14 +517,6 @@ sidebarLink title maybeRoute currentPage =
 spaceAvatar : Space -> Html Msg
 spaceAvatar space =
     space.name
-        |> String.left 1
-        |> String.toUpper
-        |> texitar Avatar.Small
-
-
-userAvatar : User -> Html Msg
-userAvatar user =
-    user.firstName
         |> String.left 1
         |> String.toUpper
         |> texitar Avatar.Small

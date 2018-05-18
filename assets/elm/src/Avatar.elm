@@ -1,13 +1,22 @@
-module Avatar exposing (Size(..), texitar)
+module Avatar exposing (Size(..), texitar, userAvatar)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Data.User exposing (User)
 
 
 type Size
     = Small
     | Medium
     | Large
+
+
+userAvatar : Size -> User -> Html msg
+userAvatar size user =
+    user.firstName
+        |> String.left 1
+        |> String.toUpper
+        |> texitar size
 
 
 texitar : Size -> String -> Html msg

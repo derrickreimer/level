@@ -77,6 +77,16 @@ body {
   @apply .mt-2 .text-sm .text-red .font-bold;
 }
 
+.composer {
+  @apply .block .p-4 .bg-grey-light .w-full .rounded-lg .border-2 .border-transparent;
+}
+
+.composer:focus,
+.composer:active,
+.composer:focus-within {
+  @apply .border-turquoise;
+}
+
 .btn {
   @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2 .whitespace-no-wrap .cursor-pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -88,6 +98,10 @@ body {
 
 .btn:active {
   transform: translateY(1px);
+}
+
+.btn-sm {
+  @apply .px-5 .py-2 .text-sm;
 }
 
 .btn-blue {
