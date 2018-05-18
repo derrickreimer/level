@@ -218,40 +218,11 @@ update msg model =
                 ( model, Cmd.none )
 
             ( SocketResult value, page ) ->
-                case Event.decodeEvent value of
-                    Event.GroupBookmarked data ->
-                        case model.sharedState of
-                            Loaded sharedState ->
-                                let
-                                    groups =
-                                        sharedState.bookmarkedGroups
-                                            |> insertUniqueById data.group
+                case model.sharedState of
+                    Loaded sharedState ->
+                        handleSocketResult value model page sharedState
 
-                                    newSharedState =
-                                        { sharedState | bookmarkedGroups = groups }
-                                in
-                                    ( { model | sharedState = Loaded newSharedState }, Cmd.none )
-
-                            NotLoaded ->
-                                ( model, Cmd.none )
-
-                    Event.GroupUnbookmarked data ->
-                        case model.sharedState of
-                            Loaded sharedState ->
-                                let
-                                    groups =
-                                        sharedState.bookmarkedGroups
-                                            |> removeById data.group.id
-
-                                    newSharedState =
-                                        { sharedState | bookmarkedGroups = groups }
-                                in
-                                    ( { model | sharedState = Loaded newSharedState }, Cmd.none )
-
-                            NotLoaded ->
-                                ( model, Cmd.none )
-
-                    Event.Unknown ->
+                    NotLoaded ->
                         ( model, Cmd.none )
 
             ( SocketError value, _ ) ->
@@ -276,26 +247,60 @@ update msg model =
                 ( { model | flashNotice = Nothing }, Cmd.none )
 
             ( PageInitialized pageInit, _ ) ->
-                case pageInit of
-                    GroupInit _ (Ok ( session, pageModel )) ->
-                        ( { model
-                            | page = Group pageModel
-                            , session = session
-                            , isTransitioning = False
-                          }
-                        , Cmd.none
-                        )
-
-                    GroupInit _ (Err Session.Expired) ->
-                        ( model, Route.toLogin )
-
-                    GroupInit _ (Err _) ->
-                        -- TODO: Handle other error modes
-                        ( model, Cmd.none )
+                handlePageInit pageInit model
 
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 ( model, Cmd.none )
+
+
+handleSocketResult : Decode.Value -> Model -> Page -> SharedState -> ( Model, Cmd Msg )
+handleSocketResult value model page sharedState =
+    case Event.decodeEvent value of
+        Event.GroupBookmarked data ->
+            let
+                groups =
+                    sharedState.bookmarkedGroups
+                        |> insertUniqueById data.group
+
+                newSharedState =
+                    { sharedState | bookmarkedGroups = groups }
+            in
+                ( { model | sharedState = Loaded newSharedState }, Cmd.none )
+
+        Event.GroupUnbookmarked data ->
+            let
+                groups =
+                    sharedState.bookmarkedGroups
+                        |> removeById data.group.id
+
+                newSharedState =
+                    { sharedState | bookmarkedGroups = groups }
+            in
+                ( { model | sharedState = Loaded newSharedState }, Cmd.none )
+
+        Event.Unknown ->
+            ( model, Cmd.none )
+
+
+handlePageInit : PageInit -> Model -> ( Model, Cmd Msg )
+handlePageInit pageInit model =
+    case pageInit of
+        GroupInit _ (Ok ( session, pageModel )) ->
+            ( { model
+                | page = Group pageModel
+                , session = session
+                , isTransitioning = False
+              }
+            , Cmd.none
+            )
+
+        GroupInit _ (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        GroupInit _ (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
 
 
 setFlashNotice : String -> Model -> ( Model, Cmd Msg )
