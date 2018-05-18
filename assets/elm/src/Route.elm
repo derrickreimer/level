@@ -15,18 +15,20 @@ import Data.Space exposing (Space)
 
 type Route
     = Root
-    | Inbox
     | SetupCreateGroups
     | SetupInviteUsers
+    | Inbox
+    | Group String
 
 
 route : Parser (Route -> a) a
 route =
     oneOf
         [ Url.map Root (s "")
-        , Url.map Inbox (s "inbox")
         , Url.map SetupCreateGroups (s "setup" </> s "groups")
         , Url.map SetupInviteUsers (s "setup" </> s "invites")
+        , Url.map Inbox (s "inbox")
+        , Url.map Group (s "groups" </> Url.string)
         ]
 
 
@@ -42,14 +44,17 @@ routeToString page =
                 Root ->
                     []
 
-                Inbox ->
-                    [ "inbox" ]
-
                 SetupCreateGroups ->
                     [ "setup", "groups" ]
 
                 SetupInviteUsers ->
                     [ "setup", "invites" ]
+
+                Inbox ->
+                    [ "inbox" ]
+
+                Group id ->
+                    [ "groups", id ]
     in
         "#/" ++ String.join "/" pieces
 

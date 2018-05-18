@@ -80,5 +80,5 @@ decoder =
 
 
 request : Params -> Session -> Http.Request Response
-request params session =
-    GraphQL.request session query (Just (variables params)) decoder
+request params =
+    GraphQL.request query (Just (variables params)) decoder

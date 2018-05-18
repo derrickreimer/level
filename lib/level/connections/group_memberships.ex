@@ -35,7 +35,7 @@ defmodule Level.Connections.GroupMemberships do
   @doc """
   Executes a paginated query for a user's group memberships.
   """
-  def get(user, args, %{context: %{current_user: authenticated_user}} = _context) do
+  def get(user, args, %{context: %{current_user: authenticated_user}} = _info) do
     if authenticated_user == user do
       case Spaces.get_space(user, args.space_id) do
         {:ok, %{space_user: space_user}} ->

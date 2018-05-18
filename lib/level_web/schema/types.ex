@@ -99,6 +99,11 @@ defmodule LevelWeb.Schema.Types do
       arg :state, :group_state
       resolve &Level.Connections.groups/3
     end
+
+    field :group, non_null(:group) do
+      arg :id, non_null(:id)
+      resolve &Level.Connections.group/3
+    end
   end
 
   @desc "A group is a collection of users within a space."
