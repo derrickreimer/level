@@ -78,7 +78,7 @@ body {
 }
 
 .composer {
-  @apply .block .p-4 .bg-grey-light .w-full .rounded-lg .border-2 .border-transparent;
+  @apply .block .p-4 .bg-grey-light .w-full .rounded-lg .border .border-transparent;
 }
 
 .composer:focus,
