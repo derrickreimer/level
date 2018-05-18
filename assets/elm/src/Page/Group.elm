@@ -21,6 +21,7 @@ import Session exposing (Session)
 type alias Model =
     { group : Group
     , user : User
+    , newPostBody : String
     }
 
 
@@ -62,6 +63,7 @@ decoder user =
         (Pipeline.decode Model
             |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
             |> Pipeline.custom (Decode.succeed user)
+            |> Pipeline.custom (Decode.succeed "")
         )
 
 
@@ -76,7 +78,8 @@ initialized =
 
 type Msg
     = NoOp
-    | PostSubmit
+    | NewPostBodyChanged String
+    | NewPostSubmit
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -85,7 +88,10 @@ update msg session model =
         NoOp ->
             noOp session model
 
-        PostSubmit ->
+        NewPostBodyChanged value ->
+            noOp session { model | newPostBody = value }
+
+        NewPostSubmit ->
             noOp session model
 
 
@@ -112,9 +118,16 @@ view model =
                 [ div [ class "flex" ]
                     [ div [ class "flex-no-shrink mr-2" ] [ userAvatar Avatar.Medium model.user ]
                     , div [ class "flex-grow" ]
-                        [ textarea [ id "post-composer", class "p-2 w-full no-outline bg-transparent text-dusty-blue-darker resize-none", placeholder "Type something..." ] []
+                        [ textarea
+                            [ id "post-composer"
+                            , class "p-2 w-full no-outline bg-transparent text-dusty-blue-darker resize-none"
+                            , placeholder "Type something..."
+                            , onInput NewPostBodyChanged
+                            , value model.newPostBody
+                            ]
+                            []
                         , div [ class "flex justify-end" ]
-                            [ button [ class "btn btn-blue btn-sm", onClick PostSubmit ] [ text ("Post to " ++ model.group.name) ] ]
+                            [ button [ class "btn btn-blue btn-sm", onClick NewPostSubmit ] [ text ("Post to " ++ model.group.name) ] ]
                         ]
                     ]
                 ]
