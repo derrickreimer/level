@@ -1,6 +1,7 @@
 defmodule Level.PostsTest do
   use Level.DataCase, async: true
 
+  alias Level.Groups.Group
   alias Level.Posts
 
   describe "post_to_group/2" do
@@ -17,7 +18,18 @@ defmodule Level.PostsTest do
       assert post.body == "The body"
     end
 
-    test "puts the post in the given group", %{space_user: space_user, group: group} do
+    test "puts the post in the given group", %{
+      space_user: space_user,
+      group: %Group{id: group_id} = group
+    } do
+      params = valid_post_params()
+      {:ok, %{post: post}} = Posts.post_to_group(space_user, group, params)
+
+      post =
+        post
+        |> Repo.preload(:groups)
+
+      assert [%Group{id: ^group_id} | _] = post.groups
     end
 
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
