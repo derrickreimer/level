@@ -7,6 +7,7 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
+import Avatar exposing (texitar)
 import Data.Group exposing (Group)
 import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
@@ -444,7 +445,7 @@ leftSidebar : SharedState -> Model -> Html Msg
 leftSidebar sharedState model =
     div [ class "fixed bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
         [ div [ class "ml-2" ]
-            [ spaceAvatar sharedState.space
+            [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
             , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
             ]
         , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
@@ -453,7 +454,7 @@ leftSidebar sharedState model =
             , sidebarLink "Drafts" Nothing model.page
             ]
         , groupLinks sharedState.bookmarkedGroups model.page
-        , div [ class "absolute pin-b mb-2 flex" ]
+        , div [ class "absolute pin-b mb-4 flex" ]
             [ div [] [ userAvatar sharedState.user ]
             , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                 [ div [] [ text "Signed in as" ]
@@ -517,7 +518,7 @@ spaceAvatar space =
     space.name
         |> String.left 1
         |> String.toUpper
-        |> texitar
+        |> texitar Avatar.Small
 
 
 userAvatar : User -> Html Msg
@@ -525,12 +526,7 @@ userAvatar user =
     user.firstName
         |> String.left 1
         |> String.toUpper
-        |> texitar
-
-
-texitar : String -> Html Msg
-texitar initials =
-    div [ class "texitar mb-2" ] [ text initials ]
+        |> texitar Avatar.Small
 
 
 pageContent : Page -> Html Msg

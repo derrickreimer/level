@@ -3,7 +3,8 @@ module Util exposing (..)
 import Date exposing (Date)
 import Date.Format
 import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
-import Html exposing (Attribute)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (defaultOptions, onWithOptions)
 import Http
 

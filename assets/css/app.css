@@ -105,6 +105,9 @@ body {
   @apply .flex .items-center .justify-center;
   @apply .font-bold .text-white .select-none;
 }
+.texitar-md {
+  @apply .w-12 .h-12 .text-lg;
+}
 
 .control {
   @apply .flex .items-center;

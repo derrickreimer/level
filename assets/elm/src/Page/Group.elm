@@ -6,6 +6,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
+import Avatar exposing (texitar)
 import Data.Group exposing (Group, groupDecoder)
 import GraphQL
 import Session exposing (Session)
@@ -76,5 +77,7 @@ view model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto pt-4 max-w-90 leading-normal text-dusty-blue-darker" ]
             [ h2 [ class "mb-6 font-extrabold text-2xl" ] [ text model.group.name ]
+            , div [ class "p-4 bg-grey-light w-full rounded" ]
+                [ texitar Avatar.Medium "D" ]
             ]
         ]
