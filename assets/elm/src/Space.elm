@@ -7,10 +7,10 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
+import Avatar exposing (userAvatar, texitar)
 import Data.Group exposing (Group)
 import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
-import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Event
 import Page.Group
 import Page.Inbox
@@ -23,7 +23,7 @@ import Subscription.GroupUnbookmarked as GroupUnbookmarked
 import Route exposing (Route)
 import Session exposing (Session)
 import Socket
-import Util exposing (Lazy(..), insertUniqueById, removeById)
+import Util exposing (Lazy(..), insertUniqueById, removeById, displayName)
 
 
 main : Program Flags Model Msg
@@ -208,6 +208,15 @@ update msg model =
                     , Cmd.map SetupInviteUsersMsg cmd
                     )
 
+            ( GroupMsg msg, Group pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), session ) =
+                        Page.Group.update msg model.session pageModel
+                in
+                    ( { model | session = session, page = Group newPageModel }
+                    , Cmd.map GroupMsg cmd
+                    )
+
             ( Push payload, _ ) ->
                 ( model, Ports.push payload )
 
@@ -292,7 +301,8 @@ handlePageInit pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Cmd.none
+            , Page.Group.initialized
+                |> Cmd.map GroupMsg
             )
 
         GroupInit _ (Err Session.Expired) ->
@@ -377,7 +387,7 @@ navigateTo maybeRoute model =
 
                     Just (Route.Group id) ->
                         model.session
-                            |> Page.Group.init sharedState.space.id id
+                            |> Page.Group.init sharedState.space sharedState.user id
                             |> transition model (GroupInit id)
 
 
@@ -444,7 +454,7 @@ leftSidebar : SharedState -> Model -> Html Msg
 leftSidebar sharedState model =
     div [ class "fixed bg-grey-light border-r w-48 h-full min-h-screen p-4" ]
         [ div [ class "ml-2" ]
-            [ spaceAvatar sharedState.space
+            [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
             , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
             ]
         , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
@@ -453,8 +463,8 @@ leftSidebar sharedState model =
             , sidebarLink "Drafts" Nothing model.page
             ]
         , groupLinks sharedState.bookmarkedGroups model.page
-        , div [ class "absolute pin-b mb-2 flex" ]
-            [ div [] [ userAvatar sharedState.user ]
+        , div [ class "absolute pin-b mb-4 flex" ]
+            [ div [] [ userAvatar Avatar.Small sharedState.user ]
             , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                 [ div [] [ text "Signed in as" ]
                 , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
@@ -517,20 +527,7 @@ spaceAvatar space =
     space.name
         |> String.left 1
         |> String.toUpper
-        |> texitar
-
-
-userAvatar : User -> Html Msg
-userAvatar user =
-    user.firstName
-        |> String.left 1
-        |> String.toUpper
-        |> texitar
-
-
-texitar : String -> Html Msg
-texitar initials =
-    div [ class "texitar mb-2" ] [ text initials ]
+        |> texitar Avatar.Small
 
 
 pageContent : Page -> Html Msg

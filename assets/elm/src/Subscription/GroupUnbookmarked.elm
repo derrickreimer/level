@@ -28,7 +28,7 @@ query =
       subscription GroupUnbookmarked(
         $id: ID!
       ) {
-        groupUnbookmarked(spaceMembershipId: $id) {
+        groupUnbookmarked(spaceUserId: $id) {
           group {
             id
             name

@@ -38,7 +38,7 @@ defmodule Level.Connections.Groups do
       {:ok, %{space_user: space_user}} ->
         base_query =
           space_user
-          |> Groups.list_groups_query()
+          |> Groups.groups_base_query()
           |> where(state: ^args.state)
 
         Pagination.fetch_result(Repo, base_query, Args.build(args))

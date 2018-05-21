@@ -39,7 +39,7 @@ query =
           firstName
           lastName
         }
-        spaceMembership(spaceId: $spaceId) {
+        spaceUser(spaceId: $spaceId) {
           id
           role
           space {
@@ -69,13 +69,13 @@ decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data" ] <|
         (Pipeline.decode Response
-            |> Pipeline.custom (Decode.at [ "spaceMembership", "id" ] Decode.string)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "id" ] Decode.string)
             |> Pipeline.custom (Decode.at [ "viewer" ] userDecoder)
-            |> Pipeline.custom (Decode.at [ "spaceMembership", "space" ] spaceDecoder)
-            |> Pipeline.custom (Decode.at [ "spaceMembership", "space", "setupState" ] setupStateDecoder)
-            |> Pipeline.custom (Decode.at [ "spaceMembership", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
-            |> Pipeline.custom (Decode.at [ "spaceMembership", "role" ] spaceRoleDecoder)
-            |> Pipeline.custom (Decode.at [ "spaceMembership", "bookmarkedGroups" ] (Decode.list groupDecoder))
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] spaceDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "setupState" ] setupStateDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
+            |> Pipeline.custom (Decode.at [ "spaceUser", "role" ] spaceRoleDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarkedGroups" ] (Decode.list groupDecoder))
         )
 
 

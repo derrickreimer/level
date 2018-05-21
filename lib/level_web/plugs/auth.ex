@@ -46,10 +46,9 @@ defmodule LevelWeb.Auth do
   - If token is expired, halts and returns a 401 response.
   - If token is for a user not belonging to the space in scope, halts and
     returns a 401 response.
-  - If token is valid, sets the `current_user` on the connection assigns and the
-    absinthe context.
+  - If token is valid, sets the `current_user` on the connection assigns.
   """
-  def authenticate_with_token(conn, _opts \\ []) do
+  def fetch_current_user_by_token(conn, _opts \\ []) do
     case conn.assigns[:current_user] do
       %User{} = user ->
         # This is a backdoor that makes auth testing easier
@@ -63,7 +62,7 @@ defmodule LevelWeb.Auth do
   @doc """
   A plug for ensuring that a user is currently logged in.
   """
-  def authenticate_user(conn, _opts \\ []) do
+  def redirect_unless_signed_in(conn, _opts \\ []) do
     if conn.assigns[:current_user] do
       conn
     else
@@ -213,7 +212,6 @@ defmodule LevelWeb.Auth do
   defp put_current_user(conn, user) do
     conn
     |> assign(:current_user, user)
-    |> put_private(:absinthe, %{context: %{current_user: user}})
   end
 
   defp delete_current_user(conn) do

@@ -14,6 +14,8 @@ defmodule Level.Spaces do
   alias Level.Repo
   alias Level.Users.User
 
+  @behaviour Level.DataloaderSource
+
   @typedoc "The result of creating a space"
   @type create_space_result ::
           {:ok,
@@ -29,12 +31,22 @@ defmodule Level.Spaces do
   @type space_setup_states :: :create_groups | :invite_users | :complete
 
   @doc """
+  Builds a query for listing spaces accessible by a given user.
+  """
+  @spec spaces_base_query(User.t()) :: Ecto.Query.t()
+  def spaces_base_query(user) do
+    from s in Space,
+      join: su in assoc(s, :space_users),
+      where: su.user_id == ^user.id
+  end
+
+  @doc """
   Fetches a space by id.
   """
   @spec get_space(User.t(), String.t()) :: get_space_result()
   def get_space(user, id) do
     with %Space{} = space <- Repo.get(Space, id),
-         %SpaceUser{} = space_user <- Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+         {:ok, space_user} <- get_space_user(user, space) do
       {:ok, %{space: space, space_user: space_user}}
     else
       _ ->
@@ -69,27 +81,41 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Fetches the space user.
+  Builds a query for listing space users accessible by a given user.
+  """
+  @spec space_users_base_query(User.t()) :: Ecto.Query.t()
+  def space_users_base_query(user) do
+    from su in SpaceUser,
+      distinct: su.id,
+      join: s in assoc(su, :space),
+      join: u in assoc(su, :user),
+      join: usu in SpaceUser,
+      on: usu.space_id == su.space_id and usu.user_id == ^user.id,
+      select: %{su | space_name: s.name, first_name: u.first_name, last_name: u.last_name}
+  end
+
+  @doc """
+  Fetches a space user.
   """
   @spec get_space_user(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
   @spec get_space_user(User.t(), String.t()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
   def get_space_user(%User{} = user, %Space{} = space) do
-    case Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+    case Repo.get_by(space_users_base_query(user), user_id: user.id, space_id: space.id) do
       %SpaceUser{} = space_user ->
         {:ok, space_user}
 
       _ ->
-        {:error, dgettext("errors", "User is not a member")}
+        {:error, dgettext("errors", "Space user not found")}
     end
   end
 
   def get_space_user(%User{} = user, space_user_id) do
-    case Repo.get_by(SpaceUser, id: space_user_id, user_id: user.id) do
+    case Repo.get_by(space_users_base_query(user), id: space_user_id) do
       %SpaceUser{} = space_user ->
         {:ok, space_user}
 
       _ ->
-        {:error, dgettext("errors", "Membership not found")}
+        {:error, dgettext("errors", "Space user not found")}
     end
   end
 
@@ -231,4 +257,16 @@ defmodule Level.Spaces do
         error
     end
   end
+
+  @impl true
+  def dataloader_data(%{current_user: _user} = params) do
+    Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
+  end
+
+  def dataloader_data(_), do: raise("authentication required")
+
+  @impl true
+  def dataloader_query(Space, %{current_user: user}), do: spaces_base_query(user)
+  def dataloader_query(SpaceUser, %{current_user: user}), do: space_users_base_query(user)
+  def dataloader_query(_, _), do: raise("query not valid for this context")
 end

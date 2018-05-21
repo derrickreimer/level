@@ -1,16 +1,18 @@
-defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
+defmodule LevelWeb.GraphQL.SpaceUsersTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   @single_query """
-    query GetMembership(
+    query GetSpaceUser(
       $space_id: ID!
     ) {
-      spaceMembership(spaceId: $space_id) {
+      spaceUser(spaceId: $space_id) {
         role
         space {
           name
         }
+        firstName
+        lastName
       }
     }
   """
@@ -18,12 +20,14 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
   @list_query """
     {
       viewer {
-        spaceMemberships(first: 10) {
+        spaceUsers(first: 10) {
           edges {
             node {
               space {
                 name
               }
+              firstName
+              lastName
             }
           }
         }
@@ -47,11 +51,13 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "spaceMembership" => %{
+               "spaceUser" => %{
                  "role" => "OWNER",
                  "space" => %{
                    "name" => "Level"
-                 }
+                 },
+                 "firstName" => user.first_name,
+                 "lastName" => user.last_name
                }
              }
            }
@@ -68,13 +74,15 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "viewer" => %{
-                 "spaceMemberships" => %{
+                 "spaceUsers" => %{
                    "edges" => [
                      %{
                        "node" => %{
                          "space" => %{
                            "name" => "Level"
-                         }
+                         },
+                         "firstName" => user.first_name,
+                         "lastName" => user.last_name
                        }
                      }
                    ]

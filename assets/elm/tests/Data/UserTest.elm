@@ -52,21 +52,3 @@ decoders =
                         Expect.equal False (success result)
             ]
         ]
-
-
-{-| Tests for utility functions.
--}
-utils : Test
-utils =
-    describe "User.displayName"
-        [ fuzz2 string string "joins the first and last name" <|
-            \firstName lastName ->
-                let
-                    user =
-                        { id = "999"
-                        , firstName = firstName
-                        , lastName = lastName
-                        }
-                in
-                    Expect.equal (firstName ++ " " ++ lastName) (User.displayName user)
-        ]

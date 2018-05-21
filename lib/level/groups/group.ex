@@ -6,7 +6,10 @@ defmodule Level.Groups.Group do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Level.Posts.Post
+  alias Level.Posts.PostGroup
   alias Level.Groups.Group
+  alias Level.Groups.GroupUser
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -22,6 +25,9 @@ defmodule Level.Groups.Group do
 
     belongs_to :space, Space
     belongs_to :creator, SpaceUser
+    has_many :group_users, GroupUser
+
+    many_to_many :posts, Post, join_through: PostGroup
 
     timestamps()
   end

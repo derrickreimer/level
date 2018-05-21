@@ -6,6 +6,69 @@ defmodule Level.SpacesTest do
   alias Level.Repo
   alias Level.Spaces
   alias Level.Spaces.OpenInvitation
+  alias Level.Spaces.Space
+  alias Level.Spaces.SpaceUser
+
+  describe "spaces_base_query/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "includes spaces the user owns", %{
+      user: user,
+      space: %Space{id: space_id}
+    } do
+      query = Spaces.spaces_base_query(user)
+      assert Enum.any?(Repo.all(query), fn s -> s.id == space_id end)
+    end
+
+    test "includes space the user belongs to", %{
+      space: %Space{id: space_id} = space
+    } do
+      {:ok, %{user: member_user}} = create_space_member(space)
+      query = Spaces.spaces_base_query(member_user)
+      assert Enum.any?(Repo.all(query), fn s -> s.id == space_id end)
+    end
+
+    test "excludes spaces the user does not belong to", %{
+      user: user
+    } do
+      {:ok, %{space: %Space{id: space_id}}} = create_user_and_space()
+      query = Spaces.spaces_base_query(user)
+      refute Enum.any?(Repo.all(query), fn s -> s.id == space_id end)
+    end
+  end
+
+  describe "space_users_base_query/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "includes the user's own space user", %{
+      user: user,
+      space_user: %SpaceUser{id: space_user_id}
+    } do
+      query = Spaces.space_users_base_query(user)
+      assert Enum.any?(Repo.all(query), fn su -> su.id == space_user_id end)
+    end
+
+    test "includes space users in spaces of which the user is a member", %{
+      user: user,
+      space: space
+    } do
+      {:ok, %{space_user: %SpaceUser{id: space_user_id}}} = create_space_member(space)
+      query = Spaces.space_users_base_query(user)
+      assert Enum.any?(Repo.all(query), fn su -> su.id == space_user_id end)
+    end
+
+    test "excludes space users in spaces of which the user is not a member", %{
+      user: user
+    } do
+      {:ok, %{space_user: %SpaceUser{id: space_user_id}}} = create_user_and_space()
+      query = Spaces.space_users_base_query(user)
+      refute Enum.any?(Repo.all(query), fn su -> su.id == space_user_id end)
+    end
+  end
 
   describe "create_space/2" do
     setup do

@@ -19,6 +19,10 @@ defmodule LevelWeb.Schema.Enums do
     value :owner, as: "OWNER"
   end
 
+  enum :space_user_order_field do
+    value :space_name
+  end
+
   enum :space_state do
     value :active, as: "ACTIVE"
     value :disabled, as: "DISABLED"
@@ -36,19 +40,19 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   enum :user_order_field do
-    value(:last_name)
+    value :last_name
   end
 
   enum :space_order_field do
-    value(:name)
+    value :name
   end
 
   enum :invitation_order_field do
-    value(:email)
+    value :email
   end
 
   enum :group_order_field do
-    value(:name)
+    value :name
   end
 
   enum :order_direction do

@@ -17,7 +17,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       query Groups(
         $space_id: ID!
       ) {
-        spaceMembership(spaceId: $space_id) {
+        spaceUser(spaceId: $space_id) {
           space {
             groups(first: 2) {
               edges {
@@ -41,7 +41,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "spaceMembership" => %{
+               "spaceUser" => %{
                  "space" => %{
                    "groups" => %{
                      "edges" => [
@@ -68,7 +68,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       query Groups(
         $space_id: ID!
       ) {
-        spaceMembership(spaceId: $space_id) {
+        spaceUser(spaceId: $space_id) {
           space {
             groups(first: 2, state: CLOSED) {
               edges {
@@ -92,7 +92,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "spaceMembership" => %{
+               "spaceUser" => %{
                  "space" => %{
                    "groups" => %{
                      "edges" => [

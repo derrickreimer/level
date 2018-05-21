@@ -20,8 +20,12 @@ defmodule Level.Spaces.SpaceUser do
     belongs_to :space, Space
     belongs_to :user, User
 
-    # Holds the group name when loaded via a join
-    field :name, :string, virtual: true
+    # Fields from the joined space record
+    field :space_name, :string, virtual: true
+
+    # Fields from the joined user record
+    field :first_name, :string, virtual: true
+    field :last_name, :string, virtual: true
 
     timestamps()
   end

@@ -4,16 +4,8 @@ defmodule LevelWeb.Schema do
   use Absinthe.Schema
   import_types LevelWeb.Schema.Types
 
-  alias Level.Repo
   alias Level.Spaces
-
-  def context(ctx) do
-    loader =
-      Dataloader.new()
-      |> Dataloader.add_source(:db, Dataloader.Ecto.new(Repo))
-
-    Map.put(ctx, :loader, loader)
-  end
+  import Level.Gettext
 
   def plugins do
     [Absinthe.Middleware.Dataloader] ++ Absinthe.Plugin.defaults()
@@ -28,9 +20,9 @@ defmodule LevelWeb.Schema do
     end
 
     @desc "Fetches a space membership by space id."
-    field :space_membership, :space_membership do
+    field :space_user, :space_user do
       arg :space_id, non_null(:id)
-      resolve &Level.Connections.space_membership/3
+      resolve &Level.Connections.space_user/3
     end
 
     @desc "Fetches a space."
@@ -103,33 +95,41 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.unbookmark_group/2
     end
 
-    @desc "Create a post."
-    field :create_post, type: :create_post_payload do
+    @desc "Posts a message to a group."
+    field :post_to_group, type: :post_to_group_payload do
       arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
       arg :body, non_null(:string)
 
-      resolve &Level.Mutations.create_post/2
+      resolve &Level.Mutations.post_to_group/2
     end
   end
 
   subscription do
     @desc "Triggered when a group is bookmarked."
     field :group_bookmarked, :group_bookmarked_payload do
-      arg :space_membership_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
       config &space_user_topic/2
     end
 
     @desc "Triggered when a group is unbookmarked."
     field :group_unbookmarked, :group_unbookmarked_payload do
-      arg :space_membership_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
       config &space_user_topic/2
     end
   end
 
-  def space_user_topic(%{space_membership_id: id}, %{context: %{current_user: user}}) do
+  def space_user_topic(%{space_user_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space_user(user, id) do
-      {:ok, _space_user} -> {:ok, topic: id}
-      err -> err
+      {:ok, space_user} ->
+        if space_user.user_id == user.id do
+          {:ok, topic: id}
+        else
+          {:error, dgettext("errors", "Subscription not authorized")}
+        end
+
+      err ->
+        err
     end
   end
 end

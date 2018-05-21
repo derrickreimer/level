@@ -7,7 +7,7 @@ defmodule LevelWeb.GraphQL.GroupUnbookmarkedTest do
     subscription GroupUnbookmarked(
       $id: ID!
     ) {
-      groupUnbookmarked(spaceMembershipId: $id) {
+      groupUnbookmarked(spaceUserId: $id) {
         group {
           id
         }
@@ -56,7 +56,7 @@ defmodule LevelWeb.GraphQL.GroupUnbookmarkedTest do
         errors: [
           %{
             locations: [%{column: 0, line: 4}],
-            message: "Membership not found"
+            message: "Subscription not authorized"
           }
         ]
       },

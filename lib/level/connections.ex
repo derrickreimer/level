@@ -6,10 +6,12 @@ defmodule Level.Connections do
 
   alias Level.Connections.GroupMemberships
   alias Level.Connections.Groups
-  alias Level.Connections.SpaceMemberships
+  alias Level.Connections.SpaceUsers
+  alias Level.Groups.Group
   alias Level.Pagination
   alias Level.Spaces
   alias Level.Spaces.Space
+  alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
   @typedoc "A context map containing the current user"
@@ -37,11 +39,11 @@ defmodule Level.Connections do
   @doc """
   Fetches a space membership by space id.
   """
-  @spec space_membership(User.t(), map(), authenticated_context()) ::
+  @spec space_user(User.t(), map(), authenticated_context()) ::
           {:ok, SpaceUser.t()} | {:error, String.t()}
-  def space_membership(parent, args, info)
+  def space_user(parent, args, info)
 
-  def space_membership(_parent, %{space_id: id}, %{context: %{current_user: user}}) do
+  def space_user(_parent, %{space_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space(user, id) do
       {:ok, %{space_user: space_user}} ->
         {:ok, space_user}
@@ -54,10 +56,9 @@ defmodule Level.Connections do
   @doc """
   Fetches spaces that a user belongs to.
   """
-  @spec space_memberships(User.t(), SpaceMemberships.t(), authenticated_context()) ::
-          paginated_result()
-  def space_memberships(user, args, info) do
-    SpaceMemberships.get(user, struct(SpaceMemberships, args), info)
+  @spec space_users(User.t(), SpaceUsers.t(), authenticated_context()) :: paginated_result()
+  def space_users(user, args, info) do
+    SpaceUsers.get(user, struct(SpaceUsers, args), info)
   end
 
   @doc """

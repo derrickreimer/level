@@ -54,9 +54,9 @@ defmodule LevelWeb.AuthTest do
     end
   end
 
-  describe "authenticate_with_token/2" do
+  describe "fetch_current_user_by_token/2" do
     test "sets the current user to nil if there is no token", %{conn: conn} do
-      conn = Auth.authenticate_with_token(conn)
+      conn = Auth.fetch_current_user_by_token(conn)
       assert conn.assigns.current_user == nil
       assert conn.status == 400
       assert conn.halted
@@ -70,7 +70,7 @@ defmodule LevelWeb.AuthTest do
       conn =
         conn
         |> put_req_header("authorization", "Bearer #{token}")
-        |> Auth.authenticate_with_token()
+        |> Auth.fetch_current_user_by_token()
 
       assert conn.assigns.current_user == nil
       assert conn.status == 401
@@ -86,10 +86,9 @@ defmodule LevelWeb.AuthTest do
       conn =
         conn
         |> put_req_header("authorization", "Bearer #{token}")
-        |> Auth.authenticate_with_token()
+        |> Auth.fetch_current_user_by_token()
 
       assert conn.assigns.current_user.id == user.id
-      assert conn.private.absinthe[:context][:current_user].id == user.id
       refute conn.halted
     end
   end

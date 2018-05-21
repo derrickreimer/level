@@ -33,11 +33,10 @@ defmodule Level.Mutations do
           errors: validation_errors
         }
 
-  @typedoc "The payload for updating group bookmark state."
-  @type bookmark_group_payload :: %{
-          bookmarked: boolean(),
-          group: Groups.Group.t()
-        }
+  @typedoc "The payload for updating group bookmark state"
+  @type bookmark_group_payload ::
+          {:ok, %{is_bookmarked: boolean(), group: Groups.Group.t()}}
+          | {:error, String.t()}
 
   @typedoc "The result of a bulk create group mutation"
   @type bulk_create_groups_result ::
@@ -163,7 +162,7 @@ defmodule Level.Mutations do
   @doc """
   Unbookmarks a group.
   """
-  @spec bookmark_group(map(), authenticated_context()) :: bookmark_group_payload()
+  @spec unbookmark_group(map(), authenticated_context()) :: bookmark_group_payload()
   def unbookmark_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
@@ -176,15 +175,16 @@ defmodule Level.Mutations do
   end
 
   @doc """
-  Creates a post.
+  Posts a message to a group.
   """
-  @spec create_post(map(), authenticated_context()) :: post_mutation_result()
-  def create_post(args, %{context: %{current_user: user}}) do
+  @spec post_to_group(map(), authenticated_context()) :: post_mutation_result()
+  def post_to_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
-         {:ok, post} <- Posts.create_post(space_user, args) do
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, %{post: post}} <- Posts.post_to_group(space_user, group, args) do
       {:ok, %{success: true, post: post, errors: []}}
     else
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, :post, changeset, _} ->
         {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
 
       err ->

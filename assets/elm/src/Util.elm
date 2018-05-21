@@ -3,7 +3,8 @@ module Util exposing (..)
 import Date exposing (Date)
 import Date.Format
 import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
-import Html exposing (Attribute)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (defaultOptions, onWithOptions)
 import Http
 
@@ -15,6 +16,10 @@ type Lazy a
 
 type alias Identifiable a =
     { a | id : String }
+
+
+type alias Nameable a =
+    { a | firstName : String, lastName : String }
 
 
 
@@ -208,3 +213,17 @@ postWithCsrfToken token url body decoder =
         , timeout = Nothing
         , withCredentials = False
         }
+
+
+
+-- MISC
+
+
+{-| Generate the display name for a given user.
+
+    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
+
+-}
+displayName : Nameable a -> String
+displayName nameable =
+    nameable.firstName ++ " " ++ nameable.lastName
