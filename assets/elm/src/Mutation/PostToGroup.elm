@@ -38,7 +38,9 @@ query =
           post {
             id
             body
-            spaceUser {
+            postedAt
+            postedAtTs
+            author {
               id
               firstName
               lastName

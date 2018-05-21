@@ -78,13 +78,13 @@ body {
 }
 
 .composer {
-  @apply .block .p-4 .bg-grey-light .w-full .rounded-lg .border .border-transparent;
+  @apply .block .relative .p-4 .bg-grey-light .w-full .rounded-lg;
 }
 
 .composer:focus,
 .composer:active,
 .composer:focus-within {
-  @apply .border-turquoise;
+  /* @apply border-turquoise; */
 }
 
 .btn {

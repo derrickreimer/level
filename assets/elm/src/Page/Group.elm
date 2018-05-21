@@ -158,13 +158,13 @@ newPostView body user group =
                 [ textarea
                     [ id "post-composer"
                     , class "p-2 w-full no-outline bg-transparent text-dusty-blue-darker resize-none"
-                    , placeholder "Type something..."
+                    , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
                     , value body
                     ]
                     []
                 , div [ class "flex justify-end" ]
-                    [ button [ class "btn btn-blue btn-sm", onClick NewPostSubmit ] [ text ("Post to " ++ group.name) ] ]
+                    [ button [ class "btn btn-blue btn-sm", onClick NewPostSubmit ] [ text "Post message" ] ]
                 ]
             ]
         ]

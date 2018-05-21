@@ -138,5 +138,17 @@ defmodule LevelWeb.Schema.Types do
     field :space, non_null(:space), resolve: dataloader(Spaces)
     field :author, non_null(:space_user), resolve: dataloader(Spaces)
     field :groups, list_of(:group), resolve: dataloader(Groups)
+
+    field :posted_at, non_null(:time) do
+      resolve fn post, _, _ ->
+        {:ok, post.inserted_at}
+      end
+    end
+
+    field :posted_at_ts, non_null(:timestamp) do
+      resolve fn post, _, _ ->
+        {:ok, post.inserted_at}
+      end
+    end
   end
 end
