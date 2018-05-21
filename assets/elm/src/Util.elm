@@ -18,6 +18,10 @@ type alias Identifiable a =
     { a | id : String }
 
 
+type alias Nameable a =
+    { a | firstName : String, lastName : String }
+
+
 
 -- LIST HELPERS
 
@@ -209,3 +213,17 @@ postWithCsrfToken token url body decoder =
         , timeout = Nothing
         , withCredentials = False
         }
+
+
+
+-- MISC
+
+
+{-| Generate the display name for a given user.
+
+    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
+
+-}
+displayName : Nameable a -> String
+displayName nameable =
+    nameable.firstName ++ " " ++ nameable.lastName

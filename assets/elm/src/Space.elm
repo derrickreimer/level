@@ -11,7 +11,6 @@ import Avatar exposing (userAvatar, texitar)
 import Data.Group exposing (Group)
 import Data.Space exposing (Space, SpaceUserRole)
 import Data.Setup as Setup
-import Data.User exposing (UserConnection, User, UserEdge, displayName)
 import Event
 import Page.Group
 import Page.Inbox
@@ -24,7 +23,7 @@ import Subscription.GroupUnbookmarked as GroupUnbookmarked
 import Route exposing (Route)
 import Session exposing (Session)
 import Socket
-import Util exposing (Lazy(..), insertUniqueById, removeById)
+import Util exposing (Lazy(..), insertUniqueById, removeById, displayName)
 
 
 main : Program Flags Model Msg

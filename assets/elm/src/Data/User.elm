@@ -5,7 +5,6 @@ module Data.User
         , UserEdge
         , userDecoder
         , userConnectionDecoder
-        , displayName
         )
 
 import Json.Decode as Decode
@@ -57,17 +56,3 @@ userDecoder =
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "firstName" Decode.string
         |> Pipeline.required "lastName" Decode.string
-
-
-
--- UTILS
-
-
-{-| Generate the display name for a given user.
-
-    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
-
--}
-displayName : User -> String
-displayName user =
-    user.firstName ++ " " ++ user.lastName

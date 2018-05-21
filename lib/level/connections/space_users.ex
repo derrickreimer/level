@@ -9,15 +9,14 @@ defmodule Level.Connections.SpaceUsers do
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Repo
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Spaces
 
   defstruct first: nil,
             last: nil,
             before: nil,
             after: nil,
             order_by: %{
-              field: :name,
+              field: :space_name,
               direction: :asc
             }
 
@@ -26,7 +25,7 @@ defmodule Level.Connections.SpaceUsers do
           last: integer() | nil,
           before: String.t() | nil,
           after: String.t() | nil,
-          order_by: %{field: :name, direction: :asc | :desc}
+          order_by: %{field: :space_name, direction: :asc | :desc}
         }
 
   @doc """
@@ -34,13 +33,7 @@ defmodule Level.Connections.SpaceUsers do
   """
   def get(user, args, %{context: %{current_user: authenticated_user}} = _info) do
     if authenticated_user == user do
-      base_query =
-        from su in SpaceUser,
-          where: su.user_id == ^user.id,
-          join: s in Space,
-          on: s.id == su.space_id,
-          select: %{su | name: s.name}
-
+      base_query = Spaces.list_space_users_query(user)
       wrapped_query = from(su in subquery(base_query))
       Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
     else

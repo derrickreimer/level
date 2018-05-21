@@ -14,6 +14,8 @@ defmodule Level.Spaces do
   alias Level.Repo
   alias Level.Users.User
 
+  @behaviour Level.DataloaderSource
+
   @typedoc "The result of creating a space"
   @type create_space_result ::
           {:ok,
@@ -34,7 +36,7 @@ defmodule Level.Spaces do
   @spec get_space(User.t(), String.t()) :: get_space_result()
   def get_space(user, id) do
     with %Space{} = space <- Repo.get(Space, id),
-         %SpaceUser{} = space_user <- Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+         {:ok, space_user} <- get_space_user(user, space) do
       {:ok, %{space: space, space_user: space_user}}
     else
       _ ->
@@ -69,12 +71,26 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Fetches the space user.
+  Builds a query for list space users linked to given user.
+  """
+  @spec list_space_users_query(User.t()) :: Ecto.Query.t()
+  def list_space_users_query(user) do
+    from su in SpaceUser,
+      where: su.user_id == ^user.id,
+      join: s in Space,
+      on: s.id == su.space_id,
+      join: u in User,
+      on: u.id == su.user_id,
+      select: %{su | space_name: s.name, first_name: u.first_name, last_name: u.last_name}
+  end
+
+  @doc """
+  Fetches a space user.
   """
   @spec get_space_user(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
   @spec get_space_user(User.t(), String.t()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
   def get_space_user(%User{} = user, %Space{} = space) do
-    case Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+    case Repo.get_by(list_space_users_query(user), space_id: space.id) do
       %SpaceUser{} = space_user ->
         {:ok, space_user}
 
@@ -84,7 +100,7 @@ defmodule Level.Spaces do
   end
 
   def get_space_user(%User{} = user, space_user_id) do
-    case Repo.get_by(SpaceUser, id: space_user_id, user_id: user.id) do
+    case Repo.get_by(list_space_users_query(user), id: space_user_id) do
       %SpaceUser{} = space_user ->
         {:ok, space_user}
 
@@ -231,4 +247,19 @@ defmodule Level.Spaces do
         error
     end
   end
+
+  @doc false
+  def dataloader_data(%{current_user: _user} = params) do
+    Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
+  end
+
+  def dataloader_data(_), do: raise(ArgumentError, message: "authentication required")
+
+  @doc false
+  def dataloader_query(SpaceUser, %{current_user: user}) do
+    list_space_users_query(user)
+  end
+
+  def dataloader_query(_, _),
+    do: raise(ArgumentError, message: "query not valid for this context")
 end

@@ -32,7 +32,7 @@ defmodule LevelWeb.Schema.Types do
       arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
-      arg :order_by, :space_order
+      arg :order_by, :space_user_order
       resolve &Level.Connections.space_users/3
     end
 
@@ -53,6 +53,8 @@ defmodule LevelWeb.Schema.Types do
     field :state, non_null(:space_user_state)
     field :role, non_null(:space_user_role)
     field :space, non_null(:space), resolve: dataloader(:db)
+    field :first_name, non_null(:string)
+    field :last_name, non_null(:string)
 
     @desc "A list of groups the user has bookmarked."
     field :bookmarked_groups, list_of(:group) do
@@ -134,8 +136,7 @@ defmodule LevelWeb.Schema.Types do
     field :state, non_null(:post_state)
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(:db)
-    field :space_user, non_null(:space_user), resolve: dataloader(:db)
-
+    field :author, non_null(:space_user), resolve: dataloader(Spaces)
     field :groups, list_of(:group), resolve: dataloader(Groups)
   end
 end

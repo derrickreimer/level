@@ -5,6 +5,7 @@ defmodule LevelWeb.Absinthe do
 
   alias Level.Groups
   alias Level.Repo
+  alias Level.Spaces
 
   @doc """
   Sets absinthe context on the given connection.
@@ -27,5 +28,6 @@ defmodule LevelWeb.Absinthe do
     Dataloader.new()
     |> Dataloader.add_source(:db, Dataloader.Ecto.new(Repo))
     |> Dataloader.add_source(Groups, Groups.dataloader_data(params))
+    |> Dataloader.add_source(Spaces, Spaces.dataloader_data(params))
   end
 end

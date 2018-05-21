@@ -4,7 +4,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
 import Data.Group exposing (Group, groupDecoder)
-import Data.User exposing (User, userDecoder)
+import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 
 
 -- TYPES
@@ -13,7 +13,7 @@ import Data.User exposing (User, userDecoder)
 type alias Post =
     { id : String
     , body : String
-    , user : User
+    , author : SpaceUser
     , groups : List Group
     }
 
@@ -27,5 +27,5 @@ postDecoder =
     Pipeline.decode Post
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "body" Decode.string
-        |> Pipeline.required "user" userDecoder
+        |> Pipeline.required "author" spaceUserDecoder
         |> Pipeline.required "groups" (Decode.list groupDecoder)

@@ -40,6 +40,9 @@ query =
             body
             spaceUser {
               id
+              firstName
+              lastName
+              role
             }
             groups {
               id

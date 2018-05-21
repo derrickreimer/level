@@ -19,6 +19,9 @@ defmodule LevelWeb.GraphQL.PostToGroupTest do
           groups {
             id
           }
+          author {
+            firstName
+          }
         }
         errors {
           attribute
@@ -34,7 +37,12 @@ defmodule LevelWeb.GraphQL.PostToGroupTest do
     {:ok, Map.put(result, :conn, conn)}
   end
 
-  test "creates a post given valid data", %{conn: conn, space: space, space_user: space_user} do
+  test "creates a post given valid data", %{
+    conn: conn,
+    user: user,
+    space: space,
+    space_user: space_user
+  } do
     {:ok, %{group: group}} = create_group(space_user)
 
     variables =
@@ -58,7 +66,10 @@ defmodule LevelWeb.GraphQL.PostToGroupTest do
                      %{
                        "id" => group.id
                      }
-                   ]
+                   ],
+                   "author" => %{
+                     "firstName" => user.first_name
+                   }
                  },
                  "errors" => []
                }

@@ -21,6 +21,15 @@ defmodule LevelWeb.Schema.InputObjects do
     field :direction, non_null(:order_direction)
   end
 
+  @desc "The field and direction to sort space users."
+  input_object :space_user_order do
+    @desc "The field by which to sort."
+    field :field, non_null(:space_user_order_field)
+
+    @desc "The sort direction."
+    field :direction, non_null(:order_direction)
+  end
+
   @desc "The field and direction to sort groups."
   input_object :group_order do
     @desc "The field by which to sort."

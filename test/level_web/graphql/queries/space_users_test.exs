@@ -1,9 +1,9 @@
-defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
+defmodule LevelWeb.GraphQL.SpaceUsersTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   @single_query """
-    query GetMembership(
+    query GetSpaceUser(
       $space_id: ID!
     ) {
       spaceUser(spaceId: $space_id) {
@@ -11,6 +11,8 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
         space {
           name
         }
+        firstName
+        lastName
       }
     }
   """
@@ -24,6 +26,8 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
               space {
                 name
               }
+              firstName
+              lastName
             }
           }
         }
@@ -51,7 +55,9 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
                  "role" => "OWNER",
                  "space" => %{
                    "name" => "Level"
-                 }
+                 },
+                 "firstName" => user.first_name,
+                 "lastName" => user.last_name
                }
              }
            }
@@ -74,7 +80,9 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
                        "node" => %{
                          "space" => %{
                            "name" => "Level"
-                         }
+                         },
+                         "firstName" => user.first_name,
+                         "lastName" => user.last_name
                        }
                      }
                    ]

@@ -21,7 +21,7 @@ defmodule Level.Posts.Post do
     field :body, :string
 
     belongs_to :space, Space
-    belongs_to :space_user, SpaceUser
+    belongs_to :author, SpaceUser, foreign_key: :space_user_id
     many_to_many :groups, Group, join_through: PostGroup
 
     timestamps()
