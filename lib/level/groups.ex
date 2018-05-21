@@ -21,10 +21,10 @@ defmodule Level.Groups do
   @doc """
   Generate the query for listing all accessible groups.
   """
-  @spec list_groups_query(SpaceUser.t()) :: Ecto.Query.t()
-  @spec list_groups_query(User.t()) :: Ecto.Query.t()
+  @spec groups_base_query(SpaceUser.t()) :: Ecto.Query.t()
+  @spec groups_base_query(User.t()) :: Ecto.Query.t()
 
-  def list_groups_query(%SpaceUser{id: space_user_id, space_id: space_id}) do
+  def groups_base_query(%SpaceUser{id: space_user_id, space_id: space_id}) do
     from g in Group,
       where: g.space_id == ^space_id,
       left_join: gu in GroupUser,
@@ -32,15 +32,17 @@ defmodule Level.Groups do
       where: g.is_private == false or (g.is_private == true and not is_nil(gu.id))
   end
 
-  def list_groups_query(%User{id: user_id}) do
+  def groups_base_query(%User{id: user_id}) do
     from g in Group,
+      join: su in SpaceUser,
+      on: su.space_id == g.space_id and su.user_id == ^user_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id,
-      left_join: su in SpaceUser,
-      on: gu.space_user_id == su.id and su.user_id == ^user_id,
+      left_join: gsu in SpaceUser,
+      on: gu.space_user_id == gsu.id and gsu.user_id == ^user_id,
       where:
         g.is_private == false or
-          (g.is_private == true and not is_nil(gu.id) and not is_nil(su.id))
+          (g.is_private == true and not is_nil(gu.id) and not is_nil(gsu.id))
   end
 
   @doc """
@@ -191,7 +193,7 @@ defmodule Level.Groups do
   @spec list_bookmarked_groups(SpaceUser.t()) :: [Group.t()] | no_return()
   def list_bookmarked_groups(space_user) do
     space_user
-    |> list_groups_query
+    |> groups_base_query
     |> join(
       :inner,
       [g],
@@ -216,13 +218,9 @@ defmodule Level.Groups do
     Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
   end
 
-  def dataloader_data(_), do: raise(ArgumentError, message: "authentication required")
+  def dataloader_data(_), do: raise("authentication required")
 
   @doc false
-  def dataloader_query(Group, %{current_user: user}) do
-    list_groups_query(user)
-  end
-
-  def dataloader_query(_, _),
-    do: raise(ArgumentError, message: "query not valid for this context")
+  def dataloader_query(Group, %{current_user: user}), do: groups_base_query(user)
+  def dataloader_query(_, _), do: raise("query not valid for this context")
 end

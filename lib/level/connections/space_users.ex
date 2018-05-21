@@ -33,7 +33,7 @@ defmodule Level.Connections.SpaceUsers do
   """
   def get(user, args, %{context: %{current_user: authenticated_user}} = _info) do
     if authenticated_user == user do
-      base_query = Spaces.list_space_users_query(user)
+      base_query = Spaces.space_users_base_query(user)
       wrapped_query = from(su in subquery(base_query))
       Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
     else

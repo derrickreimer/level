@@ -52,7 +52,7 @@ defmodule LevelWeb.Schema.Types do
     field :id, non_null(:id)
     field :state, non_null(:space_user_state)
     field :role, non_null(:space_user_role)
-    field :space, non_null(:space), resolve: dataloader(:db)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
     field :first_name, non_null(:string)
     field :last_name, non_null(:string)
 
@@ -121,13 +121,13 @@ defmodule LevelWeb.Schema.Types do
     field :is_private, non_null(:boolean)
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
-    field :space, non_null(:space), resolve: dataloader(:db)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
     field :creator, non_null(:user), resolve: dataloader(:db)
   end
 
   @desc "A group membership defines the relationship between a user and group."
   object :group_membership do
-    field :group, non_null(:group), resolve: dataloader(:db)
+    field :group, non_null(:group), resolve: dataloader(Groups)
   end
 
   @desc "A post represents a conversation."
@@ -135,7 +135,7 @@ defmodule LevelWeb.Schema.Types do
     field :id, non_null(:id)
     field :state, non_null(:post_state)
     field :body, non_null(:string)
-    field :space, non_null(:space), resolve: dataloader(:db)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
     field :author, non_null(:space_user), resolve: dataloader(Spaces)
     field :groups, list_of(:group), resolve: dataloader(Groups)
   end

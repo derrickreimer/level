@@ -5,6 +5,7 @@ defmodule LevelWeb.Schema do
   import_types LevelWeb.Schema.Types
 
   alias Level.Spaces
+  import Level.Gettext
 
   def plugins do
     [Absinthe.Middleware.Dataloader] ++ Absinthe.Plugin.defaults()
@@ -120,8 +121,15 @@ defmodule LevelWeb.Schema do
 
   def space_user_topic(%{space_user_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space_user(user, id) do
-      {:ok, _space_user} -> {:ok, topic: id}
-      err -> err
+      {:ok, space_user} ->
+        if space_user.user_id == user.id do
+          {:ok, topic: id}
+        else
+          {:error, dgettext("errors", "Subscription not authorized")}
+        end
+
+      err ->
+        err
     end
   end
 end

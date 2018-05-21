@@ -54,7 +54,7 @@ defmodule LevelWeb.GraphQL.GroupBookmarkedTest do
         errors: [
           %{
             locations: [%{column: 0, line: 4}],
-            message: "Membership not found"
+            message: "Subscription not authorized"
           }
         ]
       },

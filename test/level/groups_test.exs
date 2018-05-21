@@ -8,76 +8,77 @@ defmodule Level.GroupsTest do
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
 
-  describe "list_groups_query/2" do
+  describe "groups_base_query/2" do
     setup do
       create_user_and_space()
     end
 
-    test "returns a query that includes public non-member groups", %{
+    test "includes public non-member groups", %{
       space_user: space_user,
       space: space
     } do
-      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_public: true})
+      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_private: false})
       {:ok, %{space_user: another_space_user}} = create_space_member(space)
-      query = Groups.list_groups_query(another_space_user)
-      result = Repo.all(query)
-      assert Enum.any?(result, fn group -> group.id == group_id end)
+      query = Groups.groups_base_query(another_space_user)
+      assert Enum.any?(Repo.all(query), fn group -> group.id == group_id end)
     end
 
-    test "returns a query that includes public member groups", %{space_user: space_user} do
-      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_public: true})
-      query = Groups.list_groups_query(space_user)
-      result = Repo.all(query)
-      assert Enum.any?(result, fn group -> group.id == group_id end)
+    test "includes public member groups", %{space_user: space_user} do
+      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_private: false})
+      query = Groups.groups_base_query(space_user)
+      assert Enum.any?(Repo.all(query), fn group -> group.id == group_id end)
     end
 
-    test "returns a query that excludes private non-member groups", %{
+    test "excludes private non-member groups", %{
       space_user: space_user,
       space: space
     } do
       {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_private: true})
       {:ok, %{space_user: another_space_user}} = create_space_member(space)
-      query = Groups.list_groups_query(another_space_user)
-      result = Repo.all(query)
-      refute Enum.any?(result, fn group -> group.id == group_id end)
+      query = Groups.groups_base_query(another_space_user)
+      refute Enum.any?(Repo.all(query), fn group -> group.id == group_id end)
     end
   end
 
-  describe "list_groups_query/1" do
+  describe "groups_base_query/1" do
     setup do
       create_user_and_space()
     end
 
-    test "returns a query that includes public non-member groups", %{
+    test "includes public non-member groups", %{
       space_user: space_user,
       space: space
     } do
       {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_public: true})
       {:ok, %{user: another_user}} = create_space_member(space)
-      query = Groups.list_groups_query(another_user)
-      result = Repo.all(query)
-      assert Enum.any?(result, fn group -> group.id == group_id end)
+      query = Groups.groups_base_query(another_user)
+      assert Enum.any?(Repo.all(query), fn group -> group.id == group_id end)
     end
 
-    test "returns a query that includes public member groups", %{
+    test "includes public member groups", %{
       user: user,
       space_user: space_user
     } do
       {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_public: true})
-      query = Groups.list_groups_query(user)
-      result = Repo.all(query)
-      assert Enum.any?(result, fn group -> group.id == group_id end)
+      query = Groups.groups_base_query(user)
+      assert Enum.any?(Repo.all(query), fn group -> group.id == group_id end)
     end
 
-    test "returns a query that excludes private non-member groups", %{
+    test "excludes private non-member groups", %{
       space_user: space_user,
       space: space
     } do
       {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_private: true})
       {:ok, %{user: another_user}} = create_space_member(space)
-      query = Groups.list_groups_query(another_user)
-      result = Repo.all(query)
-      refute Enum.any?(result, fn group -> group.id == group_id end)
+      query = Groups.groups_base_query(another_user)
+      refute Enum.any?(Repo.all(query), fn group -> group.id == group_id end)
+    end
+
+    test "excludes groups in spaces to which the user does not belong", %{space_user: space_user} do
+      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_private: false})
+      {:ok, another_user} = create_user()
+      query = Groups.groups_base_query(another_user)
+      refute Enum.any?(Repo.all(query), fn group -> group.id == group_id end)
     end
   end
 
