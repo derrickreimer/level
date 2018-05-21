@@ -4,6 +4,7 @@ defmodule Level.TestHelpers do
   """
 
   alias Level.Groups
+  alias Level.Posts
   alias Level.Spaces
   alias Level.Users
 
@@ -88,6 +89,14 @@ defmodule Level.TestHelpers do
       |> Map.merge(params)
 
     Groups.create_group(member, params)
+  end
+
+  def post_to_group(space_user, group, params \\ %{}) do
+    params =
+      valid_post_params()
+      |> Map.merge(params)
+
+    Posts.post_to_group(space_user, group, params)
   end
 
   defp random_string do

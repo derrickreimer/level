@@ -123,6 +123,15 @@ defmodule LevelWeb.Schema.Types do
     field :updated_at, non_null(:time)
     field :space, non_null(:space), resolve: dataloader(Spaces)
     field :creator, non_null(:user), resolve: dataloader(:db)
+
+    field :posts, non_null(:post_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :post_order
+      resolve &Level.Connections.group_posts/3
+    end
   end
 
   @desc "A group membership defines the relationship between a user and group."

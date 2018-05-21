@@ -55,6 +55,10 @@ defmodule LevelWeb.Schema.Enums do
     value :name
   end
 
+  enum :post_order_field do
+    value :posted_at
+  end
+
   enum :order_direction do
     value(:asc)
     value(:desc)

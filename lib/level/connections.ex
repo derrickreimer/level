@@ -5,6 +5,7 @@ defmodule Level.Connections do
   """
 
   alias Level.Connections.GroupMemberships
+  alias Level.Connections.GroupPosts
   alias Level.Connections.Groups
   alias Level.Connections.SpaceUsers
   alias Level.Groups.Group
@@ -91,5 +92,13 @@ defmodule Level.Connections do
           paginated_result()
   def group_memberships(user, args, info) do
     GroupMemberships.get(user, struct(GroupMemberships, args), info)
+  end
+
+  @doc """
+  Fetches posts within a given group.
+  """
+  @spec group_posts(Group.t(), GroupPosts.t(), authenticated_context()) :: paginated_result()
+  def group_posts(group, args, info) do
+    GroupPosts.get(group, struct(GroupPosts, args), info)
   end
 end
