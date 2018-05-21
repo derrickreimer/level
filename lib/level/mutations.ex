@@ -33,7 +33,7 @@ defmodule Level.Mutations do
           errors: validation_errors
         }
 
-  @typedoc "The payload for updating group bookmark state."
+  @typedoc "The payload for updating group bookmark state"
   @type bookmark_group_payload ::
           {:ok, %{is_bookmarked: boolean(), group: Groups.Group.t()}}
           | {:error, String.t()}

@@ -1,20 +1,5 @@
 defmodule LevelWeb do
-  @moduledoc """
-  A module that keeps using definitions for controllers,
-  views and so on.
-
-  This can be used in your application as:
-
-      use LevelWeb, :controller
-      use LevelWeb, :view
-
-  The definitions below will be executed for every view,
-  controller, etc, so keep them short and clean, focused
-  on imports, uses and aliases.
-
-  Do NOT define functions inside the quoted expressions
-  below.
-  """
+  @moduledoc false
 
   def model do
     quote do

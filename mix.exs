@@ -96,15 +96,19 @@ defmodule Level.Mixfile do
   defp groups_for_modules do
     [
       Contexts: [
+        Level.DataloaderSource,
         Level.Groups,
         Level.Mailer,
-        Level.Spaces
+        Level.Posts,
+        Level.Spaces,
+        Level.Users
       ],
       Connections: [
         Level.Connections,
         Level.Connections.Groups,
         Level.Connections.GroupMemberships,
         Level.Connections.Invitations,
+        Level.Connections.SpaceUsers,
         Level.Connections.Users
       ],
       Mutations: [
@@ -117,12 +121,20 @@ defmodule Level.Mixfile do
       "Repo and Schemas": [
         Level.Repo,
         Level.Groups.Group,
+        Level.Groups.GroupBookmark,
         Level.Groups.GroupMembership,
+        Level.Groups.GroupUser,
+        Level.Posts.Post,
+        Level.Posts.PostGroup,
         Level.Spaces.Invitation,
+        Level.Spaces.OpenInvitation,
         Level.Spaces.Space,
+        Level.Spaces.SpaceSetupStep,
+        Level.Spaces.SpaceUser,
         Level.Users.User
       ],
       Plugs: [
+        LevelWeb.Absinthe,
         LevelWeb.Auth
       ],
       "Transactional Email": [
