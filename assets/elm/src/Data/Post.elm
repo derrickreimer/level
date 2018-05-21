@@ -3,6 +3,7 @@ module Data.Post exposing (Post, postDecoder)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
+import Time exposing (Time)
 import Data.Group exposing (Group, groupDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 
@@ -15,6 +16,7 @@ type alias Post =
     , body : String
     , author : SpaceUser
     , groups : List Group
+    , postedAt : Time
     }
 
 
@@ -29,3 +31,4 @@ postDecoder =
         |> Pipeline.required "body" Decode.string
         |> Pipeline.required "author" spaceUserDecoder
         |> Pipeline.required "groups" (Decode.list groupDecoder)
+        |> Pipeline.required "postedAtTs" Decode.float
