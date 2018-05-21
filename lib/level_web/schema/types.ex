@@ -56,8 +56,12 @@ defmodule LevelWeb.Schema.Types do
 
     @desc "A list of groups the user has bookmarked."
     field :bookmarked_groups, list_of(:group) do
-      resolve fn space_user, _args, _context ->
-        {:ok, Groups.list_bookmarked_groups(space_user)}
+      resolve fn space_user, _args, %{context: %{current_user: user}} ->
+        if space_user.user_id == user.id do
+          {:ok, Groups.list_bookmarked_groups(space_user)}
+        else
+          {:ok, nil}
+        end
       end
     end
   end
@@ -131,5 +135,7 @@ defmodule LevelWeb.Schema.Types do
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(:db)
     field :user, non_null(:user), resolve: dataloader(:db)
+
+    field :groups, list_of(:group), resolve: dataloader(Groups)
   end
 end

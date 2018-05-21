@@ -14,7 +14,7 @@ defmodule LevelWeb.Router do
 
   pipeline :authenticated_browser do
     plug :anonymous_browser
-    plug :authenticate_user
+    plug :redirect_unless_signed_in
   end
 
   pipeline :browser_api_without_csrf do
@@ -25,7 +25,8 @@ defmodule LevelWeb.Router do
   end
 
   pipeline :graphql do
-    plug :authenticate_with_token
+    plug :fetch_current_user_by_token
+    plug :put_absinthe_context
   end
 
   scope "/" do

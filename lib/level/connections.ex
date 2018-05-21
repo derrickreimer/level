@@ -7,9 +7,11 @@ defmodule Level.Connections do
   alias Level.Connections.GroupMemberships
   alias Level.Connections.Groups
   alias Level.Connections.SpaceMemberships
+  alias Level.Groups.Group
   alias Level.Pagination
   alias Level.Spaces
   alias Level.Spaces.Space
+  alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
   @typedoc "A context map containing the current user"

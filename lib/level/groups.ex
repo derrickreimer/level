@@ -14,17 +14,33 @@ defmodule Level.Groups do
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
   alias Level.Spaces.SpaceUser
+  alias Level.Users.User
+
+  @behaviour Level.DataloaderSource
 
   @doc """
-  Generate the query for listing all groups visible to a given member.
+  Generate the query for listing all accessible groups.
   """
   @spec list_groups_query(SpaceUser.t()) :: Ecto.Query.t()
+  @spec list_groups_query(User.t()) :: Ecto.Query.t()
+
   def list_groups_query(%SpaceUser{id: space_user_id, space_id: space_id}) do
     from g in Group,
       where: g.space_id == ^space_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == ^space_user_id,
       where: g.is_private == false or (g.is_private == true and not is_nil(gu.id))
+  end
+
+  def list_groups_query(%User{id: user_id}) do
+    from g in Group,
+      left_join: gu in GroupUser,
+      on: gu.group_id == g.id,
+      left_join: su in SpaceUser,
+      on: gu.space_user_id == su.id and su.user_id == ^user_id,
+      where:
+        g.is_private == false or
+          (g.is_private == true and not is_nil(gu.id) and not is_nil(su.id))
   end
 
   @doc """
@@ -194,4 +210,19 @@ defmodule Level.Groups do
     |> Ecto.Changeset.change(state: "CLOSED")
     |> Repo.update()
   end
+
+  @doc false
+  def dataloader_data(%{current_user: _user} = params) do
+    Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
+  end
+
+  def dataloader_data(_), do: raise(ArgumentError, message: "authentication required")
+
+  @doc false
+  def dataloader_query(Group, %{current_user: user}) do
+    list_groups_query(user)
+  end
+
+  def dataloader_query(_, _),
+    do: raise(ArgumentError, message: "query not valid for this context")
 end

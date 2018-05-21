@@ -40,9 +40,11 @@ defmodule LevelWeb do
       import LevelWeb.Auth,
         only: [
           fetch_current_user_by_session: 2,
-          authenticate_with_token: 2,
-          authenticate_user: 2
+          fetch_current_user_by_token: 2,
+          redirect_unless_signed_in: 2
         ]
+
+      import LevelWeb.Absinthe, only: [put_absinthe_context: 2]
     end
   end
 
@@ -77,9 +79,11 @@ defmodule LevelWeb do
       import LevelWeb.Auth,
         only: [
           fetch_current_user_by_session: 2,
-          authenticate_with_token: 2,
-          authenticate_user: 2
+          fetch_current_user_by_token: 2,
+          redirect_unless_signed_in: 2
         ]
+
+      import LevelWeb.Absinthe, only: [put_absinthe_context: 2]
     end
   end
 

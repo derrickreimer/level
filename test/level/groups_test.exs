@@ -43,6 +43,44 @@ defmodule Level.GroupsTest do
     end
   end
 
+  describe "list_groups_query/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "returns a query that includes public non-member groups", %{
+      space_user: space_user,
+      space: space
+    } do
+      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_public: true})
+      {:ok, %{user: another_user}} = create_space_member(space)
+      query = Groups.list_groups_query(another_user)
+      result = Repo.all(query)
+      assert Enum.any?(result, fn group -> group.id == group_id end)
+    end
+
+    test "returns a query that includes public member groups", %{
+      user: user,
+      space_user: space_user
+    } do
+      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_public: true})
+      query = Groups.list_groups_query(user)
+      result = Repo.all(query)
+      assert Enum.any?(result, fn group -> group.id == group_id end)
+    end
+
+    test "returns a query that excludes private non-member groups", %{
+      space_user: space_user,
+      space: space
+    } do
+      {:ok, %{group: %Group{id: group_id}}} = create_group(space_user, %{is_private: true})
+      {:ok, %{user: another_user}} = create_space_member(space)
+      query = Groups.list_groups_query(another_user)
+      result = Repo.all(query)
+      refute Enum.any?(result, fn group -> group.id == group_id end)
+    end
+  end
+
   describe "get_group/2" do
     setup do
       create_user_and_space()

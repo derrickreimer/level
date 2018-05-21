@@ -16,6 +16,9 @@ defmodule LevelWeb.GraphQL.PostToGroupTest do
         success
         post {
           body
+          groups {
+            id
+          }
         }
         errors {
           attribute
@@ -50,7 +53,12 @@ defmodule LevelWeb.GraphQL.PostToGroupTest do
                "postToGroup" => %{
                  "success" => true,
                  "post" => %{
-                   "body" => "I am the body"
+                   "body" => "I am the body",
+                   "groups" => [
+                     %{
+                       "id" => group.id
+                     }
+                   ]
                  },
                  "errors" => []
                }
