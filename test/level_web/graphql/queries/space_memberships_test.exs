@@ -6,7 +6,7 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
     query GetMembership(
       $space_id: ID!
     ) {
-      spaceMembership(spaceId: $space_id) {
+      spaceUser(spaceId: $space_id) {
         role
         space {
           name
@@ -18,7 +18,7 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
   @list_query """
     {
       viewer {
-        spaceMemberships(first: 10) {
+        spaceUsers(first: 10) {
           edges {
             node {
               space {
@@ -47,7 +47,7 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "spaceMembership" => %{
+               "spaceUser" => %{
                  "role" => "OWNER",
                  "space" => %{
                    "name" => "Level"
@@ -68,7 +68,7 @@ defmodule LevelWeb.GraphQL.SpaceMembershipsTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "viewer" => %{
-                 "spaceMemberships" => %{
+                 "spaceUsers" => %{
                    "edges" => [
                      %{
                        "node" => %{

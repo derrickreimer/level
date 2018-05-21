@@ -19,9 +19,9 @@ defmodule LevelWeb.Schema do
     end
 
     @desc "Fetches a space membership by space id."
-    field :space_membership, :space_membership do
+    field :space_user, :space_user do
       arg :space_id, non_null(:id)
-      resolve &Level.Connections.space_membership/3
+      resolve &Level.Connections.space_user/3
     end
 
     @desc "Fetches a space."
@@ -107,18 +107,18 @@ defmodule LevelWeb.Schema do
   subscription do
     @desc "Triggered when a group is bookmarked."
     field :group_bookmarked, :group_bookmarked_payload do
-      arg :space_membership_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
       config &space_user_topic/2
     end
 
     @desc "Triggered when a group is unbookmarked."
     field :group_unbookmarked, :group_unbookmarked_payload do
-      arg :space_membership_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
       config &space_user_topic/2
     end
   end
 
-  def space_user_topic(%{space_membership_id: id}, %{context: %{current_user: user}}) do
+  def space_user_topic(%{space_user_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space_user(user, id) do
       {:ok, _space_user} -> {:ok, topic: id}
       err -> err

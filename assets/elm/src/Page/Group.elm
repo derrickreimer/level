@@ -10,8 +10,11 @@ import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
 import Avatar exposing (userAvatar)
 import Data.Group exposing (Group, groupDecoder)
+import Data.Space exposing (Space)
 import Data.User exposing (User)
 import GraphQL
+import Mutation.PostToGroup as PostToGroup
+import Route
 import Session exposing (Session)
 
 
@@ -20,8 +23,10 @@ import Session exposing (Session)
 
 type alias Model =
     { group : Group
+    , space : Space
     , user : User
     , newPostBody : String
+    , isNewPostSubmitting : Bool
     }
 
 
@@ -29,8 +34,8 @@ type alias Model =
 -- INIT
 
 
-init : User -> String -> String -> Session -> Task Session.Error ( Session, Model )
-init user spaceId groupId session =
+init : Space -> User -> String -> Session -> Task Session.Error ( Session, Model )
+init space user groupId session =
     let
         query =
             """
@@ -49,21 +54,23 @@ init user spaceId groupId session =
 
         variables =
             Encode.object
-                [ ( "spaceId", Encode.string spaceId )
+                [ ( "spaceId", Encode.string space.id )
                 , ( "groupId", Encode.string groupId )
                 ]
     in
-        GraphQL.request query (Just variables) (decoder user)
+        GraphQL.request query (Just variables) (decoder space user)
             |> Session.request session
 
 
-decoder : User -> Decode.Decoder Model
-decoder user =
+decoder : Space -> User -> Decode.Decoder Model
+decoder space user =
     Decode.at [ "data", "space" ] <|
         (Pipeline.decode Model
             |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
+            |> Pipeline.custom (Decode.succeed space)
             |> Pipeline.custom (Decode.succeed user)
             |> Pipeline.custom (Decode.succeed "")
+            |> Pipeline.custom (Decode.succeed False)
         )
 
 
@@ -80,6 +87,7 @@ type Msg
     = NoOp
     | NewPostBodyChanged String
     | NewPostSubmit
+    | NewPostSubmitted (Result Session.Error ( Session, PostToGroup.Response ))
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -92,12 +100,34 @@ update msg session model =
             noOp session { model | newPostBody = value }
 
         NewPostSubmit ->
-            noOp session model
+            let
+                cmd =
+                    PostToGroup.Params model.space.id model.group.id model.newPostBody
+                        |> PostToGroup.request
+                        |> Session.request session
+                        |> Task.attempt NewPostSubmitted
+            in
+                ( ( { model | isNewPostSubmitting = True }, cmd ), session )
+
+        NewPostSubmitted (Ok ( session, response )) ->
+            -- TODO: clear the form
+            noOp session { model | isNewPostSubmitting = False }
+
+        NewPostSubmitted (Err Session.Expired) ->
+            redirectToLogin session model
+
+        NewPostSubmitted (Err _) ->
+            noOp session { model | isNewPostSubmitting = False }
 
 
 noOp : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noOp session model =
     ( ( model, Cmd.none ), session )
+
+
+redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+redirectToLogin session model =
+    ( ( model, Route.toLogin ), session )
 
 
 setFocus : String -> Cmd Msg

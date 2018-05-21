@@ -388,7 +388,7 @@ navigateTo maybeRoute model =
 
                     Just (Route.Group id) ->
                         model.session
-                            |> Page.Group.init sharedState.user sharedState.space.id id
+                            |> Page.Group.init sharedState.space sharedState.user id
                             |> transition model (GroupInit id)
 
 

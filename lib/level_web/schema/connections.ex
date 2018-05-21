@@ -19,18 +19,18 @@ defmodule LevelWeb.Schema.Connections do
   end
 
   @desc "An edge in the space membership connection."
-  object :space_membership_edge do
+  object :space_user_edge do
     @desc "The item at the edge of the node."
-    field :node, :space_membership
+    field :node, :space_user
 
     @desc "A cursor for use in pagination."
     field :cursor, non_null(:cursor)
   end
 
   @desc "A list of space memberships for a user."
-  object :space_membership_connection do
+  object :space_user_connection do
     @desc "A list of edges."
-    field :edges, list_of(:space_membership_edge)
+    field :edges, list_of(:space_user_edge)
 
     @desc "Pagination data for the connection."
     field :page_info, non_null(:page_info)

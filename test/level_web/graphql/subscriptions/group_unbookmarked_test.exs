@@ -7,7 +7,7 @@ defmodule LevelWeb.GraphQL.GroupUnbookmarkedTest do
     subscription GroupUnbookmarked(
       $id: ID!
     ) {
-      groupUnbookmarked(spaceMembershipId: $id) {
+      groupUnbookmarked(spaceUserId: $id) {
         group {
           id
         }

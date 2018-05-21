@@ -1,4 +1,4 @@
-defmodule Level.Connections.SpaceMemberships do
+defmodule Level.Connections.SpaceUsers do
   @moduledoc """
   A paginated connection for fetching spaces a user belongs to.
   """
@@ -44,8 +44,7 @@ defmodule Level.Connections.SpaceMemberships do
       wrapped_query = from(su in subquery(base_query))
       Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
     else
-      {:error,
-       dgettext("errors", "Space memberships are only readable for the authenticated user")}
+      {:error, dgettext("errors", "Space users are only readable for the authenticated user")}
     end
   end
 end

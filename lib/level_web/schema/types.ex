@@ -27,13 +27,13 @@ defmodule LevelWeb.Schema.Types do
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
 
-    field :space_memberships, non_null(:space_membership_connection) do
+    field :space_users, non_null(:space_user_connection) do
       arg :first, :integer
       arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :space_order
-      resolve &Level.Connections.space_memberships/3
+      resolve &Level.Connections.space_users/3
     end
 
     field :group_memberships, non_null(:group_membership_connection) do
@@ -47,8 +47,8 @@ defmodule LevelWeb.Schema.Types do
     end
   end
 
-  @desc "A space membership defines the relationship between a user and a space."
-  object :space_membership do
+  @desc "A space user defines a user's identity within a particular space."
+  object :space_user do
     field :id, non_null(:id)
     field :state, non_null(:space_user_state)
     field :role, non_null(:space_user_role)
@@ -134,7 +134,7 @@ defmodule LevelWeb.Schema.Types do
     field :state, non_null(:post_state)
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(:db)
-    field :user, non_null(:user), resolve: dataloader(:db)
+    field :space_user, non_null(:space_user), resolve: dataloader(:db)
 
     field :groups, list_of(:group), resolve: dataloader(Groups)
   end

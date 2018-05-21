@@ -7,7 +7,7 @@ defmodule LevelWeb.GraphQL.GroupBookmarkedTest do
     subscription GroupBookmarked(
       $id: ID!
     ) {
-      groupBookmarked(spaceMembershipId: $id) {
+      groupBookmarked(spaceUserId: $id) {
         group {
           id
         }
