@@ -7,9 +7,10 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
-import Avatar exposing (userAvatar, texitar)
+import Avatar exposing (personAvatar, texitar)
 import Data.Group exposing (Group)
-import Data.Space exposing (Space, SpaceUserRole)
+import Data.Space exposing (Space)
+import Data.SpaceUser
 import Data.Setup as Setup
 import Event
 import Page.Group
@@ -348,8 +349,8 @@ navigateTo maybeRoute model =
                         ( { model | page = NotFound }, Cmd.none )
 
                     Just Route.Root ->
-                        case sharedState.role of
-                            Data.Space.Owner ->
+                        case sharedState.user.role of
+                            Data.SpaceUser.Owner ->
                                 case sharedState.setupState of
                                     Setup.CreateGroups ->
                                         navigateTo (Just Route.SetupCreateGroups) model
@@ -395,8 +396,8 @@ setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
 setupSockets sharedState model =
     let
         payloads =
-            [ GroupBookmarked.payload sharedState.membershipId
-            , GroupUnbookmarked.payload sharedState.membershipId
+            [ GroupBookmarked.payload sharedState.user.id
+            , GroupUnbookmarked.payload sharedState.user.id
             ]
     in
         ( model, payloads |> List.map Ports.push |> Cmd.batch )
@@ -464,7 +465,7 @@ leftSidebar sharedState model =
             ]
         , groupLinks sharedState.bookmarkedGroups model.page
         , div [ class "absolute pin-b mb-4 flex" ]
-            [ div [] [ userAvatar Avatar.Small sharedState.user ]
+            [ div [] [ personAvatar Avatar.Small sharedState.user ]
             , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                 [ div [] [ text "Signed in as" ]
                 , div [ class "font-bold" ] [ text (displayName sharedState.user) ]

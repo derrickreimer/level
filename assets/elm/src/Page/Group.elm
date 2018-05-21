@@ -8,10 +8,10 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
-import Avatar exposing (userAvatar)
+import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
 import Data.Space exposing (Space)
-import Data.User exposing (User)
+import Data.SpaceUser exposing (SpaceUser)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
 import Route
@@ -24,7 +24,7 @@ import Session exposing (Session)
 type alias Model =
     { group : Group
     , space : Space
-    , user : User
+    , user : SpaceUser
     , newPostBody : String
     , isNewPostSubmitting : Bool
     }
@@ -34,7 +34,7 @@ type alias Model =
 -- INIT
 
 
-init : Space -> User -> String -> Session -> Task Session.Error ( Session, Model )
+init : Space -> SpaceUser -> String -> Session -> Task Session.Error ( Session, Model )
 init space user groupId session =
     let
         query =
@@ -62,7 +62,7 @@ init space user groupId session =
             |> Session.request session
 
 
-decoder : Space -> User -> Decode.Decoder Model
+decoder : Space -> SpaceUser -> Decode.Decoder Model
 decoder space user =
     Decode.at [ "data", "space" ] <|
         (Pipeline.decode Model
@@ -149,11 +149,11 @@ view model =
         ]
 
 
-newPostView : String -> User -> Group -> Html Msg
+newPostView : String -> SpaceUser -> Group -> Html Msg
 newPostView body user group =
     label [ class "composer" ]
         [ div [ class "flex" ]
-            [ div [ class "flex-no-shrink mr-2" ] [ userAvatar Avatar.Medium user ]
+            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium user ]
             , div [ class "flex-grow" ]
                 [ textarea
                     [ id "post-composer"

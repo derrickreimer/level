@@ -4,7 +4,7 @@ import Session exposing (Session)
 import Data.Group exposing (Group, groupDecoder)
 import Data.Setup as Setup exposing (setupStateDecoder)
 import Data.Space exposing (Space, SpaceUserRole, spaceDecoder, spaceRoleDecoder)
-import Data.User exposing (User, UserConnection, userDecoder, userConnectionDecoder)
+import Data.SpaceUser exposing (SpaceUser, Role, spaceUserDecoder)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -18,12 +18,10 @@ type alias Params =
 
 
 type alias Response =
-    { membershipId : String
-    , user : User
+    { user : SpaceUser
     , space : Space
     , setupState : Setup.State
     , openInvitationUrl : Maybe String
-    , role : SpaceUserRole
     , bookmarkedGroups : List Group
     }
 
@@ -34,14 +32,11 @@ query =
       query SharedState(
         $spaceId: ID!
       ) {
-        viewer {
-          id
-          firstName
-          lastName
-        }
         spaceUser(spaceId: $spaceId) {
           id
           role
+          firstName
+          lastName
           space {
             id
             name
@@ -69,12 +64,10 @@ decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data" ] <|
         (Pipeline.decode Response
-            |> Pipeline.custom (Decode.at [ "spaceUser", "id" ] Decode.string)
-            |> Pipeline.custom (Decode.at [ "viewer" ] userDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser" ] spaceUserDecoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] spaceDecoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "setupState" ] setupStateDecoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
-            |> Pipeline.custom (Decode.at [ "spaceUser", "role" ] spaceRoleDecoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarkedGroups" ] (Decode.list groupDecoder))
         )
 

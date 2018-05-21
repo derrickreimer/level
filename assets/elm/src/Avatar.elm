@@ -1,4 +1,4 @@
-module Avatar exposing (Size(..), texitar, userAvatar)
+module Avatar exposing (Size(..), texitar, personAvatar)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -11,8 +11,12 @@ type Size
     | Large
 
 
-userAvatar : Size -> User -> Html msg
-userAvatar size user =
+type alias Person a =
+    { a | firstName : String }
+
+
+personAvatar : Size -> Person a -> Html msg
+personAvatar size user =
     user.firstName
         |> String.left 1
         |> String.toUpper
