@@ -258,14 +258,14 @@ defmodule Level.Spaces do
     end
   end
 
-  @doc false
+  @impl true
   def dataloader_data(%{current_user: _user} = params) do
     Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
   end
 
   def dataloader_data(_), do: raise("authentication required")
 
-  @doc false
+  @impl true
   def dataloader_query(Space, %{current_user: user}), do: spaces_base_query(user)
   def dataloader_query(SpaceUser, %{current_user: user}), do: space_users_base_query(user)
   def dataloader_query(_, _), do: raise("query not valid for this context")
