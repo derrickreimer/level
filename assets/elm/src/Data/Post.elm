@@ -17,6 +17,7 @@ import Util exposing (dateDecoder)
 type alias Post =
     { id : String
     , body : String
+    , bodyHtml : String
     , author : SpaceUser
     , groups : List Group
     , postedAt : Date
@@ -43,6 +44,7 @@ postDecoder =
     Pipeline.decode Post
         |> Pipeline.required "id" Decode.string
         |> Pipeline.required "body" Decode.string
+        |> Pipeline.required "bodyHtml" Decode.string
         |> Pipeline.required "author" spaceUserDecoder
         |> Pipeline.required "groups" (Decode.list groupDecoder)
         |> Pipeline.required "postedAt" dateDecoder

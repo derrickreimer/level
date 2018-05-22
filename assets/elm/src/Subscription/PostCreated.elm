@@ -32,6 +32,7 @@ query =
           post {
             id
             body
+            bodyHtml
             postedAt
             author {
               id

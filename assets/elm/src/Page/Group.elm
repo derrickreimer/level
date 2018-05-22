@@ -57,6 +57,7 @@ init space user groupId session =
                         node {
                           id
                           body
+                          bodyHtml
                           postedAt
                           author {
                             id
@@ -249,6 +250,11 @@ postView { node } =
                 [ span [ class "font-bold" ] [ text <| displayName node.author ]
                 , span [ class "ml-3 text-sm text-dusty-blue-dark" ] [ text <| formatTime node.postedAt ]
                 ]
-            , div [ class "leading-normal" ] [ text node.body ]
+            , div [ class "markdown" ] [ injectHtml node.bodyHtml ]
             ]
         ]
+
+
+injectHtml : String -> Html msg
+injectHtml rawHtml =
+    div [ property "innerHTML" <| Encode.string rawHtml ] []
