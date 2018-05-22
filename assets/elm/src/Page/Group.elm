@@ -10,6 +10,7 @@ import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
+import Data.Post exposing (PostConnection, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL
@@ -25,6 +26,7 @@ type alias Model =
     { group : Group
     , space : Space
     , user : SpaceUser
+    , posts : PostConnection
     , newPostBody : String
     , isNewPostSubmitting : Bool
     }
@@ -47,6 +49,31 @@ init space user groupId session =
                   group(id: $groupId) {
                     id
                     name
+                    posts(first: 20) {
+                      edges {
+                        node {
+                          id
+                          body
+                          postedAtTs
+                          author {
+                            id
+                            firstName
+                            lastName
+                            role
+                          }
+                          groups {
+                            id
+                            name
+                          }
+                        }
+                      }
+                      pageInfo {
+                        hasPreviousPage
+                        hasNextPage
+                        startCursor
+                        endCursor
+                      }
+                    }
                   }
                 }
               }
@@ -69,6 +96,7 @@ decoder space user =
             |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
             |> Pipeline.custom (Decode.succeed space)
             |> Pipeline.custom (Decode.succeed user)
+            |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
             |> Pipeline.custom (Decode.succeed "")
             |> Pipeline.custom (Decode.succeed False)
         )

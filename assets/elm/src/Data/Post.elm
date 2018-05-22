@@ -1,10 +1,11 @@
-module Data.Post exposing (Post, postDecoder)
+module Data.Post exposing (Post, PostConnection, postDecoder, postConnectionDecoder)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
 import Time exposing (Time)
 import Data.Group exposing (Group, groupDecoder)
+import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 
 
@@ -20,6 +21,17 @@ type alias Post =
     }
 
 
+type alias PostEdge =
+    { node : Post
+    }
+
+
+type alias PostConnection =
+    { edges : List PostEdge
+    , pageInfo : PageInfo
+    }
+
+
 
 -- DECODERS
 
@@ -32,3 +44,16 @@ postDecoder =
         |> Pipeline.required "author" spaceUserDecoder
         |> Pipeline.required "groups" (Decode.list groupDecoder)
         |> Pipeline.required "postedAtTs" Decode.float
+
+
+postConnectionDecoder : Decode.Decoder PostConnection
+postConnectionDecoder =
+    Pipeline.decode PostConnection
+        |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list postEdgeDecoder))
+        |> Pipeline.custom (Decode.at [ "pageInfo" ] pageInfoDecoder)
+
+
+postEdgeDecoder : Decode.Decoder PostEdge
+postEdgeDecoder =
+    Pipeline.decode PostEdge
+        |> Pipeline.custom (Decode.at [ "node" ] postDecoder)
