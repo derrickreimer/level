@@ -1,5 +1,6 @@
-module Data.Post exposing (Post, PostConnection, postDecoder, postConnectionDecoder)
+module Data.Post exposing (Post, PostConnection, PostEdge, postDecoder, postConnectionDecoder)
 
+import Date exposing (Date)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
@@ -7,6 +8,7 @@ import Time exposing (Time)
 import Data.Group exposing (Group, groupDecoder)
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
+import Util exposing (dateDecoder)
 
 
 -- TYPES
@@ -17,7 +19,7 @@ type alias Post =
     , body : String
     , author : SpaceUser
     , groups : List Group
-    , postedAt : Time
+    , postedAt : Date
     }
 
 
@@ -43,7 +45,7 @@ postDecoder =
         |> Pipeline.required "body" Decode.string
         |> Pipeline.required "author" spaceUserDecoder
         |> Pipeline.required "groups" (Decode.list groupDecoder)
-        |> Pipeline.required "postedAtTs" Decode.float
+        |> Pipeline.required "postedAt" dateDecoder
 
 
 postConnectionDecoder : Decode.Decoder PostConnection

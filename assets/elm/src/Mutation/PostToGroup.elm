@@ -38,7 +38,7 @@ query =
           post {
             id
             body
-            postedAtTs
+            postedAt
             author {
               id
               firstName
