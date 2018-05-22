@@ -6,19 +6,21 @@ defmodule LevelWeb.Absinthe do
   alias Level.Groups
   alias Level.Repo
   alias Level.Spaces
+  alias Level.Users.User
 
   @doc """
   Sets absinthe context on the given connection.
   """
   def put_absinthe_context(conn, _) do
-    Absinthe.Plug.put_options(conn, context: build_context(conn))
+    current_user = conn.assigns[:current_user]
+    Absinthe.Plug.put_options(conn, context: build_context(current_user))
   end
 
-  defp build_context(%Plug.Conn{assigns: %{current_user: user}}) do
+  def build_context(%User{} = user) do
     %{current_user: user, loader: build_loader(user)}
   end
 
-  defp build_context(_conn) do
+  def build_context(_) do
     %{}
   end
 

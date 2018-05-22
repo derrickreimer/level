@@ -21,6 +21,7 @@ import Ports
 import Query.SharedState
 import Subscription.GroupBookmarked as GroupBookmarked
 import Subscription.GroupUnbookmarked as GroupUnbookmarked
+import Subscription.PostCreated as PostCreated
 import Route exposing (Route)
 import Session exposing (Session)
 import Socket
@@ -289,6 +290,19 @@ handleSocketResult value model page sharedState =
             in
                 ( { model | sharedState = Loaded newSharedState }, Cmd.none )
 
+        Event.PostCreated { post } ->
+            case model.page of
+                Group ({ group } as pageModel) ->
+                    let
+                        newPageModel =
+                            pageModel
+                                |> Page.Group.receivePost post
+                    in
+                        ( { model | page = Group newPageModel }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         Event.Unknown ->
             ( model, Cmd.none )
 
@@ -398,6 +412,7 @@ setupSockets sharedState model =
         payloads =
             [ GroupBookmarked.payload sharedState.user.id
             , GroupUnbookmarked.payload sharedState.user.id
+            , PostCreated.payload sharedState.user.id
             ]
     in
         ( model, payloads |> List.map Ports.push |> Cmd.batch )

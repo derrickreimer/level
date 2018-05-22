@@ -49,7 +49,12 @@ defmodule LevelWeb.ChannelCase do
   def build_socket(user) do
     {:ok, _, socket} =
       "asdf"
-      |> socket(absinthe: %{schema: LevelWeb.Schema, opts: [context: %{current_user: user}]})
+      |> socket(
+        absinthe: %{
+          schema: LevelWeb.Schema,
+          opts: [context: LevelWeb.Absinthe.build_context(user)]
+        }
+      )
       |> subscribe_and_join(Absinthe.Phoenix.Channel, "__absinthe__:control")
 
     socket

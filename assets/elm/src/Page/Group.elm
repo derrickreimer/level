@@ -10,14 +10,14 @@ import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
-import Data.Post exposing (PostConnection, PostEdge, postConnectionDecoder)
+import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
 import Route
 import Session exposing (Session)
-import Util exposing (displayName, formatTime)
+import Util exposing (displayName, formatTime, memberById)
 
 
 -- MODEL
@@ -139,13 +139,13 @@ update msg session model =
                 ( ( { model | isNewPostSubmitting = True }, cmd ), session )
 
         NewPostSubmitted (Ok ( session, response )) ->
-            -- TODO: clear the form
-            noOp session { model | isNewPostSubmitting = False }
+            noOp session { model | newPostBody = "", isNewPostSubmitting = False }
 
         NewPostSubmitted (Err Session.Expired) ->
             redirectToLogin session model
 
         NewPostSubmitted (Err _) ->
+            -- TODO: display error message
             noOp session { model | isNewPostSubmitting = False }
 
 
@@ -162,6 +162,23 @@ redirectToLogin session model =
 setFocus : String -> Cmd Msg
 setFocus id =
     Task.attempt (always NoOp) <| focus id
+
+
+receivePost : Post -> Model -> Model
+receivePost ({ groups } as post) model =
+    if memberById model.group groups then
+        { model | posts = (addPostToConnection post model.posts) }
+    else
+        model
+
+
+addPostToConnection : Post -> PostConnection -> PostConnection
+addPostToConnection post connection =
+    let
+        edges =
+            connection.edges
+    in
+        { connection | edges = (PostEdge post) :: edges }
 
 
 
