@@ -78,7 +78,7 @@ body {
 }
 
 .composer {
-  @apply .block .relative .p-4 .bg-grey-light .w-full .rounded-lg;
+  @apply .block .relative .p-4 .bg-grey-light .border .w-full .rounded-lg;
 }
 
 .composer:focus,
@@ -188,6 +188,10 @@ body {
 
 .markdown p {
   @apply .mb-4;
+}
+
+.markdown *:last-child {
+  @apply .mb-0;
 }
 
 .markdown ul,

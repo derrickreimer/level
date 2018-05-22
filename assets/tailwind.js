@@ -133,6 +133,7 @@ let colors = {
   'dusty-blue-darkest': '#22384c',
   'dusty-blue-darker': '#374b61',
   'dusty-blue-dark': '#50667a',
+  'dusty-blue': '#8a98a5',
   'blue-dark': '#4265c7',
   'blue': '#4b73e1',
   'grey': '#e2e6e8',
