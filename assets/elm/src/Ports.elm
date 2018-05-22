@@ -63,6 +63,9 @@ type alias ScrollPositionArgs =
 port push : Socket.Payload -> Cmd msg
 
 
+port cancel : String -> Cmd msg
+
+
 port updateToken : String -> Cmd msg
 
 

@@ -349,7 +349,10 @@ navigateTo maybeRoute model =
     let
         transition model toMsg task =
             ( { model | isTransitioning = True }
-            , Cmd.map PageInitialized <| Task.attempt toMsg task
+            , Cmd.batch
+                [ teardown model.page
+                , Cmd.map PageInitialized <| Task.attempt toMsg task
+                ]
             )
     in
         case model.sharedState of
@@ -403,6 +406,28 @@ navigateTo maybeRoute model =
                         model.session
                             |> Page.Group.init sharedState.space sharedState.user id
                             |> transition model (GroupInit id)
+
+
+teardown : Page -> Cmd Msg
+teardown page =
+    case page of
+        Blank ->
+            Cmd.none
+
+        NotFound ->
+            Cmd.none
+
+        SetupCreateGroups _ ->
+            Cmd.none
+
+        SetupInviteUsers _ ->
+            Cmd.none
+
+        Inbox ->
+            Cmd.none
+
+        Group pageModel ->
+            Cmd.map GroupMsg (Page.Group.teardown pageModel)
 
 
 setupSockets : SharedState -> Model -> ( Model, Cmd Msg )

@@ -114,6 +114,11 @@ initialized model =
         ]
 
 
+teardown : Model -> Cmd Msg
+teardown model =
+    teardownSockets model.group
+
+
 
 -- UPDATE
 
@@ -169,6 +174,18 @@ setupSockets group =
     in
         payloads
             |> List.map Ports.push
+            |> Cmd.batch
+
+
+teardownSockets : Group -> Cmd Msg
+teardownSockets group =
+    let
+        payloads =
+            [ PostCreated.clientId group.id
+            ]
+    in
+        payloads
+            |> List.map Ports.cancel
             |> Cmd.batch
 
 

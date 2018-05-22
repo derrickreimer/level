@@ -7,6 +7,7 @@ import Json.Encode as Encode
 
 
 type alias Payload =
-    { operation : String
+    { clientId : String
+    , operation : String
     , variables : Maybe Encode.Value
     }

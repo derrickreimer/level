@@ -20,7 +20,7 @@ export const attachPorts = app => {
   app.ports.push.subscribe(doc => {
     const notifier = AbsintheSocket.send(absintheSocket, doc);
 
-    const observedNotifier = AbsintheSocket.observe(absintheSocket, notifier, {
+    AbsintheSocket.observe(absintheSocket, notifier, {
       onAbort: data => {
         logEvent("abort")(data);
         app.ports.socketAbort.send(data);
@@ -39,6 +39,16 @@ export const attachPorts = app => {
       }
     });
   });
+
+  app.ports.cancel.subscribe(clientId => {
+    const notifiers = absintheSocket.notifiers.filter(notifier => {
+      return notifier.request.clientId == clientId;
+    });
+
+    notifiers.forEach(notifier => {
+      AbsintheSocket.cancel(absintheSocket, notifier);
+    })
+  })
 
   app.ports.getScrollPosition.subscribe(arg => {
     const { containerId, anchorId } = arg;

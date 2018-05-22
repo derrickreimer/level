@@ -17,9 +17,14 @@ type alias Data =
     }
 
 
+clientId : String -> String
+clientId id =
+    "group_unbookmarked_" ++ id
+
+
 payload : String -> Payload
 payload id =
-    Payload query (Just (variables (Params id)))
+    Payload (clientId id) query (Just <| variables <| Params id)
 
 
 query : String
