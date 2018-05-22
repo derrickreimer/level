@@ -5,6 +5,7 @@ defmodule LevelWeb.Schema do
   import_types LevelWeb.Schema.Types
 
   alias Level.Spaces
+  alias Level.Groups
   import Level.Gettext
 
   def plugins do
@@ -109,23 +110,23 @@ defmodule LevelWeb.Schema do
     @desc "Triggered when a group is bookmarked."
     field :group_bookmarked, :group_bookmarked_payload do
       arg :space_user_id, non_null(:id)
-      config &space_user_topic/2
+      config &space_user_topic_config/2
     end
 
     @desc "Triggered when a group is unbookmarked."
     field :group_unbookmarked, :group_unbookmarked_payload do
       arg :space_user_id, non_null(:id)
-      config &space_user_topic/2
+      config &space_user_topic_config/2
     end
 
     @desc "Triggered when a post is created."
     field :post_created, :post_created_payload do
-      arg :space_user_id, non_null(:id)
-      config &space_user_topic/2
+      arg :group_id, non_null(:id)
+      config &group_topic_config/2
     end
   end
 
-  def space_user_topic(%{space_user_id: id}, %{context: %{current_user: user}}) do
+  def space_user_topic_config(%{space_user_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space_user(user, id) do
       {:ok, space_user} ->
         if space_user.user_id == user.id do
@@ -133,6 +134,16 @@ defmodule LevelWeb.Schema do
         else
           {:error, dgettext("errors", "Subscription not authorized")}
         end
+
+      err ->
+        err
+    end
+  end
+
+  def group_topic_config(%{group_id: id}, %{context: %{current_user: user}}) do
+    case Groups.get_group(user, id) do
+      {:ok, group} ->
+        {:ok, topic: group.id}
 
       err ->
         err

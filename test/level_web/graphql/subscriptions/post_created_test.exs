@@ -7,7 +7,7 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
     subscription PostCreated(
       $id: ID!
     ) {
-      postCreated(spaceUserId: $id) {
+      postCreated(groupId: $id) {
         post {
           id
         }
@@ -23,7 +23,7 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
   test "receives an event a user posts to a group", %{socket: socket, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user)
 
-    ref = push_subscription(socket, @operation, %{"id" => space_user.id})
+    ref = push_subscription(socket, @operation, %{"id" => group.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, %{post: post}} = Posts.post_to_group(space_user, group, valid_post_params())

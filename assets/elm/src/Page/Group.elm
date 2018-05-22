@@ -15,8 +15,10 @@ import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
+import Ports
 import Route
 import Session exposing (Session)
+import Subscription.PostCreated as PostCreated
 import Util exposing (displayName, formatTime, memberById)
 
 
@@ -103,9 +105,12 @@ decoder space user =
         )
 
 
-initialized : Cmd Msg
-initialized =
-    setFocus "post-composer"
+initialized : Model -> Cmd Msg
+initialized model =
+    Cmd.batch
+        [ setFocus "post-composer"
+        , setupSockets model.group
+        ]
 
 
 
@@ -152,6 +157,18 @@ update msg session model =
 noOp : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noOp session model =
     ( ( model, Cmd.none ), session )
+
+
+setupSockets : Group -> Cmd Msg
+setupSockets group =
+    let
+        payloads =
+            [ PostCreated.payload group.id
+            ]
+    in
+        payloads
+            |> List.map Ports.push
+            |> Cmd.batch
 
 
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )

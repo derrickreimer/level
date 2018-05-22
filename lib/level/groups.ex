@@ -49,6 +49,8 @@ defmodule Level.Groups do
   Fetches a group by id.
   """
   @spec get_group(SpaceUser.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
+  @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
+
   def get_group(%SpaceUser{space_id: space_id} = member, id) do
     case Repo.get_by(Group, id: id, space_id: space_id) do
       %Group{} = group ->
@@ -63,6 +65,16 @@ defmodule Level.Groups do
         else
           {:ok, group}
         end
+
+      _ ->
+        {:error, dgettext("errors", "Group not found")}
+    end
+  end
+
+  def get_group(%User{} = user, id) do
+    case Repo.get_by(groups_base_query(user), id: id) do
+      %Group{} = group ->
+        {:ok, group}
 
       _ ->
         {:error, dgettext("errors", "Group not found")}

@@ -30,7 +30,7 @@ defmodule Level.Posts do
 
     case Repo.transaction(operation) do
       {:ok, %{post: post}} = result ->
-        Pubsub.publish(:post_created, space_user.id, post)
+        Pubsub.publish(:post_created, group.id, post)
         result
 
       err ->

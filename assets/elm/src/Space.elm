@@ -21,7 +21,6 @@ import Ports
 import Query.SharedState
 import Subscription.GroupBookmarked as GroupBookmarked
 import Subscription.GroupUnbookmarked as GroupUnbookmarked
-import Subscription.PostCreated as PostCreated
 import Route exposing (Route)
 import Session exposing (Session)
 import Socket
@@ -316,7 +315,7 @@ handlePageInit pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Page.Group.initialized
+            , Page.Group.initialized pageModel
                 |> Cmd.map GroupMsg
             )
 
@@ -412,7 +411,6 @@ setupSockets sharedState model =
         payloads =
             [ GroupBookmarked.payload sharedState.user.id
             , GroupUnbookmarked.payload sharedState.user.id
-            , PostCreated.payload sharedState.user.id
             ]
     in
         ( model, payloads |> List.map Ports.push |> Cmd.batch )

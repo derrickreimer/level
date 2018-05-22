@@ -28,7 +28,7 @@ query =
       subscription PostCreated(
         $id: ID!
       ) {
-        postCreated(spaceUserId: $id) {
+        postCreated(groupId: $id) {
           post {
             id
             body
