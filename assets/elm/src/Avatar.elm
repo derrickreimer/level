@@ -12,15 +12,29 @@ type Size
 
 
 type alias Person a =
-    { a | firstName : String }
+    { a | firstName : String, lastName : String }
+
+
+initial : String -> String
+initial name =
+    name
+        |> String.left 1
+        |> String.toUpper
 
 
 personAvatar : Size -> Person a -> Html msg
 personAvatar size user =
-    user.firstName
-        |> String.left 1
-        |> String.toUpper
-        |> texitar size
+    let
+        firstInitial =
+            initial user.firstName
+                |> String.left 1
+                |> String.toUpper
+
+        lastInitial =
+            initial user.lastName
+    in
+        (firstInitial ++ lastInitial)
+            |> texitar size
 
 
 texitar : Size -> String -> Html msg
