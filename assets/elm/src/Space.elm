@@ -315,7 +315,7 @@ handlePageInit pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Page.Group.initialized pageModel
+            , Page.Group.afterInit pageModel
                 |> Cmd.map GroupMsg
             )
 

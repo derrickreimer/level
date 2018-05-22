@@ -106,8 +106,8 @@ decoder space user =
         )
 
 
-initialized : Model -> Cmd Msg
-initialized model =
+afterInit : Model -> Cmd Msg
+afterInit model =
     Cmd.batch
         [ setFocus "post-composer"
         , setupSockets model.group
