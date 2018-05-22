@@ -13,6 +13,7 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
             edges {
               node {
                 body
+                body_html
               }
             }
           }
@@ -59,7 +60,8 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                      "edges" => [
                        %{
                          "node" => %{
-                           "body" => "Hey!"
+                           "body" => "Hey!",
+                           "body_html" => "<p>Hey!</p>\n"
                          }
                        }
                      ]

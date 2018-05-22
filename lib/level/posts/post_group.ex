@@ -16,7 +16,7 @@ defmodule Level.Posts.PostGroup do
   schema "post_groups" do
     belongs_to :space, Space
     belongs_to :post, Post
-    belongs_to :group, Post
+    belongs_to :group, Group
 
     timestamps()
   end

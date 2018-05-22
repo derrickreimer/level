@@ -59,4 +59,12 @@ defmodule Level.Posts do
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
   end
+
+  @doc """
+  Convert a string of Markdown to HTML.
+  """
+  @spec markdown_to_html(String.t()) :: {:ok, String.t(), [any()]} | {:error, String.t(), [any()]}
+  def markdown_to_html(input) do
+    Earmark.as_html(input)
+  end
 end
