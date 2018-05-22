@@ -7,24 +7,35 @@ defmodule Level.Posts do
   alias Level.Groups.Group
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
+  alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
 
   @typedoc "The result of posting to a group"
   @type post_to_group_result ::
-          {:ok, %{post: Post.t()}} | {:error, :post, any(), %{optional(:post) => any()}}
+          {:ok, %{post: Post.t(), post_group: PostGroup.t()}}
+          | {:error, :post | :post_group, any(), %{optional(:post | :post_group) => any()}}
 
   @doc """
   Posts a message to a group.
   """
   @spec post_to_group(SpaceUser.t(), Group.t(), map()) :: post_to_group_result()
   def post_to_group(space_user, group, params) do
-    Multi.new()
-    |> Multi.insert(:post, create_post_changeset(space_user, params))
-    |> Multi.run(:post_group, fn %{post: post} ->
-      create_post_group(space_user.space_id, post.id, group.id)
-    end)
-    |> Repo.transaction()
+    operation =
+      Multi.new()
+      |> Multi.insert(:post, create_post_changeset(space_user, params))
+      |> Multi.run(:post_group, fn %{post: post} ->
+        create_post_group(space_user.space_id, post.id, group.id)
+      end)
+
+    case Repo.transaction(operation) do
+      {:ok, %{post: post}} = result ->
+        Pubsub.publish(:post_created, space_user.id, post)
+        result
+
+      err ->
+        err
+    end
   end
 
   defp create_post_changeset(space_user, params) do

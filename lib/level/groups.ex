@@ -158,7 +158,7 @@ defmodule Level.Groups do
 
     case Repo.insert(changeset) do
       {:ok, _} ->
-        Pubsub.publish(%{group: group}, group_bookmarked: space_user.id)
+        Pubsub.publish(:group_bookmarked, space_user.id, group)
         :ok
 
       {:error, %Ecto.Changeset{errors: [uniqueness: _]}} ->
@@ -181,7 +181,7 @@ defmodule Level.Groups do
       )
 
     if count > 0 do
-      Pubsub.publish(%{group: group}, group_unbookmarked: space_user.id)
+      Pubsub.publish(:group_unbookmarked, space_user.id, group)
     end
 
     :ok

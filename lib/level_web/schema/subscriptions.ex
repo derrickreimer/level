@@ -14,4 +14,10 @@ defmodule LevelWeb.Schema.Subscriptions do
     @desc "The unbookmarked group."
     field :group, :group
   end
+
+  @desc "The payload for the post created event."
+  object :post_created_payload do
+    @desc "The newly created post."
+    field :post, :post
+  end
 end

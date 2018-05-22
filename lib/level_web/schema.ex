@@ -117,6 +117,12 @@ defmodule LevelWeb.Schema do
       arg :space_user_id, non_null(:id)
       config &space_user_topic/2
     end
+
+    @desc "Triggered when a post is created."
+    field :post_created, :post_created_payload do
+      arg :space_user_id, non_null(:id)
+      config &space_user_topic/2
+    end
   end
 
   def space_user_topic(%{space_user_id: id}, %{context: %{current_user: user}}) do
