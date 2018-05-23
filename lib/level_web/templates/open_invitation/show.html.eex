@@ -2,7 +2,7 @@
   <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="bg-grey-light h-full min-h-screen">
+<div class="bg-grey-lighter h-full min-h-screen">
   <div class="container mx-auto py-6">
     <div class="px-8 flex items-center">
       <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>

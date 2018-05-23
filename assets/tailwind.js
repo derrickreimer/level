@@ -137,7 +137,8 @@ let colors = {
   'blue-dark': '#4265c7',
   'blue': '#4b73e1',
   'grey': '#e2e6e8',
-  'grey-light': '#f7f8f8',
+  'grey-light': '#f5f6f7',
+  'grey-lighter': '#f7f8f8',
   'red': '#ff1e12',
 }
 

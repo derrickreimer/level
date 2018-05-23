@@ -138,7 +138,7 @@ view model =
             , ( "input-field-error", not (List.isEmpty slugErrors) )
             ]
     in
-        div [ class "bg-grey-light h-full min-h-screen" ]
+        div [ class "bg-grey-lighter h-full min-h-screen" ]
             [ div [ class "container mx-auto px-4 py-24 flex justify-center max-w-430px" ]
                 [ div [ class "w-full" ]
                     [ div [ class "mb-8 text-center" ]

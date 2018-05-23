@@ -78,7 +78,7 @@ body {
 }
 
 .composer {
-  @apply .block .relative .p-4 .bg-grey-light .border .w-full .rounded-lg;
+  @apply .block .relative .p-4 .bg-grey-light .w-full .rounded-lg;
 }
 
 .composer:focus,
@@ -200,11 +200,11 @@ body {
 }
 
 .markdown pre {
-  @apply .mb-4 .p-3 .bg-grey-light .rounded;
+  @apply .mb-4 .p-3 .bg-grey-lighter .rounded;
 }
 
 .markdown code {
-  @apply .mx-1 .px-2 .py-1 .bg-grey-light .rounded;
+  @apply .mx-1 .px-2 .py-1 .bg-grey-lighter .rounded;
 }
 
 .markdown pre code {
