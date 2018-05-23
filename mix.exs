@@ -65,7 +65,8 @@ defmodule Level.Mixfile do
       {:bamboo_smtp, "~> 1.4"},
       {:excoveralls, "~> 0.8", only: :test},
       {:dialyxir, "~> 0.5", only: :dev, runtime: false},
-      {:earmark, "~> 1.2.5"}
+      {:earmark, "~> 1.2.5"},
+      {:html_sanitize_ex, "~> 1.3.0"}
     ]
   end
 
@@ -96,14 +97,6 @@ defmodule Level.Mixfile do
 
   defp groups_for_modules do
     [
-      Contexts: [
-        Level.DataloaderSource,
-        Level.Groups,
-        Level.Mailer,
-        Level.Posts,
-        Level.Spaces,
-        Level.Users
-      ],
       Connections: [
         Level.Connections,
         Level.Connections.Groups,

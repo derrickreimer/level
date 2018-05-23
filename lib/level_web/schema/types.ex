@@ -5,7 +5,7 @@ defmodule LevelWeb.Schema.Types do
   import Absinthe.Resolution.Helpers
 
   alias Level.Groups
-  alias Level.Posts
+  alias Level.Markdown
   alias Level.Spaces
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
@@ -151,7 +151,7 @@ defmodule LevelWeb.Schema.Types do
 
     field :body_html, non_null(:string) do
       resolve fn post, _, _ ->
-        {_status, html, _errors} = Posts.markdown_to_html(post.body)
+        {_status, html, _errors} = Markdown.to_html(post.body)
         {:ok, html}
       end
     end
