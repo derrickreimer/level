@@ -411,23 +411,11 @@ navigateTo maybeRoute model =
 teardown : Page -> Cmd Msg
 teardown page =
     case page of
-        Blank ->
-            Cmd.none
-
-        NotFound ->
-            Cmd.none
-
-        SetupCreateGroups _ ->
-            Cmd.none
-
-        SetupInviteUsers _ ->
-            Cmd.none
-
-        Inbox ->
-            Cmd.none
-
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
+
+        _ ->
+            Cmd.none
 
 
 setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
