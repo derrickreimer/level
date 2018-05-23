@@ -213,7 +213,10 @@ addPostToConnection post connection =
         edges =
             connection.edges
     in
-        { connection | edges = (PostEdge post) :: edges }
+        if List.any (\{ node } -> node.id == post.id) edges then
+            connection
+        else
+            { connection | edges = (PostEdge post) :: edges }
 
 
 
