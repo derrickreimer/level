@@ -10,7 +10,7 @@ import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
-import Data.GroupUser exposing (GroupUserConnection, groupUserConnectionDecoder)
+import Data.GroupUser exposing (GroupUser, GroupUserEdge, GroupUserConnection, groupUserConnectionDecoder)
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
@@ -247,10 +247,13 @@ addPostToConnection post connection =
 view : Model -> Html Msg
 view model =
     div [ class "mx-56" ]
-        [ div [ class "mx-auto pt-4 max-w-90 leading-normal" ]
-            [ h2 [ class "mb-4 font-extrabold text-2xl" ] [ text model.group.name ]
+        [ div [ class "mx-auto max-w-90 leading-normal" ]
+            [ div [ class "sticky pin-t border-b border-grey-light py-4 bg-white z-50" ]
+                [ h2 [ class "font-extrabold text-2xl" ] [ text model.group.name ]
+                ]
             , newPostView model.newPostBody model.user model.group
             , postListView model.user model.posts.edges
+            , sidebarView model.members
             ]
         ]
 
@@ -298,6 +301,28 @@ postView currentUser { node } =
                     ]
                 ]
             ]
+        ]
+
+
+sidebarView : GroupUserConnection -> Html Msg
+sidebarView { edges } =
+    div [ class "fixed pin-t pin-r w-56 mt-4 py-2 pl-6 border-l border-grey-light min-h-half" ]
+        [ h3 [ class "mb-2 text-base" ] [ text "Members" ]
+        , memberListView edges
+        ]
+
+
+memberListView : List GroupUserEdge -> Html Msg
+memberListView edges =
+    div [] <|
+        List.map memberItemView (List.map .node edges)
+
+
+memberItemView : GroupUser -> Html Msg
+memberItemView { user } =
+    div [ class "flex items-center" ]
+        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
+        , div [ class "flex-grow text-sm" ] [ text <| displayName user ]
         ]
 
 
