@@ -2,7 +2,6 @@ module Avatar exposing (Size(..), texitar, personAvatar)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Data.User exposing (User)
 
 
 type Size
