@@ -267,7 +267,7 @@ postView currentUser { node } =
                 [ span [ class "font-bold" ] [ text <| displayName node.author ]
                 , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| formatTime node.postedAt ]
                 ]
-            , div [ class "markdown mb-1 cursor-pointer" ] [ injectHtml node.bodyHtml ]
+            , div [ class "markdown mb-1" ] [ injectHtml node.bodyHtml ]
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
                     [ span [ class "text-dusty-blue text-sm" ] [ text "Add a comment..." ]
