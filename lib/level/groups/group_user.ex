@@ -19,9 +19,13 @@ defmodule Level.Groups.GroupUser do
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
     belongs_to :group, Group
+    has_one :user, through: [:space_user, :user]
 
     # Holds the group name when loaded via a join
     field :name, :string, virtual: true
+
+    # Holds the user's last name when loaded via a join
+    field :last_name, :string, virtual: true
 
     timestamps()
   end

@@ -1,20 +1,17 @@
-defmodule LevelWeb.GraphQL.GroupMembershipsTest do
+defmodule LevelWeb.GraphQL.UserGroupMembershipsTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   @query """
     query GetGroupMemberships(
-      $space_id: ID!,
-      $group_id: ID!
+      $space_id: ID!
     ) {
-      space(id: $space_id) {
-        group(id: $group_id) {
-          memberships(first: 10) {
-            edges {
-              node {
-                group {
-                  name
-                }
+      viewer {
+        groupMemberships(spaceId: $space_id, first: 10) {
+          edges {
+            node {
+              group {
+                name
               }
             }
           }
@@ -30,9 +27,9 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   end
 
   test "users can list their group memberships", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
+    {:ok, %{group: _group}} = create_group(space_user, %{name: "Cool peeps"})
 
-    variables = %{space_id: space_user.space_id, group_id: group.id}
+    variables = %{space_id: space_user.space_id}
 
     conn =
       conn
@@ -41,19 +38,17 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "group" => %{
-                   "memberships" => %{
-                     "edges" => [
-                       %{
-                         "node" => %{
-                           "group" => %{
-                             "name" => "Cool peeps"
-                           }
+               "viewer" => %{
+                 "groupMemberships" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "group" => %{
+                           "name" => "Cool peeps"
                          }
                        }
-                     ]
-                   }
+                     }
+                   ]
                  }
                }
              }
