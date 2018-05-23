@@ -10,6 +10,7 @@ import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
+import Data.GroupUser exposing (GroupUserConnection, groupUserConnectionDecoder)
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
@@ -30,6 +31,7 @@ type alias Model =
     , space : Space
     , user : SpaceUser
     , posts : PostConnection
+    , members : GroupUserConnection
     , newPostBody : String
     , isNewPostSubmitting : Bool
     }
@@ -52,6 +54,24 @@ init space user groupId session =
                   group(id: $groupId) {
                     id
                     name
+                    memberships(first: 10) {
+                      edges {
+                        node {
+                          spaceUser {
+                            id
+                            firstName
+                            lastName
+                            role
+                          }
+                        }
+                      }
+                      pageInfo {
+                        hasPreviousPage
+                        hasNextPage
+                        startCursor
+                        endCursor
+                      }
+                    }
                     posts(first: 20) {
                       edges {
                         node {
@@ -101,6 +121,7 @@ decoder space user =
             |> Pipeline.custom (Decode.succeed space)
             |> Pipeline.custom (Decode.succeed user)
             |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
+            |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupUserConnectionDecoder)
             |> Pipeline.custom (Decode.succeed "")
             |> Pipeline.custom (Decode.succeed False)
         )

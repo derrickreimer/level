@@ -147,6 +147,7 @@ defmodule LevelWeb.Schema.Types do
   @desc "A group membership defines the relationship between a user and group."
   object :group_membership do
     field :group, non_null(:group), resolve: dataloader(Groups)
+    field :space_user, non_null(:space_user), resolve: dataloader(Spaces)
   end
 
   @desc "A post represents a conversation."
