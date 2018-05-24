@@ -457,7 +457,12 @@ subscriptions model =
 
 pageSubscription : Model -> Sub Msg
 pageSubscription model =
-    Sub.none
+    case model.page of
+        Group _ ->
+            Sub.map GroupMsg Page.Group.subscriptions
+
+        _ ->
+            Sub.none
 
 
 
