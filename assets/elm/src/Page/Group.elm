@@ -23,7 +23,7 @@ import Ports
 import Route
 import Session exposing (Session)
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, smartFormatDate, memberById)
+import Util exposing (displayName, smartFormatDate, memberById, onEnter)
 
 
 -- MODEL
@@ -178,14 +178,17 @@ update msg session model =
                 |> noCmd session
 
         NewPostSubmit ->
-            let
-                cmd =
-                    PostToGroup.Params model.space.id model.group.id model.newPostBody
-                        |> PostToGroup.request
-                        |> Session.request session
-                        |> Task.attempt NewPostSubmitted
-            in
-                ( ( { model | isNewPostSubmitting = True }, cmd ), session )
+            if newPostSubmittable model.newPostBody then
+                let
+                    cmd =
+                        PostToGroup.Params model.space.id model.group.id model.newPostBody
+                            |> PostToGroup.request
+                            |> Session.request session
+                            |> Task.attempt NewPostSubmitted
+                in
+                    ( ( { model | isNewPostSubmitting = True }, cmd ), session )
+            else
+                noCmd session model
 
         NewPostSubmitted (Ok ( session, response )) ->
             ( ( { model | newPostBody = "", isNewPostSubmitting = False }
@@ -267,6 +270,11 @@ addPostToConnection post connection =
             { connection | edges = (PostEdge post) :: edges }
 
 
+newPostSubmittable : String -> Bool
+newPostSubmittable body =
+    not (body == "")
+
+
 
 -- SUBSCRIPTION
 
@@ -305,11 +313,18 @@ newPostView body user group =
                     , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darker resize-none leading-normal"
                     , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
+                    , onEnter True NewPostSubmit
                     , value body
                     ]
                     []
                 , div [ class "flex justify-end" ]
-                    [ button [ class "btn btn-blue btn-sm", onClick NewPostSubmit ] [ text "Post message" ] ]
+                    [ button
+                        [ class "btn btn-blue btn-sm"
+                        , onClick NewPostSubmit
+                        , disabled (not (newPostSubmittable body))
+                        ]
+                        [ text "Post message" ]
+                    ]
                 ]
             ]
         ]

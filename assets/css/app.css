@@ -89,7 +89,7 @@ body {
 
 .btn {
   @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2 .whitespace-no-wrap .cursor-pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .btn:focus {
@@ -98,6 +98,10 @@ body {
 
 .btn:active {
   transform: translateY(1px);
+}
+
+.btn:disabled {
+  @apply .cursor-not-allowed .opacity-75;
 }
 
 .btn-sm {

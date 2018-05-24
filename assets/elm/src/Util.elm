@@ -209,8 +209,8 @@ smartFormatDate now date =
 -- CUSTOM HTML EVENTS
 
 
-onEnter : msg -> Attribute msg
-onEnter msg =
+onEnter : Bool -> msg -> Attribute msg
+onEnter shiftRequired msg =
     let
         options =
             { defaultOptions | preventDefault = True }
@@ -223,7 +223,7 @@ onEnter msg =
 
         isEnter : ( Int, Bool ) -> Decode.Decoder msg
         isEnter ( code, shiftKey ) =
-            if code == 13 && shiftKey == False then
+            if code == 13 && shiftKey == shiftRequired then
                 Decode.succeed msg
             else
                 Decode.fail "not ENTER"

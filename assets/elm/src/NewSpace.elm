@@ -192,7 +192,7 @@ textField field errors =
                 , value field.value
                 , onInput field.onInput
                 , autofocus field.autofocus
-                , onEnter Submit
+                , onEnter False Submit
                 ]
                 []
             , formErrors errors
@@ -223,7 +223,7 @@ slugField slug errors =
                         , placeholder "smith-co"
                         , value slug
                         , onInput SlugChanged
-                        , onEnter Submit
+                        , onEnter False Submit
                         ]
                         []
                     ]
