@@ -22,7 +22,7 @@ import Ports
 import Route
 import Session exposing (Session)
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, formatTime, formatDateTime, onSameDay, memberById)
+import Util exposing (displayName, smartFormatDate, memberById)
 
 
 -- MODEL
@@ -318,7 +318,7 @@ postView currentUser now { node } =
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ span [ class "font-bold" ] [ text <| displayName node.author ]
-                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| formatDate now node.postedAt ]
+                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now node.postedAt ]
                 ]
             , div [ class "markdown mb-1" ] [ injectHtml node.bodyHtml ]
             , div [ class "flex items-center" ]
@@ -355,15 +355,3 @@ memberItemView { user } =
 injectHtml : String -> Html msg
 injectHtml rawHtml =
     div [ property "innerHTML" <| Encode.string rawHtml ] []
-
-
-
--- HELPERS
-
-
-formatDate : Date -> Date -> String
-formatDate now date =
-    if onSameDay now date then
-        "Today at " ++ (formatTime date)
-    else
-        formatDateTime date

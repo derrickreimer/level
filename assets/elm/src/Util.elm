@@ -7,6 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (defaultOptions, onWithOptions)
 import Http
+import Time
 
 
 type Lazy a
@@ -120,7 +121,7 @@ dateDecoder =
 -- DATE HELPERS
 
 
-{-| Converts a Time into a human-friendly HH:MM PP time string.
+{-| Converts a date into a human-friendly HH:MM PP time string.
 
     formatTime (Date ...) == "9:18 pm"
 
@@ -130,7 +131,7 @@ formatTime date =
     Date.Format.format "%-l:%M %P" date
 
 
-{-| Converts a Time into a human-friendly HH:MM time string.
+{-| Converts a date into a human-friendly HH:MM time string.
 
     formatTime (Date ...) == "9:18"
 
@@ -140,19 +141,27 @@ formatTimeWithoutMeridian date =
     Date.Format.format "%-l:%M" date
 
 
-{-| Converts a Time into a human-friendly date and time string.
+{-| Converts a date into a human-friendly date and time string.
 
-    formatDateTime (Date ...) == "Dec 26 at 11:10 am"
+    formatDateTime False (Date ...) == "Dec 26 at 11:10 am"
+    formatDateTime True (Date ...) == "Dec 26, 2018 at 11:10 am"
 
 -}
-formatDateTime : Date -> String
-formatDateTime date =
-    Date.Format.format "%b %-e" date ++ " at " ++ formatTime date
+formatDateTime : Bool -> Date -> String
+formatDateTime withYear date =
+    let
+        dateString =
+            if withYear then
+                "%b %-e, %Y"
+            else
+                "%b %-e"
+    in
+        Date.Format.format dateString date ++ " at " ++ formatTime date
 
 
-{-| Converts a Time into a human-friendly day string.
+{-| Converts a date into a human-friendly day string.
 
-    formatDateTime (Date ...) == "Wed, December 26, 2017"
+    formatDay (Date ...) == "Wed, December 26, 2017"
 
 -}
 formatDay : Date -> String
@@ -170,6 +179,30 @@ onSameDay d1 d2 =
         == Date.month d2
         && Date.day d1
         == Date.day d2
+
+
+{-| Checks to see if two days are further than one year apart.
+-}
+isOverOneYearAgo : Date -> Date -> Bool
+isOverOneYearAgo now pastDate =
+    (Date.toTime now) - (Date.toTime pastDate) > (Time.hour * 24 * 365)
+
+
+{-| Formats the given date intelligently, relative to the current time.
+
+    smartFormatDate now someTimeToday == "Today at 10:01am"
+    smartFormatDate now daysAgo == "May 15 at 5:45pm"
+    smartFormatDate now overOneYearAgo == "May 10, 2017 at 4:45pm"
+
+-}
+smartFormatDate : Date -> Date -> String
+smartFormatDate now date =
+    if onSameDay now date then
+        "Today at " ++ (formatTime date)
+    else if isOverOneYearAgo now date then
+        formatDateTime True date
+    else
+        formatDateTime False date
 
 
 
