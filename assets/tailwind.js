@@ -499,6 +499,7 @@ module.exports = {
     '24': '6rem',
     '32': '8rem',
     '48': '12rem',
+    '56': '14rem',
     '64': '16rem',
     '1/2': '50%',
     '1/3': '33.33333%',
@@ -591,6 +592,7 @@ module.exports = {
 
   minHeight: {
     '0': '0',
+    'half': '50vh',
     'full': '100%',
     'screen': '100vh'
   },

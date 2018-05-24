@@ -5,7 +5,8 @@ import Html.Attributes exposing (..)
 
 
 type Size
-    = Small
+    = Tiny
+    | Small
     | Medium
     | Large
 
@@ -32,8 +33,13 @@ personAvatar size user =
         lastInitial =
             initial user.lastName
     in
-        (firstInitial ++ lastInitial)
-            |> texitar size
+        case size of
+            Tiny ->
+                texitar size firstInitial
+
+            _ ->
+                (firstInitial ++ lastInitial)
+                    |> texitar size
 
 
 texitar : Size -> String -> Html msg
@@ -50,6 +56,9 @@ texitar size initials =
 sizeClass : Size -> String
 sizeClass size =
     case size of
+        Tiny ->
+            "texitar-tiny"
+
         Small ->
             ""
 

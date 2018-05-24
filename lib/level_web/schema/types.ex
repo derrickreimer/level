@@ -133,11 +133,21 @@ defmodule LevelWeb.Schema.Types do
       arg :order_by, :post_order
       resolve &Level.Connections.group_posts/3
     end
+
+    field :memberships, non_null(:group_membership_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :user_order
+      resolve &Level.Connections.group_memberships/3
+    end
   end
 
   @desc "A group membership defines the relationship between a user and group."
   object :group_membership do
     field :group, non_null(:group), resolve: dataloader(Groups)
+    field :space_user, non_null(:space_user), resolve: dataloader(Spaces)
   end
 
   @desc "A post represents a conversation."

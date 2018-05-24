@@ -1,25 +1,22 @@
 defmodule Level.Connections.GroupMemberships do
   @moduledoc """
-  A paginated connection for fetching a user's group memberships.
+  A paginated connection for fetching a group's memberships.
   """
 
   import Ecto.Query
-  import Level.Gettext
 
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Repo
-  alias Level.Spaces
 
   defstruct first: nil,
             last: nil,
             before: nil,
             after: nil,
-            space_id: nil,
             order_by: %{
-              field: :name,
+              field: :last_name,
               direction: :asc
             }
 
@@ -28,33 +25,20 @@ defmodule Level.Connections.GroupMemberships do
           last: integer() | nil,
           before: String.t() | nil,
           after: String.t() | nil,
-          space_id: String.t(),
-          order_by: %{field: :name, direction: :asc | :desc}
+          order_by: %{field: :last_name, direction: :asc | :desc}
         }
 
   @doc """
-  Executes a paginated query for a user's group memberships.
+  Executes a paginated query for a group's memberships.
   """
-  def get(user, args, %{context: %{current_user: authenticated_user}} = _info) do
-    if authenticated_user == user do
-      case Spaces.get_space(user, args.space_id) do
-        {:ok, %{space_user: space_user}} ->
-          base_query =
-            from gu in GroupUser,
-              where: gu.space_user_id == ^space_user.id,
-              join: g in Group,
-              on: g.id == gu.group_id,
-              select: %{gu | name: g.name}
+  def get(group, args, %{context: %{current_user: _authenticated_user}} = _info) do
+    base_query =
+      from gu in GroupUser,
+        where: gu.group_id == ^group.id,
+        join: u in assoc(gu, :user),
+        select: %{gu | last_name: u.last_name}
 
-          wrapped_query = from(gu in subquery(base_query))
-          Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
-
-        error ->
-          error
-      end
-    else
-      {:error,
-       dgettext("errors", "Group memberships are only readable for the authenticated user")}
-    end
+    wrapped_query = from(gu in subquery(base_query))
+    Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
   end
 end

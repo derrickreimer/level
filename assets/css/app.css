@@ -78,7 +78,7 @@ body {
 }
 
 .composer {
-  @apply .block .relative .p-4 .bg-grey-light .w-full .rounded-lg;
+  @apply .block .relative .p-4 .bg-grey-light .w-full;
 }
 
 .composer:focus,
@@ -118,6 +118,9 @@ body {
   @apply .rounded-full;
   @apply .flex .items-center .justify-center;
   @apply .font-bold .text-white .select-none;
+}
+.texitar-tiny {
+  @apply .w-6 .h-6 .text-xs;
 }
 .texitar-md {
   @apply .w-12 .h-12 .text-lg;
