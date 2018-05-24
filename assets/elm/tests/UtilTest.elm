@@ -8,11 +8,16 @@ import Test exposing (..)
 import Util
 
 
-{-| An arbitrary day considered to be "now" (Sept 28 1988 at 5:00:00).
+{-| An arbitrary day considered to be "now".
 -}
 now : Date
 now =
-    Date.fromTime 591444000000
+    case Date.fromString "1988-09-28 05:00:00" of
+        Ok date ->
+            date
+
+        _ ->
+            Debug.crash "Unable to parse date"
 
 
 {-| Tests for utility functions.
