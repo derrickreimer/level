@@ -142,12 +142,12 @@ formatTimeWithoutMeridian date =
 
 {-| Converts a Time into a human-friendly date and time string.
 
-    formatDateTime (Date ...) == "Dec 26, 2017 at 11:10 am"
+    formatDateTime (Date ...) == "Dec 26 at 11:10 am"
 
 -}
 formatDateTime : Date -> String
 formatDateTime date =
-    Date.Format.format "%b %-e, %Y" date ++ " at " ++ formatTime date
+    Date.Format.format "%b %-e" date ++ " at " ++ formatTime date
 
 
 {-| Converts a Time into a human-friendly day string.

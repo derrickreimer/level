@@ -1,5 +1,6 @@
 module Page.Group exposing (..)
 
+import Date exposing (Date)
 import Dom exposing (focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -8,6 +9,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
+import Time exposing (Time, every, second)
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
 import Data.GroupUser exposing (GroupUser, GroupUserEdge, GroupUserConnection, groupUserConnectionDecoder)
@@ -20,7 +22,7 @@ import Ports
 import Route
 import Session exposing (Session)
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, formatTime, memberById)
+import Util exposing (displayName, formatTime, formatDateTime, onSameDay, memberById)
 
 
 -- MODEL
@@ -34,6 +36,7 @@ type alias Model =
     , members : GroupUserConnection
     , newPostBody : String
     , isNewPostSubmitting : Bool
+    , now : Date
     }
 
 
@@ -43,6 +46,12 @@ type alias Model =
 
 init : Space -> SpaceUser -> String -> Session -> Task Session.Error ( Session, Model )
 init space user groupId session =
+    Date.now
+        |> Task.andThen (bootstrap space user groupId session)
+
+
+bootstrap : Space -> SpaceUser -> String -> Session -> Date -> Task Session.Error ( Session, Model )
+bootstrap space user groupId session now =
     let
         query =
             """
@@ -108,23 +117,23 @@ init space user groupId session =
                 [ ( "spaceId", Encode.string space.id )
                 , ( "groupId", Encode.string groupId )
                 ]
+
+        decoder : Space -> SpaceUser -> Date -> Decode.Decoder Model
+        decoder space user now =
+            Decode.at [ "data", "space" ] <|
+                (Pipeline.decode Model
+                    |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
+                    |> Pipeline.custom (Decode.succeed space)
+                    |> Pipeline.custom (Decode.succeed user)
+                    |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
+                    |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupUserConnectionDecoder)
+                    |> Pipeline.custom (Decode.succeed "")
+                    |> Pipeline.custom (Decode.succeed False)
+                    |> Pipeline.custom (Decode.succeed now)
+                )
     in
-        GraphQL.request query (Just variables) (decoder space user)
+        GraphQL.request query (Just variables) (decoder space user now)
             |> Session.request session
-
-
-decoder : Space -> SpaceUser -> Decode.Decoder Model
-decoder space user =
-    Decode.at [ "data", "space" ] <|
-        (Pipeline.decode Model
-            |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
-            |> Pipeline.custom (Decode.succeed space)
-            |> Pipeline.custom (Decode.succeed user)
-            |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
-            |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupUserConnectionDecoder)
-            |> Pipeline.custom (Decode.succeed "")
-            |> Pipeline.custom (Decode.succeed False)
-        )
 
 
 afterInit : Model -> Cmd Msg
@@ -146,6 +155,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | Tick Time
     | NewPostBodyChanged String
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, PostToGroup.Response ))
@@ -155,10 +165,15 @@ update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
 update msg session model =
     case msg of
         NoOp ->
-            noOp session model
+            noCmd session model
+
+        Tick time ->
+            { model | now = Date.fromTime time }
+                |> noCmd session
 
         NewPostBodyChanged value ->
-            noOp session { model | newPostBody = value }
+            { model | newPostBody = value }
+                |> noCmd session
 
         NewPostSubmit ->
             let
@@ -171,18 +186,20 @@ update msg session model =
                 ( ( { model | isNewPostSubmitting = True }, cmd ), session )
 
         NewPostSubmitted (Ok ( session, response )) ->
-            noOp session { model | newPostBody = "", isNewPostSubmitting = False }
+            { model | newPostBody = "", isNewPostSubmitting = False }
+                |> noCmd session
 
         NewPostSubmitted (Err Session.Expired) ->
             redirectToLogin session model
 
         NewPostSubmitted (Err _) ->
             -- TODO: display error message
-            noOp session { model | isNewPostSubmitting = False }
+            { model | isNewPostSubmitting = False }
+                |> noCmd session
 
 
-noOp : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noOp session model =
+noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+noCmd session model =
     ( ( model, Cmd.none ), session )
 
 
@@ -241,6 +258,15 @@ addPostToConnection post connection =
 
 
 
+-- SUBSCRIPTION
+
+
+subscriptions : Sub Msg
+subscriptions =
+    every second Tick
+
+
+
 -- VIEW
 
 
@@ -252,7 +278,7 @@ view model =
                 [ h2 [ class "font-extrabold text-2xl" ] [ text model.group.name ]
                 ]
             , newPostView model.newPostBody model.user model.group
-            , postListView model.user model.posts.edges
+            , postListView model.user model.posts.edges model.now
             , sidebarView model.members
             ]
         ]
@@ -279,20 +305,20 @@ newPostView body user group =
         ]
 
 
-postListView : SpaceUser -> List PostEdge -> Html Msg
-postListView currentUser edges =
+postListView : SpaceUser -> List PostEdge -> Date -> Html Msg
+postListView currentUser edges now =
     div [] <|
-        List.map (postView currentUser) edges
+        List.map (postView currentUser now) edges
 
 
-postView : SpaceUser -> PostEdge -> Html Msg
-postView currentUser { node } =
+postView : SpaceUser -> Date -> PostEdge -> Html Msg
+postView currentUser now { node } =
     div [ class "flex p-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium node.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ span [ class "font-bold" ] [ text <| displayName node.author ]
-                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| formatTime node.postedAt ]
+                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| formatDate now node.postedAt ]
                 ]
             , div [ class "markdown mb-1" ] [ injectHtml node.bodyHtml ]
             , div [ class "flex items-center" ]
@@ -329,3 +355,15 @@ memberItemView { user } =
 injectHtml : String -> Html msg
 injectHtml rawHtml =
     div [ property "innerHTML" <| Encode.string rawHtml ] []
+
+
+
+-- HELPERS
+
+
+formatDate : Date -> Date -> String
+formatDate now date =
+    if onSameDay now date then
+        "Today at " ++ (formatTime date)
+    else
+        formatDateTime date
