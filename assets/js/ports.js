@@ -46,6 +46,7 @@ export const attachPorts = app => {
     });
 
     notifiers.forEach(notifier => {
+      logEvent("cancel")(notifier);
       AbsintheSocket.cancel(absintheSocket, notifier);
     })
   })
