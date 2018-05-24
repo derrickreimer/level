@@ -5,6 +5,7 @@ import {
 } from "./socket";
 import { getApiToken } from "./token";
 import * as AbsintheSocket from "@absinthe/socket";
+import autosize from "autosize";
 
 const logEvent = eventName => (...args) => console.log(eventName, ...args);
 
@@ -88,6 +89,17 @@ export const attachPorts = app => {
       if (!(container && anchor)) return;
 
       container.scrollTop = anchor.offsetTop + offset;
+    });
+  });
+
+  app.ports.autosize.subscribe(arg => {
+    const { method, id } = arg;
+
+    requestAnimationFrame(() => {
+      let node = document.getElementById(id);
+      autosize(node);
+      if (method === "update") autosize.update(node);
+      if (method === "destroy") autosize.destroy(node);
     });
   });
 };

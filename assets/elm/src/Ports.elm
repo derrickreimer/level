@@ -2,6 +2,7 @@ port module Ports exposing (..)
 
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Autosize
 import Socket
 
 
@@ -73,3 +74,6 @@ port getScrollPosition : ScrollPositionArgs -> Cmd msg
 
 
 port scrollTo : ScrollParams -> Cmd msg
+
+
+port autosize : Autosize.Args -> Cmd msg

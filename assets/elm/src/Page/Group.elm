@@ -9,7 +9,8 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
-import Time exposing (Time, every, second)
+import Time exposing (Time, every, second, millisecond)
+import Autosize
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
 import Data.GroupUser exposing (GroupUser, GroupUserEdge, GroupUserConnection, groupUserConnectionDecoder)
@@ -140,6 +141,7 @@ afterInit : Model -> Cmd Msg
 afterInit model =
     Cmd.batch
         [ setFocus "post-composer"
+        , autosize Autosize.Init "post-composer"
         , setupSockets model.group
         ]
 
@@ -186,8 +188,11 @@ update msg session model =
                 ( ( { model | isNewPostSubmitting = True }, cmd ), session )
 
         NewPostSubmitted (Ok ( session, response )) ->
-            { model | newPostBody = "", isNewPostSubmitting = False }
-                |> noCmd session
+            ( ( { model | newPostBody = "", isNewPostSubmitting = False }
+              , autosize Autosize.Update "post-composer"
+              )
+            , session
+            )
 
         NewPostSubmitted (Err Session.Expired) ->
             redirectToLogin session model
@@ -235,6 +240,11 @@ redirectToLogin session model =
 setFocus : String -> Cmd Msg
 setFocus id =
     Task.attempt (always NoOp) <| focus id
+
+
+autosize : Autosize.Method -> String -> Cmd Msg
+autosize method id =
+    Ports.autosize (Autosize.buildArgs method id)
 
 
 receivePost : Post -> Model -> Model
