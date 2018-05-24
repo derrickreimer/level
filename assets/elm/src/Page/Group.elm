@@ -292,8 +292,11 @@ view : Model -> Html Msg
 view model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "sticky pin-t border-b border-grey-light py-4 bg-white z-50" ]
-                [ h2 [ class "font-extrabold text-2xl" ] [ text model.group.name ]
+            [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
+                [ div [ class "flex items-center" ]
+                    [ h2 [ class "flex-grow font-extrabold text-2xl" ] [ text model.group.name ]
+                    , button [ class "btn btn-grey-outline btn-xs" ] [ text "Subscribe" ]
+                    ]
                 ]
             , newPostView model.newPostBody model.user model.group
             , postListView model.user model.posts.edges model.now
@@ -357,8 +360,8 @@ postView currentUser now { node } =
 
 sidebarView : GroupUserConnection -> Html Msg
 sidebarView { edges } =
-    div [ class "fixed pin-t pin-r w-56 mt-4 py-2 pl-6 border-l border-grey-light min-h-half" ]
-        [ h3 [ class "mb-2 text-base" ] [ text "Members" ]
+    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l border-grey-light min-h-half" ]
+        [ h3 [ class "mb-3 text-base" ] [ text "Members" ]
         , memberListView edges
         ]
 

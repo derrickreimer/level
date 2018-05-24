@@ -77,8 +77,16 @@ body {
   @apply .mt-2 .text-sm .text-red .font-bold;
 }
 
+.scrolled-top .group-header {
+  @apply .border-transparent;
+}
+
+.group-header {
+  @apply .border-grey-light;
+}
+
 .composer {
-  @apply .block .relative .p-4 .bg-grey-light .w-full;
+  @apply .block .relative .p-4 .bg-grey-light .w-full .rounded-lg;
 }
 
 .composer:focus,
@@ -101,7 +109,11 @@ body {
 }
 
 .btn:disabled {
-  @apply .cursor-not-allowed .opacity-75;
+  @apply .cursor-not-allowed;
+}
+
+.btn-xs {
+  @apply .px-3 .py-0 .text-sm .border .h-6;
 }
 
 .btn-sm {
@@ -114,6 +126,10 @@ body {
 
 .btn-blue:hover {
   @apply .bg-blue-dark .border-blue-dark;
+}
+
+.btn-grey-outline {
+  @apply .bg-transparent .text-dusty-blue-dark;
 }
 
 .texitar {

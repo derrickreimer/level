@@ -35,3 +35,11 @@ if (moduleNode) {
       break;
   }
 }
+
+setInterval(() => {
+  if (window.scrollY < 5) {
+    document.body.classList.add("scrolled-top");
+  } else {
+    document.body.classList.remove("scrolled-top");
+  }
+}, 100);
