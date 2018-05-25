@@ -25,7 +25,7 @@ defmodule Level.Groups.GroupUser do
     # so we'll just use a virtual field instead of a actual database column.
     # If we add more later, then we'll create a column for this and backfill
     # existing records with SUBSCRIBED.
-    field :subscription_level, :string, virtual: true, default: "SUBSCRIBED"
+    field :state, :string, virtual: true, default: "SUBSCRIBED"
 
     # Holds the group name when loaded via a join
     field :name, :string, virtual: true

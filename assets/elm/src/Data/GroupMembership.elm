@@ -3,14 +3,16 @@ module Data.GroupMembership
         ( GroupMembership
         , GroupMembershipConnection
         , GroupMembershipEdge
-        , GroupSubscriptionLevel(..)
+        , GroupMembershipState(..)
         , groupMembershipDecoder
         , groupMembershipConnectionDecoder
-        , groupSubscriptionLevelDecoder
+        , groupMembershipStateDecoder
+        , groupMembershipStateEncoder
         )
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Json.Encode as Encode
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 
@@ -34,7 +36,7 @@ type alias GroupMembership =
     }
 
 
-type GroupSubscriptionLevel
+type GroupMembershipState
     = NotSubscribed
     | Subscribed
 
@@ -62,10 +64,10 @@ groupMembershipDecoder =
         |> Pipeline.required "spaceUser" spaceUserDecoder
 
 
-groupSubscriptionLevelDecoder : Decode.Decoder GroupSubscriptionLevel
-groupSubscriptionLevelDecoder =
+groupMembershipStateDecoder : Decode.Decoder GroupMembershipState
+groupMembershipStateDecoder =
     let
-        convert : Maybe String -> Decode.Decoder GroupSubscriptionLevel
+        convert : Maybe String -> Decode.Decoder GroupMembershipState
         convert raw =
             case raw of
                 Just "SUBSCRIBED" ->
@@ -77,5 +79,19 @@ groupSubscriptionLevelDecoder =
                 Nothing ->
                     Decode.succeed NotSubscribed
     in
-        Decode.maybe (Decode.field "subscriptionLevel" Decode.string)
+        Decode.maybe (Decode.field "state" Decode.string)
             |> Decode.andThen convert
+
+
+
+-- ENCODERS
+
+
+groupMembershipStateEncoder : GroupMembershipState -> Encode.Value
+groupMembershipStateEncoder state =
+    case state of
+        NotSubscribed ->
+            Encode.string "NOT_SUBSCRIBED"
+
+        Subscribed ->
+            Encode.string "SUBSCRIBED"

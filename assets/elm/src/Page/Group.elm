@@ -18,15 +18,16 @@ import Data.GroupMembership
         ( GroupMembership
         , GroupMembershipEdge
         , GroupMembershipConnection
-        , GroupSubscriptionLevel(..)
+        , GroupMembershipState(..)
         , groupMembershipConnectionDecoder
-        , groupSubscriptionLevelDecoder
+        , groupMembershipStateDecoder
         )
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
+import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
 import Route
 import Session exposing (Session)
@@ -41,7 +42,7 @@ type alias Model =
     { group : Group
     , space : Space
     , user : SpaceUser
-    , subscriptionLevel : GroupSubscriptionLevel
+    , state : GroupMembershipState
     , posts : PostConnection
     , members : GroupMembershipConnection
     , newPostBody : String
@@ -74,7 +75,7 @@ bootstrap space user groupId session now =
                     id
                     name
                     membership {
-                      subscriptionLevel
+                      state
                     }
                     memberships(first: 10) {
                       edges {
@@ -138,7 +139,7 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
                     |> Pipeline.custom (Decode.succeed space)
                     |> Pipeline.custom (Decode.succeed user)
-                    |> Pipeline.custom (Decode.at [ "group", "membership" ] groupSubscriptionLevelDecoder)
+                    |> Pipeline.custom (Decode.at [ "group", "membership" ] groupMembershipStateDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupMembershipConnectionDecoder)
                     |> Pipeline.custom (Decode.succeed "")
@@ -174,6 +175,8 @@ type Msg
     | NewPostBodyChanged String
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, PostToGroup.Response ))
+    | MembershipStateToggled GroupMembershipState
+    | MembershipStateSubmitted (Result Session.Error ( Session, UpdateGroupMembership.Response ))
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -217,6 +220,21 @@ update msg session model =
             -- TODO: display error message
             { model | isNewPostSubmitting = False }
                 |> noCmd session
+
+        MembershipStateToggled state ->
+            let
+                cmd =
+                    UpdateGroupMembership.Params model.space.id model.group.id state
+                        |> UpdateGroupMembership.request
+                        |> Session.request session
+                        |> Task.attempt MembershipStateSubmitted
+            in
+                -- Update the state on the model optimistically
+                ( ( { model | state = state }, cmd ), session )
+
+        MembershipStateSubmitted _ ->
+            -- TODO: handle errors
+            noCmd session model
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -308,7 +326,7 @@ view model =
             [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-grow font-extrabold text-2xl" ] [ text model.group.name ]
-                    , subscribeButtonView model.subscriptionLevel
+                    , subscribeButtonView model.state
                     ]
                 ]
             , newPostView model.newPostBody model.user model.group
@@ -318,14 +336,22 @@ view model =
         ]
 
 
-subscribeButtonView : GroupSubscriptionLevel -> Html Msg
-subscribeButtonView subscriptionLevel =
-    case subscriptionLevel of
+subscribeButtonView : GroupMembershipState -> Html Msg
+subscribeButtonView state =
+    case state of
         NotSubscribed ->
-            button [ class "btn btn-grey-outline btn-xs" ] [ text "Subscribe" ]
+            button
+                [ class "btn btn-grey-outline btn-xs"
+                , onClick (MembershipStateToggled Subscribed)
+                ]
+                [ text "Join" ]
 
         Subscribed ->
-            button [ class "btn btn-turquoise btn-xs" ] [ text "Subscribed" ]
+            button
+                [ class "btn btn-turquoise btn-xs"
+                , onClick (MembershipStateToggled NotSubscribed)
+                ]
+                [ text "Member" ]
 
 
 newPostView : String -> SpaceUser -> Group -> Html Msg

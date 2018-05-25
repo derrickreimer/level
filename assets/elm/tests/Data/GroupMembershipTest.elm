@@ -2,13 +2,13 @@ module Data.GroupMembershipTest exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (string)
-import Data.GroupMembership as GroupMembership exposing (GroupSubscriptionLevel(..))
+import Data.GroupMembership as GroupMembership exposing (GroupMembershipState(..))
 import Test exposing (..)
 import Json.Decode as Decode exposing (decodeString)
 import TestHelpers exposing (success)
 
 
-subscriptionLevelDecoder =
+stateDecoder =
     decodeString (Decode.at [ "membership" ] GroupMembership.groupSubscriptionLevelDecoder)
 
 
@@ -25,13 +25,13 @@ decoders =
                             """
                               {
                                 "membership": {
-                                  "subscriptionLevel": "SUBSCRIBED"
+                                  "state": "SUBSCRIBED"
                                 }
                               }
                             """
 
                         result =
-                            subscriptionLevelDecoder json
+                            stateDecoder json
                     in
                         Expect.equal (Ok Subscribed) result
             , test "decodes not subscribed state" <|
@@ -45,7 +45,7 @@ decoders =
                             """
 
                         result =
-                            subscriptionLevelDecoder json
+                            stateDecoder json
                     in
                         Expect.equal (Ok NotSubscribed) result
             , test "errors out with invalid states" <|
@@ -55,13 +55,13 @@ decoders =
                             """
                               {
                                 "membership": {
-                                  "subscriptionLevel": "INVALID"
+                                  "state": "INVALID"
                                 }
                               }
                             """
 
                         result =
-                            subscriptionLevelDecoder json
+                            stateDecoder json
                     in
                         Expect.equal (Err "I ran into a `fail` decoder at _.membership: Subscription level not valid") result
             ]
