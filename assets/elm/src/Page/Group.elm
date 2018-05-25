@@ -18,7 +18,7 @@ import Data.GroupMembership
         ( GroupMembership
         , GroupMembershipEdge
         , GroupMembershipConnection
-        , GroupSubscriptionLevel
+        , GroupSubscriptionLevel(..)
         , groupMembershipConnectionDecoder
         , groupSubscriptionLevelDecoder
         )
@@ -308,7 +308,7 @@ view model =
             [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-grow font-extrabold text-2xl" ] [ text model.group.name ]
-                    , button [ class "btn btn-grey-outline btn-xs" ] [ text "Subscribe" ]
+                    , subscribeButtonView model.subscriptionLevel
                     ]
                 ]
             , newPostView model.newPostBody model.user model.group
@@ -316,6 +316,16 @@ view model =
             , sidebarView model.members
             ]
         ]
+
+
+subscribeButtonView : GroupSubscriptionLevel -> Html Msg
+subscribeButtonView subscriptionLevel =
+    case subscriptionLevel of
+        NotSubscribed ->
+            button [ class "btn btn-grey-outline btn-xs" ] [ text "Subscribe" ]
+
+        Subscribed ->
+            button [ class "btn btn-turquoise btn-xs" ] [ text "Subscribed" ]
 
 
 newPostView : String -> SpaceUser -> Group -> Html Msg
