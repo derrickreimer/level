@@ -313,7 +313,7 @@ newPostView body user group =
             , div [ class "flex-grow" ]
                 [ textarea
                     [ id "post-composer"
-                    , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darker resize-none leading-normal"
+                    , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                     , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
                     , onEnter True NewPostSubmit

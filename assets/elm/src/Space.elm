@@ -531,7 +531,7 @@ sidebarLink title maybeRoute currentPage =
                     [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
                     , a
                         [ Route.href route
-                        , class "ml-2 text-dusty-blue-darker no-underline"
+                        , class "ml-2 text-dusty-blue-darkest no-underline"
                         ]
                         [ text title ]
                     ]
@@ -539,7 +539,7 @@ sidebarLink title maybeRoute currentPage =
                 li []
                     [ a
                         [ Route.href route
-                        , class "ml-2 text-dusty-blue-darker no-underline"
+                        , class "ml-2 text-dusty-blue-darkest no-underline"
                         ]
                         [ text title ]
                     ]
@@ -548,7 +548,7 @@ sidebarLink title maybeRoute currentPage =
             li []
                 [ a
                     [ href "#"
-                    , class "ml-2 text-dusty-blue-darker no-underline"
+                    , class "ml-2 text-dusty-blue-darkest no-underline"
                     ]
                     [ text title ]
                 ]

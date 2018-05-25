@@ -37,7 +37,7 @@
  */
 
 body {
-  @apply .text-dusty-blue-darker;
+  @apply .text-dusty-blue-darkest;
 }
 
 .logo-md {
