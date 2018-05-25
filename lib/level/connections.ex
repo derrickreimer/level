@@ -103,6 +103,20 @@ defmodule Level.Connections do
   end
 
   @doc """
+  Fetches the current user's membership.
+  """
+  @spec group_membership(Group.t(), map(), authenticated_context()) :: {:ok, GroupUser.t() | nil}
+  def group_membership(%Group{} = group, _args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, group.space_id),
+         {:ok, group_user} <- Level.Groups.get_group_membership(group, space_user) do
+      {:ok, group_user}
+    else
+      {:error, _} ->
+        {:ok, nil}
+    end
+  end
+
+  @doc """
   Fetches posts within a given group.
   """
   @spec group_posts(Group.t(), GroupPosts.t(), authenticated_context()) :: paginated_result()

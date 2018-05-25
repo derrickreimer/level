@@ -142,6 +142,11 @@ defmodule LevelWeb.Schema.Types do
       arg :order_by, :user_order
       resolve &Level.Connections.group_memberships/3
     end
+
+    field :membership, :group_membership do
+      # TODO: figure out a good way to use dataloader to batch this?
+      resolve &Level.Connections.group_membership/3
+    end
   end
 
   @desc "A group membership defines the relationship between a user and group."
