@@ -14,9 +14,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
       space(id: $space_id) {
         group(id: $group_id) {
           membership {
-            group {
-              id
-            }
+            subscriptionLevel
             spaceUser {
               id
             }
@@ -47,9 +45,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
                "space" => %{
                  "group" => %{
                    "membership" => %{
-                     "group" => %{
-                       "id" => group.id
-                     },
+                     "subscriptionLevel" => "SUBSCRIBED",
                      "spaceUser" => %{
                        "id" => space_user.id
                      }

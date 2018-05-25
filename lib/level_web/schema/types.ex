@@ -153,6 +153,7 @@ defmodule LevelWeb.Schema.Types do
   object :group_membership do
     field :group, non_null(:group), resolve: dataloader(Groups)
     field :space_user, non_null(:space_user), resolve: dataloader(Spaces)
+    field :subscription_level, non_null(:group_subscription_level)
   end
 
   @desc "A post represents a conversation."

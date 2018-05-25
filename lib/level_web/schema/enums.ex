@@ -55,6 +55,10 @@ defmodule LevelWeb.Schema.Enums do
     value :name
   end
 
+  enum :group_subscription_level do
+    value :subscribed, as: "SUBSCRIBED"
+  end
+
   enum :post_order_field do
     value :posted_at
   end

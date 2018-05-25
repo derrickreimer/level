@@ -21,6 +21,12 @@ defmodule Level.Groups.GroupUser do
     belongs_to :group, Group
     has_one :user, through: [:space_user, :user]
 
+    # For now, there is only one subscription level that we are working with,
+    # so we'll just use a virtual field instead of a actual database column.
+    # If we add more later, then we'll create a column for this and backfill
+    # existing records with SUBSCRIBED.
+    field :subscription_level, :string, virtual: true, default: "SUBSCRIBED"
+
     # Holds the group name when loaded via a join
     field :name, :string, virtual: true
 
