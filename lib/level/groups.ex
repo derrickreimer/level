@@ -153,6 +153,57 @@ defmodule Level.Groups do
   end
 
   @doc """
+  Deletes a group membership.
+  """
+  @spec delete_group_membership(GroupUser.t()) ::
+          {:ok, GroupUser.t()} | {:error, Ecto.Changeset.t()}
+  def delete_group_membership(group_user) do
+    Repo.delete(group_user)
+  end
+
+  @doc """
+  Updates group membership state.
+  """
+  @spec update_group_membership(Group.t(), SpaceUser.t(), String.t()) ::
+          {:ok, GroupUser.t()} | {:error, GroupUser.t(), Ecto.Changeset.t()}
+  def update_group_membership(group, space_user, state) do
+    case {get_group_membership(group, space_user), state} do
+      {{:ok, group_user}, "NOT_SUBSCRIBED"} ->
+        case delete_group_membership(group_user) do
+          {:ok, _} ->
+            {:ok, not_subscribed_membership(group.space_id, space_user, group)}
+
+          {:error, changeset} ->
+            {:error, group_user, changeset}
+        end
+
+      {{:error, _}, "SUBSCRIBED"} ->
+        case create_group_membership(group, space_user) do
+          {:ok, group_user} ->
+            {:ok, group_user}
+
+          {:error, changeset} ->
+            {:error, not_subscribed_membership(group.space_id, space_user, group), changeset}
+        end
+
+      {{:ok, group_user}, _} ->
+        {:ok, group_user}
+
+      {{:error, _}, _} ->
+        {:ok, not_subscribed_membership(group.space_id, space_user, group)}
+    end
+  end
+
+  defp not_subscribed_membership(space_id, space_user, group) do
+    %GroupUser{
+      state: "NOT_SUBSCRIBED",
+      space_id: space_id,
+      space_user: space_user,
+      group: group
+    }
+  end
+
+  @doc """
   Bookmarks a group.
   """
   @spec bookmark_group(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}

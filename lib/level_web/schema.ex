@@ -80,6 +80,15 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_group/2
     end
 
+    @desc "Update a group membership."
+    field :update_group_membership, type: :update_group_membership_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+      arg :state, non_null(:group_membership_state)
+
+      resolve &Level.Mutations.update_group_membership/2
+    end
+
     @desc "Bookmark a group."
     field :bookmark_group, type: :bookmark_group_payload do
       arg :space_id, non_null(:id)
