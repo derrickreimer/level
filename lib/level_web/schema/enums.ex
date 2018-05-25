@@ -56,6 +56,7 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   enum :group_membership_state do
+    value :not_subscribed, as: "NOT_SUBSCRIBED"
     value :subscribed, as: "SUBSCRIBED"
   end
 

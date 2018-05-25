@@ -3,8 +3,8 @@ defmodule Level.Groups.GroupUserTest do
 
   alias Level.Groups.GroupUser
 
-  test "has a subscription level" do
+  test "has a default state of subscribed" do
     struct = %GroupUser{}
-    assert struct.subscription_level == "SUBSCRIBED"
+    assert struct.state == "SUBSCRIBED"
   end
 end

@@ -67,19 +67,19 @@ groupMembershipDecoder =
 groupMembershipStateDecoder : Decode.Decoder GroupMembershipState
 groupMembershipStateDecoder =
     let
-        convert : Maybe String -> Decode.Decoder GroupMembershipState
+        convert : String -> Decode.Decoder GroupMembershipState
         convert raw =
             case raw of
-                Just "SUBSCRIBED" ->
+                "SUBSCRIBED" ->
                     Decode.succeed Subscribed
 
-                Just _ ->
-                    Decode.fail "Subscription level not valid"
-
-                Nothing ->
+                "NOT_SUBSCRIBED" ->
                     Decode.succeed NotSubscribed
+
+                _ ->
+                    Decode.fail "Membership state not valid"
     in
-        Decode.maybe (Decode.field "state" Decode.string)
+        Decode.field "state" Decode.string
             |> Decode.andThen convert
 
 

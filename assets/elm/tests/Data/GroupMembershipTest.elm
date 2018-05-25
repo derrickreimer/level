@@ -2,14 +2,14 @@ module Data.GroupMembershipTest exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (string)
-import Data.GroupMembership as GroupMembership exposing (GroupMembershipState(..))
+import Data.GroupMembership as GroupMembership exposing (GroupMembershipState(..), groupMembershipStateDecoder)
 import Test exposing (..)
 import Json.Decode as Decode exposing (decodeString)
 import TestHelpers exposing (success)
 
 
 stateDecoder =
-    decodeString (Decode.at [ "membership" ] GroupMembership.groupSubscriptionLevelDecoder)
+    decodeString (Decode.at [ "membership" ] groupMembershipStateDecoder)
 
 
 {-| Tests for JSON decoders.
@@ -17,7 +17,7 @@ stateDecoder =
 decoders : Test
 decoders =
     describe "decoders"
-        [ describe "GroupMembership.groupSubscriptionLevelDecoder"
+        [ describe "GroupMembership.groupMembershipStateDecoder"
             [ test "decodes subscribed state" <|
                 \_ ->
                     let
@@ -40,7 +40,9 @@ decoders =
                         json =
                             """
                               {
-                                "membership": null
+                                "membership": {
+                                  "state": "NOT_SUBSCRIBED"
+                                }
                               }
                             """
 
@@ -63,6 +65,6 @@ decoders =
                         result =
                             stateDecoder json
                     in
-                        Expect.equal (Err "I ran into a `fail` decoder at _.membership: Subscription level not valid") result
+                        Expect.equal (Err "I ran into a `fail` decoder at _.membership: Membership state not valid") result
             ]
         ]

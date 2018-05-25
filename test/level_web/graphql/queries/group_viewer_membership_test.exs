@@ -14,7 +14,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
       space(id: $space_id) {
         group(id: $group_id) {
           membership {
-            subscriptionLevel
+            state
             spaceUser {
               id
             }
@@ -45,7 +45,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
                "space" => %{
                  "group" => %{
                    "membership" => %{
-                     "subscriptionLevel" => "SUBSCRIBED",
+                     "state" => "SUBSCRIBED",
                      "spaceUser" => %{
                        "id" => space_user.id
                      }
@@ -56,7 +56,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
            }
   end
 
-  test "group membership field is nil if viewer is not a member", %{
+  test "group membership field is in non-subscribed state if viewer is not a member", %{
     conn: conn,
     space_user: space_user
   } do
@@ -77,7 +77,12 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
              "data" => %{
                "space" => %{
                  "group" => %{
-                   "membership" => nil
+                   "membership" => %{
+                     "state" => "NOT_SUBSCRIBED",
+                     "spaceUser" => %{
+                       "id" => space_user.id
+                     }
+                   }
                  }
                }
              }
