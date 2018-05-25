@@ -13,7 +13,15 @@ import Time exposing (Time, every, second, millisecond)
 import Autosize
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
-import Data.GroupUser exposing (GroupUser, GroupUserEdge, GroupUserConnection, groupUserConnectionDecoder)
+import Data.GroupMembership
+    exposing
+        ( GroupMembership
+        , GroupMembershipEdge
+        , GroupMembershipConnection
+        , GroupSubscriptionLevel
+        , groupMembershipConnectionDecoder
+        , groupSubscriptionLevelDecoder
+        )
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
@@ -33,8 +41,9 @@ type alias Model =
     { group : Group
     , space : Space
     , user : SpaceUser
+    , subscriptionLevel : GroupSubscriptionLevel
     , posts : PostConnection
-    , members : GroupUserConnection
+    , members : GroupMembershipConnection
     , newPostBody : String
     , isNewPostSubmitting : Bool
     , now : Date
@@ -64,6 +73,9 @@ bootstrap space user groupId session now =
                   group(id: $groupId) {
                     id
                     name
+                    membership {
+                      subscriptionLevel
+                    }
                     memberships(first: 10) {
                       edges {
                         node {
@@ -126,8 +138,9 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
                     |> Pipeline.custom (Decode.succeed space)
                     |> Pipeline.custom (Decode.succeed user)
+                    |> Pipeline.custom (Decode.at [ "group", "membership" ] groupSubscriptionLevelDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
-                    |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupUserConnectionDecoder)
+                    |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupMembershipConnectionDecoder)
                     |> Pipeline.custom (Decode.succeed "")
                     |> Pipeline.custom (Decode.succeed False)
                     |> Pipeline.custom (Decode.succeed now)
@@ -358,7 +371,7 @@ postView currentUser now { node } =
         ]
 
 
-sidebarView : GroupUserConnection -> Html Msg
+sidebarView : GroupMembershipConnection -> Html Msg
 sidebarView { edges } =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l border-grey-light min-h-half" ]
         [ h3 [ class "mb-3 text-base" ] [ text "Members" ]
@@ -366,13 +379,13 @@ sidebarView { edges } =
         ]
 
 
-memberListView : List GroupUserEdge -> Html Msg
+memberListView : List GroupMembershipEdge -> Html Msg
 memberListView edges =
     div [] <|
         List.map memberItemView (List.map .node edges)
 
 
-memberItemView : GroupUser -> Html Msg
+memberItemView : GroupMembership -> Html Msg
 memberItemView { user } =
     div [ class "flex items-center" ]
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
