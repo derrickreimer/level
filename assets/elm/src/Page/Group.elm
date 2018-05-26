@@ -423,7 +423,7 @@ memberListView edges =
 
 memberItemView : GroupMembership -> Html Msg
 memberItemView { user } =
-    div [ class "flex items-center" ]
+    div [ class "flex items-center mb-1" ]
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm" ] [ text <| displayName user ]
         ]

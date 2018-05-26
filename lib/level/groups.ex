@@ -34,6 +34,7 @@ defmodule Level.Groups do
 
   def groups_base_query(%User{id: user_id}) do
     from g in Group,
+      distinct: g.id,
       join: su in SpaceUser,
       on: su.space_id == g.space_id and su.user_id == ^user_id,
       left_join: gu in GroupUser,
