@@ -1,5 +1,6 @@
 module Space exposing (..)
 
+import Debug
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -278,6 +279,21 @@ handleSocketResult value model page sharedState =
             in
                 ( { model | sharedState = Loaded newSharedState }, Cmd.none )
 
+        Event.GroupMembershipUpdated data ->
+            case model.page of
+                Group ({ group } as pageModel) ->
+                    if group.id == data.groupId then
+                        let
+                            newPageModel =
+                                Page.Group.handleGroupMembershipUpdated data pageModel
+                        in
+                            ( { model | page = Group newPageModel }, Cmd.none )
+                    else
+                        ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         Event.GroupUnbookmarked data ->
             let
                 groups =
@@ -289,13 +305,13 @@ handleSocketResult value model page sharedState =
             in
                 ( { model | sharedState = Loaded newSharedState }, Cmd.none )
 
-        Event.PostCreated { post } ->
+        Event.PostCreated data ->
             case model.page of
                 Group ({ group } as pageModel) ->
                     let
                         newPageModel =
                             pageModel
-                                |> Page.Group.receivePost post
+                                |> Page.Group.handlePostCreated data
                     in
                         ( { model | page = Group newPageModel }, Cmd.none )
 

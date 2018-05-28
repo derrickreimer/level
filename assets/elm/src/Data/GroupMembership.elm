@@ -8,6 +8,8 @@ module Data.GroupMembership
         , groupMembershipConnectionDecoder
         , groupMembershipStateDecoder
         , groupMembershipStateEncoder
+        , add
+        , remove
         )
 
 import Json.Decode as Decode
@@ -79,7 +81,7 @@ groupMembershipStateDecoder =
                 _ ->
                     Decode.fail "Membership state not valid"
     in
-        Decode.field "state" Decode.string
+        Decode.string
             |> Decode.andThen convert
 
 
@@ -95,3 +97,29 @@ groupMembershipStateEncoder state =
 
         Subscribed ->
             Encode.string "SUBSCRIBED"
+
+
+
+-- MUTATIONS
+
+
+add : GroupMembership -> GroupMembershipConnection -> GroupMembershipConnection
+add membership connection =
+    let
+        edges =
+            connection.edges
+    in
+        if List.any (\{ node } -> node.user.id == membership.user.id) edges then
+            connection
+        else
+            { connection | edges = (GroupMembershipEdge membership) :: edges }
+
+
+remove : GroupMembership -> GroupMembershipConnection -> GroupMembershipConnection
+remove membership connection =
+    let
+        newEdges =
+            connection.edges
+                |> List.filter (\{ node } -> not (node.user.id == membership.user.id))
+    in
+        { connection | edges = newEdges }

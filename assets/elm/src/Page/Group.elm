@@ -31,6 +31,7 @@ import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
 import Route
 import Session exposing (Session)
+import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
 import Subscription.PostCreated as PostCreated
 import Util exposing (displayName, smartFormatDate, memberById, onEnter)
 
@@ -139,7 +140,7 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
                     |> Pipeline.custom (Decode.succeed space)
                     |> Pipeline.custom (Decode.succeed user)
-                    |> Pipeline.custom (Decode.at [ "group", "membership" ] groupMembershipStateDecoder)
+                    |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupMembershipConnectionDecoder)
                     |> Pipeline.custom (Decode.succeed "")
@@ -247,6 +248,7 @@ setupSockets group =
     let
         payloads =
             [ PostCreated.payload group.id
+            , GroupMembershipUpdated.payload group.id
             ]
     in
         payloads
@@ -259,6 +261,7 @@ teardownSockets group =
     let
         payloads =
             [ PostCreated.clientId group.id
+            , GroupMembershipUpdated.clientId group.id
             ]
     in
         payloads
@@ -281,29 +284,39 @@ autosize method id =
     Ports.autosize (Autosize.buildArgs method id)
 
 
-receivePost : Post -> Model -> Model
-receivePost ({ groups } as post) model =
-    if memberById model.group groups then
-        { model | posts = (addPostToConnection post model.posts) }
-    else
-        model
-
-
-addPostToConnection : Post -> PostConnection -> PostConnection
-addPostToConnection post connection =
-    let
-        edges =
-            connection.edges
-    in
-        if List.any (\{ node } -> node.id == post.id) edges then
-            connection
-        else
-            { connection | edges = (PostEdge post) :: edges }
-
-
 newPostSubmittable : String -> Bool
 newPostSubmittable body =
     not (body == "")
+
+
+
+-- EVENT HANDLERS
+
+
+handlePostCreated : PostCreated.Data -> Model -> Model
+handlePostCreated { post } model =
+    let
+        newPosts =
+            if memberById model.group post.groups then
+                Data.Post.add post model.posts
+            else
+                model.posts
+    in
+        { model | posts = newPosts }
+
+
+handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Model -> Model
+handleGroupMembershipUpdated { state, membership } model =
+    let
+        newMembers =
+            case state of
+                NotSubscribed ->
+                    Data.GroupMembership.remove membership model.members
+
+                Subscribed ->
+                    Data.GroupMembership.add membership model.members
+    in
+        { model | members = newMembers }
 
 
 

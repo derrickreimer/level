@@ -59,7 +59,7 @@ variables params =
 successDecoder : Decode.Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "updateGroupMembership", "membership" ] groupMembershipStateDecoder
+        Decode.at [ "data", "updateGroupMembership", "membership", "state" ] groupMembershipStateDecoder
 
 
 failureDecoder : Decode.Decoder Response

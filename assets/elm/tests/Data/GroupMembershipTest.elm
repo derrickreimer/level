@@ -9,7 +9,7 @@ import TestHelpers exposing (success)
 
 
 stateDecoder =
-    decodeString (Decode.at [ "membership" ] groupMembershipStateDecoder)
+    decodeString (Decode.at [ "membership", "state" ] groupMembershipStateDecoder)
 
 
 {-| Tests for JSON decoders.
@@ -65,6 +65,6 @@ decoders =
                         result =
                             stateDecoder json
                     in
-                        Expect.equal (Err "I ran into a `fail` decoder at _.membership: Membership state not valid") result
+                        Expect.equal (Err "I ran into a `fail` decoder at _.membership.state: Membership state not valid") result
             ]
         ]

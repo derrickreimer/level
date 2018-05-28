@@ -1,4 +1,4 @@
-module Data.Post exposing (Post, PostConnection, PostEdge, postDecoder, postConnectionDecoder)
+module Data.Post exposing (Post, PostConnection, PostEdge, postDecoder, postConnectionDecoder, add)
 
 import Date exposing (Date)
 import Json.Decode as Decode
@@ -61,3 +61,19 @@ postEdgeDecoder : Decode.Decoder PostEdge
 postEdgeDecoder =
     Pipeline.decode PostEdge
         |> Pipeline.custom (Decode.at [ "node" ] postDecoder)
+
+
+
+-- MUTATIONS
+
+
+add : Post -> PostConnection -> PostConnection
+add post connection =
+    let
+        edges =
+            connection.edges
+    in
+        if List.any (\{ node } -> node.id == post.id) edges then
+            connection
+        else
+            { connection | edges = (PostEdge post) :: edges }
