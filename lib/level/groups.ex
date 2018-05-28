@@ -140,7 +140,9 @@ defmodule Level.Groups do
   Creates a group membership.
   """
   @spec create_group_membership(Group.t(), SpaceUser.t()) ::
-          {:ok, GroupUser.t()} | {:error, Ecto.Changeset.t()}
+          {:ok, %{group_user: GroupUser.t(), bookmarked: boolean()}}
+          | {:error, :group_user | :bookmarked, any(),
+             %{optional(:group_user | :bookmarked) => any()}}
   def create_group_membership(group, space_user) do
     params = %{
       space_id: group.space_id,
@@ -148,9 +150,15 @@ defmodule Level.Groups do
       space_user_id: space_user.id
     }
 
-    %GroupUser{}
-    |> GroupUser.changeset(params)
-    |> Repo.insert()
+    Multi.new()
+    |> Multi.insert(:group_user, GroupUser.changeset(%GroupUser{}, params))
+    |> Multi.run(:bookmarked, fn _ ->
+      case bookmark_group(group, space_user) do
+        :ok -> {:ok, true}
+        _ -> {:ok, false}
+      end
+    end)
+    |> Repo.transaction()
   end
 
   @doc """
@@ -180,10 +188,10 @@ defmodule Level.Groups do
 
       {{:error, _}, "SUBSCRIBED"} ->
         case create_group_membership(group, space_user) do
-          {:ok, group_user} ->
+          {:ok, %{group_user: group_user}} ->
             {:ok, group_user}
 
-          {:error, changeset} ->
+          {:error, _, %Ecto.Changeset{} = changeset, _} ->
             {:error, not_subscribed_membership(group.space_id, space_user, group), changeset}
         end
 
@@ -220,7 +228,7 @@ defmodule Level.Groups do
       |> change(params)
       |> unique_constraint(:uniqueness, name: :group_bookmarks_space_user_id_group_id_index)
 
-    case Repo.insert(changeset) do
+    case Repo.insert(changeset, on_conflict: :nothing) do
       {:ok, _} ->
         Pubsub.publish(:group_bookmarked, space_user.id, group)
         :ok
