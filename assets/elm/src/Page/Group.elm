@@ -348,7 +348,7 @@ subscribeButtonView state =
 
         Subscribed ->
             button
-                [ class "btn btn-turquoise btn-xs"
+                [ class "btn btn-turquoise-outline btn-xs"
                 , onClick (MembershipStateToggled NotSubscribed)
                 ]
                 [ text "Member" ]

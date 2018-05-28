@@ -128,12 +128,12 @@ body {
   @apply .bg-blue-dark .border-blue-dark;
 }
 
-.btn-turquoise {
-  @apply .bg-turquoise .border-turquoise;
+.btn-turquoise-outline {
+  @apply .bg-transparent .border-turquoise .text-turquoise;
 }
 
-.btn-turquoise:hover {
-  /* TODO */
+.btn-turquoise-outline:hover {
+  @apply .border-turquoise-dark .text-turquoise-dark;
 }
 
 .btn-grey-outline {

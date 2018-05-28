@@ -49,6 +49,7 @@ let colors = {
   'white': '#ffffff',
 
   // Brand
+  'turquoise-dark': '#18acbd',
   'turquoise': '#12c1d5',
 
   // Dusty Blue
