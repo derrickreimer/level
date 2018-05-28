@@ -180,7 +180,9 @@ defmodule Level.Groups do
       {{:ok, group_user}, "NOT_SUBSCRIBED"} ->
         case delete_group_membership(group_user) do
           {:ok, _} ->
-            {:ok, not_subscribed_membership(group.space_id, space_user, group)}
+            group_user = not_subscribed_membership(group.space_id, space_user, group)
+            Pubsub.publish(:group_membership_updated, group.id, group_user)
+            {:ok, group_user}
 
           {:error, changeset} ->
             {:error, group_user, changeset}
@@ -189,6 +191,7 @@ defmodule Level.Groups do
       {{:error, _}, "SUBSCRIBED"} ->
         case create_group_membership(group, space_user) do
           {:ok, %{group_user: group_user}} ->
+            Pubsub.publish(:group_membership_updated, group.id, group_user)
             {:ok, group_user}
 
           {:error, _, %Ecto.Changeset{} = changeset, _} ->

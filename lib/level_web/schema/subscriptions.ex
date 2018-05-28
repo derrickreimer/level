@@ -20,4 +20,10 @@ defmodule LevelWeb.Schema.Subscriptions do
     @desc "The newly created post."
     field :post, :post
   end
+
+  @desc "The payload for the group membership updated event."
+  object :group_membership_updated_payload do
+    @desc "The updated membership."
+    field :membership, :group_membership
+  end
 end
