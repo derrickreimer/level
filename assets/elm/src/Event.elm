@@ -2,6 +2,7 @@ module Event exposing (Event(..), decodeEvent)
 
 import Json.Decode as Decode
 import Subscription.GroupBookmarked
+import Subscription.GroupMembershipUpdated
 import Subscription.GroupUnbookmarked
 import Subscription.PostCreated
 
@@ -13,6 +14,7 @@ type Event
     = GroupBookmarked Subscription.GroupBookmarked.Data
     | GroupUnbookmarked Subscription.GroupUnbookmarked.Data
     | PostCreated Subscription.PostCreated.Data
+    | GroupMembershipUpdated Subscription.GroupMembershipUpdated.Data
     | Unknown
 
 
@@ -32,4 +34,5 @@ eventDecoder =
         [ Decode.map GroupBookmarked Subscription.GroupBookmarked.decoder
         , Decode.map GroupUnbookmarked Subscription.GroupUnbookmarked.decoder
         , Decode.map PostCreated Subscription.PostCreated.decoder
+        , Decode.map GroupMembershipUpdated Subscription.GroupMembershipUpdated.decoder
         ]

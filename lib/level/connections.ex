@@ -10,6 +10,7 @@ defmodule Level.Connections do
   alias Level.Connections.SpaceUsers
   alias Level.Connections.UserGroupMemberships
   alias Level.Groups.Group
+  alias Level.Groups.GroupUser
   alias Level.Pagination
   alias Level.Spaces
   alias Level.Spaces.Space
@@ -100,6 +101,34 @@ defmodule Level.Connections do
 
   def group_memberships(%Group{} = user, args, info) do
     GroupMemberships.get(user, struct(GroupMemberships, args), info)
+  end
+
+  @doc """
+  Fetches the current user's membership.
+  """
+  @spec group_membership(Group.t(), map(), authenticated_context()) ::
+          {:ok, GroupUser.t()} | {:error, String.t()}
+  def group_membership(%Group{} = group, _args, %{context: %{current_user: user}}) do
+    case Spaces.get_space(user, group.space_id) do
+      {:ok, %{space_user: space_user, space: space}} ->
+        case Level.Groups.get_group_membership(group, space_user) do
+          {:ok, group_user} ->
+            {:ok, group_user}
+
+          _ ->
+            virtual_group_user = %GroupUser{
+              state: "NOT_SUBSCRIBED",
+              space: space,
+              group: group,
+              space_user: space_user
+            }
+
+            {:ok, virtual_group_user}
+        end
+
+      error ->
+        error
+    end
   end
 
   @doc """

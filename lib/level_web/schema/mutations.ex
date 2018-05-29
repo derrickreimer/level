@@ -118,6 +118,25 @@ defmodule LevelWeb.Schema.Mutations do
     field :name, non_null(:string)
   end
 
+  @desc "The response to updating a group."
+  object :update_group_membership_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The mutated object. If the mutation was not successful,
+    this field may be null.
+    """
+    field :membership, non_null(:group_membership)
+  end
+
   @desc "The payload for an updating group bookmark state."
   object :bookmark_group_payload do
     @desc "The current bookmark status."

@@ -266,6 +266,20 @@ defmodule Level.GroupsTest do
       create_user_and_space()
     end
 
+    test "bookmarks the group", %{
+      space_user: space_user,
+      space: space
+    } do
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{space_user: another_space_user}} = create_space_member(space)
+
+      Groups.create_group_membership(group, another_space_user)
+
+      assert Enum.any?(Groups.list_bookmarked_groups(another_space_user), fn b ->
+               b.id == group.id
+             end)
+    end
+
     test "establishes a new membership if not already one", %{
       space_user: space_user,
       space: space
@@ -273,7 +287,7 @@ defmodule Level.GroupsTest do
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{space_user: another_space_user}} = create_space_member(space)
 
-      {:ok, group_user} = Groups.create_group_membership(group, another_space_user)
+      {:ok, %{group_user: group_user}} = Groups.create_group_membership(group, another_space_user)
       assert group_user.group_id == group.id
       assert group_user.space_user_id == another_space_user.id
     end
@@ -282,7 +296,7 @@ defmodule Level.GroupsTest do
       {:ok, %{group: group}} = create_group(space_user)
 
       # The creator of the group is already a member, so...
-      {:error, changeset} = Groups.create_group_membership(group, space_user)
+      {:error, :group_user, changeset, _} = Groups.create_group_membership(group, space_user)
       assert changeset.errors == [user: {"is already a member", []}]
     end
   end

@@ -37,7 +37,7 @@
  */
 
 body {
-  @apply .text-dusty-blue-darker;
+  @apply .text-dusty-blue-darkest;
 }
 
 .logo-md {
@@ -77,8 +77,16 @@ body {
   @apply .mt-2 .text-sm .text-red .font-bold;
 }
 
+.scrolled-top .group-header {
+  @apply .border-transparent;
+}
+
+.group-header {
+  @apply .border-grey-light;
+}
+
 .composer {
-  @apply .block .relative .p-4 .bg-grey-light .w-full;
+  @apply .block .relative .p-4 .bg-grey-light .w-full .rounded-lg;
 }
 
 .composer:focus,
@@ -101,7 +109,11 @@ body {
 }
 
 .btn:disabled {
-  @apply .cursor-not-allowed .opacity-75;
+  @apply .cursor-not-allowed;
+}
+
+.btn-xs {
+  @apply .px-3 .py-0 .text-sm .border .h-6;
 }
 
 .btn-sm {
@@ -114,6 +126,24 @@ body {
 
 .btn-blue:hover {
   @apply .bg-blue-dark .border-blue-dark;
+}
+
+.btn-turquoise-outline {
+  @apply .bg-transparent .border-turquoise .text-turquoise;
+}
+
+.btn-turquoise-outline:hover {
+  @apply .border-turquoise-dark .text-turquoise-dark;
+}
+
+.btn-grey-outline {
+  @apply .bg-transparent .text-dusty-blue-dark;
+}
+
+.btn-checked {
+  @apply .pl-8 .bg-no-repeat .select-none;
+  background-position: 0.5rem center;
+  background-image: url("data:image/svg+xml,%3Csvg width='16px' height='13px' viewBox='0 0 16 13' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-rule='nonzero'%3E%3Cpath d='M5.20018971,8.67665709 L13.8460109,0 L16,2.16167145 L7.35417882,10.8383285 L5.20018971,13 L0,7.78126346 L2.15398911,5.619592 L5.20018971,8.67665709 Z'%3E%3C/path%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 .texitar {

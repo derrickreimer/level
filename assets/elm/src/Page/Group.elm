@@ -13,15 +13,25 @@ import Time exposing (Time, every, second, millisecond)
 import Autosize
 import Avatar exposing (personAvatar)
 import Data.Group exposing (Group, groupDecoder)
-import Data.GroupUser exposing (GroupUser, GroupUserEdge, GroupUserConnection, groupUserConnectionDecoder)
+import Data.GroupMembership
+    exposing
+        ( GroupMembership
+        , GroupMembershipEdge
+        , GroupMembershipConnection
+        , GroupMembershipState(..)
+        , groupMembershipConnectionDecoder
+        , groupMembershipStateDecoder
+        )
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
+import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
 import Route
 import Session exposing (Session)
+import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
 import Subscription.PostCreated as PostCreated
 import Util exposing (displayName, smartFormatDate, memberById, onEnter)
 
@@ -33,8 +43,9 @@ type alias Model =
     { group : Group
     , space : Space
     , user : SpaceUser
+    , state : GroupMembershipState
     , posts : PostConnection
-    , members : GroupUserConnection
+    , members : GroupMembershipConnection
     , newPostBody : String
     , isNewPostSubmitting : Bool
     , now : Date
@@ -64,6 +75,9 @@ bootstrap space user groupId session now =
                   group(id: $groupId) {
                     id
                     name
+                    membership {
+                      state
+                    }
                     memberships(first: 10) {
                       edges {
                         node {
@@ -126,8 +140,9 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
                     |> Pipeline.custom (Decode.succeed space)
                     |> Pipeline.custom (Decode.succeed user)
+                    |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
-                    |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupUserConnectionDecoder)
+                    |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupMembershipConnectionDecoder)
                     |> Pipeline.custom (Decode.succeed "")
                     |> Pipeline.custom (Decode.succeed False)
                     |> Pipeline.custom (Decode.succeed now)
@@ -161,6 +176,8 @@ type Msg
     | NewPostBodyChanged String
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, PostToGroup.Response ))
+    | MembershipStateToggled GroupMembershipState
+    | MembershipStateSubmitted (Result Session.Error ( Session, UpdateGroupMembership.Response ))
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -205,6 +222,21 @@ update msg session model =
             { model | isNewPostSubmitting = False }
                 |> noCmd session
 
+        MembershipStateToggled state ->
+            let
+                cmd =
+                    UpdateGroupMembership.Params model.space.id model.group.id state
+                        |> UpdateGroupMembership.request
+                        |> Session.request session
+                        |> Task.attempt MembershipStateSubmitted
+            in
+                -- Update the state on the model optimistically
+                ( ( { model | state = state }, cmd ), session )
+
+        MembershipStateSubmitted _ ->
+            -- TODO: handle errors
+            noCmd session model
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
@@ -216,6 +248,7 @@ setupSockets group =
     let
         payloads =
             [ PostCreated.payload group.id
+            , GroupMembershipUpdated.payload group.id
             ]
     in
         payloads
@@ -228,6 +261,7 @@ teardownSockets group =
     let
         payloads =
             [ PostCreated.clientId group.id
+            , GroupMembershipUpdated.clientId group.id
             ]
     in
         payloads
@@ -250,29 +284,39 @@ autosize method id =
     Ports.autosize (Autosize.buildArgs method id)
 
 
-receivePost : Post -> Model -> Model
-receivePost ({ groups } as post) model =
-    if memberById model.group groups then
-        { model | posts = (addPostToConnection post model.posts) }
-    else
-        model
-
-
-addPostToConnection : Post -> PostConnection -> PostConnection
-addPostToConnection post connection =
-    let
-        edges =
-            connection.edges
-    in
-        if List.any (\{ node } -> node.id == post.id) edges then
-            connection
-        else
-            { connection | edges = (PostEdge post) :: edges }
-
-
 newPostSubmittable : String -> Bool
 newPostSubmittable body =
     not (body == "")
+
+
+
+-- EVENT HANDLERS
+
+
+handlePostCreated : PostCreated.Data -> Model -> Model
+handlePostCreated { post } model =
+    let
+        newPosts =
+            if memberById model.group post.groups then
+                Data.Post.add post model.posts
+            else
+                model.posts
+    in
+        { model | posts = newPosts }
+
+
+handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Model -> Model
+handleGroupMembershipUpdated { state, membership } model =
+    let
+        newMembers =
+            case state of
+                NotSubscribed ->
+                    Data.GroupMembership.remove membership model.members
+
+                Subscribed ->
+                    Data.GroupMembership.add membership model.members
+    in
+        { model | members = newMembers }
 
 
 
@@ -292,14 +336,35 @@ view : Model -> Html Msg
 view model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "sticky pin-t border-b border-grey-light py-4 bg-white z-50" ]
-                [ h2 [ class "font-extrabold text-2xl" ] [ text model.group.name ]
+            [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
+                [ div [ class "flex items-center" ]
+                    [ h2 [ class "flex-grow font-extrabold text-2xl" ] [ text model.group.name ]
+                    , subscribeButtonView model.state
+                    ]
                 ]
             , newPostView model.newPostBody model.user model.group
             , postListView model.user model.posts.edges model.now
             , sidebarView model.members
             ]
         ]
+
+
+subscribeButtonView : GroupMembershipState -> Html Msg
+subscribeButtonView state =
+    case state of
+        NotSubscribed ->
+            button
+                [ class "btn btn-grey-outline btn-xs"
+                , onClick (MembershipStateToggled Subscribed)
+                ]
+                [ text "Join" ]
+
+        Subscribed ->
+            button
+                [ class "btn btn-turquoise-outline btn-xs"
+                , onClick (MembershipStateToggled NotSubscribed)
+                ]
+                [ text "Member" ]
 
 
 newPostView : String -> SpaceUser -> Group -> Html Msg
@@ -310,7 +375,7 @@ newPostView body user group =
             , div [ class "flex-grow" ]
                 [ textarea
                     [ id "post-composer"
-                    , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darker resize-none leading-normal"
+                    , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                     , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
                     , onEnter True NewPostSubmit
@@ -355,23 +420,23 @@ postView currentUser now { node } =
         ]
 
 
-sidebarView : GroupUserConnection -> Html Msg
+sidebarView : GroupMembershipConnection -> Html Msg
 sidebarView { edges } =
-    div [ class "fixed pin-t pin-r w-56 mt-4 py-2 pl-6 border-l border-grey-light min-h-half" ]
-        [ h3 [ class "mb-2 text-base" ] [ text "Members" ]
+    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l border-grey-light min-h-half" ]
+        [ h3 [ class "mb-3 text-base" ] [ text "Members" ]
         , memberListView edges
         ]
 
 
-memberListView : List GroupUserEdge -> Html Msg
+memberListView : List GroupMembershipEdge -> Html Msg
 memberListView edges =
     div [] <|
         List.map memberItemView (List.map .node edges)
 
 
-memberItemView : GroupUser -> Html Msg
+memberItemView : GroupMembership -> Html Msg
 memberItemView { user } =
-    div [ class "flex items-center" ]
+    div [ class "flex items-center mb-1" ]
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm" ] [ text <| displayName user ]
         ]

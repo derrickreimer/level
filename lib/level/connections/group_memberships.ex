@@ -5,7 +5,6 @@ defmodule Level.Connections.GroupMemberships do
 
   import Ecto.Query
 
-  alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Pagination
   alias Level.Pagination.Args
