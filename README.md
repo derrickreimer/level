@@ -1,8 +1,8 @@
-# Level [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
+# Level &mdash; an async-first team communication platform
 
-Distraction-free communication for software teams.
+[![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/levelhq/level/tree/master)
+Level is under active development and is not yet production ready. Join the insiders list at [level.app](https://level.app) for periodic updates.
 
 ## Development Environment
 
@@ -61,6 +61,10 @@ To generate and view the project documentation locally, run the following script
 ```
 script/docs
 ```
+
+## Deployment
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/levelhq/level/tree/master)
 
 ## Copyright
 
