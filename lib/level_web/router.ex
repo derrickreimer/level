@@ -38,6 +38,7 @@ defmodule LevelWeb.Router do
     pipe_through :anonymous_browser
 
     get "/", PageController, :index
+    get "/manifesto", PageController, :manifesto
 
     get "/login", SessionController, :new
     post "/login", SessionController, :create

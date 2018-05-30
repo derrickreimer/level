@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="csrf_token" content="<%= Plug.CSRFProtection.get_csrf_token() %>">
+    <title>Level</title>
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+  </head>
+
+  <body class="font-sans font-antialised">
+    <div class="h-full min-h-screen text-dusty-blue-darker leading-normal text-xl">
+      <div class="container mx-auto px-8 py-8">
+        <div class="flex xl:pb-24 pb-16 items-center">
+          <%= link to: page_path(@conn, :index), class: "logo-md" do %>
+            <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level") %>
+          <% end %>
+
+          <div class="flex flex-grow justify-end">
+            <%= link "The Manifesto", to: page_path(@conn, :manifesto), class: "text-blue no-underline" %>
+          </div>
+        </div>
+
+        <%= render @view_module, @view_template, assigns %>
+      </div>
+    </div>
+
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+  </body>
+</html>

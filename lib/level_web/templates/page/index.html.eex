@@ -1,16 +1,18 @@
-<div class="bg-grey-lighter h-full min-h-screen text-dusty-blue-darker leading-normal">
-  <div class="container mx-auto max-w-md px-8 py-8">
-    <div class="pb-16">
-      <%= img_tag(static_path(@conn, "/images/logo-md.svg"), class: "logo-md", alt: "Level") %>
-    </div>
+<article class="mx-auto max-w-md">
+  <h1 class="mb-8 font-extrabold leading-tight text-5xl text-dusty-blue-darkest">Remember that time you forgot to open Slack?</h1>
+  <p class="mb-6">I&rsquo;m guessing you got a lot done and felt a sense of calm as you slipped deep in to The Zone. After a while, you began comtemplating what was different that day &mdash; and then, with a sigh, you figured it out.</p>
+  <p class="mb-6">It&rsquo;s no coincidence being disconnected from real-time chat was so clam and productive.</p>
+  <p class="mb-6">
+    There were no falsely-urgent push notifications competing for your attention.
+    There were no ever-present red dots enticing you to dismiss them.
+    There were no virtual taps on the shoulder that could have waited until later.</p>
+  <p class="mb-6">What if this way of working was the norm instead of a happy accident?</p>
 
-    <h1 class="mb-8 font-extrabold leading-tight text-4xl text-dusty-blue-darkest">Remember that time you forgot to open Slack?</h1>
-    <p class="mb-6">I&rsquo;m guessing you got a lot done and felt a sense of serenity as you slipped deep in to The Zone. It&rsquo;s no coincidence that being disconnected from real-time chat was so productive and, frankly, so life-giving.</p>
-    <p class="mb-6">There were no falsely-urgent push notifications competing for your attention.<br>
-      There were no ever-present red dots enticing you to dismiss them.<br>
-      There were no virtual taps on the shoulder that could have waited until later.</p>
-    <p class="mb-6">What if this way of working was the norm instead of a happy accident?</p>
+  <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">Introducing Level: an alternative to real-time chat designed for the software development workflow.</h2>
 
-    <h2 class="mt-8 leading-tight text-dusty-blue-darkest">Enter Level: an alternative to real-time chat designed for deep work.</h2>
-  </div>
-</div>
+  <p class="mb-6">I&rsquo;ve spent the last five years at <a href="https://www.drip.com" class="text-blue">Drip</a> using Slack for team communication. It felt lovely at first, but before long became a source of anxiety for me and many of my colleagues.</p>
+  <p class="mb-6">When it came time to make the decision about what I&rsquo;m going to build next, I couldn&rsquo;t get this problem out of my mind. I asked myself, &ldquo;Is Slack really the best we can do?&rdquo;</p>
+  <p class="mb-6">As a developer, I know our tools can do so much more to protect our maker time. That&rsquo;s why I&rsquo;m building Level.</p>
+
+  <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">How Level is different</h2>
+</article>
