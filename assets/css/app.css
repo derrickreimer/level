@@ -129,7 +129,7 @@ body {
 }
 
 .btn-turquoise-outline {
-  @apply .bg-transparent .border-turquoise .text-turquoise;
+  @apply .bg-transparent .border-turquoise .text-turquoise-dark;
 }
 
 .btn-turquoise-outline:hover {
