@@ -134,7 +134,7 @@ view model =
         [ div [ class "md:flex md:pb-4" ]
             [ div [ class "pb-6 md:pb-0 md:mr-4 flex-grow" ]
                 [ label [ for "name", class "input-label text-base" ] [ text "Your Email Address" ]
-                , textField (FormField "email" "email" "jane@acme.co" model.email EmailChanged True)
+                , textField (FormField "email" "email" "jane@acme.co" model.email EmailChanged False)
                     (errorsFor "email" model.errors)
                 ]
             , div [ class "pb-6 md:pb-0" ]
