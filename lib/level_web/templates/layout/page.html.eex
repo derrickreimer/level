@@ -16,26 +16,29 @@
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>
 
-  <body class="font-sans font-antialised text-dusty-blue-darker leading-normal text-xl">
-    <div class="container mx-auto p-8">
-      <div class="flex xl:pb-24 pb-16 items-center">
-        <%= link to: page_path(@conn, :index), class: "logo-md" do %>
-          <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level") %>
-        <% end %>
+  <body class="font-sans font-antialised text-dusty-blue-darker leading-normal text-xl bg-dusty-blue-darkest">
+    <div class="bg-white">
+      <div class="container mx-auto p-8">
+        <div class="flex xl:pb-24 pb-16 items-center">
+          <%= link to: page_path(@conn, :index), class: "logo-md" do %>
+            <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
+          <% end %>
 
-        <div class="flex flex-grow justify-end">
-          <%= link "The Manifesto", to: page_path(@conn, :manifesto), class: "text-blue no-underline" %>
+          <div class="flex flex-grow justify-end">
+            <%= link "Code", to: "https://github.com/levelhq/level", class: "ml-6 text-blue no-underline" %>
+            <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "ml-6 text-blue no-underline" %>
+          </div>
+        </div>
+
+        <%= render @view_module, @view_template, assigns %>
+      </div>
+
+      <div class="bg-dusty-blue-darkest">
+        <div class="container mx-auto mt-16 p-8 border-grey text-center">
+          <span class="text-white opacity-75 text-sm">&copy 2018 Level Technologies, LLC</span>
         </div>
       </div>
-
-      <%= render @view_module, @view_template, assigns %>
     </div>
-
-    <!-- <div class="bg-dusty-blue-darker">
-      <div class="container mx-auto p-8">
-
-      </div>
-    </div> -->
 
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>

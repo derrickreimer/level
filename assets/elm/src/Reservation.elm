@@ -130,7 +130,7 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "pb-16" ]
+    div [ class "pb-8" ]
         [ div [ class "md:flex md:pb-4" ]
             [ div [ class "pb-6 md:pb-0 md:mr-4 flex-grow" ]
                 [ label [ for "name", class "input-label text-base" ] [ text "Your Email Address" ]
