@@ -281,6 +281,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.selection-turquoise::selection,
+.selection-turquoise *::selection {
+  background-color: #73f1ff;
+}
+
 .max-w-430px {
   max-width: 430px;
 }
