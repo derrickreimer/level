@@ -8,7 +8,7 @@ import Json.Decode as Decode exposing (decodeString)
 import Json.Encode as Encode
 import Regex exposing (regex)
 import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
-import Util exposing (onEnter, postWithCsrfToken)
+import Util exposing (onEnter)
 
 
 main : Program Flags Model Msg
@@ -130,6 +130,22 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
+    case model.formState of
+        PostSubmit ->
+            div []
+                [ span [] [ text "🎉 " ]
+                , strong [] [ text "Sweet! " ]
+                , span [] [ text <| "We'll save the " ]
+                , strong [] [ text model.handle ]
+                , span [] [ text " handle for you." ]
+                ]
+
+        _ ->
+            formView model
+
+
+formView : Model -> Html Msg
+formView model =
     div [ class "pb-8" ]
         [ div [ class "md:flex md:pb-4" ]
             [ div [ class "pb-6 md:pb-0 md:mr-4 flex-grow" ]
@@ -233,7 +249,20 @@ submit model =
 
 request : Model -> Http.Request String
 request model =
-    postWithCsrfToken model.csrfToken "/api/reservations" (buildBody model) (Decode.succeed "success")
+    postWithCsrfToken model.csrfToken "/api/reservations" (buildBody model)
+
+
+postWithCsrfToken : String -> String -> Http.Body -> Http.Request String
+postWithCsrfToken token url body =
+    Http.request
+        { method = "POST"
+        , headers = [ Http.header "X-Csrf-Token" token ]
+        , url = url
+        , body = body
+        , expect = Http.expectString
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 buildBody : Model -> Http.Body
