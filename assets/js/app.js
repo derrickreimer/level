@@ -18,6 +18,7 @@ import "phoenix_html";
 
 import * as Space from "./modules/space";
 import * as NewSpace from "./modules/new_space";
+import * as Home from "./modules/home";
 
 const moduleNode = document.head.querySelector("meta[name='module']");
 
@@ -29,6 +30,10 @@ if (moduleNode) {
 
     case "new_space":
       NewSpace.initialize();
+      break;
+
+    case "home":
+      Home.initialize();
       break;
 
     default:

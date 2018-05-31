@@ -6,7 +6,9 @@ defmodule LevelWeb.PageController do
   plug :put_layout, "page.html"
 
   def index(conn, _params) do
-    render conn, "index.html"
+    conn
+    |> assign(:module, "home")
+    |> render("index.html")
   end
 
   def manifesto(conn, _params) do
