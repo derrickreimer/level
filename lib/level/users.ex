@@ -6,6 +6,7 @@ defmodule Level.Users do
   import Level.Gettext
 
   alias Level.Repo
+  alias Level.Users.Reservation
   alias Level.Users.User
 
   @doc """
@@ -37,6 +38,16 @@ defmodule Level.Users do
   def create_user(params) do
     %User{}
     |> create_user_changeset(params)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Creates a reservation.
+  """
+  @spec create_reservation(map()) :: {:ok, Reservation.t()} | {:error, Ecto.Changeset.t()}
+  def create_reservation(params) do
+    %Reservation{}
+    |> Reservation.create_changeset(params)
     |> Repo.insert()
   end
 end

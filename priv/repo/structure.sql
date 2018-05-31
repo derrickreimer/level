@@ -218,6 +218,19 @@ CREATE TABLE public.posts (
 
 
 --
+-- Name: reservations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.reservations (
+    id uuid NOT NULL,
+    email public.citext NOT NULL,
+    handle public.citext NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -338,6 +351,14 @@ ALTER TABLE ONLY public.posts
 
 
 --
+-- Name: reservations reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT reservations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -445,6 +466,20 @@ CREATE UNIQUE INDEX post_groups_post_id_group_id_index ON public.post_groups USI
 --
 
 CREATE INDEX posts_id_index ON public.posts USING btree (id);
+
+
+--
+-- Name: reservations_lower_email_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX reservations_lower_email_index ON public.reservations USING btree (lower((email)::text));
+
+
+--
+-- Name: reservations_lower_handle_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX reservations_lower_handle_index ON public.reservations USING btree (lower((handle)::text));
 
 
 --
@@ -644,5 +679,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436);
 

@@ -35,8 +35,9 @@ type alias Model =
 
 
 type FormState
-    = Idle
+    = PreSubmit
     | Submitting
+    | PostSubmit
 
 
 type alias Flags =
@@ -51,7 +52,7 @@ init flags =
 
 initialState : Flags -> Model
 initialState flags =
-    Model flags.csrfToken Idle "" "" []
+    Model flags.csrfToken PreSubmit "" "" []
 
 
 
@@ -77,19 +78,19 @@ update msg model =
         Submit ->
             ( { model | formState = Submitting }, submit model )
 
-        Submitted (Ok result) ->
-            ( model, Cmd.none )
+        Submitted (Ok _) ->
+            ( { model | formState = PostSubmit }, Cmd.none )
 
         Submitted (Err (Http.BadStatus resp)) ->
             case decodeString failureDecoder resp.body of
                 Ok value ->
-                    ( { model | formState = Idle, errors = value }, Cmd.none )
+                    ( { model | formState = PreSubmit, errors = value }, Cmd.none )
 
                 Err _ ->
-                    ( { model | formState = Idle }, Cmd.none )
+                    ( { model | formState = PreSubmit }, Cmd.none )
 
         Submitted (Err _) ->
-            ( { model | formState = Idle }, Cmd.none )
+            ( { model | formState = PreSubmit }, Cmd.none )
 
 
 slugify : String -> String
@@ -129,35 +130,28 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    let
-        buttonText =
-            if model.formState == Submitting then
-                "Submitting..."
-            else
-                "Reserve my handle"
-    in
-        div [ class "pb-16" ]
-            [ div [ class "md:flex md:pb-4" ]
-                [ div [ class "pb-6 md:pb-0 md:mr-4 flex-grow" ]
-                    [ label [ for "name", class "input-label text-base" ] [ text "Your Email Address" ]
-                    , textField (FormField "email" "email" "jane@acme.co" model.email EmailChanged True)
-                        (errorsFor "email" model.errors)
-                    ]
-                , div [ class "pb-6 md:pb-0" ]
-                    [ label [ for "name", class "input-label text-base" ] [ text "Your Handle" ]
-                    , handleField model.handle (errorsFor "handle" model.errors)
-                    ]
+    div [ class "pb-16" ]
+        [ div [ class "md:flex md:pb-4" ]
+            [ div [ class "pb-6 md:pb-0 md:mr-4 flex-grow" ]
+                [ label [ for "name", class "input-label text-base" ] [ text "Your Email Address" ]
+                , textField (FormField "email" "email" "jane@acme.co" model.email EmailChanged True)
+                    (errorsFor "email" model.errors)
                 ]
-            , button
-                [ type_ "submit"
-                , class "btn btn-blue mb-4"
-                , onClick Submit
-                , disabled (model.formState == Submitting)
+            , div [ class "pb-6 md:pb-0" ]
+                [ label [ for "name", class "input-label text-base" ] [ text "Your Handle" ]
+                , handleField model.handle (errorsFor "handle" model.errors)
                 ]
-                [ text buttonText ]
-            , div [ class "text-base text-dusty-blue" ]
-                [ text "I will send out periodic updates to keep you in the loop. No spam, guaranteed!" ]
             ]
+        , button
+            [ type_ "submit"
+            , class "btn btn-blue mb-4"
+            , onClick Submit
+            , disabled (model.formState == Submitting)
+            ]
+            [ text "Reserve my handle" ]
+        , div [ class "text-base text-dusty-blue" ]
+            [ text "I will send out periodic updates to keep you in the loop. No spam, guaranteed!" ]
+        ]
 
 
 textField : FormField -> List ValidationError -> Html Msg
@@ -239,14 +233,14 @@ submit model =
 
 request : Model -> Http.Request String
 request model =
-    postWithCsrfToken model.csrfToken "/api/reservations" (buildBody model) successDecoder
+    postWithCsrfToken model.csrfToken "/api/reservations" (buildBody model) (Decode.succeed "success")
 
 
 buildBody : Model -> Http.Body
 buildBody model =
     Http.jsonBody
         (Encode.object
-            [ ( "reservations"
+            [ ( "reservation"
               , Encode.object
                     [ ( "email", Encode.string model.email )
                     , ( "handle", Encode.string model.handle )
@@ -260,19 +254,6 @@ buildBody model =
 -- DECODERS
 
 
-successDecoder : Decode.Decoder String
-successDecoder =
-    Decode.at [ "redirect_url" ] Decode.string
-
-
 failureDecoder : Decode.Decoder (List ValidationError)
 failureDecoder =
     Decode.field "errors" (Decode.list errorDecoder)
-
-
-
--- HTTP
--- submit : Model -> Cmd Msg
--- submit model =
---     CreateSpace.request (CreateSpace.Params model.name model.handle) model.session
---         |> Http.send Submitted
