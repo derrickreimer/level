@@ -1,7 +1,6 @@
 {
   "private": true,
   "scripts": {
-    "build": "brunch build",
     "deploy": "webpack --mode production",
     "watch": "webpack --mode development --watch"
   },
