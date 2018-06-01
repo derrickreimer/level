@@ -133,15 +133,44 @@ view model =
     case model.formState of
         PostSubmit ->
             div []
-                [ span [] [ text "🎉 " ]
-                , strong [] [ text "Sweet! " ]
-                , span [] [ text <| "We'll save the " ]
-                , strong [] [ text model.handle ]
-                , span [] [ text " handle for you." ]
+                [ p [ class "mb-6" ]
+                    [ span [] [ text "🎉 " ]
+                    , strong [] [ text "Sweet! " ]
+                    , span [] [ text <| "We'll save the " ]
+                    , strong [] [ text <| handle model ]
+                    , span [] [ text " handle for you." ]
+                    ]
+                , p [ class "mb-6" ]
+                    [ text "If you don't mind, it would help us a ton if share this with your followers. Here's a handy pre-populated tweet for you!" ]
+                , a
+                    [ href "https://twitter.com/share?ref_src=twsrc%5Etfw"
+                    , class "twitter-share-button"
+                    , attribute "data-url" "https://level.app"
+                    , attribute "data-size" "large"
+                    , attribute "data-text" "🔥 I just reserved my handle on Level, a distraction-free alternative to Slack designed for software teams."
+                    , attribute "data-related" "PoweredByLevel"
+                    , attribute "data-show-count" "false"
+                    ]
+                    [ text "Tweet" ]
+                , script
+                    [ attribute "async" ""
+                    , src "https://platform.twitter.com/widgets.js"
+                    , charset "utf-8"
+                    ]
                 ]
 
         _ ->
             formView model
+
+
+script : List (Attribute msg) -> Html msg
+script attributes =
+    node "script" attributes []
+
+
+handle : Model -> String
+handle model =
+    "@" ++ model.handle
 
 
 formView : Model -> Html Msg
