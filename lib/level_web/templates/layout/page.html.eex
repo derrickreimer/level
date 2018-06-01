@@ -21,8 +21,9 @@
     <meta name="module" content="<%= @module %>">
     <% end %>
 
-    <title>Level</title>
+    <title>Level: Distraction-free communication for software teams</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
   </head>
 
   <body class="font-sans font-antialised text-dusty-blue-darker leading-normal text-xl bg-dusty-blue-darkest selection-turquoise">
