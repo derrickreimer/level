@@ -15,4 +15,10 @@ defmodule LevelWeb.FormHelpers do
       "input-field"
     end
   end
+
+  @doc """
+  Returns the "shake" class if the given changeset contains errors.
+  """
+  def error_shake(%Ecto.Changeset{action: nil}), do: ""
+  def error_shake(%Ecto.Changeset{valid?: false}), do: "shake"
 end

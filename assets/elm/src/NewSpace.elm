@@ -137,7 +137,7 @@ view model =
                     ]
                 , div
                     [ classList
-                        [ ( "px-16 py-8 bg-white rounded-lg border", True )
+                        [ ( "px-8 sm:px-12 py-8 bg-white rounded-lg border", True )
                         , ( "shake", not (List.isEmpty model.errors) )
                         ]
                     ]

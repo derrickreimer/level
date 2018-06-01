@@ -19,14 +19,15 @@
   <body class="font-sans font-antialised text-dusty-blue-darker leading-normal text-xl bg-dusty-blue-darkest selection-turquoise">
     <div class="bg-white">
       <div class="container mx-auto p-8">
-        <div class="flex xl:pb-24 pb-16 items-center">
-          <%= link to: page_path(@conn, :index), class: "logo-md" do %>
+        <div class="sm:flex pb-16 md:pb-24 items-center">
+          <%= link to: page_path(@conn, :index), class: "logo-md block mb-6 sm:mb-0" do %>
             <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
           <% end %>
 
-          <div class="flex flex-grow justify-end">
-            <%= link "Code", to: "https://github.com/levelhq/level", class: "ml-6 text-blue no-underline" %>
+          <div class="flex flex-grow justify-start sm:justify-end">
+            <%= link "Code", to: "https://github.com/levelhq/level", class: "text-blue no-underline" %>
             <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "ml-6 text-blue no-underline" %>
+            <%= link "Sign In", to: session_path(@conn, :new), class: "ml-6 text-blue no-underline" %>
           </div>
         </div>
 
