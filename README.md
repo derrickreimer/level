@@ -1,8 +1,8 @@
-# Level &mdash; an async-first team communication platform
+# Level
 
 [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
-Level is under active development and is not yet production ready. Join the insiders list at [level.app](https://level.app) for periodic updates.
+Join the insiders list at [level.app](https://level.app) for periodic updates.
 
 ## Development Environment
 
