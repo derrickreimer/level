@@ -3,8 +3,12 @@ defmodule LevelWeb.UserController do
 
   use LevelWeb, :controller
 
+  import Level.FeatureFlags
+
   alias Level.Users
   alias Level.Users.User
+
+  plug :check_feature_flag
 
   def new(conn, _params) do
     case conn.assigns[:current_user] do
@@ -30,6 +34,16 @@ defmodule LevelWeb.UserController do
         conn
         |> assign(:changeset, changeset)
         |> render("new.html")
+    end
+  end
+
+  defp check_feature_flag(conn, _opts) do
+    if signups_enabled?(Mix.env()) do
+      conn
+    else
+      conn
+      |> redirect(to: page_path(conn, :index))
+      |> halt()
     end
   end
 end

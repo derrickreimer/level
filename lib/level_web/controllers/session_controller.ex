@@ -3,8 +3,11 @@ defmodule LevelWeb.SessionController do
 
   use LevelWeb, :controller
 
+  alias Level.FeatureFlags
+
   plug :fetch_current_user_by_session
   plug :redirect_if_signed_in
+  plug :put_feature_flags
 
   def new(conn, _params) do
     render conn, "new.html"
@@ -32,5 +35,10 @@ defmodule LevelWeb.SessionController do
     else
       conn
     end
+  end
+
+  defp put_feature_flags(conn, _opts) do
+    conn
+    |> assign(:signups_enabled, FeatureFlags.signups_enabled?(Mix.env()))
   end
 end
