@@ -27,7 +27,7 @@
   ],
   "env": {
     "LEVEL_HOST": {
-      "description": "The domain on which you are serving this application.",
+      "description": "The domain on which you are serving this application (set to [your-app-name].herokuapp.com until you setup a custom domain).",
       "value": ""
     },
     "LEVEL_MAILER_HOST": {
@@ -43,7 +43,7 @@
       "value": "18"
     },
     "LEVEL_SMTP_HOST": {
-      "description": "The hostname of the your SMTP provider.",
+      "description": "The hostname of the your SMTP provider (we recommend Postmark).",
       "value": ""
     },
     "LEVEL_SMTP_PORT": {
