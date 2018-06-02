@@ -7,7 +7,7 @@
 
   <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">Introducing Level: an alternative to real-time chat designed for the software development workflow.</h2>
 
-  <p class="mb-6">I&rsquo;ve spent the last five years at <a href="https://www.drip.com" class="text-blue">Drip</a> using Slack for team communication. It felt lovely at first, but before long became a source of anxiety for me and many of my colleagues.</p>
+  <p class="mb-6">I&rsquo;ve spent the last five years at Drip using Slack for team communication. It felt lovely at first, but before long became a source of anxiety for me and many of my colleagues.</p>
   <p class="mb-6">When it came time to decide what product to build next, I couldn&rsquo;t get this problem out of my head. I asked myself, &ldquo;Is Slack the best we can do?&rdquo;</p>
   <p class="mb-6">The answer is a <strong>definite no</strong>. As a developer, I know our tools can do so much more to protect our maker time. That&rsquo;s why I&rsquo;m building Level.</p>
 
@@ -20,13 +20,14 @@
     <li>Every conversation is threaded</li>
     <li>Every person has a carefully-curated inbox</li>
     <li>Every interaction is asynchronous by default</li>
-    <li>Synchronous meetings can be scheduled</li>
-    <li>Notifications only arrive for time-sensitive events</li>
-    <li>&ldquo;Who's online?&rdquo; indicators only show when going synchronous</li>
+    <li>Notifications are only sent for time-sensitive things</li>
+    <li>Going into synchronous mode requires deliberate action</li>
+    <li>Presence indicators only exist in synchronous mode</li>
+    <li>We are building it <a href="https://github.com/levelhq/level" class="text-blue" target="_blank">open source</a> with extreme transparency</li>
   </ul>
 
   <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">Reserve your handle today</h2>
 
-  <p class="mb-6">Level is under active development and is not yet launched. However, you can claim your little slice of real estate on level.app today.</p>
+  <p class="mb-6">Level is under active development and is not yet launched. However, you can <strong>claim your little slice of real estate</strong> on level.app and join over 1,068 other people following along with our journey.</p>
   <div id="reservation"></div>
 </article>

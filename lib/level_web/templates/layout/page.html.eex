@@ -26,29 +26,32 @@
     <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
   </head>
 
-  <body class="font-sans font-antialised text-dusty-blue-darker leading-normal text-xl bg-dusty-blue-darkest selection-turquoise">
+  <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal text-xl bg-dusty-blue-darkest selection-turquoise">
     <div class="bg-white">
       <div class="container mx-auto p-8">
-        <div class="sm:flex pb-16 md:pb-24 items-center">
-          <%= link to: page_path(@conn, :index), class: "logo-md block mb-6 sm:mb-0" do %>
+        <div class="flex pb-16 sm:pb-24 items-center">
+          <%= link to: page_path(@conn, :index), class: "logo-md block" do %>
             <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
           <% end %>
 
-          <div class="flex flex-grow justify-start sm:justify-end">
-            <%= link "Code", to: "https://github.com/levelhq/level", class: "text-blue no-underline" %>
-            <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "ml-6 text-blue no-underline" %>
-            <%= link "Sign In", to: session_path(@conn, :new), class: "ml-6 text-blue no-underline" %>
+          <div class="flex flex-grow justify-end">
+            <%= link "Sign In", to: session_path(@conn, :new), class: "flex-0 ml-6 text-blue no-underline" %>
           </div>
         </div>
 
         <%= render @view_module, @view_template, assigns %>
       </div>
 
-      <div class="bg-dusty-blue-darkest">
-        <div class="container mx-auto mt-16 p-8 border-grey text-center">
-          <span class="text-white opacity-75 text-sm">&copy 2018 Level Technologies, LLC</span>
+      <footer class="bg-dusty-blue-darkest">
+        <div class="container mx-auto mt-8 p-8 border-grey text-center text-base text-white opacity-75">
+          <div class="pb-8 text-lg">
+            <%= link "Source Code", to: "https://github.com/levelhq/level", class: "mx-2 text-white no-underline" %>
+            <%= link "Screencasts", to: "https://www.youtube.com/c/LevelLive", class: "mx-2 text-white no-underline" %>
+            <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "mx-2 text-white no-underline" %>
+          </div>
+          <div class="opacity-75">&copy 2018 Level Technologies, LLC</span>
         </div>
-      </div>
+      </footer>
     </div>
 
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
