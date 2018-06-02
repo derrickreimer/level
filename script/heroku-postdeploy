@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# script/heroku-postdeploy: Run once after a new app is provisioned on Heroku (referenced by app.json).
+
+mix ecto.load

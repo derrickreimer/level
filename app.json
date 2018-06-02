@@ -1,9 +1,14 @@
 {
   "name": "Level",
   "description": "Distraction-free communication for software teams",
+  "website": "https://level.app",
   "repository": "https://github.com/levelhq/level",
   "keywords": ["productivity"],
   "logo": "https://raw.githubusercontent.com/levelhq/level/master/avatar.png",
+  "stack": "heroku-16",
+  "scripts": {
+    "postdeploy": "script/heroku-postdeploy"
+  },
   "addons": [
     {
       "plan": "heroku-postgresql",
