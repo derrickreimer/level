@@ -22,7 +22,7 @@ defmodule Level.Users.Reservation do
 
   @doc false
   def handle_format do
-    ~r/^(?>[a-z][a-z0-9-\.]*[a-z0-9])$/
+    ~r/^(?>[A-Za-z][A-Za-z0-9-\.]*[A-Za-z0-9])$/
   end
 
   @doc false

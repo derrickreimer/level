@@ -15,6 +15,19 @@ defmodule LevelWeb.ReservationControllerTest do
       assert response(conn, 204)
     end
 
+    test "accepts capitals", %{conn: conn} do
+      params = %{
+        email: "derrick@level.app",
+        handle: "DerrickReimer"
+      }
+
+      conn =
+        conn
+        |> post("/api/reservations", %{"reservation" => params})
+
+      assert response(conn, 204)
+    end
+
     test "renders validation errors with bad input", %{conn: conn} do
       params = %{
         email: "derrick@level.app",
