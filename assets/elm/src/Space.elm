@@ -1,6 +1,5 @@
 module Space exposing (..)
 
-import Debug
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode

@@ -2,9 +2,7 @@ module Data.Post exposing (Post, PostConnection, PostEdge, postDecoder, postConn
 
 import Date exposing (Date)
 import Json.Decode as Decode
-import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
-import Time exposing (Time)
 import Data.Group exposing (Group, groupDecoder)
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)

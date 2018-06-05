@@ -33,7 +33,7 @@ import Route
 import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, smartFormatDate, memberById, onEnter)
+import Util exposing (displayName, smartFormatDate, memberById, onEnter, injectHtml)
 
 
 -- MODEL
@@ -440,8 +440,3 @@ memberItemView { user } =
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm" ] [ text <| displayName user ]
         ]
-
-
-injectHtml : String -> Html msg
-injectHtml rawHtml =
-    div [ property "innerHTML" <| Encode.string rawHtml ] []

@@ -2,6 +2,7 @@ module Util exposing (..)
 
 import Date exposing (Date)
 import Date.Format
+import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -260,3 +261,10 @@ postWithCsrfToken token url body decoder =
 displayName : Nameable a -> String
 displayName nameable =
     nameable.firstName ++ " " ++ nameable.lastName
+
+
+{-| Inject a raw string of HTML into a div.
+-}
+injectHtml : String -> Html msg
+injectHtml rawHtml =
+    div [ property "innerHTML" <| Encode.string rawHtml ] []
