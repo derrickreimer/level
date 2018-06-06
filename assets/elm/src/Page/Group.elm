@@ -12,6 +12,7 @@ import Task exposing (Task)
 import Time exposing (Time, every, second, millisecond)
 import Autosize
 import Avatar exposing (personAvatar)
+import Connection
 import Data.Group exposing (Group, groupDecoder)
 import Data.GroupMembership
     exposing
@@ -347,7 +348,7 @@ view model =
                     ]
                 ]
             , newPostView model.newPostBody model.user model.group
-            , postListView model.user model.posts.edges model.now
+            , postListView model.user model.posts model.now
             , sidebarView model.featuredMemberships
             ]
         ]
@@ -399,10 +400,14 @@ newPostView body user group =
         ]
 
 
-postListView : SpaceUser -> List PostEdge -> Date -> Html Msg
-postListView currentUser edges now =
-    div [] <|
-        List.map (postView currentUser now) edges
+postListView : SpaceUser -> PostConnection -> Date -> Html Msg
+postListView currentUser ({ edges } as connection) now =
+    if Connection.isEmpty connection then
+        div [ class "pt-8 pb-8 text-center text-lg" ]
+            [ text "Nobody has posted in this group yet." ]
+    else
+        div [] <|
+            List.map (postView currentUser now) edges
 
 
 postView : SpaceUser -> Date -> PostEdge -> Html Msg
