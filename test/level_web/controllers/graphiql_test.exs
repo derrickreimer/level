@@ -1,7 +1,7 @@
-defmodule LevelWeb.GraphQL.GraphiQLTest do
+defmodule LevelWeb.GraphiQLTest do
   use LevelWeb.ConnCase, async: true
 
-  describe "/graphiql authentication rules" do
+  describe "GET /graphiql" do
     setup %{conn: conn} do
       conn =
         conn
@@ -11,12 +11,12 @@ defmodule LevelWeb.GraphQL.GraphiQLTest do
       {:ok, %{conn: conn}}
     end
 
-    test "unauthenticated user should not be able to access /graphiql", %{conn: conn} do
+    test "logged out users should be redirected to login", %{conn: conn} do
       conn = get(conn, "/graphiql")
       assert redirected_to(conn, 302) =~ "/login"
     end
 
-    test "authenticated users can access /graphiql", %{conn: conn} do
+    test "logged in users should see the explorer", %{conn: conn} do
       {:ok, user} = create_user()
 
       conn =
