@@ -1,7 +1,7 @@
-defmodule LevelWeb.GraphQL.GraphiQL do
+defmodule LevelWeb.GraphQL.GraphiQLTest do
   use LevelWeb.ConnCase, async: true
 
-  describe "/grapiql authentication rules" do
+  describe "/graphiql authentication rules" do
     setup %{conn: conn} do
       conn =
         conn
