@@ -13,8 +13,8 @@ defmodule Level.TestHelpers do
 
     %{
       first_name: "Jane",
-      last_name: "Doe",
-      email: "user#{salt}@level.live",
+      last_name: "Doe-#{salt}",
+      email: "user#{salt}@level.app",
       password: "$ecret$"
     }
   end
@@ -30,7 +30,7 @@ defmodule Level.TestHelpers do
 
   def valid_invitation_params do
     %{
-      email: "user#{random_string()}@level.live"
+      email: "user#{random_string()}@level.app"
     }
   end
 

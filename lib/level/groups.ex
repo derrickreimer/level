@@ -137,6 +137,27 @@ defmodule Level.Groups do
   end
 
   @doc """
+  Lists featured group memberships (for display in the sidebar).
+
+  Currently returns the top ten users, ordered alphabetically.
+  """
+  @spec list_featured_memberships(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
+  def list_featured_memberships(group) do
+    base_query =
+      from gu in GroupUser,
+        where: gu.group_id == ^group.id,
+        join: u in assoc(gu, :user),
+        select: %{gu | last_name: u.last_name}
+
+    query =
+      from gu in subquery(base_query),
+        order_by: {:asc, gu.last_name},
+        limit: 10
+
+    {:ok, Repo.all(query)}
+  end
+
+  @doc """
   Creates a group membership.
   """
   @spec create_group_membership(Group.t(), SpaceUser.t()) ::

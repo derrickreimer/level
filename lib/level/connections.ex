@@ -104,6 +104,15 @@ defmodule Level.Connections do
   end
 
   @doc """
+  Fetches featured group memberships.
+  """
+  @spec featured_group_memberships(Group.t(), map(), authenticated_context) ::
+          {:ok, [GroupUser.t()]} | no_return()
+  def featured_group_memberships(group, _args, _info) do
+    Level.Groups.list_featured_memberships(group)
+  end
+
+  @doc """
   Fetches the current user's membership.
   """
   @spec group_membership(Group.t(), map(), authenticated_context()) ::

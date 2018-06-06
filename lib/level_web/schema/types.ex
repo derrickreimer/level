@@ -125,6 +125,7 @@ defmodule LevelWeb.Schema.Types do
     field :space, non_null(:space), resolve: dataloader(Spaces)
     field :creator, non_null(:user), resolve: dataloader(:db)
 
+    @desc "Posts sent to the group."
     field :posts, non_null(:post_connection) do
       arg :first, :integer
       arg :last, :integer
@@ -134,6 +135,7 @@ defmodule LevelWeb.Schema.Types do
       resolve &Level.Connections.group_posts/3
     end
 
+    @desc "A paginated connection of group memberships."
     field :memberships, non_null(:group_membership_connection) do
       arg :first, :integer
       arg :last, :integer
@@ -143,9 +145,15 @@ defmodule LevelWeb.Schema.Types do
       resolve &Level.Connections.group_memberships/3
     end
 
+    @desc "The current user's group membership."
     field :membership, :group_membership do
       # TODO: figure out a good way to use dataloader to batch this?
       resolve &Level.Connections.group_membership/3
+    end
+
+    @desc "The short list of members to display in the sidebar."
+    field :featured_memberships, list_of(:group_membership) do
+      resolve &Level.Connections.featured_group_memberships/3
     end
   end
 
