@@ -51,7 +51,11 @@ defmodule LevelWeb.Router do
   end
 
   scope "/" do
-    pipe_through [:anonymous_browser, :fetch_current_user_by_session]
+    pipe_through [
+      :anonymous_browser,
+      :fetch_current_user_by_session,
+      :redirect_unless_signed_in
+    ]
 
     forward "/graphiql", Absinthe.Plug.GraphiQL,
       schema: LevelWeb.Schema,
