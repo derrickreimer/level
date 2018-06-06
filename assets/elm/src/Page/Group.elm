@@ -20,6 +20,7 @@ import Data.GroupMembership
         , GroupMembershipConnection
         , GroupMembershipState(..)
         , groupMembershipConnectionDecoder
+        , groupMembershipDecoder
         , groupMembershipStateDecoder
         )
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
@@ -33,7 +34,7 @@ import Route
 import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, smartFormatDate, memberById, onEnter, injectHtml)
+import Util exposing (displayName, smartFormatDate, memberById, onEnter, injectHtml, insertUniqueById, removeById)
 
 
 -- MODEL
@@ -45,7 +46,7 @@ type alias Model =
     , user : SpaceUser
     , state : GroupMembershipState
     , posts : PostConnection
-    , members : GroupMembershipConnection
+    , featuredMemberships : List GroupMembership
     , newPostBody : String
     , isNewPostSubmitting : Bool
     , now : Date
@@ -78,22 +79,12 @@ bootstrap space user groupId session now =
                     membership {
                       state
                     }
-                    memberships(first: 10) {
-                      edges {
-                        node {
-                          spaceUser {
-                            id
-                            firstName
-                            lastName
-                            role
-                          }
-                        }
-                      }
-                      pageInfo {
-                        hasPreviousPage
-                        hasNextPage
-                        startCursor
-                        endCursor
+                    featuredMemberships {
+                      spaceUser {
+                        id
+                        firstName
+                        lastName
+                        role
                       }
                     }
                     posts(first: 20) {
@@ -142,7 +133,7 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.succeed user)
                     |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
-                    |> Pipeline.custom (Decode.at [ "group", "memberships" ] groupMembershipConnectionDecoder)
+                    |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
                     |> Pipeline.custom (Decode.succeed "")
                     |> Pipeline.custom (Decode.succeed False)
                     |> Pipeline.custom (Decode.succeed now)
@@ -308,15 +299,28 @@ handlePostCreated { post } model =
 handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Model -> Model
 handleGroupMembershipUpdated { state, membership } model =
     let
-        newMembers =
+        newFeaturedMemberships =
             case state of
                 NotSubscribed ->
-                    Data.GroupMembership.remove membership model.members
+                    removeMembership membership model.featuredMemberships
 
                 Subscribed ->
-                    Data.GroupMembership.add membership model.members
+                    if isMembershipListed membership model.featuredMemberships then
+                        model.featuredMemberships
+                    else
+                        membership :: model.featuredMemberships
     in
-        { model | members = newMembers }
+        { model | featuredMemberships = newFeaturedMemberships }
+
+
+isMembershipListed : GroupMembership -> List GroupMembership -> Bool
+isMembershipListed membership list =
+    List.any (\m -> m.user.id == membership.user.id) list
+
+
+removeMembership : GroupMembership -> List GroupMembership -> List GroupMembership
+removeMembership membership list =
+    List.filter (\m -> not (m.user.id == membership.user.id)) list
 
 
 
@@ -344,7 +348,7 @@ view model =
                 ]
             , newPostView model.newPostBody model.user model.group
             , postListView model.user model.posts.edges model.now
-            , sidebarView model.members
+            , sidebarView model.featuredMemberships
             ]
         ]
 
@@ -420,18 +424,13 @@ postView currentUser now { node } =
         ]
 
 
-sidebarView : GroupMembershipConnection -> Html Msg
-sidebarView { edges } =
+sidebarView : List GroupMembership -> Html Msg
+sidebarView featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l border-grey-light min-h-half" ]
         [ h3 [ class "mb-3 text-base" ] [ text "Members" ]
-        , memberListView edges
+        , div [] <|
+            List.map memberItemView featuredMemberships
         ]
-
-
-memberListView : List GroupMembershipEdge -> Html Msg
-memberListView edges =
-    div [] <|
-        List.map memberItemView (List.map .node edges)
 
 
 memberItemView : GroupMembership -> Html Msg
