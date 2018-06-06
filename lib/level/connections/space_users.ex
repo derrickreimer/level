@@ -29,11 +29,15 @@ defmodule Level.Connections.SpaceUsers do
         }
 
   @doc """
-  Executes a paginated query for groups belonging to a given space.
+  Executes a paginated query for space users belonging to a given user.
   """
   def get(user, args, %{context: %{current_user: authenticated_user}} = _info) do
     if authenticated_user == user do
-      base_query = Spaces.space_users_base_query(user)
+      base_query =
+        user
+        |> Spaces.space_users_base_query()
+        |> where([su], su.user_id == ^user.id)
+
       wrapped_query = from(su in subquery(base_query))
       Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
     else
