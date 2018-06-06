@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# script/heroku-iex: Boots up an iex session on Heroku.
+
+heroku run LEVEL_POOL_SIZE=1 iex -S mix
