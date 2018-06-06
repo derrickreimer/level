@@ -5,7 +5,7 @@ defmodule LevelWeb.API.ReservationController do
 
   alias Level.Users
 
-  # plug :protect_from_forgery
+  plug :protect_from_forgery
 
   def create(conn, %{"reservation" => params}) do
     case Users.create_reservation(params) do
