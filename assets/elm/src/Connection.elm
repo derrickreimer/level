@@ -12,9 +12,9 @@ type alias Connection a b =
 
 
 isEmpty : Connection a b -> Bool
-isEmpty connection =
-    connection.pageInfo.startCursor
+isEmpty { pageInfo, edges } =
+    pageInfo.startCursor
         == Nothing
-        && connection.pageInfo.endCursor
+        && pageInfo.endCursor
         == Nothing
-        && (List.isEmpty connection.edges)
+        && (List.isEmpty edges)
