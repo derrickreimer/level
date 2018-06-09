@@ -35,10 +35,22 @@ import Route
 import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, smartFormatDate, memberById, onEnter, injectHtml, insertUniqueById, removeById)
+import Util exposing (displayName, smartFormatDate, memberById, onEnter, onEnterOrEsc, injectHtml, insertUniqueById, removeById)
 
 
 -- MODEL
+
+
+type EditorState
+    = NotEditing
+    | Editing
+    | Submitting
+
+
+type alias FieldEditor =
+    { state : EditorState
+    , value : String
+    }
 
 
 type alias Model =
@@ -50,6 +62,7 @@ type alias Model =
     , featuredMemberships : List GroupMembership
     , newPostBody : String
     , isNewPostSubmitting : Bool
+    , nameEditor : FieldEditor
     , now : Date
     }
 
@@ -137,6 +150,7 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
                     |> Pipeline.custom (Decode.succeed "")
                     |> Pipeline.custom (Decode.succeed False)
+                    |> Pipeline.custom (Decode.succeed (FieldEditor NotEditing ""))
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in
@@ -170,6 +184,10 @@ type Msg
     | NewPostSubmitted (Result Session.Error ( Session, PostToGroup.Response ))
     | MembershipStateToggled GroupMembershipState
     | MembershipStateSubmitted (Result Session.Error ( Session, UpdateGroupMembership.Response ))
+    | NameClicked
+    | NameEditorChanged String
+    | NameEditorDismissed
+    | NameEditorSubmit
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -228,6 +246,39 @@ update msg session model =
         MembershipStateSubmitted _ ->
             -- TODO: handle errors
             noCmd session model
+
+        NameClicked ->
+            let
+                editor =
+                    model.nameEditor
+
+                newEditor =
+                    { editor | state = Editing, value = model.group.name }
+            in
+                ( ( { model | nameEditor = newEditor }, setFocus "name-editor-value" )
+                , session
+                )
+
+        NameEditorChanged val ->
+            let
+                editor =
+                    model.nameEditor
+            in
+                noCmd session { model | nameEditor = { editor | value = val } }
+
+        NameEditorDismissed ->
+            let
+                editor =
+                    model.nameEditor
+            in
+                noCmd session { model | nameEditor = { editor | state = NotEditing } }
+
+        NameEditorSubmit ->
+            let
+                editor =
+                    model.nameEditor
+            in
+                noCmd session { model | nameEditor = { editor | state = Submitting } }
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -343,7 +394,7 @@ view model =
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
-                    [ h2 [ class "flex-grow font-extrabold text-2xl" ] [ text model.group.name ]
+                    [ nameView model.group model.nameEditor
                     , subscribeButtonView model.state
                     ]
                 ]
@@ -352,6 +403,43 @@ view model =
             , sidebarView model.featuredMemberships
             ]
         ]
+
+
+nameView : Group -> FieldEditor -> Html Msg
+nameView group editor =
+    case editor.state of
+        NotEditing ->
+            h2 [ class "flex-grow" ]
+                [ span
+                    [ onClick NameClicked
+                    , class "font-extrabold text-2xl cursor-pointer"
+                    ]
+                    [ text group.name ]
+                ]
+
+        Editing ->
+            h2 [ class "flex-grow" ]
+                [ input
+                    [ type_ "text"
+                    , id "name-editor-value"
+                    , class "px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded"
+                    , value editor.value
+                    , onInput NameEditorChanged
+                    , onEnterOrEsc NameEditorSubmit NameEditorDismissed
+                    ]
+                    []
+                ]
+
+        Submitting ->
+            h2 [ class "flex-grow" ]
+                [ input
+                    [ type_ "text"
+                    , class "px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded"
+                    , value editor.value
+                    , disabled True
+                    ]
+                    []
+                ]
 
 
 subscribeButtonView : GroupMembershipState -> Html Msg
