@@ -13,5 +13,10 @@ defmodule Level.MarkdownTest do
       {:ok, result, _} = Markdown.to_html("<h1>Hello <script>World!</script></h1>")
       assert result == "<h1>Hello World!</h1>"
     end
+
+    test "makes all line breaks significant" do
+      {:ok, result, _} = Markdown.to_html("Hello\nWorld")
+      assert result == "<p>Hello<br />World</p>\n"
+    end
   end
 end
