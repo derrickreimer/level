@@ -27,6 +27,7 @@ main =
 
 type alias Model =
     { csrfToken : String
+    , reservationCount : String
     , formState : FormState
     , email : String
     , handle : String
@@ -42,6 +43,7 @@ type FormState
 
 type alias Flags =
     { csrfToken : String
+    , reservationCount : String
     }
 
 
@@ -52,7 +54,7 @@ init flags =
 
 initialState : Flags -> Model
 initialState flags =
-    Model flags.csrfToken PreSubmit "" "" []
+    Model flags.csrfToken flags.reservationCount PreSubmit "" "" []
 
 
 
@@ -177,7 +179,14 @@ handle model =
 formView : Model -> Html Msg
 formView model =
     div [ class "pb-8" ]
-        [ div [ class "md:flex md:pb-4" ]
+        [ p [ class "mb-6" ]
+            [ text "Level is under active development and is not yet launched. However, you can claim your little slice of real estate on level.app." ]
+        , p [ class "mb-6" ]
+            [ span [] [ text "Join " ]
+            , strong [ class "font-bold" ] [ text model.reservationCount ]
+            , span [] [ text " other people who have reserved their handle." ]
+            ]
+        , div [ class "md:flex md:pb-4" ]
             [ div [ class "pb-6 md:pb-0 md:mr-4 flex-grow" ]
                 [ label [ for "name", class "input-label text-base" ] [ text "Your Email Address" ]
                 , textField (FormField "email" "email" "jane@acme.co" model.email EmailChanged False)

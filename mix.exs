@@ -66,7 +66,8 @@ defmodule Level.Mixfile do
       {:excoveralls, "~> 0.8", only: :test},
       {:dialyxir, "~> 0.5", only: :dev, runtime: false},
       {:earmark, "~> 1.2.5"},
-      {:html_sanitize_ex, "~> 1.3.0"}
+      {:html_sanitize_ex, "~> 1.3.0"},
+      {:number, "~> 0.5.7"}
     ]
   end
 

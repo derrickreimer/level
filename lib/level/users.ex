@@ -3,6 +3,7 @@ defmodule Level.Users do
   The Users context.
   """
 
+  import Ecto.Query
   import Level.Gettext
 
   alias Level.Repo
@@ -49,5 +50,13 @@ defmodule Level.Users do
     %Reservation{}
     |> Reservation.create_changeset(params)
     |> Repo.insert()
+  end
+
+  @doc """
+  Count the number of reservations.
+  """
+  @spec reservation_count() :: Integer.t()
+  def reservation_count do
+    Repo.one(from(r in Reservation, select: count(r.id)))
   end
 end

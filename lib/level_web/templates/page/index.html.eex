@@ -28,6 +28,5 @@
 
   <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">Reserve your handle today</h2>
 
-  <p class="mb-6">Level is under active development and is not yet launched. However, you can <strong>claim your little slice of real estate</strong> on level.app and join over 1,069 people following along with our journey.</p>
-  <div id="reservation"></div>
+  <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
 </article>
