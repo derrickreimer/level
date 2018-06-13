@@ -30,7 +30,7 @@
     <div class="bg-white">
       <div class="container mx-auto p-8">
         <div class="flex pb-16 sm:pb-24 items-center">
-          <%= link to: page_path(@conn, :index), class: "logo-md block" do %>
+          <%= link to: page_path(@conn, :index), class: "logo" do %>
             <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
           <% end %>
 

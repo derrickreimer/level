@@ -40,10 +40,16 @@ body {
   @apply .text-dusty-blue-darkest;
 }
 
-.logo-md {
+.logo {
+  @apply .block;
   width: 99px;
   height: 20px;
   margin-left: -1rem;
+}
+
+.logo-sm {
+  width: 89.1px;
+  height: 18px;
 }
 
 .input-label {
@@ -79,10 +85,6 @@ body {
 
 .scrolled-top .group-header {
   @apply .border-transparent;
-}
-
-.group-header {
-  @apply .border-grey-light;
 }
 
 .composer {

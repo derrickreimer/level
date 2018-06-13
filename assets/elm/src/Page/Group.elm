@@ -374,7 +374,7 @@ subscribeButtonView state =
 
 newPostView : String -> SpaceUser -> Group -> Html Msg
 newPostView body user group =
-    label [ class "composer mb-4" ]
+    label [ class "composer mb-4 border" ]
         [ div [ class "flex" ]
             [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium user ]
             , div [ class "flex-grow" ]
@@ -431,7 +431,7 @@ postView currentUser now { node } =
 
 sidebarView : List GroupMembership -> Html Msg
 sidebarView featuredMemberships =
-    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l border-grey-light min-h-half" ]
+    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-3 text-base" ] [ text "Members" ]
         , div [] <|
             List.map memberItemView featuredMemberships
