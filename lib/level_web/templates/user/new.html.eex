@@ -13,7 +13,7 @@
 
       <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
         <div class="px-8 sm:px-12 py-8 bg-white rounded-lg border <%= error_shake(@changeset) %>">
-          <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darker pb-8">Sign up for Level</h1>
+          <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darkest pb-8">Sign up for Level</h1>
 
           <div class="pb-6">
             <%= label f, :email, gettext("Email address"), class: "input-label" %>

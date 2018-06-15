@@ -141,7 +141,7 @@ view model =
                         , ( "shake", not (List.isEmpty model.errors) )
                         ]
                     ]
-                    [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darker pb-8" ]
+                    [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darkest pb-8" ]
                         [ text "Create a new space" ]
                     , div [ class "pb-6" ]
                         [ label [ for "name", class "input-label" ] [ text "Name your space" ]
