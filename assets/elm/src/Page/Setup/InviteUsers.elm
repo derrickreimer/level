@@ -87,7 +87,7 @@ routeFor setupState =
 view : Model -> Html Msg
 view model =
     div [ class "mx-56" ]
-        [ div [ class "mx-auto py-24 max-w-430px leading-normal text-dusty-blue-darker" ]
+        [ div [ class "mx-auto py-24 max-w-400px leading-normal text-dusty-blue-darker" ]
             [ h2 [ class "mb-6 font-extrabold text-2xl" ] [ text "Invite your colleagues" ]
             , body model.openInvitationUrl
             , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]

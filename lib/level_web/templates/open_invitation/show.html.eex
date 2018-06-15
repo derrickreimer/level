@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <div class="mx-auto max-w-430px">
+    <div class="mx-auto max-w-400px">
       <h2 class="mb-4 text-2xl font-extrabold leading-tight">Join the <%= @conn.assigns.space.name %> space</h2>
       <p class="mb-6 leading-normal"><%= @conn.assigns.space.name %> is trying out Level, an asynchronous-first alternative to realtime chat. You&rsquo;re invited to join the trial!</p>
       <%= if @conn.assigns.current_user do %>
