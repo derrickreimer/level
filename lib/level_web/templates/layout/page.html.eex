@@ -26,7 +26,7 @@
     <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
   </head>
 
-  <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal text-xl bg-dusty-blue-darkest selection-turquoise">
+  <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal text-xl bg-turquoise selection-turquoise">
     <div class="bg-white">
       <div class="container mx-auto p-8">
         <div class="flex pb-16 sm:pb-24 items-center">
@@ -45,7 +45,7 @@
 
       <footer class="bg-dusty-blue-darkest">
         <div class="container mx-auto mt-8 p-8 border-grey text-center text-base text-white opacity-75">
-          <div class="pb-8 text-lg">
+          <div class="pb-16 text-lg">
             <%= link "Source Code", to: "https://github.com/levelhq/level", class: "mx-2 text-white no-underline" %>
             <%= link "Screencasts", to: "https://www.youtube.com/c/LevelLive", class: "mx-2 text-white no-underline" %>
             <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "mx-2 text-white no-underline" %>
