@@ -3,7 +3,7 @@ jobs:
   build_and_test_elixir:
     docker:
       - image: circleci/elixir:1.6.5
-      - image: circleci/postgres:9.6.2
+      - image: circleci/postgres:10.3
 
     environment:
       COVERALLS_REPO_TOKEN: WQJAD2rl0QMcK0OukyWM49Aq1gXqQEJXY
