@@ -35,6 +35,7 @@ import Ports
 import Route
 import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
+import Subscription.GroupUpdated as GroupUpdated
 import Subscription.PostCreated as PostCreated
 import Util exposing (displayName, smartFormatDate, memberById, onEnter, onEnterOrEsc, injectHtml, insertUniqueById, removeById)
 
@@ -257,7 +258,9 @@ update msg session model =
                 newEditor =
                     { editor | state = Editing, value = model.group.name }
             in
-                ( ( { model | nameEditor = newEditor }, setFocus "name-editor-value" )
+                ( ( { model | nameEditor = newEditor }
+                  , Cmd.batch [ setFocus "name-editor-value", Ports.select "name-editor-value" ]
+                  )
                 , session
                 )
 
@@ -332,6 +335,7 @@ setupSockets group =
         payloads =
             [ PostCreated.payload group.id
             , GroupMembershipUpdated.payload group.id
+            , GroupUpdated.payload group.id
             ]
     in
         payloads

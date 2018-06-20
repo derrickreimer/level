@@ -317,6 +317,9 @@ handleSocketResult value model page sharedState =
                 _ ->
                     ( model, Cmd.none )
 
+        Event.GroupUpdated data ->
+            ( handleGroupUpdated data.group sharedState model, Cmd.none )
+
         Event.Unknown ->
             ( model, Cmd.none )
 
@@ -452,6 +455,23 @@ updateSetupState state model =
 
         Loaded sharedState ->
             { model | sharedState = Loaded { sharedState | setupState = state } }
+
+
+handleGroupUpdated : Group -> SharedState -> Model -> Model
+handleGroupUpdated group sharedState model =
+    let
+        newBookmarkedGroups =
+            sharedState.bookmarkedGroups
+                |> List.map
+                    (\g ->
+                        if g.id == group.id then
+                            group
+                        else
+                            g
+                    )
+                |> List.sortBy .name
+    in
+        { model | sharedState = Loaded { sharedState | bookmarkedGroups = newBookmarkedGroups } }
 
 
 
