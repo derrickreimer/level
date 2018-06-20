@@ -119,6 +119,14 @@ defmodule Level.Groups do
     group
     |> Group.update_changeset(params)
     |> Repo.update()
+    |> case do
+      {:ok, group} = result ->
+        Pubsub.publish(:group_updated, group.id, group)
+        result
+
+      err ->
+        err
+    end
   end
 
   @doc """

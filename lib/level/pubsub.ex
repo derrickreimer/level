@@ -20,6 +20,9 @@ defmodule Level.Pubsub do
   def publish(:group_membership_updated, group_id, %GroupUser{} = group_user),
     do: do_publish(%{membership: group_user}, group_membership_updated: group_id)
 
+  def publish(:group_updated, group_id, %Group{} = group),
+    do: do_publish(%{group: group}, group_updated: group_id)
+
   defp do_publish(payload, topics) do
     Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
   end

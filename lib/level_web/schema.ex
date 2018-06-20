@@ -139,6 +139,12 @@ defmodule LevelWeb.Schema do
       arg :group_id, non_null(:id)
       config &group_topic_config/2
     end
+
+    @desc "Triggered when a group is updated."
+    field :group_updated, :group_updated_payload do
+      arg :group_id, non_null(:id)
+      config &group_topic_config/2
+    end
   end
 
   def space_user_topic_config(%{space_user_id: id}, %{context: %{current_user: user}}) do
