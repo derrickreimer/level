@@ -539,9 +539,9 @@ current page. Pass Nothing for the route to make it a placeholder link.
 -}
 sidebarLink : String -> Maybe Route -> Page -> Html Msg
 sidebarLink title maybeRoute currentPage =
-    case maybeRoute of
-        Just route ->
-            if route == routeFor currentPage then
+    case ( maybeRoute, routeFor currentPage ) of
+        ( Just route, Just currentRoute ) ->
+            if route == currentRoute then
                 li [ class "flex items-center font-bold" ]
                     [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
                     , a
@@ -559,7 +559,7 @@ sidebarLink title maybeRoute currentPage =
                         [ text title ]
                     ]
 
-        Nothing ->
+        ( _, _ ) ->
             li []
                 [ a
                     [ href "#"
@@ -606,23 +606,23 @@ pageContent page =
             text "404"
 
 
-routeFor : Page -> Route
+routeFor : Page -> Maybe Route
 routeFor page =
     case page of
         Inbox ->
-            Route.Inbox
+            Just Route.Inbox
 
         SetupCreateGroups _ ->
-            Route.SetupCreateGroups
+            Just Route.SetupCreateGroups
 
         SetupInviteUsers _ ->
-            Route.SetupInviteUsers
+            Just Route.SetupInviteUsers
 
         Group pageModel ->
-            Route.Group pageModel.group.id
+            Just <| Route.Group pageModel.group.id
 
         Blank ->
-            Route.Inbox
+            Nothing
 
         NotFound ->
-            Route.Inbox
+            Nothing
