@@ -29,6 +29,7 @@ import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
+import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
 import Route
@@ -188,6 +189,7 @@ type Msg
     | NameEditorChanged String
     | NameEditorDismissed
     | NameEditorSubmit
+    | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -277,8 +279,46 @@ update msg session model =
             let
                 editor =
                     model.nameEditor
+
+                cmd =
+                    UpdateGroup.Params model.space.id model.group.id editor.value
+                        |> UpdateGroup.request
+                        |> Session.request session
+                        |> Task.attempt NameEditorSubmitted
             in
-                noCmd session { model | nameEditor = { editor | state = Submitting } }
+                ( ( { model | nameEditor = { editor | state = Submitting } }, cmd ), session )
+
+        NameEditorSubmitted (Ok ( session, UpdateGroup.Success group )) ->
+            let
+                editor =
+                    model.nameEditor
+
+                newModel =
+                    { model
+                        | group = group
+                        , nameEditor = { editor | state = NotEditing }
+                    }
+            in
+                noCmd session newModel
+
+        NameEditorSubmitted (Ok ( session, UpdateGroup.Invalid errors )) ->
+            -- TODO: render errors
+            let
+                editor =
+                    model.nameEditor
+            in
+                noCmd session { model | nameEditor = { editor | state = NotEditing } }
+
+        NameEditorSubmitted (Err Session.Expired) ->
+            redirectToLogin session model
+
+        NameEditorSubmitted (Err _) ->
+            -- TODO: render errors
+            let
+                editor =
+                    model.nameEditor
+            in
+                noCmd session { model | nameEditor = { editor | state = NotEditing } }
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -422,10 +462,11 @@ nameView group editor =
                 [ input
                     [ type_ "text"
                     , id "name-editor-value"
-                    , class "px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded"
+                    , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy"
                     , value editor.value
                     , onInput NameEditorChanged
                     , onEnterOrEsc NameEditorSubmit NameEditorDismissed
+                    , onBlur NameEditorDismissed
                     ]
                     []
                 ]
@@ -434,7 +475,7 @@ nameView group editor =
             h2 [ class "flex-grow" ]
                 [ input
                     [ type_ "text"
-                    , class "px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded"
+                    , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline"
                     , value editor.value
                     , disabled True
                     ]

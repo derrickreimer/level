@@ -19,6 +19,7 @@ import "phoenix_html";
 import * as Space from "./modules/space";
 import * as NewSpace from "./modules/new_space";
 import * as Home from "./modules/home";
+import "stretchy";
 
 const moduleNode = document.head.querySelector("meta[name='module']");
 
