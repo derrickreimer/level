@@ -27,6 +27,7 @@ import Data.GroupMembership
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
+import Data.ValidationError exposing (ValidationError)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
@@ -52,6 +53,7 @@ type EditorState
 type alias FieldEditor =
     { state : EditorState
     , value : String
+    , errors : List ValidationError
     }
 
 
@@ -152,7 +154,7 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
                     |> Pipeline.custom (Decode.succeed "")
                     |> Pipeline.custom (Decode.succeed False)
-                    |> Pipeline.custom (Decode.succeed (FieldEditor NotEditing ""))
+                    |> Pipeline.custom (Decode.succeed (FieldEditor NotEditing "" []))
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in
@@ -256,7 +258,7 @@ update msg session model =
                     model.nameEditor
 
                 newEditor =
-                    { editor | state = Editing, value = model.group.name }
+                    { editor | state = Editing, value = model.group.name, errors = [] }
             in
                 ( ( { model | nameEditor = newEditor }
                   , Cmd.batch [ setFocus "name-editor-value", Ports.select "name-editor-value" ]
@@ -305,12 +307,15 @@ update msg session model =
                 noCmd session newModel
 
         NameEditorSubmitted (Ok ( session, UpdateGroup.Invalid errors )) ->
-            -- TODO: render errors
             let
                 editor =
                     model.nameEditor
             in
-                noCmd session { model | nameEditor = { editor | state = NotEditing } }
+                ( ( { model | nameEditor = { editor | state = Editing, errors = errors } }
+                  , Ports.select "name-editor-value"
+                  )
+                , session
+                )
 
         NameEditorSubmitted (Err Session.Expired) ->
             redirectToLogin session model
@@ -439,7 +444,8 @@ view model =
             [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
                     [ nameView model.group model.nameEditor
-                    , subscribeButtonView model.state
+                    , nameErrors model.nameEditor
+                    , controlsView model.state
                     ]
                 ]
             , newPostView model.newPostBody model.user model.group
@@ -453,7 +459,7 @@ nameView : Group -> FieldEditor -> Html Msg
 nameView group editor =
     case editor.state of
         NotEditing ->
-            h2 [ class "flex-grow" ]
+            h2 [ class "flex-no-shrink" ]
                 [ span
                     [ onClick NameClicked
                     , class "font-extrabold text-2xl cursor-pointer"
@@ -462,11 +468,11 @@ nameView group editor =
                 ]
 
         Editing ->
-            h2 [ class "flex-grow" ]
+            h2 [ class "flex-no-shrink" ]
                 [ input
                     [ type_ "text"
                     , id "name-editor-value"
-                    , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy"
+                    , classList [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True ), ( "shake", not <| List.isEmpty editor.errors ) ]
                     , value editor.value
                     , onInput NameEditorChanged
                     , onEnterOrEsc NameEditorSubmit NameEditorDismissed
@@ -476,7 +482,7 @@ nameView group editor =
                 ]
 
         Submitting ->
-            h2 [ class "flex-grow" ]
+            h2 [ class "flex-no-shrink" ]
                 [ input
                     [ type_ "text"
                     , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline"
@@ -485,6 +491,23 @@ nameView group editor =
                     ]
                     []
                 ]
+
+
+nameErrors : FieldEditor -> Html Msg
+nameErrors editor =
+    case ( editor.state, List.head editor.errors ) of
+        ( Editing, Just error ) ->
+            span [ class "ml-2 flex-grow text-sm text-red font-bold" ] [ text error.message ]
+
+        ( _, _ ) ->
+            text ""
+
+
+controlsView : GroupMembershipState -> Html Msg
+controlsView state =
+    div [ class "flex flex-grow justify-end" ]
+        [ subscribeButtonView state
+        ]
 
 
 subscribeButtonView : GroupMembershipState -> Html Msg
