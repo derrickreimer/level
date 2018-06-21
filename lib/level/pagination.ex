@@ -107,12 +107,8 @@ defmodule Level.Pagination do
     {flipped_args, true}
   end
 
-  defp flip(direction) do
-    case direction do
-      :desc -> :asc
-      :asc -> :desc
-    end
-  end
+  defp flip(:desc), do: :asc
+  defp flip(:asc), do: :desc
 
   defp prepare_result(result, false), do: result
 
