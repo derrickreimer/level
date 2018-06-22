@@ -29,10 +29,12 @@ import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import GraphQL
+import IdentityMap
 import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
+import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
@@ -441,22 +443,26 @@ subscriptions =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
-                [ div [ class "flex items-center" ]
-                    [ nameView model.group model.nameEditor
-                    , nameErrors model.nameEditor
-                    , controlsView model.state
+view : Repo -> Model -> Html Msg
+view repo model =
+    let
+        group =
+            IdentityMap.get model.group repo.groups
+    in
+        div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-90 leading-normal" ]
+                [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
+                    [ div [ class "flex items-center" ]
+                        [ nameView group model.nameEditor
+                        , nameErrors model.nameEditor
+                        , controlsView model.state
+                        ]
                     ]
+                , newPostView model.newPostBody model.user model.group
+                , postListView model.user model.posts model.now
+                , sidebarView model.featuredMemberships
                 ]
-            , newPostView model.newPostBody model.user model.group
-            , postListView model.user model.posts model.now
-            , sidebarView model.featuredMemberships
             ]
-        ]
 
 
 nameView : Group -> FieldEditor -> Html Msg

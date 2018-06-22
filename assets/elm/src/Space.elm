@@ -13,6 +13,7 @@ import Data.Space exposing (Space)
 import Data.SpaceUser
 import Data.Setup as Setup
 import Event
+import Repo exposing (Repo)
 import Page.Group
 import Page.Inbox
 import Page.Setup.CreateGroups
@@ -48,6 +49,7 @@ type alias Model =
     , page : Page
     , isTransitioning : Bool
     , flashNotice : Maybe String
+    , repo : Repo
     }
 
 
@@ -89,7 +91,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing
+    Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing Repo.init
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -513,7 +515,7 @@ view model =
         Loaded sharedState ->
             div []
                 [ leftSidebar sharedState model
-                , pageContent model.page
+                , pageContent model.repo model.page
                 ]
 
 
@@ -597,8 +599,8 @@ spaceAvatar space =
         |> texitar Avatar.Small
 
 
-pageContent : Page -> Html Msg
-pageContent page =
+pageContent : Repo -> Page -> Html Msg
+pageContent repo page =
     case page of
         SetupCreateGroups pageModel ->
             pageModel
@@ -616,7 +618,7 @@ pageContent page =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view
+                |> Page.Group.view repo
                 |> Html.map GroupMsg
 
         Blank ->
