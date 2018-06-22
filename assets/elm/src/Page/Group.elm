@@ -321,12 +321,16 @@ update msg session model =
             redirectToLogin session model
 
         NameEditorSubmitted (Err _) ->
-            -- TODO: render errors
             let
                 editor =
                     model.nameEditor
+
+                errors =
+                    [ ValidationError "name" "Hmm, something went wrong." ]
             in
-                noCmd session { model | nameEditor = { editor | state = NotEditing } }
+                ( ( { model | nameEditor = { editor | state = Editing, errors = errors } }, Cmd.none )
+                , session
+                )
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
