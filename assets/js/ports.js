@@ -102,4 +102,11 @@ export const attachPorts = app => {
       if (method === "destroy") autosize.destroy(node);
     });
   });
+
+  app.ports.select.subscribe(id => {
+    requestAnimationFrame(() => {
+      let node = document.getElementById(id);
+      node.select();
+    });
+  })
 };

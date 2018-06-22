@@ -6,7 +6,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (defaultOptions, onWithOptions)
+import Html.Events exposing (defaultOptions, on, onWithOptions, keyCode)
 import Http
 import Time
 
@@ -230,6 +230,24 @@ onEnter shiftRequired msg =
                 Decode.fail "not ENTER"
     in
         onWithOptions "keydown" options (Decode.andThen isEnter codeAndShift)
+
+
+onEnterOrEsc : msg -> msg -> Attribute msg
+onEnterOrEsc enterMsg escMsg =
+    let
+        isEnterOrEsc : Int -> Decode.Decoder msg
+        isEnterOrEsc code =
+            case code of
+                13 ->
+                    Decode.succeed enterMsg
+
+                27 ->
+                    Decode.succeed escMsg
+
+                _ ->
+                    Decode.fail "not ENTER or ESC"
+    in
+        on "keydown" (Decode.andThen isEnterOrEsc keyCode)
 
 
 

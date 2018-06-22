@@ -4,6 +4,7 @@ import Json.Decode as Decode
 import Subscription.GroupBookmarked
 import Subscription.GroupMembershipUpdated
 import Subscription.GroupUnbookmarked
+import Subscription.GroupUpdated
 import Subscription.PostCreated
 
 
@@ -15,6 +16,7 @@ type Event
     | GroupUnbookmarked Subscription.GroupUnbookmarked.Data
     | PostCreated Subscription.PostCreated.Data
     | GroupMembershipUpdated Subscription.GroupMembershipUpdated.Data
+    | GroupUpdated Subscription.GroupUpdated.Data
     | Unknown
 
 
@@ -35,4 +37,5 @@ eventDecoder =
         , Decode.map GroupUnbookmarked Subscription.GroupUnbookmarked.decoder
         , Decode.map PostCreated Subscription.PostCreated.decoder
         , Decode.map GroupMembershipUpdated Subscription.GroupMembershipUpdated.decoder
+        , Decode.map GroupUpdated Subscription.GroupUpdated.decoder
         ]

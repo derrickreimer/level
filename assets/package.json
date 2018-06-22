@@ -8,7 +8,8 @@
     "@absinthe/socket": "^0.1.8",
     "autosize": "^4.0.2",
     "phoenix": "file:../deps/phoenix",
-    "phoenix_html": "file:../deps/phoenix_html"
+    "phoenix_html": "file:../deps/phoenix_html",
+    "stretchy": "^1.0.0"
   },
   "devDependencies": {
     "autoprefixer": "^8.3.0",

@@ -119,7 +119,15 @@ defmodule Level.Groups do
     group
     |> Group.update_changeset(params)
     |> Repo.update()
+    |> after_update_group()
   end
+
+  defp after_update_group({:ok, %Group{id: id} = group} = result) do
+    Pubsub.publish(:group_updated, id, group)
+    result
+  end
+
+  defp after_update_group(err), do: err
 
   @doc """
   Fetches a group membership by group and user.

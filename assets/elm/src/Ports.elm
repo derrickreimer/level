@@ -76,3 +76,6 @@ port scrollTo : ScrollParams -> Cmd msg
 
 
 port autosize : Autosize.Args -> Cmd msg
+
+
+port select : String -> Cmd msg

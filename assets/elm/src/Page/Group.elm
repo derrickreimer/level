@@ -27,18 +27,34 @@ import Data.GroupMembership
 import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
+import Data.ValidationError exposing (ValidationError)
 import GraphQL
 import Mutation.PostToGroup as PostToGroup
+import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
 import Route
 import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
+import Subscription.GroupUpdated as GroupUpdated
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, smartFormatDate, memberById, onEnter, injectHtml, insertUniqueById, removeById)
+import Util exposing (displayName, smartFormatDate, memberById, onEnter, onEnterOrEsc, injectHtml, insertUniqueById, removeById)
 
 
 -- MODEL
+
+
+type EditorState
+    = NotEditing
+    | Editing
+    | Submitting
+
+
+type alias FieldEditor =
+    { state : EditorState
+    , value : String
+    , errors : List ValidationError
+    }
 
 
 type alias Model =
@@ -50,6 +66,7 @@ type alias Model =
     , featuredMemberships : List GroupMembership
     , newPostBody : String
     , isNewPostSubmitting : Bool
+    , nameEditor : FieldEditor
     , now : Date
     }
 
@@ -137,6 +154,7 @@ bootstrap space user groupId session now =
                     |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
                     |> Pipeline.custom (Decode.succeed "")
                     |> Pipeline.custom (Decode.succeed False)
+                    |> Pipeline.custom (Decode.succeed (FieldEditor NotEditing "" []))
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in
@@ -170,6 +188,11 @@ type Msg
     | NewPostSubmitted (Result Session.Error ( Session, PostToGroup.Response ))
     | MembershipStateToggled GroupMembershipState
     | MembershipStateSubmitted (Result Session.Error ( Session, UpdateGroupMembership.Response ))
+    | NameClicked
+    | NameEditorChanged String
+    | NameEditorDismissed
+    | NameEditorSubmit
+    | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -229,6 +252,86 @@ update msg session model =
             -- TODO: handle errors
             noCmd session model
 
+        NameClicked ->
+            let
+                editor =
+                    model.nameEditor
+
+                newEditor =
+                    { editor | state = Editing, value = model.group.name, errors = [] }
+            in
+                ( ( { model | nameEditor = newEditor }
+                  , Cmd.batch [ setFocus "name-editor-value", Ports.select "name-editor-value" ]
+                  )
+                , session
+                )
+
+        NameEditorChanged val ->
+            let
+                editor =
+                    model.nameEditor
+            in
+                noCmd session { model | nameEditor = { editor | value = val } }
+
+        NameEditorDismissed ->
+            let
+                editor =
+                    model.nameEditor
+            in
+                noCmd session { model | nameEditor = { editor | state = NotEditing } }
+
+        NameEditorSubmit ->
+            let
+                editor =
+                    model.nameEditor
+
+                cmd =
+                    UpdateGroup.Params model.space.id model.group.id editor.value
+                        |> UpdateGroup.request
+                        |> Session.request session
+                        |> Task.attempt NameEditorSubmitted
+            in
+                ( ( { model | nameEditor = { editor | state = Submitting } }, cmd ), session )
+
+        NameEditorSubmitted (Ok ( session, UpdateGroup.Success group )) ->
+            let
+                editor =
+                    model.nameEditor
+
+                newModel =
+                    { model
+                        | group = group
+                        , nameEditor = { editor | state = NotEditing }
+                    }
+            in
+                noCmd session newModel
+
+        NameEditorSubmitted (Ok ( session, UpdateGroup.Invalid errors )) ->
+            let
+                editor =
+                    model.nameEditor
+            in
+                ( ( { model | nameEditor = { editor | state = Editing, errors = errors } }
+                  , Ports.select "name-editor-value"
+                  )
+                , session
+                )
+
+        NameEditorSubmitted (Err Session.Expired) ->
+            redirectToLogin session model
+
+        NameEditorSubmitted (Err _) ->
+            let
+                editor =
+                    model.nameEditor
+
+                errors =
+                    [ ValidationError "name" "Hmm, something went wrong." ]
+            in
+                ( ( { model | nameEditor = { editor | state = Editing, errors = errors } }, Cmd.none )
+                , session
+                )
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
@@ -241,6 +344,7 @@ setupSockets group =
         payloads =
             [ PostCreated.payload group.id
             , GroupMembershipUpdated.payload group.id
+            , GroupUpdated.payload group.id
             ]
     in
         payloads
@@ -343,14 +447,70 @@ view model =
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
-                    [ h2 [ class "flex-grow font-extrabold text-2xl" ] [ text model.group.name ]
-                    , subscribeButtonView model.state
+                    [ nameView model.group model.nameEditor
+                    , nameErrors model.nameEditor
+                    , controlsView model.state
                     ]
                 ]
             , newPostView model.newPostBody model.user model.group
             , postListView model.user model.posts model.now
             , sidebarView model.featuredMemberships
             ]
+        ]
+
+
+nameView : Group -> FieldEditor -> Html Msg
+nameView group editor =
+    case editor.state of
+        NotEditing ->
+            h2 [ class "flex-no-shrink" ]
+                [ span
+                    [ onClick NameClicked
+                    , class "font-extrabold text-2xl cursor-pointer"
+                    ]
+                    [ text group.name ]
+                ]
+
+        Editing ->
+            h2 [ class "flex-no-shrink" ]
+                [ input
+                    [ type_ "text"
+                    , id "name-editor-value"
+                    , classList [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True ), ( "shake", not <| List.isEmpty editor.errors ) ]
+                    , value editor.value
+                    , onInput NameEditorChanged
+                    , onEnterOrEsc NameEditorSubmit NameEditorDismissed
+                    , onBlur NameEditorDismissed
+                    ]
+                    []
+                ]
+
+        Submitting ->
+            h2 [ class "flex-no-shrink" ]
+                [ input
+                    [ type_ "text"
+                    , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline"
+                    , value editor.value
+                    , disabled True
+                    ]
+                    []
+                ]
+
+
+nameErrors : FieldEditor -> Html Msg
+nameErrors editor =
+    case ( editor.state, List.head editor.errors ) of
+        ( Editing, Just error ) ->
+            span [ class "ml-2 flex-grow text-sm text-red font-bold" ] [ text error.message ]
+
+        ( _, _ ) ->
+            text ""
+
+
+controlsView : GroupMembershipState -> Html Msg
+controlsView state =
+    div [ class "flex flex-grow justify-end" ]
+        [ subscribeButtonView state
         ]
 
 
