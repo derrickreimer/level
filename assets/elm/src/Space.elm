@@ -13,6 +13,7 @@ import Data.Space exposing (Space)
 import Data.SpaceUser
 import Data.Setup as Setup
 import Event
+import IdentityMap
 import Repo exposing (Repo)
 import Page.Group
 import Page.Inbox
@@ -460,20 +461,13 @@ updateSetupState state model =
 
 
 handleGroupUpdated : Group -> SharedState -> Model -> Model
-handleGroupUpdated group sharedState model =
-    let
-        newBookmarkedGroups =
-            sharedState.bookmarkedGroups
-                |> List.map
-                    (\g ->
-                        if g.id == group.id then
-                            group
-                        else
-                            g
-                    )
-                |> List.sortBy .name
-    in
-        { model | sharedState = Loaded { sharedState | bookmarkedGroups = newBookmarkedGroups } }
+handleGroupUpdated group sharedState ({ repo } as model) =
+    { model
+        | repo =
+            { repo
+                | groups = IdentityMap.set .id repo.groups group
+            }
+    }
 
 
 
@@ -520,26 +514,31 @@ view model =
 
 
 leftSidebar : SharedState -> Model -> Html Msg
-leftSidebar sharedState model =
-    div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen p-4" ]
-        [ div [ class "ml-2" ]
-            [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
-            , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
-            ]
-        , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
-            [ sidebarLink "Inbox" (Just Route.Inbox) model.page
-            , sidebarLink "Everything" Nothing model.page
-            , sidebarLink "Drafts" Nothing model.page
-            ]
-        , groupLinks sharedState.bookmarkedGroups model.page
-        , div [ class "absolute pin-b mb-4 flex" ]
-            [ div [] [ personAvatar Avatar.Small sharedState.user ]
-            , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
-                [ div [] [ text "Signed in as" ]
-                , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
+leftSidebar sharedState ({ page, repo } as model) =
+    let
+        bookmarkedGroups =
+            sharedState.bookmarkedGroups
+                |> IdentityMap.mapList .id repo.groups
+    in
+        div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen p-4" ]
+            [ div [ class "ml-2" ]
+                [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
+                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
+                ]
+            , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
+                [ sidebarLink "Inbox" (Just Route.Inbox) page
+                , sidebarLink "Everything" Nothing page
+                , sidebarLink "Drafts" Nothing page
+                ]
+            , groupLinks bookmarkedGroups page
+            , div [ class "absolute pin-b mb-4 flex" ]
+                [ div [] [ personAvatar Avatar.Small sharedState.user ]
+                , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
+                    [ div [] [ text "Signed in as" ]
+                    , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
+                    ]
                 ]
             ]
-        ]
 
 
 groupLinks : List Group -> Page -> Html Msg

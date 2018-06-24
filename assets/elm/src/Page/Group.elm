@@ -447,7 +447,7 @@ view : Repo -> Model -> Html Msg
 view repo model =
     let
         group =
-            IdentityMap.get model.group repo.groups
+            IdentityMap.get .id repo.groups model.group
     in
         div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]

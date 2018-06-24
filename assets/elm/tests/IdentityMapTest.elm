@@ -22,14 +22,14 @@ tests =
                         TestRecord id name
 
                     map =
-                        IdentityMap.init
-                            |> IdentityMap.set record
+                        record
+                            |> IdentityMap.set .id IdentityMap.init
 
                     default =
                         TestRecord id "Stale"
                 in
-                    map
-                        |> IdentityMap.get default
+                    default
+                        |> IdentityMap.get .id map
                         |> .name
                         |> Expect.equal name
         , fuzz2 string string "returns the default if not in the map" <|
@@ -39,11 +39,11 @@ tests =
                         TestRecord id name
 
                     map =
-                        IdentityMap.init
-                            |> IdentityMap.set (TestRecord "other" "other")
+                        TestRecord "other" "other"
+                            |> IdentityMap.set .id IdentityMap.init
                 in
-                    map
-                        |> IdentityMap.get record
+                    record
+                        |> IdentityMap.get .id map
                         |> .name
                         |> Expect.equal name
         ]

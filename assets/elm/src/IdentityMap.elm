@@ -1,4 +1,4 @@
-module IdentityMap exposing (IdentityMap, init, get, set)
+module IdentityMap exposing (IdentityMap, init, get, set, mapList)
 
 import Dict exposing (Dict)
 
@@ -7,12 +7,8 @@ type alias Id =
     String
 
 
-type alias Record a =
-    { a | id : Id }
-
-
 type alias IdentityMap a =
-    Dict Id (Record a)
+    Dict Id a
 
 
 init : IdentityMap a
@@ -20,12 +16,17 @@ init =
     Dict.empty
 
 
-get : Record a -> IdentityMap a -> Record a
-get ({ id } as record) map =
-    Dict.get id map
+get : (a -> Id) -> IdentityMap a -> a -> a
+get toId map record =
+    Dict.get (toId record) map
         |> Maybe.withDefault record
 
 
-set : Record a -> IdentityMap a -> IdentityMap a
-set ({ id } as record) map =
-    Dict.insert id record map
+set : (a -> Id) -> IdentityMap a -> a -> IdentityMap a
+set toId map record =
+    Dict.insert (toId record) record map
+
+
+mapList : (a -> Id) -> IdentityMap a -> List a -> List a
+mapList toId map list =
+    List.map (get toId map) list
