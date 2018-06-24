@@ -29,7 +29,6 @@ import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import GraphQL
-import IdentityMap
 import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
@@ -447,7 +446,7 @@ view : Repo -> Model -> Html Msg
 view repo model =
     let
         group =
-            IdentityMap.get .id repo.groups model.group
+            Repo.getGroup repo model.group
     in
         div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]

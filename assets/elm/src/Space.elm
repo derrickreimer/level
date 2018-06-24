@@ -13,7 +13,6 @@ import Data.Space exposing (Space)
 import Data.SpaceUser
 import Data.Setup as Setup
 import Event
-import IdentityMap
 import Repo exposing (Repo)
 import Page.Group
 import Page.Inbox
@@ -462,7 +461,7 @@ updateSetupState state model =
 
 handleGroupUpdated : Group -> SharedState -> Model -> Model
 handleGroupUpdated group sharedState ({ repo } as model) =
-    { model | repo = Repo.setGroup group repo }
+    { model | repo = Repo.setGroup repo group }
 
 
 
@@ -513,7 +512,7 @@ leftSidebar sharedState ({ page, repo } as model) =
     let
         bookmarkedGroups =
             sharedState.bookmarkedGroups
-                |> IdentityMap.mapList .id repo.groups
+                |> Repo.getGroups repo
     in
         div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen p-4" ]
             [ div [ class "ml-2" ]

@@ -16,17 +16,17 @@ init =
     Dict.empty
 
 
-get : (a -> Id) -> IdentityMap a -> a -> a
-get toId map record =
+get : IdentityMap a -> (a -> Id) -> a -> a
+get map toId record =
     Dict.get (toId record) map
         |> Maybe.withDefault record
 
 
-set : (a -> Id) -> IdentityMap a -> a -> IdentityMap a
-set toId map record =
+set : IdentityMap a -> (a -> Id) -> a -> IdentityMap a
+set map toId record =
     Dict.insert (toId record) record map
 
 
-mapList : (a -> Id) -> IdentityMap a -> List a -> List a
-mapList toId map list =
-    List.map (get toId map) list
+mapList : IdentityMap a -> (a -> Id) -> List a -> List a
+mapList map toId list =
+    List.map (get map toId) list
