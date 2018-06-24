@@ -462,12 +462,7 @@ updateSetupState state model =
 
 handleGroupUpdated : Group -> SharedState -> Model -> Model
 handleGroupUpdated group sharedState ({ repo } as model) =
-    { model
-        | repo =
-            { repo
-                | groups = IdentityMap.set .id repo.groups group
-            }
-    }
+    { model | repo = Repo.setGroup group repo }
 
 
 
