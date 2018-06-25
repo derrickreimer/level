@@ -285,10 +285,12 @@ handleSocketResult value model page sharedState =
                 Group ({ group } as pageModel) ->
                     if group.id == data.groupId then
                         let
-                            newPageModel =
-                                Page.Group.handleGroupMembershipUpdated data pageModel
+                            ( newPageModel, cmd ) =
+                                Page.Group.handleGroupMembershipUpdated data model.session pageModel
                         in
-                            ( { model | page = Group newPageModel }, Cmd.none )
+                            ( { model | page = Group newPageModel }
+                            , Cmd.map GroupMsg cmd
+                            )
                     else
                         ( model, Cmd.none )
 

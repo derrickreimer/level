@@ -33,6 +33,7 @@ import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
+import Query.FeaturedMemberships as FeaturedMemberships
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
@@ -194,6 +195,7 @@ type Msg
     | NameEditorDismissed
     | NameEditorSubmit
     | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
+    | FeaturedMembershipsRefreshed (Result Session.Error ( Session, FeaturedMemberships.Response ))
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -336,6 +338,15 @@ update msg repo session model =
                 , session
                 )
 
+        FeaturedMembershipsRefreshed (Ok ( session, memberships )) ->
+            ( ( { model | featuredMemberships = memberships }, Cmd.none ), session )
+
+        FeaturedMembershipsRefreshed (Err Session.Expired) ->
+            redirectToLogin session model
+
+        FeaturedMembershipsRefreshed (Err _) ->
+            noCmd session model
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
@@ -405,21 +416,22 @@ handlePostCreated { post } model =
         { model | posts = newPosts }
 
 
-handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Model -> Model
-handleGroupMembershipUpdated { state, membership } model =
+handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Session -> Model -> ( Model, Cmd Msg )
+handleGroupMembershipUpdated { state, membership } session model =
     let
-        newFeaturedMemberships =
-            case state of
-                NotSubscribed ->
-                    removeMembership membership model.featuredMemberships
+        newState =
+            if membership.user.id == model.user.id then
+                state
+            else
+                model.state
 
-                Subscribed ->
-                    if isMembershipListed membership model.featuredMemberships then
-                        model.featuredMemberships
-                    else
-                        membership :: model.featuredMemberships
+        cmd =
+            FeaturedMemberships.Params model.space.id model.group.id
+                |> FeaturedMemberships.request
+                |> Session.request session
+                |> Task.attempt FeaturedMembershipsRefreshed
     in
-        { model | featuredMemberships = newFeaturedMemberships }
+        ( { model | state = newState }, cmd )
 
 
 isMembershipListed : GroupMembership -> List GroupMembership -> Bool
