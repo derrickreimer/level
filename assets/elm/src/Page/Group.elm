@@ -29,6 +29,7 @@ import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import GraphQL
+import Icons
 import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
@@ -599,10 +600,11 @@ postView currentUser now { node } =
                 [ span [ class "font-bold" ] [ text <| displayName node.author ]
                 , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now node.postedAt ]
                 ]
-            , div [ class "markdown mb-1" ] [ injectHtml node.bodyHtml ]
+            , div [ class "markdown mb-2" ] [ injectHtml node.bodyHtml ]
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
-                    [ span [ class "text-dusty-blue text-sm" ] [ text "Add a comment..." ]
+                    [ a [ href "#", class "inline-block mr-4" ] [ Icons.heart ]
+                    , a [ href "#", class "inline-block mr-4" ] [ Icons.comment ]
                     ]
                 ]
             ]

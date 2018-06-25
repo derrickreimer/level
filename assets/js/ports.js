@@ -49,8 +49,8 @@ export const attachPorts = app => {
     notifiers.forEach(notifier => {
       logEvent("cancel")(notifier);
       AbsintheSocket.cancel(absintheSocket, notifier);
-    })
-  })
+    });
+  });
 
   app.ports.getScrollPosition.subscribe(arg => {
     const { containerId, anchorId } = arg;
@@ -108,5 +108,5 @@ export const attachPorts = app => {
       let node = document.getElementById(id);
       node.select();
     });
-  })
+  });
 };
