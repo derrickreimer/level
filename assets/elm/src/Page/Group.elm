@@ -33,6 +33,8 @@ import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
+import Query.FeaturedMemberships as FeaturedMemberships
+import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
@@ -163,17 +165,17 @@ bootstrap space user groupId session now =
 
 
 afterInit : Model -> Cmd Msg
-afterInit model =
+afterInit { group } =
     Cmd.batch
         [ setFocus "post-composer"
         , autosize Autosize.Init "post-composer"
-        , setupSockets model.group
+        , setupSockets group.id
         ]
 
 
 teardown : Model -> Cmd Msg
-teardown model =
-    teardownSockets model.group
+teardown { group } =
+    teardownSockets group.id
 
 
 
@@ -193,10 +195,11 @@ type Msg
     | NameEditorDismissed
     | NameEditorSubmit
     | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
+    | FeaturedMembershipsRefreshed (Result Session.Error ( Session, FeaturedMemberships.Response ))
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg repo session model =
     case msg of
         NoOp ->
             noCmd session model
@@ -257,8 +260,11 @@ update msg session model =
                 editor =
                     model.nameEditor
 
+                group =
+                    Repo.getGroup repo model.group
+
                 newEditor =
-                    { editor | state = Editing, value = model.group.name, errors = [] }
+                    { editor | state = Editing, value = group.name, errors = [] }
             in
                 ( ( { model | nameEditor = newEditor }
                   , Cmd.batch [ setFocus "name-editor-value", Ports.select "name-editor-value" ]
@@ -332,19 +338,28 @@ update msg session model =
                 , session
                 )
 
+        FeaturedMembershipsRefreshed (Ok ( session, memberships )) ->
+            ( ( { model | featuredMemberships = memberships }, Cmd.none ), session )
+
+        FeaturedMembershipsRefreshed (Err Session.Expired) ->
+            redirectToLogin session model
+
+        FeaturedMembershipsRefreshed (Err _) ->
+            noCmd session model
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
     ( ( model, Cmd.none ), session )
 
 
-setupSockets : Group -> Cmd Msg
-setupSockets group =
+setupSockets : String -> Cmd Msg
+setupSockets groupId =
     let
         payloads =
-            [ PostCreated.payload group.id
-            , GroupMembershipUpdated.payload group.id
-            , GroupUpdated.payload group.id
+            [ PostCreated.payload groupId
+            , GroupMembershipUpdated.payload groupId
+            , GroupUpdated.payload groupId
             ]
     in
         payloads
@@ -352,12 +367,12 @@ setupSockets group =
             |> Cmd.batch
 
 
-teardownSockets : Group -> Cmd Msg
-teardownSockets group =
+teardownSockets : String -> Cmd Msg
+teardownSockets groupId =
     let
         payloads =
-            [ PostCreated.clientId group.id
-            , GroupMembershipUpdated.clientId group.id
+            [ PostCreated.clientId groupId
+            , GroupMembershipUpdated.clientId groupId
             ]
     in
         payloads
@@ -401,21 +416,22 @@ handlePostCreated { post } model =
         { model | posts = newPosts }
 
 
-handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Model -> Model
-handleGroupMembershipUpdated { state, membership } model =
+handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Session -> Model -> ( Model, Cmd Msg )
+handleGroupMembershipUpdated { state, membership } session model =
     let
-        newFeaturedMemberships =
-            case state of
-                NotSubscribed ->
-                    removeMembership membership model.featuredMemberships
+        newState =
+            if membership.user.id == model.user.id then
+                state
+            else
+                model.state
 
-                Subscribed ->
-                    if isMembershipListed membership model.featuredMemberships then
-                        model.featuredMemberships
-                    else
-                        membership :: model.featuredMemberships
+        cmd =
+            FeaturedMemberships.Params model.space.id model.group.id
+                |> FeaturedMemberships.request
+                |> Session.request session
+                |> Task.attempt FeaturedMembershipsRefreshed
     in
-        { model | featuredMemberships = newFeaturedMemberships }
+        ( { model | state = newState }, cmd )
 
 
 isMembershipListed : GroupMembership -> List GroupMembership -> Bool
@@ -441,22 +457,26 @@ subscriptions =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
-                [ div [ class "flex items-center" ]
-                    [ nameView model.group model.nameEditor
-                    , nameErrors model.nameEditor
-                    , controlsView model.state
+view : Repo -> Model -> Html Msg
+view repo model =
+    let
+        group =
+            Repo.getGroup repo model.group
+    in
+        div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-90 leading-normal" ]
+                [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
+                    [ div [ class "flex items-center" ]
+                        [ nameView group model.nameEditor
+                        , nameErrors model.nameEditor
+                        , controlsView model.state
+                        ]
                     ]
+                , newPostView model.newPostBody model.user group
+                , postListView model.user model.posts model.now
+                , sidebarView model.featuredMemberships
                 ]
-            , newPostView model.newPostBody model.user model.group
-            , postListView model.user model.posts model.now
-            , sidebarView model.featuredMemberships
             ]
-        ]
 
 
 nameView : Group -> FieldEditor -> Html Msg

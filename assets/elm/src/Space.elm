@@ -13,6 +13,7 @@ import Data.Space exposing (Space)
 import Data.SpaceUser
 import Data.Setup as Setup
 import Event
+import Repo exposing (Repo)
 import Page.Group
 import Page.Inbox
 import Page.Setup.CreateGroups
@@ -48,6 +49,7 @@ type alias Model =
     , page : Page
     , isTransitioning : Bool
     , flashNotice : Maybe String
+    , repo : Repo
     }
 
 
@@ -89,7 +91,7 @@ init flags location =
 -}
 buildModel : Flags -> Model
 buildModel flags =
-    Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing
+    Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing Repo.init
 
 
 {-| Takes a list of functions from a model to ( model, Cmd msg ) and call them in
@@ -212,7 +214,7 @@ update msg model =
             ( GroupMsg msg, Group pageModel ) ->
                 let
                     ( ( newPageModel, cmd ), session ) =
-                        Page.Group.update msg model.session pageModel
+                        Page.Group.update msg model.repo model.session pageModel
                 in
                     ( { model | session = session, page = Group newPageModel }
                     , Cmd.map GroupMsg cmd
@@ -283,10 +285,12 @@ handleSocketResult value model page sharedState =
                 Group ({ group } as pageModel) ->
                     if group.id == data.groupId then
                         let
-                            newPageModel =
-                                Page.Group.handleGroupMembershipUpdated data pageModel
+                            ( newPageModel, cmd ) =
+                                Page.Group.handleGroupMembershipUpdated data model.session pageModel
                         in
-                            ( { model | page = Group newPageModel }, Cmd.none )
+                            ( { model | page = Group newPageModel }
+                            , Cmd.map GroupMsg cmd
+                            )
                     else
                         ( model, Cmd.none )
 
@@ -378,52 +382,56 @@ navigateTo maybeRoute model =
                 ( model, bootstrap model.spaceId model.session maybeRoute )
 
             Loaded sharedState ->
-                case maybeRoute of
-                    Nothing ->
-                        ( { model | page = NotFound }, Cmd.none )
+                let
+                    currentUser =
+                        Repo.getUser model.repo sharedState.user
+                in
+                    case maybeRoute of
+                        Nothing ->
+                            ( { model | page = NotFound }, Cmd.none )
 
-                    Just Route.Root ->
-                        case sharedState.user.role of
-                            Data.SpaceUser.Owner ->
-                                case sharedState.setupState of
-                                    Setup.CreateGroups ->
-                                        navigateTo (Just Route.SetupCreateGroups) model
+                        Just Route.Root ->
+                            case currentUser.role of
+                                Data.SpaceUser.Owner ->
+                                    case sharedState.setupState of
+                                        Setup.CreateGroups ->
+                                            navigateTo (Just Route.SetupCreateGroups) model
 
-                                    Setup.InviteUsers ->
-                                        navigateTo (Just Route.SetupInviteUsers) model
+                                        Setup.InviteUsers ->
+                                            navigateTo (Just Route.SetupInviteUsers) model
 
-                                    Setup.Complete ->
-                                        navigateTo (Just Route.Inbox) model
+                                        Setup.Complete ->
+                                            navigateTo (Just Route.Inbox) model
 
-                            _ ->
-                                navigateTo (Just Route.Inbox) model
+                                _ ->
+                                    navigateTo (Just Route.Inbox) model
 
-                    Just Route.SetupCreateGroups ->
-                        let
-                            pageModel =
-                                Page.Setup.CreateGroups.buildModel sharedState.space.id sharedState.user.firstName
-                        in
-                            ( { model | page = SetupCreateGroups pageModel }
-                            , Cmd.none
-                            )
+                        Just Route.SetupCreateGroups ->
+                            let
+                                pageModel =
+                                    Page.Setup.CreateGroups.buildModel sharedState.space.id currentUser.firstName
+                            in
+                                ( { model | page = SetupCreateGroups pageModel }
+                                , Cmd.none
+                                )
 
-                    Just Route.SetupInviteUsers ->
-                        let
-                            pageModel =
-                                Page.Setup.InviteUsers.buildModel sharedState.space.id sharedState.openInvitationUrl
-                        in
-                            ( { model | page = SetupInviteUsers pageModel }
-                            , Cmd.none
-                            )
+                        Just Route.SetupInviteUsers ->
+                            let
+                                pageModel =
+                                    Page.Setup.InviteUsers.buildModel sharedState.space.id sharedState.openInvitationUrl
+                            in
+                                ( { model | page = SetupInviteUsers pageModel }
+                                , Cmd.none
+                                )
 
-                    Just Route.Inbox ->
-                        -- TODO: implement this
-                        ( { model | page = Inbox }, Cmd.none )
+                        Just Route.Inbox ->
+                            -- TODO: implement this
+                            ( { model | page = Inbox }, Cmd.none )
 
-                    Just (Route.Group id) ->
-                        model.session
-                            |> Page.Group.init sharedState.space sharedState.user id
-                            |> transition model (GroupInit id)
+                        Just (Route.Group id) ->
+                            model.session
+                                |> Page.Group.init sharedState.space currentUser id
+                                |> transition model (GroupInit id)
 
 
 teardown : Page -> Cmd Msg
@@ -458,20 +466,8 @@ updateSetupState state model =
 
 
 handleGroupUpdated : Group -> SharedState -> Model -> Model
-handleGroupUpdated group sharedState model =
-    let
-        newBookmarkedGroups =
-            sharedState.bookmarkedGroups
-                |> List.map
-                    (\g ->
-                        if g.id == group.id then
-                            group
-                        else
-                            g
-                    )
-                |> List.sortBy .name
-    in
-        { model | sharedState = Loaded { sharedState | bookmarkedGroups = newBookmarkedGroups } }
+handleGroupUpdated group sharedState ({ repo } as model) =
+    { model | repo = Repo.setGroup repo group }
 
 
 
@@ -513,31 +509,39 @@ view model =
         Loaded sharedState ->
             div []
                 [ leftSidebar sharedState model
-                , pageContent model.page
+                , pageContent model.repo model.page
                 ]
 
 
 leftSidebar : SharedState -> Model -> Html Msg
-leftSidebar sharedState model =
-    div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen p-4" ]
-        [ div [ class "ml-2" ]
-            [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
-            , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
-            ]
-        , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
-            [ sidebarLink "Inbox" (Just Route.Inbox) model.page
-            , sidebarLink "Everything" Nothing model.page
-            , sidebarLink "Drafts" Nothing model.page
-            ]
-        , groupLinks sharedState.bookmarkedGroups model.page
-        , div [ class "absolute pin-b mb-4 flex" ]
-            [ div [] [ personAvatar Avatar.Small sharedState.user ]
-            , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
-                [ div [] [ text "Signed in as" ]
-                , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
+leftSidebar sharedState ({ page, repo } as model) =
+    let
+        bookmarkedGroups =
+            sharedState.bookmarkedGroups
+                |> Repo.getGroups repo
+
+        currentUser =
+            Repo.getUser repo sharedState.user
+    in
+        div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen p-4" ]
+            [ div [ class "ml-2" ]
+                [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
+                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
+                ]
+            , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
+                [ sidebarLink "Inbox" (Just Route.Inbox) page
+                , sidebarLink "Everything" Nothing page
+                , sidebarLink "Drafts" Nothing page
+                ]
+            , groupLinks bookmarkedGroups page
+            , div [ class "absolute pin-b mb-4 flex" ]
+                [ div [] [ personAvatar Avatar.Small currentUser ]
+                , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
+                    [ div [] [ text "Signed in as" ]
+                    , div [ class "font-bold" ] [ text (displayName currentUser) ]
+                    ]
                 ]
             ]
-        ]
 
 
 groupLinks : List Group -> Page -> Html Msg
@@ -597,8 +601,8 @@ spaceAvatar space =
         |> texitar Avatar.Small
 
 
-pageContent : Page -> Html Msg
-pageContent page =
+pageContent : Repo -> Page -> Html Msg
+pageContent repo page =
     case page of
         SetupCreateGroups pageModel ->
             pageModel
@@ -616,7 +620,7 @@ pageContent page =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view
+                |> Page.Group.view repo
                 |> Html.map GroupMsg
 
         Blank ->
