@@ -382,52 +382,56 @@ navigateTo maybeRoute model =
                 ( model, bootstrap model.spaceId model.session maybeRoute )
 
             Loaded sharedState ->
-                case maybeRoute of
-                    Nothing ->
-                        ( { model | page = NotFound }, Cmd.none )
+                let
+                    currentUser =
+                        Repo.getUser model.repo sharedState.user
+                in
+                    case maybeRoute of
+                        Nothing ->
+                            ( { model | page = NotFound }, Cmd.none )
 
-                    Just Route.Root ->
-                        case sharedState.user.role of
-                            Data.SpaceUser.Owner ->
-                                case sharedState.setupState of
-                                    Setup.CreateGroups ->
-                                        navigateTo (Just Route.SetupCreateGroups) model
+                        Just Route.Root ->
+                            case currentUser.role of
+                                Data.SpaceUser.Owner ->
+                                    case sharedState.setupState of
+                                        Setup.CreateGroups ->
+                                            navigateTo (Just Route.SetupCreateGroups) model
 
-                                    Setup.InviteUsers ->
-                                        navigateTo (Just Route.SetupInviteUsers) model
+                                        Setup.InviteUsers ->
+                                            navigateTo (Just Route.SetupInviteUsers) model
 
-                                    Setup.Complete ->
-                                        navigateTo (Just Route.Inbox) model
+                                        Setup.Complete ->
+                                            navigateTo (Just Route.Inbox) model
 
-                            _ ->
-                                navigateTo (Just Route.Inbox) model
+                                _ ->
+                                    navigateTo (Just Route.Inbox) model
 
-                    Just Route.SetupCreateGroups ->
-                        let
-                            pageModel =
-                                Page.Setup.CreateGroups.buildModel sharedState.space.id sharedState.user.firstName
-                        in
-                            ( { model | page = SetupCreateGroups pageModel }
-                            , Cmd.none
-                            )
+                        Just Route.SetupCreateGroups ->
+                            let
+                                pageModel =
+                                    Page.Setup.CreateGroups.buildModel sharedState.space.id currentUser.firstName
+                            in
+                                ( { model | page = SetupCreateGroups pageModel }
+                                , Cmd.none
+                                )
 
-                    Just Route.SetupInviteUsers ->
-                        let
-                            pageModel =
-                                Page.Setup.InviteUsers.buildModel sharedState.space.id sharedState.openInvitationUrl
-                        in
-                            ( { model | page = SetupInviteUsers pageModel }
-                            , Cmd.none
-                            )
+                        Just Route.SetupInviteUsers ->
+                            let
+                                pageModel =
+                                    Page.Setup.InviteUsers.buildModel sharedState.space.id sharedState.openInvitationUrl
+                            in
+                                ( { model | page = SetupInviteUsers pageModel }
+                                , Cmd.none
+                                )
 
-                    Just Route.Inbox ->
-                        -- TODO: implement this
-                        ( { model | page = Inbox }, Cmd.none )
+                        Just Route.Inbox ->
+                            -- TODO: implement this
+                            ( { model | page = Inbox }, Cmd.none )
 
-                    Just (Route.Group id) ->
-                        model.session
-                            |> Page.Group.init sharedState.space sharedState.user id
-                            |> transition model (GroupInit id)
+                        Just (Route.Group id) ->
+                            model.session
+                                |> Page.Group.init sharedState.space currentUser id
+                                |> transition model (GroupInit id)
 
 
 teardown : Page -> Cmd Msg
@@ -515,6 +519,9 @@ leftSidebar sharedState ({ page, repo } as model) =
         bookmarkedGroups =
             sharedState.bookmarkedGroups
                 |> Repo.getGroups repo
+
+        currentUser =
+            Repo.getUser repo sharedState.user
     in
         div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen p-4" ]
             [ div [ class "ml-2" ]
@@ -528,10 +535,10 @@ leftSidebar sharedState ({ page, repo } as model) =
                 ]
             , groupLinks bookmarkedGroups page
             , div [ class "absolute pin-b mb-4 flex" ]
-                [ div [] [ personAvatar Avatar.Small sharedState.user ]
+                [ div [] [ personAvatar Avatar.Small currentUser ]
                 , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                     [ div [] [ text "Signed in as" ]
-                    , div [ class "font-bold" ] [ text (displayName sharedState.user) ]
+                    , div [ class "font-bold" ] [ text (displayName currentUser) ]
                     ]
                 ]
             ]
