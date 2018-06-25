@@ -214,7 +214,7 @@ update msg model =
             ( GroupMsg msg, Group pageModel ) ->
                 let
                     ( ( newPageModel, cmd ), session ) =
-                        Page.Group.update msg model.session pageModel
+                        Page.Group.update msg model.repo model.session pageModel
                 in
                     ( { model | session = session, page = Group newPageModel }
                     , Cmd.map GroupMsg cmd
