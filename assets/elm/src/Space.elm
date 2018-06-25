@@ -563,34 +563,26 @@ current page. Pass Nothing for the route to make it a placeholder link.
 -}
 sidebarLink : String -> Maybe Route -> Page -> Html Msg
 sidebarLink title maybeRoute currentPage =
-    case ( maybeRoute, routeFor currentPage ) of
-        ( Just route, Just currentRoute ) ->
-            if route == currentRoute then
-                li [ class "flex items-center font-bold" ]
-                    [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
-                    , a
-                        [ Route.href route
-                        , class "ml-2 text-dusty-blue-darkest no-underline"
-                        ]
-                        [ text title ]
-                    ]
-            else
-                li []
-                    [ a
-                        [ Route.href route
-                        , class "ml-2 text-dusty-blue-darkest no-underline"
-                        ]
-                        [ text title ]
-                    ]
-
-        ( _, _ ) ->
-            li []
-                [ a
-                    [ href "#"
-                    , class "ml-2 text-dusty-blue-darkest no-underline"
-                    ]
-                    [ text title ]
+    let
+        link route =
+            a
+                [ route
+                , class "ml-2 text-dusty-blue-darkest no-underline truncate"
                 ]
+                [ text title ]
+    in
+        case ( maybeRoute, routeFor currentPage ) of
+            ( Just route, Just currentRoute ) ->
+                if route == currentRoute then
+                    li [ class "flex items-center font-bold" ]
+                        [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
+                        , link (Route.href route)
+                        ]
+                else
+                    li [ class "flex" ] [ link (Route.href route) ]
+
+            ( _, _ ) ->
+                li [ class "flex" ] [ link (href "#") ]
 
 
 spaceAvatar : Space -> Html Msg

@@ -622,7 +622,7 @@ sidebarView featuredMemberships =
 
 memberItemView : GroupMembership -> Html Msg
 memberItemView { user } =
-    div [ class "flex items-center mb-1" ]
+    div [ class "flex items-center pr-4 mb-1" ]
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
-        , div [ class "flex-grow text-sm" ] [ text <| displayName user ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| displayName user ]
         ]
