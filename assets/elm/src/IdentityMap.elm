@@ -1,4 +1,4 @@
-module IdentityMap exposing (IdentityMap, init, get, set, mapList)
+module IdentityMap exposing (IdentityMap, init, get, set, getList)
 
 import Dict exposing (Dict)
 
@@ -27,6 +27,6 @@ set map toId record =
     Dict.insert (toId record) record map
 
 
-mapList : IdentityMap a -> (a -> Id) -> List a -> List a
-mapList map toId list =
+getList : IdentityMap a -> (a -> Id) -> List a -> List a
+getList map toId list =
     List.map (get map toId) list

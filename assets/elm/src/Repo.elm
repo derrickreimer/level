@@ -26,7 +26,7 @@ getGroup { groups } group =
 
 getGroups : Repo -> List Group -> List Group
 getGroups { groups } list =
-    IdentityMap.mapList groups .id list
+    IdentityMap.getList groups .id list
 
 
 setGroup : Repo -> Group -> Repo
