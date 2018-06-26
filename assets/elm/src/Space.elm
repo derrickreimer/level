@@ -509,7 +509,7 @@ view model =
         Loaded sharedState ->
             div []
                 [ leftSidebar sharedState model
-                , pageContent model.repo model.page
+                , pageContent model.repo sharedState model.page
                 ]
 
 
@@ -593,8 +593,8 @@ spaceAvatar space =
         |> texitar Avatar.Small
 
 
-pageContent : Repo -> Page -> Html Msg
-pageContent repo page =
+pageContent : Repo -> SharedState -> Page -> Html Msg
+pageContent repo sharedState page =
     case page of
         SetupCreateGroups pageModel ->
             pageModel
@@ -607,8 +607,13 @@ pageContent repo page =
                 |> Html.map SetupInviteUsersMsg
 
         Inbox ->
-            Page.Inbox.view
-                |> Html.map InboxMsg
+            let
+                featuredUsers =
+                    sharedState.featuredUsers
+                        |> Repo.getUsers repo
+            in
+                Page.Inbox.view featuredUsers
+                    |> Html.map InboxMsg
 
         Group pageModel ->
             pageModel
