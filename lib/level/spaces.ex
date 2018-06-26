@@ -81,10 +81,12 @@ defmodule Level.Spaces do
   end
 
   @doc """
-  Builds a query for listing space users accessible by a given user.
+  Builds a query for listing space users related to the given resource.
   """
   @spec space_users_base_query(User.t()) :: Ecto.Query.t()
-  def space_users_base_query(user) do
+  @spec space_users_base_query(Space.t()) :: Ecto.Query.t()
+
+  def space_users_base_query(%User{} = user) do
     from su in SpaceUser,
       distinct: su.id,
       join: s in assoc(su, :space),
@@ -92,6 +94,30 @@ defmodule Level.Spaces do
       join: usu in SpaceUser,
       on: usu.space_id == su.space_id and usu.user_id == ^user.id,
       select: %{su | space_name: s.name, first_name: u.first_name, last_name: u.last_name}
+  end
+
+  def space_users_base_query(%Space{} = space) do
+    from su in SpaceUser,
+      distinct: su.id,
+      join: s in assoc(su, :space),
+      join: u in assoc(su, :user),
+      where: su.space_id == ^space.id,
+      select: %{su | space_name: s.name, first_name: u.first_name, last_name: u.last_name}
+  end
+
+  @doc """
+  Fetches all the featured users (for display in the inbox sidebar).
+  """
+  @spec list_featured_users(Space.t()) :: [SpaceUser.t()] | no_return()
+  def list_featured_users(%Space{} = space) do
+    result =
+      space
+      |> space_users_base_query()
+      |> order_by([su, s, u], desc: u.last_name)
+      |> limit(10)
+      |> Repo.all()
+
+    {:ok, result}
   end
 
   @doc """

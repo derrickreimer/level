@@ -111,6 +111,11 @@ defmodule LevelWeb.Schema.Types do
       arg :id, non_null(:id)
       resolve &Level.Connections.group/3
     end
+
+    @desc "A preview of space users (for display in the directory sidebar)."
+    field :featured_users, list_of(:space_user) do
+      resolve &Level.Connections.featured_space_users/3
+    end
   end
 
   @desc "A group is a collection of users within a space."

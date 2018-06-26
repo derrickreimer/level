@@ -65,6 +65,15 @@ defmodule Level.Connections do
   end
 
   @doc """
+  Fetches featured group memberships.
+  """
+  @spec featured_space_users(Space.t(), map(), authenticated_context) ::
+          {:ok, [SpaceUser.t()]} | no_return()
+  def featured_space_users(space, _args, %{context: %{current_user: _user}} = _info) do
+    Level.Spaces.list_featured_users(space)
+  end
+
+  @doc """
   Fetches groups for given a space that are visible to the current user.
   """
   @spec groups(Space.t(), Groups.t(), authenticated_context()) :: paginated_result()
