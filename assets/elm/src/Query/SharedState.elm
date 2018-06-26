@@ -23,6 +23,7 @@ type alias Response =
     , setupState : Setup.State
     , openInvitationUrl : Maybe String
     , bookmarkedGroups : List Group
+    , featuredUsers : List SpaceUser
     }
 
 
@@ -43,6 +44,12 @@ query =
             slug
             setupState
             openInvitationUrl
+            featuredUsers {
+              id
+              firstName
+              lastName
+              role
+            }
           }
           bookmarkedGroups {
             id
@@ -69,6 +76,7 @@ decoder =
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "setupState" ] setupStateDecoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
             |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarkedGroups" ] (Decode.list groupDecoder))
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "featuredUsers" ] (Decode.list spaceUserDecoder))
         )
 
 
