@@ -615,9 +615,16 @@ sidebarView : List GroupMembership -> Html Msg
 sidebarView featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-3 text-base" ] [ text "Members" ]
-        , div [] <|
-            List.map memberItemView featuredMemberships
+        , memberListView featuredMemberships
         ]
+
+
+memberListView : List GroupMembership -> Html Msg
+memberListView featuredMemberships =
+    if List.isEmpty featuredMemberships then
+        div [ class "text-sm" ] [ text "Nobody has joined yet." ]
+    else
+        div [] <| List.map memberItemView featuredMemberships
 
 
 memberItemView : GroupMembership -> Html Msg
