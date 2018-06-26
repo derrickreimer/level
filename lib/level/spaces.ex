@@ -98,7 +98,6 @@ defmodule Level.Spaces do
 
   def space_users_base_query(%Space{} = space) do
     from su in SpaceUser,
-      distinct: su.id,
       join: s in assoc(su, :space),
       join: u in assoc(su, :user),
       where: su.space_id == ^space.id,
@@ -113,7 +112,7 @@ defmodule Level.Spaces do
     result =
       space
       |> space_users_base_query()
-      |> order_by([su, s, u], desc: u.last_name)
+      |> order_by([su, s, u], asc: u.last_name)
       |> limit(10)
       |> Repo.all()
 
