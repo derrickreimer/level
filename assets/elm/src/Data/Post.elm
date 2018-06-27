@@ -6,7 +6,7 @@ import Json.Decode.Pipeline as Pipeline
 import Data.Group exposing (Group, groupDecoder)
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
-import Util exposing (dateDecoder)
+import Util exposing (dateDecoder, memberById)
 
 
 -- TYPES
@@ -28,7 +28,7 @@ type alias PostEdge =
 
 
 type alias PostConnection =
-    { edges : List PostEdge
+    { nodes : List Post
     , pageInfo : PageInfo
     }
 
@@ -55,10 +55,9 @@ postConnectionDecoder =
         |> Pipeline.custom (Decode.at [ "pageInfo" ] pageInfoDecoder)
 
 
-postEdgeDecoder : Decode.Decoder PostEdge
+postEdgeDecoder : Decode.Decoder Post
 postEdgeDecoder =
-    Pipeline.decode PostEdge
-        |> Pipeline.custom (Decode.at [ "node" ] postDecoder)
+    Decode.at [ "node" ] postDecoder
 
 
 
@@ -66,12 +65,8 @@ postEdgeDecoder =
 
 
 add : Post -> PostConnection -> PostConnection
-add post connection =
-    let
-        edges =
-            connection.edges
-    in
-        if List.any (\{ node } -> node.id == post.id) edges then
-            connection
-        else
-            { connection | edges = (PostEdge post) :: edges }
+add post ({ nodes } as connection) =
+    if memberById post nodes then
+        connection
+    else
+        { connection | nodes = post :: nodes }

@@ -606,25 +606,25 @@ newPostView body user group =
 
 
 postListView : SpaceUser -> PostConnection -> Date -> Html Msg
-postListView currentUser ({ edges } as connection) now =
+postListView currentUser ({ nodes } as connection) now =
     if Connection.isEmpty connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
     else
         div [] <|
-            List.map (postView currentUser now) edges
+            List.map (postView currentUser now) nodes
 
 
-postView : SpaceUser -> Date -> PostEdge -> Html Msg
-postView currentUser now { node } =
+postView : SpaceUser -> Date -> Post -> Html Msg
+postView currentUser now post =
     div [ class "flex p-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium node.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
-                [ span [ class "font-bold" ] [ text <| displayName node.author ]
-                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now node.postedAt ]
+                [ span [ class "font-bold" ] [ text <| displayName post.author ]
+                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
                 ]
-            , div [ class "markdown mb-2" ] [ injectHtml node.bodyHtml ]
+            , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
                     [ a [ href "#", class "inline-block mr-4" ] [ Icons.heart ]
