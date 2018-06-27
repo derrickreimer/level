@@ -1,6 +1,7 @@
 module Page.Group exposing (..)
 
 import Date exposing (Date)
+import Dict exposing (Dict)
 import Dom exposing (focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -69,6 +70,16 @@ type alias BootstrapResponse =
     }
 
 
+type alias ReplyComposer =
+    { body : String
+    , isExpanded : Bool
+    }
+
+
+type alias ReplyComposers =
+    Dict String ReplyComposer
+
+
 type alias Model =
     { group : Group
     , state : GroupMembershipState
@@ -80,6 +91,7 @@ type alias Model =
     , newPostBody : String
     , isNewPostSubmitting : Bool
     , nameEditor : FieldEditor
+    , replyComposers : ReplyComposers
     }
 
 
@@ -185,6 +197,7 @@ buildModel user space ( session, { group, state, posts, featuredMemberships, now
                 ""
                 False
                 (FieldEditor NotEditing "" [])
+                Dict.empty
     in
         Task.succeed ( session, model )
 
@@ -221,6 +234,9 @@ type Msg
     | NameEditorSubmit
     | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
     | FeaturedMembershipsRefreshed (Result Session.Error ( Session, FeaturedMemberships.Response ))
+    | ExpandReplyComposer String
+    | NewReplyBodyChanged String String
+    | NewReplySubmit String
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -372,6 +388,36 @@ update msg repo session model =
         FeaturedMembershipsRefreshed (Err _) ->
             noCmd session model
 
+        ExpandReplyComposer postId ->
+            let
+                cmd =
+                    setFocus ("reply-composer-" ++ postId)
+
+                newReplyComposers =
+                    case Dict.get postId model.replyComposers of
+                        Just composer ->
+                            Dict.insert postId { composer | isExpanded = True } model.replyComposers
+
+                        Nothing ->
+                            Dict.insert postId (ReplyComposer "" True) model.replyComposers
+            in
+                ( ( { model | replyComposers = newReplyComposers }, cmd ), session )
+
+        NewReplyBodyChanged postId val ->
+            case Dict.get postId model.replyComposers of
+                Just composer ->
+                    let
+                        replyComposers =
+                            Dict.insert postId { composer | body = val } model.replyComposers
+                    in
+                        noCmd session { model | replyComposers = replyComposers }
+
+                Nothing ->
+                    noCmd session model
+
+        NewReplySubmit postId ->
+            noCmd session model
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
@@ -498,7 +544,7 @@ view repo model =
                         ]
                     ]
                 , newPostView model.newPostBody model.user group
-                , postListView model.user model.posts model.now
+                , postListView model.user model.now model.replyComposers model.posts
                 , sidebarView model.featuredMemberships
                 ]
             ]
@@ -579,7 +625,7 @@ subscribeButtonView state =
 
 newPostView : String -> SpaceUser -> Group -> Html Msg
 newPostView body user group =
-    label [ class "composer mb-4 border" ]
+    label [ class "composer mb-4" ]
         [ div [ class "flex" ]
             [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium user ]
             , div [ class "flex-grow" ]
@@ -605,18 +651,18 @@ newPostView body user group =
         ]
 
 
-postListView : SpaceUser -> PostConnection -> Date -> Html Msg
-postListView currentUser ({ nodes } as connection) now =
+postListView : SpaceUser -> Date -> ReplyComposers -> PostConnection -> Html Msg
+postListView currentUser now replyComposers ({ nodes } as connection) =
     if Connection.isEmpty connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
     else
         div [] <|
-            List.map (postView currentUser now) nodes
+            List.map (postView currentUser now replyComposers) nodes
 
 
-postView : SpaceUser -> Date -> Post -> Html Msg
-postView currentUser now post =
+postView : SpaceUser -> Date -> ReplyComposers -> Post -> Html Msg
+postView currentUser now replyComposers post =
     div [ class "flex p-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
@@ -628,11 +674,43 @@ postView currentUser now post =
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
                     [ a [ href "#", class "inline-block mr-4" ] [ Icons.heart ]
-                    , a [ href "#", class "inline-block mr-4" ] [ Icons.comment ]
+                    , button [ class "inline-block mr-4", onClick (ExpandReplyComposer post.id) ] [ Icons.comment ]
                     ]
                 ]
+            , replyComposerView currentUser replyComposers post
             ]
         ]
+
+
+replyComposerView : SpaceUser -> ReplyComposers -> Post -> Html Msg
+replyComposerView currentUser replyComposers post =
+    case Dict.get post.id replyComposers of
+        Just composer ->
+            div [ class "composer mt-2 -ml-3 p-3" ]
+                [ div [ class "flex" ]
+                    [ div [ class "flex-no-shrink mr-1" ] [ personAvatar Avatar.Small currentUser ]
+                    , div [ class "flex-grow" ]
+                        [ textarea
+                            [ id ("reply-composer-" ++ post.id)
+                            , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest text-sm resize-none leading-normal"
+                            , placeholder "Write a reply..."
+                            , onInput (NewReplyBodyChanged post.id)
+                            , onEnter True (NewReplySubmit post.id)
+                            , value composer.body
+                            ]
+                            []
+                        , div [ class "flex justify-end" ]
+                            [ button
+                                [ class "btn btn-blue btn-sm"
+                                ]
+                                [ text "Post reply" ]
+                            ]
+                        ]
+                    ]
+                ]
+
+        Nothing ->
+            text ""
 
 
 sidebarView : List GroupMembership -> Html Msg
