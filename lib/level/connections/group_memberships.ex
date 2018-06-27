@@ -34,8 +34,8 @@ defmodule Level.Connections.GroupMemberships do
     base_query =
       from gu in GroupUser,
         where: gu.group_id == ^group.id,
-        join: u in assoc(gu, :user),
-        select: %{gu | last_name: u.last_name}
+        join: su in assoc(gu, :space_user),
+        select: %{gu | last_name: su.last_name}
 
     wrapped_query = from(gu in subquery(base_query))
     Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
