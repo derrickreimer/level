@@ -266,7 +266,9 @@ CREATE TABLE public.space_users (
     state public.space_user_state DEFAULT 'ACTIVE'::public.space_user_state NOT NULL,
     role public.space_user_role DEFAULT 'MEMBER'::public.space_user_role NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL
 );
 
 
@@ -679,5 +681,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436);
+INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743);
 

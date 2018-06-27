@@ -42,6 +42,7 @@
     remove: :*,
     create: :*,
     drop: :*,
+    modify: :*,
 
     # Ecto Query
     from: 2,
