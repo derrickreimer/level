@@ -390,8 +390,14 @@ update msg repo session model =
 
         ExpandReplyComposer postId ->
             let
+                nodeId =
+                    replyComposerId postId
+
                 cmd =
-                    setFocus ("reply-composer-" ++ postId)
+                    Cmd.batch
+                        [ setFocus nodeId
+                        , autosize Autosize.Init nodeId
+                        ]
 
                 newReplyComposers =
                     case Dict.get postId model.replyComposers of
@@ -691,7 +697,7 @@ replyComposerView currentUser replyComposers post =
                     [ div [ class "flex-no-shrink mr-1" ] [ personAvatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea
-                            [ id ("reply-composer-" ++ post.id)
+                            [ id (replyComposerId post.id)
                             , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest text-sm resize-none leading-normal"
                             , placeholder "Write a reply..."
                             , onInput (NewReplyBodyChanged post.id)
@@ -735,3 +741,12 @@ memberItemView { user } =
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| displayName user ]
         ]
+
+
+
+-- UTILS
+
+
+replyComposerId : String -> String
+replyComposerId postId =
+    "reply-composer-" ++ postId
