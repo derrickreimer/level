@@ -60,17 +60,26 @@ type alias FieldEditor =
     }
 
 
-type alias Model =
+type alias BootstrapResponse =
     { group : Group
-    , space : Space
-    , user : SpaceUser
     , state : GroupMembershipState
     , posts : PostConnection
     , featuredMemberships : List GroupMembership
+    , now : Date
+    }
+
+
+type alias Model =
+    { group : Group
+    , state : GroupMembershipState
+    , posts : PostConnection
+    , featuredMemberships : List GroupMembership
+    , now : Date
+    , space : Space
+    , user : SpaceUser
     , newPostBody : String
     , isNewPostSubmitting : Bool
     , nameEditor : FieldEditor
-    , now : Date
     }
 
 
@@ -78,14 +87,15 @@ type alias Model =
 -- INIT
 
 
-init : Space -> SpaceUser -> String -> Session -> Task Session.Error ( Session, Model )
-init space user groupId session =
+init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
+init user space groupId session =
     Date.now
-        |> Task.andThen (bootstrap space user groupId session)
+        |> Task.andThen (bootstrap space.id groupId session)
+        |> Task.andThen (buildModel user space)
 
 
-bootstrap : Space -> SpaceUser -> String -> Session -> Date -> Task Session.Error ( Session, Model )
-bootstrap space user groupId session now =
+bootstrap : String -> String -> Session -> Date -> Task Session.Error ( Session, BootstrapResponse )
+bootstrap spaceId groupId session now =
     let
         query =
             """
@@ -141,28 +151,42 @@ bootstrap space user groupId session now =
 
         variables =
             Encode.object
-                [ ( "spaceId", Encode.string space.id )
+                [ ( "spaceId", Encode.string spaceId )
                 , ( "groupId", Encode.string groupId )
                 ]
 
-        decoder : Space -> SpaceUser -> Date -> Decode.Decoder Model
-        decoder space user now =
+        decoder : Date -> Decode.Decoder BootstrapResponse
+        decoder now =
             Decode.at [ "data", "space" ] <|
-                (Pipeline.decode Model
+                (Pipeline.decode BootstrapResponse
                     |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
-                    |> Pipeline.custom (Decode.succeed space)
-                    |> Pipeline.custom (Decode.succeed user)
                     |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
-                    |> Pipeline.custom (Decode.succeed "")
-                    |> Pipeline.custom (Decode.succeed False)
-                    |> Pipeline.custom (Decode.succeed (FieldEditor NotEditing "" []))
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in
-        GraphQL.request query (Just variables) (decoder space user now)
+        GraphQL.request query (Just variables) (decoder now)
             |> Session.request session
+
+
+buildModel : SpaceUser -> Space -> ( Session, BootstrapResponse ) -> Task Session.Error ( Session, Model )
+buildModel user space ( session, { group, state, posts, featuredMemberships, now } ) =
+    let
+        model =
+            Model
+                group
+                state
+                posts
+                featuredMemberships
+                now
+                space
+                user
+                ""
+                False
+                (FieldEditor NotEditing "" [])
+    in
+        Task.succeed ( session, model )
 
 
 afterInit : Model -> Cmd Msg
