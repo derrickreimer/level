@@ -38,7 +38,7 @@ Use the `script/server` command to start up your local server and visit
 ### Node.js
 
 This repository includes a `.nvmrc` file targeting a specific version of Node
-that is known the be compatible with all current node dependencies. Things might work
+that is known to be compatible with all current node dependencies. Things might work
 with a newer version of Node, but the most guaranteed route is to install
 [Node Version Manager](https://github.com/creationix/nvm) and run `nvm install` from
 the project root.
