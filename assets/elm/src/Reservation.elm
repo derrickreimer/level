@@ -143,7 +143,7 @@ view model =
                     , span [] [ text " handle for you." ]
                     ]
                 , p [ class "mb-6" ]
-                    [ text "If you don't mind, it would help us a ton if share this with your followers. Here's a handy pre-populated tweet for you!" ]
+                    [ text "If you don't mind, it would help us a ton if you share this with your followers. Here's a handy pre-populated tweet for you!" ]
                 , a
                     [ href "https://twitter.com/share?ref_src=twsrc%5Etfw"
                     , class "twitter-share-button"
