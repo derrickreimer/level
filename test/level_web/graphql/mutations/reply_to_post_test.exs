@@ -16,9 +16,6 @@ defmodule LevelWeb.GraphQL.ReplyToPostTest do
         success
         reply {
           body
-          post {
-            id
-          }
           author {
             firstName
           }
@@ -62,9 +59,6 @@ defmodule LevelWeb.GraphQL.ReplyToPostTest do
                  "success" => true,
                  "reply" => %{
                    "body" => "I am the body",
-                   "post" => %{
-                     "id" => post.id
-                   },
                    "author" => %{
                      "firstName" => space_user.first_name
                    }

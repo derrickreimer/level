@@ -7,11 +7,13 @@ defmodule Level.Connections do
   alias Level.Connections.GroupMemberships
   alias Level.Connections.GroupPosts
   alias Level.Connections.Groups
+  alias Level.Connections.Replies
   alias Level.Connections.SpaceUsers
   alias Level.Connections.UserGroupMemberships
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Pagination
+  alias Level.Posts.Post
   alias Level.Spaces
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
@@ -155,5 +157,13 @@ defmodule Level.Connections do
   @spec group_posts(Group.t(), GroupPosts.t(), authenticated_context()) :: paginated_result()
   def group_posts(group, args, info) do
     GroupPosts.get(group, struct(GroupPosts, args), info)
+  end
+
+  @doc """
+  Fetches replies to a given post.
+  """
+  @spec replies(Post.t(), Replies.t(), authenticated_context()) :: paginated_result()
+  def replies(post, args, info) do
+    Replies.get(post, struct(Replies, args), info)
   end
 end

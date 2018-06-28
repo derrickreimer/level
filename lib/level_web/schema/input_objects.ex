@@ -47,4 +47,13 @@ defmodule LevelWeb.Schema.InputObjects do
     @desc "The sort direction."
     field :direction, non_null(:order_direction)
   end
+
+  @desc "The field and direction to sort replies."
+  input_object :reply_order do
+    @desc "The field by which to sort."
+    field :field, non_null(:reply_order_field)
+
+    @desc "The sort direction."
+    field :direction, non_null(:order_direction)
+  end
 end

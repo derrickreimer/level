@@ -25,7 +25,7 @@ import Data.GroupMembership
         , groupMembershipDecoder
         , groupMembershipStateDecoder
         )
-import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
+import Data.Post exposing (Post, PostConnection, postConnectionDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
@@ -153,6 +153,28 @@ bootstrap spaceId groupId session now =
                           groups {
                             id
                             name
+                          }
+                          replies(last: 10) {
+                            edges {
+                              node {
+                                id
+                                body
+                                bodyHtml
+                                postedAt
+                                author {
+                                  id
+                                  firstName
+                                  lastName
+                                  role
+                                }
+                              }
+                            }
+                            pageInfo {
+                              hasPreviousPage
+                              hasNextPage
+                              startCursor
+                              endCursor
+                            }
                           }
                         }
                       }

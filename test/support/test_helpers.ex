@@ -105,6 +105,14 @@ defmodule Level.TestHelpers do
     Posts.post_to_group(space_user, group, params)
   end
 
+  def reply_to_post(space_user, post, params \\ %{}) do
+    params =
+      valid_reply_params()
+      |> Map.merge(params)
+
+    Posts.reply_to_post(space_user, post, params)
+  end
+
   defp random_string do
     8
     |> :crypto.strong_rand_bytes()

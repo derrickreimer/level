@@ -9,6 +9,7 @@ defmodule Level.Posts.Post do
 
   alias Level.Groups.Group
   alias Level.Posts.PostGroup
+  alias Level.Posts.Reply
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -23,6 +24,7 @@ defmodule Level.Posts.Post do
     belongs_to :space, Space
     belongs_to :author, SpaceUser, foreign_key: :space_user_id
     many_to_many :groups, Group, join_through: PostGroup
+    has_many :replies, Reply
 
     timestamps()
   end
