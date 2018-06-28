@@ -57,6 +57,14 @@ defmodule Level.Mutations do
   @type setup_step_mutation_result ::
           {:ok, %{success: boolean(), state: atom()}} | {:error, String.t()}
 
+  @typedoc "The args for creating a reply"
+  @type new_reply_args :: %{space_id: String.t(), post_id: String.t(), body: String.t()}
+
+  @typedoc "The result of a reply mutation"
+  @type reply_mutation_result ::
+          {:ok, %{success: boolean(), reply: Posts.Reply.t() | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+
   @doc """
   Creates a new space.
   """
@@ -227,6 +235,27 @@ defmodule Level.Mutations do
       {:ok, %{success: true, state: next_state}}
     else
       err ->
+        err
+    end
+  end
+
+  @doc """
+  Creates a reply on a post.
+  """
+  @spec reply_to_post(new_reply_args(), authenticated_context()) :: reply_mutation_result()
+  def reply_to_post(%{space_id: space_id, post_id: post_id} = args, %{
+        context: %{current_user: user}
+      }) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, post} <- Posts.get_post(space_user, post_id),
+         {:ok, reply} <- Posts.reply_to_post(space_user, post, args) do
+      {:ok, %{success: true, reply: reply, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, reply: nil, errors: format_errors(changeset)}}
+
+      err ->
+        IO.inspect(err)
         err
     end
   end

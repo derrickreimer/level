@@ -6,6 +6,7 @@ defmodule LevelWeb.Schema.Types do
 
   alias Level.Groups
   alias Level.Markdown
+  alias Level.Posts
   alias Level.Spaces
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
@@ -194,6 +195,28 @@ defmodule LevelWeb.Schema.Types do
     field :posted_at_ts, non_null(:timestamp) do
       resolve fn post, _, _ ->
         {:ok, post.inserted_at}
+      end
+    end
+  end
+
+  @desc "A reply represents a response to a post."
+  object :reply do
+    field :id, non_null(:id)
+    field :body, non_null(:string)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
+    field :author, non_null(:space_user), resolve: dataloader(Spaces)
+    field :post, non_null(:post), resolve: dataloader(Posts)
+
+    field :body_html, non_null(:string) do
+      resolve fn reply, _, _ ->
+        {_status, html, _errors} = Markdown.to_html(reply.body)
+        {:ok, html}
+      end
+    end
+
+    field :posted_at, non_null(:time) do
+      resolve fn reply, _, _ ->
+        {:ok, reply.inserted_at}
       end
     end
   end
