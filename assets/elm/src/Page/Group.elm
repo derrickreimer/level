@@ -695,7 +695,7 @@ postsView currentUser now replyComposers ({ nodes } as connection) =
 
 postView : SpaceUser -> Date -> ReplyComposers -> Post -> Html Msg
 postView currentUser now replyComposers post =
-    div [ class "flex pt-4 pb-4" ]
+    div [ class "flex p-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
