@@ -1,9 +1,9 @@
-module Mutation.PostToGroup exposing (Params, Response(..), request)
+module Mutation.ReplyToPost exposing (Params, Response(..), request)
 
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Post exposing (Post, postDecoder)
+import Data.Reply exposing (Reply, replyDecoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL
 import Session exposing (Session)
@@ -11,31 +11,31 @@ import Session exposing (Session)
 
 type alias Params =
     { spaceId : String
-    , groupId : String
+    , postId : String
     , body : String
     }
 
 
 type Response
-    = Success Post
+    = Success Reply
     | Invalid (List ValidationError)
 
 
 query : String
 query =
     """
-      mutation PostToGroup(
+      mutation ReplyToPost(
         $spaceId: ID!,
-        $groupId: ID!,
+        $postId: ID!,
         $body: String!
       ) {
-        postToGroup(
+        replyToPost(
           spaceId: $spaceId,
-          groupId: $groupId,
+          postId: $postId,
           body: $body
         ) {
           success
-          post {
+          reply {
             id
             body
             bodyHtml
@@ -45,32 +45,6 @@ query =
               firstName
               lastName
               role
-            }
-            groups {
-              id
-              name
-            }
-            replies(last: 10) {
-              edges {
-                node {
-                  id
-                  body
-                  bodyHtml
-                  postedAt
-                  author {
-                    id
-                    firstName
-                    lastName
-                    role
-                  }
-                }
-              }
-              pageInfo {
-                hasPreviousPage
-                hasNextPage
-                startCursor
-                endCursor
-              }
             }
           }
           errors {
@@ -86,7 +60,7 @@ variables : Params -> Encode.Value
 variables params =
     Encode.object
         [ ( "spaceId", Encode.string params.spaceId )
-        , ( "groupId", Encode.string params.groupId )
+        , ( "postId", Encode.string params.postId )
         , ( "body", Encode.string params.body )
         ]
 
@@ -95,17 +69,17 @@ conditionalDecoder : Bool -> Decode.Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "postToGroup", "post" ] postDecoder
+            Decode.at [ "data", "replyToPost", "reply" ] replyDecoder
                 |> Decode.map Success
 
         False ->
-            Decode.at [ "data", "postToGroup", "errors" ] (Decode.list errorDecoder)
+            Decode.at [ "data", "replyToPost", "errors" ] (Decode.list errorDecoder)
                 |> Decode.map Invalid
 
 
 decoder : Decode.Decoder Response
 decoder =
-    Decode.at [ "data", "postToGroup", "success" ] Decode.bool
+    Decode.at [ "data", "replyToPost", "success" ] Decode.bool
         |> Decode.andThen conditionalDecoder
 
 

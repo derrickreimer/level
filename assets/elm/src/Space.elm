@@ -428,10 +428,10 @@ navigateTo maybeRoute model =
                             -- TODO: implement this
                             ( { model | page = Inbox }, Cmd.none )
 
-                        Just (Route.Group id) ->
+                        Just (Route.Group groupId) ->
                             model.session
-                                |> Page.Group.init sharedState.space currentUser id
-                                |> transition model (GroupInit id)
+                                |> Page.Group.init currentUser sharedState.space groupId
+                                |> transition model (GroupInit groupId)
 
 
 teardown : Page -> Cmd Msg

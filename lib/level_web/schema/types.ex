@@ -191,9 +191,45 @@ defmodule LevelWeb.Schema.Types do
       end
     end
 
-    field :posted_at_ts, non_null(:timestamp) do
-      resolve fn post, _, _ ->
-        {:ok, post.inserted_at}
+    field :replies, non_null(:reply_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :reply_order
+      resolve &Level.Connections.replies/3
+    end
+  end
+
+  @desc "A reply represents a response to a post."
+  object :reply do
+    field :id, non_null(:id)
+    field :body, non_null(:string)
+    field :space, non_null(:space), resolve: dataloader(Spaces)
+
+    # TODO: Using `dataloader(Spaces)` here raises an exception:
+    #
+    # ** (ArgumentError) expected a homogeneous list containing the same struct, got: Level.Posts.Reply and Level.Posts.Post
+    #     (elixir) lib/enum.ex:1899: Enum."-reduce/3-lists^foldl/2-0-"/3
+    #     (elixir) lib/enum.ex:1294: Enum."-map/2-lists^map/1-0-"/2
+    #     (dataloader) lib/dataloader/ecto.ex:274: Dataloader.Source.Dataloader.Ecto.run_batch/2
+    #     (elixir) lib/task/supervised.ex:88: Task.Supervised.do_apply/2
+    #     (elixir) lib/task/supervised.ex:38: Task.Supervised.reply/5
+    #     (stdlib) proc_lib.erl:247: :proc_lib.init_p_do_apply/3
+    #
+    # Figure out why!
+    field :author, non_null(:space_user), resolve: dataloader(:db)
+
+    field :body_html, non_null(:string) do
+      resolve fn reply, _, _ ->
+        {_status, html, _errors} = Markdown.to_html(reply.body)
+        {:ok, html}
+      end
+    end
+
+    field :posted_at, non_null(:time) do
+      resolve fn reply, _, _ ->
+        {:ok, reply.inserted_at}
       end
     end
   end

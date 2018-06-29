@@ -113,6 +113,15 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.post_to_group/2
     end
+
+    @desc "Replies to a post."
+    field :reply_to_post, type: :reply_to_post_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+      arg :body, non_null(:string)
+
+      resolve &Level.Mutations.reply_to_post/2
+    end
   end
 
   subscription do

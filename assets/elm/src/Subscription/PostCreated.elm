@@ -49,6 +49,28 @@ query =
               id
               name
             }
+            replies(last: 10) {
+              edges {
+                node {
+                  id
+                  body
+                  bodyHtml
+                  postedAt
+                  author {
+                    id
+                    firstName
+                    lastName
+                    role
+                  }
+                }
+              }
+              pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+              }
+            }
           }
         }
       }

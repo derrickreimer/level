@@ -1,15 +1,13 @@
-defmodule Level.Posts.Post do
+defmodule Level.Posts.Reply do
   @moduledoc """
-  The Post schema.
+  The Reply schema.
   """
 
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Level.Groups.Group
-  alias Level.Posts.PostGroup
-  alias Level.Posts.Reply
+  alias Level.Posts.Post
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -17,14 +15,12 @@ defmodule Level.Posts.Post do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "posts" do
-    field :state, :string, read_after_writes: true
+  schema "replies" do
     field :body, :string
 
     belongs_to :space, Space
+    belongs_to :post, Post
     belongs_to :author, SpaceUser, foreign_key: :space_user_id
-    many_to_many :groups, Group, join_through: PostGroup
-    has_many :replies, Reply
 
     timestamps()
   end
@@ -32,7 +28,7 @@ defmodule Level.Posts.Post do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_user_id, :body])
+    |> cast(attrs, [:space_id, :space_user_id, :post_id, :body])
     |> validate_required([:body])
   end
 end

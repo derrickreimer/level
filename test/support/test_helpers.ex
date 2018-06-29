@@ -48,6 +48,12 @@ defmodule Level.TestHelpers do
     }
   end
 
+  def valid_reply_params do
+    %{
+      body: "Hello world"
+    }
+  end
+
   def create_user_and_space(user_params \\ %{}, space_params \\ %{}) do
     user_params = valid_user_params() |> Map.merge(user_params)
     space_params = valid_space_params() |> Map.merge(space_params)
@@ -97,6 +103,14 @@ defmodule Level.TestHelpers do
       |> Map.merge(params)
 
     Posts.post_to_group(space_user, group, params)
+  end
+
+  def reply_to_post(space_user, post, params \\ %{}) do
+    params =
+      valid_reply_params()
+      |> Map.merge(params)
+
+    Posts.reply_to_post(space_user, post, params)
   end
 
   defp random_string do

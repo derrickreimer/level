@@ -164,4 +164,23 @@ defmodule LevelWeb.Schema.Mutations do
     """
     field :post, :post
   end
+
+  @desc "The response to replying to a post."
+  object :reply_to_post_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The mutated object. If the mutation was not successful,
+    this field may be null.
+    """
+    field :reply, :reply
+  end
 end

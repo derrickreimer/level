@@ -1,6 +1,7 @@
 module Page.Group exposing (..)
 
 import Date exposing (Date)
+import Dict exposing (Dict)
 import Dom exposing (focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -24,13 +25,16 @@ import Data.GroupMembership
         , groupMembershipDecoder
         , groupMembershipStateDecoder
         )
-import Data.Post exposing (Post, PostConnection, PostEdge, postConnectionDecoder)
+import Data.Post exposing (Post, PostConnection, postConnectionDecoder)
+import Data.Reply exposing (Reply, ReplyConnection)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import GraphQL
 import Icons
+import KeyboardEvents exposing (Modifier(..), preventDefault, onKeyDown, enter, esc)
 import Mutation.PostToGroup as PostToGroup
+import Mutation.ReplyToPost as ReplyToPost
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
@@ -41,7 +45,7 @@ import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
 import Subscription.GroupUpdated as GroupUpdated
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, smartFormatDate, memberById, onEnter, onEnterOrEsc, injectHtml, insertUniqueById, removeById)
+import Util exposing (displayName, smartFormatDate, memberById, injectHtml, insertUniqueById, removeById)
 
 
 -- MODEL
@@ -60,17 +64,43 @@ type alias FieldEditor =
     }
 
 
-type alias Model =
+type alias BootstrapResponse =
     { group : Group
-    , space : Space
-    , user : SpaceUser
     , state : GroupMembershipState
     , posts : PostConnection
     , featuredMemberships : List GroupMembership
-    , newPostBody : String
-    , isNewPostSubmitting : Bool
-    , nameEditor : FieldEditor
     , now : Date
+    }
+
+
+type alias PostComposer =
+    { body : String
+    , isSubmitting : Bool
+    }
+
+
+type alias ReplyComposer =
+    { body : String
+    , isExpanded : Bool
+    , isSubmitting : Bool
+    }
+
+
+type alias ReplyComposers =
+    Dict String ReplyComposer
+
+
+type alias Model =
+    { group : Group
+    , state : GroupMembershipState
+    , posts : PostConnection
+    , featuredMemberships : List GroupMembership
+    , now : Date
+    , space : Space
+    , user : SpaceUser
+    , nameEditor : FieldEditor
+    , postComposer : PostComposer
+    , replyComposers : ReplyComposers
     }
 
 
@@ -78,14 +108,15 @@ type alias Model =
 -- INIT
 
 
-init : Space -> SpaceUser -> String -> Session -> Task Session.Error ( Session, Model )
-init space user groupId session =
+init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
+init user space groupId session =
     Date.now
-        |> Task.andThen (bootstrap space user groupId session)
+        |> Task.andThen (bootstrap space.id groupId session)
+        |> Task.andThen (buildModel user space)
 
 
-bootstrap : Space -> SpaceUser -> String -> Session -> Date -> Task Session.Error ( Session, Model )
-bootstrap space user groupId session now =
+bootstrap : String -> String -> Session -> Date -> Task Session.Error ( Session, BootstrapResponse )
+bootstrap spaceId groupId session now =
     let
         query =
             """
@@ -125,6 +156,28 @@ bootstrap space user groupId session now =
                             id
                             name
                           }
+                          replies(last: 10) {
+                            edges {
+                              node {
+                                id
+                                body
+                                bodyHtml
+                                postedAt
+                                author {
+                                  id
+                                  firstName
+                                  lastName
+                                  role
+                                }
+                              }
+                            }
+                            pageInfo {
+                              hasPreviousPage
+                              hasNextPage
+                              startCursor
+                              endCursor
+                            }
+                          }
                         }
                       }
                       pageInfo {
@@ -141,28 +194,42 @@ bootstrap space user groupId session now =
 
         variables =
             Encode.object
-                [ ( "spaceId", Encode.string space.id )
+                [ ( "spaceId", Encode.string spaceId )
                 , ( "groupId", Encode.string groupId )
                 ]
 
-        decoder : Space -> SpaceUser -> Date -> Decode.Decoder Model
-        decoder space user now =
+        decoder : Date -> Decode.Decoder BootstrapResponse
+        decoder now =
             Decode.at [ "data", "space" ] <|
-                (Pipeline.decode Model
+                (Pipeline.decode BootstrapResponse
                     |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
-                    |> Pipeline.custom (Decode.succeed space)
-                    |> Pipeline.custom (Decode.succeed user)
                     |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
-                    |> Pipeline.custom (Decode.succeed "")
-                    |> Pipeline.custom (Decode.succeed False)
-                    |> Pipeline.custom (Decode.succeed (FieldEditor NotEditing "" []))
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in
-        GraphQL.request query (Just variables) (decoder space user now)
+        GraphQL.request query (Just variables) (decoder now)
             |> Session.request session
+
+
+buildModel : SpaceUser -> Space -> ( Session, BootstrapResponse ) -> Task Session.Error ( Session, Model )
+buildModel user space ( session, { group, state, posts, featuredMemberships, now } ) =
+    let
+        model =
+            Model
+                group
+                state
+                posts
+                featuredMemberships
+                now
+                space
+                user
+                (FieldEditor NotEditing "" [])
+                (PostComposer "" False)
+                Dict.empty
+    in
+        Task.succeed ( session, model )
 
 
 afterInit : Model -> Cmd Msg
@@ -197,10 +264,15 @@ type Msg
     | NameEditorSubmit
     | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
     | FeaturedMembershipsRefreshed (Result Session.Error ( Session, FeaturedMemberships.Response ))
+    | ExpandReplyComposer String
+    | NewReplyBodyChanged String String
+    | NewReplySubmit String
+    | NewReplySubmitted (Result Session.Error ( Session, ReplyToPost.Response ))
+    | NewReplyEscaped String
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg repo session model =
+update msg repo session ({ postComposer, nameEditor } as model) =
     case msg of
         NoOp ->
             noCmd session model
@@ -210,24 +282,24 @@ update msg repo session model =
                 |> noCmd session
 
         NewPostBodyChanged value ->
-            { model | newPostBody = value }
+            { model | postComposer = { postComposer | body = value } }
                 |> noCmd session
 
         NewPostSubmit ->
-            if newPostSubmittable model.newPostBody then
+            if newPostSubmittable postComposer then
                 let
                     cmd =
-                        PostToGroup.Params model.space.id model.group.id model.newPostBody
+                        PostToGroup.Params model.space.id model.group.id postComposer.body
                             |> PostToGroup.request
                             |> Session.request session
                             |> Task.attempt NewPostSubmitted
                 in
-                    ( ( { model | isNewPostSubmitting = True }, cmd ), session )
+                    ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), session )
             else
                 noCmd session model
 
         NewPostSubmitted (Ok ( session, response )) ->
-            ( ( { model | newPostBody = "", isNewPostSubmitting = False }
+            ( ( { model | postComposer = { postComposer | body = "", isSubmitting = False } }
               , autosize Autosize.Update "post-composer"
               )
             , session
@@ -238,7 +310,7 @@ update msg repo session model =
 
         NewPostSubmitted (Err _) ->
             -- TODO: display error message
-            { model | isNewPostSubmitting = False }
+            { model | postComposer = { postComposer | isSubmitting = False } }
                 |> noCmd session
 
         MembershipStateToggled state ->
@@ -258,14 +330,11 @@ update msg repo session model =
 
         NameClicked ->
             let
-                editor =
-                    model.nameEditor
-
                 group =
                     Repo.getGroup repo model.group
 
                 newEditor =
-                    { editor | state = Editing, value = group.name, errors = [] }
+                    { nameEditor | state = Editing, value = group.name, errors = [] }
             in
                 ( ( { model | nameEditor = newEditor }
                   , Cmd.batch [ setFocus "name-editor-value", Ports.select "name-editor-value" ]
@@ -274,68 +343,47 @@ update msg repo session model =
                 )
 
         NameEditorChanged val ->
-            let
-                editor =
-                    model.nameEditor
-            in
-                noCmd session { model | nameEditor = { editor | value = val } }
+            noCmd session { model | nameEditor = { nameEditor | value = val } }
 
         NameEditorDismissed ->
-            let
-                editor =
-                    model.nameEditor
-            in
-                noCmd session { model | nameEditor = { editor | state = NotEditing } }
+            noCmd session { model | nameEditor = { nameEditor | state = NotEditing } }
 
         NameEditorSubmit ->
             let
-                editor =
-                    model.nameEditor
-
                 cmd =
-                    UpdateGroup.Params model.space.id model.group.id editor.value
+                    UpdateGroup.Params model.space.id model.group.id nameEditor.value
                         |> UpdateGroup.request
                         |> Session.request session
                         |> Task.attempt NameEditorSubmitted
             in
-                ( ( { model | nameEditor = { editor | state = Submitting } }, cmd ), session )
+                ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), session )
 
         NameEditorSubmitted (Ok ( session, UpdateGroup.Success group )) ->
             let
-                editor =
-                    model.nameEditor
-
                 newModel =
                     { model
                         | group = group
-                        , nameEditor = { editor | state = NotEditing }
+                        , nameEditor = { nameEditor | state = NotEditing }
                     }
             in
                 noCmd session newModel
 
         NameEditorSubmitted (Ok ( session, UpdateGroup.Invalid errors )) ->
-            let
-                editor =
-                    model.nameEditor
-            in
-                ( ( { model | nameEditor = { editor | state = Editing, errors = errors } }
-                  , Ports.select "name-editor-value"
-                  )
-                , session
-                )
+            ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }
+              , Ports.select "name-editor-value"
+              )
+            , session
+            )
 
         NameEditorSubmitted (Err Session.Expired) ->
             redirectToLogin session model
 
         NameEditorSubmitted (Err _) ->
             let
-                editor =
-                    model.nameEditor
-
                 errors =
                     [ ValidationError "name" "Hmm, something went wrong." ]
             in
-                ( ( { model | nameEditor = { editor | state = Editing, errors = errors } }, Cmd.none )
+                ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }, Cmd.none )
                 , session
                 )
 
@@ -347,6 +395,78 @@ update msg repo session model =
 
         FeaturedMembershipsRefreshed (Err _) ->
             noCmd session model
+
+        ExpandReplyComposer postId ->
+            let
+                nodeId =
+                    replyComposerId postId
+
+                cmd =
+                    Cmd.batch
+                        [ setFocus nodeId
+                        , autosize Autosize.Init nodeId
+                        ]
+
+                newReplyComposers =
+                    case Dict.get postId model.replyComposers of
+                        Just composer ->
+                            Dict.insert postId { composer | isExpanded = True } model.replyComposers
+
+                        Nothing ->
+                            Dict.insert postId (ReplyComposer "" True False) model.replyComposers
+            in
+                ( ( { model | replyComposers = newReplyComposers }, cmd ), session )
+
+        NewReplyBodyChanged postId val ->
+            case Dict.get postId model.replyComposers of
+                Just composer ->
+                    let
+                        replyComposers =
+                            Dict.insert postId { composer | body = val } model.replyComposers
+                    in
+                        noCmd session { model | replyComposers = replyComposers }
+
+                Nothing ->
+                    noCmd session model
+
+        NewReplySubmit postId ->
+            case Dict.get postId model.replyComposers of
+                Just composer ->
+                    let
+                        replyComposers =
+                            Dict.insert postId { composer | isSubmitting = True } model.replyComposers
+
+                        cmd =
+                            ReplyToPost.Params model.space.id postId composer.body
+                                |> ReplyToPost.request
+                                |> Session.request session
+                                |> Task.attempt NewReplySubmitted
+                    in
+                        ( ( { model | replyComposers = replyComposers }, cmd ), session )
+
+                Nothing ->
+                    noCmd session model
+
+        NewReplySubmitted (Ok ( session, response )) ->
+            noCmd session model
+
+        NewReplySubmitted (Err Session.Expired) ->
+            redirectToLogin session model
+
+        NewReplySubmitted (Err _) ->
+            noCmd session model
+
+        NewReplyEscaped postId ->
+            case Dict.get postId model.replyComposers of
+                Just composer ->
+                    let
+                        replyComposers =
+                            Dict.insert postId { composer | isExpanded = False } model.replyComposers
+                    in
+                        noCmd session { model | replyComposers = replyComposers }
+
+                Nothing ->
+                    noCmd session model
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -394,11 +514,6 @@ setFocus id =
 autosize : Autosize.Method -> String -> Cmd Msg
 autosize method id =
     Ports.autosize (Autosize.buildArgs method id)
-
-
-newPostSubmittable : String -> Bool
-newPostSubmittable body =
-    not (body == "")
 
 
 
@@ -473,8 +588,8 @@ view repo model =
                         , controlsView model.state
                         ]
                     ]
-                , newPostView model.newPostBody model.user group
-                , postListView model.user model.posts model.now
+                , newPostView model.postComposer model.user group
+                , postsView model.user model.now model.replyComposers model.posts
                 , sidebarView model.featuredMemberships
                 ]
             ]
@@ -500,7 +615,10 @@ nameView group editor =
                     , classList [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True ), ( "shake", not <| List.isEmpty editor.errors ) ]
                     , value editor.value
                     , onInput NameEditorChanged
-                    , onEnterOrEsc NameEditorSubmit NameEditorDismissed
+                    , onKeyDown preventDefault
+                        [ ( Meta, enter, NameEditorSubmit )
+                        , ( Unmodified, esc, NameEditorDismissed )
+                        ]
                     , onBlur NameEditorDismissed
                     ]
                     []
@@ -553,9 +671,9 @@ subscribeButtonView state =
                 [ text "Member" ]
 
 
-newPostView : String -> SpaceUser -> Group -> Html Msg
-newPostView body user group =
-    label [ class "composer mb-4 border" ]
+newPostView : PostComposer -> SpaceUser -> Group -> Html Msg
+newPostView ({ body, isSubmitting } as postComposer) user group =
+    label [ class "composer mb-4" ]
         [ div [ class "flex" ]
             [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium user ]
             , div [ class "flex-grow" ]
@@ -564,15 +682,16 @@ newPostView body user group =
                     , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                     , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
-                    , onEnter True NewPostSubmit
+                    , onKeyDown preventDefault [ ( Meta, enter, NewPostSubmit ) ]
+                    , readonly isSubmitting
                     , value body
                     ]
                     []
                 , div [ class "flex justify-end" ]
                     [ button
-                        [ class "btn btn-blue btn-sm"
+                        [ class "btn btn-blue btn-md"
                         , onClick NewPostSubmit
-                        , disabled (not (newPostSubmittable body))
+                        , disabled (not (newPostSubmittable postComposer))
                         ]
                         [ text "Post message" ]
                     ]
@@ -581,32 +700,108 @@ newPostView body user group =
         ]
 
 
-postListView : SpaceUser -> PostConnection -> Date -> Html Msg
-postListView currentUser ({ edges } as connection) now =
+postsView : SpaceUser -> Date -> ReplyComposers -> PostConnection -> Html Msg
+postsView currentUser now replyComposers ({ nodes } as connection) =
     if Connection.isEmpty connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
     else
         div [] <|
-            List.map (postView currentUser now) edges
+            List.map (postView currentUser now replyComposers) nodes
 
 
-postView : SpaceUser -> Date -> PostEdge -> Html Msg
-postView currentUser now { node } =
+postView : SpaceUser -> Date -> ReplyComposers -> Post -> Html Msg
+postView currentUser now replyComposers post =
     div [ class "flex p-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium node.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
-                [ span [ class "font-bold" ] [ text <| displayName node.author ]
-                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now node.postedAt ]
+                [ span [ class "font-bold" ] [ text <| displayName post.author ]
+                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
                 ]
-            , div [ class "markdown mb-2" ] [ injectHtml node.bodyHtml ]
+            , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
-                    [ a [ href "#", class "inline-block mr-4" ] [ Icons.heart ]
-                    , a [ href "#", class "inline-block mr-4" ] [ Icons.comment ]
+                    [ button [ class "inline-block mr-4", onClick (ExpandReplyComposer post.id) ] [ Icons.comment ]
                     ]
                 ]
+            , repliesView now post.replies
+            , replyComposerView currentUser replyComposers post
+            ]
+        ]
+
+
+repliesView : Date -> ReplyConnection -> Html Msg
+repliesView now { nodes } =
+    if List.isEmpty nodes then
+        text ""
+    else
+        div [] <|
+            List.map (replyView now) nodes
+
+
+replyView : Date -> Reply -> Html Msg
+replyView now reply =
+    div [ class "flex my-3" ]
+        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small reply.author ]
+        , div [ class "flex-grow leading-semi-loose" ]
+            [ div []
+                [ span [ class "font-bold" ] [ text <| displayName reply.author ]
+                ]
+            , div [ class "markdown mb-2" ] [ injectHtml reply.bodyHtml ]
+            ]
+        ]
+
+
+replyComposerView : SpaceUser -> ReplyComposers -> Post -> Html Msg
+replyComposerView currentUser replyComposers post =
+    case Dict.get post.id replyComposers of
+        Just composer ->
+            if composer.isExpanded then
+                div [ class "composer mt-3 -ml-3 p-3" ]
+                    [ div [ class "flex" ]
+                        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
+                        , div [ class "flex-grow" ]
+                            [ textarea
+                                [ id (replyComposerId post.id)
+                                , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                                , placeholder "Write a reply..."
+                                , onInput (NewReplyBodyChanged post.id)
+                                , onKeyDown preventDefault
+                                    [ ( Meta, enter, NewReplySubmit post.id )
+                                    , ( Unmodified, esc, NewReplyEscaped post.id )
+                                    ]
+                                , value composer.body
+                                , readonly composer.isSubmitting
+                                ]
+                                []
+                            , div [ class "flex justify-end" ]
+                                [ button
+                                    [ class "btn btn-blue btn-sm"
+                                    , onClick (NewReplySubmit post.id)
+                                    , disabled (not (newReplySubmittable composer))
+                                    ]
+                                    [ text "Post reply" ]
+                                ]
+                            ]
+                        ]
+                    ]
+            else
+                replyPromptView currentUser post
+
+        Nothing ->
+            if List.isEmpty post.replies.nodes then
+                text ""
+            else
+                replyPromptView currentUser post
+
+
+replyPromptView : SpaceUser -> Post -> Html Msg
+replyPromptView currentUser post =
+    button [ class "flex my-3 items-center", onClick (ExpandReplyComposer post.id) ]
+        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small currentUser ]
+        , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
+            [ text "Write a reply..."
             ]
         ]
 
@@ -633,3 +828,22 @@ memberItemView { user } =
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| displayName user ]
         ]
+
+
+
+-- UTILS
+
+
+newPostSubmittable : PostComposer -> Bool
+newPostSubmittable { body, isSubmitting } =
+    not (body == "") && not isSubmitting
+
+
+newReplySubmittable : ReplyComposer -> Bool
+newReplySubmittable { body, isSubmitting } =
+    not (body == "") && not isSubmitting
+
+
+replyComposerId : String -> String
+replyComposerId postId =
+    "reply-composer-" ++ postId

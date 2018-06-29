@@ -1,12 +1,13 @@
-module Data.Post exposing (Post, PostConnection, PostEdge, postDecoder, postConnectionDecoder, add)
+module Data.Post exposing (Post, PostConnection, postDecoder, postConnectionDecoder, add)
 
 import Date exposing (Date)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Data.Group exposing (Group, groupDecoder)
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
+import Data.Reply exposing (ReplyConnection, replyConnectionDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
-import Util exposing (dateDecoder)
+import Util exposing (dateDecoder, memberById)
 
 
 -- TYPES
@@ -19,16 +20,12 @@ type alias Post =
     , author : SpaceUser
     , groups : List Group
     , postedAt : Date
-    }
-
-
-type alias PostEdge =
-    { node : Post
+    , replies : ReplyConnection
     }
 
 
 type alias PostConnection =
-    { edges : List PostEdge
+    { nodes : List Post
     , pageInfo : PageInfo
     }
 
@@ -46,6 +43,7 @@ postDecoder =
         |> Pipeline.required "author" spaceUserDecoder
         |> Pipeline.required "groups" (Decode.list groupDecoder)
         |> Pipeline.required "postedAt" dateDecoder
+        |> Pipeline.required "replies" replyConnectionDecoder
 
 
 postConnectionDecoder : Decode.Decoder PostConnection
@@ -55,10 +53,9 @@ postConnectionDecoder =
         |> Pipeline.custom (Decode.at [ "pageInfo" ] pageInfoDecoder)
 
 
-postEdgeDecoder : Decode.Decoder PostEdge
+postEdgeDecoder : Decode.Decoder Post
 postEdgeDecoder =
-    Pipeline.decode PostEdge
-        |> Pipeline.custom (Decode.at [ "node" ] postDecoder)
+    Decode.at [ "node" ] postDecoder
 
 
 
@@ -66,12 +63,8 @@ postEdgeDecoder =
 
 
 add : Post -> PostConnection -> PostConnection
-add post connection =
-    let
-        edges =
-            connection.edges
-    in
-        if List.any (\{ node } -> node.id == post.id) edges then
-            connection
-        else
-            { connection | edges = (PostEdge post) :: edges }
+add post ({ nodes } as connection) =
+    if memberById post nodes then
+        connection
+    else
+        { connection | nodes = post :: nodes }
