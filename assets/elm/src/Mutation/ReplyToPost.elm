@@ -40,9 +40,6 @@ query =
             body
             bodyHtml
             postedAt
-            post {
-              id
-            }
             author {
               id
               firstName

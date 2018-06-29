@@ -26,6 +26,7 @@ import Data.GroupMembership
         , groupMembershipStateDecoder
         )
 import Data.Post exposing (Post, PostConnection, postConnectionDecoder)
+import Data.Reply exposing (Reply, ReplyConnection)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
@@ -574,7 +575,7 @@ view repo model =
                         ]
                     ]
                 , newPostView model.postComposer model.user group
-                , postListView model.user model.now model.replyComposers model.posts
+                , postsView model.user model.now model.replyComposers model.posts
                 , sidebarView model.featuredMemberships
                 ]
             ]
@@ -682,8 +683,8 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
         ]
 
 
-postListView : SpaceUser -> Date -> ReplyComposers -> PostConnection -> Html Msg
-postListView currentUser now replyComposers ({ nodes } as connection) =
+postsView : SpaceUser -> Date -> ReplyComposers -> PostConnection -> Html Msg
+postsView currentUser now replyComposers ({ nodes } as connection) =
     if Connection.isEmpty connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
@@ -694,7 +695,7 @@ postListView currentUser now replyComposers ({ nodes } as connection) =
 
 postView : SpaceUser -> Date -> ReplyComposers -> Post -> Html Msg
 postView currentUser now replyComposers post =
-    div [ class "flex p-4" ]
+    div [ class "flex pt-4 pb-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
@@ -707,7 +708,30 @@ postView currentUser now replyComposers post =
                     [ button [ class "inline-block mr-4", onClick (ExpandReplyComposer post.id) ] [ Icons.comment ]
                     ]
                 ]
+            , repliesView now post.replies
             , replyComposerView currentUser replyComposers post
+            ]
+        ]
+
+
+repliesView : Date -> ReplyConnection -> Html Msg
+repliesView now { nodes } =
+    if List.isEmpty nodes then
+        text ""
+    else
+        div [] <|
+            List.map (replyView now) nodes
+
+
+replyView : Date -> Reply -> Html Msg
+replyView now reply =
+    div [ class "flex py-3" ]
+        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small reply.author ]
+        , div [ class "flex-grow leading-semi-loose" ]
+            [ div []
+                [ span [ class "font-bold" ] [ text <| displayName reply.author ]
+                ]
+            , div [ class "markdown mb-2" ] [ injectHtml reply.bodyHtml ]
             ]
         ]
 
@@ -716,13 +740,13 @@ replyComposerView : SpaceUser -> ReplyComposers -> Post -> Html Msg
 replyComposerView currentUser replyComposers post =
     case Dict.get post.id replyComposers of
         Just composer ->
-            div [ class "composer mt-2 -ml-3 p-3" ]
+            div [ class "composer -ml-3 p-3" ]
                 [ div [ class "flex" ]
-                    [ div [ class "flex-no-shrink mr-1" ] [ personAvatar Avatar.Small currentUser ]
+                    [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea
                             [ id (replyComposerId post.id)
-                            , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest text-sm resize-none leading-normal"
+                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                             , placeholder "Write a reply..."
                             , onInput (NewReplyBodyChanged post.id)
                             , onEnter True (NewReplySubmit post.id)
@@ -743,7 +767,20 @@ replyComposerView currentUser replyComposers post =
                 ]
 
         Nothing ->
-            text ""
+            if List.isEmpty post.replies.nodes then
+                text ""
+            else
+                replyPromptView currentUser post
+
+
+replyPromptView : SpaceUser -> Post -> Html Msg
+replyPromptView currentUser post =
+    button [ class "flex my-3 items-center", onClick (ExpandReplyComposer post.id) ]
+        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small currentUser ]
+        , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
+            [ text "Write a reply..."
+            ]
+        ]
 
 
 sidebarView : List GroupMembership -> Html Msg
