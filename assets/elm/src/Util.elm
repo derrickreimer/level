@@ -6,7 +6,6 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (defaultOptions, on, onWithOptions, keyCode)
 import Http
 import Time
 
@@ -204,50 +203,6 @@ smartFormatDate now date =
         formatDateTime True date
     else
         formatDateTime False date
-
-
-
--- CUSTOM HTML EVENTS
-
-
-onEnter : Bool -> msg -> Attribute msg
-onEnter shiftRequired msg =
-    let
-        options =
-            { defaultOptions | preventDefault = True }
-
-        codeAndShift : Decode.Decoder ( Int, Bool )
-        codeAndShift =
-            Decode.map2 (\a b -> ( a, b ))
-                Html.Events.keyCode
-                (Decode.field "shiftKey" Decode.bool)
-
-        isEnter : ( Int, Bool ) -> Decode.Decoder msg
-        isEnter ( code, shiftKey ) =
-            if code == 13 && shiftKey == shiftRequired then
-                Decode.succeed msg
-            else
-                Decode.fail "not ENTER"
-    in
-        onWithOptions "keydown" options (Decode.andThen isEnter codeAndShift)
-
-
-onEnterOrEsc : msg -> msg -> Attribute msg
-onEnterOrEsc enterMsg escMsg =
-    let
-        isEnterOrEsc : Int -> Decode.Decoder msg
-        isEnterOrEsc code =
-            case code of
-                13 ->
-                    Decode.succeed enterMsg
-
-                27 ->
-                    Decode.succeed escMsg
-
-                _ ->
-                    Decode.fail "not ENTER or ESC"
-    in
-        on "keydown" (Decode.andThen isEnterOrEsc keyCode)
 
 
 

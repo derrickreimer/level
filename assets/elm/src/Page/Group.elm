@@ -32,6 +32,7 @@ import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import GraphQL
 import Icons
+import KeyboardEvents exposing (Modifier(..), preventDefault, onKeyDown, enter, esc)
 import Mutation.PostToGroup as PostToGroup
 import Mutation.ReplyToPost as ReplyToPost
 import Mutation.UpdateGroup as UpdateGroup
@@ -44,7 +45,7 @@ import Session exposing (Session)
 import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
 import Subscription.GroupUpdated as GroupUpdated
 import Subscription.PostCreated as PostCreated
-import Util exposing (displayName, smartFormatDate, memberById, onEnter, onEnterOrEsc, injectHtml, insertUniqueById, removeById)
+import Util exposing (displayName, smartFormatDate, memberById, injectHtml, insertUniqueById, removeById)
 
 
 -- MODEL
@@ -267,6 +268,7 @@ type Msg
     | NewReplyBodyChanged String String
     | NewReplySubmit String
     | NewReplySubmitted (Result Session.Error ( Session, ReplyToPost.Response ))
+    | NewReplyEscaped String
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -454,6 +456,18 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         NewReplySubmitted (Err _) ->
             noCmd session model
 
+        NewReplyEscaped postId ->
+            case Dict.get postId model.replyComposers of
+                Just composer ->
+                    let
+                        replyComposers =
+                            Dict.insert postId { composer | isExpanded = False } model.replyComposers
+                    in
+                        noCmd session { model | replyComposers = replyComposers }
+
+                Nothing ->
+                    noCmd session model
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
@@ -601,7 +615,10 @@ nameView group editor =
                     , classList [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True ), ( "shake", not <| List.isEmpty editor.errors ) ]
                     , value editor.value
                     , onInput NameEditorChanged
-                    , onEnterOrEsc NameEditorSubmit NameEditorDismissed
+                    , onKeyDown preventDefault
+                        [ ( Meta, enter, NameEditorSubmit )
+                        , ( Unmodified, esc, NameEditorDismissed )
+                        ]
                     , onBlur NameEditorDismissed
                     ]
                     []
@@ -665,7 +682,7 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
                     , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                     , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
-                    , onEnter True NewPostSubmit
+                    , onKeyDown preventDefault [ ( Meta, enter, NewPostSubmit ) ]
                     , readonly isSubmitting
                     , value body
                     ]
@@ -740,31 +757,37 @@ replyComposerView : SpaceUser -> ReplyComposers -> Post -> Html Msg
 replyComposerView currentUser replyComposers post =
     case Dict.get post.id replyComposers of
         Just composer ->
-            div [ class "composer mt-3 -ml-3 p-3" ]
-                [ div [ class "flex" ]
-                    [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
-                    , div [ class "flex-grow" ]
-                        [ textarea
-                            [ id (replyComposerId post.id)
-                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                            , placeholder "Write a reply..."
-                            , onInput (NewReplyBodyChanged post.id)
-                            , onEnter True (NewReplySubmit post.id)
-                            , value composer.body
-                            , readonly composer.isSubmitting
-                            ]
-                            []
-                        , div [ class "flex justify-end" ]
-                            [ button
-                                [ class "btn btn-blue btn-sm"
-                                , onClick (NewReplySubmit post.id)
-                                , disabled (not (newReplySubmittable composer))
+            if composer.isExpanded then
+                div [ class "composer mt-3 -ml-3 p-3" ]
+                    [ div [ class "flex" ]
+                        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
+                        , div [ class "flex-grow" ]
+                            [ textarea
+                                [ id (replyComposerId post.id)
+                                , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                                , placeholder "Write a reply..."
+                                , onInput (NewReplyBodyChanged post.id)
+                                , onKeyDown preventDefault
+                                    [ ( Meta, enter, NewReplySubmit post.id )
+                                    , ( Unmodified, esc, NewReplyEscaped post.id )
+                                    ]
+                                , value composer.body
+                                , readonly composer.isSubmitting
                                 ]
-                                [ text "Post reply" ]
+                                []
+                            , div [ class "flex justify-end" ]
+                                [ button
+                                    [ class "btn btn-blue btn-sm"
+                                    , onClick (NewReplySubmit post.id)
+                                    , disabled (not (newReplySubmittable composer))
+                                    ]
+                                    [ text "Post reply" ]
+                                ]
                             ]
                         ]
                     ]
-                ]
+            else
+                replyPromptView currentUser post
 
         Nothing ->
             if List.isEmpty post.replies.nodes then

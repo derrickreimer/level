@@ -6,8 +6,6 @@ module Icons
         )
 
 import Html exposing (Html)
-import Svg exposing (Svg, svg)
-import Svg.Attributes exposing (..)
 import Util exposing (injectHtml)
 
 

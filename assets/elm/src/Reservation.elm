@@ -6,9 +6,10 @@ import Html.Events exposing (onInput, onClick, onBlur)
 import Http
 import Json.Decode as Decode exposing (decodeString)
 import Json.Encode as Encode
+import KeyboardEvents exposing (Modifier(..), enter, onKeyDown, preventDefault)
 import Regex exposing (regex)
 import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
-import Util exposing (onEnter, injectHtml)
+import Util exposing (injectHtml)
 
 
 main : Program Flags Model Msg
@@ -227,7 +228,7 @@ textField field errors =
                 , value field.value
                 , onInput field.onInput
                 , autofocus field.autofocus
-                , onEnter False Submit
+                , onKeyDown preventDefault [ ( Unmodified, enter, Submit ) ]
                 ]
                 []
             , formErrors errors
@@ -258,7 +259,7 @@ handleField handle errors =
                         , placeholder "jane"
                         , value handle
                         , onInput HandleChanged
-                        , onEnter False Submit
+                        , onKeyDown preventDefault [ ( Unmodified, enter, Submit ) ]
                         ]
                         []
                     ]
