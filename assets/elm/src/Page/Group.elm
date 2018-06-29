@@ -725,7 +725,7 @@ repliesView now { nodes } =
 
 replyView : Date -> Reply -> Html Msg
 replyView now reply =
-    div [ class "flex py-3" ]
+    div [ class "flex my-3" ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small reply.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
@@ -740,7 +740,7 @@ replyComposerView : SpaceUser -> ReplyComposers -> Post -> Html Msg
 replyComposerView currentUser replyComposers post =
     case Dict.get post.id replyComposers of
         Just composer ->
-            div [ class "composer -ml-3 p-3" ]
+            div [ class "composer mt-3 -ml-3 p-3" ]
                 [ div [ class "flex" ]
                     [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
