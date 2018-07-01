@@ -267,7 +267,7 @@ type Msg
     | ExpandReplyComposer String
     | NewReplyBodyChanged String String
     | NewReplySubmit String
-    | NewReplySubmitted (Result Session.Error ( Session, ReplyToPost.Response ))
+    | NewReplySubmitted String (Result Session.Error ( Session, ReplyToPost.Response ))
     | NewReplyEscaped String
 
 
@@ -440,20 +440,32 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                             ReplyToPost.Params model.space.id postId composer.body
                                 |> ReplyToPost.request
                                 |> Session.request session
-                                |> Task.attempt NewReplySubmitted
+                                |> Task.attempt (NewReplySubmitted postId)
                     in
                         ( ( { model | replyComposers = replyComposers }, cmd ), session )
 
                 Nothing ->
                     noCmd session model
 
-        NewReplySubmitted (Ok ( session, response )) ->
-            noCmd session model
+        NewReplySubmitted postId (Ok ( session, reply )) ->
+            case Dict.get postId model.replyComposers of
+                Just composer ->
+                    let
+                        nodeId =
+                            replyComposerId postId
 
-        NewReplySubmitted (Err Session.Expired) ->
+                        replyComposers =
+                            Dict.insert postId { composer | body = "", isSubmitting = False } model.replyComposers
+                    in
+                        ( ( { model | replyComposers = replyComposers }, setFocus nodeId ), session )
+
+                Nothing ->
+                    noCmd session model
+
+        NewReplySubmitted postId (Err Session.Expired) ->
             redirectToLogin session model
 
-        NewReplySubmitted (Err _) ->
+        NewReplySubmitted postId (Err _) ->
             noCmd session model
 
         NewReplyEscaped postId ->
