@@ -2,7 +2,7 @@ module Page.Group exposing (..)
 
 import Date exposing (Date)
 import Dict exposing (Dict)
-import Dom exposing (focus)
+import Dom exposing (focus, blur)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -269,6 +269,7 @@ type Msg
     | NewReplySubmit String
     | NewReplySubmitted String (Result Session.Error ( Session, ReplyToPost.Response ))
     | NewReplyEscaped String
+    | NewReplyBlurred String
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -471,9 +472,20 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         NewReplyEscaped postId ->
             case Dict.get postId model.replyComposers of
                 Just composer ->
+                    if composer.body == "" then
+                        ( ( model, unsetFocus (replyComposerId postId) ), session )
+                    else
+                        noCmd session model
+
+                Nothing ->
+                    noCmd session model
+
+        NewReplyBlurred postId ->
+            case Dict.get postId model.replyComposers of
+                Just composer ->
                     let
                         replyComposers =
-                            Dict.insert postId { composer | isExpanded = False } model.replyComposers
+                            Dict.insert postId { composer | isExpanded = not (composer.body == "") } model.replyComposers
                     in
                         noCmd session { model | replyComposers = replyComposers }
 
@@ -521,6 +533,11 @@ redirectToLogin session model =
 setFocus : String -> Cmd Msg
 setFocus id =
     Task.attempt (always NoOp) <| focus id
+
+
+unsetFocus : String -> Cmd Msg
+unsetFocus id =
+    Task.attempt (always NoOp) <| blur id
 
 
 autosize : Autosize.Method -> String -> Cmd Msg
@@ -783,6 +800,7 @@ replyComposerView currentUser replyComposers post =
                                     [ ( Meta, enter, NewReplySubmit post.id )
                                     , ( Unmodified, esc, NewReplyEscaped post.id )
                                     ]
+                                , onBlur (NewReplyBlurred post.id)
                                 , value composer.body
                                 , readonly composer.isSubmitting
                                 ]
