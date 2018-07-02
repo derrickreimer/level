@@ -2,6 +2,7 @@ module Data.SpaceUser
     exposing
         ( SpaceUser
         , Role(..)
+        , fragment
         , spaceUserDecoder
         , roleDecoder
         )
@@ -24,6 +25,18 @@ type alias SpaceUser =
 type Role
     = Member
     | Owner
+
+
+fragment : String
+fragment =
+    """
+    fragment SpaceUserFields on SpaceUser {
+      id
+      firstName
+      lastName
+      role
+    }
+    """
 
 
 

@@ -1,4 +1,4 @@
-module Data.Reply exposing (Reply, ReplyConnection, replyDecoder, replyConnectionDecoder)
+module Data.Reply exposing (Reply, ReplyConnection, fragment, replyDecoder, replyConnectionDecoder)
 
 import Date exposing (Date)
 import Json.Decode as Decode
@@ -24,6 +24,21 @@ type alias ReplyConnection =
     { nodes : List Reply
     , pageInfo : PageInfo
     }
+
+
+fragment : String
+fragment =
+    """
+    fragment ReplyFields on Reply {
+      id
+      body
+      bodyHtml
+      author {
+        ...SpaceUserFields
+      }
+      postedAt
+    }
+    """
 
 
 
