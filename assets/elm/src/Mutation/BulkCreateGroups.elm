@@ -20,32 +20,32 @@ type Response
 query : String
 query =
     """
-      mutation BulkCreateGroups(
-        $spaceId: ID!,
-        $names: [String]!
+    mutation BulkCreateGroups(
+      $spaceId: ID!,
+      $names: [String]!
+    ) {
+      bulkCreateGroups(
+        spaceId: $spaceId,
+        names: $names
       ) {
-        bulkCreateGroups(
-          spaceId: $spaceId,
-          names: $names
-        ) {
-          payloads {
-            success
-            group {
-              id
-              name
-              description
-              isPrivate
-            }
-            errors {
-              attribute
-              message
-            }
-            args {
-              name
-            }
+        payloads {
+          success
+          group {
+            id
+            name
+            description
+            isPrivate
+          }
+          errors {
+            attribute
+            message
+          }
+          args {
+            name
           }
         }
       }
+    }
     """
 
 

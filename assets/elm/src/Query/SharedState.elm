@@ -30,33 +30,33 @@ type alias Response =
 query : String
 query =
     """
-      query SharedState(
-        $spaceId: ID!
-      ) {
-        spaceUser(spaceId: $spaceId) {
+    query SharedState(
+      $spaceId: ID!
+    ) {
+      spaceUser(spaceId: $spaceId) {
+        id
+        role
+        firstName
+        lastName
+        space {
           id
-          role
-          firstName
-          lastName
-          space {
+          name
+          slug
+          setupState
+          openInvitationUrl
+          featuredUsers {
             id
-            name
-            slug
-            setupState
-            openInvitationUrl
-            featuredUsers {
-              id
-              firstName
-              lastName
-              role
-            }
-          }
-          bookmarkedGroups {
-            id
-            name
+            firstName
+            lastName
+            role
           }
         }
+        bookmarkedGroups {
+          id
+          name
+        }
       }
+    }
     """
 
 

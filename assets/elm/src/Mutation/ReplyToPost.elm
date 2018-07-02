@@ -24,35 +24,35 @@ type Response
 query : String
 query =
     """
-      mutation ReplyToPost(
-        $spaceId: ID!,
-        $postId: ID!,
-        $body: String!
+    mutation ReplyToPost(
+      $spaceId: ID!,
+      $postId: ID!,
+      $body: String!
+    ) {
+      replyToPost(
+        spaceId: $spaceId,
+        postId: $postId,
+        body: $body
       ) {
-        replyToPost(
-          spaceId: $spaceId,
-          postId: $postId,
-          body: $body
-        ) {
-          success
-          reply {
+        success
+        reply {
+          id
+          body
+          bodyHtml
+          postedAt
+          author {
             id
-            body
-            bodyHtml
-            postedAt
-            author {
-              id
-              firstName
-              lastName
-              role
-            }
-          }
-          errors {
-            attribute
-            message
+            firstName
+            lastName
+            role
           }
         }
+        errors {
+          attribute
+          message
+        }
       }
+    }
     """
 
 

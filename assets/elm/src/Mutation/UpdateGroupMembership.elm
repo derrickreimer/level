@@ -24,26 +24,26 @@ type Response
 query : String
 query =
     """
-      mutation UpdateGroupMembership(
-        $spaceId: ID!,
-        $groupId: ID!,
-        $state: GroupMembershipState!
+    mutation UpdateGroupMembership(
+      $spaceId: ID!,
+      $groupId: ID!,
+      $state: GroupMembershipState!
+    ) {
+      updateGroupMembership(
+        spaceId: $spaceId,
+        groupId: $groupId,
+        state: $state
       ) {
-        updateGroupMembership(
-          spaceId: $spaceId,
-          groupId: $groupId,
-          state: $state
-        ) {
-          success
-          membership {
-            state
-          }
-          errors {
-            attribute
-            message
-          }
+        success
+        membership {
+          state
+        }
+        errors {
+          attribute
+          message
         }
       }
+    }
     """
 
 

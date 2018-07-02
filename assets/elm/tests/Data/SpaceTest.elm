@@ -18,11 +18,11 @@ decoders =
                     let
                         json =
                             """
-                              {
-                                "id": "9999",
-                                "name": "Drip",
-                                "slug": "drip"
-                              }
+                            {
+                              "id": "9999",
+                              "name": "Drip",
+                              "slug": "drip"
+                            }
                             """
 
                         result =
@@ -40,9 +40,9 @@ decoders =
                     let
                         json =
                             """
-                              {
-                                "id": "9999"
-                              }
+                            {
+                              "id": "9999"
+                            }
                             """
 
                         result =

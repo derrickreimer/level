@@ -16,10 +16,10 @@ type alias Group =
 fragment : String
 fragment =
     """
-      fragment GroupFields on Group {
-        id
-        name
-      }
+    fragment GroupFields on Group {
+      id
+      name
+    }
     """
 
 

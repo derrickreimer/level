@@ -21,23 +21,23 @@ type alias Response =
 query : String
 query =
     """
-      query GetFeaturedMemberships(
-        $spaceId: ID!
-        $groupId: ID!
-      ) {
-        space(id: $spaceId) {
-          group(id: $groupId) {
-            featuredMemberships {
-              spaceUser {
-                id
-                firstName
-                lastName
-                role
-              }
+    query GetFeaturedMemberships(
+      $spaceId: ID!
+      $groupId: ID!
+    ) {
+      space(id: $spaceId) {
+        group(id: $groupId) {
+          featuredMemberships {
+            spaceUser {
+              id
+              firstName
+              lastName
+              role
             }
           }
         }
       }
+    }
     """
 
 

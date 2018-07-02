@@ -27,23 +27,23 @@ query : String
 query =
     GraphQL.query
         [ """
-            subscription SpaceUserSubscription(
-              $spaceUserId: ID!
-            ) {
-              spaceUserSubscription(spaceUserId: $spaceUserId) {
-                __typename
-                ... on GroupBookmarkedPayload {
-                  group {
-                    ...GroupFields
-                  }
+          subscription SpaceUserSubscription(
+            $spaceUserId: ID!
+          ) {
+            spaceUserSubscription(spaceUserId: $spaceUserId) {
+              __typename
+              ... on GroupBookmarkedPayload {
+                group {
+                  ...GroupFields
                 }
-                ... on GroupUnbookmarkedPayload {
-                  group {
-                    ...GroupFields
-                  }
+              }
+              ... on GroupUnbookmarkedPayload {
+                group {
+                  ...GroupFields
                 }
               }
             }
+          }
           """
         , Data.Group.fragment
         ]

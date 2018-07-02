@@ -24,29 +24,29 @@ type Response
 query : String
 query =
     """
-      mutation UpdateGroup(
-        $spaceId: ID!,
-        $groupId: ID!,
-        $name: String!
+    mutation UpdateGroup(
+      $spaceId: ID!,
+      $groupId: ID!,
+      $name: String!
+    ) {
+      updateGroup(
+        spaceId: $spaceId,
+        groupId: $groupId,
+        name: $name
       ) {
-        updateGroup(
-          spaceId: $spaceId,
-          groupId: $groupId,
-          name: $name
-        ) {
-          success
-          group {
-            id
-            name
-            description
-            isPrivate
-          }
-          errors {
-            attribute
-            message
-          }
+        success
+        group {
+          id
+          name
+          description
+          isPrivate
+        }
+        errors {
+          attribute
+          message
         }
       }
+    }
     """
 
 

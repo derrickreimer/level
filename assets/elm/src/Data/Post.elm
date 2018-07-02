@@ -33,44 +33,44 @@ type alias PostConnection =
 fragment : String
 fragment =
     """
-      fragment PostFields on Post {
+    fragment PostFields on Post {
+      id
+      body
+      bodyHtml
+      postedAt
+      author {
         id
-        body
-        bodyHtml
-        postedAt
-        author {
-          id
-          firstName
-          lastName
-          role
-        }
-        groups {
-          id
-          name
-        }
-        replies(last: 10) {
-          edges {
-            node {
+        firstName
+        lastName
+        role
+      }
+      groups {
+        id
+        name
+      }
+      replies(last: 10) {
+        edges {
+          node {
+            id
+            body
+            bodyHtml
+            postedAt
+            author {
               id
-              body
-              bodyHtml
-              postedAt
-              author {
-                id
-                firstName
-                lastName
-                role
-              }
+              firstName
+              lastName
+              role
             }
           }
-          pageInfo {
-            hasPreviousPage
-            hasNextPage
-            startCursor
-            endCursor
-          }
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
         }
       }
+    }
     """
 
 

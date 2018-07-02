@@ -118,76 +118,76 @@ bootstrap spaceId groupId session now =
     let
         query =
             """
-              query GroupInit(
-                $spaceId: ID!
-                $groupId: ID!
-              ) {
-                space(id: $spaceId) {
-                  group(id: $groupId) {
-                    id
-                    name
-                    membership {
-                      state
+            query GroupInit(
+              $spaceId: ID!
+              $groupId: ID!
+            ) {
+              space(id: $spaceId) {
+                group(id: $groupId) {
+                  id
+                  name
+                  membership {
+                    state
+                  }
+                  featuredMemberships {
+                    spaceUser {
+                      id
+                      firstName
+                      lastName
+                      role
                     }
-                    featuredMemberships {
-                      spaceUser {
+                  }
+                  posts(first: 20) {
+                    edges {
+                      node {
                         id
-                        firstName
-                        lastName
-                        role
-                      }
-                    }
-                    posts(first: 20) {
-                      edges {
-                        node {
+                        body
+                        bodyHtml
+                        postedAt
+                        author {
                           id
-                          body
-                          bodyHtml
-                          postedAt
-                          author {
-                            id
-                            firstName
-                            lastName
-                            role
-                          }
-                          groups {
-                            id
-                            name
-                          }
-                          replies(last: 10) {
-                            edges {
-                              node {
+                          firstName
+                          lastName
+                          role
+                        }
+                        groups {
+                          id
+                          name
+                        }
+                        replies(last: 10) {
+                          edges {
+                            node {
+                              id
+                              body
+                              bodyHtml
+                              postedAt
+                              author {
                                 id
-                                body
-                                bodyHtml
-                                postedAt
-                                author {
-                                  id
-                                  firstName
-                                  lastName
-                                  role
-                                }
+                                firstName
+                                lastName
+                                role
                               }
                             }
-                            pageInfo {
-                              hasPreviousPage
-                              hasNextPage
-                              startCursor
-                              endCursor
-                            }
+                          }
+                          pageInfo {
+                            hasPreviousPage
+                            hasNextPage
+                            startCursor
+                            endCursor
                           }
                         }
                       }
-                      pageInfo {
-                        hasPreviousPage
-                        hasNextPage
-                        startCursor
-                        endCursor
-                      }
+                    }
+                    pageInfo {
+                      hasPreviousPage
+                      hasNextPage
+                      startCursor
+                      endCursor
                     }
                   }
                 }
               }
+            }
             """
 
         variables =

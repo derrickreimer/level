@@ -8,7 +8,9 @@ import Session exposing (Session)
 
 query : List String -> String
 query parts =
-    String.join "\n\n" parts
+    parts
+        |> List.map normalize
+        |> String.join "\n"
 
 
 payload : List String -> Maybe Encode.Value -> Encode.Value
@@ -40,3 +42,45 @@ request queryParts maybeVariables decoder session =
             , timeout = Nothing
             , withCredentials = False
             }
+
+
+normalize : String -> String
+normalize value =
+    let
+        lines =
+            value
+                |> String.lines
+
+        firstLine =
+            lines
+                |> List.head
+                |> Maybe.withDefault ""
+
+        tailPadding =
+            lines
+                |> List.tail
+                |> Maybe.withDefault []
+                |> List.map String.toList
+                |> List.map (countPadding 0)
+                |> List.minimum
+                |> Maybe.withDefault 0
+    in
+        lines
+            |> List.tail
+            |> Maybe.withDefault []
+            |> List.map (String.dropLeft tailPadding)
+            |> (::) firstLine
+            |> String.join "\n"
+
+
+countPadding : Int -> List Char -> Int
+countPadding count list =
+    case list of
+        [ ' ' ] ->
+            count + 1
+
+        ' ' :: tl ->
+            countPadding (count + 1) tl
+
+        _ ->
+            count

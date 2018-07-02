@@ -44,37 +44,37 @@ query : String
 query =
     GraphQL.query
         [ """
-            subscription GroupSubscription(
-              $groupId: ID!
-            ) {
-              groupSubscription(groupId: $groupId) {
-                __typename
-                ... on GroupUpdatedPayload {
+          subscription GroupSubscription(
+            $groupId: ID!
+          ) {
+            groupSubscription(groupId: $groupId) {
+              __typename
+              ... on GroupUpdatedPayload {
+                group {
+                  ...GroupFields
+                }
+              }
+              ... on PostCreatedPayload {
+                post {
+                  ...PostFields
+                }
+              }
+              ... on GroupMembershipUpdatedPayload {
+                membership {
+                  state
                   group {
-                    ...GroupFields
+                    id
                   }
-                }
-                ... on PostCreatedPayload {
-                  post {
-                    ...PostFields
-                  }
-                }
-                ... on GroupMembershipUpdatedPayload {
-                  membership {
-                    state
-                    group {
-                      id
-                    }
-                    spaceUser {
-                      id
-                      firstName
-                      lastName
-                      role
-                    }
+                  spaceUser {
+                    id
+                    firstName
+                    lastName
+                    role
                   }
                 }
               }
             }
+          }
           """
         , Data.Post.fragment
         , Data.Group.fragment

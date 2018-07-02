@@ -23,26 +23,26 @@ type Response
 query : String
 query =
     """
-      mutation CreateSpace(
-        $name: String!,
-        $slug: String!
+    mutation CreateSpace(
+      $name: String!,
+      $slug: String!
+    ) {
+      createSpace(
+        name: $name,
+        slug: $slug
       ) {
-        createSpace(
-          name: $name,
-          slug: $slug
-        ) {
-          success
-          space {
-            id
-            name
-            slug
-          }
-          errors {
-            attribute
-            message
-          }
+        success
+        space {
+          id
+          name
+          slug
+        }
+        errors {
+          attribute
+          message
         }
       }
+    }
     """
 
 

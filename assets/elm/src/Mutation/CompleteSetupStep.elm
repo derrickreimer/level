@@ -22,19 +22,19 @@ type Response
 query : String
 query =
     """
-      mutation CompleteSetupStep(
-        $spaceId: ID!,
-        $state: SpaceSetupState!,
-        $isSkipped: Boolean!
+    mutation CompleteSetupStep(
+      $spaceId: ID!,
+      $state: SpaceSetupState!,
+      $isSkipped: Boolean!
+    ) {
+      completeSetupStep(
+        spaceId: $spaceId,
+        state: $state,
+        isSkipped: $isSkipped
       ) {
-        completeSetupStep(
-          spaceId: $spaceId,
-          state: $state,
-          isSkipped: $isSkipped
-        ) {
-          state
-        }
+        state
       }
+    }
     """
 
 

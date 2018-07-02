@@ -23,11 +23,11 @@ decoders =
                     let
                         json =
                             """
-                              {
-                                "membership": {
-                                  "state": "SUBSCRIBED"
-                                }
+                            {
+                              "membership": {
+                                "state": "SUBSCRIBED"
                               }
+                            }
                             """
 
                         result =
@@ -39,11 +39,11 @@ decoders =
                     let
                         json =
                             """
-                              {
-                                "membership": {
-                                  "state": "NOT_SUBSCRIBED"
-                                }
+                            {
+                              "membership": {
+                                "state": "NOT_SUBSCRIBED"
                               }
+                            }
                             """
 
                         result =
@@ -55,11 +55,11 @@ decoders =
                     let
                         json =
                             """
-                              {
-                                "membership": {
-                                  "state": "INVALID"
-                                }
+                            {
+                              "membership": {
+                                "state": "INVALID"
                               }
+                            }
                             """
 
                         result =
