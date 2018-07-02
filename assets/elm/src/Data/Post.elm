@@ -1,4 +1,4 @@
-module Data.Post exposing (Post, PostConnection, postDecoder, postConnectionDecoder, add)
+module Data.Post exposing (Post, PostConnection, fragment, postDecoder, postConnectionDecoder, add)
 
 import Date exposing (Date)
 import Json.Decode as Decode
@@ -28,6 +28,50 @@ type alias PostConnection =
     { nodes : List Post
     , pageInfo : PageInfo
     }
+
+
+fragment : String
+fragment =
+    """
+      fragment PostFields on Post {
+        id
+        body
+        bodyHtml
+        postedAt
+        author {
+          id
+          firstName
+          lastName
+          role
+        }
+        groups {
+          id
+          name
+        }
+        replies(last: 10) {
+          edges {
+            node {
+              id
+              body
+              bodyHtml
+              postedAt
+              author {
+                id
+                firstName
+                lastName
+                role
+              }
+            }
+          }
+          pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+          }
+        }
+      }
+    """
 
 
 

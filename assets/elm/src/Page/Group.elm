@@ -42,9 +42,7 @@ import Query.FeaturedMemberships as FeaturedMemberships
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
-import Subscription.GroupMembershipUpdated as GroupMembershipUpdated
-import Subscription.GroupUpdated as GroupUpdated
-import Subscription.PostCreated as PostCreated
+import Subscription.GroupSubscription as GroupSubscription exposing (GroupMembershipUpdatedPayload)
 import Util exposing (displayName, smartFormatDate, memberById, injectHtml, insertUniqueById, removeById)
 
 
@@ -209,7 +207,7 @@ bootstrap spaceId groupId session now =
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in
-        GraphQL.request query (Just variables) (decoder now)
+        GraphQL.request [ query ] (Just variables) (decoder now)
             |> Session.request session
 
 
@@ -502,9 +500,7 @@ setupSockets : String -> Cmd Msg
 setupSockets groupId =
     let
         payloads =
-            [ PostCreated.payload groupId
-            , GroupMembershipUpdated.payload groupId
-            , GroupUpdated.payload groupId
+            [ GroupSubscription.payload groupId
             ]
     in
         payloads
@@ -516,8 +512,7 @@ teardownSockets : String -> Cmd Msg
 teardownSockets groupId =
     let
         payloads =
-            [ PostCreated.clientId groupId
-            , GroupMembershipUpdated.clientId groupId
+            [ GroupSubscription.clientId groupId
             ]
     in
         payloads
@@ -549,8 +544,8 @@ autosize method id =
 -- EVENT HANDLERS
 
 
-handlePostCreated : PostCreated.Data -> Model -> Model
-handlePostCreated { post } model =
+handlePostCreated : Post -> Model -> Model
+handlePostCreated post model =
     let
         newPosts =
             if memberById model.group post.groups then
@@ -561,7 +556,7 @@ handlePostCreated { post } model =
         { model | posts = newPosts }
 
 
-handleGroupMembershipUpdated : GroupMembershipUpdated.Data -> Session -> Model -> ( Model, Cmd Msg )
+handleGroupMembershipUpdated : GroupMembershipUpdatedPayload -> Session -> Model -> ( Model, Cmd Msg )
 handleGroupMembershipUpdated { state, membership } session model =
     let
         newState =

@@ -1,22 +1,27 @@
 module Event exposing (Event(..), decodeEvent)
 
 import Json.Decode as Decode
-import Subscription.GroupBookmarked
-import Subscription.GroupMembershipUpdated
-import Subscription.GroupUnbookmarked
-import Subscription.GroupUpdated
-import Subscription.PostCreated
+import Data.Group exposing (Group)
+import Data.Post exposing (Post)
+import Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder)
+import Subscription.GroupSubscription
+    exposing
+        ( GroupMembershipUpdatedPayload
+        , groupUpdatedDecoder
+        , postCreatedDecoder
+        , groupMembershipUpdatedDecoder
+        )
 
 
 -- TYPES
 
 
 type Event
-    = GroupBookmarked Subscription.GroupBookmarked.Data
-    | GroupUnbookmarked Subscription.GroupUnbookmarked.Data
-    | PostCreated Subscription.PostCreated.Data
-    | GroupMembershipUpdated Subscription.GroupMembershipUpdated.Data
-    | GroupUpdated Subscription.GroupUpdated.Data
+    = GroupBookmarked Group
+    | GroupUnbookmarked Group
+    | PostCreated Post
+    | GroupMembershipUpdated GroupMembershipUpdatedPayload
+    | GroupUpdated Group
     | Unknown
 
 
@@ -33,9 +38,9 @@ decodeEvent value =
 eventDecoder : Decode.Decoder Event
 eventDecoder =
     Decode.oneOf
-        [ Decode.map GroupBookmarked Subscription.GroupBookmarked.decoder
-        , Decode.map GroupUnbookmarked Subscription.GroupUnbookmarked.decoder
-        , Decode.map PostCreated Subscription.PostCreated.decoder
-        , Decode.map GroupMembershipUpdated Subscription.GroupMembershipUpdated.decoder
-        , Decode.map GroupUpdated Subscription.GroupUpdated.decoder
+        [ Decode.map GroupBookmarked groupBookmarkedDecoder
+        , Decode.map GroupUnbookmarked groupUnbookmarkedDecoder
+        , Decode.map GroupUpdated groupUpdatedDecoder
+        , Decode.map PostCreated postCreatedDecoder
+        , Decode.map GroupMembershipUpdated groupMembershipUpdatedDecoder
         ]

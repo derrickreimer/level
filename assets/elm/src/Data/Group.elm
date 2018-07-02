@@ -1,4 +1,4 @@
-module Data.Group exposing (Group, groupDecoder)
+module Data.Group exposing (Group, fragment, groupDecoder)
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -11,6 +11,16 @@ type alias Group =
     { id : String
     , name : String
     }
+
+
+fragment : String
+fragment =
+    """
+      fragment GroupFields on Group {
+        id
+        name
+      }
+    """
 
 
 

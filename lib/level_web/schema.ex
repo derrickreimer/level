@@ -130,58 +130,48 @@ defmodule LevelWeb.Schema do
   end
 
   subscription do
-    @desc "Triggered when a group is bookmarked."
-    field :group_bookmarked, :group_bookmarked_payload do
+    @desc "Triggered when a space user-related event occurs."
+    field :space_user_subscription, :space_user_subscription_payload do
       arg :space_user_id, non_null(:id)
-      config &space_user_topic_config/2
-    end
 
-    @desc "Triggered when a group is unbookmarked."
-    field :group_unbookmarked, :group_unbookmarked_payload do
-      arg :space_user_id, non_null(:id)
-      config &space_user_topic_config/2
-    end
+      config fn %{space_user_id: id}, %{context: %{current_user: user}} ->
+        case Spaces.get_space_user(user, id) do
+          {:ok, space_user} ->
+            if space_user.user_id == user.id do
+              {:ok, topic: id}
+            else
+              {:error, dgettext("errors", "Subscription not authorized")}
+            end
 
-    @desc "Triggered when a post is created."
-    field :post_created, :post_created_payload do
-      arg :group_id, non_null(:id)
-      config &group_topic_config/2
-    end
-
-    @desc "Triggered when group membership is updated."
-    field :group_membership_updated, :group_membership_updated_payload do
-      arg :group_id, non_null(:id)
-      config &group_topic_config/2
-    end
-
-    @desc "Triggered when a group is updated."
-    field :group_updated, :group_updated_payload do
-      arg :group_id, non_null(:id)
-      config &group_topic_config/2
-    end
-  end
-
-  def space_user_topic_config(%{space_user_id: id}, %{context: %{current_user: user}}) do
-    case Spaces.get_space_user(user, id) do
-      {:ok, space_user} ->
-        if space_user.user_id == user.id do
-          {:ok, topic: id}
-        else
-          {:error, dgettext("errors", "Subscription not authorized")}
+          err ->
+            err
         end
-
-      err ->
-        err
+      end
     end
-  end
 
-  def group_topic_config(%{group_id: id}, %{context: %{current_user: user}}) do
-    case Groups.get_group(user, id) do
-      {:ok, group} ->
-        {:ok, topic: group.id}
+    @desc "Triggered when a group-related event occurs."
+    field :group_subscription, :group_subscription_payload do
+      arg :group_id, non_null(:id)
 
-      err ->
-        err
+      config fn %{group_id: id}, %{context: %{current_user: user}} ->
+        case Groups.get_group(user, id) do
+          {:ok, group} ->
+            {:ok, topic: group.id}
+
+          err ->
+            err
+        end
+      end
+    end
+
+    @desc "Triggered when a post-related event occurs."
+    field :post_subscription, :post_subscription_payload do
+      arg :post_id, non_null(:id)
+
+      config fn %{post_id: id}, %{context: %{current_user: _user}} ->
+        # TODO: add authorization
+        {:ok, topic: id}
+      end
     end
   end
 end

@@ -9,19 +9,28 @@ defmodule Level.Pubsub do
   alias Level.Posts.Post
 
   def publish(:group_bookmarked, space_user_id, %Group{} = group),
-    do: do_publish(%{group: group}, group_bookmarked: space_user_id)
+    do:
+      do_publish(%{type: :group_bookmarked, group: group}, space_user_subscription: space_user_id)
 
   def publish(:group_unbookmarked, space_user_id, %Group{} = group),
-    do: do_publish(%{group: group}, group_unbookmarked: space_user_id)
+    do:
+      do_publish(
+        %{type: :group_unbookmarked, group: group},
+        space_user_subscription: space_user_id
+      )
 
   def publish(:post_created, group_id, %Post{} = post),
-    do: do_publish(%{post: post}, post_created: group_id)
+    do: do_publish(%{type: :post_created, post: post}, group_subscription: group_id)
 
   def publish(:group_membership_updated, group_id, %GroupUser{} = group_user),
-    do: do_publish(%{membership: group_user}, group_membership_updated: group_id)
+    do:
+      do_publish(
+        %{type: :group_membership_updated, membership: group_user},
+        group_subscription: group_id
+      )
 
   def publish(:group_updated, group_id, %Group{} = group),
-    do: do_publish(%{group: group}, group_updated: group_id)
+    do: do_publish(%{type: :group_updated, group: group}, group_subscription: group_id)
 
   defp do_publish(payload, topics) do
     Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)

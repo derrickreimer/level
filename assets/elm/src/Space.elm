@@ -20,8 +20,7 @@ import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Ports
 import Query.SharedState
-import Subscription.GroupBookmarked as GroupBookmarked
-import Subscription.GroupUnbookmarked as GroupUnbookmarked
+import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Route exposing (Route)
 import Session exposing (Session)
 import Socket
@@ -269,24 +268,35 @@ update msg model =
 handleSocketResult : Decode.Value -> Model -> Page -> SharedState -> ( Model, Cmd Msg )
 handleSocketResult value model page sharedState =
     case Event.decodeEvent value of
-        Event.GroupBookmarked data ->
+        Event.GroupBookmarked group ->
             let
                 groups =
                     sharedState.bookmarkedGroups
-                        |> insertUniqueById data.group
+                        |> insertUniqueById group
 
                 newSharedState =
                     { sharedState | bookmarkedGroups = groups }
             in
                 ( { model | sharedState = Loaded newSharedState }, Cmd.none )
 
-        Event.GroupMembershipUpdated data ->
+        Event.GroupUnbookmarked group ->
+            let
+                groups =
+                    sharedState.bookmarkedGroups
+                        |> removeById group.id
+
+                newSharedState =
+                    { sharedState | bookmarkedGroups = groups }
+            in
+                ( { model | sharedState = Loaded newSharedState }, Cmd.none )
+
+        Event.GroupMembershipUpdated payload ->
             case model.page of
                 Group ({ group } as pageModel) ->
-                    if group.id == data.groupId then
+                    if group.id == payload.groupId then
                         let
                             ( newPageModel, cmd ) =
-                                Page.Group.handleGroupMembershipUpdated data model.session pageModel
+                                Page.Group.handleGroupMembershipUpdated payload model.session pageModel
                         in
                             ( { model | page = Group newPageModel }
                             , Cmd.map GroupMsg cmd
@@ -297,32 +307,20 @@ handleSocketResult value model page sharedState =
                 _ ->
                     ( model, Cmd.none )
 
-        Event.GroupUnbookmarked data ->
-            let
-                groups =
-                    sharedState.bookmarkedGroups
-                        |> removeById data.group.id
-
-                newSharedState =
-                    { sharedState | bookmarkedGroups = groups }
-            in
-                ( { model | sharedState = Loaded newSharedState }, Cmd.none )
-
-        Event.PostCreated data ->
+        Event.PostCreated post ->
             case model.page of
                 Group ({ group } as pageModel) ->
                     let
                         newPageModel =
-                            pageModel
-                                |> Page.Group.handlePostCreated data
+                            Page.Group.handlePostCreated post pageModel
                     in
                         ( { model | page = Group newPageModel }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
-        Event.GroupUpdated data ->
-            ( handleGroupUpdated data.group sharedState model, Cmd.none )
+        Event.GroupUpdated group ->
+            ( handleGroupUpdated group sharedState model, Cmd.none )
 
         Event.Unknown ->
             ( model, Cmd.none )
@@ -448,8 +446,7 @@ setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
 setupSockets sharedState model =
     let
         payloads =
-            [ GroupBookmarked.payload sharedState.user.id
-            , GroupUnbookmarked.payload sharedState.user.id
+            [ SpaceUserSubscription.payload sharedState.user.id
             ]
     in
         ( model, payloads |> List.map Ports.push |> Cmd.batch )
