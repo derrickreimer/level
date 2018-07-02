@@ -44,37 +44,13 @@ defmodule Level.Posts do
   """
   @spec post_to_group(SpaceUser.t(), Group.t(), map()) :: post_to_group_result()
   def post_to_group(space_user, group, params) do
-    operation =
-      Multi.new()
-      |> Multi.insert(:post, create_post_changeset(space_user, params))
-      |> Multi.run(:post_group, fn %{post: post} ->
-        create_post_group(space_user.space_id, post.id, group.id)
-      end)
-
-    case Repo.transaction(operation) do
-      {:ok, %{post: post}} = result ->
-        Pubsub.publish(:post_created, group.id, post)
-        result
-
-      err ->
-        err
-    end
-  end
-
-  @doc """
-  Adds a reply to a post.
-  """
-  @spec reply_to_post(SpaceUser.t(), Post.t(), map()) :: reply_to_post_result()
-  def reply_to_post(%SpaceUser{id: space_user_id, space_id: space_id}, %Post{id: post_id}, params) do
-    params_with_relations =
-      params
-      |> Map.put(:space_id, space_id)
-      |> Map.put(:space_user_id, space_user_id)
-      |> Map.put(:post_id, post_id)
-
-    %Reply{}
-    |> Reply.create_changeset(params_with_relations)
-    |> Repo.insert()
+    Multi.new()
+    |> Multi.insert(:post, create_post_changeset(space_user, params))
+    |> Multi.run(:post_group, fn %{post: post} ->
+      create_post_group(space_user.space_id, post.id, group.id)
+    end)
+    |> Repo.transaction()
+    |> after_post_to_group(group)
   end
 
   defp create_post_changeset(space_user, params) do
@@ -98,6 +74,41 @@ defmodule Level.Posts do
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
   end
+
+  defp after_post_to_group({:ok, %{post: %Post{} = post}} = result, %Group{id: group_id}) do
+    Pubsub.publish(:post_created, group_id, post)
+    result
+  end
+
+  defp after_post_to_group(err, _group), do: err
+
+  @doc """
+  Adds a reply to a post.
+  """
+  @spec reply_to_post(SpaceUser.t(), Post.t(), map()) :: reply_to_post_result()
+  def reply_to_post(
+        %SpaceUser{id: space_user_id, space_id: space_id},
+        %Post{id: post_id} = post,
+        params
+      ) do
+    params_with_relations =
+      params
+      |> Map.put(:space_id, space_id)
+      |> Map.put(:space_user_id, space_user_id)
+      |> Map.put(:post_id, post_id)
+
+    %Reply{}
+    |> Reply.create_changeset(params_with_relations)
+    |> Repo.insert()
+    |> after_reply_to_post(post)
+  end
+
+  defp after_reply_to_post({:ok, %Reply{} = reply} = result, %Post{id: post_id}) do
+    Pubsub.publish(:reply_created, post_id, reply)
+    result
+  end
+
+  defp after_reply_to_post(err, _post), do: err
 
   @impl true
   def dataloader_data(%{current_user: _user} = params) do

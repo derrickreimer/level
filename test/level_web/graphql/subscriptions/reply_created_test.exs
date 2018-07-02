@@ -1,16 +1,16 @@
-defmodule LevelWeb.GraphQL.PostCreatedTest do
+defmodule LevelWeb.GraphQL.ReplyCreatedTest do
   use LevelWeb.ChannelCase
 
   alias Level.Posts
 
   @operation """
-    subscription GroupSubscription(
+    subscription PostSubscription(
       $id: ID!
     ) {
-      groupSubscription(groupId: $id) {
+      postSubscription(postId: $id) {
         __typename
-        ... on PostCreatedPayload {
-          post {
+        ... on ReplyCreatedPayload {
+          reply {
             id
           }
         }
@@ -23,22 +23,23 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
     {:ok, Map.put(result, :socket, build_socket(result.user))}
   end
 
-  test "receives an event when a user posts to a group", %{socket: socket, space_user: space_user} do
+  test "receives an event when a user posts to a reply", %{socket: socket, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: post}} = Posts.post_to_group(space_user, group, valid_post_params())
 
-    ref = push_subscription(socket, @operation, %{"id" => group.id})
+    ref = push_subscription(socket, @operation, %{"id" => post.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, %{post: post}} = Posts.post_to_group(space_user, group, valid_post_params())
+    {:ok, reply} = reply_to_post(space_user, post)
     assert_push("subscription:data", push_data)
 
     assert push_data == %{
              result: %{
                data: %{
-                 "groupSubscription" => %{
-                   "__typename" => "PostCreatedPayload",
-                   "post" => %{
-                     "id" => post.id
+                 "postSubscription" => %{
+                   "__typename" => "ReplyCreatedPayload",
+                   "reply" => %{
+                     "id" => reply.id
                    }
                  }
                }

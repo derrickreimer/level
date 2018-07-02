@@ -7,6 +7,7 @@ defmodule Level.Pubsub do
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Posts.Post
+  alias Level.Posts.Reply
 
   def publish(:group_bookmarked, space_user_id, %Group{} = group),
     do:
@@ -31,6 +32,9 @@ defmodule Level.Pubsub do
 
   def publish(:group_updated, group_id, %Group{} = group),
     do: do_publish(%{type: :group_updated, group: group}, group_subscription: group_id)
+
+  def publish(:reply_created, post_id, %Reply{} = reply),
+    do: do_publish(%{type: :reply_created, reply: reply}, post_subscription: post_id)
 
   defp do_publish(payload, topics) do
     Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
