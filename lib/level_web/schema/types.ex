@@ -209,7 +209,8 @@ defmodule LevelWeb.Schema.Types do
 
     # TODO: Using `dataloader(Spaces)` here raises an exception:
     #
-    # ** (ArgumentError) expected a homogeneous list containing the same struct, got: Level.Posts.Reply and Level.Posts.Post
+    # ** (ArgumentError) expected a homogeneous list containing the same struct,
+    # got: Level.Posts.Reply and Level.Posts.Post
     #     (elixir) lib/enum.ex:1899: Enum."-reduce/3-lists^foldl/2-0-"/3
     #     (elixir) lib/enum.ex:1294: Enum."-map/2-lists^map/1-0-"/2
     #     (dataloader) lib/dataloader/ecto.ex:274: Dataloader.Source.Dataloader.Ecto.run_batch/2

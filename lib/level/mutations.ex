@@ -255,7 +255,6 @@ defmodule Level.Mutations do
         {:ok, %{success: false, reply: nil, errors: format_errors(changeset)}}
 
       err ->
-        IO.inspect(err)
         err
     end
   end
