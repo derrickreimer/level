@@ -2,11 +2,16 @@ defmodule LevelWeb.Schema do
   @moduledoc false
 
   use Absinthe.Schema
-  import_types LevelWeb.Schema.Types
 
   alias Level.Spaces
   alias Level.Groups
+
   import Level.Gettext
+
+  import_types LevelWeb.Schema.Objects
+  import_types LevelWeb.Schema.Connections
+  import_types LevelWeb.Schema.Mutations
+  import_types LevelWeb.Schema.Subscriptions
 
   def plugins do
     [Absinthe.Middleware.Dataloader] ++ Absinthe.Plugin.defaults()

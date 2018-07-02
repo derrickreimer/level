@@ -1,4 +1,4 @@
-defmodule LevelWeb.Schema.Types do
+defmodule LevelWeb.Schema.Objects do
   @moduledoc false
 
   use Absinthe.Schema.Notation
@@ -13,9 +13,6 @@ defmodule LevelWeb.Schema.Types do
   import_types LevelWeb.Schema.Enums
   import_types LevelWeb.Schema.Scalars
   import_types LevelWeb.Schema.InputObjects
-  import_types LevelWeb.Schema.Connections
-  import_types LevelWeb.Schema.Mutations
-  import_types LevelWeb.Schema.Subscriptions
 
   @desc "A user represents a person belonging to a specific space."
   object :user do

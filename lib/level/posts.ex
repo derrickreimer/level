@@ -108,6 +108,6 @@ defmodule Level.Posts do
 
   @impl true
   # TODO: scope the query for posts
-  def dataloader_query(Post, %{current_user: user}), do: Post
+  def dataloader_query(Post, %{current_user: _user}), do: Post
   def dataloader_query(_, _), do: raise("query not valid for this context")
 end
