@@ -4,13 +4,16 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
   alias Level.Groups
 
   @operation """
-    subscription GroupUpdated(
+    subscription GroupSubscription(
       $id: ID!
     ) {
-      groupUpdated(groupId: $id) {
-        group {
-          id
-          name
+      groupSubscription(groupId: $id) {
+        __typename
+        ... on GroupUpdatedPayload {
+          group {
+            id
+            name
+          }
         }
       }
     }
@@ -33,7 +36,8 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
     assert push_data == %{
              result: %{
                data: %{
-                 "groupUpdated" => %{
+                 "groupSubscription" => %{
+                   "__typename" => "GroupUpdatedPayload",
                    "group" => %{
                      "id" => group.id,
                      "name" => "New name"

@@ -4,12 +4,15 @@ defmodule LevelWeb.GraphQL.GroupUnbookmarkedTest do
   alias Level.Groups
 
   @operation """
-    subscription GroupUnbookmarked(
+    subscription SpaceUserSubscription(
       $id: ID!
     ) {
-      groupUnbookmarked(spaceUserId: $id) {
-        group {
-          id
+      spaceUserSubscription(spaceUserId: $id) {
+        __typename
+        ... on GroupUnbookmarkedPayload {
+          group {
+            id
+          }
         }
       }
     }
@@ -34,7 +37,8 @@ defmodule LevelWeb.GraphQL.GroupUnbookmarkedTest do
     assert push_data == %{
              result: %{
                data: %{
-                 "groupUnbookmarked" => %{
+                 "spaceUserSubscription" => %{
+                   "__typename" => "GroupUnbookmarkedPayload",
                    "group" => %{
                      "id" => group.id
                    }

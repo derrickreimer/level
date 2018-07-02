@@ -5,17 +5,20 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
   alias Level.Groups.GroupUser
 
   @operation """
-    subscription GroupMembershipUpdated(
+    subscription GroupSubscription(
       $id: ID!
     ) {
-      groupMembershipUpdated(groupId: $id) {
-        membership {
-          state
-          group {
-            id
-          }
-          spaceUser {
-            id
+      groupSubscription(groupId: $id) {
+        __typename
+        ... on GroupMembershipUpdatedPayload {
+          membership {
+            state
+            group {
+              id
+            }
+            spaceUser {
+              id
+            }
           }
         }
       }
@@ -41,7 +44,8 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
     assert push_data == %{
              result: %{
                data: %{
-                 "groupMembershipUpdated" => %{
+                 "groupSubscription" => %{
+                   "__typename" => "GroupMembershipUpdatedPayload",
                    "membership" => %{
                      "group" => %{
                        "id" => group.id
@@ -73,7 +77,8 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
     assert push_data == %{
              result: %{
                data: %{
-                 "groupMembershipUpdated" => %{
+                 "groupSubscription" => %{
+                   "__typename" => "GroupMembershipUpdatedPayload",
                    "membership" => %{
                      "group" => %{
                        "id" => group.id

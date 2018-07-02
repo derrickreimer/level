@@ -4,12 +4,15 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
   alias Level.Posts
 
   @operation """
-    subscription PostCreated(
+    subscription GroupSubscription(
       $id: ID!
     ) {
-      postCreated(groupId: $id) {
-        post {
-          id
+      groupSubscription(groupId: $id) {
+        __typename
+        ... on PostCreatedPayload {
+          post {
+            id
+          }
         }
       }
     }
@@ -32,7 +35,8 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
     assert push_data == %{
              result: %{
                data: %{
-                 "postCreated" => %{
+                 "groupSubscription" => %{
+                   "__typename" => "PostCreatedPayload",
                    "post" => %{
                      "id" => post.id
                    }

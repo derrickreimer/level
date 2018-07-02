@@ -4,12 +4,15 @@ defmodule LevelWeb.GraphQL.GroupBookmarkedTest do
   alias Level.Groups
 
   @operation """
-    subscription GroupBookmarked(
+    subscription SpaceUserSubscription(
       $id: ID!
     ) {
-      groupBookmarked(spaceUserId: $id) {
-        group {
-          id
+      spaceUserSubscription(spaceUserId: $id) {
+        __typename
+        ... on GroupBookmarkedPayload {
+          group {
+            id
+          }
         }
       }
     }
@@ -32,7 +35,8 @@ defmodule LevelWeb.GraphQL.GroupBookmarkedTest do
     assert push_data == %{
              result: %{
                data: %{
-                 "groupBookmarked" => %{
+                 "spaceUserSubscription" => %{
+                   "__typename" => "GroupBookmarkedPayload",
                    "group" => %{
                      "id" => group.id
                    }
