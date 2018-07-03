@@ -18,8 +18,11 @@ import Data.GroupMembership
         , groupMembershipDecoder
         , groupMembershipStateDecoder
         )
+import Data.PageInfo
 import Data.Post exposing (Post, postDecoder)
-import GraphQL
+import Data.Reply
+import Data.SpaceUser
+import GraphQL exposing (Document)
 import Socket
 
 
@@ -37,46 +40,46 @@ clientId id =
 
 payload : String -> Socket.Payload
 payload groupId =
-    Socket.Payload (clientId groupId) query (Just (variables groupId))
+    Socket.payload (clientId groupId) document (Just (variables groupId))
 
 
-query : String
-query =
-    GraphQL.query
-        [ """
-          subscription GroupSubscription(
-            $groupId: ID!
-          ) {
-            groupSubscription(groupId: $groupId) {
-              __typename
-              ... on GroupUpdatedPayload {
+document : Document
+document =
+    GraphQL.document
+        """
+        subscription GroupSubscription(
+          $groupId: ID!
+        ) {
+          groupSubscription(groupId: $groupId) {
+            __typename
+            ... on GroupUpdatedPayload {
+              group {
+                ...GroupFields
+              }
+            }
+            ... on PostCreatedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on GroupMembershipUpdatedPayload {
+              membership {
+                state
                 group {
-                  ...GroupFields
+                  id
                 }
-              }
-              ... on PostCreatedPayload {
-                post {
-                  ...PostFields
-                }
-              }
-              ... on GroupMembershipUpdatedPayload {
-                membership {
-                  state
-                  group {
-                    id
-                  }
-                  spaceUser {
-                    id
-                    firstName
-                    lastName
-                    role
-                  }
+                spaceUser {
+                  ...SpaceUserFields
                 }
               }
             }
           }
-          """
+        }
+        """
+        [ Data.PageInfo.fragment
         , Data.Post.fragment
+        , Data.Reply.fragment
+        , Data.SpaceUser.fragment
         , Data.Group.fragment
         ]
 

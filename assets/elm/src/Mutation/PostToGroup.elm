@@ -5,7 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Post exposing (Post, postDecoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
-import GraphQL
+import GraphQL exposing (Document)
 import Session exposing (Session)
 
 
@@ -21,65 +21,67 @@ type Response
     | Invalid (List ValidationError)
 
 
-query : String
-query =
-    """
-    mutation PostToGroup(
-      $spaceId: ID!,
-      $groupId: ID!,
-      $body: String!
-    ) {
-      postToGroup(
-        spaceId: $spaceId,
-        groupId: $groupId,
-        body: $body
-      ) {
-        success
-        post {
-          id
-          body
-          bodyHtml
-          postedAt
-          author {
-            id
-            firstName
-            lastName
-            role
-          }
-          groups {
-            id
-            name
-          }
-          replies(last: 10) {
-            edges {
-              node {
+document : Document
+document =
+    GraphQL.document
+        """
+        mutation PostToGroup(
+          $spaceId: ID!,
+          $groupId: ID!,
+          $body: String!
+        ) {
+          postToGroup(
+            spaceId: $spaceId,
+            groupId: $groupId,
+            body: $body
+          ) {
+            success
+            post {
+              id
+              body
+              bodyHtml
+              postedAt
+              author {
                 id
-                body
-                bodyHtml
-                postedAt
-                author {
-                  id
-                  firstName
-                  lastName
-                  role
+                firstName
+                lastName
+                role
+              }
+              groups {
+                id
+                name
+              }
+              replies(last: 10) {
+                edges {
+                  node {
+                    id
+                    body
+                    bodyHtml
+                    postedAt
+                    author {
+                      id
+                      firstName
+                      lastName
+                      role
+                    }
+                  }
+                }
+                pageInfo {
+                  hasPreviousPage
+                  hasNextPage
+                  startCursor
+                  endCursor
                 }
               }
             }
-            pageInfo {
-              hasPreviousPage
-              hasNextPage
-              startCursor
-              endCursor
+            errors {
+              attribute
+              message
             }
           }
         }
-        errors {
-          attribute
-          message
-        }
-      }
-    }
-    """
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -111,4 +113,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

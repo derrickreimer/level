@@ -1,47 +1,115 @@
-module GraphQL exposing (query, payload, request)
+module GraphQL exposing (Fragment, Document, fragment, document, request, compileDocument)
 
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Session exposing (Session)
+import Set
 
 
-query : List String -> String
-query parts =
-    parts
-        |> List.map normalize
-        |> String.join "\n"
+-- TYPES
 
 
-payload : List String -> Maybe Encode.Value -> Encode.Value
-payload queryParts maybeVariables =
-    case maybeVariables of
-        Nothing ->
-            Encode.object
-                [ ( "query", Encode.string (query queryParts) ) ]
-
-        Just variables ->
-            Encode.object
-                [ ( "query", Encode.string (query queryParts) )
-                , ( "variables", variables )
-                ]
+type Fragment
+    = Fragment String (List Fragment)
 
 
-request : List String -> Maybe Encode.Value -> Decode.Decoder a -> Session -> Http.Request a
-request queryParts maybeVariables decoder session =
+type Document
+    = Document String (List String)
+
+
+
+-- CONSTRUCTORS
+
+
+fragment : String -> List Fragment -> Fragment
+fragment body referencedFragments =
+    Fragment body referencedFragments
+
+
+document : String -> List Fragment -> Document
+document operation fragments =
+    Document operation (flatten fragments)
+
+
+
+-- TASKS
+
+
+request : Document -> Maybe Encode.Value -> Decode.Decoder a -> Session -> Http.Request a
+request document maybeVariables decoder session =
     let
-        body =
-            Encode.encode 0 (payload queryParts maybeVariables)
+        requestBody =
+            Encode.encode 0 (buildRequestBody document maybeVariables)
     in
         Http.request
             { method = "POST"
             , headers = [ Http.header "Authorization" ("Bearer " ++ session.token) ]
             , url = "/graphql"
-            , body = Http.stringBody "application/json" body
+            , body = Http.stringBody "application/json" requestBody
             , expect = Http.expectJson decoder
             , timeout = Nothing
             , withCredentials = False
             }
+
+
+compileDocument : Document -> String
+compileDocument document =
+    case document of
+        Document body fragments ->
+            (body :: fragments)
+                |> List.map normalize
+                |> String.join "\n"
+
+
+buildRequestBody : Document -> Maybe Encode.Value -> Encode.Value
+buildRequestBody document maybeVariables =
+    let
+        query =
+            compileDocument document
+    in
+        case maybeVariables of
+            Nothing ->
+                Encode.object
+                    [ ( "query", Encode.string query ) ]
+
+            Just variables ->
+                Encode.object
+                    [ ( "query", Encode.string query )
+                    , ( "variables", variables )
+                    ]
+
+
+
+-- HELPERS
+
+
+uniq : List comparable -> List comparable
+uniq list =
+    list
+        |> Set.fromList
+        |> Set.toList
+
+
+flatten : List Fragment -> List String
+flatten fragments =
+    let
+        toList : Fragment -> List String
+        toList fragment =
+            case fragment of
+                Fragment body [] ->
+                    [ body ]
+
+                Fragment body referencedFragments ->
+                    referencedFragments
+                        |> List.map toList
+                        |> List.concat
+                        |> (::) body
+    in
+        fragments
+            |> List.map toList
+            |> List.concat
+            |> uniq
 
 
 normalize : String -> String

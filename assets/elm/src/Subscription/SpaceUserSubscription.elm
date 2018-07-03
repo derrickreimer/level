@@ -9,7 +9,7 @@ module Subscription.SpaceUserSubscription
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Data.Group exposing (Group, groupDecoder)
-import GraphQL
+import GraphQL exposing (Document)
 import Socket
 
 
@@ -20,32 +20,32 @@ clientId spaceUserId =
 
 payload : String -> Socket.Payload
 payload spaceUserId =
-    Socket.Payload (clientId spaceUserId) query (Just (variables spaceUserId))
+    Socket.payload (clientId spaceUserId) document (Just (variables spaceUserId))
 
 
-query : String
-query =
-    GraphQL.query
-        [ """
-          subscription SpaceUserSubscription(
-            $spaceUserId: ID!
-          ) {
-            spaceUserSubscription(spaceUserId: $spaceUserId) {
-              __typename
-              ... on GroupBookmarkedPayload {
-                group {
-                  ...GroupFields
-                }
+document : Document
+document =
+    GraphQL.document
+        """
+        subscription SpaceUserSubscription(
+          $spaceUserId: ID!
+        ) {
+          spaceUserSubscription(spaceUserId: $spaceUserId) {
+            __typename
+            ... on GroupBookmarkedPayload {
+              group {
+                ...GroupFields
               }
-              ... on GroupUnbookmarkedPayload {
-                group {
-                  ...GroupFields
-                }
+            }
+            ... on GroupUnbookmarkedPayload {
+              group {
+                ...GroupFields
               }
             }
           }
-          """
-        , Data.Group.fragment
+        }
+        """
+        [ Data.Group.fragment
         ]
 
 

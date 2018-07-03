@@ -6,7 +6,7 @@ import Json.Decode as Decode
 import Data.Space exposing (Space, spaceDecoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import Session exposing (Session)
-import GraphQL
+import GraphQL exposing (Document)
 
 
 type alias Params =
@@ -20,30 +20,32 @@ type Response
     | Invalid (List ValidationError)
 
 
-query : String
-query =
-    """
-    mutation CreateSpace(
-      $name: String!,
-      $slug: String!
-    ) {
-      createSpace(
-        name: $name,
-        slug: $slug
-      ) {
-        success
-        space {
-          id
-          name
-          slug
+document : Document
+document =
+    GraphQL.document
+        """
+        mutation CreateSpace(
+          $name: String!,
+          $slug: String!
+        ) {
+          createSpace(
+            name: $name,
+            slug: $slug
+          ) {
+            success
+            space {
+              id
+              name
+              slug
+            }
+            errors {
+              attribute
+              message
+            }
+          }
         }
-        errors {
-          attribute
-          message
-        }
-      }
-    }
-    """
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -84,4 +86,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

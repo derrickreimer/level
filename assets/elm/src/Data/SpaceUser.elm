@@ -9,6 +9,7 @@ module Data.SpaceUser
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import GraphQL exposing (Fragment)
 
 
 -- TYPES
@@ -27,16 +28,18 @@ type Role
     | Owner
 
 
-fragment : String
+fragment : Fragment
 fragment =
-    """
-    fragment SpaceUserFields on SpaceUser {
-      id
-      firstName
-      lastName
-      role
-    }
-    """
+    GraphQL.fragment
+        """
+        fragment SpaceUserFields on SpaceUser {
+          id
+          firstName
+          lastName
+          role
+        }
+        """
+        []
 
 
 

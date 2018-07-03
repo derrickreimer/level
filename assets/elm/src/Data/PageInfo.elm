@@ -1,7 +1,8 @@
-module Data.PageInfo exposing (PageInfo, pageInfoDecoder)
+module Data.PageInfo exposing (PageInfo, fragment, pageInfoDecoder)
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import GraphQL exposing (Fragment)
 
 
 -- TYPES
@@ -13,6 +14,20 @@ type alias PageInfo =
     , startCursor : Maybe String
     , endCursor : Maybe String
     }
+
+
+fragment : Fragment
+fragment =
+    GraphQL.fragment
+        """
+        fragment PageInfoFields on PageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+        """
+        []
 
 
 

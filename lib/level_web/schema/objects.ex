@@ -201,6 +201,7 @@ defmodule LevelWeb.Schema.Objects do
   @desc "A reply represents a response to a post."
   object :reply do
     field :id, non_null(:id)
+    field :post_id, non_null(:id)
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(Spaces)
 

@@ -5,7 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Setup exposing (State, setupStateDecoder, setupStateEncoder)
 import Session exposing (Session)
-import GraphQL
+import GraphQL exposing (Document)
 
 
 type alias Params =
@@ -19,23 +19,25 @@ type Response
     = Success State
 
 
-query : String
-query =
-    """
-    mutation CompleteSetupStep(
-      $spaceId: ID!,
-      $state: SpaceSetupState!,
-      $isSkipped: Boolean!
-    ) {
-      completeSetupStep(
-        spaceId: $spaceId,
-        state: $state,
-        isSkipped: $isSkipped
-      ) {
-        state
-      }
-    }
-    """
+document : Document
+document =
+    GraphQL.document
+        """
+        mutation CompleteSetupStep(
+          $spaceId: ID!,
+          $state: SpaceSetupState!,
+          $isSkipped: Boolean!
+        ) {
+          completeSetupStep(
+            spaceId: $spaceId,
+            state: $state,
+            isSkipped: $isSkipped
+          ) {
+            state
+          }
+        }
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -55,4 +57,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

@@ -6,7 +6,7 @@ import Json.Decode as Decode
 import Data.Group exposing (Group, groupDecoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import Session exposing (Session)
-import GraphQL
+import GraphQL exposing (Document)
 
 
 type alias Params =
@@ -21,33 +21,35 @@ type Response
     | Invalid (List ValidationError)
 
 
-query : String
-query =
-    """
-    mutation UpdateGroup(
-      $spaceId: ID!,
-      $groupId: ID!,
-      $name: String!
-    ) {
-      updateGroup(
-        spaceId: $spaceId,
-        groupId: $groupId,
-        name: $name
-      ) {
-        success
-        group {
-          id
-          name
-          description
-          isPrivate
+document : Document
+document =
+    GraphQL.document
+        """
+        mutation UpdateGroup(
+          $spaceId: ID!,
+          $groupId: ID!,
+          $name: String!
+        ) {
+          updateGroup(
+            spaceId: $spaceId,
+            groupId: $groupId,
+            name: $name
+          ) {
+            success
+            group {
+              id
+              name
+              description
+              isPrivate
+            }
+            errors {
+              attribute
+              message
+            }
+          }
         }
-        errors {
-          attribute
-          message
-        }
-      }
-    }
-    """
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -89,4 +91,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

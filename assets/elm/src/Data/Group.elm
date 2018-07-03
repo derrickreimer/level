@@ -2,6 +2,7 @@ module Data.Group exposing (Group, fragment, groupDecoder)
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import GraphQL exposing (Fragment)
 
 
 -- TYPES
@@ -13,14 +14,16 @@ type alias Group =
     }
 
 
-fragment : String
+fragment : Fragment
 fragment =
-    """
-    fragment GroupFields on Group {
-      id
-      name
-    }
-    """
+    GraphQL.fragment
+        """
+        fragment GroupFields on Group {
+          id
+          name
+        }
+        """
+        []
 
 
 

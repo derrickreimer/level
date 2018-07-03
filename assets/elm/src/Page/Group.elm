@@ -25,6 +25,7 @@ import Data.GroupMembership
         , groupMembershipDecoder
         , groupMembershipStateDecoder
         )
+import Data.PageInfo
 import Data.Post exposing (Post, PostConnection, postConnectionDecoder)
 import Data.Reply exposing (Reply, ReplyConnection)
 import Data.Space exposing (Space)
@@ -117,79 +118,44 @@ init user space groupId session =
 bootstrap : String -> String -> Session -> Date -> Task Session.Error ( Session, BootstrapResponse )
 bootstrap spaceId groupId session now =
     let
-        query =
-            """
-            query GroupInit(
-              $spaceId: ID!
-              $groupId: ID!
-            ) {
-              space(id: $spaceId) {
-                group(id: $groupId) {
-                  id
-                  name
-                  membership {
-                    state
-                  }
-                  featuredMemberships {
-                    spaceUser {
-                      id
-                      firstName
-                      lastName
-                      role
-                    }
-                  }
-                  posts(first: 20) {
-                    edges {
-                      node {
-                        id
-                        body
-                        bodyHtml
-                        postedAt
-                        author {
-                          id
-                          firstName
-                          lastName
-                          role
+        document =
+            GraphQL.document
+                """
+                query GroupInit(
+                  $spaceId: ID!
+                  $groupId: ID!
+                ) {
+                  space(id: $spaceId) {
+                    group(id: $groupId) {
+                      ...GroupFields
+                      membership {
+                        state
+                      }
+                      featuredMemberships {
+                        spaceUser {
+                          ...SpaceUserFields
                         }
-                        groups {
-                          id
-                          name
+                      }
+                      posts(first: 20) {
+                        edges {
+                          node {
+                            ...PostFields
+                          }
                         }
-                        replies(last: 10) {
-                          edges {
-                            node {
-                              id
-                              body
-                              bodyHtml
-                              postedAt
-                              author {
-                                id
-                                firstName
-                                lastName
-                                role
-                              }
-                            }
-                          }
-                          pageInfo {
-                            hasPreviousPage
-                            hasNextPage
-                            startCursor
-                            endCursor
-                          }
+                        pageInfo {
+                          ...PageInfoFields
                         }
                       }
                     }
-                    pageInfo {
-                      hasPreviousPage
-                      hasNextPage
-                      startCursor
-                      endCursor
-                    }
                   }
                 }
-              }
-            }
-            """
+                """
+                [ Data.SpaceUser.fragment
+                , Data.Group.fragment
+                , Data.Post.fragment
+                , Data.Reply.fragment
+                , Data.PageInfo.fragment
+                ]
 
         variables =
             Encode.object
@@ -208,7 +174,7 @@ bootstrap spaceId groupId session now =
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in
-        GraphQL.request [ query ] (Just variables) (decoder now)
+        GraphQL.request document (Just variables) (decoder now)
             |> Session.request session
 
 

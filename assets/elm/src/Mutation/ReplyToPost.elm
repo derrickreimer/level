@@ -5,7 +5,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Reply exposing (Reply, replyDecoder)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
-import GraphQL
+import GraphQL exposing (Document)
 import Session exposing (Session)
 
 
@@ -21,39 +21,41 @@ type Response
     | Invalid (List ValidationError)
 
 
-query : String
-query =
-    """
-    mutation ReplyToPost(
-      $spaceId: ID!,
-      $postId: ID!,
-      $body: String!
-    ) {
-      replyToPost(
-        spaceId: $spaceId,
-        postId: $postId,
-        body: $body
-      ) {
-        success
-        reply {
-          id
-          body
-          bodyHtml
-          postedAt
-          author {
-            id
-            firstName
-            lastName
-            role
+document : Document
+document =
+    GraphQL.document
+        """
+        mutation ReplyToPost(
+          $spaceId: ID!,
+          $postId: ID!,
+          $body: String!
+        ) {
+          replyToPost(
+            spaceId: $spaceId,
+            postId: $postId,
+            body: $body
+          ) {
+            success
+            reply {
+              id
+              body
+              bodyHtml
+              postedAt
+              author {
+                id
+                firstName
+                lastName
+                role
+              }
+            }
+            errors {
+              attribute
+              message
+            }
           }
         }
-        errors {
-          attribute
-          message
-        }
-      }
-    }
-    """
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -85,4 +87,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

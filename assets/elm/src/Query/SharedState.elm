@@ -9,7 +9,7 @@ import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
-import GraphQL
+import GraphQL exposing (Document)
 
 
 type alias Params =
@@ -27,37 +27,39 @@ type alias Response =
     }
 
 
-query : String
-query =
-    """
-    query SharedState(
-      $spaceId: ID!
-    ) {
-      spaceUser(spaceId: $spaceId) {
-        id
-        role
-        firstName
-        lastName
-        space {
-          id
-          name
-          slug
-          setupState
-          openInvitationUrl
-          featuredUsers {
+document : Document
+document =
+    GraphQL.document
+        """
+        query SharedState(
+          $spaceId: ID!
+        ) {
+          spaceUser(spaceId: $spaceId) {
             id
+            role
             firstName
             lastName
-            role
+            space {
+              id
+              name
+              slug
+              setupState
+              openInvitationUrl
+              featuredUsers {
+                id
+                firstName
+                lastName
+                role
+              }
+            }
+            bookmarkedGroups {
+              id
+              name
+            }
           }
         }
-        bookmarkedGroups {
-          id
-          name
-        }
-      }
-    }
-    """
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -82,4 +84,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

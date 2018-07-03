@@ -5,7 +5,7 @@ import Data.GroupMembership exposing (GroupMembership, groupMembershipDecoder)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import GraphQL
+import GraphQL exposing (Document)
 
 
 type alias Params =
@@ -18,27 +18,29 @@ type alias Response =
     List GroupMembership
 
 
-query : String
-query =
-    """
-    query GetFeaturedMemberships(
-      $spaceId: ID!
-      $groupId: ID!
-    ) {
-      space(id: $spaceId) {
-        group(id: $groupId) {
-          featuredMemberships {
-            spaceUser {
-              id
-              firstName
-              lastName
-              role
+document : Document
+document =
+    GraphQL.document
+        """
+        query GetFeaturedMemberships(
+          $spaceId: ID!
+          $groupId: ID!
+        ) {
+          space(id: $spaceId) {
+            group(id: $groupId) {
+              featuredMemberships {
+                spaceUser {
+                  id
+                  firstName
+                  lastName
+                  role
+                }
+              }
             }
           }
         }
-      }
-    }
-    """
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -56,4 +58,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

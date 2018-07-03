@@ -4,7 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Session exposing (Session)
-import GraphQL
+import GraphQL exposing (Document)
 
 
 type alias Params =
@@ -17,36 +17,38 @@ type Response
     = Success
 
 
-query : String
-query =
-    """
-    mutation BulkCreateGroups(
-      $spaceId: ID!,
-      $names: [String]!
-    ) {
-      bulkCreateGroups(
-        spaceId: $spaceId,
-        names: $names
-      ) {
-        payloads {
-          success
-          group {
-            id
-            name
-            description
-            isPrivate
-          }
-          errors {
-            attribute
-            message
-          }
-          args {
-            name
+document : Document
+document =
+    GraphQL.document
+        """
+        mutation BulkCreateGroups(
+          $spaceId: ID!,
+          $names: [String]!
+        ) {
+          bulkCreateGroups(
+            spaceId: $spaceId,
+            names: $names
+          ) {
+            payloads {
+              success
+              group {
+                id
+                name
+                description
+                isPrivate
+              }
+              errors {
+                attribute
+                message
+              }
+              args {
+                name
+              }
+            }
           }
         }
-      }
-    }
-    """
+        """
+        []
 
 
 variables : Params -> Encode.Value
@@ -68,4 +70,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request [ query ] (Just (variables params)) decoder
+    GraphQL.request document (Just (variables params)) decoder

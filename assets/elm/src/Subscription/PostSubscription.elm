@@ -9,7 +9,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Data.SpaceUser
 import Data.Reply exposing (Reply, replyDecoder)
-import GraphQL
+import GraphQL exposing (Document)
 import Socket
 
 
@@ -20,27 +20,27 @@ clientId id =
 
 payload : String -> Socket.Payload
 payload postId =
-    Socket.Payload (clientId postId) query (Just (variables postId))
+    Socket.payload (clientId postId) document (Just (variables postId))
 
 
-query : String
-query =
-    GraphQL.query
-        [ """
-          subscription PostSubscription(
-            $postId: ID!
-          ) {
-            postSubscription(postId: $postId) {
-              __typename
-              ... on ReplyCreatedPayload {
-                reply {
-                  ...ReplyFields
-                }
+document : Document
+document =
+    GraphQL.document
+        """
+        subscription PostSubscription(
+          $postId: ID!
+        ) {
+          postSubscription(postId: $postId) {
+            __typename
+            ... on ReplyCreatedPayload {
+              reply {
+                ...ReplyFields
               }
             }
           }
-          """
-        , Data.Reply.fragment
+        }
+        """
+        [ Data.Reply.fragment
         , Data.SpaceUser.fragment
         ]
 

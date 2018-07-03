@@ -7,6 +7,7 @@ import Data.Group exposing (Group, groupDecoder)
 import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
 import Data.Reply exposing (ReplyConnection, replyConnectionDecoder)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
+import GraphQL exposing (Fragment)
 import Util exposing (dateDecoder, memberById)
 
 
@@ -30,48 +31,34 @@ type alias PostConnection =
     }
 
 
-fragment : String
+fragment : Fragment
 fragment =
-    """
-    fragment PostFields on Post {
-      id
-      body
-      bodyHtml
-      postedAt
-      author {
-        id
-        firstName
-        lastName
-        role
-      }
-      groups {
-        id
-        name
-      }
-      replies(last: 10) {
-        edges {
-          node {
-            id
-            body
-            bodyHtml
-            postedAt
-            author {
-              id
-              firstName
-              lastName
-              role
+    GraphQL.fragment
+        """
+        fragment PostFields on Post {
+          id
+          body
+          bodyHtml
+          postedAt
+          author {
+            ...SpaceUserFields
+          }
+          groups {
+            ...GroupFields
+          }
+          replies(last: 10) {
+            edges {
+              node {
+                ...ReplyFields
+              }
+            }
+            pageInfo {
+              ...PageInfoFields
             }
           }
         }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          startCursor
-          endCursor
-        }
-      }
-    }
-    """
+        """
+        []
 
 
 
