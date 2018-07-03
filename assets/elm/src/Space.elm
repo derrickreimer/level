@@ -9,6 +9,7 @@ import Task exposing (Task)
 import Time exposing (second)
 import Avatar exposing (personAvatar, texitar)
 import Data.Group exposing (Group)
+import Data.Reply exposing (Reply)
 import Data.Space exposing (Space)
 import Data.SpaceUser
 import Data.Setup as Setup
@@ -311,16 +312,21 @@ handleSocketResult value model page sharedState =
             case model.page of
                 Group ({ group } as pageModel) ->
                     let
-                        newPageModel =
+                        ( newPageModel, cmd ) =
                             Page.Group.handlePostCreated post pageModel
                     in
-                        ( { model | page = Group newPageModel }, Cmd.none )
+                        ( { model | page = Group newPageModel }
+                        , Cmd.map GroupMsg cmd
+                        )
 
                 _ ->
                     ( model, Cmd.none )
 
         Event.GroupUpdated group ->
             ( handleGroupUpdated group sharedState model, Cmd.none )
+
+        Event.ReplyCreated reply ->
+            ( handleReplyCreated reply model, Cmd.none )
 
         Event.Unknown ->
             ( model, Cmd.none )
@@ -465,6 +471,20 @@ updateSetupState state model =
 handleGroupUpdated : Group -> SharedState -> Model -> Model
 handleGroupUpdated group sharedState ({ repo } as model) =
     { model | repo = Repo.setGroup repo group }
+
+
+handleReplyCreated : Reply -> Model -> Model
+handleReplyCreated reply ({ page } as model) =
+    case page of
+        Group pageModel ->
+            let
+                newPageModel =
+                    Page.Group.handleReplyCreated reply pageModel
+            in
+                { model | page = Group newPageModel }
+
+        _ ->
+            model
 
 
 

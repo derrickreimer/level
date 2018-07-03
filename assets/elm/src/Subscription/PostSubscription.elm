@@ -7,6 +7,7 @@ module Subscription.PostSubscription
 
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Data.SpaceUser
 import Data.Reply exposing (Reply, replyDecoder)
 import GraphQL
 import Socket

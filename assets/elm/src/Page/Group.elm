@@ -43,6 +43,7 @@ import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription exposing (GroupMembershipUpdatedPayload)
+import Subscription.PostSubscription as PostSubscription
 import Util exposing (displayName, smartFormatDate, memberById, injectHtml, insertUniqueById, removeById)
 
 
@@ -231,17 +232,17 @@ buildModel user space ( session, { group, state, posts, featuredMemberships, now
 
 
 afterInit : Model -> Cmd Msg
-afterInit { group } =
+afterInit { group, posts } =
     Cmd.batch
         [ setFocus "post-composer"
         , autosize Autosize.Init "post-composer"
-        , setupSockets group.id
+        , setupSockets group.id posts.nodes
         ]
 
 
 teardown : Model -> Cmd Msg
-teardown { group } =
-    teardownSockets group.id
+teardown { group, posts } =
+    teardownSockets group.id posts.nodes
 
 
 
@@ -496,26 +497,36 @@ noCmd session model =
     ( ( model, Cmd.none ), session )
 
 
-setupSockets : String -> Cmd Msg
-setupSockets groupId =
+setupSockets : String -> List Post -> Cmd Msg
+setupSockets groupId posts =
     let
-        payloads =
-            [ GroupSubscription.payload groupId
-            ]
+        groupPayload =
+            GroupSubscription.payload groupId
+
+        postPayloads =
+            posts
+                |> List.map .id
+                |> List.map PostSubscription.payload
     in
-        payloads
+        groupPayload
+            :: postPayloads
             |> List.map Ports.push
             |> Cmd.batch
 
 
-teardownSockets : String -> Cmd Msg
-teardownSockets groupId =
+teardownSockets : String -> List Post -> Cmd Msg
+teardownSockets groupId posts =
     let
-        payloads =
-            [ GroupSubscription.clientId groupId
-            ]
+        groupPayload =
+            GroupSubscription.clientId groupId
+
+        postPayloads =
+            posts
+                |> List.map .id
+                |> List.map PostSubscription.clientId
     in
-        payloads
+        groupPayload
+            :: postPayloads
             |> List.map Ports.cancel
             |> Cmd.batch
 
@@ -544,7 +555,7 @@ autosize method id =
 -- EVENT HANDLERS
 
 
-handlePostCreated : Post -> Model -> Model
+handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
 handlePostCreated post model =
     let
         newPosts =
@@ -553,7 +564,7 @@ handlePostCreated post model =
             else
                 model.posts
     in
-        { model | posts = newPosts }
+        ( { model | posts = newPosts }, Ports.push (PostSubscription.payload post.id) )
 
 
 handleGroupMembershipUpdated : GroupMembershipUpdatedPayload -> Session -> Model -> ( Model, Cmd Msg )
@@ -572,6 +583,11 @@ handleGroupMembershipUpdated { state, membership } session model =
                 |> Task.attempt FeaturedMembershipsRefreshed
     in
         ( { model | state = newState }, cmd )
+
+
+handleReplyCreated : Reply -> Model -> Model
+handleReplyCreated reply model =
+    model
 
 
 isMembershipListed : GroupMembership -> List GroupMembership -> Bool
@@ -640,7 +656,7 @@ nameView group editor =
                     , value editor.value
                     , onInput NameEditorChanged
                     , onKeyDown preventDefault
-                        [ ( Meta, enter, NameEditorSubmit )
+                        [ ( Unmodified, enter, NameEditorSubmit )
                         , ( Unmodified, esc, NameEditorDismissed )
                         ]
                     , onBlur NameEditorDismissed
