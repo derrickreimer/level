@@ -34,9 +34,7 @@ document =
           ) {
             success
             space {
-              id
-              name
-              slug
+              ...SpaceFields
             }
             errors {
               attribute
@@ -45,7 +43,8 @@ document =
           }
         }
         """
-        []
+        [ Data.Space.fragment
+        ]
 
 
 variables : Params -> Encode.Value

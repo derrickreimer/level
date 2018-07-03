@@ -58,7 +58,11 @@ fragment =
           }
         }
         """
-        []
+        [ Data.SpaceUser.fragment
+        , Data.Group.fragment
+        , Data.Reply.fragment
+        , Data.PageInfo.fragment
+        ]
 
 
 

@@ -153,7 +153,6 @@ bootstrap spaceId groupId session now =
                 [ Data.SpaceUser.fragment
                 , Data.Group.fragment
                 , Data.Post.fragment
-                , Data.Reply.fragment
                 , Data.PageInfo.fragment
                 ]
 

@@ -37,16 +37,7 @@ document =
           ) {
             success
             reply {
-              id
-              body
-              bodyHtml
-              postedAt
-              author {
-                id
-                firstName
-                lastName
-                role
-              }
+              ...ReplyFields
             }
             errors {
               attribute
@@ -55,7 +46,8 @@ document =
           }
         }
         """
-        []
+        [ Data.Reply.fragment
+        ]
 
 
 variables : Params -> Encode.Value

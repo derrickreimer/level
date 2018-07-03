@@ -1,8 +1,9 @@
-module Data.Space exposing (Space, SpaceUserRole(..), spaceDecoder, spaceRoleDecoder)
+module Data.Space exposing (Space, SpaceUserRole(..), fragment, spaceDecoder, spaceRoleDecoder)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline as Pipeline
+import GraphQL exposing (Fragment)
 
 
 -- TYPES
@@ -18,6 +19,19 @@ type alias Space =
 type SpaceUserRole
     = Member
     | Owner
+
+
+fragment : Fragment
+fragment =
+    GraphQL.fragment
+        """
+        fragment SpaceFields on Space {
+          id
+          name
+          slug
+        }
+        """
+        []
 
 
 

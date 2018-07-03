@@ -37,42 +37,7 @@ document =
           ) {
             success
             post {
-              id
-              body
-              bodyHtml
-              postedAt
-              author {
-                id
-                firstName
-                lastName
-                role
-              }
-              groups {
-                id
-                name
-              }
-              replies(last: 10) {
-                edges {
-                  node {
-                    id
-                    body
-                    bodyHtml
-                    postedAt
-                    author {
-                      id
-                      firstName
-                      lastName
-                      role
-                    }
-                  }
-                }
-                pageInfo {
-                  hasPreviousPage
-                  hasNextPage
-                  startCursor
-                  endCursor
-                }
-              }
+              ...PostFields
             }
             errors {
               attribute
@@ -81,7 +46,8 @@ document =
           }
         }
         """
-        []
+        [ Data.Post.fragment
+        ]
 
 
 variables : Params -> Encode.Value

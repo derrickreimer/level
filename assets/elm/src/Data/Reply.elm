@@ -43,7 +43,8 @@ fragment =
           postedAt
         }
         """
-        []
+        [ Data.SpaceUser.fragment
+        ]
 
 
 

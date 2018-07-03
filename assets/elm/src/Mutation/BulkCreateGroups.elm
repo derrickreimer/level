@@ -3,6 +3,7 @@ module Mutation.BulkCreateGroups exposing (Params, Response(..), request, decode
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Data.Group
 import Session exposing (Session)
 import GraphQL exposing (Document)
 
@@ -32,10 +33,7 @@ document =
             payloads {
               success
               group {
-                id
-                name
-                description
-                isPrivate
+                ...GroupFields
               }
               errors {
                 attribute
@@ -48,7 +46,8 @@ document =
           }
         }
         """
-        []
+        [ Data.Group.fragment
+        ]
 
 
 variables : Params -> Encode.Value

@@ -37,10 +37,7 @@ document =
           ) {
             success
             group {
-              id
-              name
-              description
-              isPrivate
+              ...GroupFields
             }
             errors {
               attribute
@@ -49,7 +46,8 @@ document =
           }
         }
         """
-        []
+        [ Data.Group.fragment
+        ]
 
 
 variables : Params -> Encode.Value
