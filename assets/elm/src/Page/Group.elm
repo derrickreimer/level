@@ -14,7 +14,7 @@ import Time exposing (Time, every, second, millisecond)
 import Autosize
 import Avatar exposing (personAvatar)
 import Connection
-import Data.Group exposing (Group, groupDecoder)
+import Data.Group exposing (Group)
 import Data.GroupMembership
     exposing
         ( GroupMembership
@@ -168,7 +168,7 @@ bootstrap spaceId groupId session now =
         decoder now =
             Decode.at [ "data", "space" ] <|
                 (Pipeline.decode BootstrapResponse
-                    |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
+                    |> Pipeline.custom (Decode.at [ "group" ] Data.Group.decoder)
                     |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "posts" ] Data.PostConnection.decoder)
                     |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))

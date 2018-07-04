@@ -3,7 +3,7 @@ module Data.Post exposing (Post, fragment, decoder)
 import Date exposing (Date)
 import Json.Decode as Decode exposing (list, string)
 import Json.Decode.Pipeline as Pipeline
-import Data.Group exposing (Group, groupDecoder)
+import Data.Group exposing (Group)
 import Data.PageInfo
 import Data.Reply
 import Data.ReplyConnection exposing (ReplyConnection)
@@ -71,6 +71,6 @@ decoder =
         |> Pipeline.required "body" string
         |> Pipeline.required "bodyHtml" string
         |> Pipeline.required "author" spaceUserDecoder
-        |> Pipeline.required "groups" (list groupDecoder)
+        |> Pipeline.required "groups" (list Data.Group.decoder)
         |> Pipeline.required "postedAt" dateDecoder
         |> Pipeline.required "replies" Data.ReplyConnection.decoder

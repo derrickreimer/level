@@ -1,7 +1,6 @@
-module Data.Group exposing (Group, fragment, groupDecoder)
+module Data.Group exposing (Group, fragment, decoder)
 
-import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (field, string)
 import GraphQL exposing (Fragment)
 
 
@@ -30,8 +29,8 @@ fragment =
 -- DECODERS
 
 
-groupDecoder : Decode.Decoder Group
-groupDecoder =
-    Pipeline.decode Group
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "name" Decode.string
+decoder : Decode.Decoder Group
+decoder =
+    Decode.map2 Group
+        (field "id" string)
+        (field "name" string)

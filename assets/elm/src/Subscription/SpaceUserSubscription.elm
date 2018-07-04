@@ -8,7 +8,7 @@ module Subscription.SpaceUserSubscription
 
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Data.Group exposing (Group, groupDecoder)
+import Data.Group exposing (Group)
 import GraphQL exposing (Document)
 import Socket
 
@@ -69,7 +69,7 @@ groupBookmarkedDecoder =
     let
         payloadDecoder typename =
             if typename == "GroupBookmarkedPayload" then
-                Decode.field "group" groupDecoder
+                Decode.field "group" Data.Group.decoder
             else
                 Decode.fail "payload does not match"
     in
@@ -81,7 +81,7 @@ groupUnbookmarkedDecoder =
     let
         payloadDecoder typename =
             if typename == "GroupUnbookmarkedPayload" then
-                Decode.field "group" groupDecoder
+                Decode.field "group" Data.Group.decoder
             else
                 Decode.fail "payload does not match"
     in
