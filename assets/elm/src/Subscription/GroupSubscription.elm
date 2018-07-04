@@ -19,7 +19,7 @@ import Data.GroupMembership
         , groupMembershipStateDecoder
         )
 import Data.PageInfo
-import Data.Post exposing (Post, postDecoder)
+import Data.Post exposing (Post)
 import Data.Reply
 import Data.SpaceUser
 import GraphQL exposing (Document)
@@ -116,7 +116,7 @@ postCreatedDecoder =
     let
         payloadDecoder typename =
             if typename == "PostCreatedPayload" then
-                Decode.field "post" postDecoder
+                Decode.field "post" Data.Post.decoder
             else
                 Decode.fail "payload does not match"
     in

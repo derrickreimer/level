@@ -1,7 +1,6 @@
-module Data.PageInfo exposing (PageInfo, fragment, pageInfoDecoder)
+module Data.PageInfo exposing (PageInfo, fragment, decoder)
 
-import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (field, bool, maybe, string)
 import GraphQL exposing (Fragment)
 
 
@@ -34,10 +33,10 @@ fragment =
 -- DECODERS
 
 
-pageInfoDecoder : Decode.Decoder PageInfo
-pageInfoDecoder =
-    Pipeline.decode PageInfo
-        |> Pipeline.required "hasPreviousPage" Decode.bool
-        |> Pipeline.required "hasNextPage" Decode.bool
-        |> Pipeline.required "startCursor" (Decode.maybe Decode.string)
-        |> Pipeline.required "endCursor" (Decode.maybe Decode.string)
+decoder : Decode.Decoder PageInfo
+decoder =
+    Decode.map4 PageInfo
+        (field "hasPreviousPage" bool)
+        (field "hasNextPage" bool)
+        (field "startCursor" (maybe string))
+        (field "endCursor" (maybe string))

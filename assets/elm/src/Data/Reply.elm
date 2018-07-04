@@ -3,7 +3,7 @@ module Data.Reply exposing (Reply, ReplyConnection, fragment, replyDecoder, repl
 import Date exposing (Date)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
-import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
+import Data.PageInfo exposing (PageInfo)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 import GraphQL exposing (Fragment)
 import Util exposing (dateDecoder)
@@ -66,7 +66,7 @@ replyConnectionDecoder : Decode.Decoder ReplyConnection
 replyConnectionDecoder =
     Pipeline.decode ReplyConnection
         |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list replyEdgeDecoder))
-        |> Pipeline.custom (Decode.at [ "pageInfo" ] pageInfoDecoder)
+        |> Pipeline.custom (Decode.at [ "pageInfo" ] Data.PageInfo.decoder)
 
 
 replyEdgeDecoder : Decode.Decoder Reply

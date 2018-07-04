@@ -26,7 +26,8 @@ import Data.GroupMembership
         , groupMembershipStateDecoder
         )
 import Data.PageInfo
-import Data.Post exposing (Post, PostConnection, postConnectionDecoder)
+import Data.Post exposing (Post)
+import Data.PostConnection exposing (PostConnection)
 import Data.Reply exposing (Reply, ReplyConnection)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
@@ -168,7 +169,7 @@ bootstrap spaceId groupId session now =
                 (Pipeline.decode BootstrapResponse
                     |> Pipeline.custom (Decode.at [ "group" ] groupDecoder)
                     |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
-                    |> Pipeline.custom (Decode.at [ "group", "posts" ] postConnectionDecoder)
+                    |> Pipeline.custom (Decode.at [ "group", "posts" ] Data.PostConnection.decoder)
                     |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
                     |> Pipeline.custom (Decode.succeed now)
                 )
@@ -525,7 +526,7 @@ handlePostCreated post model =
     let
         newPosts =
             if memberById model.group post.groups then
-                Data.Post.add post model.posts
+                Data.PostConnection.append post model.posts
             else
                 model.posts
     in

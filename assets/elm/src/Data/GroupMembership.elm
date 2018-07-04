@@ -15,7 +15,7 @@ module Data.GroupMembership
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
-import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
+import Data.PageInfo exposing (PageInfo)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 
 
@@ -51,7 +51,7 @@ groupMembershipConnectionDecoder : Decode.Decoder GroupMembershipConnection
 groupMembershipConnectionDecoder =
     Pipeline.decode GroupMembershipConnection
         |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list groupMembershipEdgeDecoder))
-        |> Pipeline.custom (Decode.at [ "pageInfo" ] pageInfoDecoder)
+        |> Pipeline.custom (Decode.at [ "pageInfo" ] Data.PageInfo.decoder)
 
 
 groupMembershipEdgeDecoder : Decode.Decoder GroupMembershipEdge

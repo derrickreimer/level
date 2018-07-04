@@ -9,7 +9,7 @@ module Data.User
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
-import Data.PageInfo exposing (PageInfo, pageInfoDecoder)
+import Data.PageInfo exposing (PageInfo, Data.PageInfo.decoder)
 
 
 -- TYPES
@@ -41,7 +41,7 @@ userConnectionDecoder : Decode.Decoder UserConnection
 userConnectionDecoder =
     Pipeline.decode UserConnection
         |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list userEdgeDecoder))
-        |> Pipeline.custom (Decode.at [ "pageInfo" ] pageInfoDecoder)
+        |> Pipeline.custom (Decode.at [ "pageInfo" ] Data.PageInfo.decoder)
 
 
 userEdgeDecoder : Decode.Decoder UserEdge
