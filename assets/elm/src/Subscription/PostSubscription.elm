@@ -8,7 +8,7 @@ module Subscription.PostSubscription
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Data.SpaceUser
-import Data.Reply exposing (Reply, replyDecoder)
+import Data.Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Socket
 
@@ -65,7 +65,7 @@ replyCreatedDecoder =
     let
         payloadDecoder typename =
             if typename == "ReplyCreated" then
-                Decode.field "reply" replyDecoder
+                Decode.field "reply" Data.Reply.decoder
             else
                 Decode.fail "payload does not match"
     in

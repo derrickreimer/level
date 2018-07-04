@@ -3,7 +3,7 @@ module Mutation.ReplyToPost exposing (Params, Response(..), request)
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Reply exposing (Reply, replyDecoder)
+import Data.Reply exposing (Reply)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import GraphQL exposing (Document)
 import Session exposing (Session)
@@ -63,7 +63,7 @@ conditionalDecoder : Bool -> Decode.Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "replyToPost", "reply" ] replyDecoder
+            Decode.at [ "data", "replyToPost", "reply" ] Data.Reply.decoder
                 |> Decode.map Success
 
         False ->

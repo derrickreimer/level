@@ -1,9 +1,8 @@
-module Data.Reply exposing (Reply, ReplyConnection, fragment, replyDecoder, replyConnectionDecoder)
+module Data.Reply exposing (Reply, fragment, decoder)
 
 import Date exposing (Date)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Pipeline
-import Data.PageInfo exposing (PageInfo)
 import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 import GraphQL exposing (Fragment)
 import Util exposing (dateDecoder)
@@ -19,12 +18,6 @@ type alias Reply =
     , bodyHtml : String
     , author : SpaceUser
     , postedAt : Date
-    }
-
-
-type alias ReplyConnection =
-    { nodes : List Reply
-    , pageInfo : PageInfo
     }
 
 
@@ -51,24 +44,12 @@ fragment =
 -- DECODERS
 
 
-replyDecoder : Decode.Decoder Reply
-replyDecoder =
+decoder : Decode.Decoder Reply
+decoder =
     Pipeline.decode Reply
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "postId" Decode.string
-        |> Pipeline.required "body" Decode.string
-        |> Pipeline.required "bodyHtml" Decode.string
+        |> Pipeline.required "id" string
+        |> Pipeline.required "postId" string
+        |> Pipeline.required "body" string
+        |> Pipeline.required "bodyHtml" string
         |> Pipeline.required "author" spaceUserDecoder
         |> Pipeline.required "postedAt" dateDecoder
-
-
-replyConnectionDecoder : Decode.Decoder ReplyConnection
-replyConnectionDecoder =
-    Pipeline.decode ReplyConnection
-        |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list replyEdgeDecoder))
-        |> Pipeline.custom (Decode.at [ "pageInfo" ] Data.PageInfo.decoder)
-
-
-replyEdgeDecoder : Decode.Decoder Reply
-replyEdgeDecoder =
-    Decode.at [ "node" ] replyDecoder

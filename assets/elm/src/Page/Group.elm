@@ -28,7 +28,8 @@ import Data.GroupMembership
 import Data.PageInfo
 import Data.Post exposing (Post)
 import Data.PostConnection exposing (PostConnection)
-import Data.Reply exposing (Reply, ReplyConnection)
+import Data.Reply exposing (Reply)
+import Data.ReplyConnection exposing (ReplyConnection)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
