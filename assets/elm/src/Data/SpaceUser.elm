@@ -1,14 +1,6 @@
-module Data.SpaceUser
-    exposing
-        ( SpaceUser
-        , Role(..)
-        , fragment
-        , spaceUserDecoder
-        , roleDecoder
-        )
+module Data.SpaceUser exposing (SpaceUser, Role(..), fragment, decoder, roleDecoder)
 
-import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (Decoder, field, string, succeed, fail)
 import GraphQL exposing (Fragment)
 
 
@@ -46,29 +38,28 @@ fragment =
 -- DECODERS
 
 
-roleDecoder : Decode.Decoder Role
+roleDecoder : Decoder Role
 roleDecoder =
     let
-        convert : String -> Decode.Decoder Role
+        convert : String -> Decoder Role
         convert raw =
             case raw of
                 "MEMBER" ->
-                    Decode.succeed Member
+                    succeed Member
 
                 "OWNER" ->
-                    Decode.succeed Owner
+                    succeed Owner
 
                 _ ->
-                    Decode.fail "Role not valid"
+                    fail "Role not valid"
     in
-        Decode.string
-            |> Decode.andThen convert
+        Decode.andThen convert string
 
 
-spaceUserDecoder : Decode.Decoder SpaceUser
-spaceUserDecoder =
-    Pipeline.decode SpaceUser
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "firstName" Decode.string
-        |> Pipeline.required "lastName" Decode.string
-        |> Pipeline.required "role" roleDecoder
+decoder : Decoder SpaceUser
+decoder =
+    Decode.map4 SpaceUser
+        (field "id" string)
+        (field "firstName" string)
+        (field "lastName" string)
+        (field "role" roleDecoder)

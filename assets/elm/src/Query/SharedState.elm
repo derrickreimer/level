@@ -4,7 +4,7 @@ import Session exposing (Session)
 import Data.Group exposing (Group)
 import Data.Setup as Setup exposing (setupStateDecoder)
 import Data.Space exposing (Space)
-import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
+import Data.SpaceUser exposing (SpaceUser)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -71,14 +71,14 @@ variables params =
 
 decoder : Decode.Decoder Response
 decoder =
-    Decode.at [ "data" ] <|
+    Decode.at [ "data", "spaceUser" ] <|
         (Pipeline.decode Response
-            |> Pipeline.custom (Decode.at [ "spaceUser" ] spaceUserDecoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Data.Space.decoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "setupState" ] setupStateDecoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
-            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarkedGroups" ] (Decode.list Data.Group.decoder))
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "featuredUsers" ] (Decode.list spaceUserDecoder))
+            |> Pipeline.custom Data.SpaceUser.decoder
+            |> Pipeline.custom (Decode.at [ "space" ] Data.Space.decoder)
+            |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)
+            |> Pipeline.custom (Decode.at [ "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
+            |> Pipeline.custom (Decode.at [ "bookmarkedGroups" ] (Decode.list Data.Group.decoder))
+            |> Pipeline.custom (Decode.at [ "space", "featuredUsers" ] (Decode.list Data.SpaceUser.decoder))
         )
 
 

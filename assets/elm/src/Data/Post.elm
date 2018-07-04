@@ -7,7 +7,7 @@ import Data.Group exposing (Group)
 import Data.PageInfo
 import Data.Reply
 import Data.ReplyConnection exposing (ReplyConnection)
-import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
+import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import Util exposing (dateDecoder)
 
@@ -70,7 +70,7 @@ decoder =
         |> Pipeline.required "id" string
         |> Pipeline.required "body" string
         |> Pipeline.required "bodyHtml" string
-        |> Pipeline.required "author" spaceUserDecoder
+        |> Pipeline.required "author" Data.SpaceUser.decoder
         |> Pipeline.required "groups" (list Data.Group.decoder)
         |> Pipeline.required "postedAt" dateDecoder
         |> Pipeline.required "replies" Data.ReplyConnection.decoder

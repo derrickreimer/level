@@ -16,7 +16,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Data.PageInfo exposing (PageInfo)
-import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
+import Data.SpaceUser exposing (SpaceUser)
 
 
 -- TYPES
@@ -63,7 +63,7 @@ groupMembershipEdgeDecoder =
 groupMembershipDecoder : Decode.Decoder GroupMembership
 groupMembershipDecoder =
     Pipeline.decode GroupMembership
-        |> Pipeline.required "spaceUser" spaceUserDecoder
+        |> Pipeline.required "spaceUser" Data.SpaceUser.decoder
 
 
 groupMembershipStateDecoder : Decode.Decoder GroupMembershipState

@@ -3,7 +3,7 @@ module Data.Reply exposing (Reply, fragment, decoder)
 import Date exposing (Date)
 import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Pipeline
-import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
+import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import Util exposing (dateDecoder)
 
@@ -51,5 +51,5 @@ decoder =
         |> Pipeline.required "postId" string
         |> Pipeline.required "body" string
         |> Pipeline.required "bodyHtml" string
-        |> Pipeline.required "author" spaceUserDecoder
+        |> Pipeline.required "author" Data.SpaceUser.decoder
         |> Pipeline.required "postedAt" dateDecoder
