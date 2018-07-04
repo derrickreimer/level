@@ -15,16 +15,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection
 import Data.Group exposing (Group)
-import Data.GroupMembership
-    exposing
-        ( GroupMembership
-        , GroupMembershipEdge
-        , GroupMembershipConnection
-        , GroupMembershipState(..)
-        , groupMembershipConnectionDecoder
-        , groupMembershipDecoder
-        , groupMembershipStateDecoder
-        )
+import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.PageInfo
 import Data.Post exposing (Post)
 import Data.PostConnection exposing (PostConnection)
@@ -166,12 +157,12 @@ bootstrap spaceId groupId session now =
 
         decoder : Date -> Decode.Decoder BootstrapResponse
         decoder now =
-            Decode.at [ "data", "space" ] <|
+            Decode.at [ "data", "space", "group" ] <|
                 (Pipeline.decode BootstrapResponse
-                    |> Pipeline.custom (Decode.at [ "group" ] Data.Group.decoder)
-                    |> Pipeline.custom (Decode.at [ "group", "membership", "state" ] groupMembershipStateDecoder)
-                    |> Pipeline.custom (Decode.at [ "group", "posts" ] Data.PostConnection.decoder)
-                    |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder))
+                    |> Pipeline.custom Data.Group.decoder
+                    |> Pipeline.custom (Decode.at [ "membership", "state" ] Data.GroupMembership.stateDecoder)
+                    |> Pipeline.custom (Decode.at [ "posts" ] Data.PostConnection.decoder)
+                    |> Pipeline.custom (Decode.at [ "featuredMemberships" ] (Decode.list Data.GroupMembership.decoder))
                     |> Pipeline.custom (Decode.succeed now)
                 )
     in

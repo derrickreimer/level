@@ -15,8 +15,6 @@ import Data.GroupMembership
     exposing
         ( GroupMembership
         , GroupMembershipState
-        , groupMembershipDecoder
-        , groupMembershipStateDecoder
         )
 import Data.PageInfo
 import Data.Post exposing (Post)
@@ -131,8 +129,8 @@ groupMembershipUpdatedDecoder =
                 Decode.at [ "membership" ] <|
                     (Decode.map3 GroupMembershipUpdatedPayload
                         (Decode.at [ "group", "id" ] Decode.string)
-                        groupMembershipDecoder
-                        (Decode.at [ "state" ] groupMembershipStateDecoder)
+                        Data.GroupMembership.decoder
+                        (Decode.at [ "state" ] Data.GroupMembership.stateDecoder)
                     )
             else
                 Decode.fail "payload does not match"

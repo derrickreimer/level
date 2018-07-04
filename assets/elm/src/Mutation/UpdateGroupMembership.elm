@@ -2,8 +2,8 @@ module Mutation.UpdateGroupMembership exposing (Params, Response(..), request)
 
 import Http
 import Json.Encode as Encode
-import Json.Decode as Decode
-import Data.GroupMembership exposing (GroupMembershipState, groupMembershipStateDecoder, groupMembershipStateEncoder)
+import Json.Decode as Decode exposing (Decoder)
+import Data.GroupMembership exposing (GroupMembershipState)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import Session exposing (Session)
 import GraphQL exposing (Document)
@@ -54,26 +54,27 @@ variables params =
     Encode.object
         [ ( "spaceId", Encode.string params.spaceId )
         , ( "groupId", Encode.string params.groupId )
-        , ( "state", groupMembershipStateEncoder params.state )
+        , ( "state", Data.GroupMembership.stateEncoder params.state )
         ]
 
 
-successDecoder : Decode.Decoder Response
+successDecoder : Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "updateGroupMembership", "membership", "state" ] groupMembershipStateDecoder
+        Decode.at [ "data", "updateGroupMembership", "membership", "state" ]
+            Data.GroupMembership.stateDecoder
 
 
-failureDecoder : Decode.Decoder Response
+failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
         Decode.at [ "data", "updateGroupMembership", "errors" ] (Decode.list errorDecoder)
 
 
-decoder : Decode.Decoder Response
+decoder : Decoder Response
 decoder =
     let
-        conditionalDecoder : Bool -> Decode.Decoder Response
+        conditionalDecoder : Bool -> Decoder Response
         conditionalDecoder success =
             case success of
                 True ->

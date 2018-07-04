@@ -1,7 +1,7 @@
 module Query.FeaturedMemberships exposing (request, Params, Response)
 
 import Session exposing (Session)
-import Data.GroupMembership exposing (GroupMembership, groupMembershipDecoder)
+import Data.GroupMembership exposing (GroupMembership)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -53,7 +53,8 @@ variables params =
 
 decoder : Decode.Decoder Response
 decoder =
-    Decode.at [ "data", "space", "group", "featuredMemberships" ] (Decode.list groupMembershipDecoder)
+    Decode.at [ "data", "space", "group", "featuredMemberships" ]
+        (Decode.list Data.GroupMembership.decoder)
 
 
 request : Params -> Session -> Http.Request Response

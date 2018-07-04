@@ -1,6 +1,6 @@
 module Data.ValidationError exposing (..)
 
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (field, string)
 
 
 type alias ValidationError =
@@ -22,5 +22,5 @@ errorsNotFor attribute errors =
 errorDecoder : Decode.Decoder ValidationError
 errorDecoder =
     Decode.map2 ValidationError
-        (Decode.field "attribute" Decode.string)
-        (Decode.field "message" Decode.string)
+        (field "attribute" string)
+        (field "message" string)

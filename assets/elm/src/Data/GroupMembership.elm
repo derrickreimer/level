@@ -1,36 +1,18 @@
 module Data.GroupMembership
     exposing
         ( GroupMembership
-        , GroupMembershipConnection
-        , GroupMembershipEdge
         , GroupMembershipState(..)
-        , groupMembershipDecoder
-        , groupMembershipConnectionDecoder
-        , groupMembershipStateDecoder
-        , groupMembershipStateEncoder
-        , add
-        , remove
+        , decoder
+        , stateDecoder
+        , stateEncoder
         )
 
-import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (Decoder, field, string, succeed, fail)
 import Json.Encode as Encode
-import Data.PageInfo exposing (PageInfo)
 import Data.SpaceUser exposing (SpaceUser)
 
 
 -- TYPES
-
-
-type alias GroupMembershipConnection =
-    { edges : List GroupMembershipEdge
-    , pageInfo : PageInfo
-    }
-
-
-type alias GroupMembershipEdge =
-    { node : GroupMembership
-    }
 
 
 type alias GroupMembership =
@@ -47,79 +29,39 @@ type GroupMembershipState
 -- DECODERS
 
 
-groupMembershipConnectionDecoder : Decode.Decoder GroupMembershipConnection
-groupMembershipConnectionDecoder =
-    Pipeline.decode GroupMembershipConnection
-        |> Pipeline.custom (Decode.at [ "edges" ] (Decode.list groupMembershipEdgeDecoder))
-        |> Pipeline.custom (Decode.at [ "pageInfo" ] Data.PageInfo.decoder)
+decoder : Decoder GroupMembership
+decoder =
+    Decode.map GroupMembership
+        (field "spaceUser" Data.SpaceUser.decoder)
 
 
-groupMembershipEdgeDecoder : Decode.Decoder GroupMembershipEdge
-groupMembershipEdgeDecoder =
-    Pipeline.decode GroupMembershipEdge
-        |> Pipeline.custom (Decode.at [ "node" ] groupMembershipDecoder)
-
-
-groupMembershipDecoder : Decode.Decoder GroupMembership
-groupMembershipDecoder =
-    Pipeline.decode GroupMembership
-        |> Pipeline.required "spaceUser" Data.SpaceUser.decoder
-
-
-groupMembershipStateDecoder : Decode.Decoder GroupMembershipState
-groupMembershipStateDecoder =
+stateDecoder : Decoder GroupMembershipState
+stateDecoder =
     let
-        convert : String -> Decode.Decoder GroupMembershipState
+        convert : String -> Decoder GroupMembershipState
         convert raw =
             case raw of
                 "SUBSCRIBED" ->
-                    Decode.succeed Subscribed
+                    succeed Subscribed
 
                 "NOT_SUBSCRIBED" ->
-                    Decode.succeed NotSubscribed
+                    succeed NotSubscribed
 
                 _ ->
-                    Decode.fail "Membership state not valid"
+                    fail "Membership state not valid"
     in
-        Decode.string
-            |> Decode.andThen convert
+        Decode.andThen convert string
 
 
 
 -- ENCODERS
 
 
-groupMembershipStateEncoder : GroupMembershipState -> Encode.Value
-groupMembershipStateEncoder state =
+stateEncoder : GroupMembershipState -> Encode.Value
+stateEncoder state =
     case state of
         NotSubscribed ->
             Encode.string "NOT_SUBSCRIBED"
 
         Subscribed ->
             Encode.string "SUBSCRIBED"
-
-
-
--- MUTATIONS
-
-
-add : GroupMembership -> GroupMembershipConnection -> GroupMembershipConnection
-add membership connection =
-    let
-        edges =
-            connection.edges
-    in
-        if List.any (\{ node } -> node.user.id == membership.user.id) edges then
-            connection
-        else
-            { connection | edges = (GroupMembershipEdge membership) :: edges }
-
-
-remove : GroupMembership -> GroupMembershipConnection -> GroupMembershipConnection
-remove membership connection =
-    let
-        newEdges =
-            connection.edges
-                |> List.filter (\{ node } -> not (node.user.id == membership.user.id))
-    in
-        { connection | edges = newEdges }
