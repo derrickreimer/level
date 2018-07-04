@@ -1,7 +1,7 @@
 module Data.Reply exposing (Reply, fragment, decoder)
 
 import Date exposing (Date)
-import Json.Decode as Decode exposing (string)
+import Json.Decode as Decode exposing (Decoder, string)
 import Json.Decode.Pipeline as Pipeline
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
@@ -44,7 +44,7 @@ fragment =
 -- DECODERS
 
 
-decoder : Decode.Decoder Reply
+decoder : Decoder Reply
 decoder =
     Pipeline.decode Reply
         |> Pipeline.required "id" string

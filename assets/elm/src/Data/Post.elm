@@ -1,7 +1,7 @@
 module Data.Post exposing (Post, fragment, decoder)
 
 import Date exposing (Date)
-import Json.Decode as Decode exposing (list, string)
+import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline as Pipeline
 import Data.Group exposing (Group)
 import Data.PageInfo
@@ -64,7 +64,7 @@ fragment =
 -- DECODERS
 
 
-decoder : Decode.Decoder Post
+decoder : Decoder Post
 decoder =
     Pipeline.decode Post
         |> Pipeline.required "id" string

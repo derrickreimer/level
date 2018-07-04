@@ -4,7 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.GroupMembership exposing (GroupMembershipState)
-import Data.ValidationError exposing (ValidationError, errorDecoder)
+import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
 import GraphQL exposing (Document)
 
@@ -68,7 +68,8 @@ successDecoder =
 failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
-        Decode.at [ "data", "updateGroupMembership", "errors" ] (Decode.list errorDecoder)
+        Decode.at [ "data", "updateGroupMembership", "errors" ]
+            (Decode.list Data.ValidationError.decoder)
 
 
 decoder : Decoder Response

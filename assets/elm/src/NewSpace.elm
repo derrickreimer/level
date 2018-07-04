@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onBlur)
 import Http
 import Regex exposing (regex)
-import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
+import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
 import KeyboardEvents exposing (Modifier(..), enter, onKeyDown, preventDefault)
 import Mutation.CreateSpace as CreateSpace
 import Route

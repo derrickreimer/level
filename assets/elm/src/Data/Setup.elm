@@ -1,6 +1,6 @@
 module Data.Setup exposing (State(..), setupStateDecoder, setupStateEncoder)
 
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder, string, succeed, fail)
 import Json.Encode as Encode
 
 
@@ -17,26 +17,25 @@ type State
 -- DECODERS
 
 
-setupStateDecoder : Decode.Decoder State
+setupStateDecoder : Decoder State
 setupStateDecoder =
     let
-        convert : String -> Decode.Decoder State
+        convert : String -> Decoder State
         convert raw =
             case raw of
                 "CREATE_GROUPS" ->
-                    Decode.succeed CreateGroups
+                    succeed CreateGroups
 
                 "INVITE_USERS" ->
-                    Decode.succeed InviteUsers
+                    succeed InviteUsers
 
                 "COMPLETE" ->
-                    Decode.succeed Complete
+                    succeed Complete
 
                 _ ->
-                    Decode.fail "Setup state not valid"
+                    fail "Setup state not valid"
     in
-        Decode.string
-            |> Decode.andThen convert
+        Decode.andThen convert string
 
 
 

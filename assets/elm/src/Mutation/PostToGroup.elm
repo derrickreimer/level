@@ -2,9 +2,9 @@ module Mutation.PostToGroup exposing (Params, Response(..), request)
 
 import Http
 import Json.Encode as Encode
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Data.Post exposing (Post)
-import Data.ValidationError exposing (ValidationError, errorDecoder)
+import Data.ValidationError exposing (ValidationError)
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
@@ -59,7 +59,7 @@ variables params =
         ]
 
 
-conditionalDecoder : Bool -> Decode.Decoder Response
+conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
@@ -67,11 +67,11 @@ conditionalDecoder success =
                 |> Decode.map Success
 
         False ->
-            Decode.at [ "data", "postToGroup", "errors" ] (Decode.list errorDecoder)
+            Decode.at [ "data", "postToGroup", "errors" ] (Decode.list Data.ValidationError.decoder)
                 |> Decode.map Invalid
 
 
-decoder : Decode.Decoder Response
+decoder : Decoder Response
 decoder =
     Decode.at [ "data", "postToGroup", "success" ] Decode.bool
         |> Decode.andThen conditionalDecoder

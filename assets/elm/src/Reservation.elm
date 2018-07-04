@@ -8,7 +8,7 @@ import Json.Decode as Decode exposing (decodeString)
 import Json.Encode as Encode
 import KeyboardEvents exposing (Modifier(..), enter, onKeyDown, preventDefault)
 import Regex exposing (regex)
-import Data.ValidationError exposing (ValidationError, errorDecoder, errorsFor, errorsNotFor)
+import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
 import Util exposing (injectHtml)
 
 
@@ -340,4 +340,4 @@ buildBody model =
 
 failureDecoder : Decode.Decoder (List ValidationError)
 failureDecoder =
-    Decode.field "errors" (Decode.list errorDecoder)
+    Decode.field "errors" (Decode.list Data.ValidationError.decoder)

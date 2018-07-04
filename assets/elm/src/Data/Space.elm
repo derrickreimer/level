@@ -1,6 +1,6 @@
 module Data.Space exposing (Space, fragment, decoder)
 
-import Json.Decode as Decode exposing (field, string)
+import Json.Decode as Decode exposing (Decoder, field, string)
 import GraphQL exposing (Fragment)
 
 
@@ -31,7 +31,7 @@ fragment =
 -- DECODERS
 
 
-decoder : Decode.Decoder Space
+decoder : Decoder Space
 decoder =
     Decode.map3 Space
         (field "id" string)

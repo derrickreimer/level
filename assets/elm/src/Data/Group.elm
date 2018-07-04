@@ -1,6 +1,6 @@
 module Data.Group exposing (Group, fragment, decoder)
 
-import Json.Decode as Decode exposing (field, string)
+import Json.Decode as Decode exposing (Decoder, field, string)
 import GraphQL exposing (Fragment)
 
 
@@ -29,7 +29,7 @@ fragment =
 -- DECODERS
 
 
-decoder : Decode.Decoder Group
+decoder : Decoder Group
 decoder =
     Decode.map2 Group
         (field "id" string)

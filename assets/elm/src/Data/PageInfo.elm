@@ -1,6 +1,6 @@
 module Data.PageInfo exposing (PageInfo, fragment, decoder)
 
-import Json.Decode as Decode exposing (field, bool, maybe, string)
+import Json.Decode as Decode exposing (Decoder, field, bool, maybe, string)
 import GraphQL exposing (Fragment)
 
 
@@ -33,7 +33,7 @@ fragment =
 -- DECODERS
 
 
-decoder : Decode.Decoder PageInfo
+decoder : Decoder PageInfo
 decoder =
     Decode.map4 PageInfo
         (field "hasPreviousPage" bool)

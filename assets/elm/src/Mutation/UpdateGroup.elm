@@ -2,9 +2,9 @@ module Mutation.UpdateGroup exposing (Params, Response(..), request, decoder)
 
 import Http
 import Json.Encode as Encode
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Data.Group exposing (Group)
-import Data.ValidationError exposing (ValidationError, errorDecoder)
+import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
 import GraphQL exposing (Document)
 
@@ -59,22 +59,22 @@ variables params =
         ]
 
 
-successDecoder : Decode.Decoder Response
+successDecoder : Decoder Response
 successDecoder =
     Decode.map Success <|
         Decode.at [ "data", "updateGroup", "group" ] Data.Group.decoder
 
 
-failureDecoder : Decode.Decoder Response
+failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
-        Decode.at [ "data", "updateGroup", "errors" ] (Decode.list errorDecoder)
+        Decode.at [ "data", "updateGroup", "errors" ] (Decode.list Data.ValidationError.decoder)
 
 
-decoder : Decode.Decoder Response
+decoder : Decoder Response
 decoder =
     let
-        conditionalDecoder : Bool -> Decode.Decoder Response
+        conditionalDecoder : Bool -> Decoder Response
         conditionalDecoder success =
             case success of
                 True ->

@@ -1,6 +1,6 @@
 module Data.PostConnection exposing (PostConnection, decoder, append)
 
-import Json.Decode as Decode exposing (field, list)
+import Json.Decode as Decode exposing (Decoder, field, list)
 import Data.Post exposing (Post)
 import Data.PageInfo exposing (PageInfo)
 import Util exposing (memberById)
@@ -19,7 +19,7 @@ type alias PostConnection =
 -- DECODERS
 
 
-decoder : Decode.Decoder PostConnection
+decoder : Decoder PostConnection
 decoder =
     Decode.map2 PostConnection
         (field "edges" (list (field "node" Data.Post.decoder)))
