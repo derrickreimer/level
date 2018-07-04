@@ -3,7 +3,7 @@ module Mutation.CreateSpace exposing (Params, Response(..), request, decoder)
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Space exposing (Space, spaceDecoder)
+import Data.Space exposing (Space)
 import Data.ValidationError exposing (ValidationError, errorDecoder)
 import Session exposing (Session)
 import GraphQL exposing (Document)
@@ -58,7 +58,7 @@ variables params =
 successDecoder : Decode.Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "createSpace", "space" ] spaceDecoder
+        Decode.at [ "data", "createSpace", "space" ] Data.Space.decoder
 
 
 failureDecoder : Decode.Decoder Response

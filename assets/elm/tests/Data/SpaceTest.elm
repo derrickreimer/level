@@ -12,7 +12,7 @@ import TestHelpers exposing (success)
 decoders : Test
 decoders =
     describe "decoders"
-        [ describe "Space.spaceDecoder"
+        [ describe "Space.decoder"
             [ test "decodes space JSON" <|
                 \_ ->
                     let
@@ -26,7 +26,7 @@ decoders =
                             """
 
                         result =
-                            decodeString Space.spaceDecoder json
+                            decodeString Space.decoder json
 
                         expected =
                             { id = "9999"
@@ -46,7 +46,7 @@ decoders =
                             """
 
                         result =
-                            decodeString Space.spaceDecoder json
+                            decodeString Space.decoder json
                     in
                         Expect.equal False (success result)
             ]

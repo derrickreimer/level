@@ -3,8 +3,8 @@ module Query.SharedState exposing (request, Params, Response)
 import Session exposing (Session)
 import Data.Group exposing (Group)
 import Data.Setup as Setup exposing (setupStateDecoder)
-import Data.Space exposing (Space, SpaceUserRole, spaceDecoder, spaceRoleDecoder)
-import Data.SpaceUser exposing (SpaceUser, Role, spaceUserDecoder)
+import Data.Space exposing (Space)
+import Data.SpaceUser exposing (SpaceUser, spaceUserDecoder)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -74,7 +74,7 @@ decoder =
     Decode.at [ "data" ] <|
         (Pipeline.decode Response
             |> Pipeline.custom (Decode.at [ "spaceUser" ] spaceUserDecoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] spaceDecoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Data.Space.decoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "setupState" ] setupStateDecoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
             |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarkedGroups" ] (Decode.list Data.Group.decoder))

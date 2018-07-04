@@ -1,8 +1,6 @@
-module Data.Space exposing (Space, SpaceUserRole(..), fragment, spaceDecoder, spaceRoleDecoder)
+module Data.Space exposing (Space, fragment, decoder)
 
-import Json.Decode as Decode
-import Json.Encode as Encode
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (field, string)
 import GraphQL exposing (Fragment)
 
 
@@ -14,11 +12,6 @@ type alias Space =
     , name : String
     , slug : String
     }
-
-
-type SpaceUserRole
-    = Member
-    | Owner
 
 
 fragment : Fragment
@@ -38,28 +31,9 @@ fragment =
 -- DECODERS
 
 
-spaceDecoder : Decode.Decoder Space
-spaceDecoder =
-    Pipeline.decode Space
-        |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "name" Decode.string
-        |> Pipeline.required "slug" Decode.string
-
-
-spaceRoleDecoder : Decode.Decoder SpaceUserRole
-spaceRoleDecoder =
-    let
-        convert : String -> Decode.Decoder SpaceUserRole
-        convert raw =
-            case raw of
-                "MEMBER" ->
-                    Decode.succeed Member
-
-                "OWNER" ->
-                    Decode.succeed Owner
-
-                _ ->
-                    Decode.fail "Space user role not valid"
-    in
-        Decode.string
-            |> Decode.andThen convert
+decoder : Decode.Decoder Space
+decoder =
+    Decode.map3 Space
+        (field "id" string)
+        (field "name" string)
+        (field "slug" string)
