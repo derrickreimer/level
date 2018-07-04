@@ -1,4 +1,4 @@
-module TestHelpers exposing (success, userFixture)
+module TestHelpers exposing (success)
 
 {-| A collection of helper functions for tests.
 
@@ -8,9 +8,6 @@ module TestHelpers exposing (success, userFixture)
 @docs success
 
 -}
-
-import Data.User
-
 
 -- UTILITIES
 
@@ -29,12 +26,3 @@ success result =
 
         Err _ ->
             False
-
-
-
--- FIXTURES
-
-
-userFixture : Data.User.User
-userFixture =
-    Data.User.User "999" "Derrick" "Reimer"
