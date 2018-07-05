@@ -1,6 +1,5 @@
 module Space exposing (..)
 
-import Debug
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -10,6 +9,7 @@ import Task exposing (Task)
 import Time exposing (second)
 import Avatar exposing (personAvatar, texitar)
 import Data.Group exposing (Group)
+import Data.Post
 import Data.Reply exposing (Reply)
 import Data.Space exposing (Space)
 import Data.SpaceUser
@@ -312,13 +312,16 @@ handleSocketResult value model page sharedState =
         Event.PostCreated post ->
             case model.page of
                 Group ({ group } as pageModel) ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Group.handlePostCreated post pageModel
-                    in
-                        ( { model | page = Group newPageModel }
-                        , Cmd.map GroupMsg cmd
-                        )
+                    if Data.Post.groupsInclude group post then
+                        let
+                            ( newPageModel, cmd ) =
+                                Page.Group.handlePostCreated post pageModel
+                        in
+                            ( { model | page = Group newPageModel }
+                            , Cmd.map GroupMsg cmd
+                            )
+                    else
+                        ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -327,7 +330,7 @@ handleSocketResult value model page sharedState =
             ( handleGroupUpdated group sharedState model, Cmd.none )
 
         Event.ReplyCreated reply ->
-            Debug.log "reply created" ( handleReplyCreated reply model, Cmd.none )
+            ( handleReplyCreated reply model, Cmd.none )
 
         Event.Unknown ->
             ( model, Cmd.none )

@@ -440,16 +440,9 @@ autosize method id =
 
 handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
 handlePostCreated post ({ posts, group } as model) =
-    let
-        newPosts =
-            if Data.Post.groupsInclude group post then
-                Data.PostConnection.append post posts
-            else
-                posts
-    in
-        ( { model | posts = newPosts }
-        , Ports.push (PostSubscription.payload post.id)
-        )
+    ( { model | posts = Data.PostConnection.append post posts }
+    , Ports.push (PostSubscription.payload post.id)
+    )
 
 
 handleGroupMembershipUpdated : GroupMembershipUpdatedPayload -> Session -> Model -> ( Model, Cmd Msg )
