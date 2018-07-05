@@ -119,13 +119,13 @@ afterInit { group, posts } =
     Cmd.batch
         [ setFocus "post-composer"
         , autosize Autosize.Init "post-composer"
-        , setupSockets group.id posts.nodes
+        , setupSockets group.id (Connection.toList posts)
         ]
 
 
 teardown : Model -> Cmd Msg
 teardown { group, posts } =
-    teardownSockets group.id posts.nodes
+    teardownSockets group.id (Connection.toList posts)
 
 
 
@@ -629,13 +629,13 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
 
 
 postsView : SpaceUser -> Date -> ReplyComposers -> PostConnection -> Html Msg
-postsView currentUser now replyComposers ({ nodes } as connection) =
+postsView currentUser now replyComposers connection =
     if Connection.isEmpty connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
     else
         div [] <|
-            List.map (postView currentUser now replyComposers) nodes
+            Connection.map (postView currentUser now replyComposers) connection
 
 
 postView : SpaceUser -> Date -> ReplyComposers -> Post -> Html Msg
@@ -719,7 +719,7 @@ replyComposerView currentUser replyComposers post =
                 replyPromptView currentUser post
 
         Nothing ->
-            if List.isEmpty post.replies.nodes then
+            if Connection.isEmpty post.replies then
                 text ""
             else
                 replyPromptView currentUser post

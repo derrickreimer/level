@@ -1,4 +1,4 @@
-module Connection exposing (Connection, isEmpty)
+module Connection exposing (Connection, isEmpty, toList, map)
 
 import Data.PageInfo exposing (PageInfo)
 
@@ -18,3 +18,17 @@ isEmpty { pageInfo, nodes } =
         && pageInfo.endCursor
         == Nothing
         && (List.isEmpty nodes)
+
+
+toList : Connection a b -> List b
+toList { nodes } =
+    nodes
+
+
+
+-- MAPPING
+
+
+map : (b -> c) -> Connection a b -> List c
+map f { nodes } =
+    List.map f nodes
