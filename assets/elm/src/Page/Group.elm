@@ -6,9 +6,6 @@ import Dom exposing (focus, blur)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as Decode
-import Json.Encode as Encode
-import Json.Decode.Pipeline as Pipeline
 import Task exposing (Task)
 import Time exposing (Time, every, second, millisecond)
 import Autosize
@@ -16,7 +13,6 @@ import Avatar exposing (personAvatar)
 import Connection
 import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
-import Data.PageInfo
 import Data.Post exposing (Post)
 import Data.PostConnection exposing (PostConnection)
 import Data.Reply exposing (Reply)
@@ -24,7 +20,6 @@ import Data.ReplyConnection exposing (ReplyConnection)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
-import GraphQL
 import Icons
 import KeyboardEvents exposing (Modifier(..), preventDefault, onKeyDown, enter, esc)
 import Mutation.PostToGroup as PostToGroup
@@ -33,6 +28,7 @@ import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
 import Query.FeaturedMemberships as FeaturedMemberships
+import Query.GroupInit as GroupInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
@@ -54,15 +50,6 @@ type alias FieldEditor =
     { state : EditorState
     , value : String
     , errors : List ValidationError
-    }
-
-
-type alias BootstrapResponse =
-    { group : Group
-    , state : GroupMembershipState
-    , posts : PostConnection
-    , featuredMemberships : List GroupMembership
-    , now : Date
     }
 
 
@@ -104,87 +91,25 @@ type alias Model =
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space groupId session =
     Date.now
-        |> Task.andThen (bootstrap space.id groupId session)
+        |> Task.andThen (GroupInit.task space.id groupId session)
         |> Task.andThen (buildModel user space)
 
 
-bootstrap : String -> String -> Session -> Date -> Task Session.Error ( Session, BootstrapResponse )
-bootstrap spaceId groupId session now =
-    let
-        document =
-            GraphQL.document
-                """
-                query GroupInit(
-                  $spaceId: ID!
-                  $groupId: ID!
-                ) {
-                  space(id: $spaceId) {
-                    group(id: $groupId) {
-                      ...GroupFields
-                      membership {
-                        state
-                      }
-                      featuredMemberships {
-                        spaceUser {
-                          ...SpaceUserFields
-                        }
-                      }
-                      posts(first: 20) {
-                        edges {
-                          node {
-                            ...PostFields
-                          }
-                        }
-                        pageInfo {
-                          ...PageInfoFields
-                        }
-                      }
-                    }
-                  }
-                }
-                """
-                [ Data.SpaceUser.fragment
-                , Data.Group.fragment
-                , Data.Post.fragment
-                , Data.PageInfo.fragment
-                ]
-
-        variables =
-            Encode.object
-                [ ( "spaceId", Encode.string spaceId )
-                , ( "groupId", Encode.string groupId )
-                ]
-
-        decoder : Date -> Decode.Decoder BootstrapResponse
-        decoder now =
-            Decode.at [ "data", "space", "group" ] <|
-                (Pipeline.decode BootstrapResponse
-                    |> Pipeline.custom Data.Group.decoder
-                    |> Pipeline.custom (Decode.at [ "membership", "state" ] Data.GroupMembership.stateDecoder)
-                    |> Pipeline.custom (Decode.at [ "posts" ] Data.PostConnection.decoder)
-                    |> Pipeline.custom (Decode.at [ "featuredMemberships" ] (Decode.list Data.GroupMembership.decoder))
-                    |> Pipeline.custom (Decode.succeed now)
-                )
-    in
-        GraphQL.request document (Just variables) (decoder now)
-            |> Session.request session
-
-
-buildModel : SpaceUser -> Space -> ( Session, BootstrapResponse ) -> Task Session.Error ( Session, Model )
+buildModel : SpaceUser -> Space -> ( Session, GroupInit.Response ) -> Task Session.Error ( Session, Model )
 buildModel user space ( session, { group, state, posts, featuredMemberships, now } ) =
     let
         model =
-            Model
-                group
-                state
-                posts
-                featuredMemberships
-                now
-                space
-                user
-                (FieldEditor NotEditing "" [])
-                (PostComposer "" False)
-                Dict.empty
+            { group = group
+            , state = state
+            , posts = posts
+            , featuredMemberships = featuredMemberships
+            , now = now
+            , space = space
+            , user = user
+            , nameEditor = (FieldEditor NotEditing "" [])
+            , postComposer = (PostComposer "" False)
+            , replyComposers = Dict.empty
+            }
     in
         Task.succeed ( session, model )
 
@@ -537,8 +462,11 @@ handleGroupMembershipUpdated { state, membership } session model =
                 model.state
 
         cmd =
-            FeaturedMemberships.Params model.space.id model.group.id
-                |> FeaturedMemberships.fetch session FeaturedMembershipsRefreshed
+            FeaturedMemberships.cmd
+                model.space.id
+                model.group.id
+                session
+                FeaturedMembershipsRefreshed
     in
         ( { model | state = newState }, cmd )
 

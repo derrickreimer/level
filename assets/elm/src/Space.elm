@@ -366,9 +366,7 @@ expireFlashNotice =
 
 bootstrap : String -> Session -> Maybe Route -> Cmd Msg
 bootstrap spaceId session maybeRoute =
-    Query.SharedState.request (Query.SharedState.Params spaceId)
-        |> Session.request session
-        |> Task.attempt (SharedStateLoaded maybeRoute)
+    Query.SharedState.cmd spaceId session (SharedStateLoaded maybeRoute)
 
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )

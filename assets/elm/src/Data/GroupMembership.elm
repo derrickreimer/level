@@ -2,6 +2,7 @@ module Data.GroupMembership
     exposing
         ( GroupMembership
         , GroupMembershipState(..)
+        , fragment
         , decoder
         , stateDecoder
         , stateEncoder
@@ -10,6 +11,7 @@ module Data.GroupMembership
 import Json.Decode as Decode exposing (Decoder, field, string, succeed, fail)
 import Json.Encode as Encode
 import Data.SpaceUser exposing (SpaceUser)
+import GraphQL exposing (Fragment)
 
 
 -- TYPES
@@ -23,6 +25,20 @@ type alias GroupMembership =
 type GroupMembershipState
     = NotSubscribed
     | Subscribed
+
+
+fragment : Fragment
+fragment =
+    GraphQL.fragment
+        """
+        fragment GroupMembershipFields on GroupMembership {
+          spaceUser {
+            ...SpaceUserFields
+          }
+        }
+        """
+        [ Data.SpaceUser.fragment
+        ]
 
 
 

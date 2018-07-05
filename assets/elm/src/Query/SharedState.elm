@@ -1,4 +1,4 @@
-module Query.SharedState exposing (request, Params, Response)
+module Query.SharedState exposing (Params, Response, cmd)
 
 import Session exposing (Session)
 import Data.Group exposing (Group)
@@ -9,6 +9,7 @@ import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import Task
 import GraphQL exposing (Document)
 
 
@@ -79,3 +80,11 @@ decoder =
 request : Params -> Session -> Http.Request Response
 request params =
     GraphQL.request document (Just (variables params)) decoder
+
+
+cmd : String -> Session -> (Result Session.Error ( Session, Response ) -> msg) -> Cmd msg
+cmd spaceId session toMsg =
+    Params spaceId
+        |> request
+        |> Session.request session
+        |> Task.attempt toMsg

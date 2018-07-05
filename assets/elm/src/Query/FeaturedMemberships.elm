@@ -1,4 +1,4 @@
-module Query.FeaturedMemberships exposing (request, fetch, Params, Response)
+module Query.FeaturedMemberships exposing (Params, Response, cmd)
 
 import Session exposing (Session)
 import Data.GroupMembership exposing (GroupMembership)
@@ -62,9 +62,9 @@ request params =
     GraphQL.request document (Just (variables params)) decoder
 
 
-fetch : Session -> (Result Session.Error ( Session, Response ) -> msg) -> Params -> Cmd msg
-fetch session toMsg params =
-    params
+cmd : String -> String -> Session -> (Result Session.Error ( Session, Response ) -> msg) -> Cmd msg
+cmd spaceId groupId session toMsg =
+    Params spaceId groupId
         |> request
         |> Session.request session
         |> Task.attempt toMsg
