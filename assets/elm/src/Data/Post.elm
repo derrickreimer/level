@@ -1,4 +1,4 @@
-module Data.Post exposing (Post, fragment, decoder, appendReply)
+module Data.Post exposing (Post, fragment, decoder, appendReply, groupsInclude)
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder, list, string)
@@ -9,7 +9,7 @@ import Data.Reply exposing (Reply)
 import Data.ReplyConnection exposing (ReplyConnection)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
-import Util exposing (dateDecoder)
+import Util exposing (dateDecoder, memberById)
 
 
 -- TYPES
@@ -83,3 +83,8 @@ decoder =
 appendReply : Reply -> Post -> Post
 appendReply reply post =
     { post | replies = Data.ReplyConnection.append reply post.replies }
+
+
+groupsInclude : Group -> Post -> Bool
+groupsInclude group post =
+    memberById group post.groups

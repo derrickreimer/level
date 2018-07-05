@@ -35,31 +35,25 @@ document =
           $spaceId: ID!
         ) {
           spaceUser(spaceId: $spaceId) {
-            id
-            role
-            firstName
-            lastName
+            ...SpaceUserFields
             space {
-              id
-              name
-              slug
+              ...SpaceFields
               setupState
               openInvitationUrl
               featuredUsers {
-                id
-                firstName
-                lastName
-                role
+                ...SpaceUserFields
               }
             }
             bookmarkedGroups {
-              id
-              name
+              ...GroupFields
             }
           }
         }
         """
-        []
+        [ Data.SpaceUser.fragment
+        , Data.Space.fragment
+        , Data.Group.fragment
+        ]
 
 
 variables : Params -> Encode.Value

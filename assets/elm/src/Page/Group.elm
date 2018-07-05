@@ -514,15 +514,17 @@ autosize method id =
 
 
 handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
-handlePostCreated post model =
+handlePostCreated post ({ posts, group } as model) =
     let
         newPosts =
-            if memberById model.group post.groups then
-                Data.PostConnection.append post model.posts
+            if Data.Post.groupsInclude group post then
+                Data.PostConnection.append post posts
             else
-                model.posts
+                posts
     in
-        ( { model | posts = newPosts }, Ports.push (PostSubscription.payload post.id) )
+        ( { model | posts = newPosts }
+        , Ports.push (PostSubscription.payload post.id)
+        )
 
 
 handleGroupMembershipUpdated : GroupMembershipUpdatedPayload -> Session -> Model -> ( Model, Cmd Msg )
@@ -536,9 +538,7 @@ handleGroupMembershipUpdated { state, membership } session model =
 
         cmd =
             FeaturedMemberships.Params model.space.id model.group.id
-                |> FeaturedMemberships.request
-                |> Session.request session
-                |> Task.attempt FeaturedMembershipsRefreshed
+                |> FeaturedMemberships.fetch session FeaturedMembershipsRefreshed
     in
         ( { model | state = newState }, cmd )
 
@@ -547,11 +547,11 @@ handleReplyCreated : Reply -> Model -> Model
 handleReplyCreated ({ postId } as reply) ({ posts } as model) =
     case Data.PostConnection.get postId posts of
         Just post ->
-            { model
-                | posts =
+            let
+                newPost =
                     Data.Post.appendReply reply post
-                        |> (flip Data.PostConnection.update) posts
-            }
+            in
+                { model | posts = Data.PostConnection.update newPost posts }
 
         Nothing ->
             model

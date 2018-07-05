@@ -1,10 +1,12 @@
-module Query.FeaturedMemberships exposing (request, Params, Response)
+module Query.FeaturedMemberships exposing (request, fetch, Params, Response)
 
 import Session exposing (Session)
 import Data.GroupMembership exposing (GroupMembership)
+import Data.SpaceUser
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Task
 import GraphQL exposing (Document)
 
 
@@ -30,17 +32,15 @@ document =
             group(id: $groupId) {
               featuredMemberships {
                 spaceUser {
-                  id
-                  firstName
-                  lastName
-                  role
+                  ...SpaceUserFields
                 }
               }
             }
           }
         }
         """
-        []
+        [ Data.SpaceUser.fragment
+        ]
 
 
 variables : Params -> Encode.Value
@@ -60,3 +60,11 @@ decoder =
 request : Params -> Session -> Http.Request Response
 request params =
     GraphQL.request document (Just (variables params)) decoder
+
+
+fetch : Session -> (Result Session.Error ( Session, Response ) -> msg) -> Params -> Cmd msg
+fetch session toMsg params =
+    params
+        |> request
+        |> Session.request session
+        |> Task.attempt toMsg
