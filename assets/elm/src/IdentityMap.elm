@@ -13,7 +13,8 @@ type IdentityMap a
 
 init : IdentityMap a
 init =
-    IdentityMap Dict.empty
+    Dict.empty
+        |> IdentityMap
 
 
 get : IdentityMap a -> (a -> Id) -> a -> a
@@ -24,7 +25,8 @@ get (IdentityMap dict) toId record =
 
 set : IdentityMap a -> (a -> Id) -> a -> IdentityMap a
 set (IdentityMap dict) toId record =
-    IdentityMap <| Dict.insert (toId record) record dict
+    Dict.insert (toId record) record dict
+        |> IdentityMap
 
 
 getList : IdentityMap a -> (a -> Id) -> List a -> List a
