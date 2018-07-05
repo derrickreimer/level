@@ -7,24 +7,24 @@ type alias Id =
     String
 
 
-type alias IdentityMap a =
-    Dict Id a
+type IdentityMap a
+    = IdentityMap (Dict Id a)
 
 
 init : IdentityMap a
 init =
-    Dict.empty
+    IdentityMap Dict.empty
 
 
 get : IdentityMap a -> (a -> Id) -> a -> a
-get map toId record =
-    Dict.get (toId record) map
+get (IdentityMap dict) toId record =
+    Dict.get (toId record) dict
         |> Maybe.withDefault record
 
 
 set : IdentityMap a -> (a -> Id) -> a -> IdentityMap a
-set map toId record =
-    Dict.insert (toId record) record map
+set (IdentityMap dict) toId record =
+    IdentityMap <| Dict.insert (toId record) record dict
 
 
 getList : IdentityMap a -> (a -> Id) -> List a -> List a
