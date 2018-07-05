@@ -1,7 +1,7 @@
 module Socket exposing (Payload, payload)
 
 import Json.Encode as Encode
-import GraphQL exposing (Document, compileDocument)
+import GraphQL exposing (Document, serializeDocument)
 
 
 -- TYPES
@@ -16,4 +16,4 @@ type alias Payload =
 
 payload : String -> Document -> Maybe Encode.Value -> Payload
 payload clientId document maybeVariables =
-    Payload clientId (compileDocument document) maybeVariables
+    Payload clientId (serializeDocument document) maybeVariables

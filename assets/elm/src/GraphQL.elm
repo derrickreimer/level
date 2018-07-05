@@ -1,4 +1,4 @@
-module GraphQL exposing (Fragment, Document, fragment, document, request, compileDocument)
+module GraphQL exposing (Fragment, Document, fragment, document, request, serializeDocument)
 
 import Http
 import Json.Encode as Encode
@@ -53,8 +53,8 @@ request document maybeVariables decoder session =
             }
 
 
-compileDocument : Document -> String
-compileDocument document =
+serializeDocument : Document -> String
+serializeDocument document =
     case document of
         Document body fragments ->
             (body :: fragments)
@@ -66,7 +66,7 @@ buildRequestBody : Document -> Maybe Encode.Value -> Encode.Value
 buildRequestBody document maybeVariables =
     let
         query =
-            compileDocument document
+            serializeDocument document
     in
         case maybeVariables of
             Nothing ->
