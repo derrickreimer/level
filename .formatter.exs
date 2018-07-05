@@ -56,6 +56,7 @@
     serialize: 1,
     value: :*,
     types: :*,
-    resolve_type: :*
+    resolve_type: :*,
+    interface: :*
   ]
 ]

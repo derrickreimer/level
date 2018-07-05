@@ -4,6 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.Space exposing (Space)
+import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
 import GraphQL exposing (Document)
@@ -32,18 +33,15 @@ document =
             name: $name,
             slug: $slug
           ) {
-            success
+            ...ValidationFields
             space {
               ...SpaceFields
-            }
-            errors {
-              attribute
-              message
             }
           }
         }
         """
         [ Data.Space.fragment
+        , Data.ValidationFields.fragment
         ]
 
 

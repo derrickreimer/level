@@ -3,6 +3,13 @@ defmodule LevelWeb.Schema.Mutations do
 
   use Absinthe.Schema.Notation
 
+  @desc "Interface for payloads containing validation data."
+  interface :validatable do
+    field :success, non_null(:boolean)
+    field :errors, list_of(:error)
+    resolve_type fn _, _ -> nil end
+  end
+
   @desc "A validation error."
   object :error do
     @desc "The name of the invalid attribute."
@@ -29,6 +36,8 @@ defmodule LevelWeb.Schema.Mutations do
     this field may be null.
     """
     field :space, :space
+
+    interface :validatable
   end
 
   @desc "The response to completing a setup step."
@@ -63,6 +72,8 @@ defmodule LevelWeb.Schema.Mutations do
     this field may be null.
     """
     field :group, :group
+
+    interface :validatable
   end
 
   @desc "The response to updating a group."
@@ -82,6 +93,8 @@ defmodule LevelWeb.Schema.Mutations do
     this field may be null.
     """
     field :group, :group
+
+    interface :validatable
   end
 
   @desc "The response to bulk creating groups."
@@ -110,6 +123,8 @@ defmodule LevelWeb.Schema.Mutations do
 
     @desc "The original arguments for this particular object."
     field :args, non_null(:bulk_create_group_args)
+
+    interface :validatable
   end
 
   @desc "The arguments for an individual bulk-created group."
@@ -135,6 +150,8 @@ defmodule LevelWeb.Schema.Mutations do
     this field may be null.
     """
     field :membership, non_null(:group_membership)
+
+    interface :validatable
   end
 
   @desc "The payload for an updating group bookmark state."
@@ -163,6 +180,8 @@ defmodule LevelWeb.Schema.Mutations do
     this field may be null.
     """
     field :post, :post
+
+    interface :validatable
   end
 
   @desc "The response to replying to a post."
@@ -182,5 +201,7 @@ defmodule LevelWeb.Schema.Mutations do
     this field may be null.
     """
     field :reply, :reply
+
+    interface :validatable
   end
 end

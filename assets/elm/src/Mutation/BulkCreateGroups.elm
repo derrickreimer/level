@@ -4,6 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Group
+import Data.ValidationFields
 import Session exposing (Session)
 import GraphQL exposing (Document)
 
@@ -31,13 +32,9 @@ document =
             names: $names
           ) {
             payloads {
-              success
+              ...ValidationFields
               group {
                 ...GroupFields
-              }
-              errors {
-                attribute
-                message
               }
               args {
                 name
@@ -47,6 +44,7 @@ document =
         }
         """
         [ Data.Group.fragment
+        , Data.ValidationFields.fragment
         ]
 
 

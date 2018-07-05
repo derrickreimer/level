@@ -4,6 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.Reply exposing (Reply)
+import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import GraphQL exposing (Document)
 import Session exposing (Session)
@@ -35,18 +36,15 @@ document =
             postId: $postId,
             body: $body
           ) {
-            success
+            ...ValidationFields
             reply {
               ...ReplyFields
-            }
-            errors {
-              attribute
-              message
             }
           }
         }
         """
         [ Data.Reply.fragment
+        , Data.ValidationFields.fragment
         ]
 
 

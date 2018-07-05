@@ -4,6 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.Post exposing (Post)
+import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import GraphQL exposing (Document)
 import Session exposing (Session)
@@ -35,18 +36,15 @@ document =
             groupId: $groupId,
             body: $body
           ) {
-            success
+            ...ValidationFields
             post {
               ...PostFields
-            }
-            errors {
-              attribute
-              message
             }
           }
         }
         """
         [ Data.Post.fragment
+        , Data.ValidationFields.fragment
         ]
 
 

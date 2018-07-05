@@ -4,6 +4,7 @@ import Http
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.GroupMembership exposing (GroupMembershipState)
+import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
 import GraphQL exposing (Document)
@@ -35,18 +36,15 @@ document =
             groupId: $groupId,
             state: $state
           ) {
-            success
+            ...ValidationFields
             membership {
               state
-            }
-            errors {
-              attribute
-              message
             }
           }
         }
         """
-        []
+        [ Data.ValidationFields.fragment
+        ]
 
 
 variables : Params -> Encode.Value
