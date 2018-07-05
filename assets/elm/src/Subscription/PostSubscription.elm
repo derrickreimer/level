@@ -64,7 +64,7 @@ replyCreatedDecoder : Decode.Decoder Reply
 replyCreatedDecoder =
     let
         payloadDecoder typename =
-            if typename == "ReplyCreated" then
+            if typename == "ReplyCreatedPayload" then
                 Decode.field "reply" Data.Reply.decoder
             else
                 Decode.fail "payload does not match"

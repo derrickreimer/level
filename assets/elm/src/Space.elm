@@ -1,5 +1,6 @@
 module Space exposing (..)
 
+import Debug
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -326,7 +327,7 @@ handleSocketResult value model page sharedState =
             ( handleGroupUpdated group sharedState model, Cmd.none )
 
         Event.ReplyCreated reply ->
-            ( handleReplyCreated reply model, Cmd.none )
+            Debug.log "reply created" ( handleReplyCreated reply model, Cmd.none )
 
         Event.Unknown ->
             ( model, Cmd.none )

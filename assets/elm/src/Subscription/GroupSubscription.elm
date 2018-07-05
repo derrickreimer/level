@@ -101,7 +101,7 @@ groupUpdatedDecoder : Decode.Decoder Group
 groupUpdatedDecoder =
     let
         payloadDecoder typename =
-            if typename == "GroupUpdated" then
+            if typename == "GroupUpdatedPayload" then
                 Decode.field "group" Data.Group.decoder
             else
                 Decode.fail "payload does not match"

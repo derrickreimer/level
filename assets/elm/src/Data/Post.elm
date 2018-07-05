@@ -1,11 +1,11 @@
-module Data.Post exposing (Post, fragment, decoder)
+module Data.Post exposing (Post, fragment, decoder, appendReply)
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline as Pipeline
 import Data.Group exposing (Group)
 import Data.PageInfo
-import Data.Reply
+import Data.Reply exposing (Reply)
 import Data.ReplyConnection exposing (ReplyConnection)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
@@ -74,3 +74,12 @@ decoder =
         |> Pipeline.required "groups" (list Data.Group.decoder)
         |> Pipeline.required "postedAt" dateDecoder
         |> Pipeline.required "replies" Data.ReplyConnection.decoder
+
+
+
+-- CRUD
+
+
+appendReply : Reply -> Post -> Post
+appendReply reply post =
+    { post | replies = Data.ReplyConnection.append reply post.replies }

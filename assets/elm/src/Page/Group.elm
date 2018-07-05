@@ -544,8 +544,17 @@ handleGroupMembershipUpdated { state, membership } session model =
 
 
 handleReplyCreated : Reply -> Model -> Model
-handleReplyCreated reply model =
-    model
+handleReplyCreated ({ postId } as reply) ({ posts } as model) =
+    case Data.PostConnection.get postId posts of
+        Just post ->
+            { model
+                | posts =
+                    Data.Post.appendReply reply post
+                        |> (flip Data.PostConnection.update) posts
+            }
+
+        Nothing ->
+            model
 
 
 isMembershipListed : GroupMembership -> List GroupMembership -> Bool

@@ -92,6 +92,17 @@ removeById id =
     List.filter (\a -> not (a.id == id))
 
 
+{-| Finds an item in list by id.
+
+    getById "1" [{ id = "1" }, { id = "2" }] == Just { id = "1" }
+
+-}
+getById : String -> List (Identifiable a) -> Maybe (Identifiable a)
+getById id list =
+    List.filter (\a -> a.id == id) list
+        |> List.head
+
+
 
 -- CUSTOM DECODERS
 

@@ -1,9 +1,9 @@
-module Data.PostConnection exposing (PostConnection, decoder, append)
+module Data.PostConnection exposing (PostConnection, decoder, get, update, append)
 
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Data.Post exposing (Post)
 import Data.PageInfo exposing (PageInfo)
-import Util exposing (memberById)
+import Util exposing (getById, memberById)
 
 
 -- TYPES
@@ -27,7 +27,27 @@ decoder =
 
 
 
--- MUTATIONS
+-- CRUD
+
+
+get : String -> PostConnection -> Maybe Post
+get id { nodes } =
+    getById id nodes
+
+
+update : Post -> PostConnection -> PostConnection
+update post ({ nodes } as connection) =
+    let
+        replacer node =
+            if node.id == post.id then
+                post
+            else
+                node
+
+        newNodes =
+            List.map replacer nodes
+    in
+        { connection | nodes = newNodes }
 
 
 append : Post -> PostConnection -> PostConnection
