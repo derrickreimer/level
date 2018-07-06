@@ -54,6 +54,20 @@ live in the `assets/elm/tests` directory.
 
 To run the Elm test suite, execute `script/elm-test` from the project root.
 
+
+## Development Environment Alternative: Docker
+
+If you prefer to contain the dev environment with Docker instead of installing
+all Level dependencies by hand globally on your machine, you can
+[install Docker](https://www.docker.com/community-edition#/download)
+and docker-compose and then run:
+
+`docker-compose up --build` (or see [other options](./docker-compose.md))
+
+Wait until Level starts, then visit
+[`localhost:4000`](http://localhost:4000) from your browser.
+
+
 ## Documentation
 
 To generate and view the project documentation locally, run the following script:
