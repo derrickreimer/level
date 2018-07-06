@@ -660,12 +660,11 @@ postView currentUser now replyComposers post =
 
 
 repliesView : Date -> ReplyConnection -> Html Msg
-repliesView now { nodes } =
-    if List.isEmpty nodes then
+repliesView now connection =
+    if Connection.isEmpty connection then
         text ""
     else
-        div [] <|
-            List.map (replyView now) nodes
+        div [] (Connection.map (replyView now) connection)
 
 
 replyView : Date -> Reply -> Html Msg
