@@ -6,7 +6,7 @@ import Html.Events exposing (onInput, onClick, onBlur)
 import Http
 import Regex exposing (regex)
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
-import KeyboardEvents exposing (Modifier(..), enter, onKeyDown, preventDefault)
+import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Mutation.CreateSpace as CreateSpace
 import Route
 import Session exposing (Session)
@@ -183,7 +183,7 @@ textField field errors =
                 , value field.value
                 , onInput field.onInput
                 , autofocus field.autofocus
-                , onKeyDown preventDefault [ ( Unmodified, enter, Submit ) ]
+                , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
                 ]
                 []
             , formErrors errors
@@ -214,7 +214,7 @@ slugField slug errors =
                         , placeholder "smith-co"
                         , value slug
                         , onInput SlugChanged
-                        , onKeyDown preventDefault [ ( Unmodified, enter, Submit ) ]
+                        , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
                         ]
                         []
                     ]

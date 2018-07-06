@@ -21,7 +21,7 @@ import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import Icons
-import KeyboardEvents exposing (Modifier(..), preventDefault, onKeyDown, enter, esc)
+import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.PostToGroup as PostToGroup
 import Mutation.ReplyToPost as ReplyToPost
 import Mutation.UpdateGroup as UpdateGroup
@@ -543,9 +543,9 @@ nameView group editor =
                     , classList [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True ), ( "shake", not <| List.isEmpty editor.errors ) ]
                     , value editor.value
                     , onInput NameEditorChanged
-                    , onKeyDown preventDefault
-                        [ ( Unmodified, enter, NameEditorSubmit )
-                        , ( Unmodified, esc, NameEditorDismissed )
+                    , onKeydown preventDefault
+                        [ ( [], enter, \event -> NameEditorSubmit )
+                        , ( [], esc, \event -> NameEditorDismissed )
                         ]
                     , onBlur NameEditorDismissed
                     ]
@@ -610,7 +610,7 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
                     , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                     , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
-                    , onKeyDown preventDefault [ ( Meta, enter, NewPostSubmit ) ]
+                    , onKeydown preventDefault [ ( [ Meta ], enter, \event -> NewPostSubmit ) ]
                     , readonly isSubmitting
                     , value body
                     ]
@@ -695,9 +695,9 @@ replyComposerView currentUser replyComposers post =
                                 , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                                 , placeholder "Write a reply..."
                                 , onInput (NewReplyBodyChanged post.id)
-                                , onKeyDown preventDefault
-                                    [ ( Meta, enter, NewReplySubmit post.id )
-                                    , ( Unmodified, esc, NewReplyEscaped post.id )
+                                , onKeydown preventDefault
+                                    [ ( [ Meta ], enter, \event -> NewReplySubmit post.id )
+                                    , ( [], esc, \event -> NewReplyEscaped post.id )
                                     ]
                                 , onBlur (NewReplyBlurred post.id)
                                 , value composer.body
