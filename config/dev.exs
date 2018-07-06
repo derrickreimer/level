@@ -46,7 +46,7 @@ config :level, Level.Repo,
   username: System.get_env("LEVEL_DB_USERNAME") || "postgres",
   password: System.get_env("LEVEL_DB_PASSWORD") || "postgres",
   database: "level_dev",
-  hostname: "localhost",
+  hostname: System.get_env("LEVEL_DB_HOSTNAME") || "localhost",
   pool_size: 10
 
 # Mailer
