@@ -9,7 +9,6 @@ import Task exposing (Task)
 import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState)
-import Data.PageInfo
 import Data.Post exposing (Post)
 import GraphQL exposing (Document)
 import Session exposing (Session)
@@ -64,7 +63,7 @@ document =
         [ Data.GroupMembership.fragment
         , Data.Group.fragment
         , Data.Post.fragment
-        , Data.PageInfo.fragment
+        , Connection.pageInfoFragment
         ]
 
 

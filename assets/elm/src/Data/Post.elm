@@ -5,7 +5,6 @@ import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group exposing (Group)
-import Data.PageInfo
 import Data.Reply exposing (Reply)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
@@ -56,7 +55,7 @@ fragment =
         [ Data.SpaceUser.fragment
         , Data.Group.fragment
         , Data.Reply.fragment
-        , Data.PageInfo.fragment
+        , Connection.pageInfoFragment
         ]
 
 

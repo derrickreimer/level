@@ -2,6 +2,7 @@ module Connection
     exposing
         ( Connection
         , PageInfo
+        , pageInfoFragment
         , isEmpty
         , toList
         , map
@@ -12,6 +13,7 @@ module Connection
         , append
         )
 
+import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, bool, maybe, string, list)
 import Util
 
@@ -34,6 +36,20 @@ type alias Node a =
 
 type Connection a
     = Connection (List a) PageInfo
+
+
+pageInfoFragment : Fragment
+pageInfoFragment =
+    GraphQL.fragment
+        """
+        fragment PageInfoFields on PageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+        """
+        []
 
 
 

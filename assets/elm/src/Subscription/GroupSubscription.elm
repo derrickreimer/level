@@ -16,7 +16,7 @@ import Data.GroupMembership
         ( GroupMembership
         , GroupMembershipState
         )
-import Data.PageInfo
+import Connection
 import Data.Post exposing (Post)
 import Data.Reply
 import Data.SpaceUser
@@ -74,7 +74,7 @@ document =
           }
         }
         """
-        [ Data.PageInfo.fragment
+        [ Connection.pageInfoFragment
         , Data.Post.fragment
         , Data.Reply.fragment
         , Data.SpaceUser.fragment
