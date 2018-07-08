@@ -6,11 +6,11 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Task exposing (Task)
+import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState)
 import Data.PageInfo
-import Data.Post
-import Data.PostConnection exposing (PostConnection)
+import Data.Post exposing (Post)
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
@@ -24,7 +24,7 @@ type alias Params =
 type alias Response =
     { group : Group
     , state : GroupMembershipState
-    , posts : PostConnection
+    , posts : Connection Post
     , featuredMemberships : List GroupMembership
     , now : Date
     }
@@ -82,7 +82,7 @@ decoder now =
         (Pipeline.decode Response
             |> Pipeline.custom Data.Group.decoder
             |> Pipeline.custom (Decode.at [ "membership", "state" ] Data.GroupMembership.stateDecoder)
-            |> Pipeline.custom (Decode.at [ "posts" ] Data.PostConnection.decoder)
+            |> Pipeline.custom (Decode.at [ "posts" ] (Connection.decoder Data.Post.decoder))
             |> Pipeline.custom (Decode.at [ "featuredMemberships" ] (Decode.list Data.GroupMembership.decoder))
             |> Pipeline.custom (Decode.succeed now)
         )

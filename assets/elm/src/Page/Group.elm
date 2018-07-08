@@ -10,13 +10,11 @@ import Task exposing (Task)
 import Time exposing (Time, every, second, millisecond)
 import Autosize
 import Avatar exposing (personAvatar)
-import Connection
+import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.Post exposing (Post)
-import Data.PostConnection exposing (PostConnection)
 import Data.Reply exposing (Reply)
-import Data.ReplyConnection exposing (ReplyConnection)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
@@ -73,7 +71,7 @@ type alias ReplyComposers =
 type alias Model =
     { group : Group
     , state : GroupMembershipState
-    , posts : PostConnection
+    , posts : Connection Post
     , featuredMemberships : List GroupMembership
     , now : Date
     , space : Space
@@ -440,7 +438,7 @@ autosize method id =
 
 handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
 handlePostCreated post ({ posts, group } as model) =
-    ( { model | posts = Data.PostConnection.append post posts }
+    ( { model | posts = Connection.prepend post posts }
     , Ports.push (PostSubscription.payload post.id)
     )
 
@@ -466,13 +464,13 @@ handleGroupMembershipUpdated { state, membership } session model =
 
 handleReplyCreated : Reply -> Model -> Model
 handleReplyCreated ({ postId } as reply) ({ posts } as model) =
-    case Data.PostConnection.get postId posts of
+    case Connection.get postId posts of
         Just post ->
             let
                 newPost =
                     Data.Post.appendReply reply post
             in
-                { model | posts = Data.PostConnection.update newPost posts }
+                { model | posts = Connection.update newPost posts }
 
         Nothing ->
             model
@@ -628,7 +626,7 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
         ]
 
 
-postsView : SpaceUser -> Date -> ReplyComposers -> PostConnection -> Html Msg
+postsView : SpaceUser -> Date -> ReplyComposers -> Connection Post -> Html Msg
 postsView currentUser now replyComposers connection =
     if Connection.isEmpty connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
@@ -659,7 +657,7 @@ postView currentUser now replyComposers post =
         ]
 
 
-repliesView : Date -> ReplyConnection -> Html Msg
+repliesView : Date -> Connection Reply -> Html Msg
 repliesView now connection =
     if Connection.isEmpty connection then
         text ""
