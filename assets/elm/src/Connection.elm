@@ -1,7 +1,6 @@
 module Connection
     exposing
         ( Connection
-        , PageInfo
         , fragment
         , isEmpty
         , toList
