@@ -1,6 +1,7 @@
 module ListHelpers
     exposing
         ( last
+        , takeLast
         , size
         , getById
         , insertUniqueById
@@ -32,6 +33,19 @@ type alias Identifiable a =
 last : List a -> Maybe a
 last =
     List.foldl (Just >> always) Nothing
+
+
+{-| Take the last *n* members of a list.
+
+    takeLast 2 [1,2,3,4] == [3,4]
+
+-}
+takeLast : Int -> List a -> List a
+takeLast n list =
+    list
+        |> List.reverse
+        |> List.take n
+        |> List.reverse
 
 
 {-| Computes the size of a list.

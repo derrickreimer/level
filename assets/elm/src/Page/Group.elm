@@ -628,7 +628,7 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
 
 postsView : SpaceUser -> Date -> ReplyComposers -> Connection Post -> Html Msg
 postsView currentUser now replyComposers connection =
-    if Connection.isEmpty connection then
+    if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
     else
@@ -659,10 +659,14 @@ postView currentUser now replyComposers post =
 
 repliesView : Date -> Connection Reply -> Html Msg
 repliesView now connection =
-    if Connection.isEmpty connection then
+    if Connection.isEmptyAndExpanded connection then
         text ""
     else
-        div [] (Connection.map (replyView now) connection)
+        let
+            replies =
+                Connection.takeLast 5 connection
+        in
+            div [] (Connection.map (replyView now) replies)
 
 
 replyView : Date -> Reply -> Html Msg

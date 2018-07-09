@@ -3,8 +3,11 @@ module Connection
         ( Connection
         , fragment
         , isEmpty
+        , isExpandable
+        , isEmptyAndExpanded
         , toList
         , map
+        , takeLast
         , decoder
         , get
         , update
@@ -14,7 +17,7 @@ module Connection
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, bool, maybe, string, list)
-import ListHelpers exposing (getById, memberById, updateById)
+import ListHelpers exposing (getById, memberById, updateById, size)
 
 
 type alias PageInfo =
@@ -22,6 +25,12 @@ type alias PageInfo =
     , hasNextPage : Bool
     , startCursor : Maybe String
     , endCursor : Maybe String
+    }
+
+
+type alias PartialPageInfo =
+    { hasPreviousPage : Bool
+    , hasNextPage : Bool
     }
 
 
@@ -34,7 +43,8 @@ type alias Node a =
 
 
 type Connection a
-    = Connection (List a) PageInfo
+    = FullConnection (List a) PageInfo
+    | PartialConnection (List a) PartialPageInfo
 
 
 fragment : String -> Fragment -> Fragment
@@ -76,26 +86,69 @@ pageInfoFragment =
 
 
 isEmpty : Connection a -> Bool
-isEmpty (Connection nodes pageInfo) =
-    pageInfo.startCursor
-        == Nothing
-        && pageInfo.endCursor
-        == Nothing
-        && (List.isEmpty nodes)
+isEmpty connection =
+    connection
+        |> toList
+        |> List.isEmpty
+
+
+isExpandable : Connection a -> Bool
+isExpandable connection =
+    let
+        ( nodes, hasPreviousPage, hasNextPage ) =
+            toPartialData connection
+    in
+        hasPreviousPage || hasNextPage
+
+
+isEmptyAndExpanded : Connection a -> Bool
+isEmptyAndExpanded connection =
+    isEmpty connection && not (isExpandable connection)
 
 
 toList : Connection a -> List a
-toList (Connection nodes _) =
-    nodes
+toList connection =
+    case connection of
+        FullConnection nodes _ ->
+            nodes
+
+        PartialConnection nodes _ ->
+            nodes
 
 
 
--- MAPPING
+-- LIST OPERATIONS
 
 
 map : (a -> b) -> Connection a -> List b
-map f (Connection nodes _) =
-    List.map f nodes
+map f connection =
+    List.map f (toList connection)
+
+
+takeLast : Int -> Connection a -> Connection a
+takeLast n connection =
+    let
+        ( nodes, hasPreviousPage, hasNextPage ) =
+            toPartialData connection
+
+        partialHasPreviousPage =
+            size nodes > n || hasPreviousPage
+
+        partialNodes =
+            ListHelpers.takeLast n nodes
+    in
+        PartialConnection partialNodes
+            (PartialPageInfo partialHasPreviousPage hasNextPage)
+
+
+toPartialData : Connection a -> ( List a, Bool, Bool )
+toPartialData connection =
+    case connection of
+        FullConnection nodes { hasPreviousPage, hasNextPage } ->
+            ( nodes, hasPreviousPage, hasNextPage )
+
+        PartialConnection nodes { hasPreviousPage, hasNextPage } ->
+            ( nodes, hasPreviousPage, hasNextPage )
 
 
 
@@ -104,7 +157,7 @@ map f (Connection nodes _) =
 
 decoder : Decoder (Node a) -> Decoder (Connection (Node a))
 decoder nodeDecoder =
-    Decode.map2 Connection
+    Decode.map2 FullConnection
         (field "edges" (list (field "node" nodeDecoder)))
         (field "pageInfo" pageInfoDecoder)
 
@@ -123,34 +176,54 @@ pageInfoDecoder =
 
 
 get : String -> Connection (Node a) -> Maybe (Node a)
-get id (Connection nodes _) =
-    getById id nodes
+get id connection =
+    getById id (toList connection)
 
 
 update : Node a -> Connection (Node a) -> Connection (Node a)
-update node (Connection nodes pageInfo) =
-    Connection (updateById node nodes) pageInfo
+update node connection =
+    let
+        newNodes =
+            updateById node (toList connection)
+    in
+        replaceNodes newNodes connection
 
 
 prepend : Node a -> Connection (Node a) -> Connection (Node a)
-prepend node (Connection nodes pageInfo) =
+prepend node connection =
     let
+        oldNodes =
+            toList connection
+
         newNodes =
-            if memberById node nodes then
-                nodes
+            if memberById node oldNodes then
+                oldNodes
             else
-                node :: nodes
+                node :: oldNodes
     in
-        Connection newNodes pageInfo
+        replaceNodes newNodes connection
 
 
 append : Node a -> Connection (Node a) -> Connection (Node a)
-append node (Connection nodes pageInfo) =
+append node connection =
     let
+        oldNodes =
+            toList connection
+
         newNodes =
-            if memberById node nodes then
-                nodes
+            if memberById node oldNodes then
+                oldNodes
             else
-                List.append nodes [ node ]
+                List.append oldNodes [ node ]
     in
-        Connection newNodes pageInfo
+        replaceNodes newNodes connection
+
+
+replaceNodes : List a -> Connection a -> Connection a
+replaceNodes newNodes connection =
+    case connection of
+        FullConnection _ pageInfo ->
+            FullConnection newNodes pageInfo
+
+        PartialConnection _ pageInfo ->
+            PartialConnection newNodes pageInfo
