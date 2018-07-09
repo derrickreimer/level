@@ -722,7 +722,7 @@ replyComposerView currentUser replyComposers post =
                 replyPromptView currentUser post
 
         Nothing ->
-            viewIf (Connection.isEmpty post.replies) <|
+            viewUnless (Connection.isEmpty post.replies) <|
                 replyPromptView currentUser post
 
 
