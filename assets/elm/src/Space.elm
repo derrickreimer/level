@@ -18,6 +18,7 @@ import Event
 import Repo exposing (Repo)
 import Page.Group
 import Page.Inbox
+import Page.Post
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Ports
@@ -66,6 +67,7 @@ type Page
     | SetupInviteUsers Page.Setup.InviteUsers.Model
     | Inbox
     | Group Page.Group.Model
+    | Post Page.Post.Model
 
 
 type alias Flags =
@@ -124,6 +126,7 @@ type Msg
     | PageInitialized PageInit
     | InboxMsg Page.Inbox.Msg
     | GroupMsg Page.Group.Msg
+    | PostMsg Page.Post.Msg
       -- PORTS
     | Push Socket.Payload
     | SocketAbort Decode.Value
@@ -138,6 +141,7 @@ type Msg
 
 type PageInit
     = GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
+    | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
 
 
 getPage : Model -> Page
@@ -357,6 +361,22 @@ handlePageInit pageInit model =
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
+        PostInit _ (Ok ( session, pageModel )) ->
+            ( { model
+                | page = Post pageModel
+                , session = session
+                , isTransitioning = False
+              }
+            , Cmd.none
+            )
+
+        PostInit _ (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        PostInit _ (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
+
 
 setFlashNotice : String -> Model -> ( Model, Cmd Msg )
 setFlashNotice message model =
@@ -439,6 +459,11 @@ navigateTo maybeRoute model =
                             model.session
                                 |> Page.Group.init currentUser sharedState.space groupId
                                 |> transition model (GroupInit groupId)
+
+                        Just (Route.Post postId) ->
+                            model.session
+                                |> Page.Post.init currentUser sharedState.space postId
+                                |> transition model (PostInit postId)
 
 
 teardown : Page -> Cmd Msg
@@ -640,6 +665,11 @@ pageContent repo sharedState page =
                 |> Page.Group.view repo
                 |> Html.map GroupMsg
 
+        Post pageModel ->
+            pageModel
+                |> Page.Post.view
+                |> Html.map PostMsg
+
         Blank ->
             text ""
 
@@ -661,6 +691,9 @@ routeFor page =
 
         Group pageModel ->
             Just <| Route.Group pageModel.group.id
+
+        Post pageModel ->
+            Just <| Route.Post pageModel.post.id
 
         Blank ->
             Nothing

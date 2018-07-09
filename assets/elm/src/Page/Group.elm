@@ -651,22 +651,22 @@ postView currentUser now replyComposers post =
                     [ button [ class "inline-block mr-4", onClick (ExpandReplyComposer post.id) ] [ Icons.comment ]
                     ]
                 ]
-            , repliesView now post.replies
+            , repliesView post now post.replies
             , replyComposerView currentUser replyComposers post
             ]
         ]
 
 
-repliesView : Date -> Connection Reply -> Html Msg
-repliesView now conn =
+repliesView : Post -> Date -> Connection Reply -> Html Msg
+repliesView post now replies =
     let
         { nodes, hasPreviousPage } =
-            Connection.last 5 conn
+            Connection.last 5 replies
     in
-        viewUnless (Connection.isEmptyAndExpanded conn) <|
+        viewUnless (Connection.isEmptyAndExpanded replies) <|
             div []
                 [ viewIf hasPreviousPage <|
-                    button [ class "my-2 text-dusty-blue" ] [ text "Show more..." ]
+                    a [ Route.href (Route.Post post.id), class "my-2 text-dusty-blue" ] [ text "Show more..." ]
                 , div [] (List.map (replyView now) nodes)
                 ]
 

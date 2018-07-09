@@ -19,6 +19,7 @@ type Route
     | SetupInviteUsers
     | Inbox
     | Group String
+    | Post String
 
 
 route : Parser (Route -> a) a
@@ -29,6 +30,7 @@ route =
         , Url.map SetupInviteUsers (s "setup" </> s "invites")
         , Url.map Inbox (s "inbox")
         , Url.map Group (s "groups" </> Url.string)
+        , Url.map Post (s "posts" </> Url.string)
         ]
 
 
@@ -55,6 +57,9 @@ routeToString page =
 
                 Group id ->
                     [ "groups", id ]
+
+                Post id ->
+                    [ "posts", id ]
     in
         "#/" ++ String.join "/" pieces
 
