@@ -14,7 +14,7 @@ module Connection
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, bool, maybe, string, list)
-import Util
+import ListHelpers exposing (getById, memberById, updateById)
 
 
 type alias PageInfo =
@@ -124,29 +124,19 @@ pageInfoDecoder =
 
 get : String -> Connection (Node a) -> Maybe (Node a)
 get id (Connection nodes _) =
-    Util.getById id nodes
+    getById id nodes
 
 
 update : Node a -> Connection (Node a) -> Connection (Node a)
 update node (Connection nodes pageInfo) =
-    let
-        replacer a =
-            if node.id == a.id then
-                a
-            else
-                node
-
-        newNodes =
-            List.map replacer nodes
-    in
-        Connection newNodes pageInfo
+    Connection (updateById node nodes) pageInfo
 
 
 prepend : Node a -> Connection (Node a) -> Connection (Node a)
 prepend node (Connection nodes pageInfo) =
     let
         newNodes =
-            if Util.memberById node nodes then
+            if memberById node nodes then
                 nodes
             else
                 node :: nodes
@@ -158,7 +148,7 @@ append : Node a -> Connection (Node a) -> Connection (Node a)
 append node (Connection nodes pageInfo) =
     let
         newNodes =
-            if Util.memberById node nodes then
+            if memberById node nodes then
                 nodes
             else
                 List.append nodes [ node ]

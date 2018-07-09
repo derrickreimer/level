@@ -1,4 +1,18 @@
-module Util exposing (..)
+module Util
+    exposing
+        ( Lazy(..)
+        , dateDecoder
+        , formatTime
+        , formatTimeWithoutMeridian
+        , formatDateTime
+        , formatDay
+        , onSameDay
+        , isOverOneYearAgo
+        , smartFormatDate
+        , postWithCsrfToken
+        , displayName
+        , injectHtml
+        )
 
 import Date exposing (Date)
 import Date.Format
@@ -15,92 +29,8 @@ type Lazy a
     | Loaded a
 
 
-type alias Identifiable a =
-    { a | id : String }
-
-
 type alias Nameable a =
     { a | firstName : String, lastName : String }
-
-
-
--- LIST HELPERS
-
-
-{-| Gets the last item from a list.
-
-    last [1, 2, 3] == Just 3
-    last [] == Nothing
-
--}
-last : List a -> Maybe a
-last =
-    List.foldl (Just >> always) Nothing
-
-
-{-| Computes the size of a list.
-
-    size [1,2,3] == 3
-    size [] == 0
-
--}
-size : List a -> Int
-size =
-    List.foldl (\_ t -> t + 1) 0
-
-
-{-| Prepends an item to a list if there does not exist a list element with
-the same id.
-
-    insertUniqueById { id = "1" } [{ id = "1" }] == [{ id = "1" }]
-    insertUniqueById { id = "1" } [{ id = "2" }] == [{ id = "1" }, { id = "2" }]
-
--}
-insertUniqueById : Identifiable a -> List (Identifiable a) -> List (Identifiable a)
-insertUniqueById item list =
-    if memberById item list then
-        list
-    else
-        item :: list
-
-
-{-| Determines whether an item is in the list with the same id.
-
-    memberById { id = "1" } [{ id = "1" }] == True
-    memberById { id = "1" } [{ id = "2" }] == False
-
--}
-memberById : Identifiable a -> List (Identifiable a) -> Bool
-memberById item list =
-    let
-        id =
-            item.id
-    in
-        list
-            |> List.filter (\a -> a.id == id)
-            |> List.isEmpty
-            |> not
-
-
-{-| Filters out items from list with a given id.
-
-    removeById "1" [{ id = "1" }, { id = "2" }] == [{ id = "2" }]
-
--}
-removeById : String -> List (Identifiable a) -> List (Identifiable a)
-removeById id =
-    List.filter (\a -> not (a.id == id))
-
-
-{-| Finds an item in list by id.
-
-    getById "1" [{ id = "1" }, { id = "2" }] == Just { id = "1" }
-
--}
-getById : String -> List (Identifiable a) -> Maybe (Identifiable a)
-getById id list =
-    List.filter (\a -> a.id == id) list
-        |> List.head
 
 
 

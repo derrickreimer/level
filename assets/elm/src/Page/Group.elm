@@ -32,7 +32,7 @@ import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription exposing (GroupMembershipUpdatedPayload)
 import Subscription.PostSubscription as PostSubscription
-import Util exposing (displayName, smartFormatDate, memberById, injectHtml, insertUniqueById, removeById)
+import Util exposing (displayName, smartFormatDate, injectHtml)
 
 
 -- MODEL

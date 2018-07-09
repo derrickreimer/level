@@ -26,7 +26,8 @@ import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Route exposing (Route)
 import Session exposing (Session)
 import Socket
-import Util exposing (Lazy(..), insertUniqueById, removeById, displayName)
+import ListHelpers exposing (insertUniqueById, removeById)
+import Util exposing (Lazy(..), displayName)
 
 
 main : Program Flags Model Msg

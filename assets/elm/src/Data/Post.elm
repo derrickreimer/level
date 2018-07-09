@@ -8,7 +8,8 @@ import Data.Group exposing (Group)
 import Data.Reply exposing (Reply)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
-import Util exposing (dateDecoder, memberById)
+import ListHelpers exposing (memberById)
+import Util exposing (dateDecoder)
 
 
 -- TYPES
