@@ -41,21 +41,13 @@ fragment =
             ...GroupFields
           }
           replies(last: 10) {
-            edges {
-              node {
-                ...ReplyFields
-              }
-            }
-            pageInfo {
-              ...PageInfoFields
-            }
+            ...ReplyConnectionFields
           }
         }
         """
         [ Data.SpaceUser.fragment
         , Data.Group.fragment
-        , Data.Reply.fragment
-        , Connection.pageInfoFragment
+        , Connection.fragment "ReplyConnection" Data.Reply.fragment
         ]
 
 

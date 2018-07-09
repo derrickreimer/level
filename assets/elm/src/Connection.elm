@@ -2,7 +2,7 @@ module Connection
     exposing
         ( Connection
         , PageInfo
-        , pageInfoFragment
+        , fragment
         , isEmpty
         , toList
         , map
@@ -36,6 +36,26 @@ type alias Node a =
 
 type Connection a
     = Connection (List a) PageInfo
+
+
+fragment : String -> Fragment -> Fragment
+fragment name nodeFragment =
+    let
+        body =
+            String.join "\n"
+                [ "fragment " ++ name ++ "Fields on " ++ name ++ " {"
+                , "  edges {"
+                , "    node {"
+                , "      ..." ++ (GraphQL.fragmentName nodeFragment)
+                , "    }"
+                , "  }"
+                , "  pageInfo {"
+                , "    ...PageInfoFields"
+                , "  }"
+                , "}"
+                ]
+    in
+        GraphQL.fragment body [ nodeFragment, pageInfoFragment ]
 
 
 pageInfoFragment : Fragment

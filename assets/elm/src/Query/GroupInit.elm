@@ -47,14 +47,7 @@ document =
                 ...GroupMembershipFields
               }
               posts(first: 20) {
-                edges {
-                  node {
-                    ...PostFields
-                  }
-                }
-                pageInfo {
-                  ...PageInfoFields
-                }
+                ...PostConnectionFields
               }
             }
           }
@@ -62,8 +55,7 @@ document =
         """
         [ Data.GroupMembership.fragment
         , Data.Group.fragment
-        , Data.Post.fragment
-        , Connection.pageInfoFragment
+        , Connection.fragment "PostConnection" Data.Post.fragment
         ]
 
 

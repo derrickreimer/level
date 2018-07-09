@@ -1,8 +1,9 @@
-module GraphQL exposing (Fragment, Document, fragment, document, request, serializeDocument)
+module GraphQL exposing (Fragment, Document, fragment, fragmentName, document, request, serializeDocument)
 
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Regex
 import Session exposing (Session)
 import Set
 
@@ -32,6 +33,28 @@ document operation fragments =
     Document operation (flatten fragments)
 
 
+fragmentName : Fragment -> String
+fragmentName (Fragment body _) =
+    let
+        regex =
+            Regex.regex "fragment ([A-Za-z]+)"
+
+        matches =
+            Regex.find (Regex.AtMost 1) regex body
+    in
+        case matches of
+            { submatches } :: _ ->
+                case submatches of
+                    (Just name) :: _ ->
+                        name
+
+                    _ ->
+                        "Unknown"
+
+            _ ->
+                "Unknown"
+
+
 
 -- TASKS
 
@@ -54,12 +77,10 @@ request document maybeVariables decoder session =
 
 
 serializeDocument : Document -> String
-serializeDocument document =
-    case document of
-        Document body fragments ->
-            (body :: fragments)
-                |> List.map normalize
-                |> String.join "\n"
+serializeDocument (Document body fragments) =
+    (body :: fragments)
+        |> List.map normalize
+        |> String.join "\n"
 
 
 buildRequestBody : Document -> Maybe Encode.Value -> Encode.Value
