@@ -5,6 +5,8 @@ module Connection
         , isEmpty
         , isExpandable
         , isEmptyAndExpanded
+        , hasPreviousPage
+        , hasNextPage
         , toList
         , map
         , takeLast
@@ -101,6 +103,24 @@ isExpandable connection =
         hasPreviousPage || hasNextPage
 
 
+hasPreviousPage : Connection a -> Bool
+hasPreviousPage connection =
+    let
+        ( _, hasPreviousPage, _ ) =
+            toPartialData connection
+    in
+        hasPreviousPage
+
+
+hasNextPage : Connection a -> Bool
+hasNextPage connection =
+    let
+        ( _, _, hasNextPage ) =
+            toPartialData connection
+    in
+        hasNextPage
+
+
 isEmptyAndExpanded : Connection a -> Bool
 isEmptyAndExpanded connection =
     isEmpty connection && not (isExpandable connection)
@@ -114,10 +134,6 @@ toList connection =
 
         PartialConnection nodes _ ->
             nodes
-
-
-
--- LIST OPERATIONS
 
 
 map : (a -> b) -> Connection a -> List b

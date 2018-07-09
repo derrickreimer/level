@@ -659,14 +659,22 @@ postView currentUser now replyComposers post =
 
 repliesView : Date -> Connection Reply -> Html Msg
 repliesView now connection =
-    if Connection.isEmptyAndExpanded connection then
-        text ""
-    else
-        let
-            replies =
-                Connection.takeLast 5 connection
-        in
-            div [] (Connection.map (replyView now) replies)
+    let
+        visibleReplies =
+            Connection.takeLast 5 connection
+
+        hasPreviousPage =
+            Connection.hasPreviousPage visibleReplies
+
+        isEmptyAndExpanded =
+            Connection.isEmptyAndExpanded visibleReplies
+    in
+        viewUnless isEmptyAndExpanded <|
+            div []
+                [ viewIf hasPreviousPage <|
+                    button [ class "my-2 text-dusty-blue" ] [ text "Show more..." ]
+                , div [] (Connection.map (replyView now) visibleReplies)
+                ]
 
 
 replyView : Date -> Reply -> Html Msg
@@ -777,3 +785,19 @@ newReplySubmittable { body, isSubmitting } =
 replyComposerId : String -> String
 replyComposerId postId =
     "reply-composer-" ++ postId
+
+
+viewIf : Bool -> Html msg -> Html msg
+viewIf truth view =
+    if truth == True then
+        view
+    else
+        text ""
+
+
+viewUnless : Bool -> Html msg -> Html msg
+viewUnless truth view =
+    if truth == False then
+        view
+    else
+        text ""
