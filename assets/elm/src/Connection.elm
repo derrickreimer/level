@@ -1,15 +1,16 @@
 module Connection
     exposing
         ( Connection
+        , Subset
         , fragment
+        , toList
+        , map
         , isEmpty
         , isExpandable
         , isEmptyAndExpanded
         , hasPreviousPage
         , hasNextPage
-        , toList
-        , map
-        , takeLast
+        , last
         , decoder
         , get
         , update
@@ -30,23 +31,29 @@ type alias PageInfo =
     }
 
 
-type alias PartialPageInfo =
-    { hasPreviousPage : Bool
+type alias Node a =
+    { a | id : String }
+
+
+type Connection a
+    = Connection (Data a)
+
+
+type alias Data a =
+    { nodes : List a
+    , pageInfo : PageInfo
+    }
+
+
+type alias Subset a =
+    { nodes : List a
+    , hasPreviousPage : Bool
     , hasNextPage : Bool
     }
 
 
-type alias Id =
-    String
 
-
-type alias Node a =
-    { a | id : Id }
-
-
-type Connection a
-    = FullConnection (List a) PageInfo
-    | PartialConnection (List a) PartialPageInfo
+-- GRAPHQL
 
 
 fragment : String -> Fragment -> Fragment
@@ -65,26 +72,34 @@ fragment name nodeFragment =
                 , "  }"
                 , "}"
                 ]
+
+        pageInfo =
+            GraphQL.fragment
+                """
+                fragment PageInfoFields on PageInfo {
+                  hasPreviousPage
+                  hasNextPage
+                  startCursor
+                  endCursor
+                }
+                """
+                []
     in
-        GraphQL.fragment body [ nodeFragment, pageInfoFragment ]
-
-
-pageInfoFragment : Fragment
-pageInfoFragment =
-    GraphQL.fragment
-        """
-        fragment PageInfoFields on PageInfo {
-          hasPreviousPage
-          hasNextPage
-          startCursor
-          endCursor
-        }
-        """
-        []
+        GraphQL.fragment body [ nodeFragment, pageInfo ]
 
 
 
--- BASICS
+-- LISTS
+
+
+toList : Connection a -> List a
+toList (Connection { nodes }) =
+    nodes
+
+
+map : (a -> b) -> Connection a -> List b
+map f connection =
+    List.map f (toList connection)
 
 
 isEmpty : Connection a -> Bool
@@ -95,30 +110,8 @@ isEmpty connection =
 
 
 isExpandable : Connection a -> Bool
-isExpandable connection =
-    let
-        ( nodes, hasPreviousPage, hasNextPage ) =
-            toPartialData connection
-    in
-        hasPreviousPage || hasNextPage
-
-
-hasPreviousPage : Connection a -> Bool
-hasPreviousPage connection =
-    let
-        ( _, hasPreviousPage, _ ) =
-            toPartialData connection
-    in
-        hasPreviousPage
-
-
-hasNextPage : Connection a -> Bool
-hasNextPage connection =
-    let
-        ( _, _, hasNextPage ) =
-            toPartialData connection
-    in
-        hasNextPage
+isExpandable (Connection { pageInfo }) =
+    pageInfo.hasPreviousPage || pageInfo.hasNextPage
 
 
 isEmptyAndExpanded : Connection a -> Bool
@@ -126,45 +119,34 @@ isEmptyAndExpanded connection =
     isEmpty connection && not (isExpandable connection)
 
 
-toList : Connection a -> List a
-toList connection =
-    case connection of
-        FullConnection nodes _ ->
-            nodes
 
-        PartialConnection nodes _ ->
-            nodes
+-- PAGINATION
 
 
-map : (a -> b) -> Connection a -> List b
-map f connection =
-    List.map f (toList connection)
+hasPreviousPage : Connection a -> Bool
+hasPreviousPage (Connection { pageInfo }) =
+    pageInfo.hasPreviousPage
 
 
-takeLast : Int -> Connection a -> Connection a
-takeLast n connection =
+hasNextPage : Connection a -> Bool
+hasNextPage (Connection { pageInfo }) =
+    pageInfo.hasNextPage
+
+
+
+-- SUBSETS
+
+
+last : Int -> Connection a -> Subset a
+last n (Connection { nodes, pageInfo }) =
     let
-        ( nodes, hasPreviousPage, hasNextPage ) =
-            toPartialData connection
-
-        partialHasPreviousPage =
-            size nodes > n || hasPreviousPage
+        hasPreviousPage =
+            size nodes > n || pageInfo.hasPreviousPage
 
         partialNodes =
             ListHelpers.takeLast n nodes
     in
-        PartialConnection partialNodes
-            (PartialPageInfo partialHasPreviousPage hasNextPage)
-
-
-toPartialData : Connection a -> ( List a, Bool, Bool )
-toPartialData connection =
-    case connection of
-        FullConnection nodes { hasPreviousPage, hasNextPage } ->
-            ( nodes, hasPreviousPage, hasNextPage )
-
-        PartialConnection nodes { hasPreviousPage, hasNextPage } ->
-            ( nodes, hasPreviousPage, hasNextPage )
+        Subset partialNodes hasPreviousPage pageInfo.hasNextPage
 
 
 
@@ -173,9 +155,10 @@ toPartialData connection =
 
 decoder : Decoder (Node a) -> Decoder (Connection (Node a))
 decoder nodeDecoder =
-    Decode.map2 FullConnection
-        (field "edges" (list (field "node" nodeDecoder)))
-        (field "pageInfo" pageInfoDecoder)
+    Decode.map Connection <|
+        Decode.map2 Data
+            (field "edges" (list (field "node" nodeDecoder)))
+            (field "pageInfo" pageInfoDecoder)
 
 
 pageInfoDecoder : Decoder PageInfo
@@ -235,11 +218,10 @@ append node connection =
         replaceNodes newNodes connection
 
 
-replaceNodes : List a -> Connection a -> Connection a
-replaceNodes newNodes connection =
-    case connection of
-        FullConnection _ pageInfo ->
-            FullConnection newNodes pageInfo
 
-        PartialConnection _ pageInfo ->
-            PartialConnection newNodes pageInfo
+-- INTERNAL
+
+
+replaceNodes : List a -> Connection a -> Connection a
+replaceNodes newNodes (Connection data) =
+    Connection { data | nodes = newNodes }

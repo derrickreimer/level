@@ -658,22 +658,16 @@ postView currentUser now replyComposers post =
 
 
 repliesView : Date -> Connection Reply -> Html Msg
-repliesView now connection =
+repliesView now conn =
     let
-        visibleReplies =
-            Connection.takeLast 5 connection
-
-        hasPreviousPage =
-            Connection.hasPreviousPage visibleReplies
-
-        isEmptyAndExpanded =
-            Connection.isEmptyAndExpanded visibleReplies
+        { nodes, hasPreviousPage } =
+            Connection.last 5 conn
     in
-        viewUnless isEmptyAndExpanded <|
+        viewUnless (Connection.isEmptyAndExpanded conn) <|
             div []
                 [ viewIf hasPreviousPage <|
                     button [ class "my-2 text-dusty-blue" ] [ text "Show more..." ]
-                , div [] (Connection.map (replyView now) visibleReplies)
+                , div [] (List.map (replyView now) nodes)
                 ]
 
 
@@ -728,9 +722,7 @@ replyComposerView currentUser replyComposers post =
                 replyPromptView currentUser post
 
         Nothing ->
-            if Connection.isEmpty post.replies then
-                text ""
-            else
+            viewIf (Connection.isEmpty post.replies) <|
                 replyPromptView currentUser post
 
 
