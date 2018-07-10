@@ -9,7 +9,7 @@ import Json.Encode as Encode
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Regex exposing (regex)
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
-import Util exposing (injectHtml)
+import ViewHelpers exposing (injectHtml)
 
 
 main : Program Flags Model Msg

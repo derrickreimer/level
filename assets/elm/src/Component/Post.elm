@@ -2,7 +2,6 @@ module Component.Post exposing (Model, Msg(..), update, view)
 
 import Date exposing (Date)
 import Dict
-import Dom exposing (focus, blur)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -17,10 +16,9 @@ import Data.SpaceUser exposing (SpaceUser)
 import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.ReplyToPost as ReplyToPost
-import Ports
 import Route
 import Session exposing (Session)
-import Util exposing (displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import ViewHelpers exposing (setFocus, unsetFocus, autosize, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
 -- MODEL
@@ -54,7 +52,7 @@ update msg spaceId replyComposers session post =
 
                 cmd =
                     Cmd.batch
-                        [ setFocus nodeId
+                        [ setFocus nodeId NoOp
                         , autosize Autosize.Init nodeId
                         ]
 
@@ -108,7 +106,7 @@ update msg spaceId replyComposers session post =
                         newReplyComposers =
                             Dict.insert post.id { composer | body = "", isSubmitting = False } replyComposers
                     in
-                        ( ( post, setFocus nodeId ), newReplyComposers, session )
+                        ( ( post, setFocus nodeId NoOp ), newReplyComposers, session )
 
                 Nothing ->
                     noCmd session replyComposers post
@@ -123,7 +121,7 @@ update msg spaceId replyComposers session post =
             case Dict.get post.id replyComposers of
                 Just composer ->
                     if composer.body == "" then
-                        ( ( post, unsetFocus (replyComposerId post.id) ), replyComposers, session )
+                        ( ( post, unsetFocus (replyComposerId post.id) NoOp ), replyComposers, session )
                     else
                         noCmd session replyComposers post
 
@@ -272,18 +270,3 @@ newReplySubmittable { body, isSubmitting } =
 replyComposerId : String -> String
 replyComposerId postId =
     "reply-composer-" ++ postId
-
-
-setFocus : String -> Cmd Msg
-setFocus id =
-    Task.attempt (always NoOp) <| focus id
-
-
-unsetFocus : String -> Cmd Msg
-unsetFocus id =
-    Task.attempt (always NoOp) <| blur id
-
-
-autosize : Autosize.Method -> String -> Cmd Msg
-autosize method id =
-    Ports.autosize (Autosize.buildArgs method id)

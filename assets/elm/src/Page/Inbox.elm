@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
 import Data.SpaceUser exposing (SpaceUser)
-import Util exposing (displayName)
+import ViewHelpers exposing (displayName)
 
 
 -- UPDATE

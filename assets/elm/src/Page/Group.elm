@@ -2,7 +2,6 @@ module Page.Group exposing (..)
 
 import Date exposing (Date)
 import Dict exposing (Dict)
-import Dom exposing (focus, blur)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -19,7 +18,6 @@ import Data.Reply exposing (Reply)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
-import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
@@ -32,7 +30,7 @@ import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription exposing (GroupMembershipUpdatedPayload)
 import Subscription.PostSubscription as PostSubscription
-import Util exposing (displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import ViewHelpers exposing (setFocus, autosize, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
 -- MODEL
@@ -115,7 +113,7 @@ buildModel user space ( session, { group, state, posts, featuredMemberships, now
 afterInit : Model -> Cmd Msg
 afterInit { group, posts } =
     Cmd.batch
-        [ setFocus "post-composer"
+        [ setFocus "post-composer" NoOp
         , autosize Autosize.Init "post-composer"
         , setupSockets group.id (Connection.toList posts)
         ]
@@ -213,7 +211,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                     { nameEditor | state = Editing, value = group.name, errors = [] }
             in
                 ( ( { model | nameEditor = newEditor }
-                  , Cmd.batch [ setFocus "name-editor-value", Ports.select "name-editor-value" ]
+                  , Cmd.batch [ setFocus "name-editor-value" NoOp, Ports.select "name-editor-value" ]
                   )
                 , session
                 )
@@ -334,21 +332,6 @@ teardownSockets groupId posts =
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 redirectToLogin session model =
     ( ( model, Route.toLogin ), session )
-
-
-setFocus : String -> Cmd Msg
-setFocus id =
-    Task.attempt (always NoOp) <| focus id
-
-
-unsetFocus : String -> Cmd Msg
-unsetFocus id =
-    Task.attempt (always NoOp) <| blur id
-
-
-autosize : Autosize.Method -> String -> Cmd Msg
-autosize method id =
-    Ports.autosize (Autosize.buildArgs method id)
 
 
 

@@ -6,7 +6,7 @@ module Icons
         )
 
 import Html exposing (Html)
-import Util exposing (injectHtml)
+import ViewHelpers exposing (injectHtml)
 
 
 toHtml : String -> Html msg

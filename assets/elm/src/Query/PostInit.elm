@@ -3,7 +3,6 @@ module Query.PostInit exposing (Params, Response, task)
 import Date exposing (Date)
 import Http
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Task exposing (Task)
 import Data.Post exposing (Post)

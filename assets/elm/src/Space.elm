@@ -28,7 +28,8 @@ import Route exposing (Route)
 import Session exposing (Session)
 import Socket
 import ListHelpers exposing (insertUniqueById, removeById)
-import Util exposing (Lazy(..), displayName)
+import Util exposing (Lazy(..))
+import ViewHelpers exposing (displayName)
 
 
 main : Program Flags Model Msg
