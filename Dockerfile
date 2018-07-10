@@ -15,6 +15,7 @@ RUN set -ex \
   && apt-get install -y \
     apt-transport-https \
     build-essential \
+    inotify-tools \
     libssl-dev \
     postgresql-client
 
