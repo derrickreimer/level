@@ -15,6 +15,7 @@ defmodule Level.Posts do
   alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
+  alias Level.Users.User
 
   @behaviour Level.DataloaderSource
 
@@ -31,8 +32,20 @@ defmodule Level.Posts do
 
   TODO: add a notion of being "subscribed" to a post?
   """
+  @spec posts_base_query(User.t()) :: Ecto.Query.t()
   @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
-  def posts_base_query(%SpaceUser{id: space_user_id} = space_user) do
+
+  def posts_base_query(%User{id: user_id} = _user) do
+    from p in Post,
+      join: su in SpaceUser,
+      on: su.space_id == p.space_id and su.user_id == ^user_id,
+      join: g in assoc(p, :groups),
+      left_join: gu in GroupUser,
+      on: gu.space_user_id == su.id and gu.group_id == g.id,
+      where: g.is_private == false or not is_nil(gu.id)
+  end
+
+  def posts_base_query(%SpaceUser{id: space_user_id} = _space_user) do
     from p in Post,
       join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
@@ -138,7 +151,6 @@ defmodule Level.Posts do
   def dataloader_data(_), do: raise("authentication required")
 
   @impl true
-  # TODO: scope the query for posts
-  def dataloader_query(Post, %{current_user: _user}), do: Post
+  def dataloader_query(Post, %{current_user: user}), do: posts_base_query(user)
   def dataloader_query(_, _), do: raise("query not valid for this context")
 end
