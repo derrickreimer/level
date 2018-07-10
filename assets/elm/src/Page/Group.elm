@@ -22,7 +22,6 @@ import Data.ValidationError exposing (ValidationError)
 import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.PostToGroup as PostToGroup
-import Mutation.ReplyToPost as ReplyToPost
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Ports
