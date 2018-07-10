@@ -23,7 +23,7 @@ config :level, Level.Repo,
   username: "postgres",
   password: "postgres",
   database: "level_test",
-  hostname: "localhost",
+  hostname: System.get_env("LEVEL_TEST_DB_HOSTNAME") || "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
 # Make tests run faster by reducing encryption rounds
