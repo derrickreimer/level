@@ -3,10 +3,12 @@ defmodule Level.Posts do
   The Posts context.
   """
 
+  import Ecto.Query, warn: false
   import Level.Gettext
 
   alias Ecto.Multi
   alias Level.Groups.Group
+  alias Level.Groups.GroupUser
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
   alias Level.Posts.Reply
@@ -25,18 +27,36 @@ defmodule Level.Posts do
   @type reply_to_post_result :: {:ok, %{reply: Reply.t()}} | {:error, Ecto.Changeset.t()}
 
   @doc """
+  Builds a query for posts accessible to a particular user.
+
+  TODO: add a notion of being "subscribed" to a post?
+  """
+  @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
+  def posts_base_query(%SpaceUser{id: space_user_id} = space_user) do
+    from p in Post,
+      join: g in assoc(p, :groups),
+      left_join: gu in GroupUser,
+      on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
+      where: g.is_private == false or not is_nil(gu.id)
+  end
+
+  @doc """
   Fetches a post by id.
   """
-  @spec get_post(SpaceUser.t(), String.t()) :: {:ok, Post.t()}
-  def get_post(%SpaceUser{space_id: space_id}, id) do
-    # TODO: scope this query
-    case Repo.get_by(Post, space_id: space_id, id: id) do
-      %Post{} = post ->
-        {:ok, post}
+  @spec get_post(SpaceUser.t(), String.t()) :: {:ok, Post.t()} | {:error, String.t()}
+  def get_post(%SpaceUser{} = space_user, id) do
+    space_user
+    |> posts_base_query()
+    |> Repo.get_by(id: id)
+    |> handle_post_query()
+  end
 
-      _ ->
-        {:error, dgettext("errors", "Post not found")}
-    end
+  defp handle_post_query(%Post{} = post) do
+    {:ok, post}
+  end
+
+  defp handle_post_query(_) do
+    {:error, dgettext("errors", "Post not found")}
   end
 
   @doc """

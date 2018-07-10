@@ -166,4 +166,18 @@ defmodule Level.Connections do
   def replies(post, args, info) do
     Replies.get(post, struct(Replies, args), info)
   end
+
+  @doc """
+  Fetches a post by id.
+  """
+  @spec post(Space.t(), map(), authenticated_context()) :: {:ok, Post.t()} | {:error, String.t()}
+  def post(space, %{id: id} = _args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space.id),
+         {:ok, post} <- Level.Posts.get_post(space_user, id) do
+      {:ok, post}
+    else
+      error ->
+        error
+    end
+  end
 end

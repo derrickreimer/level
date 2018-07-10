@@ -104,9 +104,14 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Level.Connections.groups/3
     end
 
-    field :group, non_null(:group) do
+    field :group, :group do
       arg :id, non_null(:id)
       resolve &Level.Connections.group/3
+    end
+
+    field :post, :post do
+      arg :id, non_null(:id)
+      resolve &Level.Connections.post/3
     end
 
     @desc "A preview of space users (for display in the directory sidebar)."
