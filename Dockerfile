@@ -52,7 +52,8 @@ ADD *.exs *.lock *.config ./
 RUN set -ex \
   && mix local.hex --force \
   && mix local.rebar --force \
-  && mix deps.get
+  && mix deps.get \
+  && mix compile
 
 # https://github.com/levelhq/level/blob/master/script/bootstrap#L41-L44
 RUN bash -l -c 'yarn global add elm-format'
