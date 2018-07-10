@@ -39,22 +39,22 @@ type alias Id =
 
 
 type Msg
-    = ExpandReplyComposer Id
-    | NewReplyBodyChanged Id String
-    | NewReplyBlurred Id
-    | NewReplySubmit Id
-    | NewReplyEscaped Id
-    | NewReplySubmitted Id (Result Session.Error ( Session, ReplyToPost.Response ))
+    = ExpandReplyComposer
+    | NewReplyBodyChanged String
+    | NewReplyBlurred
+    | NewReplySubmit
+    | NewReplyEscaped
+    | NewReplySubmitted (Result Session.Error ( Session, ReplyToPost.Response ))
     | NoOp
 
 
 update : Msg -> String -> ReplyComposers -> Session -> Model -> ( ( Model, Cmd Msg ), ReplyComposers, Session )
-update msg spaceId replyComposers session model =
+update msg spaceId replyComposers session post =
     case msg of
-        ExpandReplyComposer postId ->
+        ExpandReplyComposer ->
             let
                 nodeId =
-                    replyComposerId postId
+                    replyComposerId post.id
 
                 cmd =
                     Cmd.batch
@@ -63,91 +63,91 @@ update msg spaceId replyComposers session model =
                         ]
 
                 newReplyComposers =
-                    case Dict.get postId replyComposers of
+                    case Dict.get post.id replyComposers of
                         Just composer ->
-                            Dict.insert postId { composer | isExpanded = True } replyComposers
+                            Dict.insert post.id { composer | isExpanded = True } replyComposers
 
                         Nothing ->
-                            Dict.insert postId (ReplyComposer "" True False) replyComposers
+                            Dict.insert post.id (ReplyComposer "" True False) replyComposers
             in
-                ( ( model, cmd ), newReplyComposers, session )
+                ( ( post, cmd ), newReplyComposers, session )
 
-        NewReplyBodyChanged postId val ->
-            case Dict.get postId replyComposers of
+        NewReplyBodyChanged val ->
+            case Dict.get post.id replyComposers of
                 Just composer ->
                     let
                         newReplyComposers =
-                            Dict.insert postId { composer | body = val } replyComposers
+                            Dict.insert post.id { composer | body = val } replyComposers
                     in
-                        noCmd session newReplyComposers model
+                        noCmd session newReplyComposers post
 
                 Nothing ->
-                    noCmd session replyComposers model
+                    noCmd session replyComposers post
 
-        NewReplySubmit postId ->
-            case Dict.get postId replyComposers of
+        NewReplySubmit ->
+            case Dict.get post.id replyComposers of
                 Just composer ->
                     let
                         newReplyComposers =
-                            Dict.insert postId { composer | isSubmitting = True } replyComposers
+                            Dict.insert post.id { composer | isSubmitting = True } replyComposers
 
                         cmd =
-                            ReplyToPost.Params spaceId postId composer.body
+                            ReplyToPost.Params spaceId post.id composer.body
                                 |> ReplyToPost.request
                                 |> Session.request session
-                                |> Task.attempt (NewReplySubmitted postId)
+                                |> Task.attempt NewReplySubmitted
                     in
-                        ( ( model, cmd ), newReplyComposers, session )
+                        ( ( post, cmd ), newReplyComposers, session )
 
                 Nothing ->
-                    noCmd session replyComposers model
+                    noCmd session replyComposers post
 
-        NewReplySubmitted postId (Ok ( session, reply )) ->
-            case Dict.get postId replyComposers of
+        NewReplySubmitted (Ok ( session, reply )) ->
+            case Dict.get post.id replyComposers of
                 Just composer ->
                     let
                         nodeId =
-                            replyComposerId postId
+                            replyComposerId post.id
 
                         newReplyComposers =
-                            Dict.insert postId { composer | body = "", isSubmitting = False } replyComposers
+                            Dict.insert post.id { composer | body = "", isSubmitting = False } replyComposers
                     in
-                        ( ( model, setFocus nodeId ), newReplyComposers, session )
+                        ( ( post, setFocus nodeId ), newReplyComposers, session )
 
                 Nothing ->
-                    noCmd session replyComposers model
+                    noCmd session replyComposers post
 
-        NewReplySubmitted postId (Err Session.Expired) ->
-            redirectToLogin session replyComposers model
+        NewReplySubmitted (Err Session.Expired) ->
+            redirectToLogin session replyComposers post
 
-        NewReplySubmitted postId (Err _) ->
-            noCmd session replyComposers model
+        NewReplySubmitted (Err _) ->
+            noCmd session replyComposers post
 
-        NewReplyEscaped postId ->
-            case Dict.get postId replyComposers of
+        NewReplyEscaped ->
+            case Dict.get post.id replyComposers of
                 Just composer ->
                     if composer.body == "" then
-                        ( ( model, unsetFocus (replyComposerId postId) ), replyComposers, session )
+                        ( ( post, unsetFocus (replyComposerId post.id) ), replyComposers, session )
                     else
-                        noCmd session replyComposers model
+                        noCmd session replyComposers post
 
                 Nothing ->
-                    noCmd session replyComposers model
+                    noCmd session replyComposers post
 
-        NewReplyBlurred postId ->
-            case Dict.get postId replyComposers of
+        NewReplyBlurred ->
+            case Dict.get post.id replyComposers of
                 Just composer ->
                     let
                         newReplyComposers =
-                            Dict.insert postId { composer | isExpanded = not (composer.body == "") } replyComposers
+                            Dict.insert post.id { composer | isExpanded = not (composer.body == "") } replyComposers
                     in
-                        noCmd session newReplyComposers model
+                        noCmd session newReplyComposers post
 
                 Nothing ->
-                    noCmd session replyComposers model
+                    noCmd session replyComposers post
 
         NoOp ->
-            noCmd session replyComposers model
+            noCmd session replyComposers post
 
 
 noCmd : Session -> ReplyComposers -> Model -> ( ( Model, Cmd Msg ), ReplyComposers, Session )
@@ -176,7 +176,7 @@ view currentUser now replyComposers post =
             , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
-                    [ button [ class "inline-block mr-4", onClick (ExpandReplyComposer post.id) ] [ Icons.comment ]
+                    [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
                     ]
                 ]
             , repliesView post now post.replies
@@ -225,12 +225,12 @@ replyComposerView currentUser replyComposers post =
                                 [ id (replyComposerId post.id)
                                 , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                                 , placeholder "Write a reply..."
-                                , onInput (NewReplyBodyChanged post.id)
+                                , onInput NewReplyBodyChanged
                                 , onKeydown preventDefault
-                                    [ ( [ Meta ], enter, \event -> NewReplySubmit post.id )
-                                    , ( [], esc, \event -> NewReplyEscaped post.id )
+                                    [ ( [ Meta ], enter, \event -> NewReplySubmit )
+                                    , ( [], esc, \event -> NewReplyEscaped )
                                     ]
-                                , onBlur (NewReplyBlurred post.id)
+                                , onBlur NewReplyBlurred
                                 , value composer.body
                                 , readonly composer.isSubmitting
                                 ]
@@ -238,7 +238,7 @@ replyComposerView currentUser replyComposers post =
                             , div [ class "flex justify-end" ]
                                 [ button
                                     [ class "btn btn-blue btn-sm"
-                                    , onClick (NewReplySubmit post.id)
+                                    , onClick NewReplySubmit
                                     , disabled (not (newReplySubmittable composer))
                                     ]
                                     [ text "Post reply" ]
@@ -256,7 +256,7 @@ replyComposerView currentUser replyComposers post =
 
 replyPromptView : SpaceUser -> Post -> Html Msg
 replyPromptView currentUser post =
-    button [ class "flex my-3 items-center", onClick (ExpandReplyComposer post.id) ]
+    button [ class "flex my-3 items-center", onClick ExpandReplyComposer ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small currentUser ]
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
             [ text "Write a reply..."
