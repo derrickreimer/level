@@ -12,6 +12,8 @@ module Util
         , postWithCsrfToken
         , displayName
         , injectHtml
+        , viewIf
+        , viewUnless
         )
 
 import Date exposing (Date)
@@ -164,7 +166,7 @@ postWithCsrfToken token url body decoder =
 
 
 
--- MISC
+-- VIEW HELPERS
 
 
 {-| Generate the display name for a given user.
@@ -182,3 +184,23 @@ displayName nameable =
 injectHtml : String -> Html msg
 injectHtml rawHtml =
     div [ property "innerHTML" <| Encode.string rawHtml ] []
+
+
+{-| Render the given HTML if the truth value is true.
+-}
+viewIf : Bool -> Html msg -> Html msg
+viewIf truth view =
+    if truth == True then
+        view
+    else
+        text ""
+
+
+{-| Render the given HTML if the truth value is false.
+-}
+viewUnless : Bool -> Html msg -> Html msg
+viewUnless truth view =
+    if truth == False then
+        view
+    else
+        text ""

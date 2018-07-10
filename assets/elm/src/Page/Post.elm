@@ -6,8 +6,9 @@ import Task exposing (Task)
 import Data.Post exposing (Post)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
-import Session exposing (Session)
 import Query.PostInit as PostInit
+import Repo exposing (Repo)
+import Session exposing (Session)
 
 
 -- MODEL
@@ -41,9 +42,9 @@ type Msg
     = NoOp
 
 
-update : Model -> ( Model, Cmd Msg )
-update model =
-    ( model, Cmd.none )
+update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg repo session model =
+    ( ( model, Cmd.none ), session )
 
 
 

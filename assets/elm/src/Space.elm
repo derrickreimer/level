@@ -226,6 +226,15 @@ update msg model =
                     , Cmd.map GroupMsg cmd
                     )
 
+            ( PostMsg msg, Post pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), session ) =
+                        Page.Post.update msg model.repo model.session pageModel
+                in
+                    ( { model | session = session, page = Post newPageModel }
+                    , Cmd.map PostMsg cmd
+                    )
+
             ( Push payload, _ ) ->
                 ( model, Ports.push payload )
 
