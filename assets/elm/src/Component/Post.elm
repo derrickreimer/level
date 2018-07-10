@@ -30,10 +30,6 @@ type alias Model =
     Post
 
 
-type alias Id =
-    String
-
-
 
 -- UPDATE
 
