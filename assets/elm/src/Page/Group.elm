@@ -1,4 +1,17 @@
-module Page.Group exposing (..)
+module Page.Group
+    exposing
+        ( Model
+        , Msg(..)
+        , init
+        , afterInit
+        , teardown
+        , update
+        , subscriptions
+        , view
+        , handlePostCreated
+        , handleReplyCreated
+        , handleGroupMembershipUpdated
+        )
 
 import Date exposing (Date)
 import Html exposing (..)
@@ -68,7 +81,7 @@ type alias Model =
 
 
 
--- INIT
+-- LIFECYCLE
 
 
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
@@ -108,6 +121,38 @@ afterInit { group, posts } =
 teardown : Model -> Cmd Msg
 teardown { group, posts } =
     teardownSockets group.id (Connection.toList posts)
+
+
+setupSockets : String -> List Post -> Cmd Msg
+setupSockets groupId posts =
+    let
+        groupSubscription =
+            GroupSubscription.subscribe groupId
+
+        postSubscriptions =
+            posts
+                |> List.map .id
+                |> List.map PostSubscription.subscribe
+    in
+        groupSubscription
+            :: postSubscriptions
+            |> Cmd.batch
+
+
+teardownSockets : String -> List Post -> Cmd Msg
+teardownSockets groupId posts =
+    let
+        groupUnsubscribe =
+            GroupSubscription.unsubscribe groupId
+
+        postUnsubscribes =
+            posts
+                |> List.map .id
+                |> List.map PostSubscription.unsubscribe
+    in
+        groupUnsubscribe
+            :: postUnsubscribes
+            |> Cmd.batch
 
 
 
@@ -278,40 +323,6 @@ noCmd session model =
     ( ( model, Cmd.none ), session )
 
 
-setupSockets : String -> List Post -> Cmd Msg
-setupSockets groupId posts =
-    let
-        groupPayload =
-            GroupSubscription.payload groupId
-
-        postPayloads =
-            posts
-                |> List.map .id
-                |> List.map PostSubscription.payload
-    in
-        groupPayload
-            :: postPayloads
-            |> List.map Ports.push
-            |> Cmd.batch
-
-
-teardownSockets : String -> List Post -> Cmd Msg
-teardownSockets groupId posts =
-    let
-        groupPayload =
-            GroupSubscription.clientId groupId
-
-        postPayloads =
-            posts
-                |> List.map .id
-                |> List.map PostSubscription.clientId
-    in
-        groupPayload
-            :: postPayloads
-            |> List.map Ports.cancel
-            |> Cmd.batch
-
-
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 redirectToLogin session model =
     ( ( model, Route.toLogin ), session )
@@ -324,7 +335,7 @@ redirectToLogin session model =
 handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
 handlePostCreated post ({ posts, group } as model) =
     ( { model | posts = Connection.prepend post posts }
-    , Ports.push (PostSubscription.payload post.id)
+    , PostSubscription.subscribe post.id
     )
 
 

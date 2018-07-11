@@ -1,17 +1,33 @@
-module Page.Post exposing (..)
+module Page.Post
+    exposing
+        ( Model
+        , Msg(..)
+        , init
+        , afterInit
+        , teardown
+        , update
+        , subscriptions
+        , view
+        , handleReplyCreated
+        )
 
 import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Task exposing (Task)
+import Time exposing (Time, every, second)
 import Component.Post
 import Data.Post exposing (Post)
+import Data.Reply exposing (Reply)
 import Data.ReplyComposer
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
+import Icons
+import Ports
 import Query.PostInit as PostInit
 import Repo exposing (Repo)
 import Session exposing (Session)
+import Subscription.PostSubscription as PostSubscription
 
 
 -- MODEL
@@ -23,6 +39,10 @@ type alias Model =
     , user : SpaceUser
     , now : Date
     }
+
+
+
+-- LIFECYCLE
 
 
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
@@ -43,12 +63,33 @@ buildModel user space ( session, { post, now } ) =
         Task.succeed ( session, Model newPost space user now )
 
 
+afterInit : Model -> Cmd Msg
+afterInit { post } =
+    setupSockets post.id
+
+
+teardown : Model -> Cmd Msg
+teardown { post } =
+    teardownSockets post.id
+
+
+setupSockets : String -> Cmd Msg
+setupSockets postId =
+    PostSubscription.subscribe postId
+
+
+teardownSockets : String -> Cmd Msg
+teardownSockets postId =
+    PostSubscription.unsubscribe postId
+
+
 
 -- UPDATE
 
 
 type Msg
     = PostComponentMsg Component.Post.Msg
+    | Tick Time
     | NoOp
 
 
@@ -66,6 +107,10 @@ update msg repo session ({ post } as model) =
                 , newSession
                 )
 
+        Tick time ->
+            { model | now = Date.fromTime time }
+                |> noCmd session
+
         NoOp ->
             noCmd session model
 
@@ -73,6 +118,27 @@ update msg repo session ({ post } as model) =
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
     ( ( model, Cmd.none ), session )
+
+
+
+-- EVENT HANDLERS
+
+
+handleReplyCreated : Reply -> Model -> Model
+handleReplyCreated reply ({ post } as model) =
+    if reply.postId == post.id then
+        { model | post = Data.Post.appendReply reply post }
+    else
+        model
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Sub Msg
+subscriptions =
+    every second Tick
 
 
 

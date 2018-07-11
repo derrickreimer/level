@@ -1,7 +1,7 @@
 module Subscription.PostSubscription
     exposing
-        ( clientId
-        , payload
+        ( subscribe
+        , unsubscribe
         , replyCreatedDecoder
         )
 
@@ -10,7 +10,45 @@ import Json.Encode as Encode
 import Data.SpaceUser
 import Data.Reply exposing (Reply)
 import GraphQL exposing (Document)
+import Ports
 import Socket
+
+
+-- SOCKETS
+
+
+subscribe : String -> Cmd msg
+subscribe postId =
+    postId
+        |> payload
+        |> Ports.push
+
+
+unsubscribe : String -> Cmd msg
+unsubscribe postId =
+    postId
+        |> clientId
+        |> Ports.cancel
+
+
+
+-- DECODERS
+
+
+replyCreatedDecoder : Decode.Decoder Reply
+replyCreatedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "ReplyCreatedPayload" then
+                Decode.field "reply" Data.Reply.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+
+-- INTERNAL
 
 
 clientId : String -> String
@@ -58,15 +96,3 @@ decodeByTypename payloadDecoder =
         (Decode.field "__typename" Decode.string
             |> Decode.andThen payloadDecoder
         )
-
-
-replyCreatedDecoder : Decode.Decoder Reply
-replyCreatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "ReplyCreatedPayload" then
-                Decode.field "reply" Data.Reply.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder

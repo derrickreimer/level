@@ -377,7 +377,8 @@ handlePageInit pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Cmd.none
+            , Page.Post.afterInit pageModel
+                |> Cmd.map PostMsg
             )
 
         PostInit _ (Err Session.Expired) ->
@@ -488,12 +489,7 @@ teardown page =
 
 setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
 setupSockets sharedState model =
-    let
-        payloads =
-            [ SpaceUserSubscription.payload sharedState.user.id
-            ]
-    in
-        ( model, payloads |> List.map Ports.push |> Cmd.batch )
+    ( model, SpaceUserSubscription.subscribe sharedState.user.id )
 
 
 updateSetupState : Setup.State -> Model -> Model
@@ -521,6 +517,13 @@ handleReplyCreated reply ({ page } as model) =
             in
                 { model | page = Group newPageModel }
 
+        Post pageModel ->
+            let
+                newPageModel =
+                    Page.Post.handleReplyCreated reply pageModel
+            in
+                { model | page = Post newPageModel }
+
         _ ->
             model
 
@@ -546,6 +549,9 @@ pageSubscription model =
     case model.page of
         Group _ ->
             Sub.map GroupMsg Page.Group.subscriptions
+
+        Post _ ->
+            Sub.map PostMsg Page.Post.subscriptions
 
         _ ->
             Sub.none

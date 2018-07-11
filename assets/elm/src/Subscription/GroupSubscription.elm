@@ -1,8 +1,8 @@
 module Subscription.GroupSubscription
     exposing
         ( GroupMembershipUpdatedPayload
-        , clientId
-        , payload
+        , subscribe
+        , unsubscribe
         , groupUpdatedDecoder
         , postCreatedDecoder
         , groupMembershipUpdatedDecoder
@@ -11,16 +11,16 @@ module Subscription.GroupSubscription
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Data.Group exposing (Group)
-import Data.GroupMembership
-    exposing
-        ( GroupMembership
-        , GroupMembershipState
-        )
+import Data.GroupMembership exposing (GroupMembership, GroupMembershipState)
 import Data.Post exposing (Post)
 import Data.Reply
 import Data.SpaceUser
 import GraphQL exposing (Document)
+import Ports
 import Socket
+
+
+-- TYPES
 
 
 type alias GroupMembershipUpdatedPayload =
@@ -28,6 +28,73 @@ type alias GroupMembershipUpdatedPayload =
     , membership : GroupMembership
     , state : GroupMembershipState
     }
+
+
+
+-- SOCKETS
+
+
+subscribe : String -> Cmd msg
+subscribe groupId =
+    groupId
+        |> payload
+        |> Ports.push
+
+
+unsubscribe : String -> Cmd msg
+unsubscribe groupId =
+    groupId
+        |> clientId
+        |> Ports.cancel
+
+
+
+-- DECODERS
+
+
+groupUpdatedDecoder : Decode.Decoder Group
+groupUpdatedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "GroupUpdatedPayload" then
+                Decode.field "group" Data.Group.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+postCreatedDecoder : Decode.Decoder Post
+postCreatedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "PostCreatedPayload" then
+                Decode.field "post" Data.Post.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+groupMembershipUpdatedDecoder : Decode.Decoder GroupMembershipUpdatedPayload
+groupMembershipUpdatedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "GroupMembershipUpdatedPayload" then
+                Decode.at [ "membership" ] <|
+                    (Decode.map3 GroupMembershipUpdatedPayload
+                        (Decode.at [ "group", "id" ] Decode.string)
+                        Data.GroupMembership.decoder
+                        (Decode.at [ "state" ] Data.GroupMembership.stateDecoder)
+                    )
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+
+-- INTERNAL
 
 
 clientId : String -> String
@@ -93,44 +160,3 @@ decodeByTypename payloadDecoder =
         (Decode.field "__typename" Decode.string
             |> Decode.andThen payloadDecoder
         )
-
-
-groupUpdatedDecoder : Decode.Decoder Group
-groupUpdatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupUpdatedPayload" then
-                Decode.field "group" Data.Group.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
-
-
-postCreatedDecoder : Decode.Decoder Post
-postCreatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "PostCreatedPayload" then
-                Decode.field "post" Data.Post.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
-
-
-groupMembershipUpdatedDecoder : Decode.Decoder GroupMembershipUpdatedPayload
-groupMembershipUpdatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupMembershipUpdatedPayload" then
-                Decode.at [ "membership" ] <|
-                    (Decode.map3 GroupMembershipUpdatedPayload
-                        (Decode.at [ "group", "id" ] Decode.string)
-                        Data.GroupMembership.decoder
-                        (Decode.at [ "state" ] Data.GroupMembership.stateDecoder)
-                    )
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder

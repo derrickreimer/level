@@ -1,7 +1,7 @@
 module Subscription.SpaceUserSubscription
     exposing
-        ( clientId
-        , payload
+        ( subscribe
+        , unsubscribe
         , groupBookmarkedDecoder
         , groupUnbookmarkedDecoder
         )
@@ -10,7 +10,57 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Data.Group exposing (Group)
 import GraphQL exposing (Document)
+import Ports
 import Socket
+
+
+-- SOCKETS
+
+
+subscribe : String -> Cmd msg
+subscribe spaceUserID =
+    spaceUserID
+        |> payload
+        |> Ports.push
+
+
+unsubscribe : String -> Cmd msg
+unsubscribe spaceUserID =
+    spaceUserID
+        |> clientId
+        |> Ports.cancel
+
+
+
+-- DECODERS
+
+
+groupBookmarkedDecoder : Decode.Decoder Group
+groupBookmarkedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "GroupBookmarkedPayload" then
+                Decode.field "group" Data.Group.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+groupUnbookmarkedDecoder : Decode.Decoder Group
+groupUnbookmarkedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "GroupUnbookmarkedPayload" then
+                Decode.field "group" Data.Group.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+
+-- INTERNAL
 
 
 clientId : String -> String
@@ -62,27 +112,3 @@ decodeByTypename payloadDecoder =
         (Decode.field "__typename" Decode.string
             |> Decode.andThen payloadDecoder
         )
-
-
-groupBookmarkedDecoder : Decode.Decoder Group
-groupBookmarkedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupBookmarkedPayload" then
-                Decode.field "group" Data.Group.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
-
-
-groupUnbookmarkedDecoder : Decode.Decoder Group
-groupUnbookmarkedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupUnbookmarkedPayload" then
-                Decode.field "group" Data.Group.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder

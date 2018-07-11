@@ -3,6 +3,7 @@ module Icons
         ( heart
         , sync
         , comment
+        , arrowLeft
         )
 
 import Html exposing (Html)
@@ -61,6 +62,24 @@ comment =
             <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
                 <g id="message-square" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
                     <path d="M14,9.33333333 C14,10.1924429 13.3035541,10.8888889 12.4444444,10.8888889 L3.11111111,10.8888889 L0,14 L0,1.55555556 C0,0.696445945 0.696445945,0 1.55555556,0 L12.4444444,0 C13.3035541,0 14,0.696445945 14,1.55555556 L14,9.33333333 Z" id="Shape"></path>
+                </g>
+            </g>
+        </svg>
+        """
+
+
+arrowLeft : Html msg
+arrowLeft =
+    toHtml
+        """
+        <svg width="16px" height="14px" viewBox="0 0 16 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="arrow-left" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
+                    <path d="M14,6 L0,6" id="Shape"></path>
+                    <polyline id="Shape" points="6 12 0 6 6 0"></polyline>
                 </g>
             </g>
         </svg>
