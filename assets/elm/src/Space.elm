@@ -677,7 +677,7 @@ pageContent repo sharedState page =
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view
+                |> Page.Post.view repo
                 |> Html.map PostMsg
 
         Blank ->

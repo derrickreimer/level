@@ -1,7 +1,6 @@
 module Component.Post exposing (Model, Msg(..), update, view)
 
 import Date exposing (Date)
-import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -10,7 +9,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer exposing (ReplyComposer)
+import Data.ReplyComposer as ReplyComposer
 import Data.Post exposing (Post)
 import Data.SpaceUser exposing (SpaceUser)
 import Icons
@@ -58,7 +57,7 @@ update msg spaceId session post =
 
                 newPost =
                     post.replyComposer
-                        |> Data.ReplyComposer.expand
+                        |> ReplyComposer.expand
                         |> Data.Post.setReplyComposer post
             in
                 ( ( newPost, cmd ), session )
@@ -67,7 +66,7 @@ update msg spaceId session post =
             let
                 newPost =
                     post.replyComposer
-                        |> Data.ReplyComposer.setBody val
+                        |> ReplyComposer.setBody val
                         |> Data.Post.setReplyComposer post
             in
                 noCmd session newPost
@@ -76,11 +75,11 @@ update msg spaceId session post =
             let
                 newPost =
                     post.replyComposer
-                        |> Data.ReplyComposer.submitting
+                        |> ReplyComposer.submitting
                         |> Data.Post.setReplyComposer post
 
                 cmd =
-                    Data.ReplyComposer.getBody post.replyComposer
+                    ReplyComposer.getBody post.replyComposer
                         |> ReplyToPost.Params spaceId post.id
                         |> ReplyToPost.request
                         |> Session.request session
@@ -95,8 +94,8 @@ update msg spaceId session post =
 
                 newPost =
                     post.replyComposer
-                        |> Data.ReplyComposer.notSubmitting
-                        |> Data.ReplyComposer.setBody ""
+                        |> ReplyComposer.notSubmitting
+                        |> ReplyComposer.setBody ""
                         |> Data.Post.setReplyComposer post
             in
                 ( ( newPost, setFocus nodeId NoOp ), session )
@@ -113,7 +112,7 @@ update msg spaceId session post =
                     replyComposerId post.id
 
                 replyBody =
-                    Data.ReplyComposer.getBody post.replyComposer
+                    ReplyComposer.getBody post.replyComposer
             in
                 if replyBody == "" then
                     ( ( post, unsetFocus nodeId NoOp ), session )
@@ -126,15 +125,15 @@ update msg spaceId session post =
                     replyComposerId post.id
 
                 replyBody =
-                    Data.ReplyComposer.getBody post.replyComposer
+                    ReplyComposer.getBody post.replyComposer
 
                 composer =
                     if replyBody == "" then
                         post.replyComposer
-                            |> Data.ReplyComposer.collapse
+                            |> ReplyComposer.collapse
                     else
                         post.replyComposer
-                            |> Data.ReplyComposer.expand
+                            |> ReplyComposer.expand
             in
                 noCmd session (Data.Post.setReplyComposer post composer)
 
@@ -206,7 +205,7 @@ replyView now reply =
 
 replyComposerView : SpaceUser -> Post -> Html Msg
 replyComposerView currentUser ({ replyComposer } as post) =
-    if Data.ReplyComposer.isExpanded replyComposer then
+    if ReplyComposer.isExpanded replyComposer then
         div [ class "composer mt-3 -ml-3 p-3" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
@@ -221,15 +220,15 @@ replyComposerView currentUser ({ replyComposer } as post) =
                             , ( [], esc, \event -> NewReplyEscaped )
                             ]
                         , onBlur NewReplyBlurred
-                        , value (Data.ReplyComposer.getBody replyComposer)
-                        , readonly (Data.ReplyComposer.isSubmitting replyComposer)
+                        , value (ReplyComposer.getBody replyComposer)
+                        , readonly (ReplyComposer.isSubmitting replyComposer)
                         ]
                         []
                     , div [ class "flex justify-end" ]
                         [ button
                             [ class "btn btn-blue btn-sm"
                             , onClick NewReplySubmit
-                            , disabled (Data.ReplyComposer.unsubmittable replyComposer)
+                            , disabled (ReplyComposer.unsubmittable replyComposer)
                             ]
                             [ text "Post reply" ]
                         ]

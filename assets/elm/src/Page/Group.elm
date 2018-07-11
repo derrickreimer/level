@@ -1,7 +1,6 @@
 module Page.Group exposing (..)
 
 import Date exposing (Date)
-import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)

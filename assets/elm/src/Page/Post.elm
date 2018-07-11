@@ -2,7 +2,9 @@ module Page.Post exposing (..)
 
 import Date exposing (Date)
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Task exposing (Task)
+import Component.Post
 import Data.Post exposing (Post)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
@@ -39,11 +41,30 @@ buildModel user space ( session, { post, now } ) =
 
 
 type Msg
-    = NoOp
+    = PostComponentMsg Component.Post.Msg
+    | NoOp
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg repo session model =
+update msg repo session ({ post } as model) =
+    case msg of
+        PostComponentMsg msg ->
+            let
+                ( ( newPost, cmd ), newSession ) =
+                    Component.Post.update msg model.space.id session post
+            in
+                ( ( { model | post = newPost }
+                  , Cmd.map PostComponentMsg cmd
+                  )
+                , newSession
+                )
+
+        NoOp ->
+            noCmd session model
+
+
+noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+noCmd session model =
     ( ( model, Cmd.none ), session )
 
 
@@ -51,6 +72,16 @@ update msg repo session model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    text ""
+view : Repo -> Model -> Html Msg
+view repo model =
+    div [ class "mx-56" ]
+        [ div [ class "mx-auto max-w-90 leading-normal" ]
+            [ postView model.user model.now model.post
+            ]
+        ]
+
+
+postView : SpaceUser -> Date -> Post -> Html Msg
+postView currentUser now post =
+    Component.Post.view currentUser now post
+        |> Html.map PostComponentMsg
