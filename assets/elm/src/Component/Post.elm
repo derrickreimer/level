@@ -181,7 +181,7 @@ repliesView post now replies =
         viewUnless (Connection.isEmptyAndExpanded replies) <|
             div []
                 [ viewIf hasPreviousPage <|
-                    a [ Route.href (Route.Post post.id), class "my-2 text-dusty-blue" ] [ text "Show more..." ]
+                    a [ Route.href (Route.Post post.id), class "my-2 text-dusty-blue no-underline" ] [ text "Show more..." ]
                 , div [] (List.map (replyView now) nodes)
                 ]
 
