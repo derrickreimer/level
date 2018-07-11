@@ -1,4 +1,4 @@
-module Page.Inbox exposing (..)
+module Page.Inbox exposing (Msg(..), view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

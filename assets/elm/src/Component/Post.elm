@@ -1,4 +1,12 @@
-module Component.Post exposing (Model, Msg(..), update, view)
+module Component.Post
+    exposing
+        ( Model
+        , Msg(..)
+        , setup
+        , teardown
+        , update
+        , view
+        )
 
 import Date exposing (Date)
 import Html exposing (..)
@@ -17,6 +25,7 @@ import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.ReplyToPost as ReplyToPost
 import Route
 import Session exposing (Session)
+import Subscription.PostSubscription as PostSubscription
 import ViewHelpers exposing (setFocus, unsetFocus, autosize, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
@@ -25,6 +34,33 @@ import ViewHelpers exposing (setFocus, unsetFocus, autosize, displayName, smartF
 
 type alias Model =
     Post
+
+
+
+-- LIFECYCLE
+
+
+setup : Model -> Cmd Msg
+setup post =
+    Cmd.batch
+        [ setupSockets post.id
+        , autosize Autosize.Init (replyComposerId post.id)
+        ]
+
+
+teardown : Model -> Cmd Msg
+teardown post =
+    teardownSockets post.id
+
+
+setupSockets : String -> Cmd Msg
+setupSockets postId =
+    PostSubscription.subscribe postId
+
+
+teardownSockets : String -> Cmd Msg
+teardownSockets postId =
+    PostSubscription.unsubscribe postId
 
 
 

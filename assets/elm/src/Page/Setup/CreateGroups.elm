@@ -1,4 +1,12 @@
-module Page.Setup.CreateGroups exposing (..)
+module Page.Setup.CreateGroups
+    exposing
+        ( Model
+        , Msg(..)
+        , ExternalMsg(..)
+        , buildModel
+        , update
+        , view
+        )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

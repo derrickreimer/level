@@ -3,7 +3,7 @@ module Page.Post
         ( Model
         , Msg(..)
         , init
-        , afterInit
+        , setup
         , teardown
         , update
         , subscriptions
@@ -23,11 +23,9 @@ import Data.ReplyComposer
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Icons
-import Ports
 import Query.PostInit as PostInit
 import Repo exposing (Repo)
 import Session exposing (Session)
-import Subscription.PostSubscription as PostSubscription
 
 
 -- MODEL
@@ -63,24 +61,14 @@ buildModel user space ( session, { post, now } ) =
         Task.succeed ( session, Model newPost space user now )
 
 
-afterInit : Model -> Cmd Msg
-afterInit { post } =
-    setupSockets post.id
+setup : Model -> Cmd Msg
+setup { post } =
+    Cmd.map PostComponentMsg (Component.Post.setup post)
 
 
 teardown : Model -> Cmd Msg
 teardown { post } =
-    teardownSockets post.id
-
-
-setupSockets : String -> Cmd Msg
-setupSockets postId =
-    PostSubscription.subscribe postId
-
-
-teardownSockets : String -> Cmd Msg
-teardownSockets postId =
-    PostSubscription.unsubscribe postId
+    Cmd.map PostComponentMsg (Component.Post.teardown post)
 
 
 

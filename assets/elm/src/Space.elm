@@ -360,7 +360,7 @@ handlePageInit pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Page.Group.afterInit pageModel
+            , Page.Group.setup pageModel
                 |> Cmd.map GroupMsg
             )
 
@@ -377,7 +377,7 @@ handlePageInit pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Page.Post.afterInit pageModel
+            , Page.Post.setup pageModel
                 |> Cmd.map PostMsg
             )
 

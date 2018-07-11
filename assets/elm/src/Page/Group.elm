@@ -3,7 +3,7 @@ module Page.Group
         ( Model
         , Msg(..)
         , init
-        , afterInit
+        , setup
         , teardown
         , update
         , subscriptions
@@ -109,50 +109,46 @@ buildModel user space ( session, { group, state, posts, featuredMemberships, now
         Task.succeed ( session, model )
 
 
-afterInit : Model -> Cmd Msg
-afterInit { group, posts } =
-    Cmd.batch
-        [ setFocus "post-composer" NoOp
-        , autosize Autosize.Init "post-composer"
-        , setupSockets group.id (Connection.toList posts)
-        ]
+setup : Model -> Cmd Msg
+setup { group, posts } =
+    let
+        pageCmd =
+            Cmd.batch
+                [ setFocus "post-composer" NoOp
+                , autosize Autosize.Init "post-composer"
+                , setupSockets group.id
+                ]
+
+        postsCmd =
+            Connection.toList posts
+                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.setup post))
+                |> Cmd.batch
+    in
+        Cmd.batch [ pageCmd, postsCmd ]
 
 
 teardown : Model -> Cmd Msg
 teardown { group, posts } =
-    teardownSockets group.id (Connection.toList posts)
-
-
-setupSockets : String -> List Post -> Cmd Msg
-setupSockets groupId posts =
     let
-        groupSubscription =
-            GroupSubscription.subscribe groupId
+        pageCmd =
+            teardownSockets group.id
 
-        postSubscriptions =
-            posts
-                |> List.map .id
-                |> List.map PostSubscription.subscribe
+        postsCmd =
+            Connection.toList posts
+                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.teardown post))
+                |> Cmd.batch
     in
-        groupSubscription
-            :: postSubscriptions
-            |> Cmd.batch
+        Cmd.batch [ pageCmd, postsCmd ]
 
 
-teardownSockets : String -> List Post -> Cmd Msg
-teardownSockets groupId posts =
-    let
-        groupUnsubscribe =
-            GroupSubscription.unsubscribe groupId
+setupSockets : String -> Cmd Msg
+setupSockets groupId =
+    GroupSubscription.subscribe groupId
 
-        postUnsubscribes =
-            posts
-                |> List.map .id
-                |> List.map PostSubscription.unsubscribe
-    in
-        groupUnsubscribe
-            :: postUnsubscribes
-            |> Cmd.batch
+
+teardownSockets : String -> Cmd Msg
+teardownSockets groupId =
+    GroupSubscription.unsubscribe groupId
 
 
 

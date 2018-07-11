@@ -1,4 +1,12 @@
-module Page.Setup.InviteUsers exposing (..)
+module Page.Setup.InviteUsers
+    exposing
+        ( Model
+        , Msg(..)
+        , ExternalMsg(..)
+        , buildModel
+        , update
+        , view
+        )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
