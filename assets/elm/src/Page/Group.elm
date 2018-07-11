@@ -55,17 +55,6 @@ type alias PostComposer =
     }
 
 
-type alias ReplyComposer =
-    { body : String
-    , isExpanded : Bool
-    , isSubmitting : Bool
-    }
-
-
-type alias ReplyComposers =
-    Dict String ReplyComposer
-
-
 type alias Model =
     { group : Group
     , state : GroupMembershipState
@@ -76,7 +65,6 @@ type alias Model =
     , user : SpaceUser
     , nameEditor : FieldEditor
     , postComposer : PostComposer
-    , replyComposers : ReplyComposers
     }
 
 
@@ -104,7 +92,6 @@ buildModel user space ( session, { group, state, posts, featuredMemberships, now
             , user = user
             , nameEditor = (FieldEditor NotEditing "" [])
             , postComposer = (PostComposer "" False)
-            , replyComposers = Dict.empty
             }
     in
         Task.succeed ( session, model )
@@ -274,13 +261,10 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             case Connection.get postId model.posts of
                 Just post ->
                     let
-                        ( ( newPost, cmd ), newReplyComposers, newSession ) =
-                            Component.Post.update msg model.space.id model.replyComposers session post
-
-                        newPosts =
-                            Connection.update newPost model.posts
+                        ( ( newPost, cmd ), newSession ) =
+                            Component.Post.update msg model.space.id session post
                     in
-                        ( ( { model | posts = newPosts, replyComposers = newReplyComposers }
+                        ( ( { model | posts = Connection.update newPost model.posts }
                           , Cmd.map (PostComponentMsg postId) cmd
                           )
                         , newSession
@@ -417,7 +401,7 @@ view repo model =
                         ]
                     ]
                 , newPostView model.postComposer model.user group
-                , postsView model.user model.now model.replyComposers model.posts
+                , postsView model.user model.now model.posts
                 , sidebarView model.featuredMemberships
                 ]
             ]
@@ -528,19 +512,19 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
         ]
 
 
-postsView : SpaceUser -> Date -> ReplyComposers -> Connection Post -> Html Msg
-postsView currentUser now replyComposers connection =
+postsView : SpaceUser -> Date -> Connection Post -> Html Msg
+postsView currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
     else
         div [] <|
-            Connection.map (postView currentUser now replyComposers) connection
+            Connection.map (postView currentUser now) connection
 
 
-postView : SpaceUser -> Date -> ReplyComposers -> Post -> Html Msg
-postView currentUser now replyComposers post =
-    Component.Post.view currentUser now replyComposers post
+postView : SpaceUser -> Date -> Post -> Html Msg
+postView currentUser now post =
+    Component.Post.view currentUser now post
         |> Html.map (PostComponentMsg post.id)
 
 
@@ -575,13 +559,3 @@ memberItemView { user } =
 newPostSubmittable : PostComposer -> Bool
 newPostSubmittable { body, isSubmitting } =
     not (body == "") && not isSubmitting
-
-
-newReplySubmittable : ReplyComposer -> Bool
-newReplySubmittable { body, isSubmitting } =
-    not (body == "") && not isSubmitting
-
-
-replyComposerId : String -> String
-replyComposerId postId =
-    "reply-composer-" ++ postId

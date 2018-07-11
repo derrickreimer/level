@@ -10,7 +10,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposers exposing (ReplyComposers, ReplyComposer)
+import Data.ReplyComposer exposing (ReplyComposer)
 import Data.Post exposing (Post)
 import Data.SpaceUser exposing (SpaceUser)
 import Icons
@@ -42,8 +42,8 @@ type Msg
     | NoOp
 
 
-update : Msg -> String -> ReplyComposers -> Session -> Model -> ( ( Model, Cmd Msg ), ReplyComposers, Session )
-update msg spaceId replyComposers session post =
+update : Msg -> String -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg spaceId session post =
     case msg of
         ExpandReplyComposer ->
             let
@@ -56,110 +56,108 @@ update msg spaceId replyComposers session post =
                         , autosize Autosize.Init nodeId
                         ]
 
-                newReplyComposers =
-                    case Dict.get post.id replyComposers of
-                        Just composer ->
-                            Dict.insert post.id { composer | isExpanded = True } replyComposers
-
-                        Nothing ->
-                            Dict.insert post.id (ReplyComposer "" True False) replyComposers
+                newPost =
+                    post.replyComposer
+                        |> Data.ReplyComposer.expand
+                        |> Data.Post.setReplyComposer post
             in
-                ( ( post, cmd ), newReplyComposers, session )
+                ( ( newPost, cmd ), session )
 
         NewReplyBodyChanged val ->
-            case Dict.get post.id replyComposers of
-                Just composer ->
-                    let
-                        newReplyComposers =
-                            Dict.insert post.id { composer | body = val } replyComposers
-                    in
-                        noCmd session newReplyComposers post
-
-                Nothing ->
-                    noCmd session replyComposers post
+            let
+                newPost =
+                    post.replyComposer
+                        |> Data.ReplyComposer.setBody val
+                        |> Data.Post.setReplyComposer post
+            in
+                noCmd session newPost
 
         NewReplySubmit ->
-            case Dict.get post.id replyComposers of
-                Just composer ->
-                    let
-                        newReplyComposers =
-                            Dict.insert post.id { composer | isSubmitting = True } replyComposers
+            let
+                newPost =
+                    post.replyComposer
+                        |> Data.ReplyComposer.submitting
+                        |> Data.Post.setReplyComposer post
 
-                        cmd =
-                            ReplyToPost.Params spaceId post.id composer.body
-                                |> ReplyToPost.request
-                                |> Session.request session
-                                |> Task.attempt NewReplySubmitted
-                    in
-                        ( ( post, cmd ), newReplyComposers, session )
-
-                Nothing ->
-                    noCmd session replyComposers post
+                cmd =
+                    Data.ReplyComposer.getBody post.replyComposer
+                        |> ReplyToPost.Params spaceId post.id
+                        |> ReplyToPost.request
+                        |> Session.request session
+                        |> Task.attempt NewReplySubmitted
+            in
+                ( ( newPost, cmd ), session )
 
         NewReplySubmitted (Ok ( session, reply )) ->
-            case Dict.get post.id replyComposers of
-                Just composer ->
-                    let
-                        nodeId =
-                            replyComposerId post.id
+            let
+                nodeId =
+                    replyComposerId post.id
 
-                        newReplyComposers =
-                            Dict.insert post.id { composer | body = "", isSubmitting = False } replyComposers
-                    in
-                        ( ( post, setFocus nodeId NoOp ), newReplyComposers, session )
-
-                Nothing ->
-                    noCmd session replyComposers post
+                newPost =
+                    post.replyComposer
+                        |> Data.ReplyComposer.notSubmitting
+                        |> Data.ReplyComposer.setBody ""
+                        |> Data.Post.setReplyComposer post
+            in
+                ( ( newPost, setFocus nodeId NoOp ), session )
 
         NewReplySubmitted (Err Session.Expired) ->
-            redirectToLogin session replyComposers post
+            redirectToLogin session post
 
         NewReplySubmitted (Err _) ->
-            noCmd session replyComposers post
+            noCmd session post
 
         NewReplyEscaped ->
-            case Dict.get post.id replyComposers of
-                Just composer ->
-                    if composer.body == "" then
-                        ( ( post, unsetFocus (replyComposerId post.id) NoOp ), replyComposers, session )
-                    else
-                        noCmd session replyComposers post
+            let
+                nodeId =
+                    replyComposerId post.id
 
-                Nothing ->
-                    noCmd session replyComposers post
+                replyBody =
+                    Data.ReplyComposer.getBody post.replyComposer
+            in
+                if replyBody == "" then
+                    ( ( post, unsetFocus nodeId NoOp ), session )
+                else
+                    noCmd session post
 
         NewReplyBlurred ->
-            case Dict.get post.id replyComposers of
-                Just composer ->
-                    let
-                        newReplyComposers =
-                            Dict.insert post.id { composer | isExpanded = not (composer.body == "") } replyComposers
-                    in
-                        noCmd session newReplyComposers post
+            let
+                nodeId =
+                    replyComposerId post.id
 
-                Nothing ->
-                    noCmd session replyComposers post
+                replyBody =
+                    Data.ReplyComposer.getBody post.replyComposer
+
+                composer =
+                    if replyBody == "" then
+                        post.replyComposer
+                            |> Data.ReplyComposer.collapse
+                    else
+                        post.replyComposer
+                            |> Data.ReplyComposer.expand
+            in
+                noCmd session (Data.Post.setReplyComposer post composer)
 
         NoOp ->
-            noCmd session replyComposers post
+            noCmd session post
 
 
-noCmd : Session -> ReplyComposers -> Model -> ( ( Model, Cmd Msg ), ReplyComposers, Session )
-noCmd session replyComposers model =
-    ( ( model, Cmd.none ), replyComposers, session )
+noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+noCmd session model =
+    ( ( model, Cmd.none ), session )
 
 
-redirectToLogin : Session -> ReplyComposers -> Model -> ( ( Model, Cmd Msg ), ReplyComposers, Session )
-redirectToLogin session replyComposers model =
-    ( ( model, Route.toLogin ), replyComposers, session )
+redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+redirectToLogin session model =
+    ( ( model, Route.toLogin ), session )
 
 
 
 -- VIEW
 
 
-view : SpaceUser -> Date -> ReplyComposers -> Model -> Html Msg
-view currentUser now replyComposers post =
+view : SpaceUser -> Date -> Model -> Html Msg
+view currentUser now post =
     div [ class "flex p-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
@@ -174,7 +172,7 @@ view currentUser now replyComposers post =
                     ]
                 ]
             , repliesView post now post.replies
-            , replyComposerView currentUser replyComposers post
+            , replyComposerView currentUser post
             ]
         ]
 
@@ -206,46 +204,40 @@ replyView now reply =
         ]
 
 
-replyComposerView : SpaceUser -> ReplyComposers -> Post -> Html Msg
-replyComposerView currentUser replyComposers post =
-    case Dict.get post.id replyComposers of
-        Just composer ->
-            if composer.isExpanded then
-                div [ class "composer mt-3 -ml-3 p-3" ]
-                    [ div [ class "flex" ]
-                        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
-                        , div [ class "flex-grow" ]
-                            [ textarea
-                                [ id (replyComposerId post.id)
-                                , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                                , placeholder "Write a reply..."
-                                , onInput NewReplyBodyChanged
-                                , onKeydown preventDefault
-                                    [ ( [ Meta ], enter, \event -> NewReplySubmit )
-                                    , ( [], esc, \event -> NewReplyEscaped )
-                                    ]
-                                , onBlur NewReplyBlurred
-                                , value composer.body
-                                , readonly composer.isSubmitting
-                                ]
-                                []
-                            , div [ class "flex justify-end" ]
-                                [ button
-                                    [ class "btn btn-blue btn-sm"
-                                    , onClick NewReplySubmit
-                                    , disabled (not (newReplySubmittable composer))
-                                    ]
-                                    [ text "Post reply" ]
-                                ]
+replyComposerView : SpaceUser -> Post -> Html Msg
+replyComposerView currentUser ({ replyComposer } as post) =
+    if Data.ReplyComposer.isExpanded replyComposer then
+        div [ class "composer mt-3 -ml-3 p-3" ]
+            [ div [ class "flex" ]
+                [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
+                , div [ class "flex-grow" ]
+                    [ textarea
+                        [ id (replyComposerId post.id)
+                        , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , placeholder "Write a reply..."
+                        , onInput NewReplyBodyChanged
+                        , onKeydown preventDefault
+                            [ ( [ Meta ], enter, \event -> NewReplySubmit )
+                            , ( [], esc, \event -> NewReplyEscaped )
                             ]
+                        , onBlur NewReplyBlurred
+                        , value (Data.ReplyComposer.getBody replyComposer)
+                        , readonly (Data.ReplyComposer.isSubmitting replyComposer)
+                        ]
+                        []
+                    , div [ class "flex justify-end" ]
+                        [ button
+                            [ class "btn btn-blue btn-sm"
+                            , onClick NewReplySubmit
+                            , disabled (Data.ReplyComposer.unsubmittable replyComposer)
+                            ]
+                            [ text "Post reply" ]
                         ]
                     ]
-            else
-                replyPromptView currentUser post
-
-        Nothing ->
-            viewUnless (Connection.isEmpty post.replies) <|
-                replyPromptView currentUser post
+                ]
+            ]
+    else
+        replyPromptView currentUser post
 
 
 replyPromptView : SpaceUser -> Post -> Html Msg
@@ -260,11 +252,6 @@ replyPromptView currentUser post =
 
 
 -- UTILS
-
-
-newReplySubmittable : ReplyComposer -> Bool
-newReplySubmittable { body, isSubmitting } =
-    not (body == "") && not isSubmitting
 
 
 replyComposerId : String -> String
