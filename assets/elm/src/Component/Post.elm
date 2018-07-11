@@ -166,8 +166,10 @@ view currentUser now post =
                     [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
                     ]
                 ]
-            , repliesView post now post.replies
-            , replyComposerView currentUser post
+            , div [ class "relative" ]
+                [ repliesView post now post.replies
+                , replyComposerView currentUser post
+                ]
             ]
         ]
 
@@ -202,31 +204,33 @@ replyView now reply =
 replyComposerView : SpaceUser -> Post -> Html Msg
 replyComposerView currentUser ({ replyComposer } as post) =
     if ReplyComposer.isExpanded replyComposer then
-        div [ class "composer mt-3 -ml-3 p-3" ]
-            [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
-                , div [ class "flex-grow" ]
-                    [ textarea
-                        [ id (replyComposerId post.id)
-                        , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Write a reply..."
-                        , onInput NewReplyBodyChanged
-                        , onKeydown preventDefault
-                            [ ( [ Meta ], enter, \event -> NewReplySubmit )
-                            , ( [], esc, \event -> NewReplyEscaped )
+        div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
+            [ div [ class "composer p-3" ]
+                [ div [ class "flex" ]
+                    [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
+                    , div [ class "flex-grow" ]
+                        [ textarea
+                            [ id (replyComposerId post.id)
+                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                            , placeholder "Write a reply..."
+                            , onInput NewReplyBodyChanged
+                            , onKeydown preventDefault
+                                [ ( [ Meta ], enter, \event -> NewReplySubmit )
+                                , ( [], esc, \event -> NewReplyEscaped )
+                                ]
+                            , onBlur NewReplyBlurred
+                            , value (ReplyComposer.getBody replyComposer)
+                            , readonly (ReplyComposer.isSubmitting replyComposer)
                             ]
-                        , onBlur NewReplyBlurred
-                        , value (ReplyComposer.getBody replyComposer)
-                        , readonly (ReplyComposer.isSubmitting replyComposer)
-                        ]
-                        []
-                    , div [ class "flex justify-end" ]
-                        [ button
-                            [ class "btn btn-blue btn-sm"
-                            , onClick NewReplySubmit
-                            , disabled (ReplyComposer.unsubmittable replyComposer)
+                            []
+                        , div [ class "flex justify-end" ]
+                            [ button
+                                [ class "btn btn-blue btn-sm"
+                                , onClick NewReplySubmit
+                                , disabled (ReplyComposer.unsubmittable replyComposer)
+                                ]
+                                [ text "Post reply" ]
                             ]
-                            [ text "Post reply" ]
                         ]
                     ]
                 ]
