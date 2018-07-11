@@ -237,7 +237,8 @@ replyComposerView currentUser ({ replyComposer } as post) =
                 ]
             ]
     else
-        replyPromptView currentUser post
+        viewUnless (Connection.isEmpty post.replies) <|
+            replyPromptView currentUser post
 
 
 replyPromptView : SpaceUser -> Post -> Html Msg
