@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Task exposing (Task)
 import Component.Post
 import Data.Post exposing (Post)
+import Data.ReplyComposer
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Query.PostInit as PostInit
@@ -33,7 +34,13 @@ init user space postId session =
 
 buildModel : SpaceUser -> Space -> ( Session, PostInit.Response ) -> Task Session.Error ( Session, Model )
 buildModel user space ( session, { post, now } ) =
-    Task.succeed ( session, Model post space user now )
+    let
+        newPost =
+            post.replyComposer
+                |> Data.ReplyComposer.stayExpanded
+                |> Data.Post.setReplyComposer post
+    in
+        Task.succeed ( session, Model newPost space user now )
 
 
 

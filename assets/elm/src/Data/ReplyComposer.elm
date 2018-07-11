@@ -1,13 +1,15 @@
 module Data.ReplyComposer
     exposing
         ( ReplyComposer
+        , Mode(..)
         , init
         , getBody
         , setBody
         , isExpanded
         , isSubmitting
         , expand
-        , collapse
+        , stayExpanded
+        , blurred
         , submitting
         , notSubmitting
         , unsubmittable
@@ -24,16 +26,31 @@ type alias Data =
     { body : String
     , isExpanded : Bool
     , isSubmitting : Bool
+    , mode : Mode
     }
+
+
+type Mode
+    = Autocollapse
+    | AlwaysExpanded
 
 
 
 -- API
 
 
-init : ReplyComposer
-init =
-    ReplyComposer (Data "" False False)
+init : Mode -> ReplyComposer
+init mode =
+    let
+        isExpanded =
+            case mode of
+                Autocollapse ->
+                    False
+
+                AlwaysExpanded ->
+                    True
+    in
+        ReplyComposer (Data "" isExpanded False mode)
 
 
 getBody : ReplyComposer -> String
@@ -61,9 +78,17 @@ expand (ReplyComposer data) =
     ReplyComposer { data | isExpanded = True }
 
 
-collapse : ReplyComposer -> ReplyComposer
-collapse (ReplyComposer data) =
-    ReplyComposer { data | isExpanded = False }
+stayExpanded : ReplyComposer -> ReplyComposer
+stayExpanded (ReplyComposer data) =
+    ReplyComposer { data | mode = AlwaysExpanded, isExpanded = True }
+
+
+blurred : ReplyComposer -> ReplyComposer
+blurred (ReplyComposer data) =
+    if data.body == "" && data.mode == Autocollapse then
+        ReplyComposer { data | isExpanded = False }
+    else
+        ReplyComposer data
 
 
 submitting : ReplyComposer -> ReplyComposer

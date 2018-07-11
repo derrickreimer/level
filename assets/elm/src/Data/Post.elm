@@ -6,7 +6,7 @@ import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer exposing (ReplyComposer)
+import Data.ReplyComposer exposing (ReplyComposer, Mode(..))
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import ListHelpers exposing (memberById)
@@ -68,7 +68,7 @@ decoder =
         |> Pipeline.required "groups" (list Data.Group.decoder)
         |> Pipeline.required "postedAt" dateDecoder
         |> Pipeline.required "replies" (Connection.decoder Data.Reply.decoder)
-        |> Pipeline.custom (Decode.succeed Data.ReplyComposer.init)
+        |> Pipeline.custom (Decode.succeed <| Data.ReplyComposer.init Autocollapse)
 
 
 

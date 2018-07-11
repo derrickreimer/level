@@ -128,12 +128,8 @@ update msg spaceId session post =
                     ReplyComposer.getBody post.replyComposer
 
                 composer =
-                    if replyBody == "" then
-                        post.replyComposer
-                            |> ReplyComposer.collapse
-                    else
-                        post.replyComposer
-                            |> ReplyComposer.expand
+                    post.replyComposer
+                        |> ReplyComposer.blurred
             in
                 noCmd session (Data.Post.setReplyComposer post composer)
 
