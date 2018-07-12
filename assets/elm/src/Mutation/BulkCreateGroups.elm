@@ -48,12 +48,13 @@ document =
         ]
 
 
-variables : Params -> Encode.Value
+variables : Params -> Maybe Encode.Value
 variables params =
-    Encode.object
-        [ ( "spaceId", Encode.string params.spaceId )
-        , ( "names", Encode.list (List.map Encode.string params.names) )
-        ]
+    Just <|
+        Encode.object
+            [ ( "spaceId", Encode.string params.spaceId )
+            , ( "names", Encode.list (List.map Encode.string params.names) )
+            ]
 
 
 decoder : Decode.Decoder Response
@@ -67,4 +68,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request document (Just (variables params)) decoder
+    GraphQL.request document (variables params) decoder

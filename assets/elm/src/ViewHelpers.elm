@@ -6,7 +6,6 @@ module ViewHelpers
         , viewUnless
         , setFocus
         , unsetFocus
-        , autosize
         , formatTime
         , formatTimeWithoutMeridian
         , formatDateTime
@@ -88,11 +87,6 @@ setFocus id msg =
 unsetFocus : String -> msg -> Cmd msg
 unsetFocus id msg =
     Task.attempt (always msg) <| blur id
-
-
-autosize : Autosize.Method -> String -> Cmd msg
-autosize method id =
-    Ports.autosize (Autosize.buildArgs method id)
 
 
 

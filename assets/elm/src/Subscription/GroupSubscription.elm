@@ -16,7 +16,6 @@ import Data.Post exposing (Post)
 import Data.Reply
 import Data.SpaceUser
 import GraphQL exposing (Document)
-import Ports
 import Socket
 
 
@@ -36,16 +35,12 @@ type alias GroupMembershipUpdatedPayload =
 
 subscribe : String -> Cmd msg
 subscribe groupId =
-    groupId
-        |> payload
-        |> Ports.push
+    Socket.send (clientId groupId) document (variables groupId)
 
 
 unsubscribe : String -> Cmd msg
 unsubscribe groupId =
-    groupId
-        |> clientId
-        |> Ports.cancel
+    Socket.cancel (clientId groupId)
 
 
 
@@ -102,11 +97,6 @@ clientId id =
     "group_subscription_" ++ id
 
 
-payload : String -> Socket.Payload
-payload groupId =
-    Socket.payload (clientId groupId) document (Just (variables groupId))
-
-
 document : Document
 document =
     GraphQL.document
@@ -147,11 +137,12 @@ document =
         ]
 
 
-variables : String -> Encode.Value
+variables : String -> Maybe Encode.Value
 variables groupId =
-    Encode.object
-        [ ( "groupId", Encode.string groupId )
-        ]
+    Just <|
+        Encode.object
+            [ ( "groupId", Encode.string groupId )
+            ]
 
 
 decodeByTypename : (String -> Decode.Decoder a) -> Decode.Decoder a

@@ -41,12 +41,13 @@ document =
         ]
 
 
-variables : Params -> Encode.Value
+variables : Params -> Maybe Encode.Value
 variables params =
-    Encode.object
-        [ ( "spaceId", Encode.string params.spaceId )
-        , ( "postId", Encode.string params.postId )
-        ]
+    Just <|
+        Encode.object
+            [ ( "spaceId", Encode.string params.spaceId )
+            , ( "postId", Encode.string params.postId )
+            ]
 
 
 decoder : Date -> Decoder Response
@@ -59,7 +60,7 @@ decoder now =
 
 request : Date -> Params -> Session -> Http.Request Response
 request now params =
-    GraphQL.request document (Just (variables params)) (decoder now)
+    GraphQL.request document (variables params) (decoder now)
 
 
 task : String -> String -> Session -> Date -> Task Session.Error ( Session, Response )

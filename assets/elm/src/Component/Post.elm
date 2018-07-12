@@ -26,7 +26,7 @@ import Mutation.ReplyToPost as ReplyToPost
 import Route
 import Session exposing (Session)
 import Subscription.PostSubscription as PostSubscription
-import ViewHelpers exposing (setFocus, unsetFocus, autosize, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import ViewHelpers exposing (setFocus, unsetFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
 -- MODEL
@@ -44,7 +44,7 @@ setup : Model -> Cmd Msg
 setup post =
     Cmd.batch
         [ setupSockets post.id
-        , autosize Autosize.Init (replyComposerId post.id)
+        , Autosize.init (replyComposerId post.id)
         ]
 
 
@@ -88,7 +88,7 @@ update msg spaceId session post =
                 cmd =
                     Cmd.batch
                         [ setFocus nodeId NoOp
-                        , autosize Autosize.Init nodeId
+                        , Autosize.init nodeId
                         ]
 
                 newPost =

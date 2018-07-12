@@ -119,17 +119,17 @@ updatePipeline transforms model =
 
 
 type Msg
-    = UrlChanged Navigation.Location
+    = -- LIFECYCLE
+      UrlChanged Navigation.Location
     | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.SharedState.Response ))
+    | PageInitialized PageInit
       -- PAGES
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
-    | PageInitialized PageInit
     | InboxMsg Page.Inbox.Msg
     | GroupMsg Page.Group.Msg
     | PostMsg Page.Post.Msg
       -- PORTS
-    | Push Socket.Payload
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
     | SocketResult Decode.Value
@@ -235,9 +235,6 @@ update msg model =
                     ( { model | session = session, page = Post newPageModel }
                     , Cmd.map PostMsg cmd
                     )
-
-            ( Push payload, _ ) ->
-                ( model, Ports.push payload )
 
             ( SocketAbort value, _ ) ->
                 ( model, Cmd.none )

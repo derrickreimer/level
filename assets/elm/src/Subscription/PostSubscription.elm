@@ -10,7 +10,6 @@ import Json.Encode as Encode
 import Data.SpaceUser
 import Data.Reply exposing (Reply)
 import GraphQL exposing (Document)
-import Ports
 import Socket
 
 
@@ -19,16 +18,12 @@ import Socket
 
 subscribe : String -> Cmd msg
 subscribe postId =
-    postId
-        |> payload
-        |> Ports.push
+    Socket.send (clientId postId) document (variables postId)
 
 
 unsubscribe : String -> Cmd msg
 unsubscribe postId =
-    postId
-        |> clientId
-        |> Ports.cancel
+    Socket.cancel (clientId postId)
 
 
 
@@ -56,11 +51,6 @@ clientId id =
     "post_subscription_" ++ id
 
 
-payload : String -> Socket.Payload
-payload postId =
-    Socket.payload (clientId postId) document (Just (variables postId))
-
-
 document : Document
 document =
     GraphQL.document
@@ -83,11 +73,12 @@ document =
         ]
 
 
-variables : String -> Encode.Value
+variables : String -> Maybe Encode.Value
 variables postId =
-    Encode.object
-        [ ( "postId", Encode.string postId )
-        ]
+    Just <|
+        Encode.object
+            [ ( "postId", Encode.string postId )
+            ]
 
 
 decodeByTypename : (String -> Decode.Decoder a) -> Decode.Decoder a

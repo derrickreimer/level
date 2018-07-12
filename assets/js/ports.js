@@ -18,7 +18,7 @@ export const attachPorts = app => {
     app.ports.socketTokenUpdated.send();
   });
 
-  app.ports.push.subscribe(doc => {
+  app.ports.sendSocket.subscribe(doc => {
     const notifier = AbsintheSocket.send(absintheSocket, doc);
 
     AbsintheSocket.observe(absintheSocket, notifier, {
@@ -41,7 +41,7 @@ export const attachPorts = app => {
     });
   });
 
-  app.ports.cancel.subscribe(clientId => {
+  app.ports.cancelSocket.subscribe(clientId => {
     const notifiers = absintheSocket.notifiers.filter(notifier => {
       return notifier.request.clientId == clientId;
     });

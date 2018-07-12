@@ -42,7 +42,7 @@ import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription exposing (GroupMembershipUpdatedPayload)
 import Subscription.PostSubscription as PostSubscription
-import ViewHelpers exposing (setFocus, autosize, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import ViewHelpers exposing (setFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
 -- MODEL
@@ -115,7 +115,7 @@ setup { group, posts } =
         pageCmd =
             Cmd.batch
                 [ setFocus "post-composer" NoOp
-                , autosize Autosize.Init "post-composer"
+                , Autosize.init "post-composer"
                 , setupSockets group.id
                 ]
 
@@ -201,7 +201,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
 
         NewPostSubmitted (Ok ( session, response )) ->
             ( ( { model | postComposer = { postComposer | body = "", isSubmitting = False } }
-              , autosize Autosize.Update "post-composer"
+              , Autosize.update "post-composer"
               )
             , session
             )

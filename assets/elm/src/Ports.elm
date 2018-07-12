@@ -1,8 +1,8 @@
 port module Ports exposing (..)
 
 import Json.Decode as Decode
-import Autosize
-import Socket
+import Autosize.Types
+import Socket.Types
 
 
 -- INBOUND
@@ -60,10 +60,10 @@ type alias ScrollPositionArgs =
     }
 
 
-port push : Socket.Payload -> Cmd msg
+port sendSocket : Socket.Types.Payload -> Cmd msg
 
 
-port cancel : String -> Cmd msg
+port cancelSocket : String -> Cmd msg
 
 
 port updateToken : String -> Cmd msg
@@ -75,7 +75,7 @@ port getScrollPosition : ScrollPositionArgs -> Cmd msg
 port scrollTo : ScrollParams -> Cmd msg
 
 
-port autosize : Autosize.Args -> Cmd msg
+port autosize : Autosize.Types.Args -> Cmd msg
 
 
 port select : String -> Cmd msg

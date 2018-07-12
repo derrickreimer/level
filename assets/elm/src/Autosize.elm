@@ -1,30 +1,22 @@
-module Autosize exposing (..)
+module Autosize exposing (init, update, destroy)
+
+import Autosize.Types exposing (Args)
+import Ports
 
 
-type alias Args =
-    { method : String
-    , id : String
-    }
+-- API
 
 
-type Method
-    = Init
-    | Update
-    | Destroy
+init : String -> Cmd msg
+init id =
+    Ports.autosize (Args "init" id)
 
 
-buildArgs : Method -> String -> Args
-buildArgs method id =
-    let
-        args =
-            case method of
-                Init ->
-                    Args "init"
+update : String -> Cmd msg
+update id =
+    Ports.autosize (Args "update" id)
 
-                Update ->
-                    Args "update"
 
-                Destroy ->
-                    Args "destroy"
-    in
-        args id
+destroy : String -> Cmd msg
+destroy id =
+    Ports.autosize (Args "destroy" id)

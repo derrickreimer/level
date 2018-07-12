@@ -45,12 +45,13 @@ document =
         ]
 
 
-variables : Params -> Encode.Value
+variables : Params -> Maybe Encode.Value
 variables params =
-    Encode.object
-        [ ( "name", Encode.string params.name )
-        , ( "slug", Encode.string params.slug )
-        ]
+    Just <|
+        Encode.object
+            [ ( "name", Encode.string params.name )
+            , ( "slug", Encode.string params.slug )
+            ]
 
 
 successDecoder : Decoder Response
@@ -84,4 +85,4 @@ decoder =
 
 request : Params -> Session -> Http.Request Response
 request params =
-    GraphQL.request document (Just (variables params)) decoder
+    GraphQL.request document (variables params) decoder

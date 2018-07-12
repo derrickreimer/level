@@ -22,7 +22,6 @@ import Data.Reply exposing (Reply)
 import Data.ReplyComposer
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
-import Icons
 import Query.PostInit as PostInit
 import Repo exposing (Repo)
 import Session exposing (Session)

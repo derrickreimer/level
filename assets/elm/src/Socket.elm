@@ -1,19 +1,20 @@
-module Socket exposing (Payload, payload)
+module Socket exposing (send, cancel)
 
-import Json.Encode as Encode
 import GraphQL exposing (Document, serializeDocument)
+import Json.Encode as Encode
+import Ports
+import Socket.Types exposing (Payload)
 
 
--- TYPES
+-- API
 
 
-type alias Payload =
-    { clientId : String
-    , operation : String
-    , variables : Maybe Encode.Value
-    }
-
-
-payload : String -> Document -> Maybe Encode.Value -> Payload
-payload clientId document maybeVariables =
+send : String -> Document -> Maybe Encode.Value -> Cmd msg
+send clientId document maybeVariables =
     Payload clientId (serializeDocument document) maybeVariables
+        |> Ports.sendSocket
+
+
+cancel : String -> Cmd msg
+cancel clientId =
+    Ports.cancelSocket clientId
