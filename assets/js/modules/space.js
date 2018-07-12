@@ -1,11 +1,11 @@
 import { getApiToken } from "../token";
 import { attachPorts } from "../ports";
-import { Space } from "../../elm/src/Space.elm";
+import { Program } from "../../elm/src/Program/Space.elm";
 
 export function initialize() {
   const spaceId = document.head.querySelector("meta[name='space_id']").content;
 
-  const app = Space.fullscreen({
+  const app = Program.Space.fullscreen({
     apiToken: getApiToken(),
     spaceId: spaceId
   });

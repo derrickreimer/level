@@ -1,4 +1,4 @@
-module Reservation exposing (..)
+module Program.Reservation exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

@@ -1,8 +1,8 @@
 import { getApiToken } from "../token";
-import { NewSpace } from "../../elm/src/NewSpace.elm";
+import { Program } from "../../elm/src/Program/NewSpace.elm";
 
 export function initialize() {
-  const app = NewSpace.fullscreen({
+  const app = Program.NewSpace.fullscreen({
     apiToken: getApiToken()
   });
 }

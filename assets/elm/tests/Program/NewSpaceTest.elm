@@ -1,10 +1,10 @@
-module NewSpaceTest exposing (..)
+module Program.NewSpaceTest exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, list, int, string)
 import List
 import Regex
-import NewSpace
+import Program.NewSpace as NewSpace
 import Test exposing (..)
 import Json.Decode as Decode exposing (decodeString)
 
