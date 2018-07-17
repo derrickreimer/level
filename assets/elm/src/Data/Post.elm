@@ -1,4 +1,4 @@
-module Data.Post exposing (Post, fragment, decoder, appendReply, groupsInclude, setReplyComposer)
+module Data.Post exposing (Post, fragment, decoder, appendReply, groupsInclude)
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder, list, string)
@@ -6,7 +6,6 @@ import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer exposing (ReplyComposer, Mode(..))
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import ListHelpers exposing (memberById)
@@ -24,7 +23,6 @@ type alias Post =
     , groups : List Group
     , postedAt : Date
     , replies : Connection Reply
-    , replyComposer : ReplyComposer
     }
 
 
@@ -68,7 +66,6 @@ decoder =
         |> Pipeline.required "groups" (list Data.Group.decoder)
         |> Pipeline.required "postedAt" dateDecoder
         |> Pipeline.required "replies" (Connection.decoder Data.Reply.decoder)
-        |> Pipeline.custom (Decode.succeed <| Data.ReplyComposer.init Autocollapse)
 
 
 
@@ -83,8 +80,3 @@ appendReply reply post =
 groupsInclude : Group -> Post -> Bool
 groupsInclude group post =
     memberById group post.groups
-
-
-setReplyComposer : Post -> ReplyComposer -> Post
-setReplyComposer post composer =
-    { post | replyComposer = composer }

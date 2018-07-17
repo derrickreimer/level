@@ -5,7 +5,9 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Task exposing (Task)
+import Component.Post
 import Data.Post exposing (Post)
+import Data.ReplyComposer as ReplyComposer
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
@@ -17,7 +19,7 @@ type alias Params =
 
 
 type alias Response =
-    { post : Post
+    { post : Component.Post.Model
     , now : Date
     }
 
@@ -54,7 +56,7 @@ decoder : Date -> Decoder Response
 decoder now =
     Decode.at [ "data", "space", "post" ] <|
         Decode.map2 Response
-            Data.Post.decoder
+            (Component.Post.decoder ReplyComposer.AlwaysExpanded)
             (Decode.succeed now)
 
 

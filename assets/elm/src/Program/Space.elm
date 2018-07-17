@@ -26,7 +26,6 @@ import Query.SharedState
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Route exposing (Route)
 import Session exposing (Session)
-import Socket
 import ListHelpers exposing (insertUniqueById, removeById)
 import Util exposing (Lazy(..))
 import ViewHelpers exposing (displayName)

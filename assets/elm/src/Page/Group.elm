@@ -27,6 +27,7 @@ import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
+import Data.ReplyComposer
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
@@ -41,7 +42,6 @@ import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription exposing (GroupMembershipUpdatedPayload)
-import Subscription.PostSubscription as PostSubscription
 import ViewHelpers exposing (setFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
@@ -70,7 +70,7 @@ type alias PostComposer =
 type alias Model =
     { group : Group
     , state : GroupMembershipState
-    , posts : Connection Post
+    , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
     , now : Date
     , space : Space
@@ -330,9 +330,13 @@ redirectToLogin session model =
 
 handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
 handlePostCreated post ({ posts, group } as model) =
-    ( { model | posts = Connection.prepend post posts }
-    , PostSubscription.subscribe post.id
-    )
+    let
+        component =
+            Component.Post.init Data.ReplyComposer.Autocollapse post
+    in
+        ( { model | posts = Connection.prepend component posts }
+        , Cmd.map (PostComponentMsg post.id) (Component.Post.setup component)
+        )
 
 
 handleGroupMembershipUpdated : GroupMembershipUpdatedPayload -> Session -> Model -> ( Model, Cmd Msg )
@@ -357,12 +361,12 @@ handleGroupMembershipUpdated { state, membership } session model =
 handleReplyCreated : Reply -> Model -> Model
 handleReplyCreated ({ postId } as reply) ({ posts } as model) =
     case Connection.get postId posts of
-        Just post ->
+        Just component ->
             let
-                newPost =
-                    Data.Post.appendReply reply post
+                newComponent =
+                    Component.Post.handleReplyCreated reply component
             in
-                { model | posts = Connection.update newPost posts }
+                { model | posts = Connection.update newComponent posts }
 
         Nothing ->
             model
@@ -518,7 +522,7 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
         ]
 
 
-postsView : SpaceUser -> Date -> Connection Post -> Html Msg
+postsView : SpaceUser -> Date -> Connection Component.Post.Model -> Html Msg
 postsView currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
@@ -528,10 +532,10 @@ postsView currentUser now connection =
             Connection.map (postView currentUser now) connection
 
 
-postView : SpaceUser -> Date -> Post -> Html Msg
-postView currentUser now post =
-    Component.Post.view currentUser now post
-        |> Html.map (PostComponentMsg post.id)
+postView : SpaceUser -> Date -> Component.Post.Model -> Html Msg
+postView currentUser now component =
+    Component.Post.view currentUser now component
+        |> Html.map (PostComponentMsg component.id)
 
 
 sidebarView : List GroupMembership -> Html Msg

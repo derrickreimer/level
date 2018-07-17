@@ -17,9 +17,7 @@ import Html.Attributes exposing (..)
 import Task exposing (Task)
 import Time exposing (Time, every, second)
 import Component.Post
-import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Query.PostInit as PostInit
@@ -31,7 +29,7 @@ import Session exposing (Session)
 
 
 type alias Model =
-    { post : Post
+    { post : Component.Post.Model
     , space : Space
     , user : SpaceUser
     , now : Date
@@ -51,13 +49,7 @@ init user space postId session =
 
 buildModel : SpaceUser -> Space -> ( Session, PostInit.Response ) -> Task Session.Error ( Session, Model )
 buildModel user space ( session, { post, now } ) =
-    let
-        newPost =
-            post.replyComposer
-                |> Data.ReplyComposer.stayExpanded
-                |> Data.Post.setReplyComposer post
-    in
-        Task.succeed ( session, Model newPost space user now )
+    Task.succeed ( session, Model post space user now )
 
 
 setup : Model -> Cmd Msg
@@ -113,10 +105,7 @@ noCmd session model =
 
 handleReplyCreated : Reply -> Model -> Model
 handleReplyCreated reply ({ post } as model) =
-    if reply.postId == post.id then
-        { model | post = Data.Post.appendReply reply post }
-    else
-        model
+    { model | post = Component.Post.handleReplyCreated reply post }
 
 
 
@@ -141,7 +130,7 @@ view repo model =
         ]
 
 
-postView : SpaceUser -> Date -> Post -> Html Msg
-postView currentUser now post =
-    Component.Post.view currentUser now post
+postView : SpaceUser -> Date -> Component.Post.Model -> Html Msg
+postView currentUser now component =
+    Component.Post.view currentUser now component
         |> Html.map PostComponentMsg

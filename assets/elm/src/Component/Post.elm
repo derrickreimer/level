@@ -2,22 +2,26 @@ module Component.Post
     exposing
         ( Model
         , Msg(..)
+        , decoder
+        , init
         , setup
         , teardown
         , update
         , view
+        , handleReplyCreated
         )
 
 import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as Decode exposing (Decoder, field, string)
 import Task exposing (Task)
 import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer as ReplyComposer
+import Data.ReplyComposer exposing (ReplyComposer)
 import Data.Post exposing (Post)
 import Data.SpaceUser exposing (SpaceUser)
 import Icons
@@ -33,24 +37,38 @@ import ViewHelpers exposing (setFocus, unsetFocus, displayName, smartFormatDate,
 
 
 type alias Model =
-    Post
+    { id : String
+    , post : Post
+    , replyComposer : ReplyComposer
+    }
 
 
 
 -- LIFECYCLE
 
 
+decoder : Data.ReplyComposer.Mode -> Decoder Model
+decoder mode =
+    Data.Post.decoder
+        |> Decode.andThen (Decode.succeed << init mode)
+
+
+init : Data.ReplyComposer.Mode -> Post -> Model
+init mode post =
+    Model post.id post (Data.ReplyComposer.init mode)
+
+
 setup : Model -> Cmd Msg
-setup post =
+setup model =
     Cmd.batch
-        [ setupSockets post.id
-        , Autosize.init (replyComposerId post.id)
+        [ setupSockets model.id
+        , Autosize.init (replyComposerId model.id)
         ]
 
 
 teardown : Model -> Cmd Msg
-teardown post =
-    teardownSockets post.id
+teardown model =
+    teardownSockets model.id
 
 
 setupSockets : String -> Cmd Msg
@@ -78,12 +96,12 @@ type Msg
 
 
 update : Msg -> String -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg spaceId session post =
+update msg spaceId session ({ post, replyComposer } as model) =
     case msg of
         ExpandReplyComposer ->
             let
                 nodeId =
-                    replyComposerId post.id
+                    replyComposerId model.id
 
                 cmd =
                     Cmd.batch
@@ -91,86 +109,81 @@ update msg spaceId session post =
                         , Autosize.init nodeId
                         ]
 
-                newPost =
-                    post.replyComposer
-                        |> ReplyComposer.expand
-                        |> Data.Post.setReplyComposer post
+                newModel =
+                    { model | replyComposer = Data.ReplyComposer.expand replyComposer }
             in
-                ( ( newPost, cmd ), session )
+                ( ( newModel, cmd ), session )
 
         NewReplyBodyChanged val ->
             let
-                newPost =
-                    post.replyComposer
-                        |> ReplyComposer.setBody val
-                        |> Data.Post.setReplyComposer post
+                newModel =
+                    { model | replyComposer = Data.ReplyComposer.setBody val replyComposer }
             in
-                noCmd session newPost
+                noCmd session newModel
 
         NewReplySubmit ->
             let
-                newPost =
-                    post.replyComposer
-                        |> ReplyComposer.submitting
-                        |> Data.Post.setReplyComposer post
+                newModel =
+                    { model | replyComposer = Data.ReplyComposer.submitting replyComposer }
 
                 cmd =
-                    ReplyComposer.getBody post.replyComposer
+                    Data.ReplyComposer.getBody replyComposer
                         |> ReplyToPost.Params spaceId post.id
                         |> ReplyToPost.request
                         |> Session.request session
                         |> Task.attempt NewReplySubmitted
             in
-                ( ( newPost, cmd ), session )
+                ( ( newModel, cmd ), session )
 
         NewReplySubmitted (Ok ( session, reply )) ->
             let
                 nodeId =
                     replyComposerId post.id
 
-                newPost =
-                    post.replyComposer
-                        |> ReplyComposer.notSubmitting
-                        |> ReplyComposer.setBody ""
-                        |> Data.Post.setReplyComposer post
+                newReplyComposer =
+                    replyComposer
+                        |> Data.ReplyComposer.notSubmitting
+                        |> Data.ReplyComposer.setBody ""
+
+                newModel =
+                    { model | replyComposer = newReplyComposer }
             in
-                ( ( newPost, setFocus nodeId NoOp ), session )
+                ( ( newModel, setFocus nodeId NoOp ), session )
 
         NewReplySubmitted (Err Session.Expired) ->
-            redirectToLogin session post
+            redirectToLogin session model
 
         NewReplySubmitted (Err _) ->
-            noCmd session post
+            noCmd session model
 
         NewReplyEscaped ->
             let
                 nodeId =
-                    replyComposerId post.id
+                    replyComposerId model.id
 
                 replyBody =
-                    ReplyComposer.getBody post.replyComposer
+                    Data.ReplyComposer.getBody replyComposer
             in
                 if replyBody == "" then
-                    ( ( post, unsetFocus nodeId NoOp ), session )
+                    ( ( model, unsetFocus nodeId NoOp ), session )
                 else
-                    noCmd session post
+                    noCmd session model
 
         NewReplyBlurred ->
             let
                 nodeId =
-                    replyComposerId post.id
+                    replyComposerId model.id
 
                 replyBody =
-                    ReplyComposer.getBody post.replyComposer
+                    Data.ReplyComposer.getBody replyComposer
 
-                composer =
-                    post.replyComposer
-                        |> ReplyComposer.blurred
+                newModel =
+                    { model | replyComposer = Data.ReplyComposer.blurred replyComposer }
             in
-                noCmd session (Data.Post.setReplyComposer post composer)
+                noCmd session newModel
 
         NoOp ->
-            noCmd session post
+            noCmd session model
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -184,11 +197,23 @@ redirectToLogin session model =
 
 
 
+-- EVENT HANDLERS
+
+
+handleReplyCreated : Reply -> Model -> Model
+handleReplyCreated reply ({ post } as model) =
+    if reply.postId == post.id then
+        { model | post = Data.Post.appendReply reply post }
+    else
+        model
+
+
+
 -- VIEW
 
 
 view : SpaceUser -> Date -> Model -> Html Msg
-view currentUser now post =
+view currentUser now ({ post } as model) =
     div [ class "flex p-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
@@ -204,7 +229,7 @@ view currentUser now post =
                 ]
             , div [ class "relative" ]
                 [ repliesView post now post.replies
-                , replyComposerView currentUser post
+                , replyComposerView currentUser model
                 ]
             ]
         ]
@@ -237,9 +262,9 @@ replyView now reply =
         ]
 
 
-replyComposerView : SpaceUser -> Post -> Html Msg
-replyComposerView currentUser ({ replyComposer } as post) =
-    if ReplyComposer.isExpanded replyComposer then
+replyComposerView : SpaceUser -> Model -> Html Msg
+replyComposerView currentUser { post, replyComposer } =
+    if Data.ReplyComposer.isExpanded replyComposer then
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
             [ div [ class "composer p-3" ]
                 [ div [ class "flex" ]
@@ -255,15 +280,15 @@ replyComposerView currentUser ({ replyComposer } as post) =
                                 , ( [], esc, \event -> NewReplyEscaped )
                                 ]
                             , onBlur NewReplyBlurred
-                            , value (ReplyComposer.getBody replyComposer)
-                            , readonly (ReplyComposer.isSubmitting replyComposer)
+                            , value (Data.ReplyComposer.getBody replyComposer)
+                            , readonly (Data.ReplyComposer.isSubmitting replyComposer)
                             ]
                             []
                         , div [ class "flex justify-end" ]
                             [ button
                                 [ class "btn btn-blue btn-sm"
                                 , onClick NewReplySubmit
-                                , disabled (ReplyComposer.unsubmittable replyComposer)
+                                , disabled (Data.ReplyComposer.unsubmittable replyComposer)
                                 ]
                                 [ text "Post reply" ]
                             ]
@@ -273,11 +298,11 @@ replyComposerView currentUser ({ replyComposer } as post) =
             ]
     else
         viewUnless (Connection.isEmpty post.replies) <|
-            replyPromptView currentUser post
+            replyPromptView currentUser
 
 
-replyPromptView : SpaceUser -> Post -> Html Msg
-replyPromptView currentUser post =
+replyPromptView : SpaceUser -> Html Msg
+replyPromptView currentUser =
     button [ class "flex my-3 items-center", onClick ExpandReplyComposer ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small currentUser ]
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
