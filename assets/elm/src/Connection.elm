@@ -10,12 +10,15 @@ module Connection
         , isEmptyAndExpanded
         , hasPreviousPage
         , hasNextPage
+        , startCursor
+        , endCursor
         , last
         , decoder
         , get
         , update
         , prepend
         , append
+        , prependConnection
         )
 
 import GraphQL exposing (Fragment)
@@ -133,6 +136,16 @@ hasNextPage (Connection { pageInfo }) =
     pageInfo.hasNextPage
 
 
+startCursor : Connection a -> Maybe String
+startCursor (Connection { pageInfo }) =
+    pageInfo.startCursor
+
+
+endCursor : Connection a -> Maybe String
+endCursor (Connection { pageInfo }) =
+    pageInfo.endCursor
+
+
 
 -- SUBSETS
 
@@ -216,6 +229,22 @@ append node connection =
                 List.append oldNodes [ node ]
     in
         replaceNodes newNodes connection
+
+
+prependConnection : Connection (Node a) -> Connection (Node a) -> Connection (Node a)
+prependConnection (Connection extension) (Connection original) =
+    let
+        nodes =
+            extension.nodes ++ original.nodes
+
+        pageInfo =
+            PageInfo
+                extension.pageInfo.hasPreviousPage
+                original.pageInfo.hasNextPage
+                extension.pageInfo.startCursor
+                original.pageInfo.endCursor
+    in
+        Connection (Data nodes pageInfo)
 
 
 

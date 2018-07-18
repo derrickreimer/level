@@ -1,4 +1,12 @@
-module Data.Post exposing (Post, fragment, decoder, appendReply, groupsInclude)
+module Data.Post
+    exposing
+        ( Post
+        , fragment
+        , decoder
+        , prependReplies
+        , appendReply
+        , groupsInclude
+        )
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder, list, string)
@@ -70,6 +78,11 @@ decoder =
 
 
 -- CRUD
+
+
+prependReplies : Connection Reply -> Post -> Post
+prependReplies replies post =
+    { post | replies = Connection.prependConnection replies post.replies }
 
 
 appendReply : Reply -> Post -> Post

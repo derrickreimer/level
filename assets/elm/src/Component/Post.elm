@@ -28,6 +28,7 @@ import Data.SpaceUser exposing (SpaceUser)
 import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.ReplyToPost as ReplyToPost
+import Query.Replies
 import Route
 import Session exposing (Session)
 import Subscription.PostSubscription as PostSubscription
@@ -108,7 +109,8 @@ type Msg
     | NewReplySubmit
     | NewReplyEscaped
     | NewReplySubmitted (Result Session.Error ( Session, ReplyToPost.Response ))
-    | MoreRepliesRequested
+    | PreviousRepliesRequested
+    | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
     | NoOp
 
 
@@ -199,7 +201,30 @@ update msg spaceId session ({ post, replyComposer } as model) =
             in
                 noCmd session newModel
 
-        MoreRepliesRequested ->
+        PreviousRepliesRequested ->
+            case Connection.startCursor model.post.replies of
+                Just cursor ->
+                    let
+                        cmd =
+                            Query.Replies.task spaceId model.post.id cursor 10 session
+                                |> Task.attempt PreviousRepliesFetched
+                    in
+                        ( ( model, cmd ), session )
+
+                Nothing ->
+                    noCmd session model
+
+        PreviousRepliesFetched (Ok ( session, response )) ->
+            let
+                newPost =
+                    Data.Post.prependReplies response.replies model.post
+            in
+                noCmd session { model | post = newPost }
+
+        PreviousRepliesFetched (Err Session.Expired) ->
+            redirectToLogin session model
+
+        PreviousRepliesFetched (Err _) ->
             noCmd session model
 
         NoOp ->
@@ -302,7 +327,7 @@ fullPageRepliesView post now replies =
             [ viewIf hasPreviousPage <|
                 button
                     [ class "mb-2 text-dusty-blue no-underline"
-                    , onClick MoreRepliesRequested
+                    , onClick PreviousRepliesRequested
                     ]
                     [ text "Load more..." ]
             , div [] (List.map (replyView now) nodes)
