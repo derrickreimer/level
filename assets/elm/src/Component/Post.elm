@@ -22,7 +22,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer exposing (ReplyComposer)
+import Data.ReplyComposer exposing (ReplyComposer, Mode(..))
 import Data.Post exposing (Post)
 import Data.SpaceUser exposing (SpaceUser)
 import Icons
@@ -66,10 +66,10 @@ init mode post =
         replyMode =
             case mode of
                 Feed ->
-                    Data.ReplyComposer.Autocollapse
+                    Autocollapse
 
                 FullPage ->
-                    Data.ReplyComposer.AlwaysExpanded
+                    AlwaysExpanded
     in
         Model post.id mode post (Data.ReplyComposer.init replyMode)
 
