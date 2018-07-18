@@ -27,7 +27,6 @@ import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
