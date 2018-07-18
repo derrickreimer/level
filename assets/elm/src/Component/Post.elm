@@ -79,24 +79,15 @@ init mode post =
 setup : Model -> Cmd Msg
 setup model =
     Cmd.batch
-        [ setupSockets model.id
+        [ PostSubscription.subscribe model.id
         , Autosize.init (replyComposerId model.id)
+        , Scroll.toBottom Scroll.Document
         ]
 
 
 teardown : Model -> Cmd Msg
 teardown model =
-    teardownSockets model.id
-
-
-setupSockets : String -> Cmd Msg
-setupSockets postId =
-    PostSubscription.subscribe postId
-
-
-teardownSockets : String -> Cmd Msg
-teardownSockets postId =
-    PostSubscription.unsubscribe postId
+    PostSubscription.unsubscribe model.id
 
 
 
@@ -280,7 +271,7 @@ handleReplyCreated reply ({ post, mode } as model) =
 
 view : SpaceUser -> Date -> Model -> Html Msg
 view currentUser now ({ post } as model) =
-    div [ class "flex p-4" ]
+    div [ classList [ ( "flex pt-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div [ class "pb-2" ]
