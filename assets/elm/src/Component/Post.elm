@@ -274,7 +274,7 @@ view currentUser now ({ post } as model) =
     div [ classList [ ( "flex pt-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
-            [ div [ class "pb-2" ]
+            [ div []
                 [ div []
                     [ span [ class "font-bold" ] [ text <| displayName post.author ]
                     , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
@@ -348,7 +348,7 @@ fullPageRepliesView post now replies =
 
 replyView : Date -> Reply -> Html Msg
 replyView now reply =
-    div [ id (replyNodeId reply.id), class "flex my-3" ]
+    div [ id (replyNodeId reply.id), class "flex mt-3" ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small reply.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
