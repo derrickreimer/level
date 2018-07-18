@@ -11,7 +11,6 @@ import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState)
 import Data.Post exposing (Post)
-import Data.ReplyComposer as ReplyComposer
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
@@ -72,7 +71,7 @@ variables params =
 
 postComponentsDecoder : Decoder (Connection Component.Post.Model)
 postComponentsDecoder =
-    ReplyComposer.Autocollapse
+    Component.Post.Feed
         |> Component.Post.decoder
         |> Connection.decoder
 

@@ -2,6 +2,7 @@ module Component.Post
     exposing
         ( Model
         , Msg(..)
+        , Mode(..)
         , decoder
         , init
         , setup
@@ -38,24 +39,39 @@ import ViewHelpers exposing (setFocus, unsetFocus, displayName, smartFormatDate,
 
 type alias Model =
     { id : String
+    , mode : Mode
     , post : Post
     , replyComposer : ReplyComposer
     }
+
+
+type Mode
+    = Feed
+    | FullPage
 
 
 
 -- LIFECYCLE
 
 
-decoder : Data.ReplyComposer.Mode -> Decoder Model
+decoder : Mode -> Decoder Model
 decoder mode =
     Data.Post.decoder
         |> Decode.andThen (Decode.succeed << init mode)
 
 
-init : Data.ReplyComposer.Mode -> Post -> Model
+init : Mode -> Post -> Model
 init mode post =
-    Model post.id post (Data.ReplyComposer.init mode)
+    let
+        replyMode =
+            case mode of
+                Feed ->
+                    Data.ReplyComposer.Autocollapse
+
+                FullPage ->
+                    Data.ReplyComposer.AlwaysExpanded
+    in
+        Model post.id mode post (Data.ReplyComposer.init replyMode)
 
 
 setup : Model -> Cmd Msg

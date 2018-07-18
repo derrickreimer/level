@@ -7,7 +7,6 @@ import Json.Encode as Encode
 import Task exposing (Task)
 import Component.Post
 import Data.Post exposing (Post)
-import Data.ReplyComposer as ReplyComposer
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
@@ -56,7 +55,7 @@ decoder : Date -> Decoder Response
 decoder now =
     Decode.at [ "data", "space", "post" ] <|
         Decode.map2 Response
-            (Component.Post.decoder ReplyComposer.AlwaysExpanded)
+            (Component.Post.decoder Component.Post.FullPage)
             (Decode.succeed now)
 
 

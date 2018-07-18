@@ -332,7 +332,7 @@ handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
 handlePostCreated post ({ posts, group } as model) =
     let
         component =
-            Component.Post.init Data.ReplyComposer.Autocollapse post
+            Component.Post.init Component.Post.Feed post
     in
         ( { model | posts = Connection.prepend component posts }
         , Cmd.map (PostComponentMsg post.id) (Component.Post.setup component)
