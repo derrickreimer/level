@@ -108,6 +108,7 @@ type Msg
     | NewReplySubmit
     | NewReplyEscaped
     | NewReplySubmitted (Result Session.Error ( Session, ReplyToPost.Response ))
+    | MoreRepliesRequested
     | NoOp
 
 
@@ -198,6 +199,9 @@ update msg spaceId session ({ post, replyComposer } as model) =
             in
                 noCmd session newModel
 
+        MoreRepliesRequested ->
+            noCmd session model
+
         NoOp ->
             noCmd session model
 
@@ -247,25 +251,62 @@ view currentUser now ({ post } as model) =
                         ]
                 ]
             , div [ class "relative" ]
-                [ repliesView post now model.mode post.replies
+                [ repliesView post now post.replies model.mode
                 , replyComposerView currentUser model
                 ]
             ]
         ]
 
 
-repliesView : Post -> Date -> Mode -> Connection Reply -> Html Msg
-repliesView post now mode replies =
+repliesView : Post -> Date -> Connection Reply -> Mode -> Html Msg
+repliesView post now replies mode =
+    let
+        listView =
+            case mode of
+                Feed ->
+                    feedRepliesView post now replies
+
+                FullPage ->
+                    fullPageRepliesView post now replies
+    in
+        viewUnless (Connection.isEmptyAndExpanded replies) listView
+
+
+feedRepliesView : Post -> Date -> Connection Reply -> Html Msg
+feedRepliesView post now replies =
     let
         { nodes, hasPreviousPage } =
             Connection.last 5 replies
     in
-        viewUnless (Connection.isEmptyAndExpanded replies) <|
-            div []
-                [ viewIf (hasPreviousPage && mode == Feed) <|
-                    a [ Route.href (Route.Post post.id), class "mb-2 text-dusty-blue no-underline" ] [ text "Show more..." ]
-                , div [] (List.map (replyView now) nodes)
-                ]
+        div []
+            [ viewIf hasPreviousPage <|
+                a
+                    [ Route.href (Route.Post post.id)
+                    , class "mb-2 text-dusty-blue no-underline"
+                    ]
+                    [ text "Show more..." ]
+            , div [] (List.map (replyView now) nodes)
+            ]
+
+
+fullPageRepliesView : Post -> Date -> Connection Reply -> Html Msg
+fullPageRepliesView post now replies =
+    let
+        nodes =
+            Connection.toList replies
+
+        hasPreviousPage =
+            Connection.hasPreviousPage replies
+    in
+        div []
+            [ viewIf hasPreviousPage <|
+                button
+                    [ class "mb-2 text-dusty-blue no-underline"
+                    , onClick MoreRepliesRequested
+                    ]
+                    [ text "Load more..." ]
+            , div [] (List.map (replyView now) nodes)
+            ]
 
 
 replyView : Date -> Reply -> Html Msg
