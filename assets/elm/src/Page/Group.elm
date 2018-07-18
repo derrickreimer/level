@@ -86,7 +86,7 @@ type alias Model =
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space groupId session =
     Date.now
-        |> Task.andThen (GroupInit.task space.id groupId session)
+        |> Task.andThen (GroupInit.request space.id groupId session)
         |> Task.andThen (buildModel user space)
 
 
@@ -189,9 +189,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             if newPostSubmittable postComposer then
                 let
                     cmd =
-                        PostToGroup.Params model.space.id model.group.id postComposer.body
-                            |> PostToGroup.request
-                            |> Session.request session
+                        PostToGroup.request model.space.id model.group.id postComposer.body session
                             |> Task.attempt NewPostSubmitted
                 in
                     ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), session )
@@ -216,9 +214,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         MembershipStateToggled state ->
             let
                 cmd =
-                    UpdateGroupMembership.Params model.space.id model.group.id state
-                        |> UpdateGroupMembership.request
-                        |> Session.request session
+                    UpdateGroupMembership.request model.space.id model.group.id state session
                         |> Task.attempt MembershipStateSubmitted
             in
                 -- Update the state on the model optimistically
@@ -235,12 +231,14 @@ update msg repo session ({ postComposer, nameEditor } as model) =
 
                 newEditor =
                     { nameEditor | state = Editing, value = group.name, errors = [] }
+
+                cmd =
+                    Cmd.batch
+                        [ setFocus "name-editor-value" NoOp
+                        , Ports.select "name-editor-value"
+                        ]
             in
-                ( ( { model | nameEditor = newEditor }
-                  , Cmd.batch [ setFocus "name-editor-value" NoOp, Ports.select "name-editor-value" ]
-                  )
-                , session
-                )
+                ( ( { model | nameEditor = newEditor }, cmd ), session )
 
         NameEditorChanged val ->
             noCmd session { model | nameEditor = { nameEditor | value = val } }
@@ -251,9 +249,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         NameEditorSubmit ->
             let
                 cmd =
-                    UpdateGroup.Params model.space.id model.group.id nameEditor.value
-                        |> UpdateGroup.request
-                        |> Session.request session
+                    UpdateGroup.request model.space.id model.group.id nameEditor.value session
                         |> Task.attempt NameEditorSubmitted
             in
                 ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), session )
@@ -348,11 +344,8 @@ handleGroupMembershipUpdated { state, membership } session model =
                 model.state
 
         cmd =
-            FeaturedMemberships.cmd
-                model.space.id
-                model.group.id
-                session
-                FeaturedMembershipsRefreshed
+            FeaturedMemberships.request model.space.id model.group.id session
+                |> Task.attempt FeaturedMembershipsRefreshed
     in
         ( { model | state = newState }, cmd )
 
@@ -433,7 +426,10 @@ nameView group editor =
                 [ input
                     [ type_ "text"
                     , id "name-editor-value"
-                    , classList [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True ), ( "shake", not <| List.isEmpty editor.errors ) ]
+                    , classList
+                        [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
+                        , ( "shake", not <| List.isEmpty editor.errors )
+                        ]
                     , value editor.value
                     , onInput NameEditorChanged
                     , onKeydown preventDefault

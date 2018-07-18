@@ -145,11 +145,11 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 newModel =
                     { model | replyComposer = Data.ReplyComposer.submitting replyComposer }
 
-                cmd =
+                body =
                     Data.ReplyComposer.getBody replyComposer
-                        |> ReplyToPost.Params spaceId post.id
-                        |> ReplyToPost.request
-                        |> Session.request session
+
+                cmd =
+                    ReplyToPost.request spaceId post.id body session
                         |> Task.attempt NewReplySubmitted
             in
                 ( ( newModel, cmd ), session )
@@ -206,7 +206,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 Just cursor ->
                     let
                         cmd =
-                            Query.Replies.task spaceId model.post.id cursor 10 session
+                            Query.Replies.request spaceId model.post.id cursor 10 session
                                 |> Task.attempt PreviousRepliesFetched
                     in
                         ( ( model, cmd ), session )

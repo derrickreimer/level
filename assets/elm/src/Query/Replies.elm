@@ -1,4 +1,4 @@
-module Query.Replies exposing (Params, Response, task)
+module Query.Replies exposing (Response, request)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
@@ -7,14 +7,6 @@ import Connection exposing (Connection)
 import Data.Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Session exposing (Session)
-
-
-type alias Params =
-    { spaceId : String
-    , postId : String
-    , before : String
-    , limit : Int
-    }
 
 
 type alias Response =
@@ -45,14 +37,14 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> String -> String -> Int -> Maybe Encode.Value
+variables spaceId postId before limit =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "postId", Encode.string params.postId )
-            , ( "before", Encode.string params.before )
-            , ( "limit", Encode.int params.limit )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "postId", Encode.string postId )
+            , ( "before", Encode.string before )
+            , ( "limit", Encode.int limit )
             ]
 
 
@@ -62,12 +54,7 @@ decoder =
         Decode.map Response (Connection.decoder Data.Reply.decoder)
 
 
-request : Params -> Session -> Task Session.Error ( Session, Response )
-request params session =
+request : String -> String -> String -> Int -> Session -> Task Session.Error ( Session, Response )
+request spaceId postId before limit session =
     Session.request session <|
-        GraphQL.request document (variables params) decoder
-
-
-task : String -> String -> String -> Int -> Session -> Task Session.Error ( Session, Response )
-task spaceId postId before limit session =
-    request (Params spaceId postId before limit) session
+        GraphQL.request document (variables spaceId postId before limit) decoder

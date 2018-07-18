@@ -1,7 +1,6 @@
-module Query.GroupInit exposing (Params, Response, task)
+module Query.GroupInit exposing (Response, request)
 
 import Date exposing (Date)
-import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
@@ -13,12 +12,6 @@ import Data.GroupMembership exposing (GroupMembership, GroupMembershipState)
 import Data.Post exposing (Post)
 import GraphQL exposing (Document)
 import Session exposing (Session)
-
-
-type alias Params =
-    { spaceId : String
-    , groupId : String
-    }
 
 
 type alias Response =
@@ -60,12 +53,12 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> String -> Maybe Encode.Value
+variables spaceId groupId =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "groupId", Encode.string params.groupId )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "groupId", Encode.string groupId )
             ]
 
 
@@ -88,13 +81,7 @@ decoder now =
         )
 
 
-request : Date -> Params -> Session -> Http.Request Response
-request now params =
-    GraphQL.request document (variables params) (decoder now)
-
-
-task : String -> String -> Session -> Date -> Task Session.Error ( Session, Response )
-task spaceId groupId session now =
-    Params spaceId groupId
-        |> request now
-        |> Session.request session
+request : String -> String -> Session -> Date -> Task Session.Error ( Session, Response )
+request spaceId groupId session now =
+    Session.request session <|
+        GraphQL.request document (variables spaceId groupId) (decoder now)

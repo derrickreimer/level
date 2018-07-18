@@ -1,6 +1,6 @@
-module Mutation.UpdateGroupMembership exposing (Params, Response(..), request)
+module Mutation.UpdateGroupMembership exposing (Response(..), request)
 
-import Http
+import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.GroupMembership exposing (GroupMembershipState)
@@ -8,13 +8,6 @@ import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
 import GraphQL exposing (Document)
-
-
-type alias Params =
-    { spaceId : String
-    , groupId : String
-    , state : GroupMembershipState
-    }
 
 
 type Response
@@ -47,13 +40,13 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> String -> GroupMembershipState -> Maybe Encode.Value
+variables spaceId groupId state =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "groupId", Encode.string params.groupId )
-            , ( "state", Data.GroupMembership.stateEncoder params.state )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "groupId", Encode.string groupId )
+            , ( "state", Data.GroupMembership.stateEncoder state )
             ]
 
 
@@ -87,6 +80,7 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : Params -> Session -> Http.Request Response
-request params =
-    GraphQL.request document (variables params) decoder
+request : String -> String -> GroupMembershipState -> Session -> Task Session.Error ( Session, Response )
+request spaceId groupId state session =
+    Session.request session <|
+        GraphQL.request document (variables spaceId groupId state) decoder

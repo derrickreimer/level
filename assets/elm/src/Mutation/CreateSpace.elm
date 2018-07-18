@@ -1,6 +1,6 @@
-module Mutation.CreateSpace exposing (Params, Response(..), request, decoder)
+module Mutation.CreateSpace exposing (Response(..), request)
 
-import Http
+import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.Space exposing (Space)
@@ -8,12 +8,6 @@ import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
 import GraphQL exposing (Document)
-
-
-type alias Params =
-    { name : String
-    , slug : String
-    }
 
 
 type Response
@@ -45,12 +39,12 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> String -> Maybe Encode.Value
+variables name slug =
     Just <|
         Encode.object
-            [ ( "name", Encode.string params.name )
-            , ( "slug", Encode.string params.slug )
+            [ ( "name", Encode.string name )
+            , ( "slug", Encode.string slug )
             ]
 
 
@@ -83,6 +77,7 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : Params -> Session -> Http.Request Response
-request params =
-    GraphQL.request document (variables params) decoder
+request : String -> String -> Session -> Task Session.Error ( Session, Response )
+request name slug session =
+    Session.request session <|
+        GraphQL.request document (variables name slug) decoder

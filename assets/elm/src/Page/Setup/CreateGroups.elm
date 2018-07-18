@@ -72,9 +72,7 @@ update msg session model =
             Submit ->
                 let
                     cmd =
-                        BulkCreateGroups.Params model.spaceId groups
-                            |> BulkCreateGroups.request
-                            |> Session.request session
+                        BulkCreateGroups.request model.spaceId groups session
                             |> Task.attempt Submitted
                 in
                     ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
@@ -82,9 +80,7 @@ update msg session model =
             Submitted (Ok ( session, BulkCreateGroups.Success )) ->
                 let
                     cmd =
-                        CompleteSetupStep.Params model.spaceId Setup.CreateGroups False
-                            |> CompleteSetupStep.request
-                            |> Session.request session
+                        CompleteSetupStep.request model.spaceId Setup.CreateGroups False session
                             |> Task.attempt Advanced
                 in
                     ( ( model, cmd ), session, NoOp )

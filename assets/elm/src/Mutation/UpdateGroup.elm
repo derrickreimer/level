@@ -1,6 +1,6 @@
-module Mutation.UpdateGroup exposing (Params, Response(..), request, decoder)
+module Mutation.UpdateGroup exposing (Response(..), request)
 
-import Http
+import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.Group exposing (Group)
@@ -8,13 +8,6 @@ import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
 import GraphQL exposing (Document)
-
-
-type alias Params =
-    { spaceId : String
-    , groupId : String
-    , name : String
-    }
 
 
 type Response
@@ -48,13 +41,13 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> String -> String -> Maybe Encode.Value
+variables spaceId groupId name =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "groupId", Encode.string params.groupId )
-            , ( "name", Encode.string params.name )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "groupId", Encode.string groupId )
+            , ( "name", Encode.string name )
             ]
 
 
@@ -86,6 +79,7 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : Params -> Session -> Http.Request Response
-request params =
-    GraphQL.request document (variables params) decoder
+request : String -> String -> String -> Session -> Task Session.Error ( Session, Response )
+request spaceId groupId name session =
+    Session.request session <|
+        GraphQL.request document (variables spaceId groupId name) decoder

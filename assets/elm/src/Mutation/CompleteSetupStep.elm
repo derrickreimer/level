@@ -1,18 +1,11 @@
-module Mutation.CompleteSetupStep exposing (Params, Response(..), request, decoder)
+module Mutation.CompleteSetupStep exposing (Response(..), request)
 
-import Http
+import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Setup exposing (State, setupStateDecoder, setupStateEncoder)
 import Session exposing (Session)
 import GraphQL exposing (Document)
-
-
-type alias Params =
-    { spaceId : String
-    , state : State
-    , isSkipped : Bool
-    }
 
 
 type Response
@@ -40,13 +33,13 @@ document =
         []
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> State -> Bool -> Maybe Encode.Value
+variables spaceId state isSkipped =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "state", setupStateEncoder params.state )
-            , ( "isSkipped", Encode.bool params.isSkipped )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "state", setupStateEncoder state )
+            , ( "isSkipped", Encode.bool isSkipped )
             ]
 
 
@@ -56,6 +49,7 @@ decoder =
         Decode.at [ "data", "completeSetupStep", "state" ] setupStateDecoder
 
 
-request : Params -> Session -> Http.Request Response
-request params =
-    GraphQL.request document (variables params) decoder
+request : String -> State -> Bool -> Session -> Task Session.Error ( Session, Response )
+request spaceId state isSkipped session =
+    Session.request session <|
+        GraphQL.request document (variables spaceId state isSkipped) decoder

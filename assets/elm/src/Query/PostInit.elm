@@ -1,7 +1,6 @@
-module Query.PostInit exposing (Params, Response, task)
+module Query.PostInit exposing (Response, request)
 
 import Date exposing (Date)
-import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Task exposing (Task)
@@ -9,12 +8,6 @@ import Component.Post
 import Data.Post exposing (Post)
 import GraphQL exposing (Document)
 import Session exposing (Session)
-
-
-type alias Params =
-    { spaceId : String
-    , postId : String
-    }
 
 
 type alias Response =
@@ -42,12 +35,12 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> String -> Maybe Encode.Value
+variables spaceId postId =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "postId", Encode.string params.postId )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "postId", Encode.string postId )
             ]
 
 
@@ -59,13 +52,7 @@ decoder now =
             (Decode.succeed now)
 
 
-request : Date -> Params -> Session -> Http.Request Response
-request now params =
-    GraphQL.request document (variables params) (decoder now)
-
-
-task : String -> String -> Session -> Date -> Task Session.Error ( Session, Response )
-task spaceId postId session now =
-    Params spaceId postId
-        |> request now
-        |> Session.request session
+request : String -> String -> Session -> Date -> Task Session.Error ( Session, Response )
+request spaceId postId session now =
+    Session.request session <|
+        GraphQL.request document (variables spaceId postId) (decoder now)

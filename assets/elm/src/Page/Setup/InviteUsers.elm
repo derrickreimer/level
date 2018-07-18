@@ -53,9 +53,7 @@ update msg session model =
         Submit ->
             let
                 cmd =
-                    CompleteSetupStep.Params model.spaceId Setup.InviteUsers False
-                        |> CompleteSetupStep.request
-                        |> Session.request session
+                    CompleteSetupStep.request model.spaceId Setup.InviteUsers False session
                         |> Task.attempt Advanced
             in
                 ( ( { model | isSubmitting = True }, cmd ), session, NoOp )

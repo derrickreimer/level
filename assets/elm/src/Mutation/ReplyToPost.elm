@@ -1,6 +1,6 @@
-module Mutation.ReplyToPost exposing (Params, Response(..), request)
+module Mutation.ReplyToPost exposing (Response(..), request)
 
-import Http
+import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Data.Reply exposing (Reply)
@@ -8,13 +8,6 @@ import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import GraphQL exposing (Document)
 import Session exposing (Session)
-
-
-type alias Params =
-    { spaceId : String
-    , postId : String
-    , body : String
-    }
 
 
 type Response
@@ -48,13 +41,13 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> String -> String -> Maybe Encode.Value
+variables spaceId postId body =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "postId", Encode.string params.postId )
-            , ( "body", Encode.string params.body )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "postId", Encode.string postId )
+            , ( "body", Encode.string body )
             ]
 
 
@@ -76,6 +69,7 @@ decoder =
         |> Decode.andThen conditionalDecoder
 
 
-request : Params -> Session -> Http.Request Response
-request params =
-    GraphQL.request document (variables params) decoder
+request : String -> String -> String -> Session -> Task Session.Error ( Session, Response )
+request spaceId postId body session =
+    Session.request session <|
+        GraphQL.request document (variables spaceId postId body) decoder

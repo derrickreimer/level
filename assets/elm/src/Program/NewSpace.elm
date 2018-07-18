@@ -3,8 +3,8 @@ module Program.NewSpace exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onBlur)
-import Http
 import Regex exposing (regex)
+import Task
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Mutation.CreateSpace as CreateSpace
@@ -70,7 +70,7 @@ type Msg
     = NameChanged String
     | SlugChanged String
     | Submit
-    | Submitted (Result Http.Error CreateSpace.Response)
+    | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -85,10 +85,10 @@ update msg model =
         Submit ->
             ( { model | formState = Submitting }, submit model )
 
-        Submitted (Ok (CreateSpace.Success space)) ->
+        Submitted (Ok ( _, CreateSpace.Success space )) ->
             ( model, Route.toSpace space )
 
-        Submitted (Ok (CreateSpace.Invalid errors)) ->
+        Submitted (Ok ( _, CreateSpace.Invalid errors )) ->
             ( { model | errors = errors, formState = Idle }, Cmd.none )
 
         Submitted (Err _) ->
@@ -239,5 +239,5 @@ formErrors errors =
 
 submit : Model -> Cmd Msg
 submit model =
-    CreateSpace.request (CreateSpace.Params model.name model.slug) model.session
-        |> Http.send Submitted
+    CreateSpace.request model.name model.slug model.session
+        |> Task.attempt Submitted

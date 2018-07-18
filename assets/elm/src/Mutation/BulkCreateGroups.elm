@@ -1,18 +1,12 @@
-module Mutation.BulkCreateGroups exposing (Params, Response(..), request, decoder)
+module Mutation.BulkCreateGroups exposing (Response(..), request)
 
-import Http
+import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Group
 import Data.ValidationFields
 import Session exposing (Session)
 import GraphQL exposing (Document)
-
-
-type alias Params =
-    { spaceId : String
-    , names : List String
-    }
 
 
 type Response
@@ -48,12 +42,12 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
-variables params =
+variables : String -> List String -> Maybe Encode.Value
+variables spaceId names =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string params.spaceId )
-            , ( "names", Encode.list (List.map Encode.string params.names) )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "names", Encode.list (List.map Encode.string names) )
             ]
 
 
@@ -66,6 +60,7 @@ decoder =
     Decode.succeed Success
 
 
-request : Params -> Session -> Http.Request Response
-request params =
-    GraphQL.request document (variables params) decoder
+request : String -> List String -> Session -> Task Session.Error ( Session, Response )
+request spaceId names session =
+    Session.request session <|
+        GraphQL.request document (variables spaceId names) decoder

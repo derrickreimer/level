@@ -43,7 +43,7 @@ type alias Model =
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space postId session =
     Date.now
-        |> Task.andThen (PostInit.task space.id postId session)
+        |> Task.andThen (PostInit.request space.id postId session)
         |> Task.andThen (buildModel user space)
 
 
