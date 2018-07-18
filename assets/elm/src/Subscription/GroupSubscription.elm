@@ -130,7 +130,7 @@ document =
           }
         }
         """
-        [ Data.Post.fragment
+        [ Data.Post.fragment 5
         , Data.Reply.fragment
         , Data.SpaceUser.fragment
         , Data.Group.fragment

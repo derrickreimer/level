@@ -36,7 +36,7 @@ document =
           }
         }
         """
-        [ Data.Post.fragment
+        [ Data.Post.fragment 0
         , Data.ValidationFields.fragment
         ]
 

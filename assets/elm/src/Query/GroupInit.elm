@@ -49,7 +49,7 @@ document =
         """
         [ Data.GroupMembership.fragment
         , Data.Group.fragment
-        , Connection.fragment "PostConnection" Data.Post.fragment
+        , Connection.fragment "PostConnection" (Data.Post.fragment 5)
         ]
 
 

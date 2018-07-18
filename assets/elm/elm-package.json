@@ -22,6 +22,7 @@
         "elm-lang/svg": "2.0.0 <= v < 3.0.0",
         "evancz/elm-markdown": "3.0.2 <= v < 4.0.0",
         "evancz/url-parser": "2.0.1 <= v < 3.0.0",
+        "lukewestby/elm-string-interpolate": "1.0.2 <= v < 2.0.0",
         "mgold/elm-date-format": "1.4.2 <= v < 2.0.0",
         "simonh1000/elm-jwt": "5.3.0 <= v < 6.0.0"
     },

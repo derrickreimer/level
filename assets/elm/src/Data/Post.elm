@@ -11,6 +11,7 @@ module Data.Post
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline as Pipeline
+import String.Interpolate exposing (interpolate)
 import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.Reply exposing (Reply)
@@ -34,30 +35,36 @@ type alias Post =
     }
 
 
-fragment : Fragment
-fragment =
-    GraphQL.fragment
-        """
-        fragment PostFields on Post {
-          id
-          body
-          bodyHtml
-          postedAt
-          author {
-            ...SpaceUserFields
-          }
-          groups {
-            ...GroupFields
-          }
-          replies(last: 10) {
-            ...ReplyConnectionFields
-          }
-        }
-        """
-        [ Data.SpaceUser.fragment
-        , Data.Group.fragment
-        , Connection.fragment "ReplyConnection" Data.Reply.fragment
-        ]
+fragment : Int -> Fragment
+fragment replyLimit =
+    let
+        body =
+            interpolate
+                """
+                fragment PostFields on Post {
+                  id
+                  body
+                  bodyHtml
+                  postedAt
+                  author {
+                    ...SpaceUserFields
+                  }
+                  groups {
+                    ...GroupFields
+                  }
+                  replies(last: {0}) {
+                    ...ReplyConnectionFields
+                  }
+                }
+                """
+                [ toString replyLimit
+                ]
+    in
+        GraphQL.fragment body
+            [ Data.SpaceUser.fragment
+            , Data.Group.fragment
+            , Connection.fragment "ReplyConnection" Data.Reply.fragment
+            ]
 
 
 
