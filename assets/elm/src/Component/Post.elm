@@ -233,34 +233,37 @@ view currentUser now ({ post } as model) =
     div [ class "flex p-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
-            [ div []
-                [ span [ class "font-bold" ] [ text <| displayName post.author ]
-                , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
-                ]
-            , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
-            , div [ class "flex items-center" ]
-                [ div [ class "flex-grow" ]
-                    [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
+            [ div [ class "pb-2" ]
+                [ div []
+                    [ span [ class "font-bold" ] [ text <| displayName post.author ]
+                    , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
                     ]
+                , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
+                , viewIf (model.mode == Feed) <|
+                    div [ class "flex items-center" ]
+                        [ div [ class "flex-grow" ]
+                            [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
+                            ]
+                        ]
                 ]
             , div [ class "relative" ]
-                [ repliesView post now post.replies
+                [ repliesView post now model.mode post.replies
                 , replyComposerView currentUser model
                 ]
             ]
         ]
 
 
-repliesView : Post -> Date -> Connection Reply -> Html Msg
-repliesView post now replies =
+repliesView : Post -> Date -> Mode -> Connection Reply -> Html Msg
+repliesView post now mode replies =
     let
         { nodes, hasPreviousPage } =
             Connection.last 5 replies
     in
         viewUnless (Connection.isEmptyAndExpanded replies) <|
             div []
-                [ viewIf hasPreviousPage <|
-                    a [ Route.href (Route.Post post.id), class "my-2 text-dusty-blue no-underline" ] [ text "Show more..." ]
+                [ viewIf (hasPreviousPage && mode == Feed) <|
+                    a [ Route.href (Route.Post post.id), class "mb-2 text-dusty-blue no-underline" ] [ text "Show more..." ]
                 , div [] (List.map (replyView now) nodes)
                 ]
 
