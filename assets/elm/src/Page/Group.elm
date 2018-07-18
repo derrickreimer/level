@@ -350,18 +350,20 @@ handleGroupMembershipUpdated { state, membership } session model =
         ( { model | state = newState }, cmd )
 
 
-handleReplyCreated : Reply -> Model -> Model
+handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
 handleReplyCreated ({ postId } as reply) ({ posts } as model) =
     case Connection.get postId posts of
         Just component ->
             let
-                newComponent =
+                ( newComponent, cmd ) =
                     Component.Post.handleReplyCreated reply component
             in
-                { model | posts = Connection.update newComponent posts }
+                ( { model | posts = Connection.update newComponent posts }
+                , Cmd.map (PostComponentMsg postId) cmd
+                )
 
         Nothing ->
-            model
+            ( model, Cmd.none )
 
 
 isMembershipListed : GroupMembership -> List GroupMembership -> Bool

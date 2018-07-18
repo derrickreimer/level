@@ -30,6 +30,7 @@ import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.ReplyToPost as ReplyToPost
 import Query.Replies
 import Route
+import Scroll
 import Session exposing (Session)
 import Subscription.PostSubscription as PostSubscription
 import ViewHelpers exposing (setFocus, unsetFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
@@ -216,10 +217,21 @@ update msg spaceId session ({ post, replyComposer } as model) =
 
         PreviousRepliesFetched (Ok ( session, response )) ->
             let
+                firstReply =
+                    Connection.head model.post.replies
+
                 newPost =
                     Data.Post.prependReplies response.replies model.post
+
+                cmd =
+                    case firstReply of
+                        Just reply ->
+                            Scroll.toAnchor Scroll.Document (replyNodeId reply.id) 200
+
+                        Nothing ->
+                            Cmd.none
             in
-                noCmd session { model | post = newPost }
+                ( ( { model | post = newPost }, cmd ), session )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin session model
@@ -245,12 +257,21 @@ redirectToLogin session model =
 -- EVENT HANDLERS
 
 
-handleReplyCreated : Reply -> Model -> Model
-handleReplyCreated reply ({ post } as model) =
-    if reply.postId == post.id then
-        { model | post = Data.Post.appendReply reply post }
-    else
-        model
+handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
+handleReplyCreated reply ({ post, mode } as model) =
+    let
+        cmd =
+            case mode of
+                FullPage ->
+                    Scroll.toBottom Scroll.Document
+
+                _ ->
+                    Cmd.none
+    in
+        if reply.postId == post.id then
+            ( { model | post = Data.Post.appendReply reply post }, cmd )
+        else
+            ( model, Cmd.none )
 
 
 
@@ -336,7 +357,7 @@ fullPageRepliesView post now replies =
 
 replyView : Date -> Reply -> Html Msg
 replyView now reply =
-    div [ class "flex my-3" ]
+    div [ id (replyNodeId reply.id), class "flex my-3" ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small reply.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
@@ -398,6 +419,11 @@ replyPromptView currentUser =
 
 
 -- UTILS
+
+
+replyNodeId : String -> String
+replyNodeId replyId =
+    "reply-" ++ replyId
 
 
 replyComposerId : String -> String

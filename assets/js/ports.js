@@ -84,11 +84,35 @@ export const attachPorts = app => {
     const { containerId, anchorId, offset } = arg;
 
     requestAnimationFrame(() => {
-      let container = document.getElementById(containerId);
-      let anchor = document.getElementById(anchorId);
-      if (!(container && anchor)) return;
+      if (containerId === "DOCUMENT") {
+        let container = document.documentElement;
+        let anchor = document.getElementById(anchorId);
+        if (!anchor) return;
 
-      container.scrollTop = anchor.offsetTop + offset;
+        let rect = anchor.getBoundingClientRect();
+        container.scrollTop = container.scrollTop + rect.top - offset;
+      } else {
+        let container = document.getElementById(containerId);
+        let anchor = document.getElementById(anchorId);
+        if (!(container && anchor)) return;
+
+        container.scrollTop = anchor.offsetTop + offset;
+      };
+    });
+  });
+
+  app.ports.scrollToBottom.subscribe(arg => {
+    const { containerId } = arg;
+
+    requestAnimationFrame(() => {
+      if (containerId === "DOCUMENT") {
+        let container = document.documentElement;
+        container.scrollTop = container.scrollHeight;
+      } else {
+        let container = document.getElementById(containerId);
+        if (!container) return;
+        container.scrollTop = container.scrollHeight;
+      };
     });
   });
 

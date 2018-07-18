@@ -103,9 +103,13 @@ noCmd session model =
 -- EVENT HANDLERS
 
 
-handleReplyCreated : Reply -> Model -> Model
+handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
 handleReplyCreated reply ({ post } as model) =
-    { model | post = Component.Post.handleReplyCreated reply post }
+    let
+        ( newPost, cmd ) =
+            Component.Post.handleReplyCreated reply post
+    in
+        ( { model | post = newPost }, Cmd.map PostComponentMsg cmd )
 
 
 

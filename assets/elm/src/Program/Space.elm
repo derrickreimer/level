@@ -341,7 +341,7 @@ handleSocketResult value model page sharedState =
             ( handleGroupUpdated group sharedState model, Cmd.none )
 
         Event.ReplyCreated reply ->
-            ( handleReplyCreated reply model, Cmd.none )
+            handleReplyCreated reply model
 
         Event.Unknown ->
             ( model, Cmd.none )
@@ -504,25 +504,29 @@ handleGroupUpdated group sharedState ({ repo } as model) =
     { model | repo = Repo.setGroup repo group }
 
 
-handleReplyCreated : Reply -> Model -> Model
+handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
 handleReplyCreated reply ({ page } as model) =
     case page of
         Group pageModel ->
             let
-                newPageModel =
+                ( newPageModel, cmd ) =
                     Page.Group.handleReplyCreated reply pageModel
             in
-                { model | page = Group newPageModel }
+                ( { model | page = Group newPageModel }
+                , Cmd.map GroupMsg cmd
+                )
 
         Post pageModel ->
             let
-                newPageModel =
+                ( newPageModel, cmd ) =
                     Page.Post.handleReplyCreated reply pageModel
             in
-                { model | page = Post newPageModel }
+                ( { model | page = Post newPageModel }
+                , Cmd.map PostMsg cmd
+                )
 
         _ ->
-            model
+            ( model, Cmd.none )
 
 
 

@@ -12,6 +12,8 @@ module Connection
         , hasNextPage
         , startCursor
         , endCursor
+        , head
+        , first
         , last
         , decoder
         , get
@@ -148,6 +150,23 @@ endCursor (Connection { pageInfo }) =
 
 
 -- SUBSETS
+
+
+head : Connection a -> Maybe a
+head (Connection { nodes }) =
+    List.head nodes
+
+
+first : Int -> Connection a -> Subset a
+first n (Connection { nodes, pageInfo }) =
+    let
+        hasNextPage =
+            size nodes > n || pageInfo.hasNextPage
+
+        partialNodes =
+            List.take n nodes
+    in
+        Subset partialNodes pageInfo.hasPreviousPage hasNextPage
 
 
 last : Int -> Connection a -> Subset a
