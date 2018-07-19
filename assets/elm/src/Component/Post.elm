@@ -289,7 +289,7 @@ handleReplyCreated reply ({ post, mode } as model) =
 
 view : SpaceUser -> Date -> Model -> Html Msg
 view currentUser now ({ post } as model) =
-    div [ classList [ ( "flex pt-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
+    div [ classList [ ( "flex pt-4 px-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
@@ -340,7 +340,7 @@ feedRepliesView post now replies =
                     , class "mb-2 text-dusty-blue no-underline"
                     ]
                     [ text "Show more..." ]
-            , div [] (List.map (replyView now) nodes)
+            , div [] (List.map (replyView now Feed) nodes)
             ]
 
 
@@ -360,17 +360,19 @@ fullPageRepliesView post now replies =
                     , onClick PreviousRepliesRequested
                     ]
                     [ text "Load more..." ]
-            , div [] (List.map (replyView now) nodes)
+            , div [] (List.map (replyView now FullPage) nodes)
             ]
 
 
-replyView : Date -> Reply -> Html Msg
-replyView now reply =
+replyView : Date -> Mode -> Reply -> Html Msg
+replyView now mode reply =
     div [ id (replyNodeId reply.id), class "flex mt-3" ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small reply.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ span [ class "font-bold" ] [ text <| displayName reply.author ]
+                , viewIf (mode == FullPage) <|
+                    span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now reply.postedAt ]
                 ]
             , div [ class "markdown mb-2" ] [ injectHtml reply.bodyHtml ]
             ]
