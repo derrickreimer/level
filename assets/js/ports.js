@@ -16,6 +16,7 @@ export const attachPorts = app => {
   app.ports.updateToken.subscribe(token => {
     updateSocketToken(phoenixSocket, token);
     app.ports.socketTokenUpdated.send();
+    logEvent("ports.updateToken")(token);
   });
 
   app.ports.sendSocket.subscribe(doc => {
@@ -23,19 +24,19 @@ export const attachPorts = app => {
 
     AbsintheSocket.observe(absintheSocket, notifier, {
       onAbort: data => {
-        logEvent("abort")(data);
+        logEvent("ports.socket.abort")(data);
         app.ports.socketAbort.send(data);
       },
       onError: data => {
-        logEvent("error")(data);
+        logEvent("ports.socket.error")(data);
         app.ports.socketError.send(data);
       },
       onStart: data => {
-        logEvent("start")(data);
+        logEvent("ports.socket.start")(data);
         app.ports.socketStart.send(data);
       },
       onResult: data => {
-        logEvent("result")(data);
+        logEvent("ports.socket.result")(data);
         app.ports.socketResult.send(data);
       }
     });
@@ -47,7 +48,7 @@ export const attachPorts = app => {
     });
 
     notifiers.forEach(notifier => {
-      logEvent("cancel")(notifier);
+      logEvent("ports.socket.cancel")(notifier);
       AbsintheSocket.cancel(absintheSocket, notifier);
     });
   });
@@ -70,6 +71,8 @@ export const attachPorts = app => {
 
         container.scrollTop = anchor.offsetTop + offset;
       };
+
+      logEvent("ports.scrollTo")(arg);
     });
   });
 
@@ -85,6 +88,8 @@ export const attachPorts = app => {
         if (!container) return;
         container.scrollTop = container.scrollHeight;
       };
+
+      logEvent("ports.scrollToBottom")(arg);
     });
   });
 
@@ -96,6 +101,8 @@ export const attachPorts = app => {
       autosize(node);
       if (method === "update") autosize.update(node);
       if (method === "destroy") autosize.destroy(node);
+
+      logEvent("ports.autosize")(arg);
     });
   });
 
@@ -103,6 +110,7 @@ export const attachPorts = app => {
     requestAnimationFrame(() => {
       let node = document.getElementById(id);
       node.select();
+      logEvent("ports.select")(arg);
     });
   });
 };

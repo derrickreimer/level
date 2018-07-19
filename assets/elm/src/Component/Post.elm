@@ -77,17 +77,35 @@ init mode post =
 
 
 setup : Model -> Cmd Msg
-setup model =
+setup { id, mode, replyComposer } =
     Cmd.batch
-        [ PostSubscription.subscribe model.id
-        , Autosize.init (replyComposerId model.id)
-        , Scroll.toBottom Scroll.Document
+        [ PostSubscription.subscribe id
+        , setupReplyComposer id replyComposer
+        , setupScrollPosition mode
         ]
 
 
 teardown : Model -> Cmd Msg
-teardown model =
-    PostSubscription.unsubscribe model.id
+teardown { id } =
+    PostSubscription.unsubscribe id
+
+
+setupReplyComposer : String -> ReplyComposer -> Cmd Msg
+setupReplyComposer postId replyComposer =
+    if Data.ReplyComposer.isExpanded replyComposer then
+        Autosize.init (replyComposerId postId)
+    else
+        Cmd.none
+
+
+setupScrollPosition : Mode -> Cmd Msg
+setupScrollPosition mode =
+    case mode of
+        FullPage ->
+            Scroll.toBottom Scroll.Document
+
+        _ ->
+            Cmd.none
 
 
 
