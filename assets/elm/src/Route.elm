@@ -20,6 +20,7 @@ type Route
     | Inbox
     | Group String
     | Post String
+    | UserSettings
 
 
 route : Parser (Route -> a) a
@@ -31,6 +32,7 @@ route =
         , Url.map Inbox (s "inbox")
         , Url.map Group (s "groups" </> Url.string)
         , Url.map Post (s "posts" </> Url.string)
+        , Url.map UserSettings (s "user" </> s "settings")
         ]
 
 
@@ -60,6 +62,9 @@ routeToString page =
 
                 Post id ->
                     [ "posts", id ]
+
+                UserSettings ->
+                    [ "user", "settings" ]
     in
         "#/" ++ String.join "/" pieces
 

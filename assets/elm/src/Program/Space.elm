@@ -21,6 +21,7 @@ import Page.Inbox
 import Page.Post
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
+import Page.UserSettings
 import Ports
 import Query.SharedState
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
@@ -68,6 +69,7 @@ type Page
     | Inbox
     | Group Page.Group.Model
     | Post Page.Post.Model
+    | UserSettings Page.UserSettings.Model
 
 
 type alias Flags =
@@ -128,6 +130,7 @@ type Msg
     | InboxMsg Page.Inbox.Msg
     | GroupMsg Page.Group.Msg
     | PostMsg Page.Post.Msg
+    | UserSettingsMsg Page.UserSettings.Msg
       -- PORTS
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
@@ -142,6 +145,7 @@ type Msg
 type PageInit
     = GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
+    | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
 
 
 getPage : Model -> Page
@@ -384,6 +388,23 @@ handlePageInit pageInit model =
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
+        UserSettingsInit (Ok ( session, pageModel )) ->
+            ( { model
+                | page = UserSettings pageModel
+                , session = session
+                , isTransitioning = False
+              }
+            , Page.UserSettings.setup pageModel
+                |> Cmd.map UserSettingsMsg
+            )
+
+        UserSettingsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        UserSettingsInit (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
+
 
 setFlashNotice : String -> Model -> ( Model, Cmd Msg )
 setFlashNotice message model =
@@ -472,6 +493,11 @@ navigateTo maybeRoute model =
                             model.session
                                 |> Page.Post.init currentUser sharedState.space postId
                                 |> transition model (PostInit postId)
+
+                        Just Route.UserSettings ->
+                            model.session
+                                |> Page.UserSettings.init
+                                |> transition model UserSettingsInit
 
 
 teardown : Page -> Cmd Msg
@@ -687,6 +713,11 @@ pageContent repo sharedState page =
                 |> Page.Post.view repo
                 |> Html.map PostMsg
 
+        UserSettings pageModel ->
+            pageModel
+                |> Page.UserSettings.view repo
+                |> Html.map UserSettingsMsg
+
         Blank ->
             text ""
 
@@ -711,6 +742,9 @@ routeFor page =
 
         Post pageModel ->
             Just <| Route.Post pageModel.post.id
+
+        UserSettings _ ->
+            Just Route.UserSettings
 
         Blank ->
             Nothing
