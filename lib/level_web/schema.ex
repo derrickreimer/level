@@ -39,6 +39,15 @@ defmodule LevelWeb.Schema do
   end
 
   mutation do
+    @desc "Update user settings."
+    field :update_user, type: :update_user_payload do
+      arg :first_name, :string
+      arg :last_name, :string
+      arg :email, :string
+
+      resolve &Level.Mutations.update_user/2
+    end
+
     @desc "Create a space."
     field :create_space, type: :create_space_payload do
       arg :name, non_null(:string)

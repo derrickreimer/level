@@ -8,6 +8,7 @@ defmodule Level.Mutations do
   alias Level.Posts
   alias Level.Spaces
   alias Level.Spaces.SpaceUser
+  alias Level.Users
   alias Level.Users.User
 
   @typedoc "A context map containing the current user"
@@ -15,6 +16,11 @@ defmodule Level.Mutations do
 
   @typedoc "A list of validation errors"
   @type validation_errors :: [%{attribute: String.t(), message: String.t()}]
+
+  @typedoc "The result of a user mutation"
+  @type user_mutation_result ::
+          {:ok, %{success: boolean(), user: Users.User.t() | nil, errors: validation_errors()}}
+          | {:error, String.t()}
 
   @typedoc "The result of a space mutation"
   @type space_mutation_result ::
@@ -64,6 +70,20 @@ defmodule Level.Mutations do
   @type reply_mutation_result ::
           {:ok, %{success: boolean(), reply: Posts.Reply.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
+
+  @doc """
+  Updates a user's settings.
+  """
+  @spec update_user(map(), authenticated_context()) :: user_mutation_result()
+  def update_user(args, %{context: %{current_user: user}}) do
+    case Users.update_user(user, args) do
+      {:ok, user} ->
+        {:ok, %{success: true, user: user, errors: []}}
+
+      {:error, changeset} ->
+        {:ok, %{success: false, user: nil, errors: format_errors(changeset)}}
+    end
+  end
 
   @doc """
   Creates a new space.
@@ -266,7 +286,12 @@ defmodule Level.Mutations do
           String.replace(acc, "%{#{k}}", to_string(v))
         end)
 
-      %{attribute: attr, message: message}
+      attribute =
+        attr
+        |> Atom.to_string()
+        |> Absinthe.Utils.camelize(lower: true)
+
+      %{attribute: attribute, message: message}
     end)
   end
 end

@@ -53,6 +53,16 @@ defmodule Level.Users do
   end
 
   @doc """
+  Updates a user.
+  """
+  @spec update_user(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def update_user(user, params) do
+    user
+    |> User.update_changeset(params)
+    |> Repo.update()
+  end
+
+  @doc """
   Count the number of reservations.
   """
   @spec reservation_count() :: Integer.t()
