@@ -24,6 +24,7 @@ import Page.Setup.InviteUsers
 import Page.UserSettings
 import Ports
 import Query.SharedState
+import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Route exposing (Route)
 import Session exposing (Session)
@@ -356,6 +357,9 @@ handleSocketResult value model page sharedState =
         Event.ReplyCreated reply ->
             handleReplyCreated reply model
 
+        Event.SpaceUserUpdated spaceUser ->
+            ( { model | repo = Repo.setUser model.repo spaceUser }, Cmd.none )
+
         Event.Unknown ->
             ( model, Cmd.none )
 
@@ -521,7 +525,12 @@ teardown page =
 
 setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
 setupSockets sharedState model =
-    ( model, SpaceUserSubscription.subscribe sharedState.user.id )
+    ( model
+    , Cmd.batch
+        [ SpaceSubscription.subscribe sharedState.space.id
+        , SpaceUserSubscription.subscribe sharedState.user.id
+        ]
+    )
 
 
 updateSetupState : Setup.State -> Model -> Model
