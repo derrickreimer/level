@@ -29,6 +29,7 @@ import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.ReplyToPost as ReplyToPost
 import Query.Replies
+import Repo exposing (Repo)
 import Route
 import Scroll
 import Session exposing (Session)
@@ -287,30 +288,34 @@ handleReplyCreated reply ({ post, mode } as model) =
 -- VIEW
 
 
-view : SpaceUser -> Date -> Model -> Html Msg
-view currentUser now ({ post } as model) =
-    div [ classList [ ( "flex pt-4 px-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
-        [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium post.author ]
-        , div [ class "flex-grow leading-semi-loose" ]
-            [ div []
+view : Repo -> SpaceUser -> Date -> Model -> Html Msg
+view repo currentUser now ({ post } as model) =
+    let
+        author =
+            Repo.getUser repo post.author
+    in
+        div [ classList [ ( "flex pt-4 px-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
+            [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium author ]
+            , div [ class "flex-grow leading-semi-loose" ]
                 [ div []
-                    [ span [ class "font-bold" ] [ text <| displayName post.author ]
-                    , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
-                    ]
-                , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
-                , viewIf (model.mode == Feed) <|
-                    div [ class "flex items-center" ]
-                        [ div [ class "flex-grow" ]
-                            [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
-                            ]
+                    [ div []
+                        [ span [ class "font-bold" ] [ text <| displayName author ]
+                        , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
                         ]
-                ]
-            , div [ class "relative" ]
-                [ repliesView post now post.replies model.mode
-                , replyComposerView currentUser model
+                    , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
+                    , viewIf (model.mode == Feed) <|
+                        div [ class "flex items-center" ]
+                            [ div [ class "flex-grow" ]
+                                [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
+                                ]
+                            ]
+                    ]
+                , div [ class "relative" ]
+                    [ repliesView post now post.replies model.mode
+                    , replyComposerView currentUser model
+                    ]
                 ]
             ]
-        ]
 
 
 repliesView : Post -> Date -> Connection Reply -> Mode -> Html Msg

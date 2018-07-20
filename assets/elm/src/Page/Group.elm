@@ -392,6 +392,9 @@ subscriptions =
 view : Repo -> Model -> Html Msg
 view repo model =
     let
+        user =
+            Repo.getUser repo model.user
+
         group =
             Repo.getGroup repo model.group
     in
@@ -404,9 +407,9 @@ view repo model =
                         , controlsView model.state
                         ]
                     ]
-                , newPostView model.postComposer model.user group
-                , postsView model.user model.now model.posts
-                , sidebarView model.featuredMemberships
+                , newPostView model.postComposer user group
+                , postsView repo user model.now model.posts
+                , sidebarView repo model.featuredMemberships
                 ]
             ]
 
@@ -519,44 +522,48 @@ newPostView ({ body, isSubmitting } as postComposer) user group =
         ]
 
 
-postsView : SpaceUser -> Date -> Connection Component.Post.Model -> Html Msg
-postsView currentUser now connection =
+postsView : Repo -> SpaceUser -> Date -> Connection Component.Post.Model -> Html Msg
+postsView repo currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
     else
         div [] <|
-            Connection.map (postView currentUser now) connection
+            Connection.map (postView repo currentUser now) connection
 
 
-postView : SpaceUser -> Date -> Component.Post.Model -> Html Msg
-postView currentUser now component =
-    Component.Post.view currentUser now component
+postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
+postView repo currentUser now component =
+    Component.Post.view repo currentUser now component
         |> Html.map (PostComponentMsg component.id)
 
 
-sidebarView : List GroupMembership -> Html Msg
-sidebarView featuredMemberships =
+sidebarView : Repo -> List GroupMembership -> Html Msg
+sidebarView repo featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Members" ]
-        , memberListView featuredMemberships
+        , memberListView repo featuredMemberships
         ]
 
 
-memberListView : List GroupMembership -> Html Msg
-memberListView featuredMemberships =
+memberListView : Repo -> List GroupMembership -> Html Msg
+memberListView repo featuredMemberships =
     if List.isEmpty featuredMemberships then
         div [ class "text-sm" ] [ text "Nobody has joined yet." ]
     else
-        div [] <| List.map memberItemView featuredMemberships
+        div [] <| List.map (memberItemView repo) featuredMemberships
 
 
-memberItemView : GroupMembership -> Html Msg
-memberItemView { user } =
-    div [ class "flex items-center pr-4 mb-px" ]
-        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| displayName user ]
-        ]
+memberItemView : Repo -> GroupMembership -> Html Msg
+memberItemView repo membership =
+    let
+        user =
+            Repo.getUser repo membership.user
+    in
+        div [ class "flex items-center pr-4 mb-px" ]
+            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
+            , div [ class "flex-grow text-sm truncate" ] [ text <| displayName user ]
+            ]
 
 
 
