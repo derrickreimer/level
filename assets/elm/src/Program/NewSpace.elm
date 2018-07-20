@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onBlur)
 import Regex exposing (regex)
 import Task
-import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
+import Data.ValidationError exposing (ValidationError, isInvalid, errorView)
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Mutation.CreateSpace as CreateSpace
 import Route
@@ -145,12 +145,11 @@ view model =
                         [ text "Create a new space" ]
                     , div [ class "pb-6" ]
                         [ label [ for "name", class "input-label" ] [ text "Name your space" ]
-                        , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True)
-                            (errorsFor "name" model.errors)
+                        , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
                         ]
                     , div [ class "pb-6" ]
                         [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
-                        , slugField model.slug (errorsFor "slug" model.errors)
+                        , slugField model.slug model.errors
                         ]
                     , button
                         [ type_ "submit"
@@ -170,7 +169,7 @@ textField field errors =
     let
         classes =
             [ ( "input-field", True )
-            , ( "input-field-error", not (List.isEmpty errors) )
+            , ( "input-field-error", isInvalid field.name errors )
             ]
     in
         div []
@@ -186,7 +185,7 @@ textField field errors =
                 , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
                 ]
                 []
-            , formErrors errors
+            , errorView field.name errors
             ]
 
 
@@ -195,7 +194,7 @@ slugField slug errors =
     let
         classes =
             [ ( "input-field inline-flex", True )
-            , ( "input-field-error", not (List.isEmpty errors) )
+            , ( "input-field-error", isInvalid "slug" errors )
             ]
     in
         div []
@@ -219,18 +218,8 @@ slugField slug errors =
                         []
                     ]
                 ]
-            , formErrors errors
+            , errorView "slug" errors
             ]
-
-
-formErrors : List ValidationError -> Html Msg
-formErrors errors =
-    case errors of
-        error :: _ ->
-            div [ class "form-errors" ] [ text error.message ]
-
-        [] ->
-            text ""
 
 
 

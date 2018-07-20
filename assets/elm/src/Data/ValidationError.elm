@@ -1,5 +1,16 @@
-module Data.ValidationError exposing (ValidationError, fragment, decoder, errorsFor, errorsNotFor)
+module Data.ValidationError
+    exposing
+        ( ValidationError
+        , fragment
+        , decoder
+        , errorsFor
+        , errorsNotFor
+        , isInvalid
+        , errorView
+        )
 
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Json.Decode as Decode exposing (Decoder, field, string)
 import GraphQL exposing (Fragment)
 
@@ -48,3 +59,18 @@ errorsFor attribute errors =
 errorsNotFor : String -> List ValidationError -> List ValidationError
 errorsNotFor attribute errors =
     List.filter (\error -> not (error.attribute == attribute)) errors
+
+
+isInvalid : String -> List ValidationError -> Bool
+isInvalid attribute errors =
+    not <| List.isEmpty (errorsFor attribute errors)
+
+
+errorView : String -> List ValidationError -> Html msg
+errorView attribute errors =
+    case errorsFor attribute errors of
+        error :: _ ->
+            div [ class "form-errors" ] [ text error.message ]
+
+        [] ->
+            text ""

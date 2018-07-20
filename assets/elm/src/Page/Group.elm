@@ -538,7 +538,7 @@ postView currentUser now component =
 sidebarView : List GroupMembership -> Html Msg
 sidebarView featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
-        [ h3 [ class "mb-3 text-base" ] [ text "Members" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Members" ]
         , memberListView featuredMemberships
         ]
 

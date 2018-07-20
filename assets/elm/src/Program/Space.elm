@@ -239,6 +239,15 @@ update msg model =
                     , Cmd.map PostMsg cmd
                     )
 
+            ( UserSettingsMsg msg, UserSettings pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), session ) =
+                        Page.UserSettings.update msg model.session pageModel
+                in
+                    ( { model | session = session, page = UserSettings newPageModel }
+                    , Cmd.map UserSettingsMsg cmd
+                    )
+
             ( SocketAbort value, _ ) ->
                 ( model, Cmd.none )
 
