@@ -8,6 +8,7 @@ defmodule Level.Users do
 
   alias Ecto.Multi
   alias Level.Repo
+  alias Level.Spaces
   alias Level.Users.Reservation
   alias Level.Users.User
 
@@ -69,17 +70,32 @@ defmodule Level.Users do
   defp update_space_users(%{user: user}) do
     user
     |> Ecto.assoc(:space_users)
-    |> Repo.update_all(set: [first_name: user.first_name, last_name: user.last_name])
-    |> handle_space_users_update()
+    |> Repo.all()
+    |> Enum.each(copy_user_params(user))
+
+    {:ok, true}
   end
 
-  defp handle_space_users_update({count, _}), do: {:ok, count}
-  defp handle_user_update({:ok, %{user: user}}), do: {:ok, user}
+  defp copy_user_params(user) do
+    fn space_user ->
+      Spaces.update_space_user(space_user, %{
+        first_name: user.first_name,
+        last_name: user.last_name
+      })
+    end
+  end
 
-  defp handle_user_update({:error, :user, %Ecto.Changeset{} = changeset, _}),
-    do: {:error, changeset}
+  defp handle_user_update({:ok, %{user: user}}) do
+    {:ok, user}
+  end
 
-  defp handle_user_update(_), do: {:error, dgettext("errors", "An unexpected error occurred")}
+  defp handle_user_update({:error, :user, %Ecto.Changeset{} = changeset, _}) do
+    {:error, changeset}
+  end
+
+  defp handle_user_update(_) do
+    {:error, dgettext("errors", "An unexpected error occurred")}
+  end
 
   @doc """
   Count the number of reservations.
