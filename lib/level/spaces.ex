@@ -7,6 +7,7 @@ defmodule Level.Spaces do
   import Level.Gettext
 
   alias Ecto.Multi
+  alias Level.Pubsub
   alias Level.Spaces.OpenInvitation
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceSetupStep
@@ -292,6 +293,25 @@ defmodule Level.Spaces do
         error
     end
   end
+
+  @doc """
+  Updates a space user.
+  """
+  @spec update_space_user(SpaceUser.t(), map()) ::
+          {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
+  def update_space_user(space_user, params) do
+    space_user
+    |> SpaceUser.update_changeset(params)
+    |> Repo.update()
+    |> handle_space_user_update()
+  end
+
+  defp handle_space_user_update({:ok, %SpaceUser{} = space_user} = result) do
+    Pubsub.publish(:space_user_updated, space_user.space_id, space_user)
+    result
+  end
+
+  defp handle_space_user_update(err), do: err
 
   @impl true
   def dataloader_data(%{current_user: _user} = params) do

@@ -139,6 +139,21 @@ defmodule LevelWeb.Schema do
   end
 
   subscription do
+    @desc "Triggered when a space-related event occurs."
+    field :space_subscription, :space_subscription_payload do
+      arg :space_id, non_null(:id)
+
+      config fn %{space_id: space_id}, %{context: %{current_user: user}} ->
+        case Spaces.get_space(user, space_id) do
+          {:ok, _} ->
+            {:ok, topic: space_id}
+
+          err ->
+            err
+        end
+      end
+    end
+
     @desc "Triggered when a space user-related event occurs."
     field :space_user_subscription, :space_user_subscription_payload do
       arg :space_user_id, non_null(:id)
