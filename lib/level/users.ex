@@ -6,6 +6,7 @@ defmodule Level.Users do
   import Ecto.Query
   import Level.Gettext
 
+  alias Ecto.Multi
   alias Level.Repo
   alias Level.Users.Reservation
   alias Level.Users.User
@@ -55,12 +56,30 @@ defmodule Level.Users do
   @doc """
   Updates a user.
   """
-  @spec update_user(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  @spec update_user(User.t(), map()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t() | String.t()}
   def update_user(user, params) do
-    user
-    |> User.update_changeset(params)
-    |> Repo.update()
+    Multi.new()
+    |> Multi.update(:user, User.update_changeset(user, params))
+    |> Multi.run(:update_space_users, &update_space_users/1)
+    |> Repo.transaction()
+    |> handle_user_update()
   end
+
+  defp update_space_users(%{user: user}) do
+    user
+    |> Ecto.assoc(:space_users)
+    |> Repo.update_all(set: [first_name: user.first_name, last_name: user.last_name])
+    |> handle_space_users_update()
+  end
+
+  defp handle_space_users_update({count, _}), do: {:ok, count}
+  defp handle_user_update({:ok, %{user: user}}), do: {:ok, user}
+
+  defp handle_user_update({:error, :user, %Ecto.Changeset{} = changeset, _}),
+    do: {:error, changeset}
+
+  defp handle_user_update(_), do: {:error, dgettext("errors", "An unexpected error occurred")}
 
   @doc """
   Count the number of reservations.
