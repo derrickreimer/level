@@ -14,8 +14,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Task exposing (Task)
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
+import Mutation.UpdateUser as UpdateUser
 import Query.UserSettingsInit as UserSettingsInit
 import Repo exposing (Repo)
+import Route
 import Session exposing (Session)
 
 
@@ -27,6 +29,7 @@ type alias Model =
     , lastName : String
     , email : String
     , errors : List ValidationError
+    , isSubmitting : Bool
     }
 
 
@@ -44,7 +47,7 @@ buildModel : ( Session, UserSettingsInit.Response ) -> Task Session.Error ( Sess
 buildModel ( session, { user } ) =
     let
         model =
-            Model user.firstName user.lastName user.email []
+            Model user.firstName user.lastName user.email [] False
     in
         Task.succeed ( session, model )
 
@@ -68,6 +71,7 @@ type Msg
     | FirstNameChanged String
     | LastNameChanged String
     | Submit
+    | Submitted (Result Session.Error ( Session, UpdateUser.Response ))
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -83,12 +87,42 @@ update msg session model =
             noCmd session { model | lastName = val }
 
         Submit ->
-            noCmd session model
+            let
+                cmd =
+                    session
+                        |> UpdateUser.request model.firstName model.lastName model.email
+                        |> Task.attempt Submitted
+            in
+                ( ( { model | isSubmitting = True }, cmd ), session )
+
+        Submitted (Ok ( session, UpdateUser.Success user )) ->
+            noCmd session
+                { model
+                    | firstName = user.firstName
+                    , lastName = user.lastName
+                    , email = user.email
+                    , isSubmitting = False
+                }
+
+        Submitted (Ok ( session, UpdateUser.Invalid errors )) ->
+            noCmd session { model | isSubmitting = False, errors = errors }
+
+        Submitted (Err Session.Expired) ->
+            redirectToLogin session model
+
+        Submitted (Err _) ->
+            -- TODO: handle unexpected exceptions
+            noCmd session { model | isSubmitting = False }
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
     ( ( model, Cmd.none ), session )
+
+
+redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+redirectToLogin session model =
+    ( ( model, Route.toLogin ), session )
 
 
 
@@ -110,6 +144,7 @@ view repo ({ errors } as model) =
                     , placeholder "jane@acmeco.com"
                     , value model.email
                     , onInput EmailChanged
+                    , disabled model.isSubmitting
                     ]
                     []
                 , errorView "email" errors
@@ -124,6 +159,7 @@ view repo ({ errors } as model) =
                     , placeholder "Jane"
                     , value model.firstName
                     , onInput FirstNameChanged
+                    , disabled model.isSubmitting
                     ]
                     []
                 , errorView "firstName" errors
@@ -138,6 +174,7 @@ view repo ({ errors } as model) =
                     , placeholder "Doe"
                     , value model.lastName
                     , onInput LastNameChanged
+                    , disabled model.isSubmitting
                     ]
                     []
                 , errorView "lastName" errors
@@ -146,6 +183,7 @@ view repo ({ errors } as model) =
                 [ type_ "submit"
                 , class "btn btn-blue"
                 , onClick Submit
+                , disabled model.isSubmitting
                 ]
                 [ text "Save Settings" ]
             ]
