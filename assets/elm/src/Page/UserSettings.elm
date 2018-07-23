@@ -133,51 +133,62 @@ view : Repo -> Model -> Html Msg
 view repo ({ errors } as model) =
     div [ class "ml-56 mr-24" ]
         [ div [ class "mx-auto max-w-90 leading-normal py-12" ]
-            [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "User Settings" ]
-            , div [ class "pb-6" ]
-                [ label [ for "email", class "input-label" ] [ text "Email address" ]
-                , input
-                    [ id "email"
-                    , type_ "email"
-                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "email" errors ) ]
-                    , name "email"
-                    , placeholder "jane@acmeco.com"
-                    , value model.email
-                    , onInput EmailChanged
-                    , disabled model.isSubmitting
+            [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "Personal Settings" ]
+            , div [ class "flex" ]
+                [ div [ class "flex-1 max-w-md" ]
+                    [ div [ class "pb-6" ]
+                        [ div [ class "flex" ]
+                            [ div [ class "flex-1 mr-2" ]
+                                [ label [ for "firstName", class "input-label" ] [ text "First Name" ]
+                                , input
+                                    [ id "firstName"
+                                    , type_ "text"
+                                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "firstName" errors ) ]
+                                    , name "firstName"
+                                    , placeholder "Jane"
+                                    , value model.firstName
+                                    , onInput FirstNameChanged
+                                    , disabled model.isSubmitting
+                                    ]
+                                    []
+                                , errorView "firstName" errors
+                                ]
+                            , div [ class "flex-1" ]
+                                [ label [ for "lastName", class "input-label" ] [ text "Last Name" ]
+                                , input
+                                    [ id "lastName"
+                                    , type_ "text"
+                                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "lastName" errors ) ]
+                                    , name "lastName"
+                                    , placeholder "Doe"
+                                    , value model.lastName
+                                    , onInput LastNameChanged
+                                    , disabled model.isSubmitting
+                                    ]
+                                    []
+                                , errorView "lastName" errors
+                                ]
+                            ]
+                        ]
+                    , div [ class "pb-6" ]
+                        [ label [ for "email", class "input-label" ] [ text "Email address" ]
+                        , input
+                            [ id "email"
+                            , type_ "email"
+                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "email" errors ) ]
+                            , name "email"
+                            , placeholder "jane@acmeco.com"
+                            , value model.email
+                            , onInput EmailChanged
+                            , disabled model.isSubmitting
+                            ]
+                            []
+                        , errorView "email" errors
+                        ]
                     ]
-                    []
-                , errorView "email" errors
-                ]
-            , div [ class "pb-6" ]
-                [ label [ for "firstName", class "input-label" ] [ text "First Name" ]
-                , input
-                    [ id "firstName"
-                    , type_ "text"
-                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "firstName" errors ) ]
-                    , name "firstName"
-                    , placeholder "Jane"
-                    , value model.firstName
-                    , onInput FirstNameChanged
-                    , disabled model.isSubmitting
+                , div [ class "flex-1" ]
+                    [-- TODO: put avatar uploader here
                     ]
-                    []
-                , errorView "firstName" errors
-                ]
-            , div [ class "pb-6" ]
-                [ label [ for "lastName", class "input-label" ] [ text "Last Name" ]
-                , input
-                    [ id "lastName"
-                    , type_ "text"
-                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "lastName" errors ) ]
-                    , name "lastName"
-                    , placeholder "Doe"
-                    , value model.lastName
-                    , onInput LastNameChanged
-                    , disabled model.isSubmitting
-                    ]
-                    []
-                , errorView "lastName" errors
                 ]
             , button
                 [ type_ "submit"
