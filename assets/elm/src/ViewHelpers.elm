@@ -23,8 +23,6 @@ import Html.Attributes exposing (..)
 import Json.Encode as Encode
 import Task
 import Time
-import Autosize
-import Ports
 
 
 -- TYPES

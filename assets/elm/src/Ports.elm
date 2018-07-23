@@ -2,6 +2,7 @@ port module Ports exposing (..)
 
 import Json.Decode as Decode
 import Autosize.Types
+import File.Types
 import Scroll.Types
 import Socket.Types
 
@@ -27,6 +28,9 @@ port socketTokenUpdated : (Decode.Value -> msg) -> Sub msg
 port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
 
 
+port receiveFile : (File.Types.Data -> msg) -> Sub msg
+
+
 
 -- OUTBOUND
 
@@ -50,3 +54,6 @@ port autosize : Autosize.Types.Args -> Cmd msg
 
 
 port select : String -> Cmd msg
+
+
+port requestFile : String -> Cmd msg

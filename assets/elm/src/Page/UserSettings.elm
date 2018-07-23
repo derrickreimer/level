@@ -6,6 +6,7 @@ module Page.UserSettings
         , setup
         , teardown
         , update
+        , subscriptions
         , view
         )
 
@@ -14,6 +15,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Task exposing (Task)
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
+import File exposing (File)
 import Mutation.UpdateUser as UpdateUser
 import Query.UserSettingsInit as UserSettingsInit
 import Repo exposing (Repo)
@@ -30,6 +32,7 @@ type alias Model =
     , email : String
     , errors : List ValidationError
     , isSubmitting : Bool
+    , newAvatar : Maybe File
     }
 
 
@@ -47,7 +50,7 @@ buildModel : ( Session, UserSettingsInit.Response ) -> Task Session.Error ( Sess
 buildModel ( session, { user } ) =
     let
         model =
-            Model user.firstName user.lastName user.email [] False
+            Model user.firstName user.lastName user.email [] False Nothing
     in
         Task.succeed ( session, model )
 
@@ -72,6 +75,8 @@ type Msg
     | LastNameChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, UpdateUser.Response ))
+    | AvatarSelected
+    | FileReceived File.Data
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -114,6 +119,16 @@ update msg session model =
             -- TODO: handle unexpected exceptions
             noCmd session { model | isSubmitting = False }
 
+        AvatarSelected ->
+            ( ( model, File.request "avatar" ), session )
+
+        FileReceived data ->
+            let
+                file =
+                    File.init data
+            in
+                ( ( { model | newAvatar = Just file }, Cmd.none ), session )
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
@@ -123,6 +138,15 @@ noCmd session model =
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 redirectToLogin session model =
     ( ( model, Route.toLogin ), session )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Sub Msg
+subscriptions =
+    File.receive FileReceived
 
 
 
@@ -187,7 +211,7 @@ view repo ({ errors } as model) =
                         ]
                     ]
                 , div [ class "flex-1" ]
-                    [-- TODO: put avatar uploader here
+                    [ File.input "avatar" AvatarSelected []
                     ]
                 ]
             , button

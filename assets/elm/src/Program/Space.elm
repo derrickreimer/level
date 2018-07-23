@@ -598,6 +598,9 @@ pageSubscription model =
         Post _ ->
             Sub.map PostMsg Page.Post.subscriptions
 
+        UserSettings _ ->
+            Sub.map UserSettingsMsg Page.UserSettings.subscriptions
+
         _ ->
             Sub.none
 

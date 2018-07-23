@@ -6,7 +6,7 @@ import Ports
 import Socket.Types exposing (Payload)
 
 
--- API
+-- OUTBOUND
 
 
 send : String -> Document -> Maybe Encode.Value -> Cmd msg

@@ -70,7 +70,7 @@ export const attachPorts = app => {
         if (!(container && anchor)) return;
 
         container.scrollTop = anchor.offsetTop + offset;
-      };
+      }
 
       logEvent("ports.scrollTo")(arg);
     });
@@ -87,7 +87,7 @@ export const attachPorts = app => {
         let container = document.getElementById(containerId);
         if (!container) return;
         container.scrollTop = container.scrollHeight;
-      };
+      }
 
       logEvent("ports.scrollToBottom")(arg);
     });
@@ -110,7 +110,32 @@ export const attachPorts = app => {
     requestAnimationFrame(() => {
       let node = document.getElementById(id);
       node.select();
-      logEvent("ports.select")(arg);
+      logEvent("ports.select")(id);
     });
+  });
+
+  app.ports.requestFile.subscribe(id => {
+    let node = document.getElementById(id);
+    if (!node) return;
+
+    let file = node.files[0];
+    let reader = new FileReader();
+
+    reader.onload = event => {
+      let payload = {
+        id: id,
+        name: file.name,
+        type_: file.type,
+        size: file.size,
+        contents: event.target.result
+      };
+
+      app.ports.receiveFile.send(payload);
+      logEvent("ports.file.receive")(payload);
+    };
+
+    reader.readAsDataURL(file);
+
+    logEvent("ports.file.request")({ id });
   });
 };
