@@ -67,7 +67,13 @@ defmodule Level.Mixfile do
       {:dialyxir, "~> 0.5", only: :dev, runtime: false},
       {:earmark, "~> 1.2.5"},
       {:html_sanitize_ex, "~> 1.3.0"},
-      {:number, "~> 0.5.7"}
+      {:number, "~> 0.5.7"},
+
+      # Amazon S3 dependencies
+      {:ex_aws, "~> 2.0"},
+      {:ex_aws_s3, "~> 2.0"},
+      {:hackney, "~> 1.9"},
+      {:sweet_xml, "~> 0.6"}
     ]
   end
 
