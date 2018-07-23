@@ -119,6 +119,8 @@ export const attachPorts = app => {
     if (!node) return;
 
     let file = node.files[0];
+    if (!file) return;
+
     let reader = new FileReader();
 
     reader.onload = event => {
