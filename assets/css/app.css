@@ -335,3 +335,12 @@ body {
     transform: translate3d(4px, 0, 0);
   }
 }
+
+.invisible-file {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}

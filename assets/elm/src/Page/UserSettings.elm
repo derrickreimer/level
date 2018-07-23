@@ -98,7 +98,7 @@ update msg session model =
                         |> UpdateUser.request model.firstName model.lastName model.email
                         |> Task.attempt Submitted
             in
-                ( ( { model | isSubmitting = True }, cmd ), session )
+                ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
 
         Submitted (Ok ( session, UpdateUser.Success user )) ->
             noCmd session
@@ -156,10 +156,10 @@ subscriptions =
 view : Repo -> Model -> Html Msg
 view repo ({ errors } as model) =
     div [ class "ml-56 mr-24" ]
-        [ div [ class "mx-auto max-w-90 leading-normal py-12" ]
-            [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "Personal Settings" ]
+        [ div [ class "mx-auto max-w-90 leading-normal py-8" ]
+            [ h1 [ class "pb-8 font-extrabold text-3xl" ] [ text "Personal Settings" ]
             , div [ class "flex" ]
-                [ div [ class "flex-1 max-w-md" ]
+                [ div [ class "flex-1 max-w-md mr-8" ]
                     [ div [ class "pb-6" ]
                         [ div [ class "flex" ]
                             [ div [ class "flex-1 mr-2" ]
@@ -211,7 +211,7 @@ view repo ({ errors } as model) =
                         ]
                     ]
                 , div [ class "flex-1" ]
-                    [ File.input "avatar" AvatarSelected []
+                    [ File.avatarInput "avatar" Nothing AvatarSelected
                     ]
                 ]
             , button
