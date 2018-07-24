@@ -6,7 +6,8 @@ defmodule Level.AssetStore.S3 do
   @spec persist(String.t(), String.t(), String.t()) ::
           {:ok, filename :: String.t()} | {:error, any()}
   def persist(filename, bucket, data) do
-    S3.put_object(bucket, filename, data, [{:acl, :public_read}])
+    bucket
+    |> S3.put_object(filename, data, [{:acl, :public_read}])
     |> ExAws.request()
     |> handle_request(filename)
   end

@@ -105,7 +105,8 @@ defmodule Level.Users do
   @spec update_avatar(User.t(), String.t()) ::
           {:ok, User.t()} | {:error, Ecto.Changeset.t() | String.t()}
   def update_avatar(user, raw_data) do
-    AssetStore.upload_avatar(raw_data)
+    raw_data
+    |> AssetStore.upload_avatar()
     |> set_user_avatar(user)
   end
 
