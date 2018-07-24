@@ -344,3 +344,7 @@ body {
   position: absolute;
   z-index: -1;
 }
+
+.transition-bg {
+  transition: background-color 0.2s ease;
+}

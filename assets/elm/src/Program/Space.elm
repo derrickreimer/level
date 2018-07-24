@@ -632,22 +632,26 @@ leftSidebar sharedState ({ page, repo } as model) =
         currentUser =
             Repo.getUser repo sharedState.user
     in
-        div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen p-4" ]
-            [ div [ class "ml-2" ]
-                [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
-                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
+        div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
+            [ div [ class "p-4" ]
+                [ div [ class "ml-2" ]
+                    [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
+                    , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
+                    ]
+                , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
+                    [ sidebarLink "Inbox" (Just Route.Inbox) page
+                    , sidebarLink "Everything" Nothing page
+                    , sidebarLink "Drafts" Nothing page
+                    ]
+                , groupLinks bookmarkedGroups page
                 ]
-            , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
-                [ sidebarLink "Inbox" (Just Route.Inbox) page
-                , sidebarLink "Everything" Nothing page
-                , sidebarLink "Drafts" Nothing page
-                ]
-            , groupLinks bookmarkedGroups page
-            , div [ class "absolute pin-b mb-4 flex" ]
-                [ div [] [ personAvatar Avatar.Small currentUser ]
-                , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
-                    [ div [] [ text "Signed in as" ]
-                    , div [ class "font-bold" ] [ text (displayName currentUser) ]
+            , div [ class "absolute pin-b w-full" ]
+                [ a [ Route.href (Route.UserSettings), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
+                    [ div [] [ personAvatar Avatar.Small currentUser ]
+                    , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
+                        [ div [] [ text "Signed in as" ]
+                        , div [ class "font-bold" ] [ text (displayName currentUser) ]
+                        ]
                     ]
                 ]
             ]
