@@ -1,10 +1,11 @@
 import * as AbsintheSocket from "@absinthe/socket";
 import { Socket as PhoenixSocket } from "phoenix";
 
-const ADDRESS = "ws://" + window.location.host + "/socket";
+const protocol = window.location.protocol == "http:" ? "ws" : "wss";
+const address = protocol + "://" + window.location.host + "/socket";
 
 export const createPhoenixSocket = token =>
-  new PhoenixSocket(ADDRESS, {
+  new PhoenixSocket(address, {
     params: { Authorization: "Bearer " + token }
   });
 
