@@ -3,12 +3,14 @@ defmodule Level.AssetStore.S3 do
 
   alias ExAws.S3
 
-  @doc """
-  Persists the file to S3.
-  """
-  @spec persist(String.t(), String.t(), String.t()) :: {:ok, any()} | {:error, any()}
+  @spec persist(String.t(), String.t(), String.t()) ::
+          {:ok, filename :: String.t()} | {:error, any()}
   def persist(filename, bucket, data) do
     S3.put_object(bucket, filename, data, [{:acl, :public_read}])
     |> ExAws.request()
+    |> handle_request(filename)
   end
+
+  defp handle_request({:ok, _}, filename), do: {:ok, filename}
+  defp handle_request(err, _filename), do: err
 end

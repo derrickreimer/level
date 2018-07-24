@@ -106,10 +106,13 @@ defmodule Level.Mixfile do
     [
       Connections: [
         Level.Connections,
+        Level.Connections.GroupPosts,
         Level.Connections.Groups,
         Level.Connections.GroupMemberships,
         Level.Connections.Invitations,
+        Level.Connections.Replies,
         Level.Connections.SpaceUsers,
+        Level.Connections.UserGroupMemberships,
         Level.Connections.Users
       ],
       Mutations: [
@@ -127,11 +130,13 @@ defmodule Level.Mixfile do
         Level.Groups.GroupUser,
         Level.Posts.Post,
         Level.Posts.PostGroup,
+        Level.Posts.Reply,
         Level.Spaces.Invitation,
         Level.Spaces.OpenInvitation,
         Level.Spaces.Space,
         Level.Spaces.SpaceSetupStep,
         Level.Spaces.SpaceUser,
+        Level.Users.Reservation,
         Level.Users.User
       ],
       Plugs: [

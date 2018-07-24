@@ -7,6 +7,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Groups
   alias Level.Markdown
   alias Level.Spaces
+  alias Level.Users
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
 
@@ -43,6 +44,12 @@ defmodule LevelWeb.Schema.Objects do
       arg :order_by, :group_order
       resolve &Level.Connections.group_memberships/3
     end
+
+    field :avatar_url, :string do
+      resolve fn user, _, _ ->
+        {:ok, Users.avatar_url(user.avatar)}
+      end
+    end
   end
 
   @desc "A space user defines a user's identity within a particular space."
@@ -62,6 +69,12 @@ defmodule LevelWeb.Schema.Objects do
         else
           {:ok, nil}
         end
+      end
+    end
+
+    field :avatar_url, :string do
+      resolve fn space_user, _, _ ->
+        {:ok, Users.avatar_url(space_user.avatar)}
       end
     end
   end

@@ -81,7 +81,8 @@ defmodule Level.Users do
     fn space_user ->
       Spaces.update_space_user(space_user, %{
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        avatar: user.avatar
       })
     end
   end
@@ -101,17 +102,28 @@ defmodule Level.Users do
   @doc """
   Updates the user's avatar.
   """
-  @spec update_avatar(User.t(), String.t()) :: {:ok, User.t()} | {:error, String.t()}
+  @spec update_avatar(User.t(), String.t()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t() | String.t()}
   def update_avatar(user, raw_data) do
-    # TODO: store the filename on the user
-    case AssetStore.upload_avatar(raw_data) do
-      {:ok, filename} ->
-        {:ok, user}
-
-      :error ->
-        {:error, dgettext("errors", "An error occurred updating your avatar")}
-    end
+    AssetStore.upload_avatar(raw_data)
+    |> set_user_avatar(user)
   end
+
+  defp set_user_avatar({:ok, filename}, user) do
+    IO.inspect(filename)
+    update_user(user, %{avatar: filename})
+  end
+
+  defp set_user_avatar(:error, _user) do
+    {:error, dgettext("errors", "An error occurred updating your avatar")}
+  end
+
+  @doc """
+  Generates the avatar URL for a given filename.
+  """
+  @spec avatar_url(String.t() | nil) :: String.t() | nil
+  def avatar_url(nil), do: nil
+  def avatar_url(filename), do: AssetStore.avatar_url(filename)
 
   @doc """
   Count the number of reservations.

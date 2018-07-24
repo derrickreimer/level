@@ -55,7 +55,7 @@ defmodule Level.Users.User do
   @doc false
   def update_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:email, :first_name, :last_name, :password, :time_zone])
+    |> cast(attrs, [:email, :first_name, :last_name, :password, :time_zone, :avatar])
     |> validate()
     |> put_password_hash()
   end

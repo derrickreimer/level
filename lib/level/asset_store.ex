@@ -8,7 +8,7 @@ defmodule Level.AssetStore do
   @doc """
   Uploads an avatar with a randomly-generated file name.
   """
-  @spec upload_avatar(String.t()) :: {:ok, String.t()} | :error
+  @spec upload_avatar(String.t()) :: {:ok, filename :: String.t()} | :error
   def upload_avatar(raw_data) do
     case decode(raw_data) do
       {:ok, binary_data} ->
@@ -19,6 +19,14 @@ defmodule Level.AssetStore do
       :error ->
         :error
     end
+  end
+
+  @doc """
+  Generates the URL for a given avatar filename.
+  """
+  @spec avatar_url(String.t()) :: String.t()
+  def avatar_url(filename) do
+    "https://s3.amazonaws.com/" <> bucket() <> filename
   end
 
   defp bucket do
