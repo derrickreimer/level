@@ -88,6 +88,16 @@ defmodule Level.Mutations do
     end
   end
 
+  def update_user_avatar(%{data: data}, %{context: %{current_user: user}}) do
+    case Users.update_avatar(user, data) do
+      {:ok, user} ->
+        {:ok, %{success: true, user: user, errors: []}}
+
+      err ->
+        err
+    end
+  end
+
   @doc """
   Creates a new space.
   """

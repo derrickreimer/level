@@ -7,6 +7,7 @@ defmodule Level.Users do
   import Level.Gettext
 
   alias Ecto.Multi
+  alias Level.AssetStore
   alias Level.Repo
   alias Level.Spaces
   alias Level.Users.Reservation
@@ -95,6 +96,21 @@ defmodule Level.Users do
 
   defp handle_user_update(_) do
     {:error, dgettext("errors", "An unexpected error occurred")}
+  end
+
+  @doc """
+  Updates the user's avatar.
+  """
+  @spec update_avatar(User.t(), String.t()) :: {:ok, User.t()} | {:error, String.t()}
+  def update_avatar(user, raw_data) do
+    # TODO: store the filename on the user
+    case AssetStore.upload_avatar(raw_data) do
+      {:ok, filename} ->
+        {:ok, user}
+
+      :error ->
+        {:error, dgettext("errors", "An error occurred updating your avatar")}
+    end
   end
 
   @doc """

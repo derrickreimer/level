@@ -48,6 +48,13 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_user/2
     end
 
+    @desc "Updates the user's avatar."
+    field :update_user_avatar, type: :update_user_payload do
+      arg :data, non_null(:string)
+
+      resolve &Level.Mutations.update_user_avatar/2
+    end
+
     @desc "Create a space."
     field :create_space, type: :create_space_payload do
       arg :name, non_null(:string)

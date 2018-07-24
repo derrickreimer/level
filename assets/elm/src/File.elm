@@ -1,4 +1,4 @@
-module File exposing (File, Data, init, request, receive, input, avatarInput)
+module File exposing (File, Data, init, getContents, request, receive, input, avatarInput)
 
 import File.Types exposing (Data)
 import Html exposing (Html, Attribute, label, text, button)
@@ -19,9 +19,18 @@ type alias Data =
     File.Types.Data
 
 
+
+-- API
+
+
 init : Data -> File
 init data =
     File data
+
+
+getContents : File -> String
+getContents (File { contents }) =
+    contents
 
 
 

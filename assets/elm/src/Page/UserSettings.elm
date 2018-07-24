@@ -17,6 +17,7 @@ import Task exposing (Task)
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
 import File exposing (File)
 import Mutation.UpdateUser as UpdateUser
+import Mutation.UpdateUserAvatar as UpdateUserAvatar
 import Query.UserSettingsInit as UserSettingsInit
 import Repo exposing (Repo)
 import Route
@@ -75,6 +76,7 @@ type Msg
     | LastNameChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, UpdateUser.Response ))
+    | AvatarSubmitted (Result Session.Error ( Session, UpdateUserAvatar.Response ))
     | AvatarSelected
     | FileReceived File.Data
 
@@ -126,8 +128,32 @@ update msg session model =
             let
                 file =
                     File.init data
+
+                cmd =
+                    session
+                        |> UpdateUserAvatar.request (File.getContents file)
+                        |> Task.attempt AvatarSubmitted
             in
-                ( ( { model | newAvatar = Just file }, Cmd.none ), session )
+                ( ( { model | newAvatar = Just file }, cmd ), session )
+
+        AvatarSubmitted (Ok ( session, UpdateUserAvatar.Success user )) ->
+            noCmd session
+                { model
+                    | firstName = user.firstName
+                    , lastName = user.lastName
+                    , email = user.email
+                    , isSubmitting = False
+                }
+
+        AvatarSubmitted (Ok ( session, UpdateUserAvatar.Invalid errors )) ->
+            noCmd session { model | isSubmitting = False, errors = errors }
+
+        AvatarSubmitted (Err Session.Expired) ->
+            redirectToLogin session model
+
+        AvatarSubmitted (Err _) ->
+            -- TODO: handle unexpected exceptions
+            noCmd session { model | isSubmitting = False }
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
