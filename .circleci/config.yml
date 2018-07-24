@@ -6,6 +6,7 @@ jobs:
       - image: circleci/postgres:10.3
 
     environment:
+      MIX_ENV: test
       COVERALLS_REPO_TOKEN: WQJAD2rl0QMcK0OukyWM49Aq1gXqQEJXY
 
     working_directory: /home/circleci/repo
