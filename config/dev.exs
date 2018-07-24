@@ -28,8 +28,8 @@ config :level, LevelWeb.Endpoint,
     patterns: [
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
-      ~r{lib/level/web/views/.*(ex)$},
-      ~r{lib/level/web/templates/.*(eex)$}
+      ~r{lib/level_web/views/.*(ex)$},
+      ~r{lib/level_web/templates/.*(eex)$}
     ]
   ]
 
@@ -43,11 +43,13 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :level, Level.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: System.get_env("LEVEL_DB_USERNAME") || "postgres",
-  password: System.get_env("LEVEL_DB_PASSWORD") || "postgres",
   database: "level_dev",
   hostname: "localhost",
   pool_size: 10
 
 # Mailer
 config :level, Level.Mailer, adapter: Bamboo.LocalAdapter
+
+# Import secrets not tracked under version control.
+# Use config/secret_template.exs as a starting point.
+import_config "dev.secret.exs"

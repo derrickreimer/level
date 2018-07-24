@@ -22,15 +22,8 @@ script/bootstrap
 ```
 
 If your local PostgreSQL install does not have a default `postgres` user,
-define the `LEVEL_DB_USERNAME` and `LEVEL_DB_PASSWORD` environment variables
-first in your shell environment:
-
-```
-export LEVEL_DB_USERNAME=xxx
-export LEVEL_DB_PASSWORD=yyy
-```
-
-Then run the bootstrap script again.
+open the `config/dev.secret.exs` file and update the credentials.
+Then, run the bootstrap script again.
 
 Use the `script/server` command to start up your local server and visit
 [`localhost:4000`](http://localhost:4000) from your browser.
