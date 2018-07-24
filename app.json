@@ -26,6 +26,18 @@
     }
   ],
   "env": {
+    "AWS_ACCESS_KEY_ID": {
+      "description": "The AWS access key id for your account (with access to S3).",
+      "value": ""
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "description": "The AWS secret access key corresponding to the access key id.",
+      "value": ""
+    },
+    "LEVEL_ASSET_STORE_BUCKET": {
+      "description": "The name of the S3 bucket in which to store uploaded assets.",
+      "value": ""
+    },
     "LEVEL_HOST": {
       "description": "The domain on which you are serving this application (set to [your-app-name].herokuapp.com until you setup a custom domain).",
       "value": ""

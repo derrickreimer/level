@@ -30,5 +30,8 @@ config :level, Level.Repo,
 config :comeonin, :bcrypt_log_rounds, 4
 config :comeonin, :pbkdf2_rounds, 1
 
-# Mailer
+# Configure the mailer
 config :level, Level.Mailer, adapter: Bamboo.TestAdapter
+
+# Configure asset storage
+config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")

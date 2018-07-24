@@ -27,7 +27,7 @@ config :level, Level.Repo,
   pool_size: String.to_integer(System.get_env("LEVEL_POOL_SIZE") || "10"),
   ssl: true
 
-# Mailer
+# Configure the mailer
 config :level, Level.Mailer,
   adapter: Bamboo.SMTPAdapter,
   server: {:system, "LEVEL_SMTP_HOST"},
@@ -37,6 +37,9 @@ config :level, Level.Mailer,
   tls: :always,
   ssl: false,
   retries: 1
+
+# Configure asset storage
+config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
 
 # ## SSL Support
 #
