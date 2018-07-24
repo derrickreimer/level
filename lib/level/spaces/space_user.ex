@@ -19,6 +19,7 @@ defmodule Level.Spaces.SpaceUser do
     field :role, :string, read_after_writes: true
     field :first_name, :string
     field :last_name, :string
+    field :avatar, :string
     belongs_to :space, Space
     belongs_to :user, User
 

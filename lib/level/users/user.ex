@@ -27,6 +27,7 @@ defmodule Level.Users.User do
     field :password, :string, virtual: true
     field :password_hash, :string
     field :session_salt, :string
+    field :avatar, :string
     has_many :space_users, SpaceUser
 
     timestamps()
