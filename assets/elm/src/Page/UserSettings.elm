@@ -178,7 +178,7 @@ view : Repo -> Model -> Html Msg
 view repo ({ errors } as model) =
     div [ class "ml-56 mr-24" ]
         [ div [ class "mx-auto max-w-90 leading-normal py-8" ]
-            [ h1 [ class "pb-8 font-extrabold text-3xl" ] [ text "My Settings" ]
+            [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "My Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-16 max-w-sm" ]
                     [ div [ class "pb-6" ]
