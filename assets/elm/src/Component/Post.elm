@@ -311,29 +311,29 @@ view repo currentUser now ({ post } as model) =
                             ]
                     ]
                 , div [ class "relative" ]
-                    [ repliesView post now post.replies model.mode
+                    [ repliesView repo post now post.replies model.mode
                     , replyComposerView currentUser model
                     ]
                 ]
             ]
 
 
-repliesView : Post -> Date -> Connection Reply -> Mode -> Html Msg
-repliesView post now replies mode =
+repliesView : Repo -> Post -> Date -> Connection Reply -> Mode -> Html Msg
+repliesView repo post now replies mode =
     let
         listView =
             case mode of
                 Feed ->
-                    feedRepliesView post now replies
+                    feedRepliesView repo post now replies
 
                 FullPage ->
-                    fullPageRepliesView post now replies
+                    fullPageRepliesView repo post now replies
     in
         viewUnless (Connection.isEmptyAndExpanded replies) listView
 
 
-feedRepliesView : Post -> Date -> Connection Reply -> Html Msg
-feedRepliesView post now replies =
+feedRepliesView : Repo -> Post -> Date -> Connection Reply -> Html Msg
+feedRepliesView repo post now replies =
     let
         { nodes, hasPreviousPage } =
             Connection.last 5 replies
@@ -345,12 +345,12 @@ feedRepliesView post now replies =
                     , class "mb-2 text-dusty-blue no-underline"
                     ]
                     [ text "Show more..." ]
-            , div [] (List.map (replyView now Feed) nodes)
+            , div [] (List.map (replyView repo now Feed) nodes)
             ]
 
 
-fullPageRepliesView : Post -> Date -> Connection Reply -> Html Msg
-fullPageRepliesView post now replies =
+fullPageRepliesView : Repo -> Post -> Date -> Connection Reply -> Html Msg
+fullPageRepliesView repo post now replies =
     let
         nodes =
             Connection.toList replies
@@ -365,23 +365,27 @@ fullPageRepliesView post now replies =
                     , onClick PreviousRepliesRequested
                     ]
                     [ text "Load more..." ]
-            , div [] (List.map (replyView now FullPage) nodes)
+            , div [] (List.map (replyView repo now FullPage) nodes)
             ]
 
 
-replyView : Date -> Mode -> Reply -> Html Msg
-replyView now mode reply =
-    div [ id (replyNodeId reply.id), class "flex mt-3" ]
-        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small reply.author ]
-        , div [ class "flex-grow leading-semi-loose" ]
-            [ div []
-                [ span [ class "font-bold" ] [ text <| displayName reply.author ]
-                , viewIf (mode == FullPage) <|
-                    span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now reply.postedAt ]
+replyView : Repo -> Date -> Mode -> Reply -> Html Msg
+replyView repo now mode reply =
+    let
+        author =
+            Repo.getUser repo reply.author
+    in
+        div [ id (replyNodeId reply.id), class "flex mt-3" ]
+            [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small author ]
+            , div [ class "flex-grow leading-semi-loose" ]
+                [ div []
+                    [ span [ class "font-bold" ] [ text <| displayName author ]
+                    , viewIf (mode == FullPage) <|
+                        span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now reply.postedAt ]
+                    ]
+                , div [ class "markdown mb-2" ] [ injectHtml reply.bodyHtml ]
                 ]
-            , div [ class "markdown mb-2" ] [ injectHtml reply.bodyHtml ]
             ]
-        ]
 
 
 replyComposerView : SpaceUser -> Model -> Html Msg
