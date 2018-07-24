@@ -1,8 +1,8 @@
 module File exposing (File, Data, init, getContents, request, receive, input, avatarInput)
 
 import File.Types exposing (Data)
-import Html exposing (Html, Attribute, label, text, button)
-import Html.Attributes as Attributes exposing (type_, id, class)
+import Html exposing (Html, Attribute, label, text, button, img)
+import Html.Attributes as Attributes exposing (type_, id, class, src)
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Ports
@@ -67,9 +67,9 @@ input name onChange attrs =
 avatarInput : String -> Maybe String -> msg -> Html msg
 avatarInput nodeId maybeSrc changeMsg =
     case maybeSrc of
-        Just src ->
+        Just avatarUrl ->
             label [ class "flex w-32 h-32 border rounded-full cursor-pointer" ]
-                [ text "Upload an avatar"
+                [ img [ src avatarUrl, class "w-full h-full rounded-full" ] []
                 , input nodeId changeMsg [ class "invisible-file" ]
                 ]
 

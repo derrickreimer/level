@@ -1,6 +1,6 @@
 module Data.User exposing (User, fragment, decoder)
 
-import Json.Decode as Decode exposing (Decoder, field, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, field, maybe, string, succeed, fail)
 import GraphQL exposing (Fragment)
 
 
@@ -12,6 +12,7 @@ type alias User =
     , email : String
     , firstName : String
     , lastName : String
+    , avatarUrl : Maybe String
     }
 
 
@@ -24,6 +25,7 @@ fragment =
           email
           firstName
           lastName
+          avatarUrl
         }
         """
         []
@@ -35,8 +37,9 @@ fragment =
 
 decoder : Decoder User
 decoder =
-    Decode.map4 User
+    Decode.map5 User
         (field "id" string)
         (field "email" string)
         (field "firstName" string)
         (field "lastName" string)
+        (field "avatarUrl" (maybe string))

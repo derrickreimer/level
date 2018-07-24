@@ -26,7 +26,7 @@ defmodule Level.AssetStore do
   """
   @spec avatar_url(String.t()) :: String.t()
   def avatar_url(filename) do
-    "https://s3.amazonaws.com/" <> bucket() <> filename
+    "https://s3.amazonaws.com/" <> bucket() <> "/" <> filename
   end
 
   defp bucket do

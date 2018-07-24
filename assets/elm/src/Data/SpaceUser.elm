@@ -1,6 +1,6 @@
 module Data.SpaceUser exposing (SpaceUser, Role(..), fragment, decoder, roleDecoder)
 
-import Json.Decode as Decode exposing (Decoder, field, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, maybe, field, string, succeed, fail)
 import GraphQL exposing (Fragment)
 
 
@@ -12,6 +12,7 @@ type alias SpaceUser =
     , firstName : String
     , lastName : String
     , role : Role
+    , avatarUrl : Maybe String
     }
 
 
@@ -29,6 +30,7 @@ fragment =
           firstName
           lastName
           role
+          avatarUrl
         }
         """
         []
@@ -58,8 +60,9 @@ roleDecoder =
 
 decoder : Decoder SpaceUser
 decoder =
-    Decode.map4 SpaceUser
+    Decode.map5 SpaceUser
         (field "id" string)
         (field "firstName" string)
         (field "lastName" string)
         (field "role" roleDecoder)
+        (field "avatarUrl" (maybe string))

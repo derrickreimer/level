@@ -110,7 +110,6 @@ defmodule Level.Users do
   end
 
   defp set_user_avatar({:ok, filename}, user) do
-    IO.inspect(filename)
     update_user(user, %{avatar: filename})
   end
 

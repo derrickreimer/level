@@ -31,6 +31,7 @@ type alias Model =
     { firstName : String
     , lastName : String
     , email : String
+    , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
     , newAvatar : Maybe File
@@ -51,7 +52,7 @@ buildModel : ( Session, UserSettingsInit.Response ) -> Task Session.Error ( Sess
 buildModel ( session, { user } ) =
     let
         model =
-            Model user.firstName user.lastName user.email [] False Nothing
+            Model user.firstName user.lastName user.email user.avatarUrl [] False Nothing
     in
         Task.succeed ( session, model )
 
@@ -137,16 +138,10 @@ update msg session model =
                 ( ( { model | newAvatar = Just file }, cmd ), session )
 
         AvatarSubmitted (Ok ( session, UpdateUserAvatar.Success user )) ->
-            noCmd session
-                { model
-                    | firstName = user.firstName
-                    , lastName = user.lastName
-                    , email = user.email
-                    , isSubmitting = False
-                }
+            noCmd session { model | avatarUrl = user.avatarUrl }
 
         AvatarSubmitted (Ok ( session, UpdateUserAvatar.Invalid errors )) ->
-            noCmd session { model | isSubmitting = False, errors = errors }
+            noCmd session { model | errors = errors }
 
         AvatarSubmitted (Err Session.Expired) ->
             redirectToLogin session model
@@ -237,7 +232,7 @@ view repo ({ errors } as model) =
                         ]
                     ]
                 , div [ class "flex-1" ]
-                    [ File.avatarInput "avatar" Nothing AvatarSelected
+                    [ File.avatarInput "avatar" model.avatarUrl AvatarSelected
                     ]
                 ]
             , button
