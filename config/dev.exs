@@ -52,4 +52,6 @@ config :level, Level.Mailer, adapter: Bamboo.LocalAdapter
 
 # Import secrets not tracked under version control.
 # Use config/secret_template.exs as a starting point.
-import_config "dev.secret.exs"
+if File.exists?("config/dev.secret.exs") do
+  import_config "dev.secret.exs"
+end
