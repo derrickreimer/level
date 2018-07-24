@@ -68,13 +68,13 @@ avatarInput : String -> Maybe String -> msg -> Html msg
 avatarInput nodeId maybeSrc changeMsg =
     case maybeSrc of
         Just avatarUrl ->
-            label [ class "flex w-32 h-32 border rounded-full cursor-pointer" ]
+            label [ class "flex w-48 h-48 border rounded-full cursor-pointer" ]
                 [ img [ src avatarUrl, class "w-full h-full rounded-full" ] []
                 , input nodeId changeMsg [ class "invisible-file" ]
                 ]
 
         Nothing ->
-            label [ class "flex items-center text-center text-md leading-tight text-dusty-blue font-black w-32 h-32 border-2 rounded-full border-dashed cursor-pointer no-select" ]
+            label [ class "flex w-48 h-48 items-center text-center text-2xl leading-tight text-dusty-blue font-black border-2 rounded-full border-dashed cursor-pointer no-select" ]
                 [ text "Upload an avatar..."
                 , input nodeId changeMsg [ class "invisible-file" ]
                 ]
