@@ -1,6 +1,5 @@
 module Query.UserSettingsInit exposing (Response, request)
 
-import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Task exposing (Task)

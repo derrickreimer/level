@@ -14,6 +14,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Task exposing (Task)
+import Data.User as User
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
 import File exposing (File)
 import Mutation.UpdateUser as UpdateUser
@@ -51,8 +52,11 @@ init session =
 buildModel : ( Session, UserSettingsInit.Response ) -> Task Session.Error ( Session, Model )
 buildModel ( session, { user } ) =
     let
+        userData =
+            User.getCachedData user
+
         model =
-            Model user.firstName user.lastName user.email user.avatarUrl [] False Nothing
+            Model userData.firstName userData.lastName userData.email userData.avatarUrl [] False Nothing
     in
         Task.succeed ( session, model )
 
@@ -104,13 +108,17 @@ update msg session model =
                 ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
 
         Submitted (Ok ( session, UpdateUser.Success user )) ->
-            noCmd session
-                { model
-                    | firstName = user.firstName
-                    , lastName = user.lastName
-                    , email = user.email
-                    , isSubmitting = False
-                }
+            let
+                userData =
+                    User.getCachedData user
+            in
+                noCmd session
+                    { model
+                        | firstName = userData.firstName
+                        , lastName = userData.lastName
+                        , email = userData.email
+                        , isSubmitting = False
+                    }
 
         Submitted (Ok ( session, UpdateUser.Invalid errors )) ->
             noCmd session { model | isSubmitting = False, errors = errors }
@@ -138,7 +146,11 @@ update msg session model =
                 ( ( { model | newAvatar = Just file }, cmd ), session )
 
         AvatarSubmitted (Ok ( session, UpdateUserAvatar.Success user )) ->
-            noCmd session { model | avatarUrl = user.avatarUrl }
+            let
+                userData =
+                    User.getCachedData user
+            in
+                noCmd session { model | avatarUrl = userData.avatarUrl }
 
         AvatarSubmitted (Ok ( session, UpdateUserAvatar.Invalid errors )) ->
             noCmd session { model | errors = errors }
