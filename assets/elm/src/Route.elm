@@ -21,6 +21,7 @@ type Route
     | Group String
     | Post String
     | UserSettings
+    | SpaceSettings
 
 
 route : Parser (Route -> a) a
@@ -33,6 +34,7 @@ route =
         , Url.map Group (s "groups" </> Url.string)
         , Url.map Post (s "posts" </> Url.string)
         , Url.map UserSettings (s "user" </> s "settings")
+        , Url.map SpaceSettings (s "settings")
         ]
 
 
@@ -65,6 +67,9 @@ routeToString page =
 
                 UserSettings ->
                     [ "user", "settings" ]
+
+                SpaceSettings ->
+                    [ "settings" ]
     in
         "#/" ++ String.join "/" pieces
 

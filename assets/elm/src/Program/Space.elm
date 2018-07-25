@@ -21,6 +21,7 @@ import Page.Inbox
 import Page.Post
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
+import Page.SpaceSettings
 import Page.UserSettings
 import Ports
 import Query.SharedState
@@ -71,6 +72,7 @@ type Page
     | Group Page.Group.Model
     | Post Page.Post.Model
     | UserSettings Page.UserSettings.Model
+    | SpaceSettings Page.SpaceSettings.Model
 
 
 type alias Flags =
@@ -132,6 +134,7 @@ type Msg
     | GroupMsg Page.Group.Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
+    | SpaceSettingsMsg Page.SpaceSettings.Msg
       -- PORTS
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
@@ -147,11 +150,7 @@ type PageInit
     = GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
-
-
-getPage : Model -> Page
-getPage model =
-    model.page
+    | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -247,6 +246,15 @@ update msg model =
                 in
                     ( { model | session = session, page = UserSettings newPageModel }
                     , Cmd.map UserSettingsMsg cmd
+                    )
+
+            ( SpaceSettingsMsg msg, SpaceSettings pageModel ) ->
+                let
+                    ( ( newPageModel, cmd ), session ) =
+                        Page.SpaceSettings.update msg model.session pageModel
+                in
+                    ( { model | session = session, page = SpaceSettings newPageModel }
+                    , Cmd.map SpaceSettingsMsg cmd
                     )
 
             ( SocketAbort value, _ ) ->
@@ -418,6 +426,19 @@ handlePageInit pageInit model =
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
+        SpaceSettingsInit (Ok pageModel) ->
+            ( { model
+                | page = SpaceSettings pageModel
+                , isTransitioning = False
+              }
+            , Page.SpaceSettings.setup pageModel
+                |> Cmd.map SpaceSettingsMsg
+            )
+
+        SpaceSettingsInit (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
+
 
 setFlashNotice : String -> Model -> ( Model, Cmd Msg )
 setFlashNotice message model =
@@ -512,12 +533,23 @@ navigateTo maybeRoute model =
                                 |> Page.UserSettings.init
                                 |> transition model UserSettingsInit
 
+                        Just Route.SpaceSettings ->
+                            sharedState.space
+                                |> Page.SpaceSettings.init
+                                |> transition model SpaceSettingsInit
+
 
 teardown : Page -> Cmd Msg
 teardown page =
     case page of
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
+
+        UserSettings pageModel ->
+            Cmd.map UserSettingsMsg (Page.UserSettings.teardown pageModel)
+
+        SpaceSettings pageModel ->
+            Cmd.map SpaceSettingsMsg (Page.SpaceSettings.teardown pageModel)
 
         _ ->
             Cmd.none
@@ -601,6 +633,9 @@ pageSubscription model =
         UserSettings _ ->
             Sub.map UserSettingsMsg Page.UserSettings.subscriptions
 
+        SpaceSettings _ ->
+            Sub.map SpaceSettingsMsg Page.SpaceSettings.subscriptions
+
         _ ->
             Sub.none
 
@@ -618,7 +653,7 @@ view model =
         Loaded sharedState ->
             div []
                 [ leftSidebar sharedState model
-                , pageContent model.repo sharedState model.page
+                , pageView model.repo sharedState model.page
                 ]
 
 
@@ -655,6 +690,55 @@ leftSidebar sharedState ({ page, repo } as model) =
                     ]
                 ]
             ]
+
+
+pageView : Repo -> SharedState -> Page -> Html Msg
+pageView repo sharedState page =
+    case page of
+        SetupCreateGroups pageModel ->
+            pageModel
+                |> Page.Setup.CreateGroups.view
+                |> Html.map SetupCreateGroupsMsg
+
+        SetupInviteUsers pageModel ->
+            pageModel
+                |> Page.Setup.InviteUsers.view
+                |> Html.map SetupInviteUsersMsg
+
+        Inbox ->
+            let
+                featuredUsers =
+                    sharedState.featuredUsers
+                        |> Repo.getUsers repo
+            in
+                Page.Inbox.view featuredUsers
+                    |> Html.map InboxMsg
+
+        Group pageModel ->
+            pageModel
+                |> Page.Group.view repo
+                |> Html.map GroupMsg
+
+        Post pageModel ->
+            pageModel
+                |> Page.Post.view repo
+                |> Html.map PostMsg
+
+        UserSettings pageModel ->
+            pageModel
+                |> Page.UserSettings.view repo
+                |> Html.map UserSettingsMsg
+
+        SpaceSettings pageModel ->
+            pageModel
+                |> Page.SpaceSettings.view repo
+                |> Html.map SpaceSettingsMsg
+
+        Blank ->
+            text ""
+
+        NotFound ->
+            text "404"
 
 
 groupLinks : List Group -> Page -> Html Msg
@@ -706,48 +790,8 @@ spaceAvatar space =
         |> texitar Avatar.Small
 
 
-pageContent : Repo -> SharedState -> Page -> Html Msg
-pageContent repo sharedState page =
-    case page of
-        SetupCreateGroups pageModel ->
-            pageModel
-                |> Page.Setup.CreateGroups.view
-                |> Html.map SetupCreateGroupsMsg
 
-        SetupInviteUsers pageModel ->
-            pageModel
-                |> Page.Setup.InviteUsers.view
-                |> Html.map SetupInviteUsersMsg
-
-        Inbox ->
-            let
-                featuredUsers =
-                    sharedState.featuredUsers
-                        |> Repo.getUsers repo
-            in
-                Page.Inbox.view featuredUsers
-                    |> Html.map InboxMsg
-
-        Group pageModel ->
-            pageModel
-                |> Page.Group.view repo
-                |> Html.map GroupMsg
-
-        Post pageModel ->
-            pageModel
-                |> Page.Post.view repo
-                |> Html.map PostMsg
-
-        UserSettings pageModel ->
-            pageModel
-                |> Page.UserSettings.view repo
-                |> Html.map UserSettingsMsg
-
-        Blank ->
-            text ""
-
-        NotFound ->
-            text "404"
+-- HELPERS
 
 
 routeFor : Page -> Maybe Route
@@ -770,6 +814,9 @@ routeFor page =
 
         UserSettings _ ->
             Just Route.UserSettings
+
+        SpaceSettings _ ->
+            Just Route.SpaceSettings
 
         Blank ->
             Nothing

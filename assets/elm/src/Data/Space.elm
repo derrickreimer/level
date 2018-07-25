@@ -11,6 +11,7 @@ type alias Space =
     { id : String
     , name : String
     , slug : String
+    , avatarUrl : Maybe String
     }
 
 
@@ -33,7 +34,8 @@ fragment =
 
 decoder : Decoder Space
 decoder =
-    Decode.map3 Space
+    Decode.map4 Space
         (field "id" string)
         (field "name" string)
         (field "slug" string)
+        (Decode.succeed Nothing)
