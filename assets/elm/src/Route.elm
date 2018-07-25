@@ -7,7 +7,6 @@ import Navigation exposing (Location)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string)
-import Data.Space exposing (Space)
 
 
 -- ROUTING --
