@@ -1,6 +1,8 @@
 module Icons
     exposing
-        ( heart
+        ( Toggle(..)
+        , bookmark
+        , heart
         , sync
         , comment
         , arrowLeft
@@ -10,9 +12,48 @@ import Html exposing (Html)
 import ViewHelpers exposing (injectHtml)
 
 
+type Toggle
+    = On
+    | Off
+
+
 toHtml : String -> Html msg
 toHtml =
     injectHtml
+
+
+bookmark : Toggle -> Html msg
+bookmark style =
+    case style of
+        Off ->
+            toHtml
+                """
+                <svg width="16px" height="20px" viewBox="0 0 16 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+                    <desc>Created with Sketch.</desc>
+                    <defs></defs>
+                    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                        <g id="bookmark" transform="translate(1.000000, 1.000000)" fill="#E2E6E8" stroke="#E2E6E8" stroke-width="2">
+                            <path d="M14,18 L7,13 L0,18 L0,2 C0,0.8954305 0.8954305,0 2,0 L12,0 C13.1045695,0 14,0.8954305 14,2 L14,18 Z" id="Shape"></path>
+                        </g>
+                    </g>
+                </svg>
+                """
+
+        On ->
+            toHtml
+                """
+                <svg width="16px" height="20px" viewBox="0 0 16 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+                    <desc>Created with Sketch.</desc>
+                    <defs></defs>
+                    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                        <g id="bookmark-copy" transform="translate(1.000000, 1.000000)" fill="#13C1D5" stroke="#13C1D5" stroke-width="2">
+                            <path d="M14,18 L7,13 L0,18 L0,2 C0,0.8954305 0.8954305,0 2,0 L12,0 C13.1045695,0 14,0.8954305 14,2 L14,18 Z" id="Shape"></path>
+                        </g>
+                    </g>
+                </svg>
+                """
 
 
 heart : Html msg

@@ -311,8 +311,22 @@ handleSocketResult value model page sharedState =
 
                 newSharedState =
                     { sharedState | bookmarkedGroups = groups }
+
+                newModel =
+                    { model | sharedState = Loaded newSharedState }
             in
-                ( { model | sharedState = Loaded newSharedState }, Cmd.none )
+                case page of
+                    Group pageModel ->
+                        let
+                            ( newPageModel, cmd ) =
+                                Page.Group.handleGroupBookmarked group pageModel
+                        in
+                            ( { newModel | page = Group newPageModel }
+                            , Cmd.map GroupMsg cmd
+                            )
+
+                    _ ->
+                        ( newModel, Cmd.none )
 
         Event.GroupUnbookmarked group ->
             let
@@ -322,8 +336,22 @@ handleSocketResult value model page sharedState =
 
                 newSharedState =
                     { sharedState | bookmarkedGroups = groups }
+
+                newModel =
+                    { model | sharedState = Loaded newSharedState }
             in
-                ( { model | sharedState = Loaded newSharedState }, Cmd.none )
+                case page of
+                    Group pageModel ->
+                        let
+                            ( newPageModel, cmd ) =
+                                Page.Group.handleGroupUnbookmarked group pageModel
+                        in
+                            ( { newModel | page = Group newPageModel }
+                            , Cmd.map GroupMsg cmd
+                            )
+
+                    _ ->
+                        ( newModel, Cmd.none )
 
         Event.GroupMembershipUpdated payload ->
             case model.page of
@@ -522,9 +550,14 @@ navigateTo maybeRoute model =
                             ( { model | page = Inbox }, Cmd.none )
 
                         Just (Route.Group groupId) ->
-                            model.session
-                                |> Page.Group.init sharedState.user sharedState.space groupId
-                                |> transition model (GroupInit groupId)
+                            let
+                                isBookmarked =
+                                    List.map Group.getId sharedState.bookmarkedGroups
+                                        |> List.member groupId
+                            in
+                                model.session
+                                    |> Page.Group.init sharedState.user sharedState.space groupId isBookmarked
+                                    |> transition model (GroupInit groupId)
 
                         Just (Route.Post postId) ->
                             model.session

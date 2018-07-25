@@ -127,4 +127,4 @@ updateBy comparator newItem items =
 -}
 removeBy : (a -> comparable) -> a -> List a -> List a
 removeBy comparator item list =
-    List.filter (\a -> comparator a == comparator item) list
+    List.filter (\a -> not (comparator a == comparator item)) list

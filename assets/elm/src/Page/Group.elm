@@ -8,6 +8,8 @@ module Page.Group
         , update
         , subscriptions
         , view
+        , handleGroupBookmarked
+        , handleGroupUnbookmarked
         , handlePostCreated
         , handleReplyCreated
         , handleGroupMembershipUpdated
@@ -30,7 +32,10 @@ import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
+import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
+import Mutation.BookmarkGroup as BookmarkGroup
+import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
@@ -69,6 +74,7 @@ type alias PostComposer =
 type alias Model =
     { group : Group
     , state : GroupMembershipState
+    , isBookmarked : Bool
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
     , now : Date
@@ -83,27 +89,28 @@ type alias Model =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
-init user space groupId session =
+init : SpaceUser -> Space -> String -> Bool -> Session -> Task Session.Error ( Session, Model )
+init user space groupId isBookmarked session =
     Date.now
         |> Task.andThen (GroupInit.request (Space.getId space) groupId session)
-        |> Task.andThen (buildModel user space)
+        |> Task.andThen (buildModel user space isBookmarked)
 
 
-buildModel : SpaceUser -> Space -> ( Session, GroupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel user space ( session, { group, state, posts, featuredMemberships, now } ) =
+buildModel : SpaceUser -> Space -> Bool -> ( Session, GroupInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel user space isBookmarked ( session, { group, state, posts, featuredMemberships, now } ) =
     let
         model =
-            { group = group
-            , state = state
-            , posts = posts
-            , featuredMemberships = featuredMemberships
-            , now = now
-            , space = space
-            , user = user
-            , nameEditor = (FieldEditor NotEditing "" [])
-            , postComposer = (PostComposer "" False)
-            }
+            Model
+                group
+                state
+                isBookmarked
+                posts
+                featuredMemberships
+                now
+                space
+                user
+                (FieldEditor NotEditing "" [])
+                (PostComposer "" False)
     in
         Task.succeed ( session, model )
 
@@ -169,6 +176,10 @@ type Msg
     | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
     | FeaturedMembershipsRefreshed (Result Session.Error ( Session, FeaturedMemberships.Response ))
     | PostComponentMsg String Component.Post.Msg
+    | Bookmark
+    | Bookmarked (Result Session.Error ( Session, BookmarkGroup.Response ))
+    | Unbookmark
+    | Unbookmarked (Result Session.Error ( Session, UnbookmarkGroup.Response ))
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -308,6 +319,42 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                 Nothing ->
                     noCmd session model
 
+        Bookmark ->
+            let
+                cmd =
+                    session
+                        |> BookmarkGroup.request (Space.getId model.space) (Group.getId model.group)
+                        |> Task.attempt Bookmarked
+            in
+                ( ( model, cmd ), session )
+
+        Bookmarked (Ok ( session, _ )) ->
+            noCmd session { model | isBookmarked = True }
+
+        Bookmarked (Err Session.Expired) ->
+            redirectToLogin session model
+
+        Bookmarked (Err _) ->
+            noCmd session model
+
+        Unbookmark ->
+            let
+                cmd =
+                    session
+                        |> UnbookmarkGroup.request (Space.getId model.space) (Group.getId model.group)
+                        |> Task.attempt Unbookmarked
+            in
+                ( ( model, cmd ), session )
+
+        Unbookmarked (Ok ( session, _ )) ->
+            noCmd session { model | isBookmarked = False }
+
+        Unbookmarked (Err Session.Expired) ->
+            redirectToLogin session model
+
+        Unbookmarked (Err _) ->
+            noCmd session model
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
@@ -321,6 +368,22 @@ redirectToLogin session model =
 
 
 -- EVENT HANDLERS
+
+
+handleGroupBookmarked : Group -> Model -> ( Model, Cmd Msg )
+handleGroupBookmarked group model =
+    if Group.getId group == Group.getId model.group then
+        ( { model | isBookmarked = True }, Cmd.none )
+    else
+        ( model, Cmd.none )
+
+
+handleGroupUnbookmarked : Group -> Model -> ( Model, Cmd Msg )
+handleGroupUnbookmarked group model =
+    if Group.getId group == Group.getId model.group then
+        ( { model | isBookmarked = False }, Cmd.none )
+    else
+        ( model, Cmd.none )
 
 
 handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
@@ -400,7 +463,7 @@ view repo model =
                     [ div [ class "flex items-center" ]
                         [ nameView groupData model.nameEditor
                         , nameErrors model.nameEditor
-                        , controlsView model.state
+                        , controlsView model.isBookmarked model.state
                         ]
                     ]
                 , newPostView model.postComposer currentUserData
@@ -464,11 +527,22 @@ nameErrors editor =
             text ""
 
 
-controlsView : GroupMembershipState -> Html Msg
-controlsView state =
+controlsView : Bool -> GroupMembershipState -> Html Msg
+controlsView isBookmarked state =
     div [ class "flex flex-grow justify-end" ]
         [ subscribeButtonView state
+        , bookmarkButtonView isBookmarked
         ]
+
+
+bookmarkButtonView : Bool -> Html Msg
+bookmarkButtonView isBookmarked =
+    if isBookmarked == True then
+        button [ class "ml-3", onClick Unbookmark ]
+            [ Icons.bookmark Icons.On ]
+    else
+        button [ class "ml-3", onClick Bookmark ]
+            [ Icons.bookmark Icons.Off ]
 
 
 subscribeButtonView : GroupMembershipState -> Html Msg
