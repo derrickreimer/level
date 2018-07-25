@@ -26,7 +26,7 @@ import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.Post exposing (Post)
-import Data.Reply exposing (Reply)
+import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
@@ -293,13 +293,13 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             noCmd session model
 
         PostComponentMsg postId msg ->
-            case Connection.get postId model.posts of
+            case Connection.get .id postId model.posts of
                 Just post ->
                     let
                         ( ( newPost, cmd ), newSession ) =
                             Component.Post.update msg (Space.getId model.space) session post
                     in
-                        ( ( { model | posts = Connection.update newPost model.posts }
+                        ( ( { model | posts = Connection.update .id newPost model.posts }
                           , Cmd.map (PostComponentMsg postId) cmd
                           )
                         , newSession
@@ -329,7 +329,7 @@ handlePostCreated post ({ posts, group } as model) =
         component =
             Component.Post.init Component.Post.Feed post
     in
-        ( { model | posts = Connection.prepend component posts }
+        ( { model | posts = Connection.prepend .id component posts }
         , Cmd.map (PostComponentMsg post.id) (Component.Post.setup component)
         )
 
@@ -351,19 +351,23 @@ handleGroupMembershipUpdated { state, membership } session model =
 
 
 handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated ({ postId } as reply) ({ posts } as model) =
-    case Connection.get postId posts of
-        Just component ->
-            let
-                ( newComponent, cmd ) =
-                    Component.Post.handleReplyCreated reply component
-            in
-                ( { model | posts = Connection.update newComponent posts }
-                , Cmd.map (PostComponentMsg postId) cmd
-                )
+handleReplyCreated reply ({ posts } as model) =
+    let
+        postId =
+            Reply.getPostId reply
+    in
+        case Connection.get .id postId posts of
+            Just component ->
+                let
+                    ( newComponent, cmd ) =
+                        Component.Post.handleReplyCreated reply component
+                in
+                    ( { model | posts = Connection.update .id newComponent posts }
+                    , Cmd.map (PostComponentMsg postId) cmd
+                    )
 
-        Nothing ->
-            ( model, Cmd.none )
+            Nothing ->
+                ( model, Cmd.none )
 
 
 isMembershipListed : GroupMembership -> List GroupMembership -> Bool

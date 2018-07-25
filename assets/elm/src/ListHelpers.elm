@@ -3,22 +3,14 @@ module ListHelpers
         ( last
         , takeLast
         , size
-        , getById
+        , getBy
         , insertUniqueBy
-        , memberById
-        , updateById
+        , memberBy
+        , updateBy
         , removeBy
         )
 
 import List
-
-
--- TYPES
-
-
-type alias Identifiable a =
-    { a | id : String }
-
 
 
 -- HELPERS
@@ -60,17 +52,17 @@ size =
 
 
 
--- IDENTIFIABLE OPERATIONS
+-- COMPARABLE OPERATIONS
 
 
-{-| Finds an item in list by id.
+{-| Finds an item whose comparator evaluates to the same as the given item's.
 
-    getById "1" [{ id = "1" }, { id = "2" }] == Just { id = "1" }
+    getBy .id "1" [{ id = "1" }, { id = "2" }] == Just { id = "1" }
 
 -}
-getById : String -> List (Identifiable a) -> Maybe (Identifiable a)
-getById id list =
-    List.filter (\a -> a.id == id) list
+getBy : (a -> comparable) -> comparable -> List a -> Maybe a
+getBy comparator comparable list =
+    List.filter (\a -> comparator a == comparable) list
         |> List.head
 
 
@@ -89,15 +81,15 @@ insertUniqueBy comparator item list =
         list
 
 
-{-| Determines whether an item is in the list with the same id.
+{-| Determines whether an item is in the list with comparator value.
 
-    memberById { id = "1" } [{ id = "1" }] == True
-    memberById { id = "1" } [{ id = "2" }] == False
+    memberBy .id { id = "1" } [{ id = "1" }] == True
+    memberBy .id { id = "1" } [{ id = "2" }] == False
 
 -}
-memberById : Identifiable a -> List (Identifiable a) -> Bool
-memberById item list =
-    case getById item.id list of
+memberBy : (a -> comparable) -> a -> List a -> Bool
+memberBy comparator item list =
+    case getBy comparator (comparator item) list of
         Just _ ->
             True
 
@@ -105,9 +97,9 @@ memberById item list =
             False
 
 
-{-| Updates an item with a given id.
+{-| Updates an item whose comparator evaluates to the same as the given item.
 
-    updateById { "id" = "1", name = "Derrick"}
+    updateBy .id { "id" = "1", name = "Derrick"}
         [ { id = "1", name = "Jack" }
         , { id = "2", name = "Jill" }
         ]
@@ -116,11 +108,11 @@ memberById item list =
        ]
 
 -}
-updateById : Identifiable a -> List (Identifiable a) -> List (Identifiable a)
-updateById newItem items =
+updateBy : (a -> comparable) -> a -> List a -> List a
+updateBy comparator newItem items =
     let
-        replacer ({ id } as currentItem) =
-            if newItem.id == id then
+        replacer currentItem =
+            if comparator currentItem == comparator newItem then
                 newItem
             else
                 currentItem
@@ -130,7 +122,7 @@ updateById newItem items =
 
 {-| Filters out items whose comparator evaluates to the same as the item's.
 
-    removeBy .id [{ id = "1" }, { id = "2" }] == [{ id = "2" }]
+    removeBy .id { id = "1" } [{ id = "1" }, { id = "2" }] == [{ id = "2" }]
 
 -}
 removeBy : (a -> comparable) -> a -> List a -> List a

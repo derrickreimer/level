@@ -21,7 +21,7 @@ import Task exposing (Task)
 import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
-import Data.Reply exposing (Reply)
+import Data.Reply as Reply exposing (Reply)
 import ReplyComposer exposing (ReplyComposer, Mode(..))
 import Data.Post exposing (Post)
 import Data.SpaceUser exposing (SpaceUser)
@@ -236,7 +236,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 cmd =
                     case firstReply of
                         Just reply ->
-                            Scroll.toAnchor Scroll.Document (replyNodeId reply.id) 200
+                            Scroll.toAnchor Scroll.Document (replyNodeId (Reply.getId reply)) 200
 
                         Nothing ->
                             Cmd.none
@@ -278,7 +278,7 @@ handleReplyCreated reply ({ post, mode } as model) =
                 _ ->
                     Cmd.none
     in
-        if reply.postId == post.id then
+        if Reply.getPostId reply == post.id then
             ( { model | post = Data.Post.appendReply reply post }, cmd )
         else
             ( model, Cmd.none )
@@ -372,18 +372,21 @@ fullPageRepliesView repo post now replies =
 replyView : Repo -> Date -> Mode -> Reply -> Html Msg
 replyView repo now mode reply =
     let
-        author =
-            Repo.getUser repo reply.author
+        replyData =
+            Reply.getCachedData reply
+
+        authorData =
+            Repo.getUser repo replyData.author
     in
-        div [ id (replyNodeId reply.id), class "flex mt-3" ]
-            [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small author ]
+        div [ id (replyNodeId replyData.id), class "flex mt-3" ]
+            [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small authorData ]
             , div [ class "flex-grow leading-semi-loose" ]
                 [ div []
-                    [ span [ class "font-bold" ] [ text <| displayName author ]
+                    [ span [ class "font-bold" ] [ text <| displayName authorData ]
                     , viewIf (mode == FullPage) <|
-                        span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now reply.postedAt ]
+                        span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now replyData.postedAt ]
                     ]
-                , div [ class "markdown mb-2" ] [ injectHtml reply.bodyHtml ]
+                , div [ class "markdown mb-2" ] [ injectHtml replyData.bodyHtml ]
                 ]
             ]
 

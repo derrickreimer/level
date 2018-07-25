@@ -1,4 +1,13 @@
-module Data.Reply exposing (Reply, fragment, decoder)
+module Data.Reply
+    exposing
+        ( Reply
+        , Record
+        , fragment
+        , decoder
+        , getId
+        , getPostId
+        , getCachedData
+        )
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder, string)
@@ -11,7 +20,11 @@ import Util exposing (dateDecoder)
 -- TYPES
 
 
-type alias Reply =
+type Reply
+    = Reply Record
+
+
+type alias Record =
     { id : String
     , postId : String
     , body : String
@@ -46,10 +59,31 @@ fragment =
 
 decoder : Decoder Reply
 decoder =
-    Pipeline.decode Reply
-        |> Pipeline.required "id" string
-        |> Pipeline.required "postId" string
-        |> Pipeline.required "body" string
-        |> Pipeline.required "bodyHtml" string
-        |> Pipeline.required "author" Data.SpaceUser.decoder
-        |> Pipeline.required "postedAt" dateDecoder
+    Decode.map Reply <|
+        (Pipeline.decode Record
+            |> Pipeline.required "id" string
+            |> Pipeline.required "postId" string
+            |> Pipeline.required "body" string
+            |> Pipeline.required "bodyHtml" string
+            |> Pipeline.required "author" Data.SpaceUser.decoder
+            |> Pipeline.required "postedAt" dateDecoder
+        )
+
+
+
+-- API
+
+
+getId : Reply -> String
+getId (Reply { id }) =
+    id
+
+
+getPostId : Reply -> String
+getPostId (Reply { postId }) =
+    postId
+
+
+getCachedData : Reply -> Record
+getCachedData (Reply data) =
+    data

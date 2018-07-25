@@ -25,7 +25,7 @@ module Connection
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, bool, maybe, string, list)
-import ListHelpers exposing (getById, memberById, updateById, size)
+import ListHelpers exposing (getBy, memberBy, updateBy, size)
 
 
 type alias PageInfo =
@@ -34,10 +34,6 @@ type alias PageInfo =
     , startCursor : Maybe String
     , endCursor : Maybe String
     }
-
-
-type alias Node a =
-    { a | id : String }
 
 
 type Connection a
@@ -185,7 +181,7 @@ last n (Connection { nodes, pageInfo }) =
 -- DECODING
 
 
-decoder : Decoder (Node a) -> Decoder (Connection (Node a))
+decoder : Decoder a -> Decoder (Connection a)
 decoder nodeDecoder =
     Decode.map Connection <|
         Decode.map2 Data
@@ -206,28 +202,28 @@ pageInfoDecoder =
 -- CRUD OPERATIONS
 
 
-get : String -> Connection (Node a) -> Maybe (Node a)
-get id connection =
-    getById id (toList connection)
+get : (a -> comparable) -> comparable -> Connection a -> Maybe a
+get comparator comparable connection =
+    getBy comparator comparable (toList connection)
 
 
-update : Node a -> Connection (Node a) -> Connection (Node a)
-update node connection =
+update : (a -> comparable) -> a -> Connection a -> Connection a
+update comparator node connection =
     let
         newNodes =
-            updateById node (toList connection)
+            updateBy comparator node (toList connection)
     in
         replaceNodes newNodes connection
 
 
-prepend : Node a -> Connection (Node a) -> Connection (Node a)
-prepend node connection =
+prepend : (a -> comparable) -> a -> Connection a -> Connection a
+prepend comparator node connection =
     let
         oldNodes =
             toList connection
 
         newNodes =
-            if memberById node oldNodes then
+            if memberBy comparator node oldNodes then
                 oldNodes
             else
                 node :: oldNodes
@@ -235,14 +231,14 @@ prepend node connection =
         replaceNodes newNodes connection
 
 
-append : Node a -> Connection (Node a) -> Connection (Node a)
-append node connection =
+append : (a -> comparable) -> a -> Connection a -> Connection a
+append comparator node connection =
     let
         oldNodes =
             toList connection
 
         newNodes =
-            if memberById node oldNodes then
+            if memberBy comparator node oldNodes then
                 oldNodes
             else
                 List.append oldNodes [ node ]
@@ -250,7 +246,7 @@ append node connection =
         replaceNodes newNodes connection
 
 
-prependConnection : Connection (Node a) -> Connection (Node a) -> Connection (Node a)
+prependConnection : Connection a -> Connection a -> Connection a
 prependConnection (Connection extension) (Connection original) =
     let
         nodes =
