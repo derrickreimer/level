@@ -101,6 +101,6 @@ toLogin =
     Navigation.load "/login"
 
 
-toSpace : Space -> Cmd msg
-toSpace space =
-    Navigation.load ("/" ++ space.slug ++ "/")
+toSpace : String -> Cmd msg
+toSpace slug =
+    Navigation.load ("/" ++ slug ++ "/")

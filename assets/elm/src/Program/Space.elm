@@ -11,6 +11,7 @@ import Avatar exposing (personAvatar, thingAvatar)
 import Data.Group exposing (Group)
 import Data.Post
 import Data.Reply exposing (Reply)
+import Data.Space as Space
 import Data.SpaceUser
 import Data.Setup as Setup
 import Event
@@ -501,7 +502,7 @@ navigateTo maybeRoute model =
                         Just Route.SetupCreateGroups ->
                             let
                                 pageModel =
-                                    Page.Setup.CreateGroups.buildModel sharedState.space.id currentUser.firstName
+                                    Page.Setup.CreateGroups.buildModel (Space.getId sharedState.space) currentUser.firstName
                             in
                                 ( { model | page = SetupCreateGroups pageModel }
                                 , Cmd.none
@@ -510,7 +511,7 @@ navigateTo maybeRoute model =
                         Just Route.SetupInviteUsers ->
                             let
                                 pageModel =
-                                    Page.Setup.InviteUsers.buildModel sharedState.space.id sharedState.openInvitationUrl
+                                    Page.Setup.InviteUsers.buildModel (Space.getId sharedState.space) sharedState.openInvitationUrl
                             in
                                 ( { model | page = SetupInviteUsers pageModel }
                                 , Cmd.none
@@ -537,7 +538,7 @@ navigateTo maybeRoute model =
 
                         Just Route.SpaceSettings ->
                             sharedState.space
-                                |> Page.SpaceSettings.init
+                                |> Page.SpaceSettings.init model.repo
                                 |> transition model SpaceSettingsInit
 
 
@@ -561,7 +562,7 @@ setupSockets : SharedState -> Model -> ( Model, Cmd Msg )
 setupSockets sharedState model =
     ( model
     , Cmd.batch
-        [ SpaceSubscription.subscribe sharedState.space.id
+        [ SpaceSubscription.subscribe (Space.getId sharedState.space)
         , SpaceUserSubscription.subscribe sharedState.user.id
         ]
     )

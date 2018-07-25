@@ -15,7 +15,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Task exposing (Task)
-import Data.Space exposing (Space)
+import Data.Space as Space exposing (Space)
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
 import File exposing (File)
 import Mutation.UpdateSpace as UpdateSpace
@@ -43,13 +43,15 @@ type alias Model =
 -- LIFECYCLE
 
 
-init : Space -> Task Never Model
-init space =
-    buildModel space
+init : Repo -> Space -> Task Never Model
+init repo space =
+    space
+        |> Repo.getSpace repo
+        |> buildModel
         |> Task.succeed
 
 
-buildModel : Space -> Model
+buildModel : Space.Record -> Model
 buildModel { id, name, slug, avatarUrl } =
     Model id name slug avatarUrl [] False Nothing
 
@@ -97,12 +99,16 @@ update msg session model =
                 ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
 
         Submitted (Ok ( session, UpdateSpace.Success space )) ->
-            noCmd session
-                { model
-                    | name = space.name
-                    , slug = space.slug
-                    , isSubmitting = False
-                }
+            let
+                data =
+                    Space.getCachedData space
+            in
+                noCmd session
+                    { model
+                        | name = data.name
+                        , slug = data.slug
+                        , isSubmitting = False
+                    }
 
         Submitted (Ok ( session, UpdateSpace.Invalid errors )) ->
             noCmd session { model | isSubmitting = False, errors = errors }
@@ -130,7 +136,11 @@ update msg session model =
                 ( ( { model | newAvatar = Just file }, cmd ), session )
 
         AvatarSubmitted (Ok ( session, UpdateSpaceAvatar.Success space )) ->
-            noCmd session { model | avatarUrl = space.avatarUrl }
+            let
+                data =
+                    Space.getCachedData space
+            in
+                noCmd session { model | avatarUrl = data.avatarUrl }
 
         AvatarSubmitted (Ok ( session, UpdateSpaceAvatar.Invalid errors )) ->
             noCmd session { model | errors = errors }

@@ -1,4 +1,12 @@
-module Data.Space exposing (Space, fragment, decoder)
+module Data.Space
+    exposing
+        ( Space
+        , Record
+        , fragment
+        , decoder
+        , getId
+        , getCachedData
+        )
 
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import GraphQL exposing (Fragment)
@@ -7,7 +15,11 @@ import GraphQL exposing (Fragment)
 -- TYPES
 
 
-type alias Space =
+type Space
+    = Space Record
+
+
+type alias Record =
     { id : String
     , name : String
     , slug : String
@@ -35,8 +47,23 @@ fragment =
 
 decoder : Decoder Space
 decoder =
-    Decode.map4 Space
-        (field "id" string)
-        (field "name" string)
-        (field "slug" string)
-        (field "avatarUrl" (maybe string))
+    Decode.map Space <|
+        Decode.map4 Record
+            (field "id" string)
+            (field "name" string)
+            (field "slug" string)
+            (field "avatarUrl" (maybe string))
+
+
+
+-- API
+
+
+getId : Space -> String
+getId (Space { id }) =
+    id
+
+
+getCachedData : Space -> Record
+getCachedData (Space record) =
+    record

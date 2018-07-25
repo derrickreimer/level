@@ -85,8 +85,8 @@ update msg model =
         Submit ->
             ( { model | formState = Submitting }, submit model )
 
-        Submitted (Ok ( _, CreateSpace.Success space )) ->
-            ( model, Route.toSpace space )
+        Submitted (Ok ( _, CreateSpace.Success _ )) ->
+            ( model, Route.toSpace model.slug )
 
         Submitted (Ok ( _, CreateSpace.Invalid errors )) ->
             ( { model | errors = errors, formState = Idle }, Cmd.none )

@@ -18,7 +18,7 @@ import Task exposing (Task)
 import Time exposing (Time, every, second)
 import Component.Post
 import Data.Reply exposing (Reply)
-import Data.Space exposing (Space)
+import Data.Space as Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Query.PostInit as PostInit
 import Repo exposing (Repo)
@@ -43,7 +43,7 @@ type alias Model =
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space postId session =
     Date.now
-        |> Task.andThen (PostInit.request space.id postId session)
+        |> Task.andThen (PostInit.request (Space.getId space) postId session)
         |> Task.andThen (buildModel user space)
 
 
@@ -78,7 +78,7 @@ update msg repo session ({ post } as model) =
         PostComponentMsg msg ->
             let
                 ( ( newPost, cmd ), newSession ) =
-                    Component.Post.update msg model.space.id session post
+                    Component.Post.update msg (Space.getId model.space) session post
             in
                 ( ( { model | post = newPost }
                   , Cmd.map PostComponentMsg cmd

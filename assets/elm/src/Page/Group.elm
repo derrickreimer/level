@@ -27,7 +27,7 @@ import Data.Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
-import Data.Space exposing (Space)
+import Data.Space as Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
@@ -86,7 +86,7 @@ type alias Model =
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space groupId session =
     Date.now
-        |> Task.andThen (GroupInit.request space.id groupId session)
+        |> Task.andThen (GroupInit.request (Space.getId space) groupId session)
         |> Task.andThen (buildModel user space)
 
 
@@ -189,7 +189,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             if newPostSubmittable postComposer then
                 let
                     cmd =
-                        PostToGroup.request model.space.id model.group.id postComposer.body session
+                        PostToGroup.request (Space.getId model.space) model.group.id postComposer.body session
                             |> Task.attempt NewPostSubmitted
                 in
                     ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), session )
@@ -214,7 +214,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         MembershipStateToggled state ->
             let
                 cmd =
-                    UpdateGroupMembership.request model.space.id model.group.id state session
+                    UpdateGroupMembership.request (Space.getId model.space) model.group.id state session
                         |> Task.attempt MembershipStateSubmitted
             in
                 -- Update the state on the model optimistically
@@ -249,7 +249,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         NameEditorSubmit ->
             let
                 cmd =
-                    UpdateGroup.request model.space.id model.group.id nameEditor.value session
+                    UpdateGroup.request (Space.getId model.space) model.group.id nameEditor.value session
                         |> Task.attempt NameEditorSubmitted
             in
                 ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), session )
@@ -297,7 +297,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                 Just post ->
                     let
                         ( ( newPost, cmd ), newSession ) =
-                            Component.Post.update msg model.space.id session post
+                            Component.Post.update msg (Space.getId model.space) session post
                     in
                         ( ( { model | posts = Connection.update newPost model.posts }
                           , Cmd.map (PostComponentMsg postId) cmd
@@ -344,7 +344,7 @@ handleGroupMembershipUpdated { state, membership } session model =
                 model.state
 
         cmd =
-            FeaturedMemberships.request model.space.id model.group.id session
+            FeaturedMemberships.request (Space.getId model.space) model.group.id session
                 |> Task.attempt FeaturedMembershipsRefreshed
     in
         ( { model | state = newState }, cmd )
