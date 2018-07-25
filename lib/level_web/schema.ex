@@ -63,6 +63,15 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.create_space/2
     end
 
+    @desc "Update a space."
+    field :update_space, type: :update_space_payload do
+      arg :space_id, non_null(:id)
+      arg :name, :string
+      arg :slug, :string
+
+      resolve &Level.Mutations.update_space/2
+    end
+
     @desc "Mark a space setup step as complete."
     field :complete_setup_step, type: :complete_setup_step_payload do
       arg :space_id, non_null(:id)

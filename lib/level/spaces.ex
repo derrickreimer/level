@@ -82,6 +82,16 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Updates a space.
+  """
+  @spec update_space(Space.t(), map()) :: {:ok, Space.t()} | {:error, Ecto.Changeset.t()}
+  def update_space(space, params) do
+    space
+    |> Space.update_changeset(params)
+    |> Repo.update()
+  end
+
+  @doc """
   Builds a query for listing space users related to the given resource.
   """
   @spec space_users_base_query(User.t()) :: Ecto.Query.t()

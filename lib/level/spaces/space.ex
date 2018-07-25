@@ -5,6 +5,7 @@ defmodule Level.Spaces.Space do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Level.Gettext
 
   alias Level.Spaces.SpaceUser
 
@@ -14,8 +15,8 @@ defmodule Level.Spaces.Space do
 
   schema "spaces" do
     field :state, :string, read_after_writes: true
-    field :name, :string
-    field :slug, :string
+    field :name, :string, default: ""
+    field :slug, :string, default: ""
     field :avatar, :string
     has_many :space_users, SpaceUser
 
@@ -27,6 +28,24 @@ defmodule Level.Spaces.Space do
     struct
     |> cast(attrs, [:name, :slug])
     |> validate_required([:name, :slug])
+    |> validate_format(
+      :slug,
+      slug_format(),
+      message: dgettext("errors", "contains invalid characters")
+    )
+    |> unique_constraint(:slug, name: :spaces_lower_slug_index)
+  end
+
+  @doc false
+  def update_changeset(struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [:name, :slug, :avatar])
+    |> validate_required([:name, :slug])
+    |> validate_format(
+      :slug,
+      slug_format(),
+      message: dgettext("errors", "contains invalid characters")
+    )
     |> unique_constraint(:slug, name: :spaces_lower_slug_index)
   end
 
@@ -34,7 +53,7 @@ defmodule Level.Spaces.Space do
   The regex format for a slug.
   """
   def slug_format do
-    ~r/^(?>[a-z0-9][a-z0-9-]*[a-z0-9])$/
+    ~r/^(?>[A-Za-z][A-Za-z0-9-\.]*[A-Za-z0-9])$/
   end
 end
 

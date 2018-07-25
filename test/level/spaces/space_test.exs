@@ -21,10 +21,6 @@ defmodule Level.Spaces.SpaceTest do
     test "does not match special chars" do
       refute Regex.match?(Space.slug_format(), "level$")
     end
-
-    test "does not match uppercase chars" do
-      refute Regex.match?(Space.slug_format(), "Level")
-    end
   end
 
   describe "Phoenix.Param.to_param implementation" do

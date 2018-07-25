@@ -122,6 +122,33 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Updates a space.
+  """
+  @spec update_space(map(), authenticated_context()) :: space_mutation_result()
+  def update_space(%{space_id: space_id} = args, %{context: %{current_user: user}}) do
+    user
+    |> Spaces.get_space(space_id)
+    |> do_space_update(args)
+    |> build_space_update_result()
+  end
+
+  defp do_space_update({:ok, %{space: space}}, args) do
+    Spaces.update_space(space, args)
+  end
+
+  defp do_space_update(err, _args), do: err
+
+  defp build_space_update_result({:ok, space}) do
+    {:ok, %{success: true, space: space, errors: []}}
+  end
+
+  defp build_space_update_result({:error, %Ecto.Changeset{} = changeset}) do
+    {:ok, %{success: false, space: nil, errors: format_errors(changeset)}}
+  end
+
+  defp build_space_update_result(err), do: err
+
+  @doc """
   Creates a new group.
   """
   @spec create_group(map(), authenticated_context()) :: group_mutation_result()
