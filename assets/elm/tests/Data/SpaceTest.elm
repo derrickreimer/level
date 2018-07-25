@@ -26,9 +26,6 @@ decoders =
                             }
                             """
 
-                        result =
-                            decodeString Space.decoder json
-
                         expected =
                             { id = "9999"
                             , name = "Drip"
@@ -36,7 +33,12 @@ decoders =
                             , avatarUrl = Just "src"
                             }
                     in
-                        Expect.equal (Ok expected) result
+                        case decodeString Space.decoder json of
+                            Ok value ->
+                                Expect.equal expected (Space.getCachedData value)
+
+                            Err err ->
+                                Expect.fail err
             , test "does not succeed given invalid JSON" <|
                 \_ ->
                     let
