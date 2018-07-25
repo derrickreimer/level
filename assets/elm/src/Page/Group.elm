@@ -25,7 +25,7 @@ import Component.Post
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
-import Data.Post exposing (Post)
+import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
@@ -330,7 +330,7 @@ handlePostCreated post ({ posts, group } as model) =
             Component.Post.init Component.Post.Feed post
     in
         ( { model | posts = Connection.prepend .id component posts }
-        , Cmd.map (PostComponentMsg post.id) (Component.Post.setup component)
+        , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
         )
 
 
@@ -338,7 +338,7 @@ handleGroupMembershipUpdated : GroupMembershipUpdatedPayload -> Session -> Model
 handleGroupMembershipUpdated { state, membership } session model =
     let
         newState =
-            if membership.user.id == model.user.id then
+            if SpaceUser.getId membership.user == SpaceUser.getId model.user then
                 state
             else
                 model.state
@@ -368,20 +368,6 @@ handleReplyCreated reply ({ posts } as model) =
 
             Nothing ->
                 ( model, Cmd.none )
-
-
-isMembershipListed : GroupMembership -> List GroupMembership -> Bool
-isMembershipListed membership list =
-    List.any (\m -> m.user.id == membership.user.id) list
-
-
-removeMembership : GroupMembership -> List GroupMembership -> List GroupMembership
-removeMembership membership list =
-    let
-        id =
-            SpaceUser.getId membership.user
-    in
-        List.filter (\m -> SpaceUser.getId m.user == id) list
 
 
 

@@ -3,6 +3,9 @@ module Data.Post
         ( Post
         , fragment
         , decoder
+        , getId
+        , getCachedData
+        , hasReplies
         , prependReplies
         , appendReply
         , groupsInclude
@@ -15,7 +18,7 @@ import String.Interpolate exposing (interpolate)
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Reply as Reply exposing (Reply)
-import Data.SpaceUser exposing (SpaceUser)
+import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import Util exposing (dateDecoder)
 
@@ -23,7 +26,11 @@ import Util exposing (dateDecoder)
 -- TYPES
 
 
-type alias Post =
+type Post
+    = Post Record
+
+
+type alias Record =
     { id : String
     , body : String
     , bodyHtml : String
@@ -60,7 +67,7 @@ fragment replyLimit =
                 ]
     in
         GraphQL.fragment body
-            [ Data.SpaceUser.fragment
+            [ SpaceUser.fragment
             , Group.fragment
             , Connection.fragment "ReplyConnection" Reply.fragment
             ]
@@ -72,32 +79,49 @@ fragment replyLimit =
 
 decoder : Decoder Post
 decoder =
-    Pipeline.decode Post
-        |> Pipeline.required "id" string
-        |> Pipeline.required "body" string
-        |> Pipeline.required "bodyHtml" string
-        |> Pipeline.required "author" Data.SpaceUser.decoder
-        |> Pipeline.required "groups" (list Group.decoder)
-        |> Pipeline.required "postedAt" dateDecoder
-        |> Pipeline.required "replies" (Connection.decoder Reply.decoder)
+    Decode.map Post <|
+        (Pipeline.decode Record
+            |> Pipeline.required "id" string
+            |> Pipeline.required "body" string
+            |> Pipeline.required "bodyHtml" string
+            |> Pipeline.required "author" SpaceUser.decoder
+            |> Pipeline.required "groups" (list Group.decoder)
+            |> Pipeline.required "postedAt" dateDecoder
+            |> Pipeline.required "replies" (Connection.decoder Reply.decoder)
+        )
 
 
 
 -- CRUD
 
 
+getId : Post -> String
+getId (Post { id }) =
+    id
+
+
+getCachedData : Post -> Record
+getCachedData (Post data) =
+    data
+
+
+hasReplies : Post -> Bool
+hasReplies (Post { replies }) =
+    not (Connection.isEmpty replies)
+
+
 prependReplies : Connection Reply -> Post -> Post
-prependReplies replies post =
-    { post | replies = Connection.prependConnection replies post.replies }
+prependReplies replies (Post data) =
+    Post { data | replies = Connection.prependConnection replies data.replies }
 
 
 appendReply : Reply -> Post -> Post
-appendReply reply post =
-    { post | replies = Connection.append Reply.getId reply post.replies }
+appendReply reply (Post data) =
+    Post { data | replies = Connection.append Reply.getId reply data.replies }
 
 
 groupsInclude : Group -> Post -> Bool
-groupsInclude group post =
-    List.filter (\g -> (Group.getId g) == (Group.getId group)) post.groups
+groupsInclude group (Post data) =
+    List.filter (\g -> (Group.getId g) == (Group.getId group)) data.groups
         |> List.isEmpty
         |> not

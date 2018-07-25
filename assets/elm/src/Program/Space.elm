@@ -12,7 +12,7 @@ import Data.Group as Group exposing (Group)
 import Data.Post
 import Data.Reply exposing (Reply)
 import Data.Space as Space
-import Data.SpaceUser
+import Data.SpaceUser as SpaceUser
 import Data.Setup as Setup
 import Event
 import Repo exposing (Repo)
@@ -369,7 +369,7 @@ handleSocketResult value model page sharedState =
             ( { model | repo = Repo.setSpace model.repo space }, Cmd.none )
 
         Event.SpaceUserUpdated spaceUser ->
-            ( { model | repo = Repo.setUser model.repo spaceUser }, Cmd.none )
+            ( { model | repo = Repo.setSpaceUser model.repo spaceUser }, Cmd.none )
 
         Event.Unknown ->
             ( model, Cmd.none )
@@ -476,16 +476,16 @@ navigateTo maybeRoute model =
 
             Loaded sharedState ->
                 let
-                    currentUser =
-                        Repo.getUser model.repo sharedState.user
+                    currentUserData =
+                        Repo.getSpaceUser model.repo sharedState.user
                 in
                     case maybeRoute of
                         Nothing ->
                             ( { model | page = NotFound }, Cmd.none )
 
                         Just Route.Root ->
-                            case currentUser.role of
-                                Data.SpaceUser.Owner ->
+                            case currentUserData.role of
+                                SpaceUser.Owner ->
                                     case sharedState.setupState of
                                         Setup.CreateGroups ->
                                             navigateTo (Just Route.SetupCreateGroups) model
@@ -502,7 +502,7 @@ navigateTo maybeRoute model =
                         Just Route.SetupCreateGroups ->
                             let
                                 pageModel =
-                                    Page.Setup.CreateGroups.buildModel (Space.getId sharedState.space) currentUser.firstName
+                                    Page.Setup.CreateGroups.buildModel (Space.getId sharedState.space) currentUserData.firstName
                             in
                                 ( { model | page = SetupCreateGroups pageModel }
                                 , Cmd.none
@@ -523,12 +523,12 @@ navigateTo maybeRoute model =
 
                         Just (Route.Group groupId) ->
                             model.session
-                                |> Page.Group.init currentUser sharedState.space groupId
+                                |> Page.Group.init sharedState.user sharedState.space groupId
                                 |> transition model (GroupInit groupId)
 
                         Just (Route.Post postId) ->
                             model.session
-                                |> Page.Post.init currentUser sharedState.space postId
+                                |> Page.Post.init sharedState.user sharedState.space postId
                                 |> transition model (PostInit postId)
 
                         Just Route.UserSettings ->
@@ -563,7 +563,7 @@ setupSockets sharedState model =
     ( model
     , Cmd.batch
         [ SpaceSubscription.subscribe (Space.getId sharedState.space)
-        , SpaceUserSubscription.subscribe sharedState.user.id
+        , SpaceUserSubscription.subscribe (SpaceUser.getId sharedState.user)
         ]
     )
 
@@ -663,8 +663,8 @@ view model =
 leftSidebar : SharedState -> Model -> Html Msg
 leftSidebar sharedState ({ page, repo } as model) =
     let
-        currentUser =
-            Repo.getUser repo sharedState.user
+        currentUserData =
+            Repo.getSpaceUser repo sharedState.user
 
         spaceData =
             Repo.getSpace repo sharedState.space
@@ -684,10 +684,10 @@ leftSidebar sharedState ({ page, repo } as model) =
                 ]
             , div [ class "absolute pin-b w-full" ]
                 [ a [ Route.href (Route.UserSettings), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
-                    [ div [] [ personAvatar Avatar.Small currentUser ]
+                    [ div [] [ personAvatar Avatar.Small currentUserData ]
                     , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                         [ div [] [ text "Signed in as" ]
-                        , div [ class "font-bold" ] [ text (displayName currentUser) ]
+                        , div [ class "font-bold" ] [ text (displayName currentUserData) ]
                         ]
                     ]
                 ]

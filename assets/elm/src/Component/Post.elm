@@ -22,7 +22,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply as Reply exposing (Reply)
-import Data.Post exposing (Post)
+import Data.Post as Post exposing (Post)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
@@ -59,7 +59,7 @@ type Mode
 
 decoder : Mode -> Decoder Model
 decoder mode =
-    Data.Post.decoder
+    Post.decoder
         |> Decode.andThen (Decode.succeed << init mode)
 
 
@@ -74,7 +74,7 @@ init mode post =
                 FullPage ->
                     AlwaysExpanded
     in
-        Model post.id mode post (ReplyComposer.init replyMode)
+        Model (Post.getId post) mode post (ReplyComposer.init replyMode)
 
 
 setup : Model -> Cmd Msg
@@ -160,7 +160,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                     ReplyComposer.getBody replyComposer
 
                 cmd =
-                    ReplyToPost.request spaceId post.id body session
+                    ReplyToPost.request spaceId (Post.getId post) body session
                         |> Task.attempt NewReplySubmitted
             in
                 ( ( newModel, cmd ), session )
@@ -168,7 +168,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
         NewReplySubmitted (Ok ( session, reply )) ->
             let
                 nodeId =
-                    replyComposerId post.id
+                    replyComposerId (Post.getId post)
 
                 newReplyComposer =
                     replyComposer
@@ -213,25 +213,32 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 noCmd session newModel
 
         PreviousRepliesRequested ->
-            case Connection.startCursor model.post.replies of
-                Just cursor ->
-                    let
-                        cmd =
-                            Query.Replies.request spaceId model.post.id cursor 10 session
-                                |> Task.attempt PreviousRepliesFetched
-                    in
-                        ( ( model, cmd ), session )
+            let
+                postData =
+                    Post.getCachedData model.post
+            in
+                case Connection.startCursor postData.replies of
+                    Just cursor ->
+                        let
+                            cmd =
+                                Query.Replies.request spaceId (Post.getId model.post) cursor 10 session
+                                    |> Task.attempt PreviousRepliesFetched
+                        in
+                            ( ( model, cmd ), session )
 
-                Nothing ->
-                    noCmd session model
+                    Nothing ->
+                        noCmd session model
 
         PreviousRepliesFetched (Ok ( session, response )) ->
             let
+                postData =
+                    Post.getCachedData model.post
+
                 firstReply =
-                    Connection.head model.post.replies
+                    Connection.head postData.replies
 
                 newPost =
-                    Data.Post.prependReplies response.replies model.post
+                    Post.prependReplies response.replies model.post
 
                 cmd =
                     case firstReply of
@@ -278,8 +285,8 @@ handleReplyCreated reply ({ post, mode } as model) =
                 _ ->
                     Cmd.none
     in
-        if Reply.getPostId reply == post.id then
-            ( { model | post = Data.Post.appendReply reply post }, cmd )
+        if Reply.getPostId reply == Post.getId post then
+            ( { model | post = Post.appendReply reply post }, cmd )
         else
             ( model, Cmd.none )
 
@@ -295,8 +302,11 @@ view repo currentUser now ({ post } as model) =
             currentUser
                 |> Repo.getSpaceUser repo
 
+        postData =
+            Post.getCachedData post
+
         authorData =
-            post.author
+            postData.author
                 |> Repo.getSpaceUser repo
     in
         div [ classList [ ( "flex pt-4 px-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
@@ -305,9 +315,9 @@ view repo currentUser now ({ post } as model) =
                 [ div []
                     [ div []
                         [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                        , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
+                        , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
                         ]
-                    , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
+                    , div [ class "markdown mb-2" ] [ injectHtml postData.bodyHtml ]
                     , viewIf (model.mode == Feed) <|
                         div [ class "flex items-center" ]
                             [ div [ class "flex-grow" ]
@@ -316,7 +326,7 @@ view repo currentUser now ({ post } as model) =
                             ]
                     ]
                 , div [ class "relative" ]
-                    [ repliesView repo post now post.replies model.mode
+                    [ repliesView repo post now postData.replies model.mode
                     , replyComposerView currentUserData model
                     ]
                 ]
@@ -346,7 +356,7 @@ feedRepliesView repo post now replies =
         div []
             [ viewIf hasPreviousPage <|
                 a
-                    [ Route.href (Route.Post post.id)
+                    [ Route.href (Route.Post <| Post.getId post)
                     , class "mb-2 text-dusty-blue no-underline"
                     ]
                     [ text "Show more..." ]
@@ -405,7 +415,7 @@ replyComposerView currentUserData { post, replyComposer } =
                     [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUserData ]
                     , div [ class "flex-grow" ]
                         [ textarea
-                            [ id (replyComposerId post.id)
+                            [ id (replyComposerId <| Post.getId post)
                             , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                             , placeholder "Write a reply..."
                             , onInput NewReplyBodyChanged
@@ -431,7 +441,7 @@ replyComposerView currentUserData { post, replyComposer } =
                 ]
             ]
     else
-        viewUnless (Connection.isEmpty post.replies) <|
+        viewIf (Post.hasReplies post) <|
             replyPromptView currentUserData
 
 
