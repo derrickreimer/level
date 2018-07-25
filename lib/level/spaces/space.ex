@@ -16,6 +16,7 @@ defmodule Level.Spaces.Space do
     field :state, :string, read_after_writes: true
     field :name, :string
     field :slug, :string
+    field :avatar, :string
     has_many :space_users, SpaceUser
 
     timestamps()
