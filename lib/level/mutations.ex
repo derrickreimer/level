@@ -88,6 +88,10 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Updates a user's avatar.
+  """
+  @spec update_user_avatar(map(), authenticated_context()) :: user_mutation_result()
   def update_user_avatar(%{data: data}, %{context: %{current_user: user}}) do
     case Users.update_avatar(user, data) do
       {:ok, user} ->
@@ -132,11 +136,25 @@ defmodule Level.Mutations do
     |> build_space_update_result()
   end
 
-  defp do_space_update({:ok, %{space: space}}, args) do
-    Spaces.update_space(space, args)
+  defp do_space_update({:ok, %{space: space}}, args), do: Spaces.update_space(space, args)
+  defp do_space_update(err, _args), do: err
+
+  @doc """
+  Updates a space's avatar.
+  """
+  @spec update_space_avatar(map(), authenticated_context()) :: space_mutation_result()
+  def update_space_avatar(%{space_id: space_id, data: data}, %{context: %{current_user: user}}) do
+    user
+    |> Spaces.get_space(space_id)
+    |> do_space_avatar_update(data)
+    |> build_space_update_result()
   end
 
-  defp do_space_update(err, _args), do: err
+  defp do_space_avatar_update({:ok, %{space: space}}, data) do
+    Spaces.update_avatar(space, data)
+  end
+
+  defp do_space_avatar_update(err, _args), do: err
 
   defp build_space_update_result({:ok, space}) do
     {:ok, %{success: true, space: space, errors: []}}

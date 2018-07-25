@@ -20,10 +20,12 @@ document =
     GraphQL.document
         """
         mutation UpdateSpace(
+          $spaceId: ID!,
           $name: String,
           $slug: String
         ) {
           updateSpace(
+            spaceId: $spaceId,
             name: $name,
             slug: $slug
           ) {
@@ -39,11 +41,12 @@ document =
         ]
 
 
-variables : String -> String -> Maybe Encode.Value
-variables name slug =
+variables : String -> String -> String -> Maybe Encode.Value
+variables spaceId name slug =
     Just <|
         Encode.object
-            [ ( "name", Encode.string name )
+            [ ( "spaceId", Encode.string spaceId )
+            , ( "name", Encode.string name )
             , ( "slug", Encode.string slug )
             ]
 
@@ -76,7 +79,7 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> Session -> Task Session.Error ( Session, Response )
-request name slug session =
+request : String -> String -> String -> Session -> Task Session.Error ( Session, Response )
+request spaceId name slug session =
     Session.request session <|
-        GraphQL.request document (variables name slug) decoder
+        GraphQL.request document (variables spaceId name slug) decoder

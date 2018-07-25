@@ -1,4 +1,4 @@
-module Avatar exposing (Size(..), texitar, avatar, personAvatar)
+module Avatar exposing (Size(..), texitar, avatar, personAvatar, thingAvatar)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -13,6 +13,10 @@ type Size
 
 type alias Person a =
     { a | firstName : String, lastName : String, avatarUrl : Maybe String }
+
+
+type alias Thing a =
+    { a | name : String, avatarUrl : Maybe String }
 
 
 
@@ -57,6 +61,18 @@ personAvatar size user =
 
         Nothing ->
             personTexitar size user
+
+
+{-| The avatar to display for a thing with a `name` (like a space).
+-}
+thingAvatar : Size -> Thing a -> Html msg
+thingAvatar size ({ name } as thing) =
+    case thing.avatarUrl of
+        Just url ->
+            avatar size url
+
+        Nothing ->
+            texitar size (initial name)
 
 
 

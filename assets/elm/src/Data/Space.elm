@@ -1,6 +1,6 @@
 module Data.Space exposing (Space, fragment, decoder)
 
-import Json.Decode as Decode exposing (Decoder, field, string)
+import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import GraphQL exposing (Fragment)
 
 
@@ -23,6 +23,7 @@ fragment =
           id
           name
           slug
+          avatarUrl
         }
         """
         []
@@ -38,4 +39,4 @@ decoder =
         (field "id" string)
         (field "name" string)
         (field "slug" string)
-        (Decode.succeed Nothing)
+        (field "avatarUrl" (maybe string))

@@ -29,7 +29,8 @@ import Session exposing (Session)
 
 
 type alias Model =
-    { name : String
+    { id : String
+    , name : String
     , slug : String
     , avatarUrl : Maybe String
     , errors : List ValidationError
@@ -49,8 +50,8 @@ init space =
 
 
 buildModel : Space -> Model
-buildModel { name, slug } =
-    Model name slug Nothing [] False Nothing
+buildModel { id, name, slug, avatarUrl } =
+    Model id name slug avatarUrl [] False Nothing
 
 
 setup : Model -> Cmd Msg
@@ -90,7 +91,7 @@ update msg session model =
             let
                 cmd =
                     session
-                        |> UpdateSpace.request model.name model.slug
+                        |> UpdateSpace.request model.id model.name model.slug
                         |> Task.attempt Submitted
             in
                 ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
@@ -123,7 +124,7 @@ update msg session model =
 
                 cmd =
                     session
-                        |> UpdateSpaceAvatar.request (File.getContents file)
+                        |> UpdateSpaceAvatar.request model.id (File.getContents file)
                         |> Task.attempt AvatarSubmitted
             in
                 ( ( { model | newAvatar = Just file }, cmd ), session )

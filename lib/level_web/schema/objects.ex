@@ -4,10 +4,10 @@ defmodule LevelWeb.Schema.Objects do
   use Absinthe.Schema.Notation
   import Absinthe.Resolution.Helpers
 
+  alias Level.AssetStore
   alias Level.Groups
   alias Level.Markdown
   alias Level.Spaces
-  alias Level.Users
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
 
@@ -47,7 +47,7 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn user, _, _ ->
-        {:ok, Users.avatar_url(user.avatar)}
+        {:ok, AssetStore.avatar_url(user)}
       end
     end
   end
@@ -74,7 +74,7 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn space_user, _, _ ->
-        {:ok, Users.avatar_url(space_user.avatar)}
+        {:ok, AssetStore.avatar_url(space_user)}
       end
     end
   end
@@ -87,6 +87,12 @@ defmodule LevelWeb.Schema.Objects do
     field :slug, non_null(:string)
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
+
+    field :avatar_url, :string do
+      resolve fn space, _, _ ->
+        {:ok, AssetStore.avatar_url(space)}
+      end
+    end
 
     field :setup_state, non_null(:space_setup_state) do
       resolve fn space, _args, _context ->

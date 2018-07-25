@@ -7,7 +7,7 @@ import Navigation
 import Process
 import Task exposing (Task)
 import Time exposing (second)
-import Avatar exposing (personAvatar, texitar)
+import Avatar exposing (personAvatar, thingAvatar)
 import Data.Group exposing (Group)
 import Data.Post
 import Data.Reply exposing (Reply)
@@ -670,7 +670,7 @@ leftSidebar sharedState ({ page, repo } as model) =
         div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
             [ div [ class "p-4" ]
                 [ div [ class "ml-2" ]
-                    [ div [ class "mb-2" ] [ spaceAvatar sharedState.space ]
+                    [ div [ class "mb-2" ] [ thingAvatar Avatar.Small sharedState.space ]
                     , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
                     ]
                 , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
@@ -780,14 +780,6 @@ sidebarLink title maybeRoute currentPage =
 
             ( _, _ ) ->
                 li [ class "flex" ] [ link (href "#") ]
-
-
-spaceAvatar : Space -> Html Msg
-spaceAvatar space =
-    space.name
-        |> String.left 1
-        |> String.toUpper
-        |> texitar Avatar.Small
 
 
 

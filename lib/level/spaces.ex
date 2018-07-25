@@ -7,6 +7,7 @@ defmodule Level.Spaces do
   import Level.Gettext
 
   alias Ecto.Multi
+  alias Level.AssetStore
   alias Level.Pubsub
   alias Level.Spaces.OpenInvitation
   alias Level.Spaces.Space
@@ -89,6 +90,25 @@ defmodule Level.Spaces do
     space
     |> Space.update_changeset(params)
     |> Repo.update()
+  end
+
+  @doc """
+  Updates a space's avatar.
+  """
+  @spec update_avatar(Space.t(), String.t()) ::
+          {:ok, Space.t()} | {:error, Ecto.Changeset.t() | String.t()}
+  def update_avatar(space, raw_data) do
+    raw_data
+    |> AssetStore.upload_avatar()
+    |> set_space_avatar(space)
+  end
+
+  defp set_space_avatar({:ok, filename}, space) do
+    update_space(space, %{avatar: filename})
+  end
+
+  defp set_space_avatar(:error, _space) do
+    {:error, dgettext("errors", "An error occurred updating your avatar")}
   end
 
   @doc """

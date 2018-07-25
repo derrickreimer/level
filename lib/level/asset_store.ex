@@ -25,6 +25,11 @@ defmodule Level.AssetStore do
   Generates the URL for a given avatar filename.
   """
   @spec avatar_url(String.t()) :: String.t()
+  @spec avatar_url(%{:__struct__ => any(), :avatar => String.t() | nil}) :: String.t()
+
+  def avatar_url(%_{avatar: nil}), do: nil
+  def avatar_url(%_{avatar: filename}), do: avatar_url(filename)
+
   def avatar_url(filename) do
     "https://s3.amazonaws.com/" <> bucket() <> "/" <> filename
   end
