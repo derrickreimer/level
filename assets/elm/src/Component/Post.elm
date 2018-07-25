@@ -22,7 +22,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply exposing (Reply)
-import Data.ReplyComposer exposing (ReplyComposer, Mode(..))
+import ReplyComposer exposing (ReplyComposer, Mode(..))
 import Data.Post exposing (Post)
 import Data.SpaceUser exposing (SpaceUser)
 import Icons
@@ -74,7 +74,7 @@ init mode post =
                 FullPage ->
                     AlwaysExpanded
     in
-        Model post.id mode post (Data.ReplyComposer.init replyMode)
+        Model post.id mode post (ReplyComposer.init replyMode)
 
 
 setup : Model -> Cmd Msg
@@ -93,7 +93,7 @@ teardown { id } =
 
 setupReplyComposer : String -> ReplyComposer -> Cmd Msg
 setupReplyComposer postId replyComposer =
-    if Data.ReplyComposer.isExpanded replyComposer then
+    if ReplyComposer.isExpanded replyComposer then
         Autosize.init (replyComposerId postId)
     else
         Cmd.none
@@ -140,24 +140,24 @@ update msg spaceId session ({ post, replyComposer } as model) =
                         ]
 
                 newModel =
-                    { model | replyComposer = Data.ReplyComposer.expand replyComposer }
+                    { model | replyComposer = ReplyComposer.expand replyComposer }
             in
                 ( ( newModel, cmd ), session )
 
         NewReplyBodyChanged val ->
             let
                 newModel =
-                    { model | replyComposer = Data.ReplyComposer.setBody val replyComposer }
+                    { model | replyComposer = ReplyComposer.setBody val replyComposer }
             in
                 noCmd session newModel
 
         NewReplySubmit ->
             let
                 newModel =
-                    { model | replyComposer = Data.ReplyComposer.submitting replyComposer }
+                    { model | replyComposer = ReplyComposer.submitting replyComposer }
 
                 body =
-                    Data.ReplyComposer.getBody replyComposer
+                    ReplyComposer.getBody replyComposer
 
                 cmd =
                     ReplyToPost.request spaceId post.id body session
@@ -172,8 +172,8 @@ update msg spaceId session ({ post, replyComposer } as model) =
 
                 newReplyComposer =
                     replyComposer
-                        |> Data.ReplyComposer.notSubmitting
-                        |> Data.ReplyComposer.setBody ""
+                        |> ReplyComposer.notSubmitting
+                        |> ReplyComposer.setBody ""
 
                 newModel =
                     { model | replyComposer = newReplyComposer }
@@ -192,7 +192,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                     replyComposerId model.id
 
                 replyBody =
-                    Data.ReplyComposer.getBody replyComposer
+                    ReplyComposer.getBody replyComposer
             in
                 if replyBody == "" then
                     ( ( model, unsetFocus nodeId NoOp ), session )
@@ -205,10 +205,10 @@ update msg spaceId session ({ post, replyComposer } as model) =
                     replyComposerId model.id
 
                 replyBody =
-                    Data.ReplyComposer.getBody replyComposer
+                    ReplyComposer.getBody replyComposer
 
                 newModel =
-                    { model | replyComposer = Data.ReplyComposer.blurred replyComposer }
+                    { model | replyComposer = ReplyComposer.blurred replyComposer }
             in
                 noCmd session newModel
 
@@ -390,7 +390,7 @@ replyView repo now mode reply =
 
 replyComposerView : SpaceUser -> Model -> Html Msg
 replyComposerView currentUser { post, replyComposer } =
-    if Data.ReplyComposer.isExpanded replyComposer then
+    if ReplyComposer.isExpanded replyComposer then
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
             [ div [ class "composer p-3" ]
                 [ div [ class "flex" ]
@@ -406,15 +406,15 @@ replyComposerView currentUser { post, replyComposer } =
                                 , ( [], esc, \event -> NewReplyEscaped )
                                 ]
                             , onBlur NewReplyBlurred
-                            , value (Data.ReplyComposer.getBody replyComposer)
-                            , readonly (Data.ReplyComposer.isSubmitting replyComposer)
+                            , value (ReplyComposer.getBody replyComposer)
+                            , readonly (ReplyComposer.isSubmitting replyComposer)
                             ]
                             []
                         , div [ class "flex justify-end" ]
                             [ button
                                 [ class "btn btn-blue btn-sm"
                                 , onClick NewReplySubmit
-                                , disabled (Data.ReplyComposer.unsubmittable replyComposer)
+                                , disabled (ReplyComposer.unsubmittable replyComposer)
                                 ]
                                 [ text "Post reply" ]
                             ]

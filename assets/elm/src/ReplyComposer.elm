@@ -1,4 +1,4 @@
-module Data.ReplyComposer
+module ReplyComposer
     exposing
         ( ReplyComposer
         , Mode(..)
