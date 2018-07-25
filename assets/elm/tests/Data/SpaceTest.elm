@@ -21,7 +21,8 @@ decoders =
                             {
                               "id": "9999",
                               "name": "Drip",
-                              "slug": "drip"
+                              "slug": "drip",
+                              "avatarUrl": "src"
                             }
                             """
 
@@ -32,6 +33,7 @@ decoders =
                             { id = "9999"
                             , name = "Drip"
                             , slug = "drip"
+                            , avatarUrl = Just "src"
                             }
                     in
                         Expect.equal (Ok expected) result
