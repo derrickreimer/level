@@ -4,10 +4,10 @@ module ListHelpers
         , takeLast
         , size
         , getById
-        , insertUniqueById
+        , insertUniqueBy
         , memberById
         , updateById
-        , removeById
+        , removeBy
         )
 
 import List
@@ -74,19 +74,19 @@ getById id list =
         |> List.head
 
 
-{-| Prepends an item to a list if there does not exist a list element with
-the same id.
+{-| Prepends an item to a list if there does not exist a list element whose
+comparator evaluates to the same as the item's.
 
-    insertUniqueById { id = "1" } [{ id = "1" }] == [{ id = "1" }]
-    insertUniqueById { id = "1" } [{ id = "2" }] == [{ id = "1" }, { id = "2" }]
+    insertUniqueBy .id { id = "1" } [{ id = "1" }] == [{ id = "1" }]
+    insertUniqueBy .id { id = "1" } [{ id = "2" }] == [{ id = "1" }, { id = "2" }]
 
 -}
-insertUniqueById : Identifiable a -> List (Identifiable a) -> List (Identifiable a)
-insertUniqueById item list =
-    if memberById item list then
-        list
-    else
+insertUniqueBy : (a -> comparable) -> a -> List a -> List a
+insertUniqueBy comparator item list =
+    if List.filter (\i -> comparator i == comparator item) list |> List.isEmpty then
         item :: list
+    else
+        list
 
 
 {-| Determines whether an item is in the list with the same id.
@@ -128,11 +128,11 @@ updateById newItem items =
         List.map replacer items
 
 
-{-| Filters out items from list with a given id.
+{-| Filters out items whose comparator evaluates to the same as the item's.
 
-    removeById "1" [{ id = "1" }, { id = "2" }] == [{ id = "2" }]
+    removeBy .id [{ id = "1" }, { id = "2" }] == [{ id = "2" }]
 
 -}
-removeById : String -> List (Identifiable a) -> List (Identifiable a)
-removeById id =
-    List.filter (\a -> not (a.id == id))
+removeBy : (a -> comparable) -> a -> List a -> List a
+removeBy comparator item list =
+    List.filter (\a -> comparator a == comparator item) list

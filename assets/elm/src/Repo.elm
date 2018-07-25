@@ -13,14 +13,14 @@ module Repo
         , setUser
         )
 
-import Data.Group exposing (Group)
+import Data.Group as Group exposing (Group)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import IdentityMap exposing (IdentityMap)
 
 
 type alias Repo =
-    { groups : IdentityMap Group
+    { groups : IdentityMap Group.Record
     , users : IdentityMap SpaceUser
     , spaces : IdentityMap Space.Record
     }
@@ -40,19 +40,20 @@ emptyMap =
 -- GROUPS
 
 
-getGroup : Repo -> Group -> Group
+getGroup : Repo -> Group -> Group.Record
 getGroup { groups } group =
-    IdentityMap.get groups .id group
+    IdentityMap.get groups .id (Group.getCachedData group)
 
 
-getGroups : Repo -> List Group -> List Group
+getGroups : Repo -> List Group -> List Group.Record
 getGroups { groups } list =
-    IdentityMap.getList groups .id list
+    List.map Group.getCachedData list
+        |> IdentityMap.getList groups .id
 
 
 setGroup : Repo -> Group -> Repo
 setGroup repo group =
-    { repo | groups = IdentityMap.set repo.groups .id group }
+    { repo | groups = IdentityMap.set repo.groups .id (Group.getCachedData group) }
 
 
 

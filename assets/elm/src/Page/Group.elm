@@ -23,7 +23,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
-import Data.Group exposing (Group)
+import Data.Group as Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
@@ -115,7 +115,7 @@ setup { group, posts } =
             Cmd.batch
                 [ setFocus "post-composer" NoOp
                 , Autosize.init "post-composer"
-                , setupSockets group.id
+                , setupSockets (Group.getId group)
                 ]
 
         postsCmd =
@@ -130,7 +130,7 @@ teardown : Model -> Cmd Msg
 teardown { group, posts } =
     let
         pageCmd =
-            teardownSockets group.id
+            teardownSockets (Group.getId group)
 
         postsCmd =
             Connection.toList posts
@@ -189,7 +189,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             if newPostSubmittable postComposer then
                 let
                     cmd =
-                        PostToGroup.request (Space.getId model.space) model.group.id postComposer.body session
+                        PostToGroup.request (Space.getId model.space) (Group.getId model.group) postComposer.body session
                             |> Task.attempt NewPostSubmitted
                 in
                     ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), session )
@@ -214,7 +214,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         MembershipStateToggled state ->
             let
                 cmd =
-                    UpdateGroupMembership.request (Space.getId model.space) model.group.id state session
+                    UpdateGroupMembership.request (Space.getId model.space) (Group.getId model.group) state session
                         |> Task.attempt MembershipStateSubmitted
             in
                 -- Update the state on the model optimistically
@@ -249,7 +249,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         NameEditorSubmit ->
             let
                 cmd =
-                    UpdateGroup.request (Space.getId model.space) model.group.id nameEditor.value session
+                    UpdateGroup.request (Space.getId model.space) (Group.getId model.group) nameEditor.value session
                         |> Task.attempt NameEditorSubmitted
             in
                 ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), session )
@@ -344,7 +344,7 @@ handleGroupMembershipUpdated { state, membership } session model =
                 model.state
 
         cmd =
-            FeaturedMemberships.request (Space.getId model.space) model.group.id session
+            FeaturedMemberships.request (Space.getId model.space) (Group.getId model.group) session
                 |> Task.attempt FeaturedMembershipsRefreshed
     in
         ( { model | state = newState }, cmd )
@@ -395,27 +395,27 @@ view repo model =
         user =
             Repo.getUser repo model.user
 
-        group =
+        groupData =
             Repo.getGroup repo model.group
     in
         div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
-                        [ nameView group model.nameEditor
+                        [ nameView groupData model.nameEditor
                         , nameErrors model.nameEditor
                         , controlsView model.state
                         ]
                     ]
-                , newPostView model.postComposer user group
+                , newPostView model.postComposer user
                 , postsView repo user model.now model.posts
                 , sidebarView repo model.featuredMemberships
                 ]
             ]
 
 
-nameView : Group -> FieldEditor -> Html Msg
-nameView group editor =
+nameView : Group.Record -> FieldEditor -> Html Msg
+nameView groupData editor =
     case editor.state of
         NotEditing ->
             h2 [ class "flex-no-shrink" ]
@@ -423,7 +423,7 @@ nameView group editor =
                     [ onClick NameClicked
                     , class "font-extrabold text-2xl cursor-pointer"
                     ]
-                    [ text group.name ]
+                    [ text groupData.name ]
                 ]
 
         Editing ->
@@ -493,8 +493,8 @@ subscribeButtonView state =
                 [ text "Member" ]
 
 
-newPostView : PostComposer -> SpaceUser -> Group -> Html Msg
-newPostView ({ body, isSubmitting } as postComposer) user group =
+newPostView : PostComposer -> SpaceUser -> Html Msg
+newPostView ({ body, isSubmitting } as postComposer) user =
     label [ class "composer mb-4" ]
         [ div [ class "flex" ]
             [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium user ]

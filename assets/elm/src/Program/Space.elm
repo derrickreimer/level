@@ -8,7 +8,7 @@ import Process
 import Task exposing (Task)
 import Time exposing (second)
 import Avatar exposing (personAvatar, thingAvatar)
-import Data.Group exposing (Group)
+import Data.Group as Group exposing (Group)
 import Data.Post
 import Data.Reply exposing (Reply)
 import Data.Space as Space
@@ -29,7 +29,7 @@ import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Route exposing (Route)
 import Session exposing (Session)
-import ListHelpers exposing (insertUniqueById, removeById)
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Util exposing (Lazy(..))
 import ViewHelpers exposing (displayName)
 
@@ -307,7 +307,7 @@ handleSocketResult value model page sharedState =
             let
                 groups =
                     sharedState.bookmarkedGroups
-                        |> insertUniqueById group
+                        |> insertUniqueBy (Group.getId) group
 
                 newSharedState =
                     { sharedState | bookmarkedGroups = groups }
@@ -318,7 +318,7 @@ handleSocketResult value model page sharedState =
             let
                 groups =
                     sharedState.bookmarkedGroups
-                        |> removeById group.id
+                        |> removeBy (Group.getId) group
 
                 newSharedState =
                     { sharedState | bookmarkedGroups = groups }
@@ -328,7 +328,7 @@ handleSocketResult value model page sharedState =
         Event.GroupMembershipUpdated payload ->
             case model.page of
                 Group ({ group } as pageModel) ->
-                    if group.id == payload.groupId then
+                    if (Group.getId group) == payload.groupId then
                         let
                             ( newPageModel, cmd ) =
                                 Page.Group.handleGroupMembershipUpdated payload model.session pageModel
@@ -663,10 +663,6 @@ view model =
 leftSidebar : SharedState -> Model -> Html Msg
 leftSidebar sharedState ({ page, repo } as model) =
     let
-        bookmarkedGroups =
-            sharedState.bookmarkedGroups
-                |> Repo.getGroups repo
-
         currentUser =
             Repo.getUser repo sharedState.user
 
@@ -684,7 +680,7 @@ leftSidebar sharedState ({ page, repo } as model) =
                     , sidebarLink "Everything" Nothing page
                     , sidebarLink "Drafts" Nothing page
                     ]
-                , groupLinks bookmarkedGroups page
+                , groupLinks repo sharedState.bookmarkedGroups page
                 ]
             , div [ class "absolute pin-b w-full" ]
                 [ a [ Route.href (Route.UserSettings), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
@@ -747,14 +743,15 @@ pageView repo sharedState page =
             text "404"
 
 
-groupLinks : List Group -> Page -> Html Msg
-groupLinks groups currentPage =
+groupLinks : Repo -> List Group -> Page -> Html Msg
+groupLinks repo groups currentPage =
     let
         linkify group =
             sidebarLink group.name (Just <| Route.Group group.id) currentPage
 
         links =
             groups
+                |> Repo.getGroups repo
                 |> List.sortBy .name
                 |> List.map linkify
     in
@@ -805,7 +802,7 @@ routeFor page =
             Just Route.SetupInviteUsers
 
         Group pageModel ->
-            Just <| Route.Group pageModel.group.id
+            Just <| Route.Group (Group.getId pageModel.group)
 
         Post pageModel ->
             Just <| Route.Post pageModel.post.id

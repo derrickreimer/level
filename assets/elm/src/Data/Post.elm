@@ -13,11 +13,10 @@ import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline as Pipeline
 import String.Interpolate exposing (interpolate)
 import Connection exposing (Connection)
-import Data.Group exposing (Group)
+import Data.Group as Group exposing (Group)
 import Data.Reply exposing (Reply)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
-import ListHelpers exposing (memberById)
 import Util exposing (dateDecoder)
 
 
@@ -62,7 +61,7 @@ fragment replyLimit =
     in
         GraphQL.fragment body
             [ Data.SpaceUser.fragment
-            , Data.Group.fragment
+            , Group.fragment
             , Connection.fragment "ReplyConnection" Data.Reply.fragment
             ]
 
@@ -78,7 +77,7 @@ decoder =
         |> Pipeline.required "body" string
         |> Pipeline.required "bodyHtml" string
         |> Pipeline.required "author" Data.SpaceUser.decoder
-        |> Pipeline.required "groups" (list Data.Group.decoder)
+        |> Pipeline.required "groups" (list Group.decoder)
         |> Pipeline.required "postedAt" dateDecoder
         |> Pipeline.required "replies" (Connection.decoder Data.Reply.decoder)
 
@@ -99,4 +98,6 @@ appendReply reply post =
 
 groupsInclude : Group -> Post -> Bool
 groupsInclude group post =
-    memberById group post.groups
+    List.filter (\g -> (Group.getId g) == (Group.getId group)) post.groups
+        |> List.isEmpty
+        |> not
