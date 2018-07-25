@@ -2,11 +2,13 @@ module Subscription.SpaceSubscription
     exposing
         ( subscribe
         , unsubscribe
+        , spaceUpdatedDecoder
         , spaceUserUpdatedDecoder
         )
 
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Document)
 import Socket
@@ -27,6 +29,18 @@ unsubscribe spaceId =
 
 
 -- DECODERS
+
+
+spaceUpdatedDecoder : Decode.Decoder Space
+spaceUpdatedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "SpaceUpdatedPayload" then
+                Decode.field "space" Data.Space.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
 
 
 spaceUserUpdatedDecoder : Decode.Decoder SpaceUser
@@ -59,6 +73,11 @@ document =
         ) {
           spaceSubscription(spaceId: $spaceId) {
             __typename
+            ... on SpaceUpdatedPayload {
+              space {
+                ...SpaceFields
+              }
+            }
             ... on SpaceUserUpdatedPayload {
               spaceUser {
                 ...SpaceUserFields
@@ -67,7 +86,8 @@ document =
           }
         }
         """
-        [ Data.SpaceUser.fragment
+        [ Data.Space.fragment
+        , Data.SpaceUser.fragment
         ]
 
 

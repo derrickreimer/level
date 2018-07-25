@@ -8,7 +8,15 @@ defmodule Level.Pubsub do
   alias Level.Groups.GroupUser
   alias Level.Posts.Post
   alias Level.Posts.Reply
+  alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
+
+  def publish(:space_updated, space_id, %Space{} = space) do
+    do_publish(
+      %{type: :space_updated, space: space},
+      space_subscription: space_id
+    )
+  end
 
   def publish(:space_user_updated, space_id, %SpaceUser{} = space_user) do
     do_publish(

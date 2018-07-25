@@ -11,7 +11,6 @@ import Avatar exposing (personAvatar, thingAvatar)
 import Data.Group exposing (Group)
 import Data.Post
 import Data.Reply exposing (Reply)
-import Data.Space exposing (Space)
 import Data.SpaceUser
 import Data.Setup as Setup
 import Event
@@ -365,6 +364,9 @@ handleSocketResult value model page sharedState =
         Event.ReplyCreated reply ->
             handleReplyCreated reply model
 
+        Event.SpaceUpdated space ->
+            ( { model | repo = Repo.setSpace model.repo space }, Cmd.none )
+
         Event.SpaceUserUpdated spaceUser ->
             ( { model | repo = Repo.setUser model.repo spaceUser }, Cmd.none )
 
@@ -666,12 +668,15 @@ leftSidebar sharedState ({ page, repo } as model) =
 
         currentUser =
             Repo.getUser repo sharedState.user
+
+        spaceData =
+            Repo.getSpace repo sharedState.space
     in
         div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
             [ div [ class "p-4" ]
                 [ div [ class "ml-2" ]
-                    [ div [ class "mb-2" ] [ thingAvatar Avatar.Small sharedState.space ]
-                    , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text sharedState.space.name ]
+                    [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
+                    , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text spaceData.name ]
                     ]
                 , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
                     [ sidebarLink "Inbox" (Just Route.Inbox) page

@@ -7,9 +7,12 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for messages propagated to a space topic."
   union :space_subscription_payload do
-    types [:space_user_updated_payload]
+    types [:space_updated_payload, :space_user_updated_payload]
 
-    resolve_type fn %{type: :space_user_updated}, _ -> :space_user_updated_payload end
+    resolve_type fn
+      %{type: :space_updated}, _ -> :space_updated_payload
+      %{type: :space_user_updated}, _ -> :space_user_updated_payload
+    end
   end
 
   @desc "The payload for messages propagated to a space user topic."
@@ -40,6 +43,12 @@ defmodule LevelWeb.Schema.Subscriptions do
   end
 
   # Objects
+
+  @desc "The payload for the space updated event."
+  object :space_updated_payload do
+    @desc "The updated space."
+    field :space, :space
+  end
 
   @desc "The payload for the space user updated event."
   object :space_user_updated_payload do

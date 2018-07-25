@@ -51,7 +51,7 @@ variables spaceId data =
 successDecoder : Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "updateSpaceAvatar", "user" ] Data.Space.decoder
+        Decode.at [ "data", "updateSpaceAvatar", "space" ] Data.Space.decoder
 
 
 failureDecoder : Decoder Response

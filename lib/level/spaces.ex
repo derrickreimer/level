@@ -90,7 +90,15 @@ defmodule Level.Spaces do
     space
     |> Space.update_changeset(params)
     |> Repo.update()
+    |> handle_space_update()
   end
+
+  defp handle_space_update({:ok, space} = result) do
+    Pubsub.publish(:space_updated, space.id, space)
+    result
+  end
+
+  defp handle_space_update(err), do: err
 
   @doc """
   Updates a space's avatar.

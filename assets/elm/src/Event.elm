@@ -4,8 +4,9 @@ import Json.Decode as Decode
 import Data.Group exposing (Group)
 import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
+import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
-import Subscription.SpaceSubscription exposing (spaceUserUpdatedDecoder)
+import Subscription.SpaceSubscription exposing (spaceUpdatedDecoder, spaceUserUpdatedDecoder)
 import Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder)
 import Subscription.GroupSubscription
     exposing
@@ -27,6 +28,7 @@ type Event
     | GroupMembershipUpdated GroupMembershipUpdatedPayload
     | GroupUpdated Group
     | ReplyCreated Reply
+    | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
     | Unknown
 
@@ -50,5 +52,6 @@ eventDecoder =
         , Decode.map PostCreated postCreatedDecoder
         , Decode.map GroupMembershipUpdated groupMembershipUpdatedDecoder
         , Decode.map ReplyCreated replyCreatedDecoder
+        , Decode.map SpaceUpdated spaceUpdatedDecoder
         , Decode.map SpaceUserUpdated spaceUserUpdatedDecoder
         ]

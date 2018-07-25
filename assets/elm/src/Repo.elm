@@ -5,12 +5,16 @@ module Repo
         , getGroup
         , getGroups
         , setGroup
+        , getSpace
+        , getSpaces
+        , setSpace
         , getUser
         , getUsers
         , setUser
         )
 
 import Data.Group exposing (Group)
+import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import IdentityMap exposing (IdentityMap)
 
@@ -18,17 +22,22 @@ import IdentityMap exposing (IdentityMap)
 type alias Repo =
     { groups : IdentityMap Group
     , users : IdentityMap SpaceUser
+    , spaces : IdentityMap Space
     }
 
 
 init : Repo
 init =
-    Repo emptyMap emptyMap
+    Repo emptyMap emptyMap emptyMap
 
 
 emptyMap : IdentityMap a
 emptyMap =
     IdentityMap.init
+
+
+
+-- GROUPS
 
 
 getGroup : Repo -> Group -> Group
@@ -44,6 +53,29 @@ getGroups { groups } list =
 setGroup : Repo -> Group -> Repo
 setGroup repo group =
     { repo | groups = IdentityMap.set repo.groups .id group }
+
+
+
+-- SPACES
+
+
+getSpace : Repo -> Space -> Space
+getSpace { spaces } space =
+    IdentityMap.get spaces .id space
+
+
+getSpaces : Repo -> List Space -> List Space
+getSpaces { spaces } list =
+    IdentityMap.getList spaces .id list
+
+
+setSpace : Repo -> Space -> Repo
+setSpace repo space =
+    { repo | spaces = IdentityMap.set repo.spaces .id space }
+
+
+
+-- USERS
 
 
 getUser : Repo -> SpaceUser -> SpaceUser
