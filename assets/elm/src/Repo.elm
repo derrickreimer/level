@@ -8,20 +8,20 @@ module Repo
         , getSpace
         , getSpaces
         , setSpace
-        , getUser
-        , getUsers
-        , setUser
+        , getSpaceUser
+        , getSpaceUsers
+        , setSpaceUser
         )
 
 import Data.Group as Group exposing (Group)
 import Data.Space as Space exposing (Space)
-import Data.SpaceUser exposing (SpaceUser)
+import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import IdentityMap exposing (IdentityMap)
 
 
 type alias Repo =
     { groups : IdentityMap Group.Record
-    , users : IdentityMap SpaceUser
+    , spaceUsers : IdentityMap SpaceUser.Record
     , spaces : IdentityMap Space.Record
     }
 
@@ -80,16 +80,17 @@ setSpace repo space =
 -- USERS
 
 
-getUser : Repo -> SpaceUser -> SpaceUser
-getUser { users } user =
-    IdentityMap.get users .id user
+getSpaceUser : Repo -> SpaceUser -> SpaceUser.Record
+getSpaceUser { spaceUsers } user =
+    IdentityMap.get spaceUsers .id (SpaceUser.getCachedData user)
 
 
-getUsers : Repo -> List SpaceUser -> List SpaceUser
-getUsers { users } list =
-    IdentityMap.getList users .id list
+getSpaceUsers : Repo -> List SpaceUser -> List SpaceUser.Record
+getSpaceUsers { spaceUsers } list =
+    List.map SpaceUser.getCachedData list
+        |> IdentityMap.getList spaceUsers .id
 
 
-setUser : Repo -> SpaceUser -> Repo
-setUser repo user =
-    { repo | users = IdentityMap.set repo.users .id user }
+setSpaceUser : Repo -> SpaceUser -> Repo
+setSpaceUser repo user =
+    { repo | spaceUsers = IdentityMap.set repo.spaceUsers .id (SpaceUser.getCachedData user) }

@@ -708,13 +708,9 @@ pageView repo sharedState page =
                 |> Html.map SetupInviteUsersMsg
 
         Inbox ->
-            let
-                featuredUsers =
-                    sharedState.featuredUsers
-                        |> Repo.getUsers repo
-            in
-                Page.Inbox.view featuredUsers
-                    |> Html.map InboxMsg
+            sharedState.featuredUsers
+                |> Page.Inbox.view repo
+                |> Html.map InboxMsg
 
         Group pageModel ->
             pageModel

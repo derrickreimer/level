@@ -28,7 +28,7 @@ import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Data.Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
-import Data.SpaceUser exposing (SpaceUser)
+import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.PostToGroup as PostToGroup
@@ -377,7 +377,11 @@ isMembershipListed membership list =
 
 removeMembership : GroupMembership -> List GroupMembership -> List GroupMembership
 removeMembership membership list =
-    List.filter (\m -> not (m.user.id == membership.user.id)) list
+    let
+        id =
+            SpaceUser.getId membership.user
+    in
+        List.filter (\m -> SpaceUser.getId m.user == id) list
 
 
 
@@ -396,11 +400,13 @@ subscriptions =
 view : Repo -> Model -> Html Msg
 view repo model =
     let
-        user =
-            Repo.getUser repo model.user
+        currentUserData =
+            model.user
+                |> Repo.getSpaceUser repo
 
         groupData =
-            Repo.getGroup repo model.group
+            model.group
+                |> Repo.getGroup repo
     in
         div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
@@ -411,8 +417,8 @@ view repo model =
                         , controlsView model.state
                         ]
                     ]
-                , newPostView model.postComposer user
-                , postsView repo user model.now model.posts
+                , newPostView model.postComposer currentUserData
+                , postsView repo model.user model.now model.posts
                 , sidebarView repo model.featuredMemberships
                 ]
             ]
@@ -497,11 +503,11 @@ subscribeButtonView state =
                 [ text "Member" ]
 
 
-newPostView : PostComposer -> SpaceUser -> Html Msg
-newPostView ({ body, isSubmitting } as postComposer) user =
+newPostView : PostComposer -> SpaceUser.Record -> Html Msg
+newPostView ({ body, isSubmitting } as postComposer) currentUserData =
     label [ class "composer mb-4" ]
         [ div [ class "flex" ]
-            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium user ]
+            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium currentUserData ]
             , div [ class "flex-grow" ]
                 [ textarea
                     [ id "post-composer"
@@ -561,12 +567,12 @@ memberListView repo featuredMemberships =
 memberItemView : Repo -> GroupMembership -> Html Msg
 memberItemView repo membership =
     let
-        user =
-            Repo.getUser repo membership.user
+        userData =
+            Repo.getSpaceUser repo membership.user
     in
         div [ class "flex items-center pr-4 mb-px" ]
-            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny user ]
-            , div [ class "flex-grow text-sm truncate" ] [ text <| displayName user ]
+            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
+            , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
             ]
 
 

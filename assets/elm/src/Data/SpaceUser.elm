@@ -1,4 +1,14 @@
-module Data.SpaceUser exposing (SpaceUser, Role(..), fragment, decoder, roleDecoder)
+module Data.SpaceUser
+    exposing
+        ( SpaceUser
+        , Record
+        , Role(..)
+        , fragment
+        , decoder
+        , roleDecoder
+        , getId
+        , getCachedData
+        )
 
 import Json.Decode as Decode exposing (Decoder, maybe, field, string, succeed, fail)
 import GraphQL exposing (Fragment)
@@ -7,7 +17,11 @@ import GraphQL exposing (Fragment)
 -- TYPES
 
 
-type alias SpaceUser =
+type SpaceUser
+    = SpaceUser Record
+
+
+type alias Record =
     { id : String
     , firstName : String
     , lastName : String
@@ -60,9 +74,24 @@ roleDecoder =
 
 decoder : Decoder SpaceUser
 decoder =
-    Decode.map5 SpaceUser
-        (field "id" string)
-        (field "firstName" string)
-        (field "lastName" string)
-        (field "role" roleDecoder)
-        (field "avatarUrl" (maybe string))
+    Decode.map SpaceUser <|
+        Decode.map5 Record
+            (field "id" string)
+            (field "firstName" string)
+            (field "lastName" string)
+            (field "role" roleDecoder)
+            (field "avatarUrl" (maybe string))
+
+
+
+-- API
+
+
+getId : SpaceUser -> String
+getId (SpaceUser { id }) =
+    id
+
+
+getCachedData : SpaceUser -> Record
+getCachedData (SpaceUser data) =
+    data

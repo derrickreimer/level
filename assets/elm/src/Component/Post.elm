@@ -22,13 +22,13 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply as Reply exposing (Reply)
-import ReplyComposer exposing (ReplyComposer, Mode(..))
 import Data.Post exposing (Post)
-import Data.SpaceUser exposing (SpaceUser)
+import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.ReplyToPost as ReplyToPost
 import Query.Replies
+import ReplyComposer exposing (ReplyComposer, Mode(..))
 import Repo exposing (Repo)
 import Route
 import Scroll
@@ -291,15 +291,20 @@ handleReplyCreated reply ({ post, mode } as model) =
 view : Repo -> SpaceUser -> Date -> Model -> Html Msg
 view repo currentUser now ({ post } as model) =
     let
-        author =
-            Repo.getUser repo post.author
+        currentUserData =
+            currentUser
+                |> Repo.getSpaceUser repo
+
+        authorData =
+            post.author
+                |> Repo.getSpaceUser repo
     in
         div [ classList [ ( "flex pt-4 px-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
-            [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium author ]
+            [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
             , div [ class "flex-grow leading-semi-loose" ]
                 [ div []
                     [ div []
-                        [ span [ class "font-bold" ] [ text <| displayName author ]
+                        [ span [ class "font-bold" ] [ text <| displayName authorData ]
                         , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now post.postedAt ]
                         ]
                     , div [ class "markdown mb-2" ] [ injectHtml post.bodyHtml ]
@@ -312,7 +317,7 @@ view repo currentUser now ({ post } as model) =
                     ]
                 , div [ class "relative" ]
                     [ repliesView repo post now post.replies model.mode
-                    , replyComposerView currentUser model
+                    , replyComposerView currentUserData model
                     ]
                 ]
             ]
@@ -376,7 +381,7 @@ replyView repo now mode reply =
             Reply.getCachedData reply
 
         authorData =
-            Repo.getUser repo replyData.author
+            Repo.getSpaceUser repo replyData.author
     in
         div [ id (replyNodeId replyData.id), class "flex mt-3" ]
             [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small authorData ]
@@ -391,13 +396,13 @@ replyView repo now mode reply =
             ]
 
 
-replyComposerView : SpaceUser -> Model -> Html Msg
-replyComposerView currentUser { post, replyComposer } =
+replyComposerView : SpaceUser.Record -> Model -> Html Msg
+replyComposerView currentUserData { post, replyComposer } =
     if ReplyComposer.isExpanded replyComposer then
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
             [ div [ class "composer p-3" ]
                 [ div [ class "flex" ]
-                    [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUser ]
+                    [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUserData ]
                     , div [ class "flex-grow" ]
                         [ textarea
                             [ id (replyComposerId post.id)
@@ -427,13 +432,13 @@ replyComposerView currentUser { post, replyComposer } =
             ]
     else
         viewUnless (Connection.isEmpty post.replies) <|
-            replyPromptView currentUser
+            replyPromptView currentUserData
 
 
-replyPromptView : SpaceUser -> Html Msg
-replyPromptView currentUser =
+replyPromptView : SpaceUser.Record -> Html Msg
+replyPromptView currentUserData =
     button [ class "flex my-3 items-center", onClick ExpandReplyComposer ]
-        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small currentUser ]
+        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small currentUserData ]
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
             [ text "Write a reply..."
             ]
