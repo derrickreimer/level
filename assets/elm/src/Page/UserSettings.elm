@@ -13,6 +13,7 @@ module Page.UserSettings
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
+import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Task exposing (Task)
 import Data.User as User
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
@@ -189,10 +190,10 @@ subscriptions =
 view : Repo -> Model -> Html Msg
 view repo ({ errors } as model) =
     div [ class "ml-56 mr-24" ]
-        [ div [ class "mx-auto max-w-90 leading-normal py-8" ]
-            [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "My Settings" ]
+        [ div [ class "mx-auto max-w-md leading-normal py-8" ]
+            [ h1 [ class "pb-8 font-extrabold text-3xl" ] [ text "Manage my profile" ]
             , div [ class "flex" ]
-                [ div [ class "flex-1 mr-16 max-w-sm" ]
+                [ div [ class "flex-1 mr-8" ]
                     [ div [ class "pb-6" ]
                         [ div [ class "flex" ]
                             [ div [ class "flex-1 mr-2" ]
@@ -205,6 +206,7 @@ view repo ({ errors } as model) =
                                     , placeholder "Jane"
                                     , value model.firstName
                                     , onInput FirstNameChanged
+                                    , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
                                     , disabled model.isSubmitting
                                     ]
                                     []
@@ -220,6 +222,7 @@ view repo ({ errors } as model) =
                                     , placeholder "Doe"
                                     , value model.lastName
                                     , onInput LastNameChanged
+                                    , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
                                     , disabled model.isSubmitting
                                     ]
                                     []
@@ -237,6 +240,7 @@ view repo ({ errors } as model) =
                             , placeholder "jane@acmeco.com"
                             , value model.email
                             , onInput EmailChanged
+                            , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
                             , disabled model.isSubmitting
                             ]
                             []
@@ -248,7 +252,7 @@ view repo ({ errors } as model) =
                         , onClick Submit
                         , disabled model.isSubmitting
                         ]
-                        [ text "Save Settings" ]
+                        [ text "Save settings" ]
                     ]
                 , div [ class "flex-0" ]
                     [ File.avatarInput "avatar" model.avatarUrl AvatarSelected

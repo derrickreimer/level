@@ -179,12 +179,12 @@ subscriptions =
 view : Repo -> Model -> Html Msg
 view repo ({ errors } as model) =
     div [ class "ml-56 mr-24" ]
-        [ div [ class "mx-auto max-w-90 leading-normal py-8" ]
-            [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "Space Settings" ]
+        [ div [ class "mx-auto max-w-md leading-normal py-8" ]
+            [ h1 [ class "pb-8 font-extrabold text-3xl" ] [ text "Manage this space" ]
             , div [ class "flex" ]
-                [ div [ class "flex-1 mr-16 max-w-sm" ]
+                [ div [ class "flex-1 mr-8" ]
                     [ div [ class "pb-6" ]
-                        [ label [ for "name", class "input-label" ] [ text "Name of this space" ]
+                        [ label [ for "name", class "input-label" ] [ text "Space Name" ]
                         , input
                             [ id "name"
                             , type_ "text"
@@ -235,7 +235,7 @@ view repo ({ errors } as model) =
                         , onClick Submit
                         , disabled model.isSubmitting
                         ]
-                        [ text "Save Settings" ]
+                        [ text "Save settings" ]
                     ]
                 , div [ class "flex-0" ]
                     [ File.avatarInput "avatar" model.avatarUrl AvatarSelected
