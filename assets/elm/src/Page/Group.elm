@@ -463,12 +463,12 @@ view repo model =
                     [ div [ class "flex items-center" ]
                         [ nameView groupData model.nameEditor
                         , nameErrors model.nameEditor
-                        , controlsView model.isBookmarked model.state
+                        , controlsView model.isBookmarked
                         ]
                     ]
                 , newPostView model.postComposer currentUserData
                 , postsView repo model.user model.now model.posts
-                , sidebarView repo model.featuredMemberships
+                , sidebarView repo model.state model.featuredMemberships
                 ]
             ]
 
@@ -527,11 +527,10 @@ nameErrors editor =
             text ""
 
 
-controlsView : Bool -> GroupMembershipState -> Html Msg
-controlsView isBookmarked state =
+controlsView : Bool -> Html Msg
+controlsView isBookmarked =
     div [ class "flex flex-grow justify-end" ]
-        [ subscribeButtonView state
-        , bookmarkButtonView isBookmarked
+        [ bookmarkButtonView isBookmarked
         ]
 
 
@@ -550,17 +549,17 @@ subscribeButtonView state =
     case state of
         NotSubscribed ->
             button
-                [ class "btn btn-grey-outline btn-xs"
+                [ class "text-sm text-blue"
                 , onClick (MembershipStateToggled Subscribed)
                 ]
-                [ text "Join" ]
+                [ text "Join this group" ]
 
         Subscribed ->
             button
-                [ class "btn btn-turquoise-outline btn-xs"
+                [ class "text-sm text-blue"
                 , onClick (MembershipStateToggled NotSubscribed)
                 ]
-                [ text "Member" ]
+                [ text "Leave this group" ]
 
 
 newPostView : PostComposer -> SpaceUser.Record -> Html Msg
@@ -608,20 +607,21 @@ postView repo currentUser now component =
         |> Html.map (PostComponentMsg component.id)
 
 
-sidebarView : Repo -> List GroupMembership -> Html Msg
-sidebarView repo featuredMemberships =
+sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Html Msg
+sidebarView repo state featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Members" ]
         , memberListView repo featuredMemberships
+        , subscribeButtonView state
         ]
 
 
 memberListView : Repo -> List GroupMembership -> Html Msg
 memberListView repo featuredMemberships =
     if List.isEmpty featuredMemberships then
-        div [ class "text-sm" ] [ text "Nobody has joined yet." ]
+        div [ class "pb-4 text-sm" ] [ text "Nobody has joined yet." ]
     else
-        div [] <| List.map (memberItemView repo) featuredMemberships
+        div [ class "pb-4" ] <| List.map (memberItemView repo) featuredMemberships
 
 
 memberItemView : Repo -> GroupMembership -> Html Msg
