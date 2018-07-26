@@ -14,6 +14,7 @@ import Data.Setup as Setup
 import Event
 import Repo exposing (Repo)
 import Page.Group
+import Page.Groups
 import Page.Inbox
 import Page.Post
 import Page.Setup.CreateGroups
@@ -55,6 +56,7 @@ type Page
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
     | Inbox
+    | Groups Page.Groups.Model
     | Group Page.Group.Model
     | Post Page.Post.Model
     | UserSettings Page.UserSettings.Model
@@ -115,6 +117,7 @@ type Msg
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
     | InboxMsg Page.Inbox.Msg
+    | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
@@ -127,7 +130,8 @@ type Msg
 
 
 type PageInit
-    = GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
+    = GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
+    | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
@@ -492,6 +496,11 @@ navigateTo maybeRoute sharedState model =
                 -- TODO: implement this
                 ( { model | page = Inbox }, Cmd.none )
 
+            Just Route.Groups ->
+                model.session
+                    |> Page.Groups.init sharedState.user sharedState.space
+                    |> transition model GroupsInit
+
             Just (Route.Group groupId) ->
                 let
                     isBookmarked =
@@ -521,6 +530,23 @@ navigateTo maybeRoute sharedState model =
 handlePageInit : PageInit -> Model -> ( Model, Cmd Msg )
 handlePageInit pageInit model =
     case pageInit of
+        GroupsInit (Ok ( session, pageModel )) ->
+            ( { model
+                | page = Groups pageModel
+                , session = session
+                , isTransitioning = False
+              }
+            , Page.Groups.setup pageModel
+                |> Cmd.map GroupsMsg
+            )
+
+        GroupsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        GroupsInit (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
+
         GroupInit _ (Ok ( session, pageModel )) ->
             ( { model
                 | page = Group pageModel
@@ -706,6 +732,11 @@ pageView repo sharedState page =
                 |> Page.Inbox.view repo
                 |> Html.map InboxMsg
 
+        Groups pageModel ->
+            pageModel
+                |> Page.Groups.view repo
+                |> Html.map GroupsMsg
+
         Group pageModel ->
             pageModel
                 |> Page.Group.view repo
@@ -790,6 +821,9 @@ routeFor page =
 
         SetupInviteUsers _ ->
             Just Route.SetupInviteUsers
+
+        Groups _ ->
+            Just Route.Groups
 
         Group pageModel ->
             Just <| Route.Group (Group.getId pageModel.group)
