@@ -87,8 +87,23 @@ view repo model =
 
 groupsView : Repo -> Connection Group -> Html Msg
 groupsView repo connection =
-    div [ class "leading-semi-loose" ] <|
-        Connection.map (groupView repo) connection
+    let
+        partitions =
+            connection
+                |> Connection.toList
+                |> partitionGroups repo []
+    in
+        div [ class "leading-semi-loose" ] <|
+            List.map (groupPartitionView repo) partitions
+
+
+groupPartitionView : Repo -> ( String, List Group ) -> Html Msg
+groupPartitionView repo ( letter, groups ) =
+    div [ class "flex" ]
+        [ div [ class "flex-0 w-12 text-lg text-dusty-blue" ] [ text letter ]
+        , div [ class "flex-1" ] <|
+            List.map (groupView repo) groups
+        ]
 
 
 groupView : Repo -> Group -> Html Msg
@@ -102,3 +117,38 @@ groupView repo group =
                 [ a [ Route.href (Route.Group groupData.id), class "text-blue no-underline" ] [ text groupData.name ]
                 ]
             ]
+
+
+
+-- HELPERS
+
+
+partitionGroups : Repo -> List ( String, List Group ) -> List Group -> List ( String, List Group )
+partitionGroups repo partitions groups =
+    case groups of
+        hd :: tl ->
+            let
+                letter =
+                    firstLetter repo hd
+
+                ( matches, remaining ) =
+                    List.partition (startsWith repo letter) groups
+            in
+                partitionGroups repo (( letter, matches ) :: partitions) remaining
+
+        _ ->
+            List.reverse partitions
+
+
+firstLetter : Repo -> Group -> String
+firstLetter repo group =
+    group
+        |> Repo.getGroup repo
+        |> .name
+        |> String.left 1
+        |> String.toUpper
+
+
+startsWith : Repo -> String -> Group -> Bool
+startsWith repo letter group =
+    firstLetter repo group == letter
