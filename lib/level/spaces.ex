@@ -192,7 +192,8 @@ defmodule Level.Spaces do
       space_id: space.id,
       role: "OWNER",
       first_name: user.first_name,
-      last_name: user.last_name
+      last_name: user.last_name,
+      avatar: user.avatar
     })
     |> Repo.insert()
   end
@@ -208,7 +209,8 @@ defmodule Level.Spaces do
       space_id: space.id,
       role: "MEMBER",
       first_name: user.first_name,
-      last_name: user.last_name
+      last_name: user.last_name,
+      avatar: user.avatar
     })
     |> Repo.insert()
   end
