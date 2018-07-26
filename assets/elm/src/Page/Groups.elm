@@ -98,7 +98,7 @@ groupView repo group =
             Repo.getGroup repo group
     in
         div []
-            [ h2 [ class "font-normal text-base" ]
+            [ h2 [ class "font-normal text-lg" ]
                 [ a [ Route.href (Route.Group groupData.id), class "text-blue no-underline" ] [ text groupData.name ]
                 ]
             ]
