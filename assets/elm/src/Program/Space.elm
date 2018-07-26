@@ -695,12 +695,13 @@ leftSidebar sharedState ({ page, repo } as model) =
                     [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
                     , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text spaceData.name ]
                     ]
-                , ul [ class "list-reset leading-semi-loose select-none mb-4" ]
+                , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                     [ sidebarLink "Inbox" (Just Route.Inbox) page
                     , sidebarLink "Everything" Nothing page
                     , sidebarLink "Drafts" Nothing page
                     ]
                 , groupLinks repo sharedState.bookmarkedGroups page
+                , sidebarLink "Groups" (Just Route.Groups) page
                 ]
             , div [ class "absolute pin-b w-full" ]
                 [ a [ Route.href (Route.UserSettings), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
@@ -776,7 +777,7 @@ groupLinks repo groups currentPage =
                 |> List.sortBy .name
                 |> List.map linkify
     in
-        ul [ class "list-reset leading-semi-loose select-none" ] links
+        ul [ class "mb-4 list-reset leading-semi-loose select-none" ] links
 
 
 {-| Build a link for the sidebar navigation with a special indicator for the
