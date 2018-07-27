@@ -600,7 +600,7 @@ subscribeButtonView state =
                 [ class "text-sm text-blue"
                 , onClick (MembershipStateToggled Subscribed)
                 ]
-                [ text "Subscribe" ]
+                [ text "Subscribe to the group" ]
 
         Subscribed ->
             button
