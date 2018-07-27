@@ -83,9 +83,20 @@ update msg repo session model =
 
 view : Repo -> Model -> Html Msg
 view repo model =
-    div [ class "ml-56 mr-24" ]
-        [ div [ class "mx-auto max-w-md leading-normal py-8" ]
-            [ h1 [ class "pb-8 font-extrabold text-3xl" ] [ text "Group Directory" ]
+    div [ class "ml-56 mr-56" ]
+        [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
+            [ div [ class "flex items-center pb-5" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Groups" ]
+                , div [ class "flex-0 flex-no-shrink" ]
+                    [ button [ class "btn btn-blue btn-md" ] [ text "New group" ]
+                    ]
+                ]
+            , div [ class "pb-8" ]
+                [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
+                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
+                    , input [ type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                    ]
+                ]
             , groupsView repo model.groups
             ]
         ]
@@ -107,7 +118,7 @@ groupsView repo connection =
 groupPartitionView : Repo -> ( String, List IndexedGroup ) -> Html Msg
 groupPartitionView repo ( letter, indexedGroups ) =
     div [ class "flex" ]
-        [ div [ class "py-1 flex-0 flex-no-shrink w-12 text-lg text-dusty-blue" ] [ text letter ]
+        [ div [ class "flex-0 flex-no-shrink pt-1 pl-5 w-12 text-sm text-dusty-blue font-bold" ] [ text letter ]
         , div [ class "flex-1" ] <|
             List.map (groupView repo) indexedGroups
         ]
@@ -119,8 +130,8 @@ groupView repo ( index, group ) =
         groupData =
             Repo.getGroup repo group
     in
-        div [ classList [ ( "px-2 py-1 rounded", True ), ( "bg-grey-light", isEven index ) ] ]
-            [ h2 [ class "flex items-center font-normal text-lg" ]
+        div []
+            [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
                 [ a [ Route.href (Route.Group groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
                 , div [ class "flex-0" ]
                     [ viewIf groupData.isBookmarked <|

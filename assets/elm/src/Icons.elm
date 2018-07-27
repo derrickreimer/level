@@ -6,6 +6,7 @@ module Icons
         , sync
         , comment
         , arrowLeft
+        , search
         )
 
 import Html exposing (Html)
@@ -122,6 +123,24 @@ arrowLeft =
                 <g id="arrow-left" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
                     <path d="M14,6 L0,6" id="Shape"></path>
                     <polyline id="Shape" points="6 12 0 6 6 0"></polyline>
+                </g>
+            </g>
+        </svg>
+        """
+
+
+search : Html msg
+search =
+    toHtml
+        """
+        <svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="search" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
+                    <circle id="Oval" cx="8" cy="8" r="8"></circle>
+                    <path d="M18,18 L13.65,13.65" id="Shape"></path>
                 </g>
             </g>
         </svg>
