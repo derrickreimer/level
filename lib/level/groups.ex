@@ -52,8 +52,8 @@ defmodule Level.Groups do
   @spec get_group(SpaceUser.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
   @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
 
-  def get_group(%SpaceUser{space_id: space_id} = member, id) do
-    case Repo.get_by(Group, id: id, space_id: space_id) do
+  def get_group(%SpaceUser{} = member, id) do
+    case Repo.get_by(groups_base_query(member), id: id) do
       %Group{} = group ->
         if group.is_private do
           case get_group_membership(group, member) do
@@ -305,6 +305,19 @@ defmodule Level.Groups do
       b.group_id == g.id and b.space_user_id == ^space_user.id
     )
     |> Repo.all()
+  end
+
+  @doc """
+  Determines if a group is bookmarked.
+  """
+  @spec is_bookmarked(User.t(), Group.t()) :: boolean()
+  def is_bookmarked(%User{id: user_id}, %Group{id: group_id}) do
+    query =
+      from b in GroupBookmark,
+        join: su in assoc(b, :space_user),
+        where: su.user_id == ^user_id and b.group_id == ^group_id
+
+    Repo.one(query) != nil
   end
 
   @doc """

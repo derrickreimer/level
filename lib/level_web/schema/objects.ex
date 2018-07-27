@@ -181,6 +181,14 @@ defmodule LevelWeb.Schema.Objects do
     field :featured_memberships, list_of(:group_membership) do
       resolve &Level.Connections.featured_group_memberships/3
     end
+
+    @desc "The bookmarking state of the current user."
+    field :is_bookmarked, non_null(:boolean) do
+      # TODO: optimize this
+      resolve fn group, _, %{context: %{current_user: user}} ->
+        {:ok, Groups.is_bookmarked(user, group)}
+      end
+    end
   end
 
   @desc "A group membership defines the relationship between a user and group."

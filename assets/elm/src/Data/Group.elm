@@ -1,6 +1,7 @@
 module Data.Group exposing (Group, Record, fragment, decoder, getId, getCachedData)
 
-import Json.Decode as Decode exposing (Decoder, field, string)
+import Data.GroupMembership exposing (GroupMembershipState, stateDecoder)
+import Json.Decode as Decode exposing (Decoder, field, string, bool)
 import GraphQL exposing (Fragment)
 
 
@@ -14,6 +15,8 @@ type Group
 type alias Record =
     { id : String
     , name : String
+    , isBookmarked : Bool
+    , membershipState : GroupMembershipState
     }
 
 
@@ -24,6 +27,10 @@ fragment =
         fragment GroupFields on Group {
           id
           name
+          isBookmarked
+          membership {
+            state
+          }
         }
         """
         []
@@ -36,9 +43,11 @@ fragment =
 decoder : Decoder Group
 decoder =
     Decode.map Group <|
-        Decode.map2 Record
+        Decode.map4 Record
             (field "id" string)
             (field "name" string)
+            (field "isBookmarked" bool)
+            (Decode.at [ "membership", "state" ] stateDecoder)
 
 
 
