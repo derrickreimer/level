@@ -1,4 +1,4 @@
-module Route exposing (Route(..), route, href, fromLocation, modifyUrl, toLogin, toSpace)
+module Route exposing (Route(..), route, href, fromLocation, newUrl, modifyUrl, toLogin, toSpace)
 
 {-| Routing logic for the application.
 -}
@@ -90,6 +90,11 @@ routeToString page =
 href : Route -> Attribute msg
 href route =
     Attr.href (routeToString route)
+
+
+newUrl : Route -> Cmd msg
+newUrl =
+    routeToString >> Navigation.newUrl
 
 
 modifyUrl : Route -> Cmd msg

@@ -21,7 +21,7 @@ import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
-import ViewHelpers exposing (viewIf, viewUnless)
+import ViewHelpers exposing (setFocus, viewIf, viewUnless)
 
 
 -- MODEL
@@ -56,7 +56,7 @@ buildModel user space ( session, { groups } ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    setFocus "search-input" NoOp
 
 
 teardown : Model -> Cmd Msg
@@ -74,7 +74,9 @@ type Msg
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
 update msg repo session model =
-    ( ( model, Cmd.none ), session )
+    case msg of
+        NoOp ->
+            ( ( model, Cmd.none ), session )
 
 
 
@@ -94,7 +96,7 @@ view repo model =
             , div [ class "pb-8" ]
                 [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
                     [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                    , input [ type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
                     ]
                 ]
             , groupsView repo model.groups
