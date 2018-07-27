@@ -36,7 +36,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
     ref = push_subscription(socket, @operation, %{"id" => group.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, %GroupUser{state: "NOT_SUBSCRIBED"}} =
+    {:ok, %{group_user: %GroupUser{state: "NOT_SUBSCRIBED"}}} =
       Groups.update_group_membership(group, space_user, "NOT_SUBSCRIBED")
 
     assert_push("subscription:data", push_data)
@@ -69,7 +69,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
     ref = push_subscription(socket, @operation, %{"id" => group.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, %GroupUser{state: "SUBSCRIBED"}} =
+    {:ok, %{group_user: %GroupUser{state: "SUBSCRIBED"}}} =
       Groups.update_group_membership(group, space_user, "SUBSCRIBED")
 
     assert_push("subscription:data", push_data)
