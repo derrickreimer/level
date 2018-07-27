@@ -13,6 +13,7 @@ import Data.SpaceUser as SpaceUser
 import Data.Setup as Setup
 import Event
 import Repo exposing (Repo)
+import Page
 import Page.Group
 import Page.Groups
 import Page.Inbox
@@ -150,7 +151,16 @@ update msg model =
             ( model, Route.toLogin )
 
         ( PageInitialized pageInit, _ ) ->
-            setupPage pageInit model
+            let
+                ( newModel, cmd ) =
+                    setupPage pageInit model
+            in
+                ( newModel
+                , Cmd.batch
+                    [ cmd
+                    , Page.setTitle (pageTitle newModel.repo newModel.page)
+                    ]
+                )
 
         ( InboxMsg _, _ ) ->
             -- TODO: implement this
@@ -625,6 +635,16 @@ setupPage pageInit model =
         SpaceSettingsInit (Err _) ->
             -- TODO: Handle other error modes
             ( model, Cmd.none )
+
+
+pageTitle : Repo -> Page -> String
+pageTitle repo page =
+    case page of
+        Group pageModel ->
+            Page.Group.title repo pageModel
+
+        _ ->
+            "Level"
 
 
 teardownPage : Page -> Cmd Msg

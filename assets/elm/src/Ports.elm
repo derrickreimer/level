@@ -57,3 +57,6 @@ port select : String -> Cmd msg
 
 
 port requestFile : String -> Cmd msg
+
+
+port setTitle : String -> Cmd msg

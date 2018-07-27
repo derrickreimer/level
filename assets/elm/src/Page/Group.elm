@@ -2,6 +2,7 @@ module Page.Group
     exposing
         ( Model
         , Msg(..)
+        , title
         , init
         , setup
         , teardown
@@ -83,6 +84,13 @@ type alias Model =
 
 
 -- LIFECYCLE
+
+
+title : Repo -> Model -> String
+title repo { group } =
+    group
+        |> Repo.getGroup repo
+        |> .name
 
 
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
