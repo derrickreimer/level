@@ -19,6 +19,7 @@ type Route
     | Inbox
     | Groups
     | Group String
+    | NewGroup
     | Post String
     | UserSettings
     | SpaceSettings
@@ -32,6 +33,7 @@ route =
         , Url.map SetupInviteUsers (s "setup" </> s "invites")
         , Url.map Inbox (s "inbox")
         , Url.map Groups (s "groups")
+        , Url.map NewGroup (s "groups" </> s "new")
         , Url.map Group (s "groups" </> Url.string)
         , Url.map Post (s "posts" </> Url.string)
         , Url.map UserSettings (s "user" </> s "settings")
@@ -65,6 +67,9 @@ routeToString page =
 
                 Group id ->
                     [ "groups", id ]
+
+                NewGroup ->
+                    [ "groups", "new" ]
 
                 Post id ->
                     [ "posts", id ]

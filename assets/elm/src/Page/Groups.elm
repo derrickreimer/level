@@ -83,12 +83,12 @@ update msg repo session model =
 
 view : Repo -> Model -> Html Msg
 view repo model =
-    div [ class "ml-56 mr-56" ]
+    div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
             [ div [ class "flex items-center pb-5" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Groups" ]
                 , div [ class "flex-0 flex-no-shrink" ]
-                    [ button [ class "btn btn-blue btn-md" ] [ text "New group" ]
+                    [ a [ Route.href Route.NewGroup, class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
                     ]
                 ]
             , div [ class "pb-8" ]

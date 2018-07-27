@@ -16,6 +16,7 @@ import Repo exposing (Repo)
 import Page.Group
 import Page.Groups
 import Page.Inbox
+import Page.NewGroup
 import Page.Post
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
@@ -48,19 +49,6 @@ type alias Model =
 
 type alias SharedState =
     Query.SharedState.Response
-
-
-type Page
-    = Blank
-    | NotFound
-    | SetupCreateGroups Page.Setup.CreateGroups.Model
-    | SetupInviteUsers Page.Setup.InviteUsers.Model
-    | Inbox
-    | Groups Page.Groups.Model
-    | Group Page.Group.Model
-    | Post Page.Post.Model
-    | UserSettings Page.UserSettings.Model
-    | SpaceSettings Page.SpaceSettings.Model
 
 
 type alias Flags =
@@ -119,6 +107,7 @@ type Msg
     | InboxMsg Page.Inbox.Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
+    | NewGroupMsg Page.NewGroup.Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.SpaceSettings.Msg
@@ -127,14 +116,6 @@ type Msg
     | SocketResult Decode.Value
     | SocketError Decode.Value
     | SocketTokenUpdated Decode.Value
-
-
-type PageInit
-    = GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
-    | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
-    | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
-    | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
-    | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -169,7 +150,7 @@ update msg model =
             ( model, Route.toLogin )
 
         ( PageInitialized pageInit, _ ) ->
-            handlePageInit pageInit model
+            setupPage pageInit model
 
         ( InboxMsg _, _ ) ->
             -- TODO: implement this
@@ -232,6 +213,15 @@ update msg model =
             in
                 ( { model | session = session, page = Group newPageModel }
                 , Cmd.map GroupMsg cmd
+                )
+
+        ( NewGroupMsg msg, NewGroup pageModel ) ->
+            let
+                ( ( newPageModel, cmd ), session ) =
+                    Page.NewGroup.update msg model.session pageModel
+            in
+                ( { model | session = session, page = NewGroup newPageModel }
+                , Cmd.map NewGroupMsg cmd
                 )
 
         ( PostMsg msg, Post pageModel ) ->
@@ -413,7 +403,30 @@ handleSocketResult value sharedState ({ page, repo } as model) =
 
 
 
--- NAVIGATION
+-- PAGES
+
+
+type Page
+    = Blank
+    | NotFound
+    | SetupCreateGroups Page.Setup.CreateGroups.Model
+    | SetupInviteUsers Page.Setup.InviteUsers.Model
+    | Inbox
+    | Groups Page.Groups.Model
+    | Group Page.Group.Model
+    | NewGroup Page.NewGroup.Model
+    | Post Page.Post.Model
+    | UserSettings Page.UserSettings.Model
+    | SpaceSettings Page.SpaceSettings.Model
+
+
+type PageInit
+    = GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
+    | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
+    | NewGroupInit (Result Never Page.NewGroup.Model)
+    | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
+    | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
+    | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
 
 
 navigateTo : Maybe Route -> SharedState -> Model -> ( Model, Cmd Msg )
@@ -425,7 +438,7 @@ navigateTo maybeRoute sharedState model =
         transition model toMsg task =
             ( { model | isTransitioning = True }
             , Cmd.batch
-                [ teardown model.page
+                [ teardownPage model.page
                 , Cmd.map PageInitialized <| Task.attempt toMsg task
                 ]
             )
@@ -495,6 +508,11 @@ navigateTo maybeRoute sharedState model =
                         |> Page.Group.init sharedState.user sharedState.space groupId
                         |> transition model (GroupInit groupId)
 
+            Just Route.NewGroup ->
+                sharedState.space
+                    |> Page.NewGroup.init
+                    |> transition model NewGroupInit
+
             Just (Route.Post postId) ->
                 model.session
                     |> Page.Post.init sharedState.user sharedState.space postId
@@ -511,8 +529,8 @@ navigateTo maybeRoute sharedState model =
                     |> transition model SpaceSettingsInit
 
 
-handlePageInit : PageInit -> Model -> ( Model, Cmd Msg )
-handlePageInit pageInit model =
+setupPage : PageInit -> Model -> ( Model, Cmd Msg )
+setupPage pageInit model =
     case pageInit of
         GroupsInit (Ok ( session, pageModel )) ->
             ( { model
@@ -545,6 +563,19 @@ handlePageInit pageInit model =
             ( model, Route.toLogin )
 
         GroupInit _ (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
+
+        NewGroupInit (Ok pageModel) ->
+            ( { model
+                | page = NewGroup pageModel
+                , isTransitioning = False
+              }
+            , Page.NewGroup.setup pageModel
+                |> Cmd.map NewGroupMsg
+            )
+
+        NewGroupInit (Err _) ->
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
@@ -596,8 +627,8 @@ handlePageInit pageInit model =
             ( model, Cmd.none )
 
 
-teardown : Page -> Cmd Msg
-teardown page =
+teardownPage : Page -> Cmd Msg
+teardownPage page =
     case page of
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
@@ -610,6 +641,98 @@ teardown page =
 
         _ ->
             Cmd.none
+
+
+routeFor : Page -> Maybe Route
+routeFor page =
+    case page of
+        Inbox ->
+            Just Route.Inbox
+
+        SetupCreateGroups _ ->
+            Just Route.SetupCreateGroups
+
+        SetupInviteUsers _ ->
+            Just Route.SetupInviteUsers
+
+        Groups _ ->
+            Just Route.Groups
+
+        Group pageModel ->
+            Just <| Route.Group (Group.getId pageModel.group)
+
+        NewGroup _ ->
+            Just Route.NewGroup
+
+        Post pageModel ->
+            Just <| Route.Post pageModel.post.id
+
+        UserSettings _ ->
+            Just Route.UserSettings
+
+        SpaceSettings _ ->
+            Just Route.SpaceSettings
+
+        Blank ->
+            Nothing
+
+        NotFound ->
+            Nothing
+
+
+pageView : Repo -> SharedState -> Page -> Html Msg
+pageView repo sharedState page =
+    case page of
+        SetupCreateGroups pageModel ->
+            pageModel
+                |> Page.Setup.CreateGroups.view
+                |> Html.map SetupCreateGroupsMsg
+
+        SetupInviteUsers pageModel ->
+            pageModel
+                |> Page.Setup.InviteUsers.view
+                |> Html.map SetupInviteUsersMsg
+
+        Inbox ->
+            sharedState.featuredUsers
+                |> Page.Inbox.view repo
+                |> Html.map InboxMsg
+
+        Groups pageModel ->
+            pageModel
+                |> Page.Groups.view repo
+                |> Html.map GroupsMsg
+
+        Group pageModel ->
+            pageModel
+                |> Page.Group.view repo
+                |> Html.map GroupMsg
+
+        NewGroup pageModel ->
+            pageModel
+                |> Page.NewGroup.view
+                |> Html.map NewGroupMsg
+
+        Post pageModel ->
+            pageModel
+                |> Page.Post.view repo
+                |> Html.map PostMsg
+
+        UserSettings pageModel ->
+            pageModel
+                |> Page.UserSettings.view repo
+                |> Html.map UserSettingsMsg
+
+        SpaceSettings pageModel ->
+            pageModel
+                |> Page.SpaceSettings.view repo
+                |> Html.map SpaceSettingsMsg
+
+        Blank ->
+            text ""
+
+        NotFound ->
+            text "404"
 
 
 
@@ -699,56 +822,6 @@ leftSidebar sharedState ({ page, repo } as model) =
             ]
 
 
-pageView : Repo -> SharedState -> Page -> Html Msg
-pageView repo sharedState page =
-    case page of
-        SetupCreateGroups pageModel ->
-            pageModel
-                |> Page.Setup.CreateGroups.view
-                |> Html.map SetupCreateGroupsMsg
-
-        SetupInviteUsers pageModel ->
-            pageModel
-                |> Page.Setup.InviteUsers.view
-                |> Html.map SetupInviteUsersMsg
-
-        Inbox ->
-            sharedState.featuredUsers
-                |> Page.Inbox.view repo
-                |> Html.map InboxMsg
-
-        Groups pageModel ->
-            pageModel
-                |> Page.Groups.view repo
-                |> Html.map GroupsMsg
-
-        Group pageModel ->
-            pageModel
-                |> Page.Group.view repo
-                |> Html.map GroupMsg
-
-        Post pageModel ->
-            pageModel
-                |> Page.Post.view repo
-                |> Html.map PostMsg
-
-        UserSettings pageModel ->
-            pageModel
-                |> Page.UserSettings.view repo
-                |> Html.map UserSettingsMsg
-
-        SpaceSettings pageModel ->
-            pageModel
-                |> Page.SpaceSettings.view repo
-                |> Html.map SpaceSettingsMsg
-
-        Blank ->
-            text ""
-
-        NotFound ->
-            text "404"
-
-
 groupLinks : Repo -> List Group -> Page -> Html Msg
 groupLinks repo groups currentPage =
     let
@@ -789,44 +862,6 @@ sidebarLink title maybeRoute currentPage =
 
             ( _, _ ) ->
                 li [ class "flex" ] [ link (href "#") ]
-
-
-
--- HELPERS
-
-
-routeFor : Page -> Maybe Route
-routeFor page =
-    case page of
-        Inbox ->
-            Just Route.Inbox
-
-        SetupCreateGroups _ ->
-            Just Route.SetupCreateGroups
-
-        SetupInviteUsers _ ->
-            Just Route.SetupInviteUsers
-
-        Groups _ ->
-            Just Route.Groups
-
-        Group pageModel ->
-            Just <| Route.Group (Group.getId pageModel.group)
-
-        Post pageModel ->
-            Just <| Route.Post pageModel.post.id
-
-        UserSettings _ ->
-            Just Route.UserSettings
-
-        SpaceSettings _ ->
-            Just Route.SpaceSettings
-
-        Blank ->
-            Nothing
-
-        NotFound ->
-            Nothing
 
 
 
