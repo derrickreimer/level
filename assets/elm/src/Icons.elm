@@ -9,6 +9,7 @@ module Icons
         )
 
 import Html exposing (Html)
+import Html.Attributes exposing (class)
 import ViewHelpers exposing (injectHtml)
 
 
@@ -18,8 +19,8 @@ type Toggle
 
 
 toHtml : String -> Html msg
-toHtml =
-    injectHtml
+toHtml body =
+    injectHtml [ class "flex items-center" ] body
 
 
 bookmark : Toggle -> Html msg

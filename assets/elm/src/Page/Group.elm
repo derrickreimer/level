@@ -526,14 +526,14 @@ subscribeButtonView state =
                 [ class "text-sm text-blue"
                 , onClick (MembershipStateToggled Subscribed)
                 ]
-                [ text "Join this group" ]
+                [ text "Subscribe" ]
 
         Subscribed ->
             button
                 [ class "text-sm text-blue"
                 , onClick (MembershipStateToggled NotSubscribed)
                 ]
-                [ text "Leave this group" ]
+                [ text "Unsubscribe" ]
 
 
 newPostView : PostComposer -> SpaceUser.Record -> Html Msg
@@ -584,7 +584,7 @@ postView repo currentUser now component =
 sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Html Msg
 sidebarView repo state featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Members" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Subscribers" ]
         , memberListView repo featuredMemberships
         , subscribeButtonView state
         ]

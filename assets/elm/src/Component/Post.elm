@@ -317,7 +317,7 @@ view repo currentUser now ({ post } as model) =
                         [ span [ class "font-bold" ] [ text <| displayName authorData ]
                         , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
                         ]
-                    , div [ class "markdown mb-2" ] [ injectHtml postData.bodyHtml ]
+                    , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
                     , viewIf (model.mode == Feed) <|
                         div [ class "flex items-center" ]
                             [ div [ class "flex-grow" ]
@@ -401,7 +401,7 @@ replyView repo now mode reply =
                     , viewIf (mode == FullPage) <|
                         span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now replyData.postedAt ]
                     ]
-                , div [ class "markdown mb-2" ] [ injectHtml replyData.bodyHtml ]
+                , div [ class "markdown mb-2" ] [ injectHtml [] replyData.bodyHtml ]
                 ]
             ]
 

@@ -280,7 +280,7 @@ formErrors errors =
 
 conversionTracking : Html Msg
 conversionTracking =
-    injectHtml
+    injectHtml []
         """
         <!-- Twitter single-event website tag code -->
         <script src="//platform.twitter.com/oct.js" type="text/javascript"></script>

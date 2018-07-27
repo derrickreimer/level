@@ -16,10 +16,12 @@ import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Icons
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import ViewHelpers exposing (viewIf, viewUnless)
 
 
 -- MODEL
@@ -30,6 +32,10 @@ type alias Model =
     , user : SpaceUser
     , groups : Connection Group
     }
+
+
+type alias IndexedGroup =
+    ( Int, Group )
 
 
 
@@ -91,30 +97,37 @@ groupsView repo connection =
         partitions =
             connection
                 |> Connection.toList
+                |> List.indexedMap (,)
                 |> partitionGroups repo []
     in
         div [ class "leading-semi-loose" ] <|
             List.map (groupPartitionView repo) partitions
 
 
-groupPartitionView : Repo -> ( String, List Group ) -> Html Msg
-groupPartitionView repo ( letter, groups ) =
+groupPartitionView : Repo -> ( String, List IndexedGroup ) -> Html Msg
+groupPartitionView repo ( letter, indexedGroups ) =
     div [ class "flex" ]
-        [ div [ class "flex-0 w-12 text-lg text-dusty-blue" ] [ text letter ]
+        [ div [ class "py-1 flex-0 flex-no-shrink w-12 text-lg text-dusty-blue" ] [ text letter ]
         , div [ class "flex-1" ] <|
-            List.map (groupView repo) groups
+            List.map (groupView repo) indexedGroups
         ]
 
 
-groupView : Repo -> Group -> Html Msg
-groupView repo group =
+groupView : Repo -> IndexedGroup -> Html Msg
+groupView repo ( index, group ) =
     let
         groupData =
             Repo.getGroup repo group
     in
-        div []
-            [ h2 [ class "font-normal text-lg" ]
-                [ a [ Route.href (Route.Group groupData.id), class "text-blue no-underline" ] [ text groupData.name ]
+        div [ classList [ ( "px-2 py-1 rounded", True ), ( "bg-grey-light", isEven index ) ] ]
+            [ h2 [ class "flex items-center font-normal text-lg" ]
+                [ a [ Route.href (Route.Group groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
+                , div [ class "flex-0" ]
+                    [ viewIf groupData.isBookmarked <|
+                        Icons.bookmark Icons.On
+                    , viewUnless groupData.isBookmarked <|
+                        Icons.bookmark Icons.Off
+                    ]
                 ]
             ]
 
@@ -123,13 +136,13 @@ groupView repo group =
 -- HELPERS
 
 
-partitionGroups : Repo -> List ( String, List Group ) -> List Group -> List ( String, List Group )
+partitionGroups : Repo -> List ( String, List IndexedGroup ) -> List IndexedGroup -> List ( String, List IndexedGroup )
 partitionGroups repo partitions groups =
     case groups of
         hd :: tl ->
             let
                 letter =
-                    firstLetter repo hd
+                    firstLetter repo (Tuple.second hd)
 
                 ( matches, remaining ) =
                     List.partition (startsWith repo letter) groups
@@ -149,6 +162,11 @@ firstLetter repo group =
         |> String.toUpper
 
 
-startsWith : Repo -> String -> Group -> Bool
-startsWith repo letter group =
+startsWith : Repo -> String -> IndexedGroup -> Bool
+startsWith repo letter ( _, group ) =
     firstLetter repo group == letter
+
+
+isEven : Int -> Bool
+isEven number =
+    rem number 2 == 0

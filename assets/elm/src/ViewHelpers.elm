@@ -48,9 +48,9 @@ displayName nameable =
 
 {-| Inject a raw string of HTML into a div.
 -}
-injectHtml : String -> Html msg
-injectHtml rawHtml =
-    div [ property "innerHTML" <| Encode.string rawHtml ] []
+injectHtml : List (Attribute msg) -> String -> Html msg
+injectHtml attrs rawHtml =
+    div (attrs ++ [ property "innerHTML" <| Encode.string rawHtml ]) []
 
 
 {-| Render the given HTML if the truth value is true.
