@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Repo exposing (Repo)
+import Route
 import ViewHelpers exposing (displayName)
 
 
@@ -37,7 +38,12 @@ sidebarView : Repo -> List SpaceUser -> Html Msg
 sidebarView repo featuredUsers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Directory" ]
-        , div [] <| List.map (userItemView repo) featuredUsers
+        , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers
+        , a
+            [ Route.href Route.SpaceSettings
+            , class "text-sm text-blue no-underline"
+            ]
+            [ text "Manage this space" ]
         ]
 
 

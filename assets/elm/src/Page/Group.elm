@@ -518,24 +518,6 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-subscribeButtonView : GroupMembershipState -> Html Msg
-subscribeButtonView state =
-    case state of
-        NotSubscribed ->
-            button
-                [ class "text-sm text-blue"
-                , onClick (MembershipStateToggled Subscribed)
-                ]
-                [ text "Subscribe" ]
-
-        Subscribed ->
-            button
-                [ class "text-sm text-blue"
-                , onClick (MembershipStateToggled NotSubscribed)
-                ]
-                [ text "Unsubscribe" ]
-
-
 newPostView : PostComposer -> SpaceUser.Record -> Html Msg
 newPostView ({ body, isSubmitting } as postComposer) currentUserData =
     label [ class "composer mb-4" ]
@@ -608,6 +590,24 @@ memberItemView repo membership =
             [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
             , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
             ]
+
+
+subscribeButtonView : GroupMembershipState -> Html Msg
+subscribeButtonView state =
+    case state of
+        NotSubscribed ->
+            button
+                [ class "text-sm text-blue"
+                , onClick (MembershipStateToggled Subscribed)
+                ]
+                [ text "Subscribe" ]
+
+        Subscribed ->
+            button
+                [ class "text-sm text-blue"
+                , onClick (MembershipStateToggled NotSubscribed)
+                ]
+                [ text "Unsubscribe" ]
 
 
 
