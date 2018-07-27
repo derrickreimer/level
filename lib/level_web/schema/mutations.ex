@@ -188,10 +188,16 @@ defmodule LevelWeb.Schema.Mutations do
     field :errors, list_of(:error)
 
     @desc """
-    The mutated object. If the mutation was not successful,
+    The mutated membership. If the mutation was not successful,
     this field may be null.
     """
-    field :membership, non_null(:group_membership)
+    field :membership, :group_membership
+
+    @desc """
+    The group. If the mutation was not successful,
+    this field may be null.
+    """
+    field :group, :group
 
     interface :validatable
   end

@@ -1,7 +1,6 @@
 module Subscription.GroupSubscription
     exposing
-        ( GroupMembershipUpdatedPayload
-        , subscribe
+        ( subscribe
         , unsubscribe
         , groupUpdatedDecoder
         , postCreatedDecoder
@@ -10,24 +9,10 @@ module Subscription.GroupSubscription
 
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Data.Group exposing (Group)
-import Data.GroupMembership exposing (GroupMembership, GroupMembershipState)
-import Data.Post exposing (Post)
-import Data.Reply
-import Data.SpaceUser
+import Data.Group as Group exposing (Group)
+import Data.Post as Post exposing (Post)
 import GraphQL exposing (Document)
 import Socket
-
-
--- TYPES
-
-
-type alias GroupMembershipUpdatedPayload =
-    { groupId : String
-    , membership : GroupMembership
-    , state : GroupMembershipState
-    }
-
 
 
 -- SOCKETS
@@ -52,7 +37,7 @@ groupUpdatedDecoder =
     let
         payloadDecoder typename =
             if typename == "GroupUpdatedPayload" then
-                Decode.field "group" Data.Group.decoder
+                Decode.field "group" Group.decoder
             else
                 Decode.fail "payload does not match"
     in
@@ -64,24 +49,19 @@ postCreatedDecoder =
     let
         payloadDecoder typename =
             if typename == "PostCreatedPayload" then
-                Decode.field "post" Data.Post.decoder
+                Decode.field "post" Post.decoder
             else
                 Decode.fail "payload does not match"
     in
         decodeByTypename payloadDecoder
 
 
-groupMembershipUpdatedDecoder : Decode.Decoder GroupMembershipUpdatedPayload
+groupMembershipUpdatedDecoder : Decode.Decoder Group
 groupMembershipUpdatedDecoder =
     let
         payloadDecoder typename =
             if typename == "GroupMembershipUpdatedPayload" then
-                Decode.at [ "membership" ] <|
-                    (Decode.map3 GroupMembershipUpdatedPayload
-                        (Decode.at [ "group", "id" ] Decode.string)
-                        Data.GroupMembership.decoder
-                        (Decode.at [ "state" ] Data.GroupMembership.stateDecoder)
-                    )
+                Decode.field "group" Group.decoder
             else
                 Decode.fail "payload does not match"
     in
@@ -117,23 +97,15 @@ document =
               }
             }
             ... on GroupMembershipUpdatedPayload {
-              membership {
-                state
-                group {
-                  id
-                }
-                spaceUser {
-                  ...SpaceUserFields
-                }
+              group {
+                ...GroupFields
               }
             }
           }
         }
         """
-        [ Data.Post.fragment 5
-        , Data.Reply.fragment
-        , Data.SpaceUser.fragment
-        , Data.Group.fragment
+        [ Post.fragment 5
+        , Group.fragment
         ]
 
 

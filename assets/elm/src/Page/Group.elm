@@ -8,8 +8,6 @@ module Page.Group
         , update
         , subscriptions
         , view
-        , handleGroupBookmarked
-        , handleGroupUnbookmarked
         , handlePostCreated
         , handleReplyCreated
         , handleGroupMembershipUpdated
@@ -45,7 +43,7 @@ import Query.GroupInit as GroupInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
-import Subscription.GroupSubscription as GroupSubscription exposing (GroupMembershipUpdatedPayload)
+import Subscription.GroupSubscription as GroupSubscription
 import ViewHelpers exposing (setFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
@@ -73,8 +71,6 @@ type alias PostComposer =
 
 type alias Model =
     { group : Group
-    , state : GroupMembershipState
-    , isBookmarked : Bool
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
     , now : Date
@@ -89,21 +85,19 @@ type alias Model =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> String -> Bool -> Session -> Task Session.Error ( Session, Model )
-init user space groupId isBookmarked session =
+init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
+init user space groupId session =
     Date.now
         |> Task.andThen (GroupInit.request (Space.getId space) groupId session)
-        |> Task.andThen (buildModel user space isBookmarked)
+        |> Task.andThen (buildModel user space)
 
 
-buildModel : SpaceUser -> Space -> Bool -> ( Session, GroupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel user space isBookmarked ( session, { group, state, posts, featuredMemberships, now } ) =
+buildModel : SpaceUser -> Space -> ( Session, GroupInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel user space ( session, { group, posts, featuredMemberships, now } ) =
     let
         model =
             Model
                 group
-                state
-                isBookmarked
                 posts
                 featuredMemberships
                 now
@@ -228,8 +222,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                     UpdateGroupMembership.request (Space.getId model.space) (Group.getId model.group) state session
                         |> Task.attempt MembershipStateSubmitted
             in
-                -- Update the state on the model optimistically
-                ( ( { model | state = state }, cmd ), session )
+                ( ( model, cmd ), session )
 
         MembershipStateSubmitted _ ->
             -- TODO: handle errors
@@ -329,7 +322,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                 ( ( model, cmd ), session )
 
         Bookmarked (Ok ( session, _ )) ->
-            noCmd session { model | isBookmarked = True }
+            noCmd session { model | group = Group.setIsBookmarked True model.group }
 
         Bookmarked (Err Session.Expired) ->
             redirectToLogin session model
@@ -347,7 +340,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                 ( ( model, cmd ), session )
 
         Unbookmarked (Ok ( session, _ )) ->
-            noCmd session { model | isBookmarked = False }
+            noCmd session { model | group = Group.setIsBookmarked False model.group }
 
         Unbookmarked (Err Session.Expired) ->
             redirectToLogin session model
@@ -370,22 +363,6 @@ redirectToLogin session model =
 -- EVENT HANDLERS
 
 
-handleGroupBookmarked : Group -> Model -> ( Model, Cmd Msg )
-handleGroupBookmarked group model =
-    if Group.getId group == Group.getId model.group then
-        ( { model | isBookmarked = True }, Cmd.none )
-    else
-        ( model, Cmd.none )
-
-
-handleGroupUnbookmarked : Group -> Model -> ( Model, Cmd Msg )
-handleGroupUnbookmarked group model =
-    if Group.getId group == Group.getId model.group then
-        ( { model | isBookmarked = False }, Cmd.none )
-    else
-        ( model, Cmd.none )
-
-
 handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
 handlePostCreated post ({ posts, group } as model) =
     let
@@ -397,20 +374,17 @@ handlePostCreated post ({ posts, group } as model) =
         )
 
 
-handleGroupMembershipUpdated : GroupMembershipUpdatedPayload -> Session -> Model -> ( Model, Cmd Msg )
-handleGroupMembershipUpdated { state, membership } session model =
+handleGroupMembershipUpdated : Group -> Session -> Model -> ( Model, Cmd Msg )
+handleGroupMembershipUpdated group session model =
     let
-        newState =
-            if SpaceUser.getId membership.user == SpaceUser.getId model.user then
-                state
-            else
-                model.state
-
         cmd =
             FeaturedMemberships.request (Space.getId model.space) (Group.getId model.group) session
                 |> Task.attempt FeaturedMembershipsRefreshed
     in
-        ( { model | state = newState }, cmd )
+        if Group.getId group == Group.getId model.group then
+            ( model, cmd )
+        else
+            ( model, Cmd.none )
 
 
 handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
@@ -463,12 +437,12 @@ view repo model =
                     [ div [ class "flex items-center" ]
                         [ nameView groupData model.nameEditor
                         , nameErrors model.nameEditor
-                        , controlsView model.isBookmarked
+                        , controlsView groupData.isBookmarked
                         ]
                     ]
                 , newPostView model.postComposer currentUserData
                 , postsView repo model.user model.now model.posts
-                , sidebarView repo model.state model.featuredMemberships
+                , sidebarView repo groupData.membershipState model.featuredMemberships
                 ]
             ]
 

@@ -203,15 +203,16 @@ defmodule Level.Groups do
   Updates group membership state.
   """
   @spec update_group_membership(Group.t(), SpaceUser.t(), String.t()) ::
-          {:ok, GroupUser.t()} | {:error, GroupUser.t(), Ecto.Changeset.t()}
+          {:ok, %{group: Group.t(), group_user: GroupUser.t()}}
+          | {:error, GroupUser.t(), Ecto.Changeset.t()}
   def update_group_membership(group, space_user, state) do
     case {get_group_membership(group, space_user), state} do
       {{:ok, group_user}, "NOT_SUBSCRIBED"} ->
         case delete_group_membership(group_user) do
           {:ok, _} ->
             group_user = not_subscribed_membership(group.space_id, space_user, group)
-            Pubsub.publish(:group_membership_updated, group.id, group_user)
-            {:ok, group_user}
+            Pubsub.publish(:group_membership_updated, group.id, {group, group_user})
+            {:ok, %{group: group, group_user: group_user}}
 
           {:error, changeset} ->
             {:error, group_user, changeset}
@@ -220,18 +221,19 @@ defmodule Level.Groups do
       {{:error, _}, "SUBSCRIBED"} ->
         case create_group_membership(group, space_user) do
           {:ok, %{group_user: group_user}} ->
-            Pubsub.publish(:group_membership_updated, group.id, group_user)
-            {:ok, group_user}
+            Pubsub.publish(:group_membership_updated, group.id, {group, group_user})
+            {:ok, %{group: group, group_user: group_user}}
 
           {:error, _, %Ecto.Changeset{} = changeset, _} ->
             {:error, not_subscribed_membership(group.space_id, space_user, group), changeset}
         end
 
       {{:ok, group_user}, _} ->
-        {:ok, group_user}
+        {:ok, %{group: group, group_user: group_user}}
 
       {{:error, _}, _} ->
-        {:ok, not_subscribed_membership(group.space_id, space_user, group)}
+        {:ok,
+         %{group: group, group_user: not_subscribed_membership(group.space_id, space_user, group)}}
     end
   end
 

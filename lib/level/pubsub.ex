@@ -43,9 +43,9 @@ defmodule Level.Pubsub do
     do_publish(%{type: :post_created, post: post}, group_subscription: group_id)
   end
 
-  def publish(:group_membership_updated, group_id, %GroupUser{} = group_user) do
+  def publish(:group_membership_updated, group_id, {%Group{} = group, %GroupUser{} = group_user}) do
     do_publish(
-      %{type: :group_membership_updated, membership: group_user},
+      %{type: :group_membership_updated, group: group, membership: group_user},
       group_subscription: group_id
     )
   end

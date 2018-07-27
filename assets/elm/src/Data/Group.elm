@@ -1,4 +1,4 @@
-module Data.Group exposing (Group, Record, fragment, decoder, getId, getCachedData)
+module Data.Group exposing (Group, Record, fragment, decoder, getId, getCachedData, setIsBookmarked)
 
 import Data.GroupMembership exposing (GroupMembershipState, stateDecoder)
 import Json.Decode as Decode exposing (Decoder, field, string, bool)
@@ -62,3 +62,8 @@ getId (Group { id }) =
 getCachedData : Group -> Record
 getCachedData (Group data) =
     data
+
+
+setIsBookmarked : Bool -> Group -> Group
+setIsBookmarked val (Group data) =
+    Group { data | isBookmarked = val }

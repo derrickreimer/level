@@ -7,16 +7,15 @@ import Json.Encode as Encode
 import Task exposing (Task)
 import Component.Post
 import Connection exposing (Connection)
-import Data.Group exposing (Group)
-import Data.GroupMembership exposing (GroupMembership, GroupMembershipState)
-import Data.Post exposing (Post)
+import Data.Group as Group exposing (Group)
+import Data.GroupMembership as GroupMembership exposing (GroupMembership)
+import Data.Post as Post exposing (Post)
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
 
 type alias Response =
     { group : Group
-    , state : GroupMembershipState
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
     , now : Date
@@ -34,9 +33,6 @@ document =
           space(id: $spaceId) {
             group(id: $groupId) {
               ...GroupFields
-              membership {
-                state
-              }
               featuredMemberships {
                 ...GroupMembershipFields
               }
@@ -47,9 +43,9 @@ document =
           }
         }
         """
-        [ Data.GroupMembership.fragment
-        , Data.Group.fragment
-        , Connection.fragment "PostConnection" (Data.Post.fragment 5)
+        [ Group.fragment
+        , GroupMembership.fragment
+        , Connection.fragment "PostConnection" (Post.fragment 5)
         ]
 
 
@@ -73,10 +69,9 @@ decoder : Date -> Decoder Response
 decoder now =
     Decode.at [ "data", "space", "group" ] <|
         (Pipeline.decode Response
-            |> Pipeline.custom Data.Group.decoder
-            |> Pipeline.custom (Decode.at [ "membership", "state" ] Data.GroupMembership.stateDecoder)
+            |> Pipeline.custom Group.decoder
             |> Pipeline.custom (Decode.at [ "posts" ] postComponentsDecoder)
-            |> Pipeline.custom (Decode.at [ "featuredMemberships" ] (Decode.list Data.GroupMembership.decoder))
+            |> Pipeline.custom (Decode.at [ "featuredMemberships" ] (Decode.list GroupMembership.decoder))
             |> Pipeline.custom (Decode.succeed now)
         )
 

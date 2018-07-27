@@ -318,20 +318,12 @@ handleSocketResult value sharedState ({ page, repo } as model) =
                     { sharedState | bookmarkedGroups = groups }
 
                 newModel =
-                    { model | sharedState = Loaded newSharedState }
+                    { model
+                        | sharedState = Loaded newSharedState
+                        , repo = Repo.setGroup model.repo group
+                    }
             in
-                case page of
-                    Group pageModel ->
-                        let
-                            ( newPageModel, cmd ) =
-                                Page.Group.handleGroupBookmarked group pageModel
-                        in
-                            ( { newModel | page = Group newPageModel }
-                            , Cmd.map GroupMsg cmd
-                            )
-
-                    _ ->
-                        ( newModel, Cmd.none )
+                ( newModel, Cmd.none )
 
         Event.GroupUnbookmarked group ->
             let
@@ -343,34 +335,26 @@ handleSocketResult value sharedState ({ page, repo } as model) =
                     { sharedState | bookmarkedGroups = groups }
 
                 newModel =
-                    { model | sharedState = Loaded newSharedState }
+                    { model
+                        | sharedState = Loaded newSharedState
+                        , repo = Repo.setGroup model.repo group
+                    }
             in
-                case page of
-                    Group pageModel ->
-                        let
-                            ( newPageModel, cmd ) =
-                                Page.Group.handleGroupUnbookmarked group pageModel
-                        in
-                            ( { newModel | page = Group newPageModel }
-                            , Cmd.map GroupMsg cmd
-                            )
+                ( newModel, Cmd.none )
 
-                    _ ->
-                        ( newModel, Cmd.none )
-
-        Event.GroupMembershipUpdated payload ->
+        Event.GroupMembershipUpdated group ->
             case model.page of
-                Group ({ group } as pageModel) ->
-                    if (Group.getId group) == payload.groupId then
-                        let
-                            ( newPageModel, cmd ) =
-                                Page.Group.handleGroupMembershipUpdated payload model.session pageModel
-                        in
-                            ( { model | page = Group newPageModel }
-                            , Cmd.map GroupMsg cmd
-                            )
-                    else
-                        ( model, Cmd.none )
+                Group pageModel ->
+                    let
+                        ( newPageModel, cmd ) =
+                            Page.Group.handleGroupMembershipUpdated group model.session pageModel
+                    in
+                        ( { model
+                            | page = Group newPageModel
+                            , repo = Repo.setGroup model.repo group
+                          }
+                        , Cmd.map GroupMsg cmd
+                        )
 
                 _ ->
                     ( model, Cmd.none )
@@ -508,7 +492,7 @@ navigateTo maybeRoute sharedState model =
                             |> List.member groupId
                 in
                     model.session
-                        |> Page.Group.init sharedState.user sharedState.space groupId isBookmarked
+                        |> Page.Group.init sharedState.user sharedState.space groupId
                         |> transition model (GroupInit groupId)
 
             Just (Route.Post postId) ->

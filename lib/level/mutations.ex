@@ -247,11 +247,13 @@ defmodule Level.Mutations do
   def update_group_membership(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
-         {:ok, group_user} <- Groups.update_group_membership(group, space_user, args.state) do
-      {:ok, %{success: true, membership: group_user, errors: []}}
+         {:ok, %{group: updated_group, group_user: group_user}} <-
+           Groups.update_group_membership(group, space_user, args.state) do
+      {:ok, %{success: true, group: updated_group, membership: group_user, errors: []}}
     else
       {:error, %GroupUser{} = group_user, changeset} ->
-        {:ok, %{success: false, membership: group_user, errors: format_errors(changeset)}}
+        {:ok,
+         %{success: false, group: nil, membership: group_user, errors: format_errors(changeset)}}
 
       err ->
         err

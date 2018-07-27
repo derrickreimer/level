@@ -8,13 +8,7 @@ import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import Subscription.SpaceSubscription exposing (spaceUpdatedDecoder, spaceUserUpdatedDecoder)
 import Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder)
-import Subscription.GroupSubscription
-    exposing
-        ( GroupMembershipUpdatedPayload
-        , groupUpdatedDecoder
-        , postCreatedDecoder
-        , groupMembershipUpdatedDecoder
-        )
+import Subscription.GroupSubscription exposing (groupUpdatedDecoder, postCreatedDecoder, groupMembershipUpdatedDecoder)
 import Subscription.PostSubscription exposing (replyCreatedDecoder)
 
 
@@ -25,7 +19,7 @@ type Event
     = GroupBookmarked Group
     | GroupUnbookmarked Group
     | PostCreated Post
-    | GroupMembershipUpdated GroupMembershipUpdatedPayload
+    | GroupMembershipUpdated Group
     | GroupUpdated Group
     | ReplyCreated Reply
     | SpaceUpdated Space
