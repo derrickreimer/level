@@ -1,11 +1,15 @@
 module ViewHelpers
     exposing
-        ( displayName
+        ( -- MISC
+          displayName
         , injectHtml
         , viewIf
         , viewUnless
+          -- DOM
         , setFocus
         , unsetFocus
+        , selectValue
+          -- DATE HELPERS
         , formatTime
         , formatTimeWithoutMeridian
         , formatDateTime
@@ -21,6 +25,7 @@ import Dom exposing (focus, blur)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Encode as Encode
+import Ports
 import Task
 import Time
 
@@ -85,6 +90,11 @@ setFocus id msg =
 unsetFocus : String -> msg -> Cmd msg
 unsetFocus id msg =
     Task.attempt (always msg) <| blur id
+
+
+selectValue : String -> Cmd msg
+selectValue id =
+    Ports.select id
 
 
 

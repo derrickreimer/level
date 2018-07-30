@@ -1,10 +1,16 @@
 module Program.Main exposing (..)
 
+-- LIBRARY IMPORTS
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
 import Navigation
 import Task exposing (Task)
+
+
+-- APPLICATION IMPORTS
+
 import Avatar exposing (personAvatar, thingAvatar)
 import Data.Group as Group exposing (Group)
 import Data.Post as Post
@@ -12,7 +18,7 @@ import Data.Space as Space
 import Data.SpaceUser as SpaceUser
 import Data.Setup as Setup
 import Event
-import Repo exposing (Repo)
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Page
 import Page.Group
 import Page.Groups
@@ -23,13 +29,13 @@ import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceSettings
 import Page.UserSettings
-import Ports
 import Query.SharedState
-import Subscription.SpaceSubscription as SpaceSubscription
-import Subscription.SpaceUserSubscription as SpaceUserSubscription
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
-import ListHelpers exposing (insertUniqueBy, removeBy)
+import Socket
+import Subscription.SpaceSubscription as SpaceSubscription
+import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Util exposing (Lazy(..))
 import ViewHelpers exposing (displayName)
 
@@ -71,7 +77,7 @@ init flags location =
         maybeRoute =
             Route.fromLocation location
     in
-        ( model, bootstrap model.spaceId model.session maybeRoute )
+        ( model, setup model.spaceId model.session maybeRoute )
 
 
 buildModel : Flags -> Model
@@ -79,8 +85,8 @@ buildModel flags =
     Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing Repo.init
 
 
-bootstrap : String -> Session -> Maybe Route -> Cmd Msg
-bootstrap spaceId session maybeRoute =
+setup : String -> Session -> Maybe Route -> Cmd Msg
+setup spaceId session maybeRoute =
     session
         |> Query.SharedState.request spaceId
         |> Task.attempt (SharedStateLoaded maybeRoute)
@@ -116,7 +122,6 @@ type Msg
     | SocketStart Decode.Value
     | SocketResult Decode.Value
     | SocketError Decode.Value
-    | SocketTokenUpdated Decode.Value
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -144,8 +149,8 @@ update msg model =
         ( SharedStateLoaded maybeRoute (Err _), _ ) ->
             ( model, Cmd.none )
 
-        ( SessionRefreshed (Ok session), _ ) ->
-            ( { model | session = session }, Ports.updateToken session.token )
+        ( SessionRefreshed (Ok newSession), _ ) ->
+            ( { model | session = newSession }, Session.propagateToken newSession )
 
         ( SessionRefreshed (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
@@ -284,9 +289,6 @@ update msg model =
             in
                 ( model, cmd )
 
-        ( SocketTokenUpdated _, _ ) ->
-            ( model, Cmd.none )
-
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
             ( model, Cmd.none )
@@ -299,117 +301,6 @@ update msg model =
 updateRepo : Repo -> Model -> ( Model, Cmd Msg )
 updateRepo newRepo model =
     ( { model | repo = newRepo }, Cmd.none )
-
-
-
--- SOCKET EVENTS
-
-
-handleSocketResult : Decode.Value -> SharedState -> Model -> ( Model, Cmd Msg )
-handleSocketResult value sharedState ({ page, repo } as model) =
-    case Event.decodeEvent value of
-        Event.GroupBookmarked group ->
-            let
-                groups =
-                    sharedState.bookmarkedGroups
-                        |> insertUniqueBy (Group.getId) group
-
-                newSharedState =
-                    { sharedState | bookmarkedGroups = groups }
-
-                newModel =
-                    { model
-                        | sharedState = Loaded newSharedState
-                        , repo = Repo.setGroup model.repo group
-                    }
-            in
-                ( newModel, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            let
-                groups =
-                    sharedState.bookmarkedGroups
-                        |> removeBy (Group.getId) group
-
-                newSharedState =
-                    { sharedState | bookmarkedGroups = groups }
-
-                newModel =
-                    { model
-                        | sharedState = Loaded newSharedState
-                        , repo = Repo.setGroup model.repo group
-                    }
-            in
-                ( newModel, Cmd.none )
-
-        Event.GroupMembershipUpdated group ->
-            case model.page of
-                Group pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Group.handleGroupMembershipUpdated group model.session pageModel
-                    in
-                        ( { model
-                            | page = Group newPageModel
-                            , repo = Repo.setGroup model.repo group
-                          }
-                        , Cmd.map GroupMsg cmd
-                        )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        Event.PostCreated post ->
-            case model.page of
-                Group ({ group } as pageModel) ->
-                    if Post.groupsInclude group post then
-                        let
-                            ( newPageModel, cmd ) =
-                                Page.Group.handlePostCreated post pageModel
-                        in
-                            ( { model | page = Group newPageModel }
-                            , Cmd.map GroupMsg cmd
-                            )
-                    else
-                        ( model, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        Event.GroupUpdated group ->
-            updateRepo (Repo.setGroup repo group) model
-
-        Event.ReplyCreated reply ->
-            case page of
-                Group pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Group.handleReplyCreated reply pageModel
-                    in
-                        ( { model | page = Group newPageModel }
-                        , Cmd.map GroupMsg cmd
-                        )
-
-                Post pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Post.handleReplyCreated reply pageModel
-                    in
-                        ( { model | page = Post newPageModel }
-                        , Cmd.map PostMsg cmd
-                        )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        Event.SpaceUpdated space ->
-            updateRepo (Repo.setSpace model.repo space) model
-
-        Event.SpaceUserUpdated spaceUser ->
-            updateRepo (Repo.setSpaceUser model.repo spaceUser) model
-
-        Event.Unknown ->
-            ( model, Cmd.none )
 
 
 
@@ -813,24 +704,131 @@ pageView repo sharedState page =
 
 
 
+-- SOCKET EVENTS
+
+
+handleSocketResult : Decode.Value -> SharedState -> Model -> ( Model, Cmd Msg )
+handleSocketResult value sharedState ({ page, repo } as model) =
+    case Event.decodeEvent value of
+        Event.GroupBookmarked group ->
+            let
+                groups =
+                    sharedState.bookmarkedGroups
+                        |> insertUniqueBy (Group.getId) group
+
+                newSharedState =
+                    { sharedState | bookmarkedGroups = groups }
+
+                newModel =
+                    { model
+                        | sharedState = Loaded newSharedState
+                        , repo = Repo.setGroup model.repo group
+                    }
+            in
+                ( newModel, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            let
+                groups =
+                    sharedState.bookmarkedGroups
+                        |> removeBy (Group.getId) group
+
+                newSharedState =
+                    { sharedState | bookmarkedGroups = groups }
+
+                newModel =
+                    { model
+                        | sharedState = Loaded newSharedState
+                        , repo = Repo.setGroup model.repo group
+                    }
+            in
+                ( newModel, Cmd.none )
+
+        Event.GroupMembershipUpdated group ->
+            case model.page of
+                Group pageModel ->
+                    let
+                        ( newPageModel, cmd ) =
+                            Page.Group.handleGroupMembershipUpdated group model.session pageModel
+                    in
+                        ( { model
+                            | page = Group newPageModel
+                            , repo = Repo.setGroup model.repo group
+                          }
+                        , Cmd.map GroupMsg cmd
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Event.PostCreated post ->
+            case model.page of
+                Group ({ group } as pageModel) ->
+                    if Post.groupsInclude group post then
+                        let
+                            ( newPageModel, cmd ) =
+                                Page.Group.handlePostCreated post pageModel
+                        in
+                            ( { model | page = Group newPageModel }
+                            , Cmd.map GroupMsg cmd
+                            )
+                    else
+                        ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Event.GroupUpdated group ->
+            updateRepo (Repo.setGroup repo group) model
+
+        Event.ReplyCreated reply ->
+            case page of
+                Group pageModel ->
+                    let
+                        ( newPageModel, cmd ) =
+                            Page.Group.handleReplyCreated reply pageModel
+                    in
+                        ( { model | page = Group newPageModel }
+                        , Cmd.map GroupMsg cmd
+                        )
+
+                Post pageModel ->
+                    let
+                        ( newPageModel, cmd ) =
+                            Page.Post.handleReplyCreated reply pageModel
+                    in
+                        ( { model | page = Post newPageModel }
+                        , Cmd.map PostMsg cmd
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Event.SpaceUpdated space ->
+            updateRepo (Repo.setSpace model.repo space) model
+
+        Event.SpaceUserUpdated spaceUser ->
+            updateRepo (Repo.setSpaceUser model.repo spaceUser) model
+
+        Event.Unknown ->
+            ( model, Cmd.none )
+
+
+
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Ports.socketAbort SocketAbort
-        , Ports.socketStart SocketStart
-        , Ports.socketResult SocketResult
-        , Ports.socketError SocketError
-        , Ports.socketTokenUpdated SocketTokenUpdated
-        , pageSubscription model
+        [ Socket.listen SocketAbort SocketStart SocketResult SocketError
+        , pageSubscription model.page
         ]
 
 
-pageSubscription : Model -> Sub Msg
-pageSubscription model =
-    case model.page of
+pageSubscription : Page -> Sub Msg
+pageSubscription page =
+    case page of
         Group _ ->
             Sub.map GroupMsg Page.Group.subscriptions
 

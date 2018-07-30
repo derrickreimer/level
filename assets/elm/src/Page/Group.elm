@@ -38,14 +38,13 @@ import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.PostToGroup as PostToGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
-import Ports
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription
-import ViewHelpers exposing (setFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import ViewHelpers exposing (setFocus, selectValue, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
 -- MODEL
@@ -251,7 +250,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                 cmd =
                     Cmd.batch
                         [ setFocus "name-editor-value" NoOp
-                        , Ports.select "name-editor-value"
+                        , selectValue "name-editor-value"
                         ]
             in
                 ( ( { model | nameEditor = newEditor }, cmd ), session )
@@ -282,7 +281,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
 
         NameEditorSubmitted (Ok ( session, UpdateGroup.Invalid errors )) ->
             ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }
-              , Ports.select "name-editor-value"
+              , selectValue "name-editor-value"
               )
             , session
             )

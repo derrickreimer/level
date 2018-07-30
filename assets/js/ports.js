@@ -15,7 +15,6 @@ export const attachPorts = app => {
 
   app.ports.updateToken.subscribe(token => {
     updateSocketToken(phoenixSocket, token);
-    app.ports.socketTokenUpdated.send();
     logEvent("ports.updateToken")(token);
   });
 

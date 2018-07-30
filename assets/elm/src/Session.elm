@@ -1,11 +1,15 @@
-module Session exposing (Session, Error(..), Payload, init, decodeToken, fetchNewToken, request)
+module Session exposing (Session, Error(..), Payload, init, decodeToken, fetchNewToken, request, propagateToken)
 
 import Http
 import Json.Decode as Decode exposing (field)
 import Json.Decode.Pipeline as Pipeline
 import Jwt exposing (JwtError)
+import Ports
 import Task exposing (Task, succeed, fail)
 import Time exposing (Time)
+
+
+-- TYPES
 
 
 type alias Payload =
@@ -25,6 +29,10 @@ type Error
     = Expired
     | Invalid
     | HttpError Http.Error
+
+
+
+-- API
 
 
 {-| Accepts a JWT and generates a new Session record that contains the decoded
@@ -107,6 +115,17 @@ request session innerRequest =
         Time.now
             |> Task.andThen (refreshIfExpired session)
             |> Task.andThen performRequest
+
+
+{-| Propagates a token to the websocket connection.
+-}
+propagateToken : Session -> Cmd msg
+propagateToken { token } =
+    Ports.updateToken token
+
+
+
+-- INTERNAL
 
 
 handleError : Http.Error -> Error
