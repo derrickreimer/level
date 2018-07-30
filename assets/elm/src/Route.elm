@@ -6,7 +6,8 @@ module Route exposing (Route(..), route, href, fromLocation, newUrl, modifyUrl, 
 import Navigation exposing (Location)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
-import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string)
+import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
+import Route.Groups
 
 
 -- ROUTING --
@@ -17,7 +18,7 @@ type Route
     | SetupCreateGroups
     | SetupInviteUsers
     | Inbox
-    | Groups
+    | Groups Route.Groups.Params
     | Group String
     | NewGroup
     | Post String
@@ -32,7 +33,7 @@ route =
         , Url.map SetupCreateGroups (s "setup" </> s "groups")
         , Url.map SetupInviteUsers (s "setup" </> s "invites")
         , Url.map Inbox (s "inbox")
-        , Url.map Groups (s "groups")
+        , Url.map Groups Route.Groups.params
         , Url.map NewGroup (s "groups" </> s "new")
         , Url.map Group (s "groups" </> Url.string)
         , Url.map Post (s "posts" </> Url.string)
@@ -62,8 +63,8 @@ routeToString page =
                 Inbox ->
                     [ "inbox" ]
 
-                Groups ->
-                    [ "groups" ]
+                Groups params ->
+                    Route.Groups.toSegments params
 
                 Group id ->
                     [ "groups", id ]

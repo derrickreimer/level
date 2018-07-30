@@ -14,7 +14,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import Navigation
 import Task exposing (Task)
 import Data.Space as Space exposing (Space)
 import Data.Group as Group exposing (Group)

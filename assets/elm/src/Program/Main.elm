@@ -32,6 +32,7 @@ import Page.UserSettings
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Groups
 import Session exposing (Session)
 import Socket
 import Subscription.SpaceSubscription as SpaceSubscription
@@ -384,9 +385,9 @@ navigateTo maybeRoute sharedState model =
                     |> Page.Inbox.init
                     |> transition model InboxInit
 
-            Just Route.Groups ->
+            Just (Route.Groups params) ->
                 model.session
-                    |> Page.Groups.init sharedState.user sharedState.space
+                    |> Page.Groups.init sharedState.user sharedState.space params
                     |> transition model GroupsInit
 
             Just (Route.Group groupId) ->
@@ -621,8 +622,8 @@ routeFor page =
         SetupInviteUsers _ ->
             Just Route.SetupInviteUsers
 
-        Groups _ ->
-            Just Route.Groups
+        Groups { params } ->
+            Just <| Route.Groups params
 
         Group pageModel ->
             Just <| Route.Group (Group.getId pageModel.group)
@@ -881,7 +882,7 @@ leftSidebar sharedState ({ page, repo } as model) =
                     , sidebarLink "Drafts" Nothing page
                     ]
                 , groupLinks repo sharedState.bookmarkedGroups page
-                , sidebarLink "Groups" (Just Route.Groups) page
+                , sidebarLink "Groups" (Just <| Route.Groups Route.Groups.Root) page
                 ]
             , div [ class "absolute pin-b w-full" ]
                 [ a [ Route.href (Route.UserSettings), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
@@ -922,14 +923,20 @@ sidebarLink title maybeRoute currentPage =
                 , class "ml-2 text-dusty-blue-darkest no-underline truncate"
                 ]
                 [ text title ]
+
+        currentItem route =
+            li [ class "flex items-center font-bold" ]
+                [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
+                , link (Route.href route)
+                ]
     in
         case ( maybeRoute, routeFor currentPage ) of
+            ( Just (Route.Groups params), Just (Route.Groups _) ) ->
+                currentItem (Route.Groups params)
+
             ( Just route, Just currentRoute ) ->
                 if route == currentRoute then
-                    li [ class "flex items-center font-bold" ]
-                        [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
-                        , link (Route.href route)
-                        ]
+                    currentItem route
                 else
                     li [ class "flex" ] [ link (Route.href route) ]
 

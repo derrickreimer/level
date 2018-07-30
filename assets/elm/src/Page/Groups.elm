@@ -21,6 +21,7 @@ import Icons
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route
+import Route.Groups
 import Session exposing (Session)
 import ViewHelpers exposing (setFocus, viewIf, viewUnless)
 
@@ -32,6 +33,7 @@ type alias Model =
     { space : Space
     , user : SpaceUser
     , groups : Connection Group
+    , params : Route.Groups.Params
     }
 
 
@@ -52,16 +54,16 @@ title =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> Session -> Task Session.Error ( Session, Model )
-init user space session =
+init : SpaceUser -> Space -> Route.Groups.Params -> Session -> Task Session.Error ( Session, Model )
+init user space params session =
     session
-        |> GroupsInit.request (Space.getId space) Nothing 10
-        |> Task.andThen (buildModel user space)
+        |> GroupsInit.request (Space.getId space) params 20
+        |> Task.andThen (buildModel user space params)
 
 
-buildModel : SpaceUser -> Space -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel user space ( session, { groups } ) =
-    Task.succeed ( session, Model space user groups )
+buildModel : SpaceUser -> Space -> Route.Groups.Params -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel user space params ( session, { groups } ) =
+    Task.succeed ( session, Model space user groups params )
 
 
 setup : Model -> Cmd Msg
@@ -127,8 +129,10 @@ groupsView repo connection =
             div [ class "p-2 text-center" ]
                 [ text "Wowza! This space does not have any groups yet." ]
         else
-            div [ class "leading-semi-loose" ] <|
-                List.map (groupPartitionView repo) partitions
+            div [ class "leading-semi-loose" ]
+                [ div [] <| List.map (groupPartitionView repo) partitions
+                , paginationView connection
+                ]
 
 
 groupPartitionView : Repo -> ( String, List IndexedGroup ) -> Html Msg
@@ -157,6 +161,49 @@ groupView repo ( index, group ) =
                     ]
                 ]
             ]
+
+
+paginationView : Connection Group -> Html Msg
+paginationView connection =
+    let
+        startCursor =
+            Connection.startCursor connection
+
+        endCursor =
+            Connection.endCursor connection
+    in
+        div [ class "flex justify-center p-4" ]
+            [ viewIf (Connection.hasPreviousPage connection) (prevButtonView startCursor)
+            , viewIf (Connection.hasNextPage connection) (nextButtonView endCursor)
+            ]
+
+
+prevButtonView : Maybe String -> Html Msg
+prevButtonView maybeCursor =
+    case maybeCursor of
+        Just cursor ->
+            let
+                route =
+                    Route.Groups (Route.Groups.Before cursor)
+            in
+                a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
+
+        Nothing ->
+            text ""
+
+
+nextButtonView : Maybe String -> Html Msg
+nextButtonView maybeCursor =
+    case maybeCursor of
+        Just cursor ->
+            let
+                route =
+                    Route.Groups (Route.Groups.After cursor)
+            in
+                a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
+
+        Nothing ->
+            text ""
 
 
 
