@@ -1,12 +1,56 @@
-module Page.Inbox exposing (Msg(..), view)
+module Page.Inbox exposing (Model, Msg(..), title, init, setup, teardown, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
+import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Repo exposing (Repo)
 import Route
+import Task exposing (Task)
 import ViewHelpers exposing (displayName)
+
+
+-- MODEL
+
+
+type alias Model =
+    { space : Space
+    }
+
+
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "Inbox"
+
+
+
+-- LIFECYCLE
+
+
+init : Space -> Task Never Model
+init space =
+    Task.succeed (buildModel space)
+
+
+buildModel : Space -> Model
+buildModel space =
+    Model space
+
+
+setup : Model -> Cmd Msg
+setup model =
+    Cmd.none
+
+
+teardown : Model -> Cmd Msg
+teardown model =
+    Cmd.none
+
 
 
 -- UPDATE

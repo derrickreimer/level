@@ -3,6 +3,10 @@ module Page.Setup.InviteUsers
         ( Model
         , Msg(..)
         , ExternalMsg(..)
+        , title
+        , init
+        , setup
+        , teardown
         , buildModel
         , update
         , view
@@ -11,9 +15,10 @@ module Page.Setup.InviteUsers
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Task
+import Task exposing (Task)
 import Session exposing (Session)
 import Data.Setup as Setup
+import Data.Space as Space exposing (Space)
 import Mutation.CompleteSetupStep as CompleteSetupStep
 import Route exposing (Route)
 
@@ -28,9 +33,37 @@ type alias Model =
     }
 
 
-buildModel : String -> Maybe String -> Model
-buildModel spaceId openInvitationUrl =
-    Model spaceId False openInvitationUrl
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "Invite your colleagues"
+
+
+
+-- LIFECYCLE
+
+
+init : Maybe String -> Space -> Task Never Model
+init openInvitationUrl space =
+    Task.succeed (buildModel openInvitationUrl space)
+
+
+buildModel : Maybe String -> Space -> Model
+buildModel openInvitationUrl space =
+    Model (Space.getId space) False openInvitationUrl
+
+
+setup : Cmd Msg
+setup =
+    Cmd.none
+
+
+teardown : Cmd Msg
+teardown =
+    Cmd.none
 
 
 

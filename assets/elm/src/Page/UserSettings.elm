@@ -2,6 +2,7 @@ module Page.UserSettings
     exposing
         ( Model
         , Msg(..)
+        , title
         , init
         , setup
         , teardown
@@ -38,6 +39,15 @@ type alias Model =
     , isSubmitting : Bool
     , newAvatar : Maybe File
     }
+
+
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "Manage my profile"
 
 
 

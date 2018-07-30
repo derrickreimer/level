@@ -3,7 +3,10 @@ module Page.Setup.CreateGroups
         ( Model
         , Msg(..)
         , ExternalMsg(..)
-        , buildModel
+        , title
+        , init
+        , setup
+        , teardown
         , update
         , view
         )
@@ -11,11 +14,14 @@ module Page.Setup.CreateGroups
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Task
+import Task exposing (Task)
 import Session exposing (Session)
 import Data.Setup as Setup
+import Data.Space as Space exposing (Space)
+import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
+import Repo exposing (Repo)
 import Route exposing (Route)
 
 
@@ -30,14 +36,49 @@ type alias Model =
     }
 
 
-buildModel : String -> String -> Model
-buildModel spaceId firstName =
-    Model spaceId firstName False [ "Announcements" ]
-
-
 defaultGroups : List String
 defaultGroups =
-    [ "Announcements", "Engineering", "Marketing", "Support", "Random" ]
+    [ "All Teams", "Engineering", "Marketing", "Support", "Random" ]
+
+
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "Setup your groups"
+
+
+
+-- LIFECYCLE
+
+
+init : Repo -> SpaceUser -> Space -> Task Never Model
+init repo user space =
+    Task.succeed (buildModel repo user space)
+
+
+buildModel : Repo -> SpaceUser -> Space -> Model
+buildModel repo user space =
+    let
+        spaceId =
+            Space.getId space
+
+        { firstName } =
+            Repo.getSpaceUser repo user
+    in
+        Model spaceId firstName False [ "Announcements" ]
+
+
+setup : Cmd Msg
+setup =
+    Cmd.none
+
+
+teardown : Cmd Msg
+teardown =
+    Cmd.none
 
 
 

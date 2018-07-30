@@ -83,7 +83,7 @@ type alias Model =
 
 
 
--- LIFECYCLE
+-- PAGE PROPERTIES
 
 
 title : Repo -> Model -> String
@@ -91,6 +91,10 @@ title repo { group } =
     group
         |> Repo.getGroup repo
         |> .name
+
+
+
+-- LIFECYCLE
 
 
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )

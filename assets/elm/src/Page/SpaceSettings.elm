@@ -2,6 +2,7 @@ module Page.SpaceSettings
     exposing
         ( Model
         , Msg(..)
+        , title
         , init
         , setup
         , teardown
@@ -37,6 +38,15 @@ type alias Model =
     , isSubmitting : Bool
     , newAvatar : Maybe File
     }
+
+
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "Manage this space"
 
 
 

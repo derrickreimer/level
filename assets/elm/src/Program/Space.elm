@@ -421,7 +421,7 @@ type Page
     | NotFound
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
-    | Inbox
+    | Inbox Page.Inbox.Model
     | Groups Page.Groups.Model
     | Group Page.Group.Model
     | NewGroup Page.NewGroup.Model
@@ -431,20 +431,20 @@ type Page
 
 
 type PageInit
-    = GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
+    = InboxInit (Result Never Page.Inbox.Model)
+    | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
     | NewGroupInit (Result Never Page.NewGroup.Model)
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
+    | SetupCreateGroupsInit (Result Never Page.Setup.CreateGroups.Model)
+    | SetupInviteUsersInit (Result Never Page.Setup.InviteUsers.Model)
 
 
 navigateTo : Maybe Route -> SharedState -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute sharedState model =
     let
-        { firstName, role } =
-            Repo.getSpaceUser model.repo sharedState.user
-
         transition model toMsg task =
             ( { model | isTransitioning = True }
             , Cmd.batch
@@ -459,6 +459,9 @@ navigateTo maybeRoute sharedState model =
 
             Just Route.Root ->
                 let
+                    { role } =
+                        Repo.getSpaceUser model.repo sharedState.user
+
                     route =
                         case role of
                             SpaceUser.Owner ->
@@ -478,30 +481,19 @@ navigateTo maybeRoute sharedState model =
                     navigateTo route sharedState model
 
             Just Route.SetupCreateGroups ->
-                let
-                    pageModel =
-                        Page.Setup.CreateGroups.buildModel
-                            (Space.getId sharedState.space)
-                            firstName
-                in
-                    ( { model | page = SetupCreateGroups pageModel }
-                    , Cmd.none
-                    )
+                sharedState.space
+                    |> Page.Setup.CreateGroups.init model.repo sharedState.user
+                    |> transition model SetupCreateGroupsInit
 
             Just Route.SetupInviteUsers ->
-                let
-                    pageModel =
-                        Page.Setup.InviteUsers.buildModel
-                            (Space.getId sharedState.space)
-                            sharedState.openInvitationUrl
-                in
-                    ( { model | page = SetupInviteUsers pageModel }
-                    , Cmd.none
-                    )
+                sharedState.space
+                    |> Page.Setup.InviteUsers.init sharedState.openInvitationUrl
+                    |> transition model SetupInviteUsersInit
 
             Just Route.Inbox ->
-                -- TODO: implement this
-                ( { model | page = Inbox }, Cmd.none )
+                sharedState.space
+                    |> Page.Inbox.init
+                    |> transition model InboxInit
 
             Just Route.Groups ->
                 model.session
@@ -539,9 +531,58 @@ navigateTo maybeRoute sharedState model =
                     |> transition model SpaceSettingsInit
 
 
+pageTitle : Repo -> Page -> String
+pageTitle repo page =
+    case page of
+        Inbox _ ->
+            Page.Inbox.title
+
+        Group pageModel ->
+            Page.Group.title repo pageModel
+
+        Groups _ ->
+            Page.Groups.title
+
+        NewGroup _ ->
+            Page.NewGroup.title
+
+        Post pageModel ->
+            Page.Post.title repo pageModel
+
+        SpaceSettings _ ->
+            Page.SpaceSettings.title
+
+        UserSettings _ ->
+            Page.UserSettings.title
+
+        SetupCreateGroups _ ->
+            Page.Setup.CreateGroups.title
+
+        SetupInviteUsers _ ->
+            Page.Setup.InviteUsers.title
+
+        NotFound ->
+            "404"
+
+        Blank ->
+            "Level"
+
+
 setupPage : PageInit -> Model -> ( Model, Cmd Msg )
 setupPage pageInit model =
     case pageInit of
+        InboxInit (Ok pageModel) ->
+            ( { model
+                | page = Inbox pageModel
+                , isTransitioning = False
+              }
+            , Page.Inbox.setup pageModel
+                |> Cmd.map InboxMsg
+            )
+
+        InboxInit (Err _) ->
+            ( model, Cmd.none )
+
         GroupsInit (Ok ( session, pageModel )) ->
             ( { model
                 | page = Groups pageModel
@@ -636,15 +677,31 @@ setupPage pageInit model =
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
+        SetupCreateGroupsInit (Ok pageModel) ->
+            ( { model
+                | page = SetupCreateGroups pageModel
+                , isTransitioning = False
+              }
+            , Page.Setup.CreateGroups.setup
+                |> Cmd.map SetupCreateGroupsMsg
+            )
 
-pageTitle : Repo -> Page -> String
-pageTitle repo page =
-    case page of
-        Group pageModel ->
-            Page.Group.title repo pageModel
+        SetupCreateGroupsInit (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
 
-        _ ->
-            "Level"
+        SetupInviteUsersInit (Ok pageModel) ->
+            ( { model
+                | page = SetupInviteUsers pageModel
+                , isTransitioning = False
+              }
+            , Page.Setup.InviteUsers.setup
+                |> Cmd.map SetupInviteUsersMsg
+            )
+
+        SetupInviteUsersInit (Err _) ->
+            -- TODO: Handle other error modes
+            ( model, Cmd.none )
 
 
 teardownPage : Page -> Cmd Msg
@@ -666,7 +723,7 @@ teardownPage page =
 routeFor : Page -> Maybe Route
 routeFor page =
     case page of
-        Inbox ->
+        Inbox _ ->
             Just Route.Inbox
 
         SetupCreateGroups _ ->
@@ -713,7 +770,7 @@ pageView repo sharedState page =
                 |> Page.Setup.InviteUsers.view
                 |> Html.map SetupInviteUsersMsg
 
-        Inbox ->
+        Inbox _ ->
             sharedState.featuredUsers
                 |> Page.Inbox.view repo
                 |> Html.map InboxMsg

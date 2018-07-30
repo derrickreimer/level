@@ -2,6 +2,7 @@ module Page.Post
     exposing
         ( Model
         , Msg(..)
+        , title
         , init
         , setup
         , teardown
@@ -23,6 +24,7 @@ import Data.SpaceUser exposing (SpaceUser)
 import Query.PostInit as PostInit
 import Repo exposing (Repo)
 import Session exposing (Session)
+import ViewHelpers exposing (displayName)
 
 
 -- MODEL
@@ -34,6 +36,22 @@ type alias Model =
     , user : SpaceUser
     , now : Date
     }
+
+
+
+-- PAGE PROPERTIES
+
+
+title : Repo -> Model -> String
+title repo { user } =
+    let
+        userData =
+            Repo.getSpaceUser repo user
+
+        name =
+            displayName userData
+    in
+        "View post from " ++ name
 
 
 

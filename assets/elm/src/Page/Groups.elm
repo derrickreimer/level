@@ -2,6 +2,7 @@ module Page.Groups
     exposing
         ( Model
         , Msg(..)
+        , title
         , init
         , setup
         , teardown
@@ -36,6 +37,15 @@ type alias Model =
 
 type alias IndexedGroup =
     ( Int, Group )
+
+
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "Groups"
 
 
 

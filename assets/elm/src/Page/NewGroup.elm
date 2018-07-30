@@ -2,6 +2,7 @@ module Page.NewGroup
     exposing
         ( Model
         , Msg(..)
+        , title
         , init
         , setup
         , teardown
@@ -33,6 +34,15 @@ type alias Model =
     , isSubmitting : Bool
     , errors : List ValidationError
     }
+
+
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "Create a group"
 
 
 
