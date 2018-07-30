@@ -1,4 +1,4 @@
-module Program.Space exposing (..)
+module Program.Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
