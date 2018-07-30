@@ -19,15 +19,12 @@ document =
     GraphQL.document
         """
         query GetFeaturedMemberships(
-          $spaceId: ID!
           $groupId: ID!
         ) {
-          space(id: $spaceId) {
-            group(id: $groupId) {
-              featuredMemberships {
-                spaceUser {
-                  ...SpaceUserFields
-                }
+          group(id: $groupId) {
+            featuredMemberships {
+              spaceUser {
+                ...SpaceUserFields
               }
             }
           }
@@ -37,22 +34,21 @@ document =
         ]
 
 
-variables : String -> String -> Maybe Encode.Value
-variables spaceId groupId =
+variables : String -> Maybe Encode.Value
+variables groupId =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string spaceId )
-            , ( "groupId", Encode.string groupId )
+            [ ( "groupId", Encode.string groupId )
             ]
 
 
 decoder : Decode.Decoder Response
 decoder =
-    Decode.at [ "data", "space", "group", "featuredMemberships" ]
+    Decode.at [ "data", "group", "featuredMemberships" ]
         (Decode.list Data.GroupMembership.decoder)
 
 
-request : String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceId groupId session =
+request : String -> Session -> Task Session.Error ( Session, Response )
+request groupId session =
     Session.request session <|
-        GraphQL.request document (variables spaceId groupId) decoder
+        GraphQL.request document (variables groupId) decoder

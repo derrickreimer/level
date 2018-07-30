@@ -10,7 +10,6 @@ defmodule Level.Connections.UserGroupMemberships do
   alias Level.Groups.GroupUser
   alias Level.Pagination
   alias Level.Pagination.Args
-  alias Level.Repo
   alias Level.Spaces
 
   defstruct first: nil,
@@ -47,7 +46,7 @@ defmodule Level.Connections.UserGroupMemberships do
               select: %{gu | name: g.name}
 
           wrapped_query = from(gu in subquery(base_query))
-          Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
+          Pagination.fetch_result(wrapped_query, Args.build(args))
 
         error ->
           error

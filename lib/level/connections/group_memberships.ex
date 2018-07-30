@@ -8,7 +8,6 @@ defmodule Level.Connections.GroupMemberships do
   alias Level.Groups.GroupUser
   alias Level.Pagination
   alias Level.Pagination.Args
-  alias Level.Repo
 
   defstruct first: nil,
             last: nil,
@@ -38,6 +37,6 @@ defmodule Level.Connections.GroupMemberships do
         select: %{gu | last_name: su.last_name}
 
     wrapped_query = from(gu in subquery(base_query))
-    Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
+    Pagination.fetch_result(wrapped_query, Args.build(args))
   end
 end

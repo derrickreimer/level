@@ -29,6 +29,10 @@ defmodule Level.Groups.Group do
 
     many_to_many :posts, Post, join_through: PostGroup
 
+    # Used to cache the space user record for the currently authenticated user
+    # when resolving GraphQL queries
+    field :current_space_user, :any, virtual: true
+
     timestamps()
   end
 

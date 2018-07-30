@@ -99,7 +99,7 @@ title repo { group } =
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space groupId session =
     Date.now
-        |> Task.andThen (GroupInit.request (Space.getId space) groupId session)
+        |> Task.andThen (GroupInit.request groupId session)
         |> Task.andThen (buildModel user space)
 
 
@@ -389,7 +389,7 @@ handleGroupMembershipUpdated : Group -> Session -> Model -> ( Model, Cmd Msg )
 handleGroupMembershipUpdated group session model =
     let
         cmd =
-            FeaturedMemberships.request (Space.getId model.space) (Group.getId model.group) session
+            FeaturedMemberships.request (Group.getId model.group) session
                 |> Task.attempt FeaturedMembershipsRefreshed
     in
         if Group.getId group == Group.getId model.group then

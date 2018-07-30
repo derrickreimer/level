@@ -8,7 +8,6 @@ defmodule Level.Connections.SpaceUsers do
 
   alias Level.Pagination
   alias Level.Pagination.Args
-  alias Level.Repo
   alias Level.Spaces
 
   defstruct first: nil,
@@ -39,7 +38,7 @@ defmodule Level.Connections.SpaceUsers do
         |> where([su], su.user_id == ^user.id)
 
       wrapped_query = from(su in subquery(base_query))
-      Pagination.fetch_result(Repo, wrapped_query, Args.build(args))
+      Pagination.fetch_result(wrapped_query, Args.build(args))
     else
       {:error, dgettext("errors", "Space users are only readable for the authenticated user")}
     end

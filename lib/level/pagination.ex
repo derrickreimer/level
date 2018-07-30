@@ -39,15 +39,15 @@ defmodule Level.Pagination do
       }}
   """
   # @spec fetch_result(Ecto.Repo.t(), Ecto.Query.t(), Args.t()) :: result()
-  def fetch_result(repo, base_query, args) do
+  def fetch_result(base_query, args) do
     case validate_args(args) do
       {:ok, _} ->
         {normalized_args, is_flipped} = normalize(args)
         %{order_by: %{field: order_field}} = normalized_args
-        total_count = repo.one(apply_count(base_query))
+        total_count = Level.Repo.one(apply_count(base_query))
 
         {:ok, nodes, has_previous_page, has_next_page} =
-          fetch_nodes(repo, base_query, order_field, normalized_args)
+          fetch_nodes(Level.Repo, base_query, order_field, normalized_args)
 
         edges = build_edges(nodes, order_field)
 
@@ -71,11 +71,14 @@ defmodule Level.Pagination do
     end
   end
 
-  @doc """
-  Performs basic validations on pagination arguments.
-  """
+  @spec map(Result.t(), (any() -> any())) :: Result.t()
+  def map(%Result{edges: edges} = result, fun) do
+    %{result | edges: Enum.map(edges, fun)}
+  end
+
+  # Performs basic validations on pagination arguments.
   @spec validate_args(Args.t()) :: {:ok, Args.t()} | {:error, String.t()}
-  def validate_args(args) do
+  defp validate_args(args) do
     with {:ok, args} <- Validations.validate_limit(args) do
       {:ok, args}
     else
@@ -175,9 +178,7 @@ defmodule Level.Pagination do
   end
 
   defp apply_count(query) do
-    query
-    |> Ecto.Query.exclude(:select)
-    |> select([r], count(r.id))
+    from r in subquery(query), select: count(r.id)
   end
 
   defp apply_limit(query, %{first: limit}) do

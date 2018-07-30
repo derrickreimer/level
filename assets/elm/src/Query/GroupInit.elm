@@ -27,18 +27,15 @@ document =
     GraphQL.document
         """
         query GroupInit(
-          $spaceId: ID!
           $groupId: ID!
         ) {
-          space(id: $spaceId) {
-            group(id: $groupId) {
-              ...GroupFields
-              featuredMemberships {
-                ...GroupMembershipFields
-              }
-              posts(first: 20) {
-                ...PostConnectionFields
-              }
+          group(id: $groupId) {
+            ...GroupFields
+            featuredMemberships {
+              ...GroupMembershipFields
+            }
+            posts(first: 20) {
+              ...PostConnectionFields
             }
           }
         }
@@ -49,12 +46,11 @@ document =
         ]
 
 
-variables : String -> String -> Maybe Encode.Value
-variables spaceId groupId =
+variables : String -> Maybe Encode.Value
+variables groupId =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string spaceId )
-            , ( "groupId", Encode.string groupId )
+            [ ( "groupId", Encode.string groupId )
             ]
 
 
@@ -67,7 +63,7 @@ postComponentsDecoder =
 
 decoder : Date -> Decoder Response
 decoder now =
-    Decode.at [ "data", "space", "group" ] <|
+    Decode.at [ "data", "group" ] <|
         (Pipeline.decode Response
             |> Pipeline.custom Group.decoder
             |> Pipeline.custom (Decode.at [ "posts" ] postComponentsDecoder)
@@ -76,7 +72,7 @@ decoder now =
         )
 
 
-request : String -> String -> Session -> Date -> Task Session.Error ( Session, Response )
-request spaceId groupId session now =
+request : String -> Session -> Date -> Task Session.Error ( Session, Response )
+request groupId session now =
     Session.request session <|
-        GraphQL.request document (variables spaceId groupId) (decoder now)
+        GraphQL.request document (variables groupId) (decoder now)

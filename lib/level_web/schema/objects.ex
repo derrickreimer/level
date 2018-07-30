@@ -123,11 +123,6 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Level.Connections.groups/3
     end
 
-    field :group, :group do
-      arg :id, non_null(:id)
-      resolve &Level.Connections.group/3
-    end
-
     field :post, :post do
       arg :id, non_null(:id)
       resolve &Level.Connections.post/3

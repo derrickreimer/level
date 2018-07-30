@@ -5,7 +5,6 @@ defmodule Level.Connections.GroupPosts do
 
   alias Level.Pagination
   alias Level.Pagination.Args
-  alias Level.Repo
 
   defstruct first: nil,
             last: nil,
@@ -30,7 +29,7 @@ defmodule Level.Connections.GroupPosts do
   def get(group, args, _info) do
     query = Ecto.assoc(group, :posts)
     args = process_args(args)
-    Pagination.fetch_result(Repo, query, Args.build(args))
+    Pagination.fetch_result(query, Args.build(args))
   end
 
   def process_args(%{order_by: %{field: :posted_at} = order_by} = args) do

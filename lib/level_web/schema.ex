@@ -28,13 +28,19 @@ defmodule LevelWeb.Schema do
     @desc "Fetches a space membership by space id."
     field :space_user, :space_user do
       arg :space_id, non_null(:id)
-      resolve &Level.Connections.space_user/3
+      resolve &Level.Connections.space_user/2
     end
 
     @desc "Fetches a space."
     field :space, :space do
       arg :id, non_null(:id)
-      resolve &Level.Connections.space/3
+      resolve &Level.Connections.space/2
+    end
+
+    @desc "Fetchs a group."
+    field :group, :group do
+      arg :id, non_null(:id)
+      resolve &Level.Connections.group/2
     end
   end
 

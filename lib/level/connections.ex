@@ -28,10 +28,10 @@ defmodule Level.Connections do
   @doc """
   Fetches a space by id.
   """
-  @spec space(term(), map(), authenticated_context()) :: {:ok, Space.t()} | {:error, String.t()}
-  def space(parent, args, info)
+  @spec space(map(), authenticated_context()) :: {:ok, Space.t()} | {:error, String.t()}
+  def space(args, info)
 
-  def space(_root, %{id: id}, %{context: %{current_user: user}}) do
+  def space(%{id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space(user, id) do
       {:ok, %{space: space}} ->
         {:ok, space}
@@ -44,11 +44,10 @@ defmodule Level.Connections do
   @doc """
   Fetches a space membership by space id.
   """
-  @spec space_user(User.t(), map(), authenticated_context()) ::
-          {:ok, SpaceUser.t()} | {:error, String.t()}
-  def space_user(parent, args, info)
+  @spec space_user(map(), authenticated_context()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
+  def space_user(args, info)
 
-  def space_user(_parent, %{space_id: id}, %{context: %{current_user: user}}) do
+  def space_user(%{space_id: id}, %{context: %{current_user: user}}) do
     case Spaces.get_space(user, id) do
       {:ok, %{space_user: space_user}} ->
         {:ok, space_user}
@@ -56,6 +55,14 @@ defmodule Level.Connections do
       error ->
         error
     end
+  end
+
+  @doc """
+  Fetches a group by id.
+  """
+  @spec group(map(), authenticated_context()) :: {:ok, Group.t()} | {:error, String.t()}
+  def group(%{id: id} = _args, %{context: %{current_user: user}}) do
+    Level.Groups.get_group(user, id)
   end
 
   @doc """
@@ -81,21 +88,6 @@ defmodule Level.Connections do
   @spec groups(Space.t(), Groups.t(), authenticated_context()) :: paginated_result()
   def groups(space, args, info) do
     Groups.get(space, struct(Groups, args), info)
-  end
-
-  @doc """
-  Fetches a group by id.
-  """
-  @spec group(Space.t(), map(), authenticated_context()) ::
-          {:ok, Group.t()} | {:error, String.t()}
-  def group(space, %{id: id} = _args, %{context: %{current_user: user}}) do
-    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space.id),
-         {:ok, group} <- Level.Groups.get_group(space_user, id) do
-      {:ok, group}
-    else
-      error ->
-        error
-    end
   end
 
   @doc """
