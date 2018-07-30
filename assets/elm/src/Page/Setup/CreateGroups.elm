@@ -68,7 +68,7 @@ buildModel repo user space =
         { firstName } =
             Repo.getSpaceUser repo user
     in
-        Model spaceId firstName False [ "Announcements" ]
+        Model spaceId firstName False [ "All Teams" ]
 
 
 setup : Cmd Msg

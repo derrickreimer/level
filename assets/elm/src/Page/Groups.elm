@@ -123,8 +123,12 @@ groupsView repo connection =
                 |> List.indexedMap (,)
                 |> partitionGroups repo []
     in
-        div [ class "leading-semi-loose" ] <|
-            List.map (groupPartitionView repo) partitions
+        if List.isEmpty partitions then
+            div [ class "p-2 text-center" ]
+                [ text "Wowza! This space does not have any groups yet." ]
+        else
+            div [ class "leading-semi-loose" ] <|
+                List.map (groupPartitionView repo) partitions
 
 
 groupPartitionView : Repo -> ( String, List IndexedGroup ) -> Html Msg
