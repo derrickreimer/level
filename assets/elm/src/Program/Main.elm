@@ -29,7 +29,7 @@ import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceSettings
 import Page.UserSettings
-import Query.SharedState
+import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
@@ -55,7 +55,7 @@ type alias Model =
 
 
 type alias SharedState =
-    Query.SharedState.Response
+    MainInit.Response
 
 
 type alias Flags =
@@ -76,8 +76,13 @@ init flags location =
 
         maybeRoute =
             Route.fromLocation location
+
+        cmd =
+            model.session
+                |> MainInit.request model.spaceId
+                |> Task.attempt (SharedStateLoaded maybeRoute)
     in
-        ( model, setup model.spaceId model.session maybeRoute )
+        ( model, cmd )
 
 
 buildModel : Flags -> Model
@@ -85,15 +90,8 @@ buildModel flags =
     Model flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing Repo.init
 
 
-setup : String -> Session -> Maybe Route -> Cmd Msg
-setup spaceId session maybeRoute =
-    session
-        |> Query.SharedState.request spaceId
-        |> Task.attempt (SharedStateLoaded maybeRoute)
-
-
-setupSockets : SharedState -> Cmd Msg
-setupSockets sharedState =
+setup : SharedState -> Cmd Msg
+setup sharedState =
     Cmd.batch
         [ SpaceSubscription.subscribe (Space.getId sharedState.space)
         , SpaceUserSubscription.subscribe (SpaceUser.getId sharedState.user)
@@ -106,7 +104,7 @@ setupSockets sharedState =
 
 type Msg
     = UrlChanged Navigation.Location
-    | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, Query.SharedState.Response ))
+    | SharedStateLoaded (Maybe Route) (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | PageInitialized PageInit
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
@@ -141,7 +139,7 @@ update msg model =
                     navigateTo maybeRoute sharedState <|
                         { model | sharedState = Loaded sharedState, session = session }
             in
-                ( newModel, Cmd.batch [ navigateCmd, setupSockets sharedState ] )
+                ( newModel, Cmd.batch [ navigateCmd, setup sharedState ] )
 
         ( SharedStateLoaded maybeRoute (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )

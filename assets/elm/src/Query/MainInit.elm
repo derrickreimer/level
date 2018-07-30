@@ -1,4 +1,4 @@
-module Query.SharedState exposing (Response, request)
+module Query.MainInit exposing (Response, request)
 
 import Task exposing (Task)
 import Session exposing (Session)
