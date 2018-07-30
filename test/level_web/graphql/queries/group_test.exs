@@ -4,13 +4,10 @@ defmodule LevelWeb.GraphQL.GroupTest do
 
   @query """
     query GetGroup(
-      $space_id: ID!
       $group_id: ID!
     ) {
-      space(id: $space_id) {
-        group(id: $group_id) {
-          name
-        }
+      group(id: $group_id) {
+        name
       }
     }
   """
@@ -25,7 +22,6 @@ defmodule LevelWeb.GraphQL.GroupTest do
     {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
 
     variables = %{
-      space_id: space_user.space_id,
       group_id: group.id
     }
 
@@ -36,10 +32,8 @@ defmodule LevelWeb.GraphQL.GroupTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "group" => %{
-                   "name" => "Engineers"
-                 }
+               "group" => %{
+                 "name" => "Engineers"
                }
              }
            }

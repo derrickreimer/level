@@ -4,17 +4,14 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
 
   @query """
     query GetGroupMemberships(
-      $space_id: ID!,
       $group_id: ID!
     ) {
-      space(id: $space_id) {
-        group(id: $group_id) {
-          memberships(first: 10) {
-            edges {
-              node {
-                group {
-                  name
-                }
+      group(id: $group_id) {
+        memberships(first: 10) {
+          edges {
+            node {
+              group {
+                name
               }
             }
           }
@@ -32,7 +29,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   test "users can list their group memberships", %{conn: conn, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
 
-    variables = %{space_id: space_user.space_id, group_id: group.id}
+    variables = %{group_id: group.id}
 
     conn =
       conn
@@ -41,19 +38,17 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "group" => %{
-                   "memberships" => %{
-                     "edges" => [
-                       %{
-                         "node" => %{
-                           "group" => %{
-                             "name" => "Cool peeps"
-                           }
+               "group" => %{
+                 "memberships" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "group" => %{
+                           "name" => "Cool peeps"
                          }
                        }
-                     ]
-                   }
+                     }
+                   ]
                  }
                }
              }

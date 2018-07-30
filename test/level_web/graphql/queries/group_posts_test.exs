@@ -4,26 +4,23 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
 
   @query """
     query GetGroupPosts(
-      $space_id: ID!,
       $group_id: ID!
     ) {
-      space(id: $space_id) {
-        group(id: $group_id) {
-          posts(first: 20) {
-            edges {
-              node {
-                body
-                body_html
-                author {
-                  firstName
-                }
-                replies(last: 5) {
-                  edges {
-                    node {
-                      body
-                      author {
-                        firstName
-                      }
+      group(id: $group_id) {
+        posts(first: 20) {
+          edges {
+            node {
+              body
+              body_html
+              author {
+                firstName
+              }
+              replies(last: 5) {
+                edges {
+                  node {
+                    body
+                    author {
+                      firstName
                     }
                   }
                 }
@@ -57,7 +54,6 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
     {:ok, _reply} = reply_to_post(space_user, post, %{body: "Sup?"})
 
     variables = %{
-      space_id: space_user.space_id,
       group_id: group.id
     }
 
@@ -68,33 +64,31 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "group" => %{
-                   "posts" => %{
-                     "edges" => [
-                       %{
-                         "node" => %{
-                           "body" => "Hey!",
-                           "body_html" => "<p>Hey!</p>\n",
-                           "author" => %{
-                             "firstName" => space_user.first_name
-                           },
-                           "replies" => %{
-                             "edges" => [
-                               %{
-                                 "node" => %{
-                                   "body" => "Sup?",
-                                   "author" => %{
-                                     "firstName" => space_user.first_name
-                                   }
+               "group" => %{
+                 "posts" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "body" => "Hey!",
+                         "body_html" => "<p>Hey!</p>\n",
+                         "author" => %{
+                           "firstName" => space_user.first_name
+                         },
+                         "replies" => %{
+                           "edges" => [
+                             %{
+                               "node" => %{
+                                 "body" => "Sup?",
+                                 "author" => %{
+                                   "firstName" => space_user.first_name
                                  }
                                }
-                             ]
-                           }
+                             }
+                           ]
                          }
                        }
-                     ]
-                   }
+                     }
+                   ]
                  }
                }
              }

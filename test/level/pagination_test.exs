@@ -27,7 +27,7 @@ defmodule Level.PaginationTest do
         }
       }
 
-      {:ok, %Result{edges: edges}} = Pagination.fetch_result(Level.Repo, base_query, args)
+      {:ok, %Result{edges: edges}} = Pagination.fetch_result(base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.take(users, 2))
     end
@@ -44,7 +44,7 @@ defmodule Level.PaginationTest do
       }
 
       {:ok, %Result{edges: edges, page_info: _page_info}} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+        Pagination.fetch_result(base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.slice(users, 1..2))
     end
@@ -61,7 +61,7 @@ defmodule Level.PaginationTest do
       }
 
       {:ok, %Result{edges: edges, page_info: _page_info}} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+        Pagination.fetch_result(base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.slice(users, 2..3))
     end
@@ -78,7 +78,7 @@ defmodule Level.PaginationTest do
       }
 
       {:ok, %Result{edges: edges, page_info: _page_info}} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+        Pagination.fetch_result(base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.slice(users, 1..2))
     end
@@ -95,7 +95,7 @@ defmodule Level.PaginationTest do
       }
 
       {:ok, %Result{edges: edges, page_info: _page_info}} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+        Pagination.fetch_result(base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.slice(users, 2..2))
     end
@@ -111,7 +111,7 @@ defmodule Level.PaginationTest do
         }
       }
 
-      {:ok, %Result{edges: edges}} = Pagination.fetch_result(Level.Repo, base_query, args)
+      {:ok, %Result{edges: edges}} = Pagination.fetch_result(base_query, args)
 
       assert map_edge_ids(edges) == map_ids(Enum.take(Enum.reverse(users), 2))
     end
@@ -129,7 +129,7 @@ defmodule Level.PaginationTest do
       }
 
       {:error, "You must provide either a `first` or `last` value"} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+        Pagination.fetch_result(base_query, args)
     end
 
     test "fails when first and last is set", %{base_query: base_query} do
@@ -145,7 +145,7 @@ defmodule Level.PaginationTest do
       }
 
       {:error, "You must provide either a `first` or `last` value"} =
-        Pagination.fetch_result(Level.Repo, base_query, args)
+        Pagination.fetch_result(base_query, args)
     end
   end
 

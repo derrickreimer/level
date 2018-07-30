@@ -130,9 +130,9 @@ defmodule Level.Connections do
           _ ->
             virtual_group_user = %GroupUser{
               state: "NOT_SUBSCRIBED",
-              space: space,
-              group: group,
-              space_user: space_user
+              space_id: space.id,
+              group_id: group.id,
+              space_user_id: space_user.id
             }
 
             {:ok, virtual_group_user}

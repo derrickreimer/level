@@ -241,8 +241,8 @@ defmodule Level.Groups do
     %GroupUser{
       state: "NOT_SUBSCRIBED",
       space_id: space_id,
-      space_user: space_user,
-      group: group
+      space_user_id: space_user.id,
+      group_id: group.id
     }
   end
 

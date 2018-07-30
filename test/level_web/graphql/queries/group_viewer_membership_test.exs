@@ -7,17 +7,14 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
   alias Level.Groups.GroupUser
 
   @query """
-    query GetGroupMemberships(
-      $space_id: ID!,
+    query GetGroupMembership(
       $group_id: ID!
     ) {
-      space(id: $space_id) {
-        group(id: $group_id) {
-          membership {
-            state
-            spaceUser {
-              id
-            }
+      group(id: $group_id) {
+        membership {
+          state
+          spaceUser {
+            id
           }
         }
       }
@@ -33,7 +30,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
   test "groups expose the current viewer's membership", %{conn: conn, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
     Groups.create_group_membership(group, space_user)
-    variables = %{space_id: space_user.space_id, group_id: group.id}
+    variables = %{group_id: group.id}
 
     conn =
       conn
@@ -42,13 +39,11 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "group" => %{
-                   "membership" => %{
-                     "state" => "SUBSCRIBED",
-                     "spaceUser" => %{
-                       "id" => space_user.id
-                     }
+               "group" => %{
+                 "membership" => %{
+                   "state" => "SUBSCRIBED",
+                   "spaceUser" => %{
+                     "id" => space_user.id
                    }
                  }
                }
@@ -66,7 +61,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
       from gu in GroupUser, where: gu.space_user_id == ^space_user.id and gu.group_id == ^group.id
     )
 
-    variables = %{space_id: space_user.space_id, group_id: group.id}
+    variables = %{group_id: group.id}
 
     conn =
       conn
@@ -75,13 +70,11 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "space" => %{
-                 "group" => %{
-                   "membership" => %{
-                     "state" => "NOT_SUBSCRIBED",
-                     "spaceUser" => %{
-                       "id" => space_user.id
-                     }
+               "group" => %{
+                 "membership" => %{
+                   "state" => "NOT_SUBSCRIBED",
+                   "spaceUser" => %{
+                     "id" => space_user.id
                    }
                  }
                }
