@@ -926,7 +926,7 @@ sidebarLink title maybeRoute currentPage =
 
         currentItem route =
             li [ class "flex items-center font-bold" ]
-                [ div [ class "-ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
+                [ div [ class "flex-no-shrink -ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
                 , link (Route.href route)
                 ]
     in

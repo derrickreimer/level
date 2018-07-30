@@ -15,6 +15,7 @@ import Html.Attributes exposing (..)
 import Task exposing (Task)
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
+import Data.GroupMembership exposing (GroupMembershipState(..))
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Icons
@@ -153,6 +154,8 @@ groupView repo ( index, group ) =
         div []
             [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
                 [ a [ Route.href (Route.Group groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
+                , viewIf (groupData.membershipState == Subscribed) <|
+                    div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Subscribed" ]
                 , div [ class "flex-0" ]
                     [ viewIf groupData.isBookmarked <|
                         Icons.bookmark Icons.On
