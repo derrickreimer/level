@@ -1,4 +1,4 @@
-module Route.Groups exposing (Params(..), params, toSegments)
+module Route.Groups exposing (Params(..), params, segments)
 
 import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
 
@@ -18,8 +18,8 @@ params =
         ]
 
 
-toSegments : Params -> List String
-toSegments params =
+segments : Params -> List String
+segments params =
     case params of
         Root ->
             [ "groups" ]

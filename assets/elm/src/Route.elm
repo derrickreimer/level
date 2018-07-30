@@ -64,7 +64,7 @@ routeToString page =
                     [ "inbox" ]
 
                 Groups params ->
-                    Route.Groups.toSegments params
+                    Route.Groups.segments params
 
                 Group id ->
                     [ "groups", id ]
