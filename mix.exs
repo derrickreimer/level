@@ -1,7 +1,7 @@
 defmodule Level.Mixfile do
   use Mix.Project
 
-  @elixir_version "~> 1.6"
+  @elixir_version "~> 1.7"
   @version "0.0.1"
 
   def project do
