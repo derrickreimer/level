@@ -185,6 +185,8 @@ type Msg
     | Bookmarked (Result Session.Error ( Session, BookmarkGroup.Response ))
     | Unbookmark
     | Unbookmarked (Result Session.Error ( Session, UnbookmarkGroup.Response ))
+    | PrivacyToggle Bool
+    | PrivacyToggled (Result Session.Error ( Session, UpdateGroup.Response ))
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -264,7 +266,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         NameEditorSubmit ->
             let
                 cmd =
-                    UpdateGroup.request (Space.getId model.space) (Group.getId model.group) nameEditor.value session
+                    UpdateGroup.request (Space.getId model.space) (Group.getId model.group) (Just nameEditor.value) Nothing session
                         |> Task.attempt NameEditorSubmitted
             in
                 ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), session )
@@ -357,6 +359,23 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             redirectToLogin session model
 
         Unbookmarked (Err _) ->
+            noCmd session model
+
+        PrivacyToggle isPrivate ->
+            let
+                cmd =
+                    UpdateGroup.request (Space.getId model.space) (Group.getId model.group) Nothing (Just isPrivate) session
+                        |> Task.attempt PrivacyToggled
+            in
+                ( ( model, cmd ), session )
+
+        PrivacyToggled (Ok ( session, _ )) ->
+            noCmd session model
+
+        PrivacyToggled (Err Session.Expired) ->
+            redirectToLogin session model
+
+        PrivacyToggled (Err _) ->
             noCmd session model
 
 
@@ -506,9 +525,9 @@ nameView groupData editor =
 privacyView : Group.Record -> Html Msg
 privacyView { isPrivate } =
     if isPrivate == True then
-        div [ class "mx-3" ] [ Icons.lock ]
+        button [ class "mx-3", onClick (PrivacyToggle False) ] [ Icons.lock ]
     else
-        div [ class "mx-3" ] [ Icons.unlock ]
+        button [ class "mx-3", onClick (PrivacyToggle True) ] [ Icons.unlock ]
 
 
 nameErrors : FieldEditor -> Html Msg

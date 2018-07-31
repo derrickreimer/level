@@ -22,12 +22,14 @@ document =
         mutation UpdateGroup(
           $spaceId: ID!,
           $groupId: ID!,
-          $name: String!
+          $name: String,
+          $isPrivate: Boolean,
         ) {
           updateGroup(
             spaceId: $spaceId,
             groupId: $groupId,
-            name: $name
+            name: $name,
+            isPrivate: $isPrivate
           ) {
             ...ValidationFields
             group {
@@ -41,14 +43,32 @@ document =
         ]
 
 
-variables : String -> String -> String -> Maybe Encode.Value
-variables spaceId groupId name =
-    Just <|
-        Encode.object
+variables : String -> String -> Maybe String -> Maybe Bool -> Maybe Encode.Value
+variables spaceId groupId maybeName maybeIsPrivate =
+    let
+        requiredFields =
             [ ( "spaceId", Encode.string spaceId )
             , ( "groupId", Encode.string groupId )
-            , ( "name", Encode.string name )
             ]
+
+        nameField =
+            case maybeName of
+                Just name ->
+                    [ ( "name", Encode.string name ) ]
+
+                Nothing ->
+                    []
+
+        privacyField =
+            case maybeIsPrivate of
+                Just isPrivate ->
+                    [ ( "isPrivate", Encode.bool isPrivate ) ]
+
+                Nothing ->
+                    []
+    in
+        Just <|
+            Encode.object (requiredFields ++ nameField ++ privacyField)
 
 
 successDecoder : Decoder Response
@@ -79,7 +99,7 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceId groupId name session =
+request : String -> String -> Maybe String -> Maybe Bool -> Session -> Task Session.Error ( Session, Response )
+request spaceId groupId maybeName maybeIsPrivate session =
     Session.request session <|
-        GraphQL.request document (variables spaceId groupId name) decoder
+        GraphQL.request document (variables spaceId groupId maybeName maybeIsPrivate) decoder
