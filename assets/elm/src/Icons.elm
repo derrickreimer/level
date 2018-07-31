@@ -3,6 +3,7 @@ module Icons
         ( Toggle(..)
         , arrowLeft
         , arrowRight
+        , arrowUpRight
         , bookmark
         , comment
         , heart
@@ -57,6 +58,24 @@ arrowRight =
                 <g id="arrow-right" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
                     <path d="M0,7 L14,7" id="Shape"></path>
                     <polyline id="Shape" points="7 0 14 7 7 14"></polyline>
+                </g>
+            </g>
+        </svg>
+        """
+
+
+arrowUpRight : Html msg
+arrowUpRight =
+    toHtml
+        """
+        <svg width="10px" height="10px" viewBox="0 0 10 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="arrow-up-right" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
+                    <path d="M0,8 L8,0" id="Shape"></path>
+                    <polyline id="Shape" points="0 0 8 0 8 8"></polyline>
                 </g>
             </g>
         </svg>

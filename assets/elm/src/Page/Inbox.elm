@@ -5,8 +5,10 @@ import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Icons
 import Repo exposing (Repo)
 import Route
+import Route.SpaceUsers
 import Task exposing (Task)
 import ViewHelpers exposing (displayName)
 
@@ -81,7 +83,15 @@ view repo featuredUsers =
 sidebarView : Repo -> List SpaceUser -> Html Msg
 sidebarView repo featuredUsers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Directory" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ]
+            [ a
+                [ Route.href (Route.SpaceUsers Route.SpaceUsers.Root)
+                , class "flex items-center text-dusty-blue-darkest no-underline"
+                ]
+                [ span [ class "mr-2" ] [ text "Directory" ]
+                , Icons.arrowUpRight
+                ]
+            ]
         , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers
         , a
             [ Route.href Route.SpaceSettings
