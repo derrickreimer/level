@@ -240,24 +240,49 @@ defmodule Level.GroupsTest do
     end
   end
 
-  describe "get_group_membership/2" do
+  describe "get_group_user/2 with a space user" do
     setup do
       create_user_and_space()
     end
 
-    test "fetches the group membership if user is a member", %{space_user: space_user} do
+    test "fetches the group user record if user is a member", %{space_user: space_user} do
       {:ok, %{group: group}} = create_group(space_user)
-      {:ok, group_user} = Groups.get_group_membership(group, space_user)
+      {:ok, group_user} = Groups.get_group_user(group, space_user)
       assert group_user.group_id == group.id
       assert group_user.space_user_id == space_user.id
     end
 
-    test "returns an error if user is not a member", %{space_user: space_user, space: space} do
+    test "returns nil if user is not a member", %{space_user: space_user, space: space} do
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{space_user: another_space_user}} = create_space_member(space)
 
-      assert {:error, "The user is a not a group member"} =
-               Groups.get_group_membership(group, another_space_user)
+      assert {:ok, nil} = Groups.get_group_user(group, another_space_user)
+    end
+  end
+
+  describe "get_group_user/2 with a user" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "fetches the group user record if user is a member", %{
+      user: user,
+      space_user: space_user
+    } do
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, group_user} = Groups.get_group_user(group, user)
+      assert group_user.group_id == group.id
+      assert group_user.space_user_id == space_user.id
+    end
+
+    test "returns an nil if user is not a member", %{
+      space_user: space_user,
+      space: space
+    } do
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{user: another_user}} = create_space_member(space)
+
+      assert {:ok, nil} = Groups.get_group_user(group, another_user)
     end
   end
 

@@ -51,7 +51,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
            }
   end
 
-  test "group membership field is in non-subscribed state if viewer is not a member", %{
+  test "group membership field is nil if viewer is not a member", %{
     conn: conn,
     space_user: space_user
   } do
@@ -71,12 +71,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "group" => %{
-                 "membership" => %{
-                   "state" => "NOT_SUBSCRIBED",
-                   "spaceUser" => %{
-                     "id" => space_user.id
-                   }
-                 }
+                 "membership" => nil
                }
              }
            }

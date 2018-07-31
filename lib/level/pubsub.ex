@@ -5,7 +5,6 @@ defmodule Level.Pubsub do
   """
 
   alias Level.Groups.Group
-  alias Level.Groups.GroupUser
   alias Level.Posts.Post
   alias Level.Posts.Reply
   alias Level.Spaces.Space
@@ -43,7 +42,7 @@ defmodule Level.Pubsub do
     do_publish(%{type: :post_created, post: post}, group_subscription: group_id)
   end
 
-  def publish(:group_membership_updated, group_id, {%Group{} = group, %GroupUser{} = group_user}) do
+  def publish(:group_membership_updated, group_id, {%Group{} = group, group_user}) do
     do_publish(
       %{type: :group_membership_updated, group: group, membership: group_user},
       group_subscription: group_id

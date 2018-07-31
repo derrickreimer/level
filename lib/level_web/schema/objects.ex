@@ -7,6 +7,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.AssetStore
   alias Level.Groups
   alias Level.Markdown
+  alias Level.Resolvers
   alias Level.Spaces
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
@@ -32,7 +33,7 @@ defmodule LevelWeb.Schema.Objects do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :space_user_order
-      resolve &Level.Resolvers.space_users/3
+      resolve &Resolvers.space_users/3
     end
 
     field :group_memberships, non_null(:group_membership_connection) do
@@ -42,7 +43,7 @@ defmodule LevelWeb.Schema.Objects do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :group_order
-      resolve &Level.Resolvers.group_memberships/3
+      resolve &Resolvers.group_memberships/3
     end
 
     field :avatar_url, :string do
@@ -113,6 +114,7 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    @desc "A paginated list of groups in the space."
     field :groups, non_null(:group_connection) do
       arg :first, :integer
       arg :last, :integer
@@ -120,17 +122,18 @@ defmodule LevelWeb.Schema.Objects do
       arg :after, :cursor
       arg :order_by, :group_order
       arg :state, :group_state
-      resolve &Level.Resolvers.groups/3
+      resolve &Resolvers.groups/3
     end
 
+    @desc "Fetch a post by id."
     field :post, :post do
       arg :id, non_null(:id)
-      resolve &Level.Resolvers.post/3
+      resolve &Resolvers.post/3
     end
 
     @desc "A preview of space users (for display in the directory sidebar)."
     field :featured_users, list_of(:space_user) do
-      resolve &Level.Resolvers.featured_space_users/3
+      resolve &Resolvers.featured_space_users/3
     end
   end
 
@@ -153,7 +156,7 @@ defmodule LevelWeb.Schema.Objects do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :post_order
-      resolve &Level.Resolvers.group_posts/3
+      resolve &Resolvers.group_posts/3
     end
 
     @desc "A paginated connection of group memberships."
@@ -163,18 +166,18 @@ defmodule LevelWeb.Schema.Objects do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :user_order
-      resolve &Level.Resolvers.group_memberships/3
+      resolve &Resolvers.group_memberships/3
     end
 
     @desc "The current user's group membership."
     field :membership, :group_membership do
       # TODO: figure out a good way to use dataloader to batch this?
-      resolve &Level.Resolvers.group_membership/3
+      resolve &Resolvers.group_membership/3
     end
 
     @desc "The short list of members to display in the sidebar."
     field :featured_memberships, list_of(:group_membership) do
-      resolve &Level.Resolvers.featured_group_memberships/3
+      resolve &Resolvers.featured_group_memberships/3
     end
 
     @desc "The bookmarking state of the current user."
@@ -221,7 +224,7 @@ defmodule LevelWeb.Schema.Objects do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :reply_order
-      resolve &Level.Resolvers.replies/3
+      resolve &Resolvers.replies/3
     end
   end
 

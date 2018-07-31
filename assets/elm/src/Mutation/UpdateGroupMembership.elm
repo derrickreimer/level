@@ -3,7 +3,7 @@ module Mutation.UpdateGroupMembership exposing (Response(..), request)
 import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
-import Data.GroupMembership exposing (GroupMembershipState)
+import Data.GroupMembership exposing (GroupMembershipState(..), stateDecoder)
 import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
 import Session exposing (Session)
@@ -52,9 +52,12 @@ variables spaceId groupId state =
 
 successDecoder : Decoder Response
 successDecoder =
-    Decode.map Success <|
-        Decode.at [ "data", "updateGroupMembership", "membership", "state" ]
-            Data.GroupMembership.stateDecoder
+    Decode.at [ "data", "updateGroupMembership" ] <|
+        Decode.map Success <|
+            Decode.oneOf
+                [ Decode.at [ "membership", "state" ] stateDecoder
+                , Decode.succeed NotSubscribed
+                ]
 
 
 failureDecoder : Decoder Response

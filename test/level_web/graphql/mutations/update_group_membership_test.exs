@@ -47,9 +47,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupMembershipTest do
              "data" => %{
                "updateGroupMembership" => %{
                  "success" => true,
-                 "membership" => %{
-                   "state" => "NOT_SUBSCRIBED"
-                 },
+                 "membership" => nil,
                  "errors" => []
                }
              }

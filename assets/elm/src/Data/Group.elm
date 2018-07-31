@@ -1,6 +1,6 @@
 module Data.Group exposing (Group, Record, fragment, decoder, getId, getCachedData, setIsBookmarked)
 
-import Data.GroupMembership exposing (GroupMembershipState, stateDecoder)
+import Data.GroupMembership as GroupMembership exposing (GroupMembershipState(..))
 import Json.Decode as Decode exposing (Decoder, field, string, bool)
 import GraphQL exposing (Fragment)
 
@@ -47,7 +47,15 @@ decoder =
             (field "id" string)
             (field "name" string)
             (field "isBookmarked" bool)
-            (Decode.at [ "membership", "state" ] stateDecoder)
+            stateDecoder
+
+
+stateDecoder : Decoder GroupMembershipState
+stateDecoder =
+    Decode.oneOf
+        [ Decode.at [ "membership", "state" ] GroupMembership.stateDecoder
+        , Decode.succeed NotSubscribed
+        ]
 
 
 

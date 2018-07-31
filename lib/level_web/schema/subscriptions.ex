@@ -59,19 +59,19 @@ defmodule LevelWeb.Schema.Subscriptions do
   @desc "The payload for the group updated event."
   object :group_updated_payload do
     @desc "The updated group."
-    field :group, :group
+    field :group, non_null(:group)
   end
 
   @desc "The payload for the group bookmarked event."
   object :group_bookmarked_payload do
     @desc "The bookmarked group."
-    field :group, :group
+    field :group, non_null(:group)
   end
 
   @desc "The payload for the group unbookmarked event."
   object :group_unbookmarked_payload do
     @desc "The unbookmarked group."
-    field :group, :group
+    field :group, non_null(:group)
   end
 
   @desc "The payload for the post created event."
@@ -86,7 +86,7 @@ defmodule LevelWeb.Schema.Subscriptions do
     field :membership, :group_membership
 
     @desc "The group."
-    field :group, :group
+    field :group, non_null(:group)
   end
 
   @desc "The payload for the reply created event."

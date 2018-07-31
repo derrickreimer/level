@@ -56,7 +56,7 @@ defmodule Level.Groups do
     case Repo.get_by(groups_base_query(member), id: id) do
       %Group{} = group ->
         if group.is_private do
-          case get_group_membership(group, member) do
+          case get_group_user(group, member) do
             {:ok, _} ->
               {:ok, group}
 
@@ -132,17 +132,28 @@ defmodule Level.Groups do
   @doc """
   Fetches a group membership by group and user.
   """
-  @spec get_group_membership(Group.t(), SpaceUser.t()) ::
-          {:ok, GroupUser.t()} | {:error, String.t()}
-  def get_group_membership(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
-    case Repo.get_by(GroupUser, space_user_id: space_user_id, group_id: group_id) do
-      %GroupUser{} = group_user ->
-        {:ok, group_user}
+  @spec get_group_user(Group.t(), SpaceUser.t()) :: {:ok, GroupUser.t() | nil}
+  @spec get_group_user(Group.t(), User.t()) :: {:ok, GroupUser.t() | nil}
 
-      _ ->
-        {:error, dgettext("errors", "The user is a not a group member")}
-    end
+  def get_group_user(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
+    GroupUser
+    |> Repo.get_by(space_user_id: space_user_id, group_id: group_id)
+    |> handle_get_group_user()
   end
+
+  def get_group_user(%Group{id: group_id}, %User{id: user_id}) do
+    queryable =
+      from gu in GroupUser,
+        join: su in assoc(gu, :space_user),
+        where: su.user_id == ^user_id
+
+    queryable
+    |> Repo.get_by(group_id: group_id)
+    |> handle_get_group_user()
+  end
+
+  defp handle_get_group_user(%GroupUser{} = group_user), do: {:ok, group_user}
+  defp handle_get_group_user(_), do: {:ok, nil}
 
   @doc """
   Lists featured group memberships (for display in the sidebar).
@@ -203,47 +214,36 @@ defmodule Level.Groups do
   Updates group membership state.
   """
   @spec update_group_membership(Group.t(), SpaceUser.t(), String.t()) ::
-          {:ok, %{group: Group.t(), group_user: GroupUser.t()}}
-          | {:error, GroupUser.t(), Ecto.Changeset.t()}
+          {:ok, %{group: Group.t(), group_user: GroupUser.t() | nil}}
+          | {:error, GroupUser.t() | nil, Ecto.Changeset.t()}
   def update_group_membership(group, space_user, state) do
-    case {get_group_membership(group, space_user), state} do
-      {{:ok, group_user}, "NOT_SUBSCRIBED"} ->
+    case {get_group_user(group, space_user), state} do
+      {{:ok, %GroupUser{} = group_user}, "NOT_SUBSCRIBED"} ->
         case delete_group_membership(group_user) do
           {:ok, _} ->
-            group_user = not_subscribed_membership(group.space_id, space_user, group)
-            Pubsub.publish(:group_membership_updated, group.id, {group, group_user})
-            {:ok, %{group: group, group_user: group_user}}
+            Pubsub.publish(:group_membership_updated, group.id, {group, nil})
+            {:ok, %{group: group, group_user: nil}}
 
           {:error, changeset} ->
             {:error, group_user, changeset}
         end
 
-      {{:error, _}, "SUBSCRIBED"} ->
+      {{:ok, nil}, "SUBSCRIBED"} ->
         case create_group_membership(group, space_user) do
           {:ok, %{group_user: group_user}} ->
             Pubsub.publish(:group_membership_updated, group.id, {group, group_user})
             {:ok, %{group: group, group_user: group_user}}
 
           {:error, _, %Ecto.Changeset{} = changeset, _} ->
-            {:error, not_subscribed_membership(group.space_id, space_user, group), changeset}
+            {:error, nil, changeset}
         end
 
-      {{:ok, group_user}, _} ->
+      {{:ok, %GroupUser{} = group_user}, _} ->
         {:ok, %{group: group, group_user: group_user}}
 
-      {{:error, _}, _} ->
-        {:ok,
-         %{group: group, group_user: not_subscribed_membership(group.space_id, space_user, group)}}
+      {{:ok, nil}, _} ->
+        {:ok, %{group: group, group_user: nil}}
     end
-  end
-
-  defp not_subscribed_membership(space_id, space_user, group) do
-    %GroupUser{
-      state: "NOT_SUBSCRIBED",
-      space_id: space_id,
-      space_user_id: space_user.id,
-      group_id: group.id
-    }
   end
 
   @doc """
