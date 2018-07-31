@@ -29,9 +29,7 @@ defmodule Level.Resolvers do
   Fetches a space by id.
   """
   @spec space(map(), authenticated_context()) :: {:ok, Space.t()} | {:error, String.t()}
-  def space(args, info)
-
-  def space(%{id: id}, %{context: %{current_user: user}}) do
+  def space(%{id: id} = _args, %{context: %{current_user: user}} = _info) do
     case Spaces.get_space(user, id) do
       {:ok, %{space: space}} ->
         {:ok, space}
@@ -45,9 +43,7 @@ defmodule Level.Resolvers do
   Fetches a space membership by space id.
   """
   @spec space_user(map(), authenticated_context()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
-  def space_user(args, info)
-
-  def space_user(%{space_id: id}, %{context: %{current_user: user}}) do
+  def space_user(%{space_id: id} = _args, %{context: %{current_user: user}} = _info) do
     case Spaces.get_space(user, id) do
       {:ok, %{space_user: space_user}} ->
         {:ok, space_user}
@@ -69,7 +65,7 @@ defmodule Level.Resolvers do
   Fetches spaces that a user belongs to.
   """
   @spec space_users(User.t(), SpaceUsers.t(), authenticated_context()) :: paginated_result()
-  def space_users(user, args, info) do
+  def space_users(%User{} = user, args, %{context: %{current_user: _user}} = info) do
     SpaceUsers.get(user, struct(SpaceUsers, args), info)
   end
 
@@ -78,7 +74,7 @@ defmodule Level.Resolvers do
   """
   @spec featured_space_users(Space.t(), map(), authenticated_context) ::
           {:ok, [SpaceUser.t()]} | no_return()
-  def featured_space_users(space, _args, %{context: %{current_user: _user}} = _info) do
+  def featured_space_users(%Space{} = space, _args, %{context: %{current_user: _user}} = _info) do
     Level.Spaces.list_featured_users(space)
   end
 
@@ -86,7 +82,7 @@ defmodule Level.Resolvers do
   Fetches groups for given a space that are visible to the current user.
   """
   @spec groups(Space.t(), Groups.t(), authenticated_context()) :: paginated_result()
-  def groups(space, args, info) do
+  def groups(%Space{} = space, args, %{context: %{current_user: _user}} = info) do
     Groups.get(space, struct(Groups, args), info)
   end
 
@@ -98,11 +94,11 @@ defmodule Level.Resolvers do
   @spec group_memberships(Group.t(), GroupMemberships.t(), authenticated_context()) ::
           paginated_result()
 
-  def group_memberships(%User{} = user, args, info) do
+  def group_memberships(%User{} = user, args, %{context: %{current_user: _user}} = info) do
     UserGroupMemberships.get(user, struct(UserGroupMemberships, args), info)
   end
 
-  def group_memberships(%Group{} = user, args, info) do
+  def group_memberships(%Group{} = user, args, %{context: %{current_user: _user}} = info) do
     GroupMemberships.get(user, struct(GroupMemberships, args), info)
   end
 
@@ -120,7 +116,7 @@ defmodule Level.Resolvers do
   """
   @spec group_membership(Group.t(), map(), authenticated_context()) ::
           {:ok, GroupUser.t()} | {:error, String.t()}
-  def group_membership(%Group{} = group, _args, %{context: %{current_user: user}}) do
+  def group_membership(%Group{} = group, _args, %{context: %{current_user: user}} = _info) do
     case Spaces.get_space(user, group.space_id) do
       {:ok, %{space_user: space_user, space: space}} ->
         case Level.Groups.get_group_membership(group, space_user) do
@@ -147,7 +143,7 @@ defmodule Level.Resolvers do
   Fetches posts within a given group.
   """
   @spec group_posts(Group.t(), GroupPosts.t(), authenticated_context()) :: paginated_result()
-  def group_posts(group, args, info) do
+  def group_posts(%Group{} = group, args, info) do
     GroupPosts.get(group, struct(GroupPosts, args), info)
   end
 
@@ -155,7 +151,7 @@ defmodule Level.Resolvers do
   Fetches replies to a given post.
   """
   @spec replies(Post.t(), Replies.t(), authenticated_context()) :: paginated_result()
-  def replies(post, args, info) do
+  def replies(%Post{} = post, args, info) do
     Replies.get(post, struct(Replies, args), info)
   end
 
@@ -163,7 +159,7 @@ defmodule Level.Resolvers do
   Fetches a post by id.
   """
   @spec post(Space.t(), map(), authenticated_context()) :: {:ok, Post.t()} | {:error, String.t()}
-  def post(space, %{id: id} = _args, %{context: %{current_user: user}}) do
+  def post(%Space{} = space, %{id: id} = _args, %{context: %{current_user: user}} = _info) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space.id),
          {:ok, post} <- Level.Posts.get_post(space_user, id) do
       {:ok, post}
