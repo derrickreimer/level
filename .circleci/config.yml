@@ -2,7 +2,7 @@ version: 2
 jobs:
   build_and_test_elixir:
     docker:
-      - image: circleci/elixir:1.6.5
+      - image: circleci/elixir:1.7.1
       - image: circleci/postgres:10.3
 
     environment:
