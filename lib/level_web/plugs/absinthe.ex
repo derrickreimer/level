@@ -18,16 +18,14 @@ defmodule LevelWeb.Absinthe do
   end
 
   def build_context(%User{} = user) do
-    %{current_user: user, loader: build_loader(user)}
+    %{current_user: user, loader: build_loader(%{current_user: user})}
   end
 
   def build_context(_) do
     %{}
   end
 
-  defp build_loader(user) do
-    params = %{current_user: user}
-
+  defp build_loader(params) do
     Dataloader.new()
     |> Dataloader.add_source(:db, Dataloader.Ecto.new(Repo))
     |> Dataloader.add_source(Groups, Groups.dataloader_data(params))
