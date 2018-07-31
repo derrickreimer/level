@@ -155,7 +155,7 @@ groupView repo ( index, group ) =
             [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
                 [ a [ Route.href (Route.Group groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
                 , viewIf (groupData.membershipState == Subscribed) <|
-                    div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Subscribed" ]
+                    div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
                 , div [ class "flex-0" ]
                     [ viewIf groupData.isBookmarked <|
                         Icons.bookmark Icons.On

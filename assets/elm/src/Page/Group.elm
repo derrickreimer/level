@@ -447,6 +447,7 @@ view repo model =
                 [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
                         [ nameView groupData model.nameEditor
+                        , privacyView groupData
                         , nameErrors model.nameEditor
                         , controlsView groupData.isBookmarked
                         ]
@@ -500,6 +501,14 @@ nameView groupData editor =
                     ]
                     []
                 ]
+
+
+privacyView : Group.Record -> Html Msg
+privacyView { isPrivate } =
+    if isPrivate == True then
+        div [ class "mx-3" ] [ Icons.lock ]
+    else
+        div [ class "mx-3" ] [ Icons.unlock ]
 
 
 nameErrors : FieldEditor -> Html Msg
@@ -577,7 +586,7 @@ postView repo currentUser now component =
 sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Html Msg
 sidebarView repo state featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Subscribers" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Members" ]
         , memberListView repo featuredMemberships
         , subscribeButtonView state
         ]
@@ -611,14 +620,14 @@ subscribeButtonView state =
                 [ class "text-sm text-blue"
                 , onClick (MembershipStateToggled Subscribed)
                 ]
-                [ text "Subscribe to the group" ]
+                [ text "Join this group" ]
 
         Subscribed ->
             button
                 [ class "text-sm text-blue"
                 , onClick (MembershipStateToggled NotSubscribed)
                 ]
-                [ text "Unsubscribe" ]
+                [ text "Leave this group" ]
 
 
 

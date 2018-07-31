@@ -15,6 +15,7 @@ type Group
 type alias Record =
     { id : String
     , name : String
+    , isPrivate : Bool
     , isBookmarked : Bool
     , membershipState : GroupMembershipState
     }
@@ -27,6 +28,7 @@ fragment =
         fragment GroupFields on Group {
           id
           name
+          isPrivate
           isBookmarked
           membership {
             state
@@ -43,9 +45,10 @@ fragment =
 decoder : Decoder Group
 decoder =
     Decode.map Group <|
-        Decode.map4 Record
+        Decode.map5 Record
             (field "id" string)
             (field "name" string)
+            (field "isPrivate" bool)
             (field "isBookmarked" bool)
             stateDecoder
 
