@@ -74,6 +74,16 @@ CREATE TYPE public.post_state AS ENUM (
 
 
 --
+-- Name: post_user_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.post_user_state AS ENUM (
+    'SUBSCRIBED',
+    'UNSUBSCRIBED'
+);
+
+
+--
 -- Name: space_setup_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -197,6 +207,21 @@ CREATE TABLE public.post_groups (
     space_id uuid NOT NULL,
     post_id uuid NOT NULL,
     group_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: post_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_users (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    state public.post_user_state DEFAULT 'SUBSCRIBED'::public.post_user_state NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -363,6 +388,14 @@ ALTER TABLE ONLY public.post_groups
 
 
 --
+-- Name: post_users post_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_users
+    ADD CONSTRAINT post_users_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -487,6 +520,13 @@ CREATE UNIQUE INDEX open_invitations_unique_active ON public.open_invitations US
 --
 
 CREATE UNIQUE INDEX post_groups_post_id_group_id_index ON public.post_groups USING btree (post_id, group_id);
+
+
+--
+-- Name: post_users_post_id_space_user_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX post_users_post_id_space_user_id_index ON public.post_users USING btree (post_id, space_user_id);
 
 
 --
@@ -656,6 +696,30 @@ ALTER TABLE ONLY public.post_groups
 
 
 --
+-- Name: post_users post_users_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_users
+    ADD CONSTRAINT post_users_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_users post_users_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_users
+    ADD CONSTRAINT post_users_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: post_users post_users_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_users
+    ADD CONSTRAINT post_users_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: posts posts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -731,5 +795,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027);
 
