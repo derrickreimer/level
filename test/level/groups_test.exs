@@ -147,11 +147,13 @@ defmodule Level.GroupsTest do
       assert Repo.one(GroupUser, space_user_id: space_user.id, group_id: group.id)
     end
 
-    test "bookmarks the group", %{space_user: space_user} do
+    test "bookmarks the group", %{user: user, space_user: space_user} do
       params = valid_group_params()
-      {:ok, %{group: group, bookmarked: true}} = Groups.create_group(space_user, params)
-      groups = Groups.list_bookmarked_groups(space_user)
-      assert Enum.any?(groups, fn g -> g.id == group.id end)
+
+      {:ok, %{group: group, membership: %{bookmarked: true}}} =
+        Groups.create_group(space_user, params)
+
+      assert Groups.is_bookmarked(user, group)
     end
 
     test "returns errors given invalid data", %{space_user: space_user} do
@@ -321,6 +323,21 @@ defmodule Level.GroupsTest do
       # The creator of the group is already a member, so...
       {:error, :group_user, changeset, _} = Groups.create_group_membership(group, space_user)
       assert changeset.errors == [user: {"is already a member", []}]
+    end
+  end
+
+  describe "delete_group_membership/3" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "leaves and unbookmarks the group", %{user: user, space_user: space_user} do
+      {:ok, %{group: group, membership: %{group_user: group_user, bookmarked: true}}} =
+        create_group(space_user)
+
+      Groups.delete_group_membership(group, space_user, group_user)
+      refute Groups.is_bookmarked(user, group)
+      assert {:ok, nil} = Groups.get_group_user(group, space_user)
     end
   end
 

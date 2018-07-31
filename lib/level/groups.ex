@@ -86,9 +86,9 @@ defmodule Level.Groups do
   Creates a group.
   """
   @spec create_group(SpaceUser.t(), map()) ::
-          {:ok, %{group: Group.t(), group_user: GroupUser.t(), bookmarked: boolean()}}
-          | {:error, :group | :group_user | :bookmarked, any(),
-             %{optional(:group | :group_user | :bookmarked) => any()}}
+          {:ok,
+           %{group: Group.t(), membership: %{group_user: GroupUser.t(), bookmarked: boolean()}}}
+          | {:error, :group | :membership, any(), %{optional(:group | :membership) => any()}}
   def create_group(space_user, params \\ %{}) do
     params_with_relations =
       params
@@ -99,14 +99,8 @@ defmodule Level.Groups do
 
     Multi.new()
     |> Multi.insert(:group, changeset)
-    |> Multi.run(:group_user, fn %{group: group} ->
+    |> Multi.run(:membership, fn %{group: group} ->
       create_group_membership(group, space_user)
-    end)
-    |> Multi.run(:bookmarked, fn %{group: group} ->
-      case bookmark_group(group, space_user) do
-        :ok -> {:ok, true}
-        _ -> {:ok, false}
-      end
     end)
     |> Repo.transaction()
   end
@@ -204,10 +198,20 @@ defmodule Level.Groups do
   @doc """
   Deletes a group membership.
   """
-  @spec delete_group_membership(GroupUser.t()) ::
-          {:ok, GroupUser.t()} | {:error, Ecto.Changeset.t()}
-  def delete_group_membership(group_user) do
-    Repo.delete(group_user)
+  @spec delete_group_membership(Group.t(), SpaceUser.t(), GroupUser.t()) ::
+          {:ok, %{group_user: GroupUser.t(), unbookmarked: boolean()}}
+          | {:error, :group_user | :unbookmarked, any(),
+             %{optional(:group_user | :unbookmarked) => any()}}
+  def delete_group_membership(group, space_user, group_user) do
+    Multi.new()
+    |> Multi.delete(:group_user, group_user)
+    |> Multi.run(:unbookmarked, fn _ ->
+      case unbookmark_group(group, space_user) do
+        :ok -> {:ok, true}
+        _ -> {:ok, false}
+      end
+    end)
+    |> Repo.transaction()
   end
 
   @doc """
@@ -219,12 +223,12 @@ defmodule Level.Groups do
   def update_group_membership(group, space_user, state) do
     case {get_group_user(group, space_user), state} do
       {{:ok, %GroupUser{} = group_user}, "NOT_SUBSCRIBED"} ->
-        case delete_group_membership(group_user) do
+        case delete_group_membership(group, space_user, group_user) do
           {:ok, _} ->
             Pubsub.publish(:group_membership_updated, group.id, {group, nil})
             {:ok, %{group: group, group_user: nil}}
 
-          {:error, changeset} ->
+          {:error, _, %Ecto.Changeset{} = changeset, _} ->
             {:error, group_user, changeset}
         end
 

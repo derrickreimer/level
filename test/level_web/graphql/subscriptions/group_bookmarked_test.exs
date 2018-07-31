@@ -27,8 +27,7 @@ defmodule LevelWeb.GraphQL.GroupBookmarkedTest do
     ref = push_subscription(socket, @operation, %{"id" => space_user.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, %{group: group, bookmarked: true}} =
-      Groups.create_group(space_user, valid_group_params())
+    {:ok, %{group: group}} = Groups.create_group(space_user, valid_group_params())
 
     assert_push("subscription:data", push_data)
 

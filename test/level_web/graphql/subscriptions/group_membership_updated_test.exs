@@ -31,7 +31,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
   end
 
   test "receives an event when a user leaves a group", %{socket: socket, space_user: space_user} do
-    {:ok, %{group: group, bookmarked: true}} = create_group(space_user)
+    {:ok, %{group: group}} = create_group(space_user)
 
     ref = push_subscription(socket, @operation, %{"id" => group.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
@@ -55,7 +55,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
   end
 
   test "receives an event when a user joins a group", %{socket: socket, space_user: space_user} do
-    {:ok, %{group: group, bookmarked: true}} = create_group(space_user)
+    {:ok, %{group: group}} = create_group(space_user)
     Groups.update_group_membership(group, space_user, "NOT_SUBSCRIBED")
 
     ref = push_subscription(socket, @operation, %{"id" => group.id})
