@@ -341,5 +341,12 @@ defmodule Level.Groups do
 
   @impl true
   def dataloader_query(Group, %{current_user: user}), do: groups_base_query(user)
+
+  def dataloader_query(GroupUser, %{current_user: user}) do
+    from gu in GroupUser,
+      join: su in assoc(gu, :space_user),
+      where: su.user_id == ^user.id
+  end
+
   def dataloader_query(_, _), do: raise("query not valid for this context")
 end

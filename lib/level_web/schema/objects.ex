@@ -133,6 +133,7 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "A preview of space users (for display in the directory sidebar)."
     field :featured_users, list_of(:space_user) do
+      # TODO: batch with dataloader
       resolve &Resolvers.featured_space_users/3
     end
   end
@@ -171,7 +172,7 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The current user's group membership."
     field :membership, :group_membership do
-      # TODO: figure out a good way to use dataloader to batch this?
+      # TODO: batch with dataloader
       resolve &Resolvers.group_membership/3
     end
 
@@ -182,7 +183,7 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The bookmarking state of the current user."
     field :is_bookmarked, non_null(:boolean) do
-      # TODO: optimize this
+      # TODO: batch with dataloader
       resolve fn group, _, %{context: %{current_user: user}} ->
         {:ok, Groups.is_bookmarked(user, group)}
       end
