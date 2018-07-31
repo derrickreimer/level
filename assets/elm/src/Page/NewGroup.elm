@@ -30,6 +30,7 @@ import ViewHelpers exposing (setFocus)
 type alias Model =
     { space : Space
     , name : String
+    , isPrivate : Bool
     , isSubmitting : Bool
     , errors : List ValidationError
     }
@@ -55,7 +56,7 @@ init space =
 
 buildModel : Space -> Model
 buildModel space =
-    Model space "" False []
+    Model space "" False False []
 
 
 setup : Model -> Cmd Msg
@@ -74,6 +75,7 @@ teardown model =
 
 type Msg
     = NameChanged String
+    | PrivacyToggled
     | Submit
     | Submitted (Result Session.Error ( Session, CreateGroup.Response ))
     | NoOp
@@ -89,7 +91,7 @@ update msg session model =
             let
                 cmd =
                     session
-                        |> CreateGroup.request (Space.getId model.space) model.name
+                        |> CreateGroup.request (Space.getId model.space) model.name model.isPrivate
                         |> Task.attempt Submitted
             in
                 ( ( { model | isSubmitting = True }, cmd ), session )
@@ -105,6 +107,9 @@ update msg session model =
 
         Submitted (Err _) ->
             noCmd session model
+
+        PrivacyToggled ->
+            noCmd session { model | isPrivate = not model.isPrivate }
 
         NoOp ->
             noCmd session model
@@ -147,6 +152,17 @@ view model =
                     ]
                     []
                 , errorView "name" model.errors
+                ]
+            , label [ class "control checkbox pb-6" ]
+                [ input
+                    [ type_ "checkbox"
+                    , class "checkbox"
+                    , onClick PrivacyToggled
+                    , checked model.isPrivate
+                    ]
+                    []
+                , span [ class "control-indicator" ] []
+                , span [ class "select-none" ] [ text "Make this group private (invite only)" ]
                 ]
             , button
                 [ type_ "submit"

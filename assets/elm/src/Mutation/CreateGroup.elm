@@ -21,11 +21,13 @@ document =
         """
         mutation CreateGroup(
           $spaceId: ID!,
-          $name: String!
+          $name: String!,
+          $isPrivate: Boolean!
         ) {
           createGroup(
             spaceId: $spaceId,
-            name: $name
+            name: $name,
+            isPrivate: $isPrivate
           ) {
             ...ValidationFields
             group {
@@ -39,12 +41,13 @@ document =
         ]
 
 
-variables : String -> String -> Maybe Encode.Value
-variables spaceId name =
+variables : String -> String -> Bool -> Maybe Encode.Value
+variables spaceId name isPrivate =
     Just <|
         Encode.object
             [ ( "spaceId", Encode.string spaceId )
             , ( "name", Encode.string name )
+            , ( "isPrivate", Encode.bool isPrivate )
             ]
 
 
@@ -77,7 +80,7 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceId name session =
+request : String -> String -> Bool -> Session -> Task Session.Error ( Session, Response )
+request spaceId name isPrivate session =
     Session.request session <|
-        GraphQL.request document (variables spaceId name) decoder
+        GraphQL.request document (variables spaceId name isPrivate) decoder
