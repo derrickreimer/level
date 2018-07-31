@@ -186,8 +186,8 @@ defmodule Level.Pagination do
   end
 
   defp apply_sort(query, %{order_by: %{field: order_field, direction: direction}}) do
-    from(r in subquery(query))
-    |> order_by([r], [{^direction, field(r, ^order_field)}])
+    from r in subquery(query),
+      order_by: [{^direction, field(r, ^order_field)}]
   end
 
   defp apply_after_cursor(query, _, %{after: cursor}) when is_nil(cursor), do: query
