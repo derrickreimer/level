@@ -136,6 +136,16 @@ defmodule LevelWeb.Schema.Objects do
       # TODO: batch with dataloader
       resolve &Resolvers.featured_space_users/3
     end
+
+    @desc "A paginated list of users in the space."
+    field :space_users, non_null(:space_user_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :space_user_order, default_value: %{field: :last_name, direction: :asc}
+      resolve &Resolvers.space_users/3
+    end
   end
 
   @desc "A group is a collection of users within a space."

@@ -35,8 +35,24 @@ defmodule LevelWeb.GraphQL.SpaceUsersTest do
     }
   """
 
+  @space_list_query """
+    query GetSpaceUsers(
+      $space_id: ID!
+    ) {
+      space(id: $space_id) {
+        spaceUsers(first: 10) {
+          edges {
+            node {
+              lastName
+            }
+          }
+        }
+      }
+    }
+  """
+
   setup %{conn: conn} do
-    {:ok, user} = create_user()
+    {:ok, user} = create_user(%{last_name: "Anderson"})
     conn = authenticate_with_jwt(conn, user)
     {:ok, %{conn: conn, user: user}}
   end
@@ -83,6 +99,37 @@ defmodule LevelWeb.GraphQL.SpaceUsersTest do
                          },
                          "firstName" => user.first_name,
                          "lastName" => user.last_name
+                       }
+                     }
+                   ]
+                 }
+               }
+             }
+           }
+  end
+
+  test "users can list members of a space", %{conn: conn, user: user} do
+    {:ok, %{space: space}} = create_space(user, %{name: "Level"})
+    {:ok, %{space_user: _}} = create_space_member(space, %{last_name: "Baker"})
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @space_list_query, variables: %{space_id: space.id}})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "spaceUsers" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "lastName" => "Anderson"
+                       }
+                     },
+                     %{
+                       "node" => %{
+                         "lastName" => "Baker"
                        }
                      }
                    ]

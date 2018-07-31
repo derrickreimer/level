@@ -21,6 +21,7 @@ defmodule LevelWeb.Schema.Enums do
 
   enum :space_user_order_field do
     value :space_name
+    value :last_name
   end
 
   enum :space_state do

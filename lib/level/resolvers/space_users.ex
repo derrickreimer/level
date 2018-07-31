@@ -9,6 +9,8 @@ defmodule Level.Resolvers.SpaceUsers do
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Spaces
+  alias Level.Spaces.Space
+  alias Level.Users.User
 
   defstruct first: nil,
             last: nil,
@@ -24,13 +26,13 @@ defmodule Level.Resolvers.SpaceUsers do
           last: integer() | nil,
           before: String.t() | nil,
           after: String.t() | nil,
-          order_by: %{field: :space_name, direction: :asc | :desc}
+          order_by: %{field: :last_name | :space_name, direction: :asc | :desc}
         }
 
   @doc """
   Executes a paginated query for space users belonging to a given user.
   """
-  def get(user, args, %{context: %{current_user: authenticated_user}} = _info) do
+  def get(%User{} = user, args, %{context: %{current_user: authenticated_user}} = _info) do
     if authenticated_user == user do
       base_query =
         user
@@ -42,5 +44,11 @@ defmodule Level.Resolvers.SpaceUsers do
     else
       {:error, dgettext("errors", "Space users are only readable for the authenticated user")}
     end
+  end
+
+  def get(%Space{} = space, args, %{context: %{current_user: authenticated_user}} = _info) do
+    base_query = Spaces.space_users_base_query(space)
+    wrapped_query = from(su in subquery(base_query))
+    Pagination.fetch_result(wrapped_query, Args.build(args))
   end
 end

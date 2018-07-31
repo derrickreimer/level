@@ -62,11 +62,17 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches spaces that a user belongs to.
+  Fetches space users belonging to a given user or a given space.
   """
   @spec space_users(User.t(), SpaceUsers.t(), info()) :: paginated_result()
+  @spec space_users(Space.t(), SpaceUsers.t(), info()) :: paginated_result()
+
   def space_users(%User{} = user, args, %{context: %{current_user: _user}} = info) do
     SpaceUsers.get(user, struct(SpaceUsers, args), info)
+  end
+
+  def space_users(%Space{} = space, args, %{context: %{current_user: _user}} = info) do
+    SpaceUsers.get(space, struct(SpaceUsers, args), info)
   end
 
   @doc """
