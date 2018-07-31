@@ -1,4 +1,4 @@
-defmodule Level.Connections.UserGroupMemberships do
+defmodule Level.Resolvers.UserGroupMemberships do
   @moduledoc """
   A paginated connection for fetching a user's group memberships.
   """

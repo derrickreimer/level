@@ -1,4 +1,4 @@
-defmodule Level.Connections.SpaceUsers do
+defmodule Level.Resolvers.SpaceUsers do
   @moduledoc """
   A paginated connection for fetching spaces a user belongs to.
   """

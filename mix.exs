@@ -105,15 +105,15 @@ defmodule Level.Mixfile do
   defp groups_for_modules do
     [
       Connections: [
-        Level.Connections,
-        Level.Connections.GroupPosts,
-        Level.Connections.Groups,
-        Level.Connections.GroupMemberships,
-        Level.Connections.Invitations,
-        Level.Connections.Replies,
-        Level.Connections.SpaceUsers,
-        Level.Connections.UserGroupMemberships,
-        Level.Connections.Users
+        Level.Resolvers,
+        Level.Resolvers.GroupPosts,
+        Level.Resolvers.Groups,
+        Level.Resolvers.GroupMemberships,
+        Level.Resolvers.Invitations,
+        Level.Resolvers.Replies,
+        Level.Resolvers.SpaceUsers,
+        Level.Resolvers.UserGroupMemberships,
+        Level.Resolvers.Users
       ],
       Mutations: [
         Level.Mutations

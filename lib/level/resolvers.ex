@@ -1,15 +1,15 @@
-defmodule Level.Connections do
+defmodule Level.Resolvers do
   @moduledoc """
   Functions for loading connections between resources, designed to be used in
   GraphQL query resolution.
   """
 
-  alias Level.Connections.GroupMemberships
-  alias Level.Connections.GroupPosts
-  alias Level.Connections.Groups
-  alias Level.Connections.Replies
-  alias Level.Connections.SpaceUsers
-  alias Level.Connections.UserGroupMemberships
+  alias Level.Resolvers.GroupMemberships
+  alias Level.Resolvers.GroupPosts
+  alias Level.Resolvers.Groups
+  alias Level.Resolvers.Replies
+  alias Level.Resolvers.SpaceUsers
+  alias Level.Resolvers.UserGroupMemberships
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Pagination

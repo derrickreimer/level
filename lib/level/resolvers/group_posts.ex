@@ -1,6 +1,6 @@
-defmodule Level.Connections.Replies do
+defmodule Level.Resolvers.GroupPosts do
   @moduledoc """
-  A paginated connection for fetching a post's replies.
+  A paginated connection for fetching a group's posts.
   """
 
   alias Level.Pagination
@@ -12,7 +12,7 @@ defmodule Level.Connections.Replies do
             after: nil,
             order_by: %{
               field: :posted_at,
-              direction: :asc
+              direction: :desc
             }
 
   @type t :: %__MODULE__{
@@ -24,10 +24,10 @@ defmodule Level.Connections.Replies do
         }
 
   @doc """
-  Executes a paginated query for a post's replies.
+  Executes a paginated query for a group's posts.
   """
-  def get(post, args, _info) do
-    query = Ecto.assoc(post, :replies)
+  def get(group, args, _info) do
+    query = Ecto.assoc(group, :posts)
     args = process_args(args)
     Pagination.fetch_result(query, Args.build(args))
   end

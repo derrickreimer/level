@@ -1,7 +1,7 @@
-defmodule Level.ConnectionsTest do
+defmodule Level.ResolversTest do
   use Level.DataCase, async: true
 
-  alias Level.Connections
+  alias Level.Resolvers
   alias Level.Groups
 
   describe "groups/3" do
@@ -11,7 +11,7 @@ defmodule Level.ConnectionsTest do
 
     test "includes open groups by default", %{space: space, user: user, space_user: space_user} do
       {:ok, %{group: open_group}} = create_group(space_user)
-      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
+      {:ok, %{edges: edges}} = Resolvers.groups(space, %{first: 10}, build_context(user))
 
       assert edges_include?(edges, open_group.id)
     end
@@ -23,7 +23,7 @@ defmodule Level.ConnectionsTest do
     } do
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, closed_group} = Groups.close_group(group)
-      {:ok, %{edges: edges}} = Connections.groups(space, %{first: 10}, build_context(user))
+      {:ok, %{edges: edges}} = Resolvers.groups(space, %{first: 10}, build_context(user))
 
       refute edges_include?(edges, closed_group.id)
     end
@@ -34,7 +34,7 @@ defmodule Level.ConnectionsTest do
       {:ok, closed_group} = Groups.close_group(closed_group)
 
       {:ok, %{edges: edges}} =
-        Connections.groups(space, %{first: 10, state: "CLOSED"}, build_context(user))
+        Resolvers.groups(space, %{first: 10, state: "CLOSED"}, build_context(user))
 
       assert edges_include?(edges, closed_group.id)
       refute edges_include?(edges, open_group.id)
@@ -50,7 +50,7 @@ defmodule Level.ConnectionsTest do
       {:ok, %{group: group}} = create_group(space_user)
 
       {:ok, %{edges: edges}} =
-        Connections.group_memberships(
+        Resolvers.group_memberships(
           user,
           %{space_id: space_user.space_id, first: 10},
           build_context(user)
@@ -63,7 +63,7 @@ defmodule Level.ConnectionsTest do
       {:ok, %{user: another_user}} = create_space_member(space)
 
       assert {:error, "Group memberships are only readable for the authenticated user"} ==
-               Connections.group_memberships(
+               Resolvers.group_memberships(
                  user,
                  %{space_id: space.id, first: 10},
                  build_context(another_user)
