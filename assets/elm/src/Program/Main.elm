@@ -28,6 +28,7 @@ import Page.Post
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceSettings
+import Page.SpaceUsers
 import Page.UserSettings
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
@@ -111,6 +112,7 @@ type Msg
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
     | InboxMsg Page.Inbox.Msg
+    | SpaceUsersMsg Page.SpaceUsers.Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
     | NewGroupMsg Page.NewGroup.Msg
@@ -220,6 +222,24 @@ update msg model =
                 , Cmd.map SetupInviteUsersMsg cmd
                 )
 
+        ( SpaceUsersMsg msg, SpaceUsers pageModel ) ->
+            let
+                ( ( newPageModel, cmd ), session ) =
+                    Page.SpaceUsers.update msg model.repo model.session pageModel
+            in
+                ( { model | session = session, page = SpaceUsers newPageModel }
+                , Cmd.map SpaceUsersMsg cmd
+                )
+
+        ( GroupsMsg msg, Groups pageModel ) ->
+            let
+                ( ( newPageModel, cmd ), session ) =
+                    Page.Groups.update msg model.repo model.session pageModel
+            in
+                ( { model | session = session, page = Groups newPageModel }
+                , Cmd.map GroupsMsg cmd
+                )
+
         ( GroupMsg msg, Group pageModel ) ->
             let
                 ( ( newPageModel, cmd ), session ) =
@@ -312,6 +332,7 @@ type Page
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
     | Inbox Page.Inbox.Model
+    | SpaceUsers Page.SpaceUsers.Model
     | Groups Page.Groups.Model
     | Group Page.Group.Model
     | NewGroup Page.NewGroup.Model
@@ -322,6 +343,7 @@ type Page
 
 type PageInit
     = InboxInit (Result Never Page.Inbox.Model)
+    | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
     | NewGroupInit (Result Never Page.NewGroup.Model)
@@ -385,6 +407,11 @@ navigateTo maybeRoute sharedState model =
                     |> Page.Inbox.init
                     |> transition model InboxInit
 
+            Just (Route.SpaceUsers params) ->
+                model.session
+                    |> Page.SpaceUsers.init sharedState.user sharedState.space params
+                    |> transition model SpaceUsersInit
+
             Just (Route.Groups params) ->
                 model.session
                     |> Page.Groups.init sharedState.user sharedState.space params
@@ -426,6 +453,9 @@ pageTitle repo page =
     case page of
         Inbox _ ->
             Page.Inbox.title
+
+        SpaceUsers _ ->
+            Page.SpaceUsers.title
 
         Group pageModel ->
             Page.Group.title repo pageModel
@@ -471,6 +501,23 @@ setupPage pageInit model =
             )
 
         InboxInit (Err _) ->
+            ( model, Cmd.none )
+
+        SpaceUsersInit (Ok ( session, pageModel )) ->
+            ( { model
+                | page = SpaceUsers pageModel
+                , session = session
+                , isTransitioning = False
+              }
+            , Page.SpaceUsers.setup pageModel
+                |> Cmd.map SpaceUsersMsg
+            )
+
+        SpaceUsersInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        SpaceUsersInit (Err _) ->
+            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
         GroupsInit (Ok ( session, pageModel )) ->
@@ -597,6 +644,9 @@ setupPage pageInit model =
 teardownPage : Page -> Cmd Msg
 teardownPage page =
     case page of
+        SpaceUsers pageModel ->
+            Cmd.map SpaceUsersMsg (Page.SpaceUsers.teardown pageModel)
+
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
 
@@ -621,6 +671,9 @@ routeFor page =
 
         SetupInviteUsers _ ->
             Just Route.SetupInviteUsers
+
+        SpaceUsers { params } ->
+            Just <| Route.SpaceUsers params
 
         Groups { params } ->
             Just <| Route.Groups params
@@ -664,6 +717,11 @@ pageView repo sharedState page =
             sharedState.featuredUsers
                 |> Page.Inbox.view repo
                 |> Html.map InboxMsg
+
+        SpaceUsers pageModel ->
+            pageModel
+                |> Page.SpaceUsers.view repo
+                |> Html.map SpaceUsersMsg
 
         Groups pageModel ->
             pageModel

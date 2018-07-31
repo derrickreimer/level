@@ -8,6 +8,7 @@ import Html exposing (Attribute)
 import Html.Attributes as Attr
 import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
 import Route.Groups
+import Route.SpaceUsers
 
 
 -- ROUTING --
@@ -18,6 +19,7 @@ type Route
     | SetupCreateGroups
     | SetupInviteUsers
     | Inbox
+    | SpaceUsers Route.SpaceUsers.Params
     | Groups Route.Groups.Params
     | Group String
     | NewGroup
@@ -33,6 +35,7 @@ route =
         , Url.map SetupCreateGroups (s "setup" </> s "groups")
         , Url.map SetupInviteUsers (s "setup" </> s "invites")
         , Url.map Inbox (s "inbox")
+        , Url.map SpaceUsers Route.SpaceUsers.params
         , Url.map Groups Route.Groups.params
         , Url.map NewGroup (s "groups" </> s "new")
         , Url.map Group (s "groups" </> Url.string)
@@ -62,6 +65,9 @@ routeToString page =
 
                 Inbox ->
                     [ "inbox" ]
+
+                SpaceUsers params ->
+                    Route.SpaceUsers.segments params
 
                 Groups params ->
                     Route.Groups.segments params
