@@ -35,7 +35,7 @@ import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
-import Mutation.PostToGroup as PostToGroup
+import Mutation.CreatePost as CreatePost
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Query.FeaturedMemberships as FeaturedMemberships
@@ -171,7 +171,7 @@ type Msg
     | Tick Time
     | NewPostBodyChanged String
     | NewPostSubmit
-    | NewPostSubmitted (Result Session.Error ( Session, PostToGroup.Response ))
+    | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | MembershipStateToggled GroupMembershipState
     | MembershipStateSubmitted (Result Session.Error ( Session, UpdateGroupMembership.Response ))
     | NameClicked
@@ -207,7 +207,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             if newPostSubmittable postComposer then
                 let
                     cmd =
-                        PostToGroup.request (Space.getId model.space) (Group.getId model.group) postComposer.body session
+                        CreatePost.request (Space.getId model.space) (Group.getId model.group) postComposer.body session
                             |> Task.attempt NewPostSubmitted
                 in
                     ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), session )

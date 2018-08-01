@@ -1,14 +1,14 @@
-defmodule LevelWeb.GraphQL.PostToGroupTest do
+defmodule LevelWeb.GraphQL.CreatePostTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   @query """
-    mutation PostToGroup(
+    mutation CreatePost(
       $space_id: ID!,
       $group_id: ID!,
       $body: String!
     ) {
-      postToGroup(
+      createPost(
         spaceId: $space_id,
         groupId: $group_id,
         body: $body
@@ -58,7 +58,7 @@ defmodule LevelWeb.GraphQL.PostToGroupTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "postToGroup" => %{
+               "createPost" => %{
                  "success" => true,
                  "post" => %{
                    "body" => "I am the body",

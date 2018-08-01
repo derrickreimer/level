@@ -50,7 +50,7 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
     space_user: space_user,
     group: group
   } do
-    {:ok, %{post: post}} = post_to_group(space_user, group, %{body: "Hey!"})
+    {:ok, %{post: post}} = create_post(space_user, group, %{body: "Hey!"})
     {:ok, _reply} = reply_to_post(space_user, post, %{body: "Sup?"})
 
     variables = %{

@@ -1,4 +1,4 @@
-module Mutation.PostToGroup exposing (Response(..), request)
+module Mutation.CreatePost exposing (Response(..), request)
 
 import Task exposing (Task)
 import Json.Encode as Encode
@@ -19,12 +19,12 @@ document : Document
 document =
     GraphQL.document
         """
-        mutation PostToGroup(
+        mutation CreatePost(
           $spaceId: ID!,
           $groupId: ID!,
           $body: String!
         ) {
-          postToGroup(
+          createPost(
             spaceId: $spaceId,
             groupId: $groupId,
             body: $body
@@ -55,17 +55,17 @@ conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "postToGroup", "post" ] Data.Post.decoder
+            Decode.at [ "data", "createPost", "post" ] Data.Post.decoder
                 |> Decode.map Success
 
         False ->
-            Decode.at [ "data", "postToGroup", "errors" ] (Decode.list Data.ValidationError.decoder)
+            Decode.at [ "data", "createPost", "errors" ] (Decode.list Data.ValidationError.decoder)
                 |> Decode.map Invalid
 
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "postToGroup", "success" ] Decode.bool
+    Decode.at [ "data", "createPost", "success" ] Decode.bool
         |> Decode.andThen conditionalDecoder
 
 

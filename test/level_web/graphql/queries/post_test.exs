@@ -23,7 +23,7 @@ defmodule LevelWeb.GraphQL.PostTest do
 
   test "spaces expose their posts", %{conn: conn, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
-    {:ok, %{post: post}} = post_to_group(space_user, group, %{body: "Hello"})
+    {:ok, %{post: post}} = create_post(space_user, group, %{body: "Hello"})
 
     variables = %{
       space_id: space_user.space_id,
@@ -53,7 +53,7 @@ defmodule LevelWeb.GraphQL.PostTest do
   } do
     {:ok, %{space_user: another_user}} = create_space_member(space)
     {:ok, %{group: group}} = create_group(another_user, %{name: "Top Secret", is_private: true})
-    {:ok, %{post: post}} = post_to_group(another_user, group, %{body: "Hello"})
+    {:ok, %{post: post}} = create_post(another_user, group, %{body: "Hello"})
 
     variables = %{
       space_id: space_user.space_id,

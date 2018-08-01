@@ -17,7 +17,7 @@ defmodule Level.PostsTest do
       space_user: space_user,
       group: group
     } do
-      {:ok, %{post: %Post{id: post_id}}} = post_to_group(space_user, group)
+      {:ok, %{post: %Post{id: post_id}}} = create_post(space_user, group)
       {:ok, outside_user} = create_user()
 
       result =
@@ -34,7 +34,7 @@ defmodule Level.PostsTest do
       group: group
     } do
       {:ok, group} = Groups.update_group(group, %{is_private: true})
-      {:ok, %{post: %Post{id: post_id}}} = post_to_group(space_user, group)
+      {:ok, %{post: %Post{id: post_id}}} = create_post(space_user, group)
       {:ok, %{user: another_user}} = create_space_member(space)
 
       result =
@@ -51,7 +51,7 @@ defmodule Level.PostsTest do
       group: group
     } do
       {:ok, group} = Groups.update_group(group, %{is_private: true})
-      {:ok, %{post: %Post{id: post_id}}} = post_to_group(space_user, group)
+      {:ok, %{post: %Post{id: post_id}}} = create_post(space_user, group)
       {:ok, %{user: another_user, space_user: another_space_user}} = create_space_member(space)
       {:ok, _} = Groups.create_group_membership(group, another_space_user)
 
@@ -66,7 +66,7 @@ defmodule Level.PostsTest do
       space_user: space_user,
       group: group
     } do
-      {:ok, %{post: %Post{id: post_id}}} = post_to_group(space_user, group)
+      {:ok, %{post: %Post{id: post_id}}} = create_post(space_user, group)
       {:ok, %{user: another_user}} = create_space_member(space)
 
       assert %Post{id: ^post_id} =
@@ -76,7 +76,7 @@ defmodule Level.PostsTest do
     end
   end
 
-  describe "post_to_group/2" do
+  describe "create_post/2" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
@@ -85,7 +85,7 @@ defmodule Level.PostsTest do
 
     test "creates a new post given valid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: "The body"})
-      {:ok, %{post: post}} = Posts.post_to_group(space_user, group, params)
+      {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
       assert post.space_user_id == space_user.id
       assert post.body == "The body"
     end
@@ -95,7 +95,7 @@ defmodule Level.PostsTest do
       group: %Group{id: group_id} = group
     } do
       params = valid_post_params()
-      {:ok, %{post: post}} = Posts.post_to_group(space_user, group, params)
+      {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
 
       post =
         post
@@ -106,7 +106,7 @@ defmodule Level.PostsTest do
 
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
-      {:error, :post, changeset, _} = Posts.post_to_group(space_user, group, params)
+      {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)
 
       assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
                changeset

@@ -20,7 +20,7 @@ defmodule Level.Posts do
   @behaviour Level.DataloaderSource
 
   @typedoc "The result of posting to a group"
-  @type post_to_group_result ::
+  @type create_post_result ::
           {:ok, %{post: Post.t(), post_group: PostGroup.t()}}
           | {:error, :post | :post_group, any(), %{optional(:post | :post_group) => any()}}
 
@@ -75,15 +75,15 @@ defmodule Level.Posts do
   @doc """
   Posts a message to a group.
   """
-  @spec post_to_group(SpaceUser.t(), Group.t(), map()) :: post_to_group_result()
-  def post_to_group(space_user, group, params) do
+  @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()
+  def create_post(space_user, group, params) do
     Multi.new()
     |> Multi.insert(:post, create_post_changeset(space_user, params))
     |> Multi.run(:post_group, fn %{post: post} ->
       create_post_group(space_user.space_id, post.id, group.id)
     end)
     |> Repo.transaction()
-    |> after_post_to_group(group)
+    |> after_create_post(group)
   end
 
   defp create_post_changeset(space_user, params) do
@@ -108,12 +108,12 @@ defmodule Level.Posts do
     |> Repo.insert()
   end
 
-  defp after_post_to_group({:ok, %{post: %Post{} = post}} = result, %Group{id: group_id}) do
+  defp after_create_post({:ok, %{post: %Post{} = post}} = result, %Group{id: group_id}) do
     Pubsub.publish(:post_created, group_id, post)
     result
   end
 
-  defp after_post_to_group(err, _group), do: err
+  defp after_create_post(err, _group), do: err
 
   @doc """
   Adds a reply to a post.

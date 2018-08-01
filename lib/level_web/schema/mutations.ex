@@ -212,7 +212,7 @@ defmodule LevelWeb.Schema.Mutations do
   end
 
   @desc "The response to posting a message to a group."
-  object :post_to_group_payload do
+  object :create_post_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why

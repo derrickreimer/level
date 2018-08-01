@@ -29,7 +29,7 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
     ref = push_subscription(socket, @operation, %{"id" => group.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, %{post: post}} = Posts.post_to_group(space_user, group, valid_post_params())
+    {:ok, %{post: post}} = Posts.create_post(space_user, group, valid_post_params())
     assert_push("subscription:data", push_data)
 
     assert push_data == %{

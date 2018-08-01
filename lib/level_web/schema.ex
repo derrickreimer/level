@@ -150,12 +150,12 @@ defmodule LevelWeb.Schema do
     end
 
     @desc "Posts a message to a group."
-    field :post_to_group, type: :post_to_group_payload do
+    field :create_post, type: :create_post_payload do
       arg :space_id, non_null(:id)
       arg :group_id, non_null(:id)
       arg :body, non_null(:string)
 
-      resolve &Level.Mutations.post_to_group/2
+      resolve &Level.Mutations.create_post/2
     end
 
     @desc "Replies to a post."
