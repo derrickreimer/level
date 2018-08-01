@@ -74,10 +74,11 @@ CREATE TYPE public.post_state AS ENUM (
 
 
 --
--- Name: post_user_state; Type: TYPE; Schema: public; Owner: -
+-- Name: post_subscription_state; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public.post_user_state AS ENUM (
+CREATE TYPE public.post_subscription_state AS ENUM (
+    'IMPLICIT',
     'SUBSCRIBED',
     'UNSUBSCRIBED'
 );
@@ -221,7 +222,7 @@ CREATE TABLE public.post_users (
     space_id uuid NOT NULL,
     post_id uuid NOT NULL,
     space_user_id uuid NOT NULL,
-    state public.post_user_state DEFAULT 'SUBSCRIBED'::public.post_user_state NOT NULL,
+    subscription_state public.post_subscription_state DEFAULT 'SUBSCRIBED'::public.post_subscription_state NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );

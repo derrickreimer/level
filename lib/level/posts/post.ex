@@ -26,6 +26,10 @@ defmodule Level.Posts.Post do
     many_to_many :groups, Group, join_through: PostGroup
     has_many :replies, Reply
 
+    # Holds the subscription state for the current user.
+    # This is populated automatically by the posts_base_query.
+    field :subscription_state, :string, virtual: true
+
     timestamps()
   end
 

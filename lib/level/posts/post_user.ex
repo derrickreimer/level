@@ -14,7 +14,7 @@ defmodule Level.Posts.PostUser do
   @foreign_key_type :binary_id
 
   schema "post_users" do
-    field :state, :string, read_after_writes: true
+    field :subscription_state, :string, read_after_writes: true
 
     belongs_to :space, Space
     belongs_to :post, Post

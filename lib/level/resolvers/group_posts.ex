@@ -3,8 +3,11 @@ defmodule Level.Resolvers.GroupPosts do
   A paginated connection for fetching a group's posts.
   """
 
+  import Ecto.Query, warn: false
+
   alias Level.Pagination
   alias Level.Pagination.Args
+  alias Level.Posts
 
   defstruct first: nil,
             last: nil,
@@ -26,8 +29,11 @@ defmodule Level.Resolvers.GroupPosts do
   @doc """
   Executes a paginated query for a group's posts.
   """
-  def get(group, args, _info) do
-    query = Ecto.assoc(group, :posts)
+  def get(group, args, %{context: %{current_user: user}}) do
+    query =
+      from [p, su, g, gu, pu] in Posts.posts_base_query(user),
+        where: g.id == ^group.id
+
     args = process_args(args)
     Pagination.fetch_result(query, Args.build(args))
   end

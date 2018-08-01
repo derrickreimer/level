@@ -46,7 +46,13 @@ defmodule Level.Posts do
       join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == su.id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      left_join: pu in PostUser,
+      on: pu.space_user_id == su.id and pu.post_id == p.id,
+      where: g.is_private == false or not is_nil(gu.id),
+      select: %{
+        p
+        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "IMPLICIT")
+      }
   end
 
   def posts_base_query(%SpaceUser{id: space_user_id} = _space_user) do
@@ -54,7 +60,13 @@ defmodule Level.Posts do
       join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      where: g.is_private == false or not is_nil(gu.id),
+      left_join: pu in PostUser,
+      on: pu.space_user_id == ^space_user_id and pu.post_id == p.id,
+      select: %{
+        p
+        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "IMPLICIT")
+      }
   end
 
   @doc """
@@ -131,7 +143,7 @@ defmodule Level.Posts do
       space_id: space_id,
       post_id: post_id,
       space_user_id: space_user_id,
-      state: "SUBSCRIBED"
+      subscription_state: "SUBSCRIBED"
     }
 
     %PostUser{}
@@ -153,7 +165,7 @@ defmodule Level.Posts do
       space_id: space_id,
       post_id: post_id,
       space_user_id: space_user_id,
-      state: "UNSUBSCRIBED"
+      subscription_state: "UNSUBSCRIBED"
     }
 
     %PostUser{}
@@ -170,14 +182,14 @@ defmodule Level.Posts do
   Determines a user's subscription state with a post.
   """
   @spec get_subscription_state(Post.t(), SpaceUser.t()) ::
-          :subscribed | :unsubscribed | :not_subscribed | no_return()
+          :subscribed | :unsubscribed | :implicit | no_return()
   def get_subscription_state(%Post{id: post_id}, %SpaceUser{id: space_user_id}) do
     case Repo.get_by(PostUser, %{post_id: post_id, space_user_id: space_user_id}) do
-      %PostUser{state: state} ->
+      %PostUser{subscription_state: state} ->
         parse_subscription_state(state)
 
       _ ->
-        :not_subscribed
+        :implicit
     end
   end
 

@@ -40,6 +40,12 @@ defmodule LevelWeb.Schema.Enums do
     value :closed, as: "CLOSED"
   end
 
+  enum :post_subscription_state do
+    value :implicit, as: "IMPLICIT"
+    value :subscribed, as: "SUBSCRIBED"
+    value :unsubscribed, as: "UNSUBSCRIBED"
+  end
+
   enum :user_order_field do
     value :last_name
   end

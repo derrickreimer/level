@@ -237,6 +237,10 @@ defmodule LevelWeb.Schema.Objects do
       arg :order_by, :reply_order
       resolve &Resolvers.replies/3
     end
+
+    # Viewer-contextual fields
+    @desc "The viewer's subscription to the post."
+    field :subscription_state, non_null(:post_subscription_state)
   end
 
   @desc "A reply represents a response to a post."

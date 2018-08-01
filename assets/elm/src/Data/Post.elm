@@ -52,6 +52,7 @@ fragment replyLimit =
                   body
                   bodyHtml
                   postedAt
+                  subscriptionState
                   author {
                     ...SpaceUserFields
                   }
