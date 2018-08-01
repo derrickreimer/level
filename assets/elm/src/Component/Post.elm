@@ -26,7 +26,7 @@ import Data.Post as Post exposing (Post)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
-import Mutation.ReplyToPost as ReplyToPost
+import Mutation.CreateReply as CreateReply
 import Query.Replies
 import ReplyComposer exposing (ReplyComposer, Mode(..))
 import Repo exposing (Repo)
@@ -119,7 +119,7 @@ type Msg
     | NewReplyBlurred
     | NewReplySubmit
     | NewReplyEscaped
-    | NewReplySubmitted (Result Session.Error ( Session, ReplyToPost.Response ))
+    | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
     | PreviousRepliesRequested
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
     | NoOp
@@ -160,7 +160,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                     ReplyComposer.getBody replyComposer
 
                 cmd =
-                    ReplyToPost.request spaceId (Post.getId post) body session
+                    CreateReply.request spaceId (Post.getId post) body session
                         |> Task.attempt NewReplySubmitted
             in
                 ( ( newModel, cmd ), session )

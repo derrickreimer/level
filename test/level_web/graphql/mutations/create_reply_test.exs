@@ -1,14 +1,14 @@
-defmodule LevelWeb.GraphQL.ReplyToPostTest do
+defmodule LevelWeb.GraphQL.CreateReplyTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   @query """
-    mutation ReplyToPost(
+    mutation CreateReply(
       $space_id: ID!,
       $post_id: ID!,
       $body: String!
     ) {
-      replyToPost(
+      createReply(
         spaceId: $space_id,
         postId: $post_id,
         body: $body
@@ -55,7 +55,7 @@ defmodule LevelWeb.GraphQL.ReplyToPostTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "replyToPost" => %{
+               "createReply" => %{
                  "success" => true,
                  "reply" => %{
                    "body" => "I am the body",

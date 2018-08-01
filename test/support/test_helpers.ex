@@ -105,12 +105,12 @@ defmodule Level.TestHelpers do
     Posts.create_post(space_user, group, params)
   end
 
-  def reply_to_post(space_user, post, params \\ %{}) do
+  def create_reply(space_user, post, params \\ %{}) do
     params =
       valid_reply_params()
       |> Map.merge(params)
 
-    Posts.reply_to_post(space_user, post, params)
+    Posts.create_reply(space_user, post, params)
   end
 
   defp random_string do

@@ -25,7 +25,7 @@ defmodule Level.Posts do
           | {:error, :post | :post_group, any(), %{optional(:post | :post_group) => any()}}
 
   @typedoc "The result of replying to a post"
-  @type reply_to_post_result :: {:ok, %{reply: Reply.t()}} | {:error, Ecto.Changeset.t()}
+  @type create_reply_result :: {:ok, %{reply: Reply.t()}} | {:error, Ecto.Changeset.t()}
 
   @doc """
   Builds a query for posts accessible to a particular user.
@@ -118,8 +118,8 @@ defmodule Level.Posts do
   @doc """
   Adds a reply to a post.
   """
-  @spec reply_to_post(SpaceUser.t(), Post.t(), map()) :: reply_to_post_result()
-  def reply_to_post(
+  @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
+  def create_reply(
         %SpaceUser{id: space_user_id, space_id: space_id},
         %Post{id: post_id} = post,
         params
@@ -133,15 +133,15 @@ defmodule Level.Posts do
     %Reply{}
     |> Reply.create_changeset(params_with_relations)
     |> Repo.insert()
-    |> after_reply_to_post(post)
+    |> after_create_reply(post)
   end
 
-  defp after_reply_to_post({:ok, %Reply{} = reply} = result, %Post{id: post_id}) do
+  defp after_create_reply({:ok, %Reply{} = reply} = result, %Post{id: post_id}) do
     Pubsub.publish(:reply_created, post_id, reply)
     result
   end
 
-  defp after_reply_to_post(err, _post), do: err
+  defp after_create_reply(err, _post), do: err
 
   @impl true
   def dataloader_data(%{current_user: _user} = params) do

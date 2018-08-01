@@ -159,12 +159,12 @@ defmodule LevelWeb.Schema do
     end
 
     @desc "Replies to a post."
-    field :reply_to_post, type: :reply_to_post_payload do
+    field :create_reply, type: :create_reply_payload do
       arg :space_id, non_null(:id)
       arg :post_id, non_null(:id)
       arg :body, non_null(:string)
 
-      resolve &Level.Mutations.reply_to_post/2
+      resolve &Level.Mutations.create_reply/2
     end
   end
 

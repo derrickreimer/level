@@ -30,7 +30,7 @@ defmodule LevelWeb.GraphQL.ReplyCreatedTest do
     ref = push_subscription(socket, @operation, %{"id" => post.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, reply} = reply_to_post(space_user, post)
+    {:ok, reply} = create_reply(space_user, post)
     assert_push("subscription:data", push_data)
 
     assert push_data == %{

@@ -1,4 +1,4 @@
-module Mutation.ReplyToPost exposing (Response(..), request)
+module Mutation.CreateReply exposing (Response(..), request)
 
 import Task exposing (Task)
 import Json.Encode as Encode
@@ -19,12 +19,12 @@ document : Document
 document =
     GraphQL.document
         """
-        mutation ReplyToPost(
+        mutation CreateReply(
           $spaceId: ID!,
           $postId: ID!,
           $body: String!
         ) {
-          replyToPost(
+          createReply(
             spaceId: $spaceId,
             postId: $postId,
             body: $body
@@ -55,17 +55,17 @@ conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "replyToPost", "reply" ] Data.Reply.decoder
+            Decode.at [ "data", "createReply", "reply" ] Data.Reply.decoder
                 |> Decode.map Success
 
         False ->
-            Decode.at [ "data", "replyToPost", "errors" ] (Decode.list Data.ValidationError.decoder)
+            Decode.at [ "data", "createReply", "errors" ] (Decode.list Data.ValidationError.decoder)
                 |> Decode.map Invalid
 
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "replyToPost", "success" ] Decode.bool
+    Decode.at [ "data", "createReply", "success" ] Decode.bool
         |> Decode.andThen conditionalDecoder
 
 

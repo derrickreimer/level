@@ -325,13 +325,13 @@ defmodule Level.Mutations do
   @doc """
   Creates a reply on a post.
   """
-  @spec reply_to_post(new_reply_args(), authenticated_context()) :: reply_mutation_result()
-  def reply_to_post(%{space_id: space_id, post_id: post_id} = args, %{
+  @spec create_reply(new_reply_args(), authenticated_context()) :: reply_mutation_result()
+  def create_reply(%{space_id: space_id, post_id: post_id} = args, %{
         context: %{current_user: user}
       }) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
          {:ok, post} <- Posts.get_post(space_user, post_id),
-         {:ok, reply} <- Posts.reply_to_post(space_user, post, args) do
+         {:ok, reply} <- Posts.create_reply(space_user, post, args) do
       {:ok, %{success: true, reply: reply, errors: []}}
     else
       {:error, %Ecto.Changeset{} = changeset} ->

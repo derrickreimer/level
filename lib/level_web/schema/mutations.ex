@@ -233,7 +233,7 @@ defmodule LevelWeb.Schema.Mutations do
   end
 
   @desc "The response to replying to a post."
-  object :reply_to_post_payload do
+  object :create_reply_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why
