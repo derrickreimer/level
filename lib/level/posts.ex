@@ -11,6 +11,7 @@ defmodule Level.Posts do
   alias Level.Groups.GroupUser
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
+  alias Level.Posts.PostUser
   alias Level.Posts.Reply
   alias Level.Pubsub
   alias Level.Repo
@@ -21,11 +22,14 @@ defmodule Level.Posts do
 
   @typedoc "The result of posting to a group"
   @type create_post_result ::
-          {:ok, %{post: Post.t(), post_group: PostGroup.t()}}
-          | {:error, :post | :post_group, any(), %{optional(:post | :post_group) => any()}}
+          {:ok, %{post: Post.t(), post_group: PostGroup.t(), subscribe: :ok}}
+          | {:error, :post | :post_group | :subscribe, any(),
+             %{optional(:post | :post_group | :subscribe) => any()}}
 
   @typedoc "The result of replying to a post"
-  @type create_reply_result :: {:ok, %{reply: Reply.t()}} | {:error, Ecto.Changeset.t()}
+  @type create_reply_result ::
+          {:ok, %{reply: Reply.t(), subscribe: :ok}}
+          | {:error, :reply | :subscribe, any(), %{optional(:reply | :subscribe) => any()}}
 
   @doc """
   Builds a query for posts accessible to a particular user.
@@ -82,6 +86,9 @@ defmodule Level.Posts do
     |> Multi.run(:post_group, fn %{post: post} ->
       create_post_group(space_user.space_id, post.id, group.id)
     end)
+    |> Multi.run(:subscribe, fn %{post: post} ->
+      {:ok, subscribe(post, space_user)}
+    end)
     |> Repo.transaction()
     |> after_create_post(group)
   end
@@ -116,11 +123,73 @@ defmodule Level.Posts do
   defp after_create_post(err, _group), do: err
 
   @doc """
+  Subscribes a user to a post.
+  """
+  @spec subscribe(Post.t(), SpaceUser.t()) :: :ok | no_return()
+  def subscribe(%Post{id: post_id, space_id: space_id}, %SpaceUser{id: space_user_id}) do
+    params = %{
+      space_id: space_id,
+      post_id: post_id,
+      space_user_id: space_user_id,
+      state: "SUBSCRIBED"
+    }
+
+    %PostUser{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert(
+      on_conflict: :replace_all,
+      conflict_target: [:post_id, :space_user_id]
+    )
+
+    :ok
+  end
+
+  @doc """
+  Unsubscribes a user from a post.
+  """
+  @spec unsubscribe(Post.t(), SpaceUser.t()) :: :ok | no_return()
+  def unsubscribe(%Post{id: post_id, space_id: space_id}, %SpaceUser{id: space_user_id}) do
+    params = %{
+      space_id: space_id,
+      post_id: post_id,
+      space_user_id: space_user_id,
+      state: "UNSUBSCRIBED"
+    }
+
+    %PostUser{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert(
+      on_conflict: :replace_all,
+      conflict_target: [:post_id, :space_user_id]
+    )
+
+    :ok
+  end
+
+  @doc """
+  Determines a user's subscription state with a post.
+  """
+  @spec get_subscription_state(Post.t(), SpaceUser.t()) ::
+          :subscribed | :unsubscribed | :not_subscribed | no_return()
+  def get_subscription_state(%Post{id: post_id}, %SpaceUser{id: space_user_id}) do
+    case Repo.get_by(PostUser, %{post_id: post_id, space_user_id: space_user_id}) do
+      %PostUser{state: state} ->
+        parse_subscription_state(state)
+
+      _ ->
+        :not_subscribed
+    end
+  end
+
+  defp parse_subscription_state("SUBSCRIBED"), do: :subscribed
+  defp parse_subscription_state("UNSUBSCRIBED"), do: :unsubscribed
+
+  @doc """
   Adds a reply to a post.
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
   def create_reply(
-        %SpaceUser{id: space_user_id, space_id: space_id},
+        %SpaceUser{id: space_user_id, space_id: space_id} = space_user,
         %Post{id: post_id} = post,
         params
       ) do
@@ -130,13 +199,14 @@ defmodule Level.Posts do
       |> Map.put(:space_user_id, space_user_id)
       |> Map.put(:post_id, post_id)
 
-    %Reply{}
-    |> Reply.create_changeset(params_with_relations)
-    |> Repo.insert()
+    Multi.new()
+    |> Multi.insert(:reply, Reply.create_changeset(%Reply{}, params_with_relations))
+    |> Multi.run(:subscribe, fn _ -> {:ok, subscribe(post, space_user)} end)
+    |> Repo.transaction()
     |> after_create_reply(post)
   end
 
-  defp after_create_reply({:ok, %Reply{} = reply} = result, %Post{id: post_id}) do
+  defp after_create_reply({:ok, %{reply: %Reply{} = reply}} = result, %Post{id: post_id}) do
     Pubsub.publish(:reply_created, post_id, reply)
     result
   end
