@@ -2,6 +2,7 @@ module Program.Main exposing (..)
 
 -- LIBRARY IMPORTS
 
+import Debug
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -876,8 +877,12 @@ handleSocketResult value sharedState ({ page, repo } as model) =
         Event.SpaceUserUpdated spaceUser ->
             updateRepo (Repo.setSpaceUser model.repo spaceUser) model
 
-        Event.Unknown ->
-            ( model, Cmd.none )
+        Event.Unknown value ->
+            let
+                debugValue =
+                    Debug.log "Unknown event" value
+            in
+                ( model, Cmd.none )
 
 
 

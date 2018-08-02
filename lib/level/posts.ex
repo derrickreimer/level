@@ -102,7 +102,7 @@ defmodule Level.Posts do
       {:ok, subscribe(post, space_user)}
     end)
     |> Repo.transaction()
-    |> after_create_post(group)
+    |> after_create_post(space_user, group)
   end
 
   defp create_post_changeset(space_user, params) do
@@ -127,12 +127,17 @@ defmodule Level.Posts do
     |> Repo.insert()
   end
 
-  defp after_create_post({:ok, %{post: %Post{} = post}} = result, %Group{id: group_id}) do
+  defp after_create_post(
+         {:ok, %{post: %Post{id: post_id}} = data},
+         %SpaceUser{} = space_user,
+         %Group{id: group_id}
+       ) do
+    {:ok, post} = get_post(space_user, post_id)
     Pubsub.publish(:post_created, group_id, post)
-    result
+    {:ok, %{data | post: post}}
   end
 
-  defp after_create_post(err, _group), do: err
+  defp after_create_post(err, _space_user, _group), do: err
 
   @doc """
   Subscribes a user to a post.

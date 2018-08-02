@@ -28,7 +28,7 @@ type Event
     | ReplyCreated Reply
     | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
-    | Unknown
+    | Unknown Decode.Value
 
 
 
@@ -38,7 +38,7 @@ type Event
 decodeEvent : Decode.Value -> Event
 decodeEvent value =
     Decode.decodeValue eventDecoder value
-        |> Result.withDefault Unknown
+        |> Result.withDefault (Unknown value)
 
 
 eventDecoder : Decode.Decoder Event

@@ -12,6 +12,7 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
         ... on PostCreatedPayload {
           post {
             id
+            subscriptionState
           }
         }
       }
@@ -37,7 +38,8 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
           "groupSubscription" => %{
             "__typename" => "PostCreatedPayload",
             "post" => %{
-              "id" => post.id
+              "id" => post.id,
+              "subscriptionState" => "SUBSCRIBED"
             }
           }
         }

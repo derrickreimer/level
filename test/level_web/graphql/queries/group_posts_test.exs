@@ -15,6 +15,9 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
               author {
                 firstName
               }
+              groups {
+                id
+              }
               replies(last: 5) {
                 edges {
                   node {
@@ -74,6 +77,11 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                          "author" => %{
                            "firstName" => space_user.first_name
                          },
+                         "groups" => [
+                           %{
+                             "id" => group.id
+                           }
+                         ],
                          "replies" => %{
                            "edges" => [
                              %{

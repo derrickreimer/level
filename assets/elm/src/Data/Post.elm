@@ -11,7 +11,7 @@ module Data.Post
         )
 
 import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, list, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, field, list, string, succeed, fail)
 import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
@@ -91,7 +91,7 @@ decoder =
 
 decoderWithReplies : Decoder ( Post, Connection Reply )
 decoderWithReplies =
-    Decode.map2 (=>) decoder (Connection.decoder Reply.decoder)
+    Decode.map2 (=>) decoder (field "replies" (Connection.decoder Reply.decoder))
 
 
 subscriptionStateDecoder : Decoder SubscriptionState
