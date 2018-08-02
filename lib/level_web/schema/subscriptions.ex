@@ -8,38 +8,31 @@ defmodule LevelWeb.Schema.Subscriptions do
   @desc "The payload for messages propagated to a space topic."
   union :space_subscription_payload do
     types [:space_updated_payload, :space_user_updated_payload]
-
-    resolve_type fn
-      %{type: :space_updated}, _ -> :space_updated_payload
-      %{type: :space_user_updated}, _ -> :space_user_updated_payload
-    end
+    resolve_type &type_resolver/2
   end
 
   @desc "The payload for messages propagated to a space user topic."
   union :space_user_subscription_payload do
-    types [:group_bookmarked_payload, :group_unbookmarked_payload]
+    types [
+      :group_bookmarked_payload,
+      :group_unbookmarked_payload,
+      :post_subscribed_payload,
+      :post_unsubscribed_payload
+    ]
 
-    resolve_type fn
-      %{type: :group_bookmarked}, _ -> :group_bookmarked_payload
-      %{type: :group_unbookmarked}, _ -> :group_unbookmarked_payload
-    end
+    resolve_type &type_resolver/2
   end
 
   @desc "The payload for messages propagated to a group topic."
   union :group_subscription_payload do
     types [:group_updated_payload, :post_created_payload, :group_membership_updated_payload]
-
-    resolve_type fn
-      %{type: :group_updated}, _ -> :group_updated_payload
-      %{type: :post_created}, _ -> :post_created_payload
-      %{type: :group_membership_updated}, _ -> :group_membership_updated_payload
-    end
+    resolve_type &type_resolver/2
   end
 
   @desc "The payload for messages propagated to a post topic."
   union :post_subscription_payload do
     types [:reply_created_payload]
-    resolve_type fn %{type: :reply_created}, _ -> :reply_created_payload end
+    resolve_type &type_resolver/2
   end
 
   # Objects
@@ -80,6 +73,18 @@ defmodule LevelWeb.Schema.Subscriptions do
     field :post, :post
   end
 
+  @desc "The payload for the post subscribed event."
+  object :post_subscribed_payload do
+    @desc "The subscribed post."
+    field :post, :post
+  end
+
+  @desc "The payload for the post unsubscribed event."
+  object :post_unsubscribed_payload do
+    @desc "The unsubscribed post."
+    field :post, :post
+  end
+
   @desc "The payload for the group membership updated event."
   object :group_membership_updated_payload do
     @desc "The updated membership."
@@ -93,5 +98,16 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :reply_created_payload do
     @desc "The newly created reply."
     field :reply, :reply
+  end
+
+  defp type_resolver(%{type: type}, _) do
+    type
+    |> Atom.to_string()
+    |> concat("_payload")
+    |> String.to_atom()
+  end
+
+  defp concat(a, b) do
+    a <> b
   end
 end

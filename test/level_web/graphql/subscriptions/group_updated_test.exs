@@ -31,21 +31,22 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, group} = Groups.update_group(group, %{name: "New name"})
-    assert_push("subscription:data", push_data)
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "groupSubscription" => %{
-                   "__typename" => "GroupUpdatedPayload",
-                   "group" => %{
-                     "id" => group.id,
-                     "name" => "New name"
-                   }
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    push_data = %{
+      result: %{
+        data: %{
+          "groupSubscription" => %{
+            "__typename" => "GroupUpdatedPayload",
+            "group" => %{
+              "id" => group.id,
+              "name" => "New name"
+            }
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
+
+    assert_push("subscription:data", ^push_data)
   end
 end

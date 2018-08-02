@@ -30,22 +30,22 @@ defmodule LevelWeb.GraphQL.SpaceUpdatedTest do
 
     {:ok, _} = Spaces.update_space(space, %{name: "New name"})
 
-    assert_push("subscription:data", push_data)
+    push_data = %{
+      result: %{
+        data: %{
+          "spaceSubscription" => %{
+            "__typename" => "SpaceUpdatedPayload",
+            "space" => %{
+              "id" => space.id,
+              "name" => "New name"
+            }
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "spaceSubscription" => %{
-                   "__typename" => "SpaceUpdatedPayload",
-                   "space" => %{
-                     "id" => space.id,
-                     "name" => "New name"
-                   }
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    assert_push("subscription:data", ^push_data)
   end
 
   test "rejects subscription if user is not authenticated", %{socket: socket} do

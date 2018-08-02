@@ -137,8 +137,11 @@ defmodule Level.Posts do
   @doc """
   Subscribes a user to a post.
   """
-  @spec subscribe(Post.t(), SpaceUser.t()) :: :ok | no_return()
-  def subscribe(%Post{id: post_id, space_id: space_id}, %SpaceUser{id: space_user_id}) do
+  @spec subscribe(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
+  def subscribe(
+        %Post{id: post_id, space_id: space_id},
+        %SpaceUser{id: space_user_id} = space_user
+      ) do
     params = %{
       space_id: space_id,
       post_id: post_id,
@@ -152,15 +155,31 @@ defmodule Level.Posts do
       on_conflict: :replace_all,
       conflict_target: [:post_id, :space_user_id]
     )
-
-    :ok
+    |> after_subscribe(space_user, post_id)
   end
+
+  defp after_subscribe({:ok, _}, space_user, post_id) do
+    # Fetch a clean copy of the post with contextual data included
+    case get_post(space_user, post_id) do
+      {:ok, post} ->
+        Pubsub.publish(:post_subscribed, space_user.id, post)
+        :ok
+
+      _ ->
+        :error
+    end
+  end
+
+  defp after_subscribe(_, _, _), do: :error
 
   @doc """
   Unsubscribes a user from a post.
   """
   @spec unsubscribe(Post.t(), SpaceUser.t()) :: :ok | no_return()
-  def unsubscribe(%Post{id: post_id, space_id: space_id}, %SpaceUser{id: space_user_id}) do
+  def unsubscribe(
+        %Post{id: post_id, space_id: space_id},
+        %SpaceUser{id: space_user_id} = space_user
+      ) do
     params = %{
       space_id: space_id,
       post_id: post_id,
@@ -174,9 +193,22 @@ defmodule Level.Posts do
       on_conflict: :replace_all,
       conflict_target: [:post_id, :space_user_id]
     )
-
-    :ok
+    |> after_unsubscribe(space_user, post_id)
   end
+
+  defp after_unsubscribe({:ok, _}, space_user, post_id) do
+    # Fetch a clean copy of the post with contextual data included
+    case get_post(space_user, post_id) do
+      {:ok, post} ->
+        Pubsub.publish(:post_unsubscribed, space_user.id, post)
+        :ok
+
+      _ ->
+        :error
+    end
+  end
+
+  defp after_unsubscribe(_, _, _), do: :error
 
   @doc """
   Determines a user's subscription state with a post.

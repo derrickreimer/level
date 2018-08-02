@@ -835,6 +835,18 @@ handleSocketResult value sharedState ({ page, repo } as model) =
                 _ ->
                     ( model, Cmd.none )
 
+        Event.PostUpdated post ->
+            -- TODO
+            ( model, Cmd.none )
+
+        Event.PostSubscribed post ->
+            -- TODO
+            ( model, Cmd.none )
+
+        Event.PostUnsubscribed post ->
+            -- TODO
+            ( model, Cmd.none )
+
         Event.GroupUpdated group ->
             updateRepo (Repo.setGroup repo group) model
 

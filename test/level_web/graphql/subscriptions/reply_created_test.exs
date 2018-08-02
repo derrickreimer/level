@@ -31,20 +31,21 @@ defmodule LevelWeb.GraphQL.ReplyCreatedTest do
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, %{reply: reply}} = create_reply(space_user, post)
-    assert_push("subscription:data", push_data)
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "postSubscription" => %{
-                   "__typename" => "ReplyCreatedPayload",
-                   "reply" => %{
-                     "id" => reply.id
-                   }
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    payload = %{
+      result: %{
+        data: %{
+          "postSubscription" => %{
+            "__typename" => "ReplyCreatedPayload",
+            "reply" => %{
+              "id" => reply.id
+            }
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
+
+    assert_push("subscription:data", ^payload)
   end
 end

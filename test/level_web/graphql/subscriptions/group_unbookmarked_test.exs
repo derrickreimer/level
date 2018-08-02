@@ -31,21 +31,21 @@ defmodule LevelWeb.GraphQL.GroupUnbookmarkedTest do
 
     Groups.unbookmark_group(group, space_user)
 
-    assert_push("subscription:data", push_data)
+    push_data = %{
+      result: %{
+        data: %{
+          "spaceUserSubscription" => %{
+            "__typename" => "GroupUnbookmarkedPayload",
+            "group" => %{
+              "id" => group.id
+            }
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "spaceUserSubscription" => %{
-                   "__typename" => "GroupUnbookmarkedPayload",
-                   "group" => %{
-                     "id" => group.id
-                   }
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    assert_push("subscription:data", ^push_data)
   end
 
   test "rejects subscription if user is not authenticated", %{socket: socket, space: space} do

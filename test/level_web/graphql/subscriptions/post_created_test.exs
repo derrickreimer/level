@@ -30,20 +30,21 @@ defmodule LevelWeb.GraphQL.PostCreatedTest do
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, %{post: post}} = Posts.create_post(space_user, group, valid_post_params())
-    assert_push("subscription:data", push_data)
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "groupSubscription" => %{
-                   "__typename" => "PostCreatedPayload",
-                   "post" => %{
-                     "id" => post.id
-                   }
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    push_data = %{
+      result: %{
+        data: %{
+          "groupSubscription" => %{
+            "__typename" => "PostCreatedPayload",
+            "post" => %{
+              "id" => post.id
+            }
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
+
+    assert_push("subscription:data", ^push_data)
   end
 end

@@ -4,11 +4,14 @@ module Subscription.SpaceUserSubscription
         , unsubscribe
         , groupBookmarkedDecoder
         , groupUnbookmarkedDecoder
+        , postSubscribedDecoder
+        , postUnsubscribedDecoder
         )
 
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Data.Group exposing (Group)
+import Data.Group as Group exposing (Group)
+import Data.Post as Post exposing (Post)
 import GraphQL exposing (Document)
 import Socket
 
@@ -35,7 +38,7 @@ groupBookmarkedDecoder =
     let
         payloadDecoder typename =
             if typename == "GroupBookmarkedPayload" then
-                Decode.field "group" Data.Group.decoder
+                Decode.field "group" Group.decoder
             else
                 Decode.fail "payload does not match"
     in
@@ -47,7 +50,31 @@ groupUnbookmarkedDecoder =
     let
         payloadDecoder typename =
             if typename == "GroupUnbookmarkedPayload" then
-                Decode.field "group" Data.Group.decoder
+                Decode.field "group" Group.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+postSubscribedDecoder : Decode.Decoder Post
+postSubscribedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "PostSubscribedPayload" then
+                Decode.field "post" Post.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
+postUnsubscribedDecoder : Decode.Decoder Post
+postUnsubscribedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "PostUnsubscribedPayload" then
+                Decode.field "post" Post.decoder
             else
                 Decode.fail "payload does not match"
     in
@@ -82,10 +109,21 @@ document =
                 ...GroupFields
               }
             }
+            ... on PostSubscribedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on PostUnsubscribedPayload {
+              post {
+                ...PostFields
+              }
+            }
           }
         }
         """
-        [ Data.Group.fragment
+        [ Group.fragment
+        , Post.fragment 5
         ]
 
 

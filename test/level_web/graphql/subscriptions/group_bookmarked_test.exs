@@ -29,21 +29,21 @@ defmodule LevelWeb.GraphQL.GroupBookmarkedTest do
 
     {:ok, %{group: group}} = Groups.create_group(space_user, valid_group_params())
 
-    assert_push("subscription:data", push_data)
+    push_data = %{
+      result: %{
+        data: %{
+          "spaceUserSubscription" => %{
+            "__typename" => "GroupBookmarkedPayload",
+            "group" => %{
+              "id" => group.id
+            }
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "spaceUserSubscription" => %{
-                   "__typename" => "GroupBookmarkedPayload",
-                   "group" => %{
-                     "id" => group.id
-                   }
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    assert_push("subscription:data", ^push_data)
   end
 
   test "rejects subscription if user is not authenticated", %{socket: socket, space: space} do

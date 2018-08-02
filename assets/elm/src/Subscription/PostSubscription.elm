@@ -2,13 +2,14 @@ module Subscription.PostSubscription
     exposing
         ( subscribe
         , unsubscribe
+        , postUpdatedDecoder
         , replyCreatedDecoder
         )
 
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Data.SpaceUser
-import Data.Reply exposing (Reply)
+import Data.Post as Post exposing (Post)
+import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Socket
 
@@ -30,12 +31,24 @@ unsubscribe postId =
 -- DECODERS
 
 
+postUpdatedDecoder : Decode.Decoder Post
+postUpdatedDecoder =
+    let
+        payloadDecoder typename =
+            if typename == "PostUpdatedPayload" then
+                Decode.field "post" Post.decoder
+            else
+                Decode.fail "payload does not match"
+    in
+        decodeByTypename payloadDecoder
+
+
 replyCreatedDecoder : Decode.Decoder Reply
 replyCreatedDecoder =
     let
         payloadDecoder typename =
             if typename == "ReplyCreatedPayload" then
-                Decode.field "reply" Data.Reply.decoder
+                Decode.field "reply" Reply.decoder
             else
                 Decode.fail "payload does not match"
     in
@@ -60,6 +73,11 @@ document =
         ) {
           postSubscription(postId: $postId) {
             __typename
+            ... on PostUpdatedPayload {
+              post {
+                ...PostFields
+              }
+            }
             ... on ReplyCreatedPayload {
               reply {
                 ...ReplyFields
@@ -68,8 +86,8 @@ document =
           }
         }
         """
-        [ Data.Reply.fragment
-        , Data.SpaceUser.fragment
+        [ Post.fragment 5
+        , Reply.fragment
         ]
 
 

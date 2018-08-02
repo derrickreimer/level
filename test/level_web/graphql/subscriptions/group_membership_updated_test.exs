@@ -39,19 +39,19 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
     {:ok, %{group_user: nil}} =
       Groups.update_group_membership(group, space_user, "NOT_SUBSCRIBED")
 
-    assert_push("subscription:data", push_data)
+    push_data = %{
+      result: %{
+        data: %{
+          "groupSubscription" => %{
+            "__typename" => "GroupMembershipUpdatedPayload",
+            "membership" => nil
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "groupSubscription" => %{
-                   "__typename" => "GroupMembershipUpdatedPayload",
-                   "membership" => nil
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    assert_push("subscription:data", ^push_data)
   end
 
   test "receives an event when a user joins a group", %{socket: socket, space_user: space_user} do
@@ -64,27 +64,27 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
     {:ok, %{group_user: %GroupUser{state: "SUBSCRIBED"}}} =
       Groups.update_group_membership(group, space_user, "SUBSCRIBED")
 
-    assert_push("subscription:data", push_data)
+    push_data = %{
+      result: %{
+        data: %{
+          "groupSubscription" => %{
+            "__typename" => "GroupMembershipUpdatedPayload",
+            "membership" => %{
+              "group" => %{
+                "id" => group.id
+              },
+              "spaceUser" => %{
+                "id" => space_user.id
+              },
+              "state" => "SUBSCRIBED"
+            }
+          }
+        }
+      },
+      subscriptionId: subscription_id
+    }
 
-    assert push_data == %{
-             result: %{
-               data: %{
-                 "groupSubscription" => %{
-                   "__typename" => "GroupMembershipUpdatedPayload",
-                   "membership" => %{
-                     "group" => %{
-                       "id" => group.id
-                     },
-                     "spaceUser" => %{
-                       "id" => space_user.id
-                     },
-                     "state" => "SUBSCRIBED"
-                   }
-                 }
-               }
-             },
-             subscriptionId: subscription_id
-           }
+    assert_push("subscription:data", ^push_data)
   end
 
   test "rejects subscription if user cannot access the group", %{socket: socket, space: space} do
