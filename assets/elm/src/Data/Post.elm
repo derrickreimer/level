@@ -11,7 +11,7 @@ module Data.Post
         )
 
 import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, list, string)
+import Json.Decode as Decode exposing (Decoder, list, string, succeed, fail)
 import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
@@ -28,6 +28,12 @@ type Post
     = Post Record
 
 
+type SubscriptionState
+    = Implicit
+    | Subscribed
+    | Unsubscribed
+
+
 type alias Record =
     { id : String
     , body : String
@@ -35,6 +41,7 @@ type alias Record =
     , author : SpaceUser
     , groups : List Group
     , postedAt : Date
+    , subscriptionState : SubscriptionState
     }
 
 
@@ -78,12 +85,34 @@ decoder =
             |> Pipeline.required "author" SpaceUser.decoder
             |> Pipeline.required "groups" (list Group.decoder)
             |> Pipeline.required "postedAt" dateDecoder
+            |> Pipeline.required "subscriptionState" subscriptionStateDecoder
         )
 
 
 decoderWithReplies : Decoder ( Post, Connection Reply )
 decoderWithReplies =
     Decode.map2 (=>) decoder (Connection.decoder Reply.decoder)
+
+
+subscriptionStateDecoder : Decoder SubscriptionState
+subscriptionStateDecoder =
+    let
+        convert : String -> Decoder SubscriptionState
+        convert raw =
+            case raw of
+                "SUBSCRIBED" ->
+                    succeed Subscribed
+
+                "UNSUBSCRIBED" ->
+                    succeed Unsubscribed
+
+                "IMPLICIT" ->
+                    succeed Implicit
+
+                _ ->
+                    fail "Subscription state not valid"
+    in
+        Decode.andThen convert string
 
 
 
