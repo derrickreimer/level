@@ -96,7 +96,14 @@ teardown { id } =
 setupReplyComposer : String -> ReplyComposer -> Cmd Msg
 setupReplyComposer postId replyComposer =
     if ReplyComposer.isExpanded replyComposer then
-        Autosize.init (replyComposerId postId)
+        let
+            composerId =
+                replyComposerId postId
+        in
+            Cmd.batch
+                [ Autosize.init composerId
+                , setFocus composerId NoOp
+                ]
     else
         Cmd.none
 
