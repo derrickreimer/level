@@ -13,6 +13,7 @@ import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)
 import GraphQL exposing (Document)
 import Socket
+import Subscription
 
 
 -- SOCKETS
@@ -34,38 +35,26 @@ unsubscribe groupId =
 
 groupUpdatedDecoder : Decode.Decoder Group
 groupUpdatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupUpdatedPayload" then
-                Decode.field "group" Group.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "group"
+        "GroupUpdated"
+        "group"
+        Group.decoder
 
 
 postCreatedDecoder : Decode.Decoder Post
 postCreatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "PostCreatedPayload" then
-                Decode.field "post" Post.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "group"
+        "PostCreated"
+        "post"
+        Post.decoder
 
 
 groupMembershipUpdatedDecoder : Decode.Decoder Group
 groupMembershipUpdatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupMembershipUpdatedPayload" then
-                Decode.field "group" Group.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "group"
+        "GroupMembershipUpdated"
+        "group"
+        Group.decoder
 
 
 
@@ -115,11 +104,3 @@ variables groupId =
         Encode.object
             [ ( "groupId", Encode.string groupId )
             ]
-
-
-decodeByTypename : (String -> Decode.Decoder a) -> Decode.Decoder a
-decodeByTypename payloadDecoder =
-    Decode.at [ "data", "groupSubscription" ] <|
-        (Decode.field "__typename" Decode.string
-            |> Decode.andThen payloadDecoder
-        )

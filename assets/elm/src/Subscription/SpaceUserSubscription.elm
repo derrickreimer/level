@@ -14,6 +14,7 @@ import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)
 import GraphQL exposing (Document)
 import Socket
+import Subscription
 
 
 -- SOCKETS
@@ -35,50 +36,34 @@ unsubscribe spaceUserId =
 
 groupBookmarkedDecoder : Decode.Decoder Group
 groupBookmarkedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupBookmarkedPayload" then
-                Decode.field "group" Group.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "spaceUser"
+        "GroupBookmarked"
+        "group"
+        Group.decoder
 
 
 groupUnbookmarkedDecoder : Decode.Decoder Group
 groupUnbookmarkedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "GroupUnbookmarkedPayload" then
-                Decode.field "group" Group.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "spaceUser"
+        "GroupUnookmarked"
+        "group"
+        Group.decoder
 
 
 postSubscribedDecoder : Decode.Decoder Post
 postSubscribedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "PostSubscribedPayload" then
-                Decode.field "post" Post.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "spaceUser"
+        "PostSubscribed"
+        "post"
+        Post.decoder
 
 
 postUnsubscribedDecoder : Decode.Decoder Post
 postUnsubscribedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "PostUnsubscribedPayload" then
-                Decode.field "post" Post.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "spaceUser"
+        "PostUnsubscribed"
+        "post"
+        Post.decoder
 
 
 
@@ -133,11 +118,3 @@ variables spaceUserId =
         Encode.object
             [ ( "spaceUserId", Encode.string spaceUserId )
             ]
-
-
-decodeByTypename : (String -> Decode.Decoder a) -> Decode.Decoder a
-decodeByTypename payloadDecoder =
-    Decode.at [ "data", "spaceUserSubscription" ] <|
-        (Decode.field "__typename" Decode.string
-            |> Decode.andThen payloadDecoder
-        )

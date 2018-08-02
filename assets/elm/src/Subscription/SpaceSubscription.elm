@@ -8,10 +8,11 @@ module Subscription.SpaceSubscription
 
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Data.Space exposing (Space)
-import Data.SpaceUser exposing (SpaceUser)
+import Data.Space as Space exposing (Space)
+import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Document)
 import Socket
+import Subscription
 
 
 -- SOCKETS
@@ -33,26 +34,18 @@ unsubscribe spaceId =
 
 spaceUpdatedDecoder : Decode.Decoder Space
 spaceUpdatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "SpaceUpdatedPayload" then
-                Decode.field "space" Data.Space.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "space"
+        "SpaceUpdated"
+        "space"
+        Space.decoder
 
 
 spaceUserUpdatedDecoder : Decode.Decoder SpaceUser
 spaceUserUpdatedDecoder =
-    let
-        payloadDecoder typename =
-            if typename == "SpaceUserUpdatedPayload" then
-                Decode.field "spaceUser" Data.SpaceUser.decoder
-            else
-                Decode.fail "payload does not match"
-    in
-        decodeByTypename payloadDecoder
+    Subscription.decoder "space"
+        "SpaceUserUpdated"
+        "spaceUser"
+        SpaceUser.decoder
 
 
 
@@ -60,8 +53,8 @@ spaceUserUpdatedDecoder =
 
 
 clientId : String -> String
-clientId spaceUserId =
-    "space_subscription_" ++ spaceUserId
+clientId spaceId =
+    "space_subscription_" ++ spaceId
 
 
 document : Document
@@ -86,8 +79,8 @@ document =
           }
         }
         """
-        [ Data.Space.fragment
-        , Data.SpaceUser.fragment
+        [ Space.fragment
+        , SpaceUser.fragment
         ]
 
 
@@ -97,11 +90,3 @@ variables spaceId =
         Encode.object
             [ ( "spaceId", Encode.string spaceId )
             ]
-
-
-decodeByTypename : (String -> Decode.Decoder a) -> Decode.Decoder a
-decodeByTypename payloadDecoder =
-    Decode.at [ "data", "spaceSubscription" ] <|
-        (Decode.field "__typename" Decode.string
-            |> Decode.andThen payloadDecoder
-        )
