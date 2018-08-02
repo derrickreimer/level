@@ -11,9 +11,13 @@ module Repo
         , getSpaceUser
         , getSpaceUsers
         , setSpaceUser
+        , getPost
+        , getPosts
+        , setPost
         )
 
 import Data.Group as Group exposing (Group)
+import Data.Post as Post exposing (Post)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import IdentityMap exposing (IdentityMap)
@@ -23,12 +27,13 @@ type alias Repo =
     { groups : IdentityMap Group.Record
     , spaceUsers : IdentityMap SpaceUser.Record
     , spaces : IdentityMap Space.Record
+    , posts : IdentityMap Post.Record
     }
 
 
 init : Repo
 init =
-    Repo emptyMap emptyMap emptyMap
+    Repo emptyMap emptyMap emptyMap emptyMap
 
 
 emptyMap : IdentityMap a
@@ -94,3 +99,23 @@ getSpaceUsers { spaceUsers } list =
 setSpaceUser : Repo -> SpaceUser -> Repo
 setSpaceUser repo user =
     { repo | spaceUsers = IdentityMap.set repo.spaceUsers .id (SpaceUser.getCachedData user) }
+
+
+
+-- POSTS
+
+
+getPost : Repo -> Post -> Post.Record
+getPost { posts } post =
+    IdentityMap.get posts .id (Post.getCachedData post)
+
+
+getPosts : Repo -> List Post -> List Post.Record
+getPosts { posts } list =
+    List.map Post.getCachedData list
+        |> IdentityMap.getList posts .id
+
+
+setPost : Repo -> Post -> Repo
+setPost repo post =
+    { repo | posts = IdentityMap.set repo.posts .id (Post.getCachedData post) }

@@ -406,15 +406,13 @@ handlePostCreated post ({ posts, group } as model) =
 
 handleGroupMembershipUpdated : Group -> Session -> Model -> ( Model, Cmd Msg )
 handleGroupMembershipUpdated group session model =
-    let
-        cmd =
-            FeaturedMemberships.request (Group.getId model.group) session
-                |> Task.attempt FeaturedMembershipsRefreshed
-    in
-        if Group.getId group == Group.getId model.group then
-            ( model, cmd )
-        else
-            ( model, Cmd.none )
+    if Group.getId group == Group.getId model.group then
+        ( model
+        , FeaturedMemberships.request (Group.getId model.group) session
+            |> Task.attempt FeaturedMembershipsRefreshed
+        )
+    else
+        ( model, Cmd.none )
 
 
 handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )

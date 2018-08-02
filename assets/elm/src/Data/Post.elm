@@ -1,6 +1,7 @@
 module Data.Post
     exposing
         ( Post
+        , Record
         , fragment
         , decoder
         , getId
