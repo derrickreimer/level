@@ -5,6 +5,8 @@ module Icons
         , arrowRight
         , arrowUpRight
         , bookmark
+        , open
+        , closed
         , comment
         , heart
         , lock
@@ -114,6 +116,45 @@ bookmark toggle =
                     </g>
                 </svg>
                 """
+
+
+{-| Using the `circle` feather icon.
+-}
+open : Html msg
+open =
+    toHtml
+        """
+        <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="circle" transform="translate(1.000000, 1.000000)" stroke="#11E72B" stroke-width="2">
+                    <circle id="Oval" cx="10" cy="10" r="10"></circle>
+                </g>
+            </g>
+        </svg>
+        """
+
+
+{-| Using the `check-circle` feather icon.
+-}
+closed : Html msg
+closed =
+    toHtml
+        """
+        <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="check-circle" transform="translate(1.000000, 0.000000)" stroke="#FF1E12" stroke-width="2">
+                    <path d="M20,10.08 L20,11 C19.9974678,15.4286859 17.082294,19.328213 12.8353524,20.583901 C8.58841086,21.839589 4.02139355,20.1523121 1.61095509,16.4370663 C-0.799483376,12.7218205 -0.479136554,7.86363898 2.39827419,4.49707214 C5.27568494,1.13050531 10.0247126,0.0575252842 14.07,1.86" id="Shape"></path>
+                    <polyline id="Shape" points="20 3 10 13.01 7 10.01"></polyline>
+                </g>
+            </g>
+        </svg>
+        """
 
 
 comment : Html msg

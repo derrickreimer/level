@@ -2,6 +2,7 @@ module Data.Post
     exposing
         ( Post
         , Record
+        , State(..)
         , SubscriptionState(..)
         , fragment
         , decoder
@@ -29,6 +30,11 @@ type Post
     = Post Record
 
 
+type State
+    = Open
+    | Closed
+
+
 type SubscriptionState
     = Implicit
     | Subscribed
@@ -37,6 +43,7 @@ type SubscriptionState
 
 type alias Record =
     { id : String
+    , state : State
     , body : String
     , bodyHtml : String
     , author : SpaceUser
@@ -53,6 +60,7 @@ fragment =
             """
             fragment PostFields on Post {
               id
+              state
               body
               bodyHtml
               postedAt
@@ -81,6 +89,7 @@ decoder =
     Decode.map Post <|
         (Pipeline.decode Record
             |> Pipeline.required "id" string
+            |> Pipeline.required "state" stateDecoder
             |> Pipeline.required "body" string
             |> Pipeline.required "bodyHtml" string
             |> Pipeline.required "author" SpaceUser.decoder
@@ -93,6 +102,24 @@ decoder =
 decoderWithReplies : Decoder ( Post, Connection Reply )
 decoderWithReplies =
     Decode.map2 (=>) decoder (field "replies" (Connection.decoder Reply.decoder))
+
+
+stateDecoder : Decoder State
+stateDecoder =
+    let
+        convert : String -> Decoder State
+        convert raw =
+            case raw of
+                "OPEN" ->
+                    succeed Open
+
+                "CLOSED" ->
+                    succeed Closed
+
+                _ ->
+                    fail "State not valid"
+    in
+        Decode.andThen convert string
 
 
 subscriptionStateDecoder : Decoder SubscriptionState

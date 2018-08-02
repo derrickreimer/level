@@ -148,6 +148,7 @@ view repo model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ postView repo model.user model.now model.post
+            , sidebarView repo model.post
             ]
         ]
 
@@ -155,4 +156,10 @@ view repo model =
 postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
 postView repo currentUser now component =
     Component.Post.view repo currentUser now component
+        |> Html.map PostComponentMsg
+
+
+sidebarView : Repo -> Component.Post.Model -> Html Msg
+sidebarView repo component =
+    Component.Post.sidebarView repo component
         |> Html.map PostComponentMsg

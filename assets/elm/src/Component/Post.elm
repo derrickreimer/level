@@ -9,6 +9,7 @@ module Component.Post
         , teardown
         , update
         , view
+        , sidebarView
         , handleReplyCreated
         )
 
@@ -461,6 +462,34 @@ replyPromptView currentUserData =
             [ text "Write a reply..."
             ]
         ]
+
+
+sidebarView : Repo -> Model -> Html Msg
+sidebarView repo model =
+    let
+        postData =
+            Repo.getPost repo model.post
+    in
+        div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
+            [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Status" ]
+            , statusView postData.state
+            ]
+
+
+statusView : Post.State -> Html Msg
+statusView state =
+    case state of
+        Post.Open ->
+            div [ class "flex items-center text-base text-dusty-blue-dark" ]
+                [ span [ class "mr-1" ] [ Icons.open ]
+                , text "Open"
+                ]
+
+        Post.Closed ->
+            div [ class "flex items-center text-base text-dusty-blue-dark" ]
+                [ span [ class "mr-2" ] [ Icons.closed ]
+                , text "Closed"
+                ]
 
 
 

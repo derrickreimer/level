@@ -62,6 +62,9 @@ let colors = {
   'blue-dark': '#4265c7',
   'blue': '#4b73e1',
 
+  // Greens
+  'green': '#11E72B',
+
   // Greys
   'grey': '#e2e6e8',
   'grey-light': '#f5f6f7',
