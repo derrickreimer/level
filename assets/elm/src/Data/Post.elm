@@ -2,6 +2,7 @@ module Data.Post
     exposing
         ( Post
         , Record
+        , SubscriptionState(..)
         , fragment
         , decoder
         , decoderWithReplies

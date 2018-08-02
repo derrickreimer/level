@@ -308,9 +308,15 @@ view repo currentUser now ({ post, replies } as model) =
             [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
             , div [ class "flex-grow leading-semi-loose" ]
                 [ div []
-                    [ div []
+                    [ a
+                        [ Route.href <| Route.Post postData.id
+                        , class "flex items-baseline no-underline text-dusty-blue-darker"
+                        , rel "tooltip"
+                        , title "Expand post"
+                        ]
                         [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                        , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
+                        , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
+                        , viewIf (model.mode == Feed) Icons.arrowUpRight
                         ]
                     , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
                     , viewIf (model.mode == Feed) <|
