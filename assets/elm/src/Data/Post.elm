@@ -13,7 +13,6 @@ module Data.Post
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline as Pipeline
-import String.Interpolate exposing (interpolate)
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Reply as Reply exposing (Reply)
