@@ -4,11 +4,9 @@ module Data.Post
         , Record
         , fragment
         , decoder
+        , decoderWithReplies
         , getId
         , getCachedData
-        , hasReplies
-        , prependReplies
-        , appendReply
         , groupsInclude
         )
 
@@ -21,7 +19,7 @@ import Data.Group as Group exposing (Group)
 import Data.Reply as Reply exposing (Reply)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
-import Util exposing (dateDecoder)
+import Util exposing (dateDecoder, (=>))
 
 
 -- TYPES
@@ -38,40 +36,32 @@ type alias Record =
     , author : SpaceUser
     , groups : List Group
     , postedAt : Date
-    , replies : Connection Reply
     }
 
 
-fragment : Int -> Fragment
-fragment replyLimit =
+fragment : Fragment
+fragment =
     let
         body =
-            interpolate
-                """
-                fragment PostFields on Post {
-                  id
-                  body
-                  bodyHtml
-                  postedAt
-                  subscriptionState
-                  author {
-                    ...SpaceUserFields
-                  }
-                  groups {
-                    ...GroupFields
-                  }
-                  replies(last: {0}) {
-                    ...ReplyConnectionFields
-                  }
-                }
-                """
-                [ toString replyLimit
-                ]
+            """
+            fragment PostFields on Post {
+              id
+              body
+              bodyHtml
+              postedAt
+              subscriptionState
+              author {
+                ...SpaceUserFields
+              }
+              groups {
+                ...GroupFields
+              }
+            }
+            """
     in
         GraphQL.fragment body
             [ SpaceUser.fragment
             , Group.fragment
-            , Connection.fragment "ReplyConnection" Reply.fragment
             ]
 
 
@@ -89,8 +79,12 @@ decoder =
             |> Pipeline.required "author" SpaceUser.decoder
             |> Pipeline.required "groups" (list Group.decoder)
             |> Pipeline.required "postedAt" dateDecoder
-            |> Pipeline.required "replies" (Connection.decoder Reply.decoder)
         )
+
+
+decoderWithReplies : Decoder ( Post, Connection Reply )
+decoderWithReplies =
+    Decode.map2 (=>) decoder (Connection.decoder Reply.decoder)
 
 
 
@@ -105,21 +99,6 @@ getId (Post { id }) =
 getCachedData : Post -> Record
 getCachedData (Post data) =
     data
-
-
-hasReplies : Post -> Bool
-hasReplies (Post { replies }) =
-    not (Connection.isEmpty replies)
-
-
-prependReplies : Connection Reply -> Post -> Post
-prependReplies replies (Post data) =
-    Post { data | replies = Connection.prependConnection replies data.replies }
-
-
-appendReply : Reply -> Post -> Post
-appendReply reply (Post data) =
-    Post { data | replies = Connection.append Reply.getId reply data.replies }
 
 
 groupsInclude : Group -> Post -> Bool

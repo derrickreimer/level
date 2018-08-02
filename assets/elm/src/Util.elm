@@ -1,6 +1,7 @@
 module Util
     exposing
         ( Lazy(..)
+        , (=>)
         , dateDecoder
         , postWithCsrfToken
         )
@@ -13,6 +14,15 @@ import Http
 type Lazy a
     = NotLoaded
     | Loaded a
+
+
+
+-- SUGAR
+
+
+(=>) : a -> b -> ( a, b )
+(=>) a b =
+    ( a, b )
 
 
 

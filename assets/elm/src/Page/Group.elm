@@ -393,11 +393,11 @@ redirectToLogin session model =
 -- EVENT HANDLERS
 
 
-handlePostCreated : Post -> Model -> ( Model, Cmd Msg )
-handlePostCreated post ({ posts, group } as model) =
+handlePostCreated : Post -> Connection Reply -> Model -> ( Model, Cmd Msg )
+handlePostCreated post replies ({ posts, group } as model) =
     let
         component =
-            Component.Post.init Component.Post.Feed post
+            Component.Post.init Component.Post.Feed post replies
     in
         ( { model | posts = Connection.prepend .id component posts }
         , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)

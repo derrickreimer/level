@@ -16,7 +16,7 @@ import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as Decode exposing (Decoder, field, string)
+import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Task exposing (Task)
 import Autosize
 import Avatar exposing (personAvatar)
@@ -44,6 +44,7 @@ type alias Model =
     { id : String
     , mode : Mode
     , post : Post
+    , replies : Connection Reply
     , replyComposer : ReplyComposer
     }
 
@@ -59,12 +60,13 @@ type Mode
 
 decoder : Mode -> Decoder Model
 decoder mode =
-    Post.decoder
-        |> Decode.andThen (Decode.succeed << init mode)
+    Decode.map2 (init mode)
+        Post.decoder
+        (field "replies" <| Connection.decoder Reply.decoder)
 
 
-init : Mode -> Post -> Model
-init mode post =
+init : Mode -> Post -> Connection Reply -> Model
+init mode post replies =
     let
         replyMode =
             case mode of
@@ -74,7 +76,7 @@ init mode post =
                 FullPage ->
                     AlwaysExpanded
     in
-        Model (Post.getId post) mode post (ReplyComposer.init replyMode)
+        Model (Post.getId post) mode post replies (ReplyComposer.init replyMode)
 
 
 setup : Model -> Cmd Msg
@@ -213,32 +215,25 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 noCmd session newModel
 
         PreviousRepliesRequested ->
-            let
-                postData =
-                    Post.getCachedData model.post
-            in
-                case Connection.startCursor postData.replies of
-                    Just cursor ->
-                        let
-                            cmd =
-                                Query.Replies.request spaceId (Post.getId model.post) cursor 10 session
-                                    |> Task.attempt PreviousRepliesFetched
-                        in
-                            ( ( model, cmd ), session )
+            case Connection.startCursor model.replies of
+                Just cursor ->
+                    let
+                        cmd =
+                            Query.Replies.request spaceId (Post.getId model.post) cursor 10 session
+                                |> Task.attempt PreviousRepliesFetched
+                    in
+                        ( ( model, cmd ), session )
 
-                    Nothing ->
-                        noCmd session model
+                Nothing ->
+                    noCmd session model
 
         PreviousRepliesFetched (Ok ( session, response )) ->
             let
-                postData =
-                    Post.getCachedData model.post
-
                 firstReply =
-                    Connection.head postData.replies
+                    Connection.head model.replies
 
-                newPost =
-                    Post.prependReplies response.replies model.post
+                newReplies =
+                    Connection.prependConnection response.replies model.replies
 
                 cmd =
                     case firstReply of
@@ -248,7 +243,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                         Nothing ->
                             Cmd.none
             in
-                ( ( { model | post = newPost }, cmd ), session )
+                ( ( { model | replies = newReplies }, cmd ), session )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin session model
@@ -275,7 +270,7 @@ redirectToLogin session model =
 
 
 handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated reply ({ post, mode } as model) =
+handleReplyCreated reply ({ post, replies, mode } as model) =
     let
         cmd =
             case mode of
@@ -286,7 +281,7 @@ handleReplyCreated reply ({ post, mode } as model) =
                     Cmd.none
     in
         if Reply.getPostId reply == Post.getId post then
-            ( { model | post = Post.appendReply reply post }, cmd )
+            ( { model | replies = Connection.append (Reply.getId) reply replies }, cmd )
         else
             ( model, Cmd.none )
 
@@ -296,14 +291,14 @@ handleReplyCreated reply ({ post, mode } as model) =
 
 
 view : Repo -> SpaceUser -> Date -> Model -> Html Msg
-view repo currentUser now ({ post } as model) =
+view repo currentUser now ({ post, replies } as model) =
     let
         currentUserData =
             currentUser
                 |> Repo.getSpaceUser repo
 
         postData =
-            Post.getCachedData post
+            Repo.getPost repo post
 
         authorData =
             postData.author
@@ -326,7 +321,7 @@ view repo currentUser now ({ post } as model) =
                             ]
                     ]
                 , div [ class "relative" ]
-                    [ repliesView repo post now postData.replies model.mode
+                    [ repliesView repo post now replies model.mode
                     , replyComposerView currentUserData model
                     ]
                 ]
@@ -407,7 +402,7 @@ replyView repo now mode reply =
 
 
 replyComposerView : SpaceUser.Record -> Model -> Html Msg
-replyComposerView currentUserData { post, replyComposer } =
+replyComposerView currentUserData { post, replies, replyComposer } =
     if ReplyComposer.isExpanded replyComposer then
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
             [ div [ class "composer p-3" ]
@@ -441,7 +436,7 @@ replyComposerView currentUserData { post, replyComposer } =
                 ]
             ]
     else
-        viewIf (Post.hasReplies post) <|
+        viewUnless (Connection.isEmpty replies) <|
             replyPromptView currentUserData
 
 

@@ -1,6 +1,7 @@
 module Event exposing (Event(..), decodeEvent)
 
 import Json.Decode as Decode
+import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
@@ -18,7 +19,7 @@ import Subscription.PostSubscription exposing (postUpdatedDecoder, replyCreatedD
 type Event
     = GroupBookmarked Group
     | GroupUnbookmarked Group
-    | PostCreated Post
+    | PostCreated ( Post, Connection Reply )
     | PostUpdated Post
     | PostSubscribed Post
     | PostUnsubscribed Post

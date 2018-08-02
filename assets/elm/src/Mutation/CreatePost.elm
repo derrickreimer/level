@@ -3,9 +3,11 @@ module Mutation.CreatePost exposing (Response(..), request)
 import Task exposing (Task)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
-import Data.Post exposing (Post)
-import Data.ValidationFields
-import Data.ValidationError exposing (ValidationError)
+import Connection exposing (Connection)
+import Data.Post as Post exposing (Post)
+import Data.Reply as Reply exposing (Reply)
+import Data.ValidationFields as ValidationFields
+import Data.ValidationError as ValidationError exposing (ValidationError)
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
@@ -32,12 +34,16 @@ document =
             ...ValidationFields
             post {
               ...PostFields
+              replies(last: 5) {
+                ...ReplyConnectionFields
+              }
             }
           }
         }
         """
-        [ Data.Post.fragment 0
-        , Data.ValidationFields.fragment
+        [ Post.fragment
+        , Connection.fragment "ReplyConnection" Reply.fragment
+        , ValidationFields.fragment
         ]
 
 
@@ -55,11 +61,11 @@ conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "createPost", "post" ] Data.Post.decoder
+            Decode.at [ "data", "createPost", "post" ] Post.decoder
                 |> Decode.map Success
 
         False ->
-            Decode.at [ "data", "createPost", "errors" ] (Decode.list Data.ValidationError.decoder)
+            Decode.at [ "data", "createPost", "errors" ] (Decode.list ValidationError.decoder)
                 |> Decode.map Invalid
 
 

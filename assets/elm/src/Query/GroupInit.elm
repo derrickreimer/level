@@ -10,6 +10,7 @@ import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.GroupMembership as GroupMembership exposing (GroupMembership)
 import Data.Post as Post exposing (Post)
+import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
@@ -36,13 +37,21 @@ document =
             }
             posts(first: 20) {
               ...PostConnectionFields
+              edges {
+                node {
+                  replies(last: 5) {
+                    ...ReplyConnectionFields
+                  }
+                }
+              }
             }
           }
         }
         """
         [ Group.fragment
         , GroupMembership.fragment
-        , Connection.fragment "PostConnection" (Post.fragment 5)
+        , Connection.fragment "PostConnection" Post.fragment
+        , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 

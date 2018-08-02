@@ -10,8 +10,10 @@ module Subscription.SpaceUserSubscription
 
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)
+import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Socket
 import Subscription
@@ -97,18 +99,25 @@ document =
             ... on PostSubscribedPayload {
               post {
                 ...PostFields
+                replies(first: 5) {
+                  ...ReplyConnectionFields
+                }
               }
             }
             ... on PostUnsubscribedPayload {
               post {
                 ...PostFields
+                replies(first: 5) {
+                  ...ReplyConnectionFields
+                }
               }
             }
           }
         }
         """
         [ Group.fragment
-        , Post.fragment 5
+        , Post.fragment
+        , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 

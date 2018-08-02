@@ -9,8 +9,10 @@ module Subscription.GroupSubscription
 
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)
+import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Socket
 import Subscription
@@ -41,12 +43,12 @@ groupUpdatedDecoder =
         Group.decoder
 
 
-postCreatedDecoder : Decode.Decoder Post
+postCreatedDecoder : Decode.Decoder ( Post, Connection Reply )
 postCreatedDecoder =
     Subscription.decoder "group"
         "PostCreated"
         "post"
-        Post.decoder
+        Post.decoderWithReplies
 
 
 groupMembershipUpdatedDecoder : Decode.Decoder Group
@@ -83,6 +85,9 @@ document =
             ... on PostCreatedPayload {
               post {
                 ...PostFields
+                replies(last: 5) {
+                  ...ReplyConnectionFields
+                }
               }
             }
             ... on GroupMembershipUpdatedPayload {
@@ -93,7 +98,8 @@ document =
           }
         }
         """
-        [ Post.fragment 5
+        [ Post.fragment
+        , Connection.fragment "ReplyConnection" Reply.fragment
         , Group.fragment
         ]
 

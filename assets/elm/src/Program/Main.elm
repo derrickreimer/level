@@ -818,13 +818,13 @@ handleSocketResult value sharedState ({ page, repo } as model) =
                 _ ->
                     ( model, Cmd.none )
 
-        Event.PostCreated post ->
+        Event.PostCreated ( post, replies ) ->
             case model.page of
                 Group ({ group } as pageModel) ->
                     if Post.groupsInclude group post then
                         let
                             ( newPageModel, cmd ) =
-                                Page.Group.handlePostCreated post pageModel
+                                Page.Group.handlePostCreated post replies pageModel
                         in
                             ( { model | page = Group newPageModel }
                             , Cmd.map GroupMsg cmd
