@@ -64,6 +64,21 @@ CREATE TYPE public.open_invitation_state AS ENUM (
 
 
 --
+-- Name: post_log_event; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.post_log_event AS ENUM (
+    'POST_CREATED',
+    'POST_EDITED',
+    'POST_CLOSED',
+    'POST_REOPENED',
+    'REPLY_CREATED',
+    'REPLY_EDITED',
+    'REPLY_DELETED'
+);
+
+
+--
 -- Name: post_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -210,6 +225,22 @@ CREATE TABLE public.post_groups (
     group_id uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: post_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_log (
+    id uuid NOT NULL,
+    event public.post_log_event NOT NULL,
+    occurred_at timestamp without time zone NOT NULL,
+    space_id uuid NOT NULL,
+    group_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    actor_id uuid,
+    reply_id uuid
 );
 
 
@@ -386,6 +417,14 @@ ALTER TABLE ONLY public.open_invitations
 
 ALTER TABLE ONLY public.post_groups
     ADD CONSTRAINT post_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_log post_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_log
+    ADD CONSTRAINT post_log_pkey PRIMARY KEY (id);
 
 
 --
@@ -697,6 +736,46 @@ ALTER TABLE ONLY public.post_groups
 
 
 --
+-- Name: post_log post_log_actor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_log
+    ADD CONSTRAINT post_log_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES public.space_users(id);
+
+
+--
+-- Name: post_log post_log_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_log
+    ADD CONSTRAINT post_log_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
+-- Name: post_log post_log_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_log
+    ADD CONSTRAINT post_log_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_log post_log_reply_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_log
+    ADD CONSTRAINT post_log_reply_id_fkey FOREIGN KEY (reply_id) REFERENCES public.replies(id);
+
+
+--
+-- Name: post_log post_log_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_log
+    ADD CONSTRAINT post_log_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: post_users post_users_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -796,5 +875,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120);
 

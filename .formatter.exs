@@ -38,14 +38,17 @@
     embeds_many: 3,
     many_to_many: 2,
     many_to_many: 3,
+
+    # Ecto Query
+    from: 2,
+
+    # Ecto Migrations
+    execute: 1,
     add: :*,
     remove: :*,
     create: :*,
     drop: :*,
     modify: :*,
-
-    # Ecto Query
-    from: 2,
 
     # Absinthe
     arg: :*,
