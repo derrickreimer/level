@@ -480,13 +480,13 @@ statusView : Post.State -> Html Msg
 statusView state =
     case state of
         Post.Open ->
-            div [ class "flex items-center text-sm font-bold text-dusty-blue-dark" ]
+            div [ class "flex items-center text-base text-dusty-blue-darker" ]
                 [ span [ class "mr-1" ] [ Icons.open ]
                 , text "Open"
                 ]
 
         Post.Closed ->
-            div [ class "flex items-center text-base text-dusty-blue-dark" ]
+            div [ class "flex items-center text-base text-dusty-blue-darker" ]
                 [ span [ class "mr-2" ] [ Icons.closed ]
                 , text "Closed"
                 ]
