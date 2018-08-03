@@ -946,7 +946,7 @@ leftSidebar sharedState ({ page, repo } as model) =
             [ div [ class "p-4" ]
                 [ div [ class "ml-2" ]
                     [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
-                    , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darker tracking-semi-tight" ] [ text spaceData.name ]
+                    , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
                     ]
                 , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                     [ sidebarLink "Inbox" (Just Route.Inbox) page
