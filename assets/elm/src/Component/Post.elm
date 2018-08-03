@@ -318,7 +318,7 @@ view repo currentUser now ({ post, replies } as model) =
                 [ div []
                     [ a
                         [ Route.href <| Route.Post postData.id
-                        , class "flex items-baseline no-underline text-dusty-blue-darker"
+                        , class "flex items-baseline no-underline text-dusty-blue-darkest"
                         , rel "tooltip"
                         , title "Expand post"
                         ]
