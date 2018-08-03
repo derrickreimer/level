@@ -237,8 +237,8 @@ CREATE TABLE public.post_log (
     event public.post_log_event NOT NULL,
     occurred_at timestamp without time zone NOT NULL,
     space_id uuid NOT NULL,
-    group_id uuid NOT NULL,
     post_id uuid NOT NULL,
+    group_id uuid,
     actor_id uuid,
     reply_id uuid
 );

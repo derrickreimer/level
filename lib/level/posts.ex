@@ -11,6 +11,7 @@ defmodule Level.Posts do
   alias Level.Groups.GroupUser
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
+  alias Level.Posts.PostLog
   alias Level.Posts.PostUser
   alias Level.Posts.Reply
   alias Level.Pubsub
@@ -22,9 +23,9 @@ defmodule Level.Posts do
 
   @typedoc "The result of posting to a group"
   @type create_post_result ::
-          {:ok, %{post: Post.t(), post_group: PostGroup.t(), subscribe: :ok}}
-          | {:error, :post | :post_group | :subscribe, any(),
-             %{optional(:post | :post_group | :subscribe) => any()}}
+          {:ok, %{post: Post.t(), post_group: PostGroup.t(), subscribe: :ok, log: PostLog.t()}}
+          | {:error, :post | :post_group | :subscribe | :log, any(),
+             %{optional(:post | :post_group | :subscribe | :log) => any()}}
 
   @typedoc "The result of replying to a post"
   @type create_reply_result ::
@@ -100,6 +101,9 @@ defmodule Level.Posts do
     end)
     |> Multi.run(:subscribe, fn %{post: post} ->
       {:ok, subscribe(post, space_user)}
+    end)
+    |> Multi.run(:log, fn %{post: post} ->
+      PostLog.insert(:post_created, post, group, space_user)
     end)
     |> Repo.transaction()
     |> after_create_post(space_user, group)
@@ -251,6 +255,9 @@ defmodule Level.Posts do
     Multi.new()
     |> Multi.insert(:reply, Reply.create_changeset(%Reply{}, params_with_relations))
     |> Multi.run(:subscribe, fn _ -> {:ok, subscribe(post, space_user)} end)
+    |> Multi.run(:log, fn %{reply: reply} ->
+      PostLog.insert(:reply_created, post, reply, space_user)
+    end)
     |> Repo.transaction()
     |> after_create_reply(post)
   end

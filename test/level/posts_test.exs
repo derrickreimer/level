@@ -107,6 +107,15 @@ defmodule Level.PostsTest do
       assert :subscribed = Posts.get_subscription_state(post, space_user)
     end
 
+    test "logs the event", %{space_user: space_user, group: group} do
+      params = valid_post_params()
+      {:ok, %{post: post, log: log}} = Posts.create_post(space_user, group, params)
+      assert log.event == "POST_CREATED"
+      assert log.actor_id == space_user.id
+      assert log.group_id == group.id
+      assert log.post_id == post.id
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
       {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)
@@ -159,6 +168,16 @@ defmodule Level.PostsTest do
       params = valid_reply_params()
       {:ok, %{reply: _reply}} = Posts.create_reply(space_user, post, params)
       assert :subscribed = Posts.get_subscription_state(post, space_user)
+    end
+
+    test "logs the event", %{space_user: space_user, post: post, group: group} do
+      params = valid_reply_params()
+      {:ok, %{reply: reply, log: log}} = Posts.create_reply(space_user, post, params)
+      assert log.event == "REPLY_CREATED"
+      assert log.actor_id == space_user.id
+      assert log.group_id == group.id
+      assert log.post_id == post.id
+      assert log.reply_id == reply.id
     end
 
     test "returns errors given invalid params", %{space_user: space_user, post: post} do
