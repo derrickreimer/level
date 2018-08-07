@@ -574,7 +574,7 @@ setupPage pageInit model =
                 , session = session
                 , isTransitioning = False
               }
-            , Page.Post.setup pageModel
+            , Page.Post.setup session pageModel
                 |> Cmd.map PostMsg
             )
 

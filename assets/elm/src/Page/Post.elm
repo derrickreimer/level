@@ -18,11 +18,14 @@ import Html.Attributes exposing (..)
 import Task exposing (Task)
 import Time exposing (Time, every, second)
 import Component.Post
-import Data.Reply exposing (Reply)
+import Connection
+import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
+import Mutation.RecordPostView as RecordPostView
 import Query.PostInit as PostInit
 import Repo exposing (Repo)
+import Route
 import Session exposing (Session)
 import ViewHelpers exposing (displayName)
 
@@ -70,14 +73,36 @@ buildModel user space ( session, { post, now } ) =
     Task.succeed ( session, Model post space user now )
 
 
-setup : Model -> Cmd Msg
-setup { post } =
-    Cmd.map PostComponentMsg (Component.Post.setup post)
+setup : Session -> Model -> Cmd Msg
+setup session ({ post } as model) =
+    Cmd.batch
+        [ Cmd.map PostComponentMsg (Component.Post.setup post)
+        , recordView session model
+        ]
 
 
 teardown : Model -> Cmd Msg
 teardown { post } =
     Cmd.map PostComponentMsg (Component.Post.teardown post)
+
+
+recordView : Session -> Model -> Cmd Msg
+recordView session { space, post } =
+    let
+        { nodes } =
+            Connection.last 1 post.replies
+
+        maybeReplyId =
+            case nodes of
+                [ lastReply ] ->
+                    Just (Reply.getId lastReply)
+
+                _ ->
+                    Nothing
+    in
+        session
+            |> RecordPostView.request (Space.getId space) post.id maybeReplyId
+            |> Task.attempt ViewRecorded
 
 
 
@@ -86,6 +111,7 @@ teardown { post } =
 
 type Msg
     = PostComponentMsg Component.Post.Msg
+    | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | Tick Time
     | NoOp
 
@@ -104,6 +130,15 @@ update msg repo session ({ post } as model) =
                 , newSession
                 )
 
+        ViewRecorded (Ok ( session, _ )) ->
+            noCmd session model
+
+        ViewRecorded (Err Session.Expired) ->
+            redirectToLogin session model
+
+        ViewRecorded (Err _) ->
+            noCmd session model
+
         Tick time ->
             { model | now = Date.fromTime time }
                 |> noCmd session
@@ -115,6 +150,11 @@ update msg repo session ({ post } as model) =
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
     ( ( model, Cmd.none ), session )
+
+
+redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+redirectToLogin session model =
+    ( ( model, Route.toLogin ), session )
 
 
 
