@@ -324,7 +324,6 @@ view repo currentUser now ({ post, replies } as model) =
                         ]
                         [ span [ class "font-bold" ] [ text <| displayName authorData ]
                         , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
-                        , viewIf (model.mode == Feed) Icons.arrowUpRight
                         ]
                     , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
                     , viewIf (model.mode == Feed) <|
