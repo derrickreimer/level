@@ -478,18 +478,19 @@ sidebarView repo model =
 
 statusView : Post.State -> Html Msg
 statusView state =
-    case state of
-        Post.Open ->
-            div [ class "flex items-center text-base text-dusty-blue-darker" ]
-                [ span [ class "mr-1" ] [ Icons.open ]
-                , text "Open"
+    let
+        buildView icon title =
+            div [ class "flex items-center text-sm text-dusty-blue-darker" ]
+                [ span [ class "mr-2" ] [ icon ]
+                , text title
                 ]
+    in
+        case state of
+            Post.Open ->
+                buildView Icons.open "Open"
 
-        Post.Closed ->
-            div [ class "flex items-center text-base text-dusty-blue-darker" ]
-                [ span [ class "mr-2" ] [ Icons.closed ]
-                , text "Closed"
-                ]
+            Post.Closed ->
+                buildView Icons.closed "Closed"
 
 
 
