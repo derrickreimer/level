@@ -12,7 +12,7 @@ defmodule Level.Mutations do
   alias Level.Users.User
 
   @typedoc "A context map containing the current user"
-  @type authenticated_context :: %{context: %{current_user: User.t()}}
+  @type info :: %{context: %{current_user: User.t()}}
 
   @typedoc "A list of validation errors"
   @type validation_errors :: [%{attribute: String.t(), message: String.t()}]
@@ -74,7 +74,7 @@ defmodule Level.Mutations do
   @doc """
   Updates a user's settings.
   """
-  @spec update_user(map(), authenticated_context()) :: user_mutation_result()
+  @spec update_user(map(), info()) :: user_mutation_result()
   def update_user(args, %{context: %{current_user: user}}) do
     case Users.update_user(user, args) do
       {:ok, user} ->
@@ -91,7 +91,7 @@ defmodule Level.Mutations do
   @doc """
   Updates a user's avatar.
   """
-  @spec update_user_avatar(map(), authenticated_context()) :: user_mutation_result()
+  @spec update_user_avatar(map(), info()) :: user_mutation_result()
   def update_user_avatar(%{data: data}, %{context: %{current_user: user}}) do
     case Users.update_avatar(user, data) do
       {:ok, user} ->
@@ -108,7 +108,7 @@ defmodule Level.Mutations do
   @doc """
   Creates a new space.
   """
-  @spec create_space(map(), authenticated_context()) :: space_mutation_result()
+  @spec create_space(map(), info()) :: space_mutation_result()
   def create_space(args, %{context: %{current_user: user}}) do
     resp =
       case Spaces.create_space(user, args) do
@@ -128,7 +128,7 @@ defmodule Level.Mutations do
   @doc """
   Updates a space.
   """
-  @spec update_space(map(), authenticated_context()) :: space_mutation_result()
+  @spec update_space(map(), info()) :: space_mutation_result()
   def update_space(%{space_id: space_id} = args, %{context: %{current_user: user}}) do
     user
     |> Spaces.get_space(space_id)
@@ -142,7 +142,7 @@ defmodule Level.Mutations do
   @doc """
   Updates a space's avatar.
   """
-  @spec update_space_avatar(map(), authenticated_context()) :: space_mutation_result()
+  @spec update_space_avatar(map(), info()) :: space_mutation_result()
   def update_space_avatar(%{space_id: space_id, data: data}, %{context: %{current_user: user}}) do
     user
     |> Spaces.get_space(space_id)
@@ -169,7 +169,7 @@ defmodule Level.Mutations do
   @doc """
   Creates a new group.
   """
-  @spec create_group(map(), authenticated_context()) :: group_mutation_result()
+  @spec create_group(map(), info()) :: group_mutation_result()
   def create_group(args, %{context: %{current_user: user}}) do
     resp =
       with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
@@ -189,7 +189,7 @@ defmodule Level.Mutations do
   @doc """
   Updates a group.
   """
-  @spec update_group(map(), authenticated_context()) :: group_mutation_result()
+  @spec update_group(map(), info()) :: group_mutation_result()
   def update_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
@@ -207,7 +207,7 @@ defmodule Level.Mutations do
   @doc """
   Create multiple groups.
   """
-  @spec bulk_create_groups(map(), authenticated_context()) :: bulk_create_groups_result()
+  @spec bulk_create_groups(map(), info()) :: bulk_create_groups_result()
   def bulk_create_groups(args, %{context: %{current_user: user}}) do
     case Spaces.get_space(user, args.space_id) do
       {:ok, %{space_user: space_user}} ->
@@ -242,8 +242,7 @@ defmodule Level.Mutations do
   @doc """
   Updates a group membership.
   """
-  @spec update_group_membership(map(), authenticated_context()) ::
-          update_group_membership_payload()
+  @spec update_group_membership(map(), info()) :: update_group_membership_payload()
   def update_group_membership(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
@@ -263,7 +262,7 @@ defmodule Level.Mutations do
   @doc """
   Bookmarks a group.
   """
-  @spec bookmark_group(map(), authenticated_context()) :: bookmark_group_payload()
+  @spec bookmark_group(map(), info()) :: bookmark_group_payload()
   def bookmark_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
@@ -278,7 +277,7 @@ defmodule Level.Mutations do
   @doc """
   Unbookmarks a group.
   """
-  @spec unbookmark_group(map(), authenticated_context()) :: bookmark_group_payload()
+  @spec unbookmark_group(map(), info()) :: bookmark_group_payload()
   def unbookmark_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
@@ -293,7 +292,7 @@ defmodule Level.Mutations do
   @doc """
   Posts a message to a group.
   """
-  @spec create_post(map(), authenticated_context()) :: post_mutation_result()
+  @spec create_post(map(), info()) :: post_mutation_result()
   def create_post(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
@@ -311,7 +310,7 @@ defmodule Level.Mutations do
   @doc """
   Marks a space setup step complete.
   """
-  @spec complete_setup_step(map(), authenticated_context()) :: setup_step_mutation_result()
+  @spec complete_setup_step(map(), info()) :: setup_step_mutation_result()
   def complete_setup_step(args, %{context: %{current_user: user}}) do
     with {:ok, %{space: space, space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, next_state} <- Spaces.complete_setup_step(space_user, space, args) do
@@ -325,7 +324,7 @@ defmodule Level.Mutations do
   @doc """
   Creates a reply on a post.
   """
-  @spec create_reply(new_reply_args(), authenticated_context()) :: reply_mutation_result()
+  @spec create_reply(new_reply_args(), info()) :: reply_mutation_result()
   def create_reply(%{space_id: space_id, post_id: post_id} = args, %{
         context: %{current_user: user}
       }) do
@@ -336,6 +335,47 @@ defmodule Level.Mutations do
     else
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, reply: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Records a post view.
+  """
+  @spec record_post_view(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors()}} | {:error, String.t()}
+
+  def record_post_view(
+        %{space_id: space_id, post_id: post_id},
+        %{context: %{current_user: user}}
+      ) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, post} <- Posts.get_post(space_user, post_id),
+         {:ok, _} <- Posts.record_view(post, space_user) do
+      {:ok, %{success: true, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  def record_post_view(
+        %{space_id: space_id, post_id: post_id, last_viewed_reply_id: reply_id},
+        %{context: %{current_user: user}}
+      ) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, post} <- Posts.get_post(space_user, post_id),
+         {:ok, reply} <- Posts.get_reply(post, reply_id),
+         {:ok, _} <- Posts.record_view(post, space_user, reply) do
+      {:ok, %{success: true, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
 
       err ->
         err

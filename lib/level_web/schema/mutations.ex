@@ -252,4 +252,19 @@ defmodule LevelWeb.Schema.Mutations do
 
     interface :validatable
   end
+
+  @desc "The response to recording a post view."
+  object :record_post_view_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    interface :validatable
+  end
 end

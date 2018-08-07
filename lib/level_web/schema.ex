@@ -166,6 +166,15 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.create_reply/2
     end
+
+    @desc "Records when a user views a post (optionally with the last viewed reply)."
+    field :record_post_view, type: :record_post_view_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+      arg :last_viewed_reply_id, :id
+
+      resolve &Level.Mutations.record_post_view/2
+    end
   end
 
   subscription do

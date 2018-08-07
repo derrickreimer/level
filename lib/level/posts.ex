@@ -239,6 +239,25 @@ defmodule Level.Posts do
   defp parse_subscription_state("UNSUBSCRIBED"), do: :unsubscribed
 
   @doc """
+  Fetches a reply.
+  """
+  @spec get_reply(Post.t(), String.t()) :: {:ok, Reply.t()} | {:error, String.t()}
+  def get_reply(%Post{} = post, id) do
+    post
+    |> Ecto.assoc(:replies)
+    |> Repo.get_by(id: id)
+    |> handle_reply_query()
+  end
+
+  defp handle_reply_query(%Reply{} = reply) do
+    {:ok, reply}
+  end
+
+  defp handle_reply_query(_) do
+    {:error, dgettext("errors", "Reply not found")}
+  end
+
+  @doc """
   Adds a reply to a post.
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
