@@ -144,7 +144,7 @@ defmodule Level.Spaces do
   @doc """
   Fetches all the featured users (for display in the inbox sidebar).
   """
-  @spec list_featured_users(Space.t()) :: [SpaceUser.t()] | no_return()
+  @spec list_featured_users(Space.t()) :: {:ok, [SpaceUser.t()]} | no_return()
   def list_featured_users(%Space{} = space) do
     result =
       space

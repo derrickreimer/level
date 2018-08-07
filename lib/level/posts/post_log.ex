@@ -28,6 +28,19 @@ defmodule Level.Posts.PostLog do
     timestamps(inserted_at: :occurred_at, updated_at: false)
   end
 
+  @spec insert(
+          :post_created,
+          Level.Posts.Post.t(),
+          Level.Groups.Group.t(),
+          Level.Spaces.SpaceUser.t()
+        ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+
+  @spec insert(
+          :reply_created,
+          Level.Posts.Post.t(),
+          Level.Posts.Reply.t(),
+          Level.Spaces.SpaceUser.t()
+        ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
   def insert(:post_created, %Post{} = post, %Group{} = group, %SpaceUser{} = space_user) do
     params = %{
       event: "POST_CREATED",

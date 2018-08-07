@@ -46,7 +46,7 @@ defmodule Level.Resolvers.SpaceUsers do
     end
   end
 
-  def get(%Space{} = space, args, %{context: %{current_user: authenticated_user}} = _info) do
+  def get(%Space{} = space, args, %{context: %{current_user: _authenticated_user}} = _info) do
     base_query = Spaces.space_users_base_query(space)
     wrapped_query = from(su in subquery(base_query))
     Pagination.fetch_result(wrapped_query, Args.build(args))

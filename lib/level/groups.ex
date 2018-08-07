@@ -57,7 +57,7 @@ defmodule Level.Groups do
       %Group{} = group ->
         if group.is_private do
           case get_group_user(group, member) do
-            {:ok, _} ->
+            {:ok, %GroupUser{} = _} ->
               {:ok, group}
 
             _ ->
@@ -202,14 +202,13 @@ defmodule Level.Groups do
           {:ok, %{group_user: GroupUser.t(), unbookmarked: boolean()}}
           | {:error, :group_user | :unbookmarked, any(),
              %{optional(:group_user | :unbookmarked) => any()}}
+          | no_return()
   def delete_group_membership(group, space_user, group_user) do
     Multi.new()
     |> Multi.delete(:group_user, group_user)
     |> Multi.run(:unbookmarked, fn _ ->
-      case unbookmark_group(group, space_user) do
-        :ok -> {:ok, true}
-        _ -> {:ok, false}
-      end
+      unbookmark_group(group, space_user)
+      {:ok, true}
     end)
     |> Repo.transaction()
   end
