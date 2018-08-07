@@ -278,6 +278,9 @@ defmodule Level.Posts do
     |> Multi.run(:log, fn %{reply: reply} ->
       PostLog.insert(:reply_created, post, reply, space_user)
     end)
+    |> Multi.run(:post_view, fn %{reply: reply} ->
+      record_view(post, space_user, reply)
+    end)
     |> Repo.transaction()
     |> after_create_reply(post)
   end

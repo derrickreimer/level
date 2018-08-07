@@ -182,6 +182,13 @@ defmodule Level.PostsTest do
       assert log.reply_id == reply.id
     end
 
+    test "records a view", %{space_user: space_user, post: post} do
+      params = valid_reply_params()
+      {:ok, %{reply: reply, post_view: post_view}} = Posts.create_reply(space_user, post, params)
+      assert post_view.post_id == post.id
+      assert post_view.last_viewed_reply_id == reply.id
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, post: post} do
       params = valid_reply_params() |> Map.merge(%{body: nil})
       {:error, :reply, changeset, _} = Posts.create_reply(space_user, post, params)
