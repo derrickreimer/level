@@ -260,6 +260,20 @@ CREATE TABLE public.post_users (
 
 
 --
+-- Name: post_views; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_views (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    last_viewed_reply_id uuid,
+    occurred_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: posts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -433,6 +447,14 @@ ALTER TABLE ONLY public.post_log
 
 ALTER TABLE ONLY public.post_users
     ADD CONSTRAINT post_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_views post_views_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_views
+    ADD CONSTRAINT post_views_pkey PRIMARY KEY (id);
 
 
 --
@@ -800,6 +822,38 @@ ALTER TABLE ONLY public.post_users
 
 
 --
+-- Name: post_views post_views_last_viewed_reply_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_views
+    ADD CONSTRAINT post_views_last_viewed_reply_id_fkey FOREIGN KEY (last_viewed_reply_id) REFERENCES public.replies(id);
+
+
+--
+-- Name: post_views post_views_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_views
+    ADD CONSTRAINT post_views_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_views post_views_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_views
+    ADD CONSTRAINT post_views_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: post_views post_views_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_views
+    ADD CONSTRAINT post_views_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: posts posts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -875,5 +929,5 @@ ALTER TABLE ONLY public.space_users
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948);
 

@@ -5,6 +5,8 @@ defmodule Level.PostsTest do
   alias Level.Groups.Group
   alias Level.Posts
   alias Level.Posts.Post
+  alias Level.Posts.PostView
+  alias Level.Posts.Reply
 
   describe "posts_base_query/1 with users" do
     setup do
@@ -186,6 +188,41 @@ defmodule Level.PostsTest do
 
       assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
                changeset
+    end
+  end
+
+  describe "record_view/3" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "creates a post view record with last viewed reply", %{
+      space_user: space_user,
+      post: post
+    } do
+      {:ok, %{reply: %Reply{id: reply_id} = reply}} = create_reply(space_user, post)
+
+      assert {:ok, %PostView{last_viewed_reply_id: ^reply_id}} =
+               Posts.record_view(post, space_user, reply)
+    end
+  end
+
+  describe "record_view/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "creates a post view record with null last viewed reply", %{
+      space_user: space_user,
+      post: post
+    } do
+      assert {:ok, %PostView{last_viewed_reply_id: nil}} = Posts.record_view(post, space_user)
     end
   end
 end

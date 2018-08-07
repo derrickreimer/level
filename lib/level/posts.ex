@@ -13,6 +13,7 @@ defmodule Level.Posts do
   alias Level.Posts.PostGroup
   alias Level.Posts.PostLog
   alias Level.Posts.PostUser
+  alias Level.Posts.PostView
   alias Level.Posts.Reply
   alias Level.Pubsub
   alias Level.Repo
@@ -268,6 +269,21 @@ defmodule Level.Posts do
   end
 
   defp after_create_reply(err, _post), do: err
+
+  @doc """
+  Records a view event.
+  """
+  @spec record_view(Post.t(), SpaceUser.t(), Reply.t()) ::
+          {:ok, PostView.t()} | {:error, Ecto.Changeset.t()}
+  @spec record_view(Post.t(), SpaceUser.t()) :: {:ok, PostView.t()} | {:error, Ecto.Changeset.t()}
+
+  def record_view(%Post{} = post, %SpaceUser{} = space_user, %Reply{} = reply) do
+    PostView.insert(post, space_user, reply)
+  end
+
+  def record_view(%Post{} = post, %SpaceUser{} = space_user) do
+    PostView.insert(post, space_user)
+  end
 
   @impl true
   def dataloader_data(%{current_user: _user} = params) do
