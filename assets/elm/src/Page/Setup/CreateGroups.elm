@@ -172,8 +172,8 @@ routeFor setupState =
 view : Model -> Html Msg
 view model =
     div [ class "mx-56" ]
-        [ div [ class "mx-auto py-24 max-w-400px leading-normal text-dusty-blue-darker" ]
-            [ h2 [ class "mb-6 font-extrabold text-2xl" ] [ text ("Welcome to Level, " ++ model.firstName ++ "!") ]
+        [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
+            [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text ("Welcome to Level, " ++ model.firstName ++ "!") ]
             , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
             , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
             , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
