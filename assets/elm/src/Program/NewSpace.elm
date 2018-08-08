@@ -5,13 +5,12 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onBlur)
 import Regex exposing (regex)
 import Task
-import Avatar
 import Data.User as User exposing (User)
 import Data.ValidationError exposing (ValidationError, isInvalid, errorView)
-import Icons
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Lazy exposing (Lazy(..))
 import Mutation.CreateSpace as CreateSpace
+import Query.NewSpaceInit as NewSpaceInit
 import Route
 import Session exposing (Session)
 import View.Layout exposing (userLayout)
@@ -58,7 +57,11 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( (buildModel flags), Cmd.none )
+    let
+        model =
+            buildModel flags
+    in
+        ( model, setup model )
 
 
 buildModel : Flags -> Model
@@ -73,12 +76,20 @@ buildModel flags =
     }
 
 
+setup : Model -> Cmd Msg
+setup { session } =
+    session
+        |> NewSpaceInit.request
+        |> Task.attempt InitLoaded
+
+
 
 -- UPDATE
 
 
 type Msg
-    = NameChanged String
+    = InitLoaded (Result Session.Error ( Session, NewSpaceInit.Response ))
+    | NameChanged String
     | SlugChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
@@ -87,6 +98,15 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        InitLoaded (Ok ( newSession, { user } )) ->
+            ( { model | user = Loaded user, session = newSession }, Cmd.none )
+
+        InitLoaded (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        InitLoaded (Err _) ->
+            ( model, Cmd.none )
+
         NameChanged val ->
             ( { model | name = val, slug = (slugify val) }, Cmd.none )
 
