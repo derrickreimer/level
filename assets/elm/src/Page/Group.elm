@@ -44,7 +44,7 @@ import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription
-import ViewHelpers exposing (setFocus, selectValue, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import View.Helpers exposing (setFocus, selectValue, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
 -- MODEL

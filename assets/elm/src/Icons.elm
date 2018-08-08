@@ -18,7 +18,7 @@ module Icons
 
 import Html exposing (Html)
 import Html.Attributes exposing (class)
-import ViewHelpers exposing (injectHtml)
+import View.Helpers exposing (injectHtml)
 
 
 type Toggle

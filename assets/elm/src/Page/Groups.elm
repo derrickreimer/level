@@ -24,7 +24,7 @@ import Repo exposing (Repo)
 import Route
 import Route.Groups
 import Session exposing (Session)
-import ViewHelpers exposing (setFocus, viewIf, viewUnless)
+import View.Helpers exposing (setFocus, viewIf, viewUnless)
 
 
 -- MODEL

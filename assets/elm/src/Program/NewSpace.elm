@@ -5,12 +5,16 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onBlur)
 import Regex exposing (regex)
 import Task
+import Avatar
+import Data.User as User exposing (User)
 import Data.ValidationError exposing (ValidationError, isInvalid, errorView)
 import Icons
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import Lazy exposing (Lazy(..))
 import Mutation.CreateSpace as CreateSpace
 import Route
 import Session exposing (Session)
+import View.Layout exposing (userLayout)
 
 
 main : Program Flags Model Msg
@@ -29,6 +33,7 @@ main =
 
 type alias Model =
     { session : Session
+    , user : Lazy User
     , name : String
     , slug : String
     , errors : List ValidationError
@@ -59,6 +64,7 @@ init flags =
 buildModel : Flags -> Model
 buildModel flags =
     { session = Session.init flags.apiToken
+    , user = NotLoaded
     , name = ""
     , slug = ""
     , errors = []
@@ -134,14 +140,8 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container mx-auto p-8" ]
-        [ div [ class "flex pb-16 sm:pb-16 items-center" ]
-            [ a [ href "/spaces", class "logo logo-sm" ]
-                [ Icons.logo ]
-            , div [ class "flex flex-grow justify-start sm:justify-end" ]
-                [ a [ href "/manifesto", class "flex-0 ml-6 text-blue no-underline" ] [ text "Manifesto" ] ]
-            ]
-        , div
+    userLayout model.user <|
+        div
             [ classList
                 [ ( "mx-auto max-w-sm leading-normal pb-8", True )
                 , ( "shake", not (List.isEmpty model.errors) )
@@ -167,7 +167,6 @@ view model =
                 ]
                 [ text "Let's get started" ]
             ]
-        ]
 
 
 textField : FormField -> List ValidationError -> Html Msg

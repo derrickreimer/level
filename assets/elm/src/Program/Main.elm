@@ -40,7 +40,7 @@ import Socket
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Util exposing (Lazy(..))
-import ViewHelpers exposing (displayName)
+import View.Helpers exposing (displayName)
 
 
 -- MODEL

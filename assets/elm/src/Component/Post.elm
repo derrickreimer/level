@@ -35,7 +35,7 @@ import Route
 import Scroll
 import Session exposing (Session)
 import Subscription.PostSubscription as PostSubscription
-import ViewHelpers exposing (setFocus, unsetFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import View.Helpers exposing (setFocus, unsetFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
 -- MODEL

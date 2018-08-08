@@ -1,11 +1,11 @@
-module ViewHelpersTest exposing (..)
+module View.HelpersTest exposing (..)
 
 import Date exposing (Date)
 import Time
 import Expect exposing (Expectation)
 import Fuzz exposing (string)
 import Test exposing (..)
-import ViewHelpers
+import View.Helpers
 
 
 {-| An arbitrary day considered to be "now".
@@ -25,7 +25,7 @@ now =
 suite : Test
 suite =
     describe "helpers"
-        [ describe "ViewHelpers.displayName"
+        [ describe "View.Helpers.displayName"
             [ fuzz2 string string "joins the first and last name" <|
                 \firstName lastName ->
                     let
@@ -35,9 +35,9 @@ suite =
                             , lastName = lastName
                             }
                     in
-                        Expect.equal (firstName ++ " " ++ lastName) (ViewHelpers.displayName user)
+                        Expect.equal (firstName ++ " " ++ lastName) (View.Helpers.displayName user)
             ]
-        , describe "ViewHelpers.smartFormatDate"
+        , describe "View.Helpers.smartFormatDate"
             [ test "formats dates on the same day" <|
                 \_ ->
                     let
@@ -46,7 +46,7 @@ suite =
                                 - (Time.minute * 3)
                                 |> Date.fromTime
                     in
-                        Expect.equal "Today at 4:57 am" (ViewHelpers.smartFormatDate now minutesAgo)
+                        Expect.equal "Today at 4:57 am" (View.Helpers.smartFormatDate now minutesAgo)
             , test "formats dates within a few days" <|
                 \_ ->
                     let
@@ -55,7 +55,7 @@ suite =
                                 - (Time.hour * 48)
                                 |> Date.fromTime
                     in
-                        Expect.equal "Sep 26 at 5:00 am" (ViewHelpers.smartFormatDate now daysAgo)
+                        Expect.equal "Sep 26 at 5:00 am" (View.Helpers.smartFormatDate now daysAgo)
             , test "formats dates over a year ago" <|
                 \_ ->
                     let
@@ -64,6 +64,6 @@ suite =
                                 - (Time.hour * 24 * 367)
                                 |> Date.fromTime
                     in
-                        Expect.equal "Sep 27, 1987 at 5:00 am" (ViewHelpers.smartFormatDate now overOneYearAgo)
+                        Expect.equal "Sep 27, 1987 at 5:00 am" (View.Helpers.smartFormatDate now overOneYearAgo)
             ]
         ]

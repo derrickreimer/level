@@ -1,4 +1,4 @@
-module ViewHelpers
+module View.Helpers
     exposing
         ( -- MISC
           displayName

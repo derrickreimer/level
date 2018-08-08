@@ -7,12 +7,14 @@ import Task
 import Avatar
 import Connection exposing (Connection)
 import Data.Space as Space exposing (Space)
+import Data.User as User exposing (User)
 import Icons
 import Lazy exposing (Lazy(..))
 import Page
 import Query.SpacesInit as SpacesInit
 import Route
 import Session exposing (Session)
+import View.Layout exposing (userLayout)
 
 
 main : Program Flags Model Msg
@@ -32,6 +34,7 @@ main =
 type alias Model =
     { session : Session
     , query : String
+    , user : Lazy User
     , spaces : Lazy (Connection Space)
     }
 
@@ -49,7 +52,7 @@ init : Flags -> ( Model, Cmd Msg )
 init { apiToken } =
     let
         model =
-            Model (Session.init apiToken) "" NotLoaded
+            Model (Session.init apiToken) "" NotLoaded NotLoaded
     in
         ( model
         , Cmd.batch
@@ -78,8 +81,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SpacesLoaded (Ok ( newSession, { spaces } )) ->
-            ( { model | session = newSession, spaces = Loaded spaces }, Cmd.none )
+        SpacesLoaded (Ok ( newSession, { user, spaces } )) ->
+            ( { model | session = newSession, user = Loaded user, spaces = Loaded spaces }, Cmd.none )
 
         SpacesLoaded (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -106,14 +109,8 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container mx-auto p-8" ]
-        [ div [ class "flex pb-16 sm:pb-16 items-center" ]
-            [ a [ href "/spaces", class "logo logo-sm" ]
-                [ Icons.logo ]
-            , div [ class "flex flex-grow justify-start sm:justify-end" ]
-                [ a [ href "/manifesto", class "flex-0 ml-6 text-blue no-underline" ] [ text "Manifesto" ] ]
-            ]
-        , div [ class "mx-auto max-w-sm" ]
+    userLayout model.user <|
+        div [ class "mx-auto max-w-sm" ]
             [ div [ class "flex items-center pb-6" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
                 , div [ class "flex-0 flex-no-shrink" ]
@@ -134,7 +131,6 @@ view model =
                 ]
             , spacesView model.query model.spaces
             ]
-        ]
 
 
 spacesView : String -> Lazy (Connection Space) -> Html Msg

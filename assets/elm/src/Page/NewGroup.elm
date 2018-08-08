@@ -21,7 +21,7 @@ import Data.ValidationError exposing (ValidationError, errorsFor, isInvalid, err
 import Mutation.CreateGroup as CreateGroup
 import Route
 import Session exposing (Session)
-import ViewHelpers exposing (setFocus)
+import View.Helpers exposing (setFocus)
 
 
 -- MODEL

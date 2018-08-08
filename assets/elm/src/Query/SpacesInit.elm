@@ -5,12 +5,14 @@ import Json.Encode as Encode
 import Task exposing (Task)
 import Connection exposing (Connection)
 import Data.Space as Space exposing (Space)
+import Data.User as User exposing (User)
 import GraphQL exposing (Document, Fragment)
 import Session exposing (Session)
 
 
 type alias Response =
-    { spaces : Connection Space
+    { user : User
+    , spaces : Connection Space
     }
 
 
@@ -40,6 +42,7 @@ document : Params -> Document
 document params =
     GraphQL.document (documentBody params)
         [ Connection.fragment "SpaceUserConnection" fragment
+        , User.fragment
         ]
 
 
@@ -52,6 +55,7 @@ documentBody params =
               $limit: Int!
             ) {
               viewer {
+                ...UserFields
                 spaceUsers(
                   first: $limit,
                   orderBy: {field: SPACE_NAME, direction: ASC}
@@ -69,6 +73,7 @@ documentBody params =
               $limit: Int!
             ) {
               viewer {
+                ...UserFields
                 spaceUsers(
                   first: $limit,
                   after: $cursor,
@@ -87,6 +92,7 @@ documentBody params =
               $limit: Int!
             ) {
               viewer {
+                ...UserFields
                 spaceUsers(
                   last: $limit,
                   before: $cursor,
@@ -122,8 +128,10 @@ variables params limit =
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "viewer", "spaceUsers" ] <|
-        Decode.map Response (Connection.decoder (Decode.field "space" Space.decoder))
+    Decode.at [ "data", "viewer" ] <|
+        Decode.map2 Response
+            (User.decoder)
+            (Decode.field "spaceUsers" (Connection.decoder (Decode.field "space" Space.decoder)))
 
 
 request : Int -> Session -> Task Session.Error ( Session, Response )

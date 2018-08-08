@@ -23,7 +23,7 @@ import Repo exposing (Repo)
 import Route
 import Route.SpaceUsers exposing (Params)
 import Session exposing (Session)
-import ViewHelpers exposing (displayName, viewIf)
+import View.Helpers exposing (displayName, viewIf)
 
 
 -- MODEL

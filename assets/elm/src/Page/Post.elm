@@ -27,7 +27,7 @@ import Query.PostInit as PostInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
-import ViewHelpers exposing (displayName)
+import View.Helpers exposing (displayName)
 
 
 -- MODEL

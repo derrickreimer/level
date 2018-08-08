@@ -10,7 +10,7 @@ import Repo exposing (Repo)
 import Route
 import Route.SpaceUsers
 import Task exposing (Task)
-import ViewHelpers exposing (displayName)
+import View.Helpers exposing (displayName)
 
 
 -- MODEL
