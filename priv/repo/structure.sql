@@ -93,7 +93,7 @@ CREATE TYPE public.post_state AS ENUM (
 --
 
 CREATE TYPE public.post_subscription_state AS ENUM (
-    'IMPLICIT',
+    'NOT_SUBSCRIBED',
     'SUBSCRIBED',
     'UNSUBSCRIBED'
 );

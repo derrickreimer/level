@@ -3,7 +3,7 @@ defmodule Level.Repo.Migrations.CreatePostUsers do
 
   def up do
     execute(
-      "CREATE TYPE post_subscription_state AS ENUM ('IMPLICIT','SUBSCRIBED','UNSUBSCRIBED')"
+      "CREATE TYPE post_subscription_state AS ENUM ('NOT_SUBSCRIBED','SUBSCRIBED','UNSUBSCRIBED')"
     )
 
     create table(:post_users, primary_key: false) do

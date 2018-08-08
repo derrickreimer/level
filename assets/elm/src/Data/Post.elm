@@ -36,7 +36,7 @@ type State
 
 
 type SubscriptionState
-    = Implicit
+    = NotSubscribed
     | Subscribed
     | Unsubscribed
 
@@ -134,8 +134,8 @@ subscriptionStateDecoder =
                 "UNSUBSCRIBED" ->
                     succeed Unsubscribed
 
-                "IMPLICIT" ->
-                    succeed Implicit
+                "NOT_SUBSCRIBED" ->
+                    succeed NotSubscribed
 
                 _ ->
                     fail "Subscription state not valid"

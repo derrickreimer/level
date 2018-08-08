@@ -53,7 +53,7 @@ defmodule Level.Posts do
       where: g.is_private == false or not is_nil(gu.id),
       select: %{
         p
-        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "IMPLICIT")
+        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "NOT_SUBSCRIBED")
       }
   end
 
@@ -67,7 +67,7 @@ defmodule Level.Posts do
       on: pu.space_user_id == ^space_user_id and pu.post_id == p.id,
       select: %{
         p
-        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "IMPLICIT")
+        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "NOT_SUBSCRIBED")
       }
   end
 
@@ -224,14 +224,14 @@ defmodule Level.Posts do
   Determines a user's subscription state with a post.
   """
   @spec get_subscription_state(Post.t(), SpaceUser.t()) ::
-          :subscribed | :unsubscribed | :implicit | no_return()
+          :subscribed | :unsubscribed | :not_subscribed | no_return()
   def get_subscription_state(%Post{id: post_id}, %SpaceUser{id: space_user_id}) do
     case Repo.get_by(PostUser, %{post_id: post_id, space_user_id: space_user_id}) do
       %PostUser{subscription_state: state} ->
         parse_subscription_state(state)
 
       _ ->
-        :implicit
+        :not_subscribed
     end
   end
 

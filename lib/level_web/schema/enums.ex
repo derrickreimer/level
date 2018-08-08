@@ -41,7 +41,7 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   enum :post_subscription_state do
-    value :implicit, as: "IMPLICIT"
+    value :not_subscribed, as: "NOT_SUBSCRIBED"
     value :subscribed, as: "SUBSCRIBED"
     value :unsubscribed, as: "UNSUBSCRIBED"
   end
