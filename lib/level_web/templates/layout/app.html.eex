@@ -27,6 +27,7 @@
     <% end %>
 
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
   </head>
 
   <body class="font-sans font-antialised" data-stretchy-filter=".js-stretchy">
