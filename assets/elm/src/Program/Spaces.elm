@@ -72,6 +72,7 @@ setup { session } =
 
 type Msg
     = SpacesLoaded (Result Session.Error ( Session, SpacesInit.Response ))
+    | QueryChanged String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -85,6 +86,9 @@ update msg model =
 
         SpacesLoaded (Err _) ->
             ( model, Cmd.none )
+
+        QueryChanged val ->
+            ( { model | query = val }, Cmd.none )
 
 
 
@@ -118,32 +122,65 @@ view model =
             , div [ class "pb-6" ]
                 [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
                     [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                    , input
+                        [ id "search-input"
+                        , type_ "text"
+                        , class "flex-1 bg-transparent no-outline"
+                        , placeholder "Type to search"
+                        , onInput QueryChanged
+                        ]
+                        []
                     ]
                 ]
-            , spacesView model.spaces
+            , spacesView model.query model.spaces
             ]
         ]
 
 
-spacesView : Lazy (Connection Space) -> Html Msg
-spacesView lazySpaces =
+spacesView : String -> Lazy (Connection Space) -> Html Msg
+spacesView query lazySpaces =
     case lazySpaces of
         NotLoaded ->
             text ""
 
         Loaded spaces ->
-            div [ class "ml-4" ] <|
-                Connection.map spaceView spaces
+            if Connection.isEmpty spaces then
+                blankSlateView
+            else
+                let
+                    filteredSpaces =
+                        spaces
+                            |> Connection.toList
+                            |> filter query
+                in
+                    if List.isEmpty filteredSpaces then
+                        div [ class "ml-4 py-2 text-base" ] [ text "No spaces match your search." ]
+                    else
+                        div [ class "ml-4" ] <|
+                            List.map (spaceView query) filteredSpaces
 
 
-spaceView : Space -> Html Msg
-spaceView space =
+blankSlateView : Html Msg
+blankSlateView =
+    div [ class "py-2 text-center text-lg" ] [ text "You aren't a member of any spaces yet!" ]
+
+
+spaceView : String -> Space.Record -> Html Msg
+spaceView query spaceData =
+    a [ href ("/" ++ spaceData.slug ++ "/"), class "flex items-center pr-4 pb-1 no-underline text-blue" ]
+        [ div [ class "mr-3" ] [ Avatar.thingAvatar Avatar.Small spaceData ]
+        , h2 [ class "font-normal text-lg" ] [ text spaceData.name ]
+        ]
+
+
+filter : String -> List Space -> List Space.Record
+filter query spaces =
     let
-        spaceData =
-            Space.getCachedData space
+        matches value =
+            value
+                |> String.toLower
+                |> String.contains (String.toLower query)
     in
-        a [ href ("/" ++ spaceData.slug ++ "/"), class "flex items-center pr-4 pb-1 no-underline text-blue" ]
-            [ div [ class "mr-3" ] [ Avatar.thingAvatar Avatar.Small spaceData ]
-            , h2 [ class "font-normal text-lg" ] [ text spaceData.name ]
-            ]
+        spaces
+            |> List.map (\space -> Space.getCachedData space)
+            |> List.filter (\data -> matches data.name)
