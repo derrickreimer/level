@@ -944,7 +944,7 @@ leftSidebar sharedState ({ page, repo } as model) =
     in
         div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
             [ div [ class "p-4" ]
-                [ div [ class "ml-2" ]
+                [ a [ href "/spaces", class "block ml-2 no-underline" ]
                     [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
                     , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
                     ]

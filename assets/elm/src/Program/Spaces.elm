@@ -144,6 +144,6 @@ spaceView space =
             Space.getCachedData space
     in
         a [ href ("/" ++ spaceData.slug ++ "/"), class "flex items-center pr-4 pb-1 no-underline text-blue" ]
-            [ div [ class "mr-4" ] [ Avatar.thingAvatar Avatar.Small spaceData ]
+            [ div [ class "mr-3" ] [ Avatar.thingAvatar Avatar.Small spaceData ]
             , h2 [ class "font-normal text-lg" ] [ text spaceData.name ]
             ]
