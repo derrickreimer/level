@@ -32,7 +32,7 @@ defmodule Level.Spaces.SpaceUser do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:user_id, :space_id, :role, :first_name, :last_name])
+    |> cast(attrs, [:user_id, :space_id, :role, :first_name, :last_name, :avatar])
     |> validate_required([:role, :first_name, :last_name])
   end
 
