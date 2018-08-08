@@ -47,7 +47,7 @@ groupBookmarkedDecoder =
 groupUnbookmarkedDecoder : Decode.Decoder Group
 groupUnbookmarkedDecoder =
     Subscription.decoder "spaceUser"
-        "GroupUnookmarked"
+        "GroupUnbookmarked"
         "group"
         Group.decoder
 
