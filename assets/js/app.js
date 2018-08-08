@@ -18,6 +18,7 @@ import "phoenix_html";
 
 import * as Main from "./modules/main";
 import * as NewSpace from "./modules/new_space";
+import * as Spaces from "./modules/spaces";
 import * as Home from "./modules/home";
 import "stretchy";
 
@@ -31,6 +32,10 @@ if (moduleNode) {
 
     case "new_space":
       NewSpace.initialize();
+      break;
+
+    case "spaces":
+      Spaces.initialize();
       break;
 
     case "home":

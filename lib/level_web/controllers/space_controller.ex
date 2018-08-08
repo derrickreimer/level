@@ -8,8 +8,12 @@ defmodule LevelWeb.SpaceController do
   alias LevelWeb.ErrorView
 
   def index(conn, _params) do
-    # TODO: fetch spaces the user has access to
-    render conn, "index.html"
+    user = conn.assigns[:current_user]
+
+    conn
+    |> assign(:api_token, Auth.generate_signed_jwt(user))
+    |> assign(:module, "spaces")
+    |> render("index.html")
   end
 
   def new(conn, _params) do

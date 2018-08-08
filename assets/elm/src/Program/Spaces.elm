@@ -1,0 +1,149 @@
+module Program.Spaces exposing (..)
+
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Task
+import Avatar
+import Connection exposing (Connection)
+import Data.Space as Space exposing (Space)
+import Icons
+import Lazy exposing (Lazy(..))
+import Page
+import Query.SpacesInit as SpacesInit
+import Route
+import Session exposing (Session)
+
+
+main : Program Flags Model Msg
+main =
+    Html.programWithFlags
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
+
+-- MODEL
+
+
+type alias Model =
+    { session : Session
+    , query : String
+    , spaces : Lazy (Connection Space)
+    }
+
+
+type alias Flags =
+    { apiToken : String
+    }
+
+
+
+-- LIFECYCLE
+
+
+init : Flags -> ( Model, Cmd Msg )
+init { apiToken } =
+    let
+        model =
+            Model (Session.init apiToken) "" NotLoaded
+    in
+        ( model
+        , Cmd.batch
+            [ setup model
+            , Page.setTitle "My Spaces"
+            ]
+        )
+
+
+setup : Model -> Cmd Msg
+setup { session } =
+    session
+        |> SpacesInit.request 100
+        |> Task.attempt SpacesLoaded
+
+
+
+-- UPDATE
+
+
+type Msg
+    = SpacesLoaded (Result Session.Error ( Session, SpacesInit.Response ))
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        SpacesLoaded (Ok ( newSession, { spaces } )) ->
+            ( { model | session = newSession, spaces = Loaded spaces }, Cmd.none )
+
+        SpacesLoaded (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        SpacesLoaded (Err _) ->
+            ( model, Cmd.none )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    div [ class "container mx-auto p-8" ]
+        [ div [ class "flex pb-16 sm:pb-16 items-center" ]
+            [ a [ href "/spaces", class "logo logo-sm" ]
+                [ Icons.logo ]
+            , div [ class "flex flex-grow justify-start sm:justify-end" ]
+                [ a [ href "/manifesto", class "flex-0 ml-6 text-blue no-underline" ] [ text "Manifesto" ] ]
+            ]
+        , div [ class "mx-auto max-w-sm" ]
+            [ div [ class "flex items-center pb-6" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
+                , div [ class "flex-0 flex-no-shrink" ]
+                    [ a [ href "/spaces/new", class "btn btn-blue btn-md no-underline" ] [ text "New space" ] ]
+                ]
+            , div [ class "pb-6" ]
+                [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
+                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
+                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                    ]
+                ]
+            , spacesView model.spaces
+            ]
+        ]
+
+
+spacesView : Lazy (Connection Space) -> Html Msg
+spacesView lazySpaces =
+    case lazySpaces of
+        NotLoaded ->
+            text ""
+
+        Loaded spaces ->
+            div [ class "ml-4" ] <|
+                Connection.map spaceView spaces
+
+
+spaceView : Space -> Html Msg
+spaceView space =
+    let
+        spaceData =
+            Space.getCachedData space
+    in
+        a [ href ("/" ++ spaceData.slug ++ "/"), class "flex items-center pr-4 pb-1 no-underline text-blue" ]
+            [ div [ class "mr-4" ] [ Avatar.thingAvatar Avatar.Small spaceData ]
+            , h2 [ class "font-normal text-lg" ] [ text spaceData.name ]
+            ]

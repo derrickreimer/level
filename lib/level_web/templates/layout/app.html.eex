@@ -20,7 +20,12 @@
     <meta name="space_id" content="<%= @space_id %>">
     <% end %>
 
+    <%= if assigns[:page_title] do %>
+    <title><%= @page_title %></title>
+    <% else %>
     <title>Level</title>
+    <% end %>
+
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>
 

@@ -39,7 +39,18 @@ defmodule Level.Spaces do
   def spaces_base_query(user) do
     from s in Space,
       join: su in assoc(s, :space_users),
-      where: su.user_id == ^user.id
+      where: su.user_id == ^user.id and su.state == "ACTIVE"
+  end
+
+  @doc """
+  Fetches all spaces the user belongs to.
+  """
+  @spec list_member_spaces(User.t()) :: [Space.t()]
+  def list_member_spaces(%User{} = user) do
+    user
+    |> spaces_base_query()
+    |> order_by(asc: :name)
+    |> Repo.all()
   end
 
   @doc """

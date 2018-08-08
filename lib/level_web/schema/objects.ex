@@ -143,7 +143,7 @@ defmodule LevelWeb.Schema.Objects do
       arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
-      arg :order_by, :space_user_order, default_value: %{field: :last_name, direction: :asc}
+      arg :order_by, :space_user_order
       resolve &Resolvers.space_users/3
     end
   end

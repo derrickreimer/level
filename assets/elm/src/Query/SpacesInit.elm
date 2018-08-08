@@ -1,24 +1,45 @@
-module Query.SpaceUsersInit exposing (Response, request)
+module Query.SpacesInit exposing (Response, request)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Task exposing (Task)
 import Connection exposing (Connection)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
-import GraphQL exposing (Document)
-import Route.SpaceUsers exposing (Params(..))
+import Data.Space as Space exposing (Space)
+import GraphQL exposing (Document, Fragment)
 import Session exposing (Session)
 
 
 type alias Response =
-    { spaceUsers : Connection SpaceUser
+    { spaces : Connection Space
     }
+
+
+{-| TODO: replace with actual route params
+-}
+type Params
+    = Root
+    | After String
+    | Before String
+
+
+fragment : Fragment
+fragment =
+    GraphQL.fragment
+        """
+        fragment SpaceUserSpaceFields on SpaceUser {
+          space {
+            ...SpaceFields
+          }
+        }
+        """
+        [ Space.fragment
+        ]
 
 
 document : Params -> Document
 document params =
     GraphQL.document (documentBody params)
-        [ Connection.fragment "SpaceUserConnection" SpaceUser.fragment
+        [ Connection.fragment "SpaceUserConnection" fragment
         ]
 
 
@@ -27,14 +48,13 @@ documentBody params =
     case params of
         Root ->
             """
-            query SpaceUsersInit(
-              $spaceId: ID!,
+            query SpacesInit(
               $limit: Int!
             ) {
-              space(id: $spaceId) {
+              viewer {
                 spaceUsers(
                   first: $limit,
-                  orderBy: { field: LAST_NAME, direction: ASC }
+                  orderBy: {field: SPACE_NAME, direction: ASC}
                 ) {
                   ...SpaceUserConnectionFields
                 }
@@ -42,18 +62,17 @@ documentBody params =
             }
             """
 
-        After _ ->
+        After cursor ->
             """
-            query SpaceUsersInit(
-              $spaceId: ID!,
+            query SpacesInit(
               $cursor: Cursor!,
               $limit: Int!
             ) {
-              space(id: $spaceId) {
+              viewer {
                 spaceUsers(
                   first: $limit,
                   after: $cursor,
-                  orderBy: { field: LAST_NAME, direction: ASC }
+                  orderBy: {field: SPACE_NAME, direction: ASC}
                 ) {
                   ...SpaceUserConnectionFields
                 }
@@ -61,18 +80,17 @@ documentBody params =
             }
             """
 
-        Before _ ->
+        Before cursor ->
             """
-            query SpaceUsersInit(
-              $spaceId: ID!,
+            query SpacesInit(
               $cursor: Cursor!,
               $limit: Int!
             ) {
-              space(id: $spaceId) {
+              viewer {
                 spaceUsers(
                   last: $limit,
                   before: $cursor,
-                  orderBy: { field: LAST_NAME, direction: ASC }
+                  orderBy: {field: SPACE_NAME, direction: ASC}
                 ) {
                   ...SpaceUserConnectionFields
                 }
@@ -81,8 +99,8 @@ documentBody params =
             """
 
 
-variables : String -> Params -> Int -> Maybe Encode.Value
-variables spaceId params limit =
+variables : Params -> Int -> Maybe Encode.Value
+variables params limit =
     let
         paramVariables =
             case params of
@@ -98,18 +116,22 @@ variables spaceId params limit =
         Just <|
             Encode.object <|
                 List.append paramVariables
-                    [ ( "spaceId", Encode.string spaceId )
-                    , ( "limit", Encode.int limit )
+                    [ ( "limit", Encode.int limit )
                     ]
 
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "space", "spaceUsers" ] <|
-        Decode.map Response (Connection.decoder SpaceUser.decoder)
+    Decode.at [ "data", "viewer", "spaceUsers" ] <|
+        Decode.map Response (Connection.decoder (Decode.field "space" Space.decoder))
 
 
-request : String -> Params -> Int -> Session -> Task Session.Error ( Session, Response )
-request spaceId params limit session =
-    Session.request session <|
-        GraphQL.request (document params) (variables spaceId params limit) decoder
+request : Int -> Session -> Task Session.Error ( Session, Response )
+request limit session =
+    let
+        -- TODO: Accept this as an argument instead
+        params =
+            Root
+    in
+        Session.request session <|
+            GraphQL.request (document params) (variables params limit) decoder

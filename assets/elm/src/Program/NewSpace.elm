@@ -46,13 +46,17 @@ type alias Flags =
     }
 
 
+
+-- LIFECYCLE
+
+
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( (initialState flags), Cmd.none )
+    ( (buildModel flags), Cmd.none )
 
 
-initialState : Flags -> Model
-initialState flags =
+buildModel : Flags -> Model
+buildModel flags =
     { session = Session.init flags.apiToken
     , name = ""
     , slug = ""

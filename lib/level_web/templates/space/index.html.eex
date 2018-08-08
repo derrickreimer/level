@@ -1,9 +1,0 @@
-<%= if get_flash(@conn, :error) do %>
-  <div class="inline-flash inline-flash--error" role="alert"><%= get_flash(@conn, :error) %></div>
-<% end %>
-
-<div class="cform space-switcher">
-  <div class="cform__header cform__header--centered">
-    <h2 class="cform__heading"><%= gettext "My Spaces" %></h2>
-  </div>
-</div>
