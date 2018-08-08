@@ -6,6 +6,7 @@ import Html.Events exposing (onInput, onClick, onBlur)
 import Regex exposing (regex)
 import Task
 import Data.ValidationError exposing (ValidationError, isInvalid, errorView)
+import Icons
 import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Mutation.CreateSpace as CreateSpace
 import Route
@@ -133,37 +134,38 @@ type alias FormField =
 
 view : Model -> Html Msg
 view model =
-    div [ class "bg-grey-lighter h-full min-h-screen" ]
-        [ div [ class "container mx-auto px-4 py-24 flex justify-center max-w-400px" ]
-            [ div [ class "w-full" ]
-                [ div [ class "mb-8 flex justify-center" ]
-                    [ img [ src "/images/logo-md.svg", class "logo", alt "Level" ] []
-                    ]
-                , div
-                    [ classList
-                        [ ( "px-8 sm:px-12 py-8 bg-white rounded-lg border", True )
-                        , ( "shake", not (List.isEmpty model.errors) )
-                        ]
-                    ]
-                    [ h1 [ class "text-center text-2xl font-extrabold text-dusty-blue-darkest pb-8" ]
-                        [ text "Create a new space" ]
-                    , div [ class "pb-6" ]
-                        [ label [ for "name", class "input-label" ] [ text "Name your space" ]
-                        , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
-                        ]
-                    , div [ class "pb-6" ]
-                        [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
-                        , slugField model.slug model.errors
-                        ]
-                    , button
-                        [ type_ "submit"
-                        , class "btn btn-blue w-full"
-                        , onClick Submit
-                        , disabled (model.formState == Submitting)
-                        ]
-                        [ text "Let's get started" ]
-                    ]
+    div [ class "container mx-auto p-8" ]
+        [ div [ class "flex pb-16 sm:pb-16 items-center" ]
+            [ a [ href "/spaces", class "logo logo-sm" ]
+                [ Icons.logo ]
+            , div [ class "flex flex-grow justify-start sm:justify-end" ]
+                [ a [ href "/manifesto", class "flex-0 ml-6 text-blue no-underline" ] [ text "Manifesto" ] ]
+            ]
+        , div
+            [ classList
+                [ ( "mx-auto max-w-sm leading-normal pb-8", True )
+                , ( "shake", not (List.isEmpty model.errors) )
                 ]
+            ]
+            [ div [ class "pb-6" ]
+                [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Create a space" ]
+                , p [] [ text "Spaces represent companies or organizations. Once you create your space, you can invite your colleagues to join." ]
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "name", class "input-label" ] [ text "Name your space" ]
+                , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
+                , slugField model.slug model.errors
+                ]
+            , button
+                [ type_ "submit"
+                , class "btn btn-blue"
+                , onClick Submit
+                , disabled (model.formState == Submitting)
+                ]
+                [ text "Let's get started" ]
             ]
         ]
 
