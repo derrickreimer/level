@@ -7,6 +7,7 @@ defmodule Level.Users.Reservation do
   import Ecto.Changeset
   import Level.Gettext
 
+  alias Level.Users
   alias Level.Users.User
 
   @type t :: %__MODULE__{}
@@ -18,11 +19,6 @@ defmodule Level.Users.Reservation do
     field :handle, :string
 
     timestamps()
-  end
-
-  @doc false
-  def handle_format do
-    ~r/^(?>[A-Za-z][A-Za-z0-9-\.]*[A-Za-z0-9])$/
   end
 
   @doc false
@@ -38,8 +34,8 @@ defmodule Level.Users.Reservation do
     )
     |> validate_format(
       :handle,
-      handle_format(),
-      message: dgettext("errors", "must be alphanumeric")
+      Users.handle_format(),
+      message: dgettext("errors", "must contain letters, numbers, and dashes only")
     )
     |> unique_constraint(
       :email,

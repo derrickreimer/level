@@ -10,6 +10,7 @@ defmodule Level.Users.User do
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
   alias Level.Spaces.SpaceUser
+  alias Level.Users
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -71,7 +72,19 @@ defmodule Level.Users.User do
     |> validate_length(:last_name, min: 1, max: 255)
     |> validate_length(:password, min: 6)
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
-    |> unique_constraint(:email, name: :users_space_id_email_index)
+    |> validate_format(
+      :handle,
+      Users.handle_format(),
+      message: dgettext("errors", "must contain letters, numbers, and dashes only")
+    )
+    |> unique_constraint(:email,
+      name: :users_space_id_email_index,
+      message: dgettext("errors", "is already taken")
+    )
+    |> unique_constraint(:handle,
+      name: :users_lower_email_index,
+      message: dgettext("errors", "is already taken")
+    )
   end
 
   defp generate_salt do

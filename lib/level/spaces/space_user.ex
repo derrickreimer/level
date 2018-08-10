@@ -6,8 +6,10 @@ defmodule Level.Spaces.SpaceUser do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import Level.Gettext
 
   alias Level.Spaces.Space
+  alias Level.Users
   alias Level.Users.User
 
   @type t :: %__MODULE__{}
@@ -35,6 +37,15 @@ defmodule Level.Spaces.SpaceUser do
     struct
     |> cast(attrs, [:user_id, :space_id, :role, :first_name, :last_name, :handle, :avatar])
     |> validate_required([:role, :first_name, :last_name, :handle])
+    |> validate_format(
+      :handle,
+      Users.handle_format(),
+      message: dgettext("errors", "must contain letters, numbers, and dashes only")
+    )
+    |> unique_constraint(:handle,
+      name: :space_users_space_id_lower_handle_index,
+      message: dgettext("errors", "is already taken")
+    )
   end
 
   @doc false
@@ -42,5 +53,14 @@ defmodule Level.Spaces.SpaceUser do
     struct
     |> cast(attrs, [:role, :first_name, :last_name, :handle, :avatar])
     |> validate_required([:role, :first_name, :last_name, :handle])
+    |> validate_format(
+      :handle,
+      Users.handle_format(),
+      message: dgettext("errors", "must contain letters, numbers, and dashes only")
+    )
+    |> unique_constraint(:handle,
+      name: :space_users_space_id_lower_handle_index,
+      message: dgettext("errors", "is already taken")
+    )
   end
 end
