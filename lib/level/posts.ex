@@ -9,13 +9,13 @@ defmodule Level.Posts do
   alias Ecto.Multi
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
+  alias Level.Mentions
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
   alias Level.Posts.PostLog
   alias Level.Posts.PostUser
   alias Level.Posts.PostView
   alias Level.Posts.Reply
-  alias Level.Posts.UserMention
   alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
@@ -33,20 +33,6 @@ defmodule Level.Posts do
   @type create_reply_result ::
           {:ok, %{reply: Reply.t(), subscribe: :ok}}
           | {:error, :reply | :subscribe, any(), %{optional(:reply | :subscribe) => any()}}
-
-  def handle_pattern do
-    ~r/
-      (?:^|\W)                    # beginning of string or non-word char
-      @((?>[a-z0-9][a-z0-9-]*))   # at-handle
-      (?!\/)                      # without a trailing slash
-      (?=
-        \.+[ \t\W]|               # dots followed by space or non-word character
-        \.+$|                     # dots at end of line
-        [^0-9a-zA-Z_.]|           # non-word character except dot
-        $                         # end of line
-      )
-    /ix
-  end
 
   @doc """
   Builds a query for posts accessible to a particular user.
@@ -116,7 +102,9 @@ defmodule Level.Posts do
       create_post_group(space_user.space_id, post.id, group.id)
     end)
     |> Multi.run(:subscribe, fn %{post: post} -> {:ok, subscribe(post, space_user)} end)
-    |> Multi.run(:mentions, fn %{post: post} -> record_mentions(post) end)
+    |> Multi.run(:mentions, fn %{post: post} ->
+      Mentions.record(post)
+    end)
     |> Multi.run(:log, fn %{post: post} ->
       PostLog.insert(:post_created, post, group, space_user)
     end)
@@ -144,33 +132,6 @@ defmodule Level.Posts do
     %PostGroup{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
-  end
-
-  defp record_mentions(post) do
-    handle_pattern()
-    |> Regex.run(post.body, capture: :all_but_first)
-    |> process_mention_captures(post)
-  end
-
-  defp process_mention_captures(nil, _post) do
-    {:ok, []}
-  end
-
-  defp process_mention_captures(handles, post) do
-    lower_handles =
-      handles
-      |> Enum.map(fn handle -> String.downcase(handle) end)
-      |> Enum.uniq()
-
-    query =
-      from su in SpaceUser,
-        where: su.space_id == ^post.space_id,
-        where: fragment("lower(?)", su.handle) in ^lower_handles,
-        select: su.id
-
-    query
-    |> Repo.all()
-    |> UserMention.insert_all(post)
   end
 
   defp after_create_post(
@@ -338,12 +299,11 @@ defmodule Level.Posts do
   """
   @spec record_view(Post.t(), SpaceUser.t(), Reply.t()) ::
           {:ok, PostView.t()} | {:error, Ecto.Changeset.t()}
-  @spec record_view(Post.t(), SpaceUser.t()) :: {:ok, PostView.t()} | {:error, Ecto.Changeset.t()}
-
   def record_view(%Post{} = post, %SpaceUser{} = space_user, %Reply{} = reply) do
     PostView.insert(post, space_user, reply)
   end
 
+  @spec record_view(Post.t(), SpaceUser.t()) :: {:ok, PostView.t()} | {:error, Ecto.Changeset.t()}
   def record_view(%Post{} = post, %SpaceUser{} = space_user) do
     PostView.insert(post, space_user)
   end

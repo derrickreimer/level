@@ -37,11 +37,17 @@ defmodule LevelWeb.Schema do
       resolve &Level.Resolvers.space/2
     end
 
-    @desc "Fetchs a group."
+    @desc "Fetches a group."
     field :group, :group do
       arg :id, non_null(:id)
       resolve &Level.Resolvers.group/2
     end
+
+    # @desc "Fetches mentions for the current user."
+    # field :mentions, :mention_connection do
+    #   arg :space_id, non_null(:id)
+    #   resolve &Level.Resolvers.mentions/2
+    # end
   end
 
   mutation do
