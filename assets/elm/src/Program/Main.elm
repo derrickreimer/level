@@ -343,7 +343,7 @@ type Page
 
 
 type PageInit
-    = InboxInit (Result Never Page.Inbox.Model)
+    = InboxInit (Result Session.Error ( Session, Page.Inbox.Model ))
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
@@ -404,8 +404,8 @@ navigateTo maybeRoute sharedState model =
                     |> transition model SetupInviteUsersInit
 
             Just Route.Inbox ->
-                sharedState.space
-                    |> Page.Inbox.init
+                model.session
+                    |> Page.Inbox.init sharedState.space
                     |> transition model InboxInit
 
             Just (Route.SpaceUsers params) ->
@@ -492,14 +492,18 @@ pageTitle repo page =
 setupPage : PageInit -> Model -> ( Model, Cmd Msg )
 setupPage pageInit model =
     case pageInit of
-        InboxInit (Ok pageModel) ->
+        InboxInit (Ok ( session, pageModel )) ->
             ( { model
                 | page = Inbox pageModel
+                , session = session
                 , isTransitioning = False
               }
             , Page.Inbox.setup pageModel
                 |> Cmd.map InboxMsg
             )
+
+        InboxInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
 
         InboxInit (Err _) ->
             ( model, Cmd.none )

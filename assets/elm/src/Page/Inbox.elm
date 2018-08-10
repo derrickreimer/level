@@ -1,14 +1,27 @@
-module Page.Inbox exposing (Model, Msg(..), title, init, setup, teardown, view)
+module Page.Inbox
+    exposing
+        ( Model
+        , Msg(..)
+        , title
+        , init
+        , setup
+        , teardown
+        , view
+        )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
+import Connection exposing (Connection)
+import Data.Mention as Mention exposing (Mention)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Icons
+import Query.InboxInit as InboxInit
 import Repo exposing (Repo)
 import Route
 import Route.SpaceUsers
+import Session exposing (Session)
 import Task exposing (Task)
 import View.Helpers exposing (displayName)
 
@@ -18,6 +31,7 @@ import View.Helpers exposing (displayName)
 
 type alias Model =
     { space : Space
+    , mentions : Connection Mention
     }
 
 
@@ -34,14 +48,16 @@ title =
 -- LIFECYCLE
 
 
-init : Space -> Task Never Model
-init space =
-    Task.succeed (buildModel space)
+init : Space -> Session -> Task Session.Error ( Session, Model )
+init space session =
+    session
+        |> InboxInit.request (Space.getId space)
+        |> Task.andThen (buildModel space)
 
 
-buildModel : Space -> Model
-buildModel space =
-    Model space
+buildModel : Space -> ( Session, InboxInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel space ( session, { mentions } ) =
+    Task.succeed ( session, Model space mentions )
 
 
 setup : Model -> Cmd Msg

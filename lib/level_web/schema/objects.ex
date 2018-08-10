@@ -293,11 +293,14 @@ defmodule LevelWeb.Schema.Objects do
 
   @desc "A mention represents a post where a user has been mentioned."
   object :mention do
+    field :id, non_null(:id)
     field :post, non_null(:post), resolve: dataloader(Posts)
     field :mentioned, non_null(:space_user), resolve: dataloader(Spaces)
 
     field :mentioners, list_of(:space_user) do
       resolve &Resolvers.mentioners/3
     end
+
+    field :last_occurred_at, non_null(:time)
   end
 end
