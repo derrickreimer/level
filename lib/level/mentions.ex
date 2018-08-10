@@ -47,7 +47,8 @@ defmodule Level.Mentions do
         struct(m, [:post_id, :mentioned_id])
         | reply_ids: aggregate_ids(m.reply_id),
           mentioner_ids: aggregate_ids(m.mentioner_id),
-          last_occurred_at: max(m.occurred_at)
+          last_occurred_at: max(m.occurred_at),
+          id: m.post_id
       }
   end
 
@@ -100,4 +101,18 @@ defmodule Level.Mentions do
     Repo.insert_all(UserMention, params)
     {:ok, mentioned_ids}
   end
+
+  @doc """
+  Get and prepares the mentioner ids for a given grouped mention.
+  """
+  @spec mentioner_ids(GroupedUserMention.t()) :: [String.t()]
+  def mentioner_ids(grouped_mention) do
+    grouped_mention.mentioner_ids
+    |> Enum.map(&Ecto.UUID.load/1)
+    |> Enum.map(&map_loaded_uuid/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp map_loaded_uuid({:ok, value}), do: value
+  defp map_loaded_uuid(_), do: nil
 end

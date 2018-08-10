@@ -4,14 +4,18 @@ defmodule Level.Resolvers do
   GraphQL query resolution.
   """
 
+  import Absinthe.Resolution.Helpers
+
   alias Level.Resolvers.GroupMemberships
   alias Level.Resolvers.GroupPosts
   alias Level.Resolvers.Groups
+  alias Level.Resolvers.Mentions
   alias Level.Resolvers.Replies
   alias Level.Resolvers.SpaceUsers
   alias Level.Resolvers.UserGroupMemberships
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
+  alias Level.Mentions.GroupedUserMention
   alias Level.Pagination
   alias Level.Posts.Post
   alias Level.Spaces
@@ -150,5 +154,28 @@ defmodule Level.Resolvers do
       error ->
         error
     end
+  end
+
+  @doc """
+  Fetches mentions for the current user by space id.
+  """
+  @spec mentions(Space.t(), map(), info()) :: paginated_result()
+  def mentions(%Space{} = space, args, info) do
+    Mentions.get(space, struct(Mentions, args), info)
+  end
+
+  @doc """
+  Fetches mentioners for a grouped user mention.
+  """
+  @spec mentioners(GroupedUserMention.t(), any(), info()) :: {:middleware, any(), any()}
+  def mentioners(%GroupedUserMention{} = grouped_mention, _, %{context: %{loader: loader}}) do
+    ids = Level.Mentions.mentioner_ids(grouped_mention)
+
+    loader
+    |> Dataloader.load_many(Spaces, SpaceUser, ids)
+    |> on_load(fn loader ->
+      result = Dataloader.get_many(loader, Spaces, SpaceUser, ids)
+      {:ok, result}
+    end)
   end
 end

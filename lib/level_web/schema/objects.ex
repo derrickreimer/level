@@ -7,6 +7,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.AssetStore
   alias Level.Groups
   alias Level.Markdown
+  alias Level.Posts
   alias Level.Resolvers
   alias Level.Spaces
   alias LevelWeb.Endpoint
@@ -21,8 +22,9 @@ defmodule LevelWeb.Schema.Objects do
     field :id, non_null(:id)
     field :state, non_null(:user_state)
     field :email, non_null(:string)
-    field :first_name, :string
-    field :last_name, :string
+    field :first_name, non_null(:string)
+    field :last_name, non_null(:string)
+    field :handle, non_null(:string)
     field :time_zone, :string
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
@@ -61,6 +63,7 @@ defmodule LevelWeb.Schema.Objects do
     field :space, non_null(:space), resolve: dataloader(Spaces)
     field :first_name, non_null(:string)
     field :last_name, non_null(:string)
+    field :handle, non_null(:string)
 
     @desc "A list of groups the user has bookmarked."
     field :bookmarked_groups, list_of(:group) do
@@ -145,6 +148,16 @@ defmodule LevelWeb.Schema.Objects do
       arg :after, :cursor
       arg :order_by, :space_user_order
       resolve &Resolvers.space_users/3
+    end
+
+    @desc "A paginated list of mentions for the current user in the space."
+    field :mentions, non_null(:mention_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :mention_order
+      resolve &Resolvers.mentions/3
     end
   end
 
@@ -275,6 +288,16 @@ defmodule LevelWeb.Schema.Objects do
       resolve fn reply, _, _ ->
         {:ok, reply.inserted_at}
       end
+    end
+  end
+
+  @desc "A mention represents a post where a user has been mentioned."
+  object :mention do
+    field :post, non_null(:post), resolve: dataloader(Posts)
+    field :mentioned, non_null(:space_user), resolve: dataloader(Spaces)
+
+    field :mentioners, list_of(:space_user) do
+      resolve &Resolvers.mentioners/3
     end
   end
 end

@@ -9,7 +9,7 @@ defmodule Level.Mentions.GroupedUserMention do
   alias Level.Spaces.SpaceUser
 
   @type t :: %__MODULE__{}
-  @primary_key false
+  @primary_key {:id, :binary_id, autogenerate: false}
   @foreign_key_type :binary_id
 
   schema "abstract: grouped user_mentions" do
