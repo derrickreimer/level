@@ -103,6 +103,9 @@ defmodule Level.Posts do
     |> Multi.run(:subscribe, fn %{post: post} ->
       {:ok, subscribe(post, space_user)}
     end)
+    |> Multi.run(:mentions, fn %{post: post} ->
+      record_mentions(post)
+    end)
     |> Multi.run(:log, fn %{post: post} ->
       PostLog.insert(:post_created, post, group, space_user)
     end)
@@ -130,6 +133,11 @@ defmodule Level.Posts do
     %PostGroup{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
+  end
+
+  # TODO: implement this
+  defp record_mentions(_post) do
+    {:ok, []}
   end
 
   defp after_create_post(

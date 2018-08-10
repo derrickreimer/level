@@ -118,6 +118,16 @@ defmodule Level.PostsTest do
       assert log.post_id == post.id
     end
 
+    # test "record mentions", %{space: space, space_user: space_user, group: group} do
+    #   {:ok, %{space_user: mentioned}} = create_space_member(space, %{username: "tiff"})
+    #   params = valid_post_params() |> Map.merge(%{body: "Hey @tiff"})
+    #   {:ok, %{post: post, mentions: [mention]}} = Posts.create_post(space_user, group, params)
+    #   assert mention.mentioner_id == space_user.id
+    #   assert mention.mentioned_id == mentioned.id
+    #   assert mention.post_id == post.id
+    #   assert mention.reply_id == nil
+    # end
+
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
       {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)
