@@ -115,12 +115,8 @@ defmodule Level.Posts do
     |> Multi.run(:post_group, fn %{post: post} ->
       create_post_group(space_user.space_id, post.id, group.id)
     end)
-    |> Multi.run(:subscribe, fn %{post: post} ->
-      {:ok, subscribe(post, space_user)}
-    end)
-    |> Multi.run(:mentions, fn %{post: post} ->
-      record_mentions(post)
-    end)
+    |> Multi.run(:subscribe, fn %{post: post} -> {:ok, subscribe(post, space_user)} end)
+    |> Multi.run(:mentions, fn %{post: post} -> record_mentions(post) end)
     |> Multi.run(:log, fn %{post: post} ->
       PostLog.insert(:post_created, post, group, space_user)
     end)
