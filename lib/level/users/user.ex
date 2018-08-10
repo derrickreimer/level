@@ -21,6 +21,7 @@ defmodule Level.Users.User do
   schema "users" do
     field :state, :string, read_after_writes: true
     field :email, :string
+    field :handle, :string
     field :first_name, :string, default: ""
     field :last_name, :string, default: ""
     field :time_zone, :string
@@ -44,8 +45,8 @@ defmodule Level.Users.User do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:email, :first_name, :last_name, :password, :time_zone])
-    |> validate_required([:first_name, :last_name, :email, :password])
+    |> cast(attrs, [:email, :handle, :first_name, :last_name, :password, :time_zone])
+    |> validate_required([:first_name, :last_name, :handle, :email, :password])
     |> validate()
     |> put_default_time_zone()
     |> put_password_hash()
@@ -55,7 +56,7 @@ defmodule Level.Users.User do
   @doc false
   def update_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:email, :first_name, :last_name, :password, :time_zone, :avatar])
+    |> cast(attrs, [:email, :handle, :first_name, :last_name, :password, :time_zone, :avatar])
     |> validate()
     |> put_password_hash()
   end

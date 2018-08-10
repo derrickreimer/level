@@ -355,7 +355,8 @@ CREATE TABLE public.space_users (
     updated_at timestamp without time zone NOT NULL,
     first_name text NOT NULL,
     last_name text NOT NULL,
-    avatar text
+    avatar text,
+    handle public.citext NOT NULL
 );
 
 
@@ -375,6 +376,23 @@ CREATE TABLE public.spaces (
 
 
 --
+-- Name: user_mentions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_mentions (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    reply_id uuid,
+    mentioner_id uuid NOT NULL,
+    mentioned_id uuid NOT NULL,
+    dismissed_at timestamp without time zone,
+    occurred_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -389,7 +407,8 @@ CREATE TABLE public.users (
     session_salt text DEFAULT 'salt'::text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    avatar text
+    avatar text,
+    handle public.citext NOT NULL
 );
 
 
@@ -514,6 +533,14 @@ ALTER TABLE ONLY public.spaces
 
 
 --
+-- Name: user_mentions user_mentions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_mentions
+    ADD CONSTRAINT user_mentions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -627,6 +654,13 @@ CREATE INDEX space_users_id_index ON public.space_users USING btree (id);
 
 
 --
+-- Name: space_users_space_id_lower_handle_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX space_users_space_id_lower_handle_index ON public.space_users USING btree (space_id, lower((handle)::text));
+
+
+--
 -- Name: space_users_space_id_user_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -659,6 +693,13 @@ CREATE INDEX users_id_index ON public.users USING btree (id);
 --
 
 CREATE UNIQUE INDEX users_lower_email_index ON public.users USING btree (lower((email)::text));
+
+
+--
+-- Name: users_lower_handle_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX users_lower_handle_index ON public.users USING btree (lower((handle)::text));
 
 
 --
@@ -926,8 +967,48 @@ ALTER TABLE ONLY public.space_users
 
 
 --
+-- Name: user_mentions user_mentions_mentioned_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_mentions
+    ADD CONSTRAINT user_mentions_mentioned_id_fkey FOREIGN KEY (mentioned_id) REFERENCES public.space_users(id);
+
+
+--
+-- Name: user_mentions user_mentions_mentioner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_mentions
+    ADD CONSTRAINT user_mentions_mentioner_id_fkey FOREIGN KEY (mentioner_id) REFERENCES public.space_users(id);
+
+
+--
+-- Name: user_mentions user_mentions_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_mentions
+    ADD CONSTRAINT user_mentions_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: user_mentions user_mentions_reply_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_mentions
+    ADD CONSTRAINT user_mentions_reply_id_fkey FOREIGN KEY (reply_id) REFERENCES public.replies(id);
+
+
+--
+-- Name: user_mentions user_mentions_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_mentions
+    ADD CONSTRAINT user_mentions_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122);
 

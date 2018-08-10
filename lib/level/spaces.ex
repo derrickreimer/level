@@ -204,6 +204,7 @@ defmodule Level.Spaces do
       role: "OWNER",
       first_name: user.first_name,
       last_name: user.last_name,
+      handle: user.handle,
       avatar: user.avatar
     })
     |> Repo.insert()
@@ -221,6 +222,7 @@ defmodule Level.Spaces do
       role: "MEMBER",
       first_name: user.first_name,
       last_name: user.last_name,
+      handle: user.handle,
       avatar: user.avatar
     })
     |> Repo.insert()

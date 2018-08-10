@@ -19,6 +19,7 @@ defmodule Level.Spaces.SpaceUser do
     field :role, :string, read_after_writes: true
     field :first_name, :string
     field :last_name, :string
+    field :handle, :string
     field :avatar, :string
     belongs_to :space, Space
     belongs_to :user, User
@@ -32,14 +33,14 @@ defmodule Level.Spaces.SpaceUser do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:user_id, :space_id, :role, :first_name, :last_name, :avatar])
-    |> validate_required([:role, :first_name, :last_name])
+    |> cast(attrs, [:user_id, :space_id, :role, :first_name, :last_name, :handle, :avatar])
+    |> validate_required([:role, :first_name, :last_name, :handle])
   end
 
   @doc false
   def update_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:role, :first_name, :last_name, :avatar])
-    |> validate_required([:role, :first_name, :last_name])
+    |> cast(attrs, [:role, :first_name, :last_name, :handle, :avatar])
+    |> validate_required([:role, :first_name, :last_name, :handle])
   end
 end

@@ -82,6 +82,7 @@ defmodule Level.Users do
       Spaces.update_space_user(space_user, %{
         first_name: user.first_name,
         last_name: user.last_name,
+        handle: user.handle,
         avatar: user.avatar
       })
     end

@@ -37,6 +37,19 @@
           </div>
 
           <div class="pb-6">
+            <%= label f, :handle, gettext("Handle"), class: "input-label" %>
+
+            <%= label f, :handle, class: "#{input_classes(f, :handle)} inline-flex items-baseline" do %>
+              <span class="flex-none text-dusty-blue-darker select-none leading-none">level.app/</span>
+              <div class="flex-1 leading-none">
+                <%= text_input f, :handle, class: "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker", autofocus: true, placeholder: "janesmith" %>
+              </div>
+            <% end %>
+
+            <%= error_tag f, :handle, class: "form-errors" %>
+          </div>
+
+          <div class="pb-6">
             <%= label f, :password, gettext("Password"), class: "input-label" %>
             <%= password_input f, :password, class: input_classes(f, :password) %>
             <%= error_tag f, :password, class: "form-errors" %>

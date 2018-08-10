@@ -15,6 +15,7 @@ defmodule Level.TestHelpers do
       first_name: "Jane",
       last_name: "Doe-#{salt}",
       email: "user#{salt}@level.app",
+      handle: "user#{salt}",
       password: "$ecret$"
     }
   end
