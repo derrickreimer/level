@@ -21,6 +21,9 @@ defmodule Level.Posts do
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
+  # Suppress dialyzer warnings about dataloader functions
+  @dialyzer {:nowarn_function, dataloader_data: 1}
+
   @behaviour Level.DataloaderSource
 
   @typedoc "The result of posting to a group"
@@ -308,12 +311,27 @@ defmodule Level.Posts do
   @spec record_view(Post.t(), SpaceUser.t(), Reply.t()) ::
           {:ok, PostView.t()} | {:error, Ecto.Changeset.t()}
   def record_view(%Post{} = post, %SpaceUser{} = space_user, %Reply{} = reply) do
-    PostView.insert(post, space_user, reply)
+    do_record_view(%{
+      space_id: post.space_id,
+      post_id: post.id,
+      space_user_id: space_user.id,
+      last_viewed_reply_id: reply.id
+    })
   end
 
   @spec record_view(Post.t(), SpaceUser.t()) :: {:ok, PostView.t()} | {:error, Ecto.Changeset.t()}
   def record_view(%Post{} = post, %SpaceUser{} = space_user) do
-    PostView.insert(post, space_user)
+    do_record_view(%{
+      space_id: post.space_id,
+      post_id: post.id,
+      space_user_id: space_user.id
+    })
+  end
+
+  defp do_record_view(params) do
+    %PostView{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert()
   end
 
   @impl true

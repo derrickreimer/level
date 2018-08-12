@@ -16,6 +16,9 @@ defmodule Level.Groups do
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
+  # Suppress dialyzer warnings about dataloader functions
+  @dialyzer {:nowarn_function, dataloader_data: 1}
+
   @behaviour Level.DataloaderSource
 
   @doc """

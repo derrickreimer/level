@@ -9,6 +9,9 @@ defmodule LevelWeb.Absinthe do
   alias Level.Spaces
   alias Level.Users.User
 
+  # Suppress dialyzer warnings about dataloader functions
+  @dialyzer {:nowarn_function, build_loader: 1}
+
   @doc """
   Sets absinthe context on the given connection.
   """
