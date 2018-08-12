@@ -345,5 +345,11 @@ defmodule Level.Groups do
   @impl true
   def dataloader_query(Group, %{current_user: user}), do: groups_base_query(user)
 
+  def dataloader_query(GroupBookmark, %{current_user: %User{id: user_id}}) do
+    from b in GroupBookmark,
+      join: su in assoc(b, :space_user),
+      where: su.user_id == ^user_id
+  end
+
   def dataloader_query(_, _), do: raise("query not valid for this context")
 end

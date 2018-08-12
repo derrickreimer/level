@@ -14,6 +14,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.SpaceUsers
   alias Level.Resolvers.UserGroupMemberships
   alias Level.Groups.Group
+  alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
   alias Level.Mentions.GroupedUserMention
   alias Level.Pagination
@@ -129,7 +130,7 @@ defmodule Level.Resolvers do
   @doc """
   Fetches posts within a given group.
   """
-  @spec group_posts(Group.t(), GroupPosts.t(), info()) :: paginated_result()
+  @spec group_posts(Group.t(), map(), info()) :: paginated_result()
   def group_posts(%Group{} = group, args, info) do
     GroupPosts.get(group, struct(GroupPosts, args), info)
   end
@@ -178,4 +179,24 @@ defmodule Level.Resolvers do
       {:ok, result}
     end)
   end
+
+  @doc """
+  Fetches is bookmarked status for a group.
+  """
+  @spec is_bookmarked(Group.t(), any(), info()) :: {:middleware, any(), any()}
+  def is_bookmarked(%Group{} = group, _, %{context: %{loader: loader}}) do
+    source_name = Level.Groups
+    batch_key = {:one, GroupBookmark}
+    item_key = [group_id: group.id]
+
+    loader
+    |> Dataloader.load(source_name, batch_key, item_key)
+    |> on_load(fn loader ->
+      Dataloader.get(loader, source_name, batch_key, item_key)
+      |> handle_bookmark_fetch()
+    end)
+  end
+
+  defp handle_bookmark_fetch(%GroupBookmark{}), do: {:ok, true}
+  defp handle_bookmark_fetch(_), do: {:ok, false}
 end
