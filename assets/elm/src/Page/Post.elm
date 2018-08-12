@@ -27,6 +27,7 @@ import Query.PostInit as PostInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import TaskHelpers
 import View.Helpers exposing (displayName)
 
 
@@ -63,13 +64,14 @@ title repo { user } =
 
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space postId session =
-    Date.now
-        |> Task.andThen (PostInit.request (Space.getId space) postId session)
+    session
+        |> PostInit.request (Space.getId space) postId
+        |> TaskHelpers.andThenGetCurrentTime
         |> Task.andThen (buildModel user space)
 
 
-buildModel : SpaceUser -> Space -> ( Session, PostInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel user space ( session, { post, now } ) =
+buildModel : SpaceUser -> Space -> ( ( Session, PostInit.Response ), Date ) -> Task Session.Error ( Session, Model )
+buildModel user space ( ( session, { post } ), now ) =
     Task.succeed ( session, Model post space user now )
 
 

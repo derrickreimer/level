@@ -169,9 +169,17 @@ update msg model =
                     ]
                 )
 
-        ( InboxMsg _, _ ) ->
-            -- TODO: implement this
-            ( model, Cmd.none )
+        ( InboxMsg msg, Inbox pageModel ) ->
+            let
+                ( ( newPageModel, cmd ), session ) =
+                    Page.Inbox.update msg model.session pageModel
+            in
+                ( { model
+                    | session = session
+                    , page = Inbox newPageModel
+                  }
+                , Cmd.map InboxMsg cmd
+                )
 
         ( SetupCreateGroupsMsg msg, SetupCreateGroups pageModel ) ->
             let
@@ -665,6 +673,28 @@ teardownPage page =
             Cmd.none
 
 
+pageSubscription : Page -> Sub Msg
+pageSubscription page =
+    case page of
+        Inbox _ ->
+            Sub.map InboxMsg Page.Inbox.subscriptions
+
+        Group _ ->
+            Sub.map GroupMsg Page.Group.subscriptions
+
+        Post _ ->
+            Sub.map PostMsg Page.Post.subscriptions
+
+        UserSettings _ ->
+            Sub.map UserSettingsMsg Page.UserSettings.subscriptions
+
+        SpaceSettings _ ->
+            Sub.map SpaceSettingsMsg Page.SpaceSettings.subscriptions
+
+        _ ->
+            Sub.none
+
+
 routeFor : Page -> Maybe Route
 routeFor page =
     case page of
@@ -718,9 +748,9 @@ pageView repo sharedState page =
                 |> Page.Setup.InviteUsers.view
                 |> Html.map SetupInviteUsersMsg
 
-        Inbox _ ->
-            sharedState.featuredUsers
-                |> Page.Inbox.view repo
+        Inbox pageModel ->
+            pageModel
+                |> Page.Inbox.view repo sharedState.featuredUsers
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
@@ -899,25 +929,6 @@ subscriptions model =
         [ Socket.listen SocketAbort SocketStart SocketResult SocketError
         , pageSubscription model.page
         ]
-
-
-pageSubscription : Page -> Sub Msg
-pageSubscription page =
-    case page of
-        Group _ ->
-            Sub.map GroupMsg Page.Group.subscriptions
-
-        Post _ ->
-            Sub.map PostMsg Page.Post.subscriptions
-
-        UserSettings _ ->
-            Sub.map UserSettingsMsg Page.UserSettings.subscriptions
-
-        SpaceSettings _ ->
-            Sub.map SpaceSettingsMsg Page.SpaceSettings.subscriptions
-
-        _ ->
-            Sub.none
 
 
 

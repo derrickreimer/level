@@ -1,6 +1,5 @@
 module Query.GroupInit exposing (Response, request)
 
-import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
@@ -19,7 +18,6 @@ type alias Response =
     { group : Group
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
-    , now : Date
     }
 
 
@@ -70,18 +68,17 @@ postComponentsDecoder =
         |> Connection.decoder
 
 
-decoder : Date -> Decoder Response
-decoder now =
+decoder : Decoder Response
+decoder =
     Decode.at [ "data", "group" ] <|
         (Pipeline.decode Response
             |> Pipeline.custom Group.decoder
             |> Pipeline.custom (Decode.at [ "posts" ] postComponentsDecoder)
             |> Pipeline.custom (Decode.at [ "featuredMemberships" ] (Decode.list GroupMembership.decoder))
-            |> Pipeline.custom (Decode.succeed now)
         )
 
 
-request : String -> Session -> Date -> Task Session.Error ( Session, Response )
-request groupId session now =
+request : String -> Session -> Task Session.Error ( Session, Response )
+request groupId session =
     Session.request session <|
-        GraphQL.request document (variables groupId) (decoder now)
+        GraphQL.request document (variables groupId) decoder

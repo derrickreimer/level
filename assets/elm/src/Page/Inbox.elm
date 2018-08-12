@@ -6,6 +6,8 @@ module Page.Inbox
         , init
         , setup
         , teardown
+        , update
+        , subscriptions
         , view
         )
 
@@ -16,6 +18,7 @@ import Connection exposing (Connection)
 import Data.Mention as Mention exposing (Mention)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Date exposing (Date)
 import Icons
 import Query.InboxInit as InboxInit
 import Repo exposing (Repo)
@@ -23,6 +26,8 @@ import Route
 import Route.SpaceUsers
 import Session exposing (Session)
 import Task exposing (Task)
+import TaskHelpers
+import Time exposing (Time, every, second)
 import View.Helpers exposing (displayName)
 
 
@@ -32,6 +37,7 @@ import View.Helpers exposing (displayName)
 type alias Model =
     { space : Space
     , mentions : Connection Mention
+    , now : Date
     }
 
 
@@ -52,12 +58,13 @@ init : Space -> Session -> Task Session.Error ( Session, Model )
 init space session =
     session
         |> InboxInit.request (Space.getId space)
+        |> TaskHelpers.andThenGetCurrentTime
         |> Task.andThen (buildModel space)
 
 
-buildModel : Space -> ( Session, InboxInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel space ( session, { mentions } ) =
-    Task.succeed ( session, Model space mentions )
+buildModel : Space -> ( ( Session, InboxInit.Response ), Date ) -> Task Session.Error ( Session, Model )
+buildModel space ( ( session, { mentions } ), now ) =
+    Task.succeed ( session, Model space mentions now )
 
 
 setup : Model -> Cmd Msg
@@ -75,25 +82,67 @@ teardown model =
 
 
 type Msg
-    = Loaded
+    = Tick Time
+
+
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session model =
+    case msg of
+        Tick time ->
+            { model | now = Date.fromTime time }
+                |> noCmd session
+
+
+noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+noCmd session model =
+    ( ( model, Cmd.none ), session )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Sub Msg
+subscriptions =
+    every second Tick
 
 
 
 -- VIEW
 
 
-view : Repo -> List SpaceUser -> Html Msg
-view repo featuredUsers =
+view : Repo -> List SpaceUser -> Model -> Html Msg
+view repo featuredUsers model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
-                    [ h2 [ class "mb-6 font-extrabold text-2xl" ] [ text "Inbox" ]
+                    [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
                     ]
                 ]
+            , mentionsView repo model.mentions
             , sidebarView repo featuredUsers
             ]
         ]
+
+
+mentionsView : Repo -> Connection Mention -> Html Msg
+mentionsView repo mentions =
+    div []
+        [ h3 [ class "font-extrabold" ] [ text "Mentions" ]
+        ]
+
+
+mentionView : Repo -> Mention -> Html Msg
+mentionView repo mention =
+    let
+        mentionData =
+            Mention.getCachedData mention
+
+        postData =
+            Repo.getPost repo mentionData.post
+    in
+        text ""
 
 
 sidebarView : Repo -> List SpaceUser -> Html Msg

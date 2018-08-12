@@ -1,6 +1,5 @@
 module Query.PostInit exposing (Response, request)
 
-import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Task exposing (Task)
@@ -14,7 +13,6 @@ import Session exposing (Session)
 
 type alias Response =
     { post : Component.Post.Model
-    , now : Date
     }
 
 
@@ -50,15 +48,14 @@ variables spaceId postId =
             ]
 
 
-decoder : Date -> Decoder Response
-decoder now =
+decoder : Decoder Response
+decoder =
     Decode.at [ "data", "space", "post" ] <|
-        Decode.map2 Response
+        Decode.map Response
             (Component.Post.decoder Component.Post.FullPage)
-            (Decode.succeed now)
 
 
-request : String -> String -> Session -> Date -> Task Session.Error ( Session, Response )
-request spaceId postId session now =
+request : String -> String -> Session -> Task Session.Error ( Session, Response )
+request spaceId postId session =
     Session.request session <|
-        GraphQL.request document (variables spaceId postId) (decoder now)
+        GraphQL.request document (variables spaceId postId) decoder

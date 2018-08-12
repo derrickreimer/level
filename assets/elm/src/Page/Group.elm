@@ -44,6 +44,7 @@ import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Subscription.GroupSubscription as GroupSubscription
+import TaskHelpers
 import View.Helpers exposing (setFocus, selectValue, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
 
 
@@ -98,13 +99,14 @@ title repo { group } =
 
 init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
 init user space groupId session =
-    Date.now
-        |> Task.andThen (GroupInit.request groupId session)
+    session
+        |> GroupInit.request groupId
+        |> TaskHelpers.andThenGetCurrentTime
         |> Task.andThen (buildModel user space)
 
 
-buildModel : SpaceUser -> Space -> ( Session, GroupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel user space ( session, { group, posts, featuredMemberships, now } ) =
+buildModel : SpaceUser -> Space -> ( ( Session, GroupInit.Response ), Date ) -> Task Session.Error ( Session, Model )
+buildModel user space ( ( session, { group, posts, featuredMemberships } ), now ) =
     let
         model =
             Model
