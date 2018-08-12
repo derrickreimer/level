@@ -83,6 +83,14 @@ defmodule Level.Posts do
     |> handle_post_query()
   end
 
+  @spec get_post(User.t(), String.t()) :: {:ok, Post.t()} | {:error, String.t()}
+  def get_post(%User{} = user, id) do
+    user
+    |> posts_base_query()
+    |> Repo.get_by(id: id)
+    |> handle_post_query()
+  end
+
   defp handle_post_query(%Post{} = post) do
     {:ok, post}
   end

@@ -3,6 +3,7 @@ defmodule LevelWeb.Schema do
 
   use Absinthe.Schema
 
+  alias Level.Posts
   alias Level.Spaces
   alias Level.Groups
 
@@ -237,9 +238,14 @@ defmodule LevelWeb.Schema do
     field :post_subscription, :post_subscription_payload do
       arg :post_id, non_null(:id)
 
-      config fn %{post_id: id}, %{context: %{current_user: _user}} ->
-        # TODO: add authorization
-        {:ok, topic: id}
+      config fn %{post_id: id}, %{context: %{current_user: user}} ->
+        case Posts.get_post(user, id) do
+          {:ok, post} ->
+            {:ok, topic: post.id}
+
+          err ->
+            err
+        end
       end
     end
   end
