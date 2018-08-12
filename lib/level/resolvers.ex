@@ -6,16 +6,18 @@ defmodule Level.Resolvers do
 
   import Absinthe.Resolution.Helpers
 
-  alias Level.Resolvers.GroupMemberships
-  alias Level.Resolvers.GroupPosts
-  alias Level.Resolvers.Groups
-  alias Level.Resolvers.Mentions
-  alias Level.Resolvers.Replies
-  alias Level.Resolvers.SpaceUsers
-  alias Level.Resolvers.UserGroupMemberships
+  alias Level.Resolvers.GroupMembershipConnection
+  alias Level.Resolvers.GroupPostConnection
+  alias Level.Resolvers.GroupConnection
+  alias Level.Resolvers.MentionConnection
+  alias Level.Resolvers.ReplyConnection
+  alias Level.Resolvers.SpaceUserConnection
+  alias Level.Resolvers.UserGroupMembershipConnection
+  alias Level.Groups
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
+  alias Level.Mentions
   alias Level.Mentions.GroupedUserMention
   alias Level.Pagination
   alias Level.Posts.Post
@@ -69,15 +71,14 @@ defmodule Level.Resolvers do
   @doc """
   Fetches space users belonging to a given user or a given space.
   """
-  @spec space_users(User.t(), SpaceUsers.t(), info()) :: paginated_result()
-  @spec space_users(Space.t(), SpaceUsers.t(), info()) :: paginated_result()
-
+  @spec space_users(User.t(), map(), info()) :: paginated_result()
   def space_users(%User{} = user, args, %{context: %{current_user: _user}} = info) do
-    SpaceUsers.get(user, struct(SpaceUsers, args), info)
+    SpaceUserConnection.get(user, struct(SpaceUserConnection, args), info)
   end
 
+  @spec space_users(Space.t(), map(), info()) :: paginated_result()
   def space_users(%Space{} = space, args, %{context: %{current_user: _user}} = info) do
-    SpaceUsers.get(space, struct(SpaceUsers, args), info)
+    SpaceUserConnection.get(space, struct(SpaceUserConnection, args), info)
   end
 
   @doc """
@@ -91,23 +92,22 @@ defmodule Level.Resolvers do
   @doc """
   Fetches groups for given a space that are visible to the current user.
   """
-  @spec groups(Space.t(), Groups.t(), info()) :: paginated_result()
+  @spec groups(Space.t(), map(), info()) :: paginated_result()
   def groups(%Space{} = space, args, %{context: %{current_user: _user}} = info) do
-    Groups.get(space, struct(Groups, args), info)
+    GroupConnection.get(space, struct(GroupConnection, args), info)
   end
 
   @doc """
   Fetches group memberships.
   """
-  @spec group_memberships(User.t(), UserGroupMemberships.t(), info()) :: paginated_result()
-  @spec group_memberships(Group.t(), GroupMemberships.t(), info()) :: paginated_result()
-
+  @spec group_memberships(User.t(), map(), info()) :: paginated_result()
   def group_memberships(%User{} = user, args, %{context: %{current_user: _user}} = info) do
-    UserGroupMemberships.get(user, struct(UserGroupMemberships, args), info)
+    UserGroupMembershipConnection.get(user, struct(UserGroupMembershipConnection, args), info)
   end
 
+  @spec group_memberships(Group.t(), map(), info()) :: paginated_result()
   def group_memberships(%Group{} = user, args, %{context: %{current_user: _user}} = info) do
-    GroupMemberships.get(user, struct(GroupMemberships, args), info)
+    GroupMembershipConnection.get(user, struct(GroupMembershipConnection, args), info)
   end
 
   @doc """
@@ -120,37 +120,19 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches the current user's membership.
-  """
-  @spec group_membership(Group.t(), map(), info()) :: {:middleware, any(), any()}
-  def group_membership(%Group{} = group, _args, %{context: %{loader: loader}} = _info) do
-    source_name = Level.Groups
-    batch_key = {:one, GroupUser}
-    item_key = [group_id: group.id]
-
-    loader
-    |> Dataloader.load(source_name, batch_key, item_key)
-    |> on_load(fn loader ->
-      loader
-      |> Dataloader.get(source_name, batch_key, item_key)
-      |> to_ok_tuple()
-    end)
-  end
-
-  @doc """
   Fetches posts within a given group.
   """
   @spec group_posts(Group.t(), map(), info()) :: paginated_result()
   def group_posts(%Group{} = group, args, info) do
-    GroupPosts.get(group, struct(GroupPosts, args), info)
+    GroupPostConnection.get(group, struct(GroupPostConnection, args), info)
   end
 
   @doc """
   Fetches replies to a given post.
   """
-  @spec replies(Post.t(), Replies.t(), info()) :: paginated_result()
+  @spec replies(Post.t(), map(), info()) :: paginated_result()
   def replies(%Post{} = post, args, info) do
-    Replies.get(post, struct(Replies, args), info)
+    ReplyConnection.get(post, struct(ReplyConnection, args), info)
   end
 
   @doc """
@@ -172,7 +154,25 @@ defmodule Level.Resolvers do
   """
   @spec mentions(Space.t(), map(), info()) :: paginated_result()
   def mentions(%Space{} = space, args, info) do
-    Mentions.get(space, struct(Mentions, args), info)
+    MentionConnection.get(space, struct(MentionConnection, args), info)
+  end
+
+  @doc """
+  Fetches the current user's membership.
+  """
+  @spec group_membership(Group.t(), map(), info()) :: {:middleware, any(), any()}
+  def group_membership(%Group{} = group, _args, %{context: %{loader: loader}} = _info) do
+    source_name = Level.Groups
+    batch_key = {:one, GroupUser}
+    item_key = [group_id: group.id]
+
+    loader
+    |> Dataloader.load(source_name, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(source_name, batch_key, item_key)
+      |> to_ok_tuple()
+    end)
   end
 
   @doc """
@@ -180,13 +180,16 @@ defmodule Level.Resolvers do
   """
   @spec mentioners(GroupedUserMention.t(), any(), info()) :: {:middleware, any(), any()}
   def mentioners(%GroupedUserMention{} = grouped_mention, _, %{context: %{loader: loader}}) do
-    ids = Level.Mentions.mentioner_ids(grouped_mention)
+    source_name = Spaces
+    batch_key = SpaceUser
+    item_keys = Mentions.mentioner_ids(grouped_mention)
 
     loader
-    |> Dataloader.load_many(Spaces, SpaceUser, ids)
+    |> Dataloader.load_many(source_name, batch_key, item_keys)
     |> on_load(fn loader ->
-      result = Dataloader.get_many(loader, Spaces, SpaceUser, ids)
-      {:ok, result}
+      loader
+      |> Dataloader.get_many(source_name, batch_key, item_keys)
+      |> to_ok_tuple()
     end)
   end
 
@@ -195,7 +198,7 @@ defmodule Level.Resolvers do
   """
   @spec is_bookmarked(Group.t(), any(), info()) :: {:middleware, any(), any()}
   def is_bookmarked(%Group{} = group, _, %{context: %{loader: loader}}) do
-    source_name = Level.Groups
+    source_name = Groups
     batch_key = {:one, GroupBookmark}
     item_key = [group_id: group.id]
 

@@ -1,4 +1,4 @@
-defmodule Level.Resolvers.Groups do
+defmodule Level.Resolvers.GroupConnection do
   @moduledoc """
   A paginated connection for fetching groups within the authenticated user's space.
   """

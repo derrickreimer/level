@@ -7,7 +7,6 @@ defmodule Level.Mentions.UserMention do
 
   alias Level.Posts.Post
   alias Level.Posts.Reply
-  alias Level.Repo
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
