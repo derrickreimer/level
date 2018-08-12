@@ -122,9 +122,19 @@ defmodule Level.Resolvers do
   @doc """
   Fetches the current user's membership.
   """
-  @spec group_membership(Group.t(), map(), info()) :: {:ok, GroupUser.t() | nil}
-  def group_membership(%Group{} = group, _args, %{context: %{current_user: user}} = _info) do
-    Level.Groups.get_group_user(group, user)
+  @spec group_membership(Group.t(), map(), info()) :: {:middleware, any(), any()}
+  def group_membership(%Group{} = group, _args, %{context: %{loader: loader}} = _info) do
+    source_name = Level.Groups
+    batch_key = {:one, GroupUser}
+    item_key = [group_id: group.id]
+
+    loader
+    |> Dataloader.load(source_name, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(source_name, batch_key, item_key)
+      |> to_ok_tuple()
+    end)
   end
 
   @doc """
@@ -200,4 +210,8 @@ defmodule Level.Resolvers do
 
   defp handle_bookmark_fetch(%GroupBookmark{}), do: {:ok, true}
   defp handle_bookmark_fetch(_), do: {:ok, false}
+
+  defp to_ok_tuple(value) do
+    {:ok, value}
+  end
 end

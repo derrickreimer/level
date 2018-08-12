@@ -194,7 +194,6 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The current user's group membership."
     field :membership, :group_membership do
-      # TODO: batch with dataloader
       resolve &Resolvers.group_membership/3
     end
 
