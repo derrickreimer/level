@@ -192,7 +192,8 @@ defmodule Level.Resolvers do
     loader
     |> Dataloader.load(source_name, batch_key, item_key)
     |> on_load(fn loader ->
-      Dataloader.get(loader, source_name, batch_key, item_key)
+      loader
+      |> Dataloader.get(source_name, batch_key, item_key)
       |> handle_bookmark_fetch()
     end)
   end
