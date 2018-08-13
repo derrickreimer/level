@@ -12,6 +12,7 @@ module Component.Mention
         )
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Component.Post
 import Connection exposing (Connection)
 import Data.Mention as Mention exposing (Mention)
@@ -20,6 +21,7 @@ import Data.Reply as Reply exposing (Reply)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Date exposing (Date)
 import GraphQL exposing (Fragment)
+import Icons
 import Json.Decode as Decode exposing (Decoder, field, string)
 import Repo exposing (Repo)
 import Session exposing (Session)
@@ -127,6 +129,18 @@ handleReplyCreated reply model =
 
 view : Repo -> SpaceUser -> Date -> Model -> Html Msg
 view repo currentUser now { post } =
-    post
+    div [ class "flex py-4" ]
+        [ div [ class "flex-0" ]
+            [ button [ class "flex items-center h-12 pr-4" ] [ Icons.checkSquare ]
+            ]
+        , div [ class "flex-1" ]
+            [ postView repo currentUser now post
+            ]
+        ]
+
+
+postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
+postView repo currentUser now postComponent =
+    postComponent
         |> Component.Post.view repo currentUser now
         |> Html.map PostComponentMsg

@@ -5,6 +5,8 @@ module Icons
         , arrowRight
         , arrowUpRight
         , bookmark
+        , check
+        , checkSquare
         , open
         , closed
         , comment
@@ -117,6 +119,41 @@ bookmark toggle =
                     </g>
                 </svg>
                 """
+
+
+check : Html msg
+check =
+    toHtml
+        """
+        <svg width="18px" height="13px" viewBox="0 0 18 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="check" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
+                    <polyline id="Shape" points="16 0 5 11 0 6"></polyline>
+                </g>
+            </g>
+        </svg>
+        """
+
+
+checkSquare : Html msg
+checkSquare =
+    toHtml
+        """
+        <svg width="21px" height="20px" viewBox="0 0 21 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="check-square" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
+                    <polyline id="Shape" points="6 8 9 11 19 1"></polyline>
+                    <path d="M18,9 L18,16 C18,17.1045695 17.1045695,18 16,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L13,0" id="Shape"></path>
+                </g>
+            </g>
+        </svg>
+        """
 
 
 {-| Using the `circle` feather icon.

@@ -197,8 +197,10 @@ view repo model =
 
 postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
 postView repo currentUser now component =
-    Component.Post.view repo currentUser now component
-        |> Html.map PostComponentMsg
+    div [ class "pt-6" ]
+        [ Component.Post.view repo currentUser now component
+            |> Html.map PostComponentMsg
+        ]
 
 
 sidebarView : Repo -> Component.Post.Model -> Html Msg

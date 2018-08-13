@@ -598,8 +598,10 @@ postsView repo currentUser now connection =
 
 postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
 postView repo currentUser now component =
-    Component.Post.view repo currentUser now component
-        |> Html.map (PostComponentMsg component.id)
+    div [ class "p-4" ]
+        [ Component.Post.view repo currentUser now component
+            |> Html.map (PostComponentMsg component.id)
+        ]
 
 
 sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Html Msg
