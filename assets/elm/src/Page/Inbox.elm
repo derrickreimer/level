@@ -7,6 +7,7 @@ module Page.Inbox
         , setup
         , teardown
         , update
+        , handleReplyCreated
         , subscriptions
         , view
         )
@@ -14,8 +15,9 @@ module Page.Inbox
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
+import Component.Mention
 import Connection exposing (Connection)
-import Data.Mention as Mention exposing (Mention)
+import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Date exposing (Date)
@@ -36,7 +38,8 @@ import View.Helpers exposing (displayName, injectHtml, smartFormatDate)
 
 type alias Model =
     { space : Space
-    , mentions : Connection Mention
+    , currentUser : SpaceUser
+    , mentions : Connection Component.Mention.Model
     , now : Date
     }
 
@@ -54,27 +57,41 @@ title =
 -- LIFECYCLE
 
 
-init : Space -> Session -> Task Session.Error ( Session, Model )
-init space session =
+init : Space -> SpaceUser -> Session -> Task Session.Error ( Session, Model )
+init space currentUser session =
     session
         |> InboxInit.request (Space.getId space)
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel space)
+        |> Task.andThen (buildModel space currentUser)
 
 
-buildModel : Space -> ( ( Session, InboxInit.Response ), Date ) -> Task Session.Error ( Session, Model )
-buildModel space ( ( session, { mentions } ), now ) =
-    Task.succeed ( session, Model space mentions now )
+buildModel : Space -> SpaceUser -> ( ( Session, InboxInit.Response ), Date ) -> Task Session.Error ( Session, Model )
+buildModel space currentUser ( ( session, { mentions } ), now ) =
+    Task.succeed ( session, Model space currentUser mentions now )
 
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    let
+        mentionsCmd =
+            model.mentions
+                |> Connection.toList
+                |> List.map (\mention -> Cmd.map (MentionComponentMsg mention.id) (Component.Mention.setup mention))
+                |> Cmd.batch
+    in
+        mentionsCmd
 
 
 teardown : Model -> Cmd Msg
 teardown model =
-    Cmd.none
+    let
+        mentionsCmd =
+            model.mentions
+                |> Connection.toList
+                |> List.map (\mention -> Cmd.map (MentionComponentMsg mention.id) (Component.Mention.teardown mention))
+                |> Cmd.batch
+    in
+        mentionsCmd
 
 
 
@@ -83,6 +100,7 @@ teardown model =
 
 type Msg
     = Tick Time
+    | MentionComponentMsg String Component.Mention.Msg
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -92,10 +110,50 @@ update msg session model =
             { model | now = Date.fromTime time }
                 |> noCmd session
 
+        MentionComponentMsg id msg ->
+            case Connection.get .id id model.mentions of
+                Just mention ->
+                    let
+                        ( ( newMention, cmd ), newSession ) =
+                            Component.Mention.update msg (Space.getId model.space) session mention
+                    in
+                        ( ( { model | mentions = Connection.update .id newMention model.mentions }
+                          , Cmd.map (MentionComponentMsg id) cmd
+                          )
+                        , newSession
+                        )
+
+                Nothing ->
+                    noCmd session model
+
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 noCmd session model =
     ( ( model, Cmd.none ), session )
+
+
+
+-- EVENT HANDLERS
+
+
+handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
+handleReplyCreated reply ({ mentions } as model) =
+    let
+        id =
+            Reply.getPostId reply
+    in
+        case Connection.get .id id mentions of
+            Just component ->
+                let
+                    ( newComponent, cmd ) =
+                        Component.Mention.handleReplyCreated reply component
+                in
+                    ( { model | mentions = Connection.update .id newComponent mentions }
+                    , Cmd.map (MentionComponentMsg id) cmd
+                    )
+
+            Nothing ->
+                ( model, Cmd.none )
 
 
 
@@ -120,52 +178,26 @@ view repo featuredUsers model =
                     [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
                     ]
                 ]
-            , mentionsView repo model.now model.mentions
+            , mentionsView repo model
             , sidebarView repo featuredUsers
             ]
         ]
 
 
-mentionsView : Repo -> Date -> Connection Mention -> Html Msg
-mentionsView repo now mentions =
+mentionsView : Repo -> Model -> Html Msg
+mentionsView repo model =
     div []
-        [ h3 [ class "font-extrabold" ] [ text "Mentions" ]
+        [ h3 [ class "font-extrabold text-xl my-2" ] [ text "Mentions" ]
         , div [] <|
-            Connection.map (mentionView repo now) mentions
+            Connection.map (mentionView repo model) model.mentions
         ]
 
 
-mentionView : Repo -> Date -> Mention -> Html Msg
-mentionView repo now mention =
-    let
-        mentionData =
-            Mention.getCachedData mention
-
-        postData =
-            Repo.getPost repo mentionData.post
-
-        authorData =
-            Repo.getSpaceUser repo postData.author
-    in
-        div [ classList [ ( "pb-4", True ) ] ]
-            [ div [ class "flex pt-4 px-4" ]
-                [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
-                , div [ class "flex-grow leading-semi-loose" ]
-                    [ div []
-                        [ a
-                            [ Route.href <| Route.Post postData.id
-                            , class "flex items-baseline no-underline text-dusty-blue-darkest"
-                            , rel "tooltip"
-                            , Html.Attributes.title "Expand post"
-                            ]
-                            [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                            , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
-                            ]
-                        , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
-                        ]
-                    ]
-                ]
-            ]
+mentionView : Repo -> Model -> Component.Mention.Model -> Html Msg
+mentionView repo model component =
+    component
+        |> Component.Mention.view repo model.currentUser model.now
+        |> Html.map (MentionComponentMsg component.id)
 
 
 sidebarView : Repo -> List SpaceUser -> Html Msg

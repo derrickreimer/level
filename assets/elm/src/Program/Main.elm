@@ -413,7 +413,7 @@ navigateTo maybeRoute sharedState model =
 
             Just Route.Inbox ->
                 model.session
-                    |> Page.Inbox.init sharedState.space
+                    |> Page.Inbox.init sharedState.space sharedState.user
                     |> transition model InboxInit
 
             Just (Route.SpaceUsers params) ->
@@ -884,6 +884,15 @@ handleSocketResult value sharedState ({ page, repo } as model) =
 
         Event.ReplyCreated reply ->
             case page of
+                Inbox pageModel ->
+                    let
+                        ( newPageModel, cmd ) =
+                            Page.Inbox.handleReplyCreated reply pageModel
+                    in
+                        ( { model | page = Inbox newPageModel }
+                        , Cmd.map InboxMsg cmd
+                        )
+
                 Group pageModel ->
                     let
                         ( newPageModel, cmd ) =

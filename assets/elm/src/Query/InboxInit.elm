@@ -4,13 +4,13 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Task exposing (Task)
 import Connection exposing (Connection)
-import Data.Mention as Mention exposing (Mention)
+import Component.Mention
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
 
 type alias Response =
-    { mentions : Connection Mention
+    { mentions : Connection Component.Mention.Model
     }
 
 
@@ -28,7 +28,7 @@ document =
           }
         }
         """
-        [ Connection.fragment "MentionConnection" Mention.fragment
+        [ Connection.fragment "MentionConnection" Component.Mention.fragment
         ]
 
 
@@ -43,7 +43,7 @@ variables spaceId =
 decoder : Decoder Response
 decoder =
     Decode.at [ "data", "space", "mentions" ] <|
-        Decode.map Response (Connection.decoder Mention.decoder)
+        Decode.map Response (Connection.decoder Component.Mention.decoder)
 
 
 request : String -> Session -> Task Session.Error ( Session, Response )
