@@ -23,6 +23,7 @@ type Event
     | PostUpdated Post
     | PostSubscribed Post
     | PostUnsubscribed Post
+    | MentionsDismissed Post
     | GroupMembershipUpdated Group
     | GroupUpdated Group
     | ReplyCreated Reply
@@ -58,6 +59,7 @@ eventDecoder =
         -- POST EVENTS
         , Decode.map PostUpdated PostSubscription.postUpdatedDecoder
         , Decode.map ReplyCreated PostSubscription.replyCreatedDecoder
+        , Decode.map MentionsDismissed PostSubscription.mentionsDismissedDecoder
 
         -- SPACE EVENTS
         , Decode.map SpaceUpdated SpaceSubscription.spaceUpdatedDecoder

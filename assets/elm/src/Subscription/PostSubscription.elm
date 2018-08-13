@@ -4,6 +4,7 @@ module Subscription.PostSubscription
         , unsubscribe
         , postUpdatedDecoder
         , replyCreatedDecoder
+        , mentionsDismissedDecoder
         )
 
 import Json.Decode as Decode
@@ -48,6 +49,14 @@ replyCreatedDecoder =
         Reply.decoder
 
 
+mentionsDismissedDecoder : Decode.Decoder Post
+mentionsDismissedDecoder =
+    Subscription.decoder "post"
+        "MentionsDismissed"
+        "post"
+        Post.decoder
+
+
 
 -- INTERNAL
 
@@ -71,10 +80,16 @@ document =
                 ...ReplyFields
               }
             }
+            ... on MentionsDismissedPayload {
+              post {
+                ...PostFields
+              }
+            }
           }
         }
         """
         [ Reply.fragment
+        , Post.fragment
         ]
 
 

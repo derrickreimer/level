@@ -8,6 +8,7 @@ module Page.Inbox
         , teardown
         , update
         , handleReplyCreated
+        , handleMentionsDismissed
         , subscriptions
         , view
         )
@@ -17,6 +18,7 @@ import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
 import Component.Mention
 import Connection exposing (Connection)
+import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
@@ -151,6 +153,22 @@ handleReplyCreated reply ({ mentions } as model) =
                     ( { model | mentions = Connection.update .id newComponent mentions }
                     , Cmd.map (MentionComponentMsg id) cmd
                     )
+
+            Nothing ->
+                ( model, Cmd.none )
+
+
+handleMentionsDismissed : Post -> Model -> ( Model, Cmd Msg )
+handleMentionsDismissed post ({ mentions } as model) =
+    let
+        id =
+            Post.getId post
+    in
+        case Connection.get .id id mentions of
+            Just component ->
+                ( { model | mentions = Connection.remove .id id model.mentions }
+                , Cmd.map (MentionComponentMsg id) (Component.Mention.teardown component)
+                )
 
             Nothing ->
                 ( model, Cmd.none )

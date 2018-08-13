@@ -21,6 +21,7 @@ module Connection
         , prepend
         , append
         , prependConnection
+        , remove
         )
 
 import GraphQL exposing (Fragment)
@@ -260,6 +261,13 @@ prependConnection (Connection extension) (Connection original) =
                 original.pageInfo.endCursor
     in
         Connection (Data nodes pageInfo)
+
+
+remove : (a -> comparable) -> comparable -> Connection a -> Connection a
+remove comparator comparable connection =
+    toList connection
+        |> List.filter (\node -> not ((comparator node) == comparable))
+        |> (flip replaceNodes) connection
 
 
 

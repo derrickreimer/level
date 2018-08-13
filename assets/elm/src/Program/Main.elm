@@ -914,6 +914,20 @@ handleSocketResult value sharedState ({ page, repo } as model) =
                 _ ->
                     ( model, Cmd.none )
 
+        Event.MentionsDismissed post ->
+            case page of
+                Inbox pageModel ->
+                    let
+                        ( newPageModel, cmd ) =
+                            Page.Inbox.handleMentionsDismissed post pageModel
+                    in
+                        ( { model | page = Inbox newPageModel }
+                        , Cmd.map InboxMsg cmd
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
+
         Event.SpaceUpdated space ->
             updateRepo (Repo.setSpace model.repo space) model
 
