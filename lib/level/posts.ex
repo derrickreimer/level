@@ -9,6 +9,7 @@ defmodule Level.Posts do
   alias Ecto.Multi
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
+  alias Level.Markdown
   alias Level.Mentions
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
@@ -39,12 +40,8 @@ defmodule Level.Posts do
 
   @doc """
   Builds a query for posts accessible to a particular user.
-
-  TODO: add a notion of being "subscribed" to a post?
   """
   @spec posts_base_query(User.t()) :: Ecto.Query.t()
-  @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
-
   def posts_base_query(%User{id: user_id} = _user) do
     from p in Post,
       join: su in SpaceUser,
@@ -61,6 +58,7 @@ defmodule Level.Posts do
       }
   end
 
+  @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
   def posts_base_query(%SpaceUser{id: space_user_id} = _space_user) do
     from p in Post,
       join: g in assoc(p, :groups),
@@ -332,6 +330,30 @@ defmodule Level.Posts do
     %PostView{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
+  end
+
+  @doc """
+  Render a post or reply body.
+  """
+  @spec render_body(String.t()) :: {:ok, String.t()}
+  def render_body(raw_body) do
+    raw_body
+    |> render_markdown()
+    |> render_mentions()
+  end
+
+  defp render_markdown(raw_body) do
+    {_status, html, _errors} = Markdown.to_html(raw_body)
+    {:ok, html}
+  end
+
+  defp render_mentions({:ok, html}) do
+    replaced_html =
+      Regex.replace(Mentions.handle_pattern(), html, fn match, handle ->
+        String.replace(match, "@#{handle}", "<strong class=\"user-mention\">@#{handle}</strong>")
+      end)
+
+    {:ok, replaced_html}
   end
 
   @impl true

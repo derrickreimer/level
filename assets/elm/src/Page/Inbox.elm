@@ -28,7 +28,7 @@ import Session exposing (Session)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Time, every, second)
-import View.Helpers exposing (displayName)
+import View.Helpers exposing (displayName, injectHtml, smartFormatDate)
 
 
 -- MODEL
@@ -120,29 +120,52 @@ view repo featuredUsers model =
                     [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
                     ]
                 ]
-            , mentionsView repo model.mentions
+            , mentionsView repo model.now model.mentions
             , sidebarView repo featuredUsers
             ]
         ]
 
 
-mentionsView : Repo -> Connection Mention -> Html Msg
-mentionsView repo mentions =
+mentionsView : Repo -> Date -> Connection Mention -> Html Msg
+mentionsView repo now mentions =
     div []
         [ h3 [ class "font-extrabold" ] [ text "Mentions" ]
+        , div [] <|
+            Connection.map (mentionView repo now) mentions
         ]
 
 
-mentionView : Repo -> Mention -> Html Msg
-mentionView repo mention =
+mentionView : Repo -> Date -> Mention -> Html Msg
+mentionView repo now mention =
     let
         mentionData =
             Mention.getCachedData mention
 
         postData =
             Repo.getPost repo mentionData.post
+
+        authorData =
+            Repo.getSpaceUser repo postData.author
     in
-        text ""
+        div [ classList [ ( "pb-4", True ) ] ]
+            [ div [ class "flex pt-4 px-4" ]
+                [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
+                , div [ class "flex-grow leading-semi-loose" ]
+                    [ div []
+                        [ a
+                            [ Route.href <| Route.Post postData.id
+                            , class "flex items-baseline no-underline text-dusty-blue-darkest"
+                            , rel "tooltip"
+                            , Html.Attributes.title "Expand post"
+                            ]
+                            [ span [ class "font-bold" ] [ text <| displayName authorData ]
+                            , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
+                            ]
+                        , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
+                        ]
+                    ]
+                ]
+            ]
 
 
 sidebarView : Repo -> List SpaceUser -> Html Msg

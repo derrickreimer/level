@@ -6,7 +6,6 @@ defmodule LevelWeb.Schema.Objects do
 
   alias Level.AssetStore
   alias Level.Groups
-  alias Level.Markdown
   alias Level.Posts
   alias Level.Resolvers
   alias Level.Spaces
@@ -226,8 +225,7 @@ defmodule LevelWeb.Schema.Objects do
 
     field :body_html, non_null(:string) do
       resolve fn post, _, _ ->
-        {_status, html, _errors} = Markdown.to_html(post.body)
-        {:ok, html}
+        Posts.render_body(post.body)
       end
     end
 
@@ -261,8 +259,7 @@ defmodule LevelWeb.Schema.Objects do
 
     field :body_html, non_null(:string) do
       resolve fn reply, _, _ ->
-        {_status, html, _errors} = Markdown.to_html(reply.body)
-        {:ok, html}
+        Posts.render_body(reply.body)
       end
     end
 

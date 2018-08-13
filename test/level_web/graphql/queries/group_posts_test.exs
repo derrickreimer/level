@@ -11,7 +11,7 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
           edges {
             node {
               body
-              body_html
+              bodyHtml
               author {
                 firstName
               }
@@ -73,7 +73,7 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                      %{
                        "node" => %{
                          "body" => "Hey!",
-                         "body_html" => "<p>Hey!</p>\n",
+                         "bodyHtml" => "<p>Hey!</p>\n",
                          "author" => %{
                            "firstName" => space_user.first_name
                          },

@@ -242,4 +242,15 @@ defmodule Level.PostsTest do
       assert {:ok, %PostView{last_viewed_reply_id: nil}} = Posts.record_view(post, space_user)
     end
   end
+
+  describe "render_body/1" do
+    test "converts markdown to html" do
+      assert Posts.render_body("Foo") == {:ok, "<p>Foo</p>\n"}
+    end
+
+    test "emboldens mentions" do
+      assert Posts.render_body("@derrick Hey") ==
+               {:ok, "<p><strong class=\"user-mention\">@derrick</strong> Hey</p>\n"}
+    end
+  end
 end

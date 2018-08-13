@@ -312,30 +312,32 @@ view repo currentUser now ({ post, replies } as model) =
             postData.author
                 |> Repo.getSpaceUser repo
     in
-        div [ classList [ ( "flex pt-4 px-4", True ), ( "pb-4", not (model.mode == FullPage) ) ] ]
-            [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
-            , div [ class "flex-grow leading-semi-loose" ]
-                [ div []
-                    [ a
-                        [ Route.href <| Route.Post postData.id
-                        , class "flex items-baseline no-underline text-dusty-blue-darkest"
-                        , rel "tooltip"
-                        , title "Expand post"
-                        ]
-                        [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                        , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
-                        ]
-                    , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
-                    , viewIf (model.mode == Feed) <|
-                        div [ class "flex items-center" ]
-                            [ div [ class "flex-grow" ]
-                                [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
-                                ]
+        div [ classList [ ( "pb-4", not (model.mode == FullPage) ) ] ]
+            [ div [ class "flex pt-4 px-4" ]
+                [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
+                , div [ class "flex-grow leading-semi-loose" ]
+                    [ div []
+                        [ a
+                            [ Route.href <| Route.Post postData.id
+                            , class "flex items-baseline no-underline text-dusty-blue-darkest"
+                            , rel "tooltip"
+                            , title "Expand post"
                             ]
-                    ]
-                , div [ class "relative" ]
-                    [ repliesView repo post now replies model.mode
-                    , replyComposerView currentUserData model
+                            [ span [ class "font-bold" ] [ text <| displayName authorData ]
+                            , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
+                            ]
+                        , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
+                        , viewIf (model.mode == Feed) <|
+                            div [ class "flex items-center" ]
+                                [ div [ class "flex-grow" ]
+                                    [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
+                                    ]
+                                ]
+                        ]
+                    , div [ class "relative" ]
+                        [ repliesView repo post now replies model.mode
+                        , replyComposerView currentUserData model
+                        ]
                     ]
                 ]
             ]
