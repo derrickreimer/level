@@ -13,6 +13,7 @@ module Component.Mention
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Component.Post
 import Connection exposing (Connection)
 import Data.Mention as Mention exposing (Mention)
@@ -23,8 +24,11 @@ import Date exposing (Date)
 import GraphQL exposing (Fragment)
 import Icons
 import Json.Decode as Decode exposing (Decoder, field, string)
+import Mutation.DismissMention as DismissMention
 import Repo exposing (Repo)
+import Route
 import Session exposing (Session)
+import Task
 
 
 -- MODEL
@@ -91,6 +95,8 @@ teardown model =
 
 type Msg
     = PostComponentMsg Component.Post.Msg
+    | DismissClicked String
+    | Dismissed String (Result Session.Error ( Session, DismissMention.Response ))
 
 
 update : Msg -> String -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -106,6 +112,30 @@ update msg spaceId session model =
                   )
                 , newSession
                 )
+
+        DismissClicked id ->
+            let
+                cmd =
+                    session
+                        |> DismissMention.request spaceId id
+                        |> Task.attempt (Dismissed id)
+            in
+                ( ( model, cmd ), session )
+
+        Dismissed id (Ok ( session, _ )) ->
+            -- TODO
+            ( ( model, Cmd.none ), session )
+
+        Dismissed _ (Err Session.Expired) ->
+            redirectToLogin session model
+
+        Dismissed _ (Err _) ->
+            ( ( model, Cmd.none ), session )
+
+
+redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
+redirectToLogin session model =
+    ( ( model, Route.toLogin ), session )
 
 
 
@@ -131,7 +161,7 @@ view : Repo -> SpaceUser -> Date -> Model -> Html Msg
 view repo currentUser now { post } =
     div [ class "flex py-4" ]
         [ div [ class "flex-0" ]
-            [ button [ class "flex items-center h-12 pr-4" ] [ Icons.checkSquare ]
+            [ button [ class "flex items-center h-12 pr-4", onClick (DismissClicked post.id) ] [ Icons.checkSquare ]
             ]
         , div [ class "flex-1" ]
             [ postView repo currentUser now post
