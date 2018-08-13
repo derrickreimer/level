@@ -33,7 +33,7 @@ defmodule Level.Resolvers.MentionConnection do
     case Spaces.get_space_user(user, space) do
       {:ok, space_user} ->
         space_user
-        |> Mentions.base_query()
+        |> Mentions.grouped_base_query()
         |> Pagination.fetch_result(Args.build(args))
 
       err ->

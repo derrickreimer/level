@@ -1,4 +1,4 @@
-module Mutation.DismissMention exposing (Response(..), request)
+module Mutation.DismissMentions exposing (Response(..), request)
 
 import Task exposing (Task)
 import Json.Encode as Encode
@@ -18,13 +18,13 @@ document : Document
 document =
     GraphQL.document
         """
-        mutation DismissMention(
+        mutation DismissMentions(
           $spaceId: ID!,
-          $mentionId: ID!
+          $postId: ID!
         ) {
-          dismissMention(
+          dismissMentions(
             spaceId: $spaceId,
-            mentionId: $mentionId
+            postId: $postId
           ) {
             ...ValidationFields
           }
@@ -35,11 +35,11 @@ document =
 
 
 variables : String -> String -> Maybe Encode.Value
-variables spaceId mentionId =
+variables spaceId postId =
     Just <|
         Encode.object
             [ ( "spaceId", Encode.string spaceId )
-            , ( "mentionId", Encode.string mentionId )
+            , ( "postId", Encode.string postId )
             ]
 
 
@@ -50,17 +50,17 @@ conditionalDecoder success =
             Decode.succeed Success
 
         False ->
-            Decode.at [ "data", "dismissMention", "errors" ] (Decode.list Data.ValidationError.decoder)
+            Decode.at [ "data", "dismissMentions", "errors" ] (Decode.list Data.ValidationError.decoder)
                 |> Decode.map Invalid
 
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "dismissMention", "success" ] Decode.bool
+    Decode.at [ "data", "dismissMentions", "success" ] Decode.bool
         |> Decode.andThen conditionalDecoder
 
 
 request : String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceId mentionId session =
+request spaceId postId session =
     Session.request session <|
-        GraphQL.request document (variables spaceId mentionId) decoder
+        GraphQL.request document (variables spaceId postId) decoder

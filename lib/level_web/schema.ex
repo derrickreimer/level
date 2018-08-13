@@ -182,6 +182,14 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.record_post_view/2
     end
+
+    @desc "Dismisses a mention from the current user's inbox."
+    field :dismiss_mentions, type: :dismiss_mention_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+
+      resolve &Level.Mutations.dismiss_mentions/2
+    end
   end
 
   subscription do

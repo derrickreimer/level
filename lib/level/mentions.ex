@@ -35,10 +35,20 @@ defmodule Level.Mentions do
   end
 
   @doc """
-  Builds a base query for fetching grouped user mentions.
+  Builds a base query for fetching individual user mentions.
   """
   @spec base_query(SpaceUser.t()) :: Ecto.Query.t()
   def base_query(%SpaceUser{id: space_user_id}) do
+    from m in UserMention,
+      where: m.mentioned_id == ^space_user_id,
+      where: is_nil(m.dismissed_at)
+  end
+
+  @doc """
+  Builds a base query for fetching grouped user mentions.
+  """
+  @spec grouped_base_query(SpaceUser.t()) :: Ecto.Query.t()
+  def grouped_base_query(%SpaceUser{id: space_user_id}) do
     from m in {"user_mentions", GroupedUserMention},
       where: m.mentioned_id == ^space_user_id,
       where: is_nil(m.dismissed_at),
@@ -83,7 +93,7 @@ defmodule Level.Mentions do
   end
 
   defp insert_batch(mentioned_ids, %Post{} = post) do
-    now = DateTime.utc_now() |> DateTime.to_naive()
+    now = naive_now()
 
     params =
       Enum.map(mentioned_ids, fn mentioned_id ->
@@ -115,4 +125,24 @@ defmodule Level.Mentions do
 
   defp map_loaded_uuid({:ok, value}), do: value
   defp map_loaded_uuid(_), do: nil
+
+  @doc """
+  Dismisses all mentions for given post id.
+  """
+  @spec dismiss_all(SpaceUser.t(), Post.t()) :: :ok | no_return()
+  def dismiss_all(%SpaceUser{} = space_user, %Post{id: post_id}) do
+    space_user
+    |> base_query()
+    |> where([m], m.post_id == ^post_id)
+    |> exclude(:select)
+    |> Repo.update_all(set: [dismissed_at: naive_now()])
+    |> handle_dismiss_all()
+  end
+
+  defp handle_dismiss_all(_), do: :ok
+
+  # Fetch the current time in `naive_datetime` format
+  defp naive_now do
+    DateTime.utc_now() |> DateTime.to_naive()
+  end
 end

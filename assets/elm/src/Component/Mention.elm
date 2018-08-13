@@ -24,7 +24,7 @@ import Date exposing (Date)
 import GraphQL exposing (Fragment)
 import Icons
 import Json.Decode as Decode exposing (Decoder, field, string)
-import Mutation.DismissMention as DismissMention
+import Mutation.DismissMentions as DismissMentions
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
@@ -96,7 +96,7 @@ teardown model =
 type Msg
     = PostComponentMsg Component.Post.Msg
     | DismissClicked String
-    | Dismissed String (Result Session.Error ( Session, DismissMention.Response ))
+    | Dismissed String (Result Session.Error ( Session, DismissMentions.Response ))
 
 
 update : Msg -> String -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -117,7 +117,7 @@ update msg spaceId session model =
             let
                 cmd =
                     session
-                        |> DismissMention.request spaceId id
+                        |> DismissMentions.request spaceId id
                         |> Task.attempt (Dismissed id)
             in
                 ( ( model, cmd ), session )

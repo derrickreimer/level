@@ -5,6 +5,7 @@ defmodule Level.Mutations do
 
   alias Level.Groups
   alias Level.Groups.GroupUser
+  alias Level.Mentions
   alias Level.Posts
   alias Level.Spaces
   alias Level.Spaces.SpaceUser
@@ -377,6 +378,26 @@ defmodule Level.Mutations do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset)}}
 
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Dismisses all mentions for a particular post.
+  """
+  @spec dismiss_mentions(map(), info()) ::
+          {:ok, %{success: boolean(), post: Post.t() | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+  def dismiss_mentions(
+        %{space_id: space_id, post_id: post_id},
+        %{context: %{current_user: user}}
+      ) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, post} <- Posts.get_post(space_user, post_id),
+         :ok <- Mentions.dismiss_all(space_user, post) do
+      {:ok, %{success: true, post: post, errors: []}}
+    else
       err ->
         err
     end

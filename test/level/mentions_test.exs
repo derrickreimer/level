@@ -4,7 +4,7 @@ defmodule Level.MentionsTest do
   alias Level.Mentions
   alias Level.Repo
 
-  describe "base_query/1" do
+  describe "grouped_base_query/1" do
     setup do
       create_user_and_space()
     end
@@ -16,7 +16,7 @@ defmodule Level.MentionsTest do
 
       [mention] =
         another_user
-        |> Mentions.base_query()
+        |> Mentions.grouped_base_query()
         |> Repo.all()
 
       [mentioner] = mention.mentioner_ids
