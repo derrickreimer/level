@@ -31,7 +31,7 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for messages propagated to a post topic."
   union :post_subscription_payload do
-    types [:reply_created_payload]
+    types [:reply_created_payload, :mentions_dismissed_payload]
     resolve_type &type_resolver/2
   end
 
@@ -98,6 +98,12 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :reply_created_payload do
     @desc "The newly created reply."
     field :reply, :reply
+  end
+
+  @desc "The payload for the mentioned dismissed event."
+  object :mentions_dismissed_payload do
+    @desc "The post."
+    field :post, :post
   end
 
   defp type_resolver(%{type: type}, _) do

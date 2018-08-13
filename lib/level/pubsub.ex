@@ -50,6 +50,10 @@ defmodule Level.Pubsub do
     do_publish(%{type: :post_unsubscribed, post: post}, space_user_subscription: space_user_id)
   end
 
+  def publish(:mentions_dismissed, post_id, %Post{} = post) do
+    do_publish(%{type: :mentions_dismissed, post: post}, post_subscription: post_id)
+  end
+
   def publish(:group_membership_updated, group_id, {%Group{} = group, group_user}) do
     do_publish(
       %{type: :group_membership_updated, group: group, membership: group_user},

@@ -16,6 +16,9 @@ defmodule LevelWeb.GraphQL.DismissMentionsTest do
         postId: $post_id
       ) {
         success
+        post {
+          id
+        }
         errors {
           attribute
           message
@@ -57,6 +60,9 @@ defmodule LevelWeb.GraphQL.DismissMentionsTest do
              "data" => %{
                "dismissMentions" => %{
                  "success" => true,
+                 "post" => %{
+                   "id" => post.id
+                 },
                  "errors" => []
                }
              }

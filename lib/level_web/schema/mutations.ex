@@ -269,7 +269,7 @@ defmodule LevelWeb.Schema.Mutations do
   end
 
   @desc "The response to dismissing a mention."
-  object :dismiss_mention_payload do
+  object :dismiss_mentions_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why
@@ -279,6 +279,12 @@ defmodule LevelWeb.Schema.Mutations do
 
     @desc "A list of validation errors."
     field :errors, list_of(:error)
+
+    @desc """
+    The post for which mentions were dismissed. If the mutation was not successful,
+    this field may be null.
+    """
+    field :post, :post
 
     interface :validatable
   end

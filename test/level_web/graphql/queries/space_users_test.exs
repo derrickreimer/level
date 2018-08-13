@@ -20,7 +20,7 @@ defmodule LevelWeb.GraphQL.SpaceUsersTest do
   @list_query """
     {
       viewer {
-        spaceUsers(first: 10) {
+        spaceUsers(first: 10, orderBy: { field: LAST_NAME, direction: ASC }) {
           edges {
             node {
               space {
@@ -40,7 +40,7 @@ defmodule LevelWeb.GraphQL.SpaceUsersTest do
       $space_id: ID!
     ) {
       space(id: $space_id) {
-        spaceUsers(first: 10) {
+        spaceUsers(first: 10, orderBy: { field: LAST_NAME, direction: ASC }) {
           edges {
             node {
               lastName

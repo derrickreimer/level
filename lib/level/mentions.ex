@@ -10,6 +10,7 @@ defmodule Level.Mentions do
   alias Level.Spaces.SpaceUser
   alias Level.Mentions.UserMention
   alias Level.Mentions.GroupedUserMention
+  alias Level.Pubsub
 
   defmacro aggregate_ids(column) do
     quote do
@@ -130,16 +131,19 @@ defmodule Level.Mentions do
   Dismisses all mentions for given post id.
   """
   @spec dismiss_all(SpaceUser.t(), Post.t()) :: :ok | no_return()
-  def dismiss_all(%SpaceUser{} = space_user, %Post{id: post_id}) do
+  def dismiss_all(%SpaceUser{} = space_user, %Post{id: post_id} = post) do
     space_user
     |> base_query()
     |> where([m], m.post_id == ^post_id)
     |> exclude(:select)
     |> Repo.update_all(set: [dismissed_at: naive_now()])
-    |> handle_dismiss_all()
+    |> handle_dismiss_all(post)
   end
 
-  defp handle_dismiss_all(_), do: :ok
+  defp handle_dismiss_all(_, %Post{id: post_id} = post) do
+    Pubsub.publish(:mentions_dismissed, post_id, post)
+    :ok
+  end
 
   # Fetch the current time in `naive_datetime` format
   defp naive_now do
