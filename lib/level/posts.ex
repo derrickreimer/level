@@ -272,31 +272,49 @@ defmodule Level.Posts do
   Adds a reply to a post.
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
-  def create_reply(
-        %SpaceUser{id: space_user_id, space_id: space_id} = space_user,
-        %Post{id: post_id} = post,
-        params
-      ) do
+  def create_reply(%SpaceUser{} = space_user, %Post{} = post, params) do
     params_with_relations =
       params
-      |> Map.put(:space_id, space_id)
-      |> Map.put(:space_user_id, space_user_id)
-      |> Map.put(:post_id, post_id)
+      |> Map.put(:space_id, space_user.space_id)
+      |> Map.put(:space_user_id, space_user.id)
+      |> Map.put(:post_id, post.id)
 
     Multi.new()
-    |> Multi.insert(:reply, Reply.create_changeset(%Reply{}, params_with_relations))
-    |> Multi.run(:subscribe, fn _ -> {:ok, subscribe(post, space_user)} end)
-    |> Multi.run(:mentions, fn %{reply: reply} ->
-      Mentions.record(post, reply)
-    end)
-    |> Multi.run(:log, fn %{reply: reply} ->
-      PostLog.insert(:reply_created, post, reply, space_user)
-    end)
-    |> Multi.run(:post_view, fn %{reply: reply} ->
-      record_view(post, space_user, reply)
-    end)
+    |> insert_reply(params_with_relations)
+    |> subscribe_upon_reply(post, space_user)
+    |> record_reply_mentions(post)
+    |> log_reply_created(post, space_user)
+    |> record_view_upon_reply(post, space_user)
     |> Repo.transaction()
     |> after_create_reply(post)
+  end
+
+  defp insert_reply(multi, params) do
+    Multi.insert(multi, :reply, Reply.create_changeset(%Reply{}, params))
+  end
+
+  defp subscribe_upon_reply(multi, post, space_user) do
+    Multi.run(multi, :subscribe, fn _ ->
+      {:ok, subscribe(post, space_user)}
+    end)
+  end
+
+  defp record_reply_mentions(multi, post) do
+    Multi.run(multi, :mentions, fn %{reply: reply} ->
+      Mentions.record(post, reply)
+    end)
+  end
+
+  defp log_reply_created(multi, post, space_user) do
+    Multi.run(multi, :log, fn %{reply: reply} ->
+      PostLog.insert(:reply_created, post, reply, space_user)
+    end)
+  end
+
+  def record_view_upon_reply(multi, post, space_user) do
+    Multi.run(multi, :post_view, fn %{reply: reply} ->
+      record_view(post, space_user, reply)
+    end)
   end
 
   defp after_create_reply({:ok, %{reply: %Reply{} = reply}} = result, %Post{id: post_id}) do
