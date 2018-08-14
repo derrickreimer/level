@@ -286,6 +286,9 @@ defmodule Level.Posts do
     Multi.new()
     |> Multi.insert(:reply, Reply.create_changeset(%Reply{}, params_with_relations))
     |> Multi.run(:subscribe, fn _ -> {:ok, subscribe(post, space_user)} end)
+    |> Multi.run(:mentions, fn %{reply: reply} ->
+      Mentions.record(post, reply)
+    end)
     |> Multi.run(:log, fn %{reply: reply} ->
       PostLog.insert(:reply_created, post, reply, space_user)
     end)

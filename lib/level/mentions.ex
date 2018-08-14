@@ -6,6 +6,7 @@ defmodule Level.Mentions do
   import Ecto.Query
 
   alias Level.Posts.Post
+  alias Level.Posts.Reply
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Mentions.UserMention
@@ -66,17 +67,27 @@ defmodule Level.Mentions do
   @doc """
   Record mentions from the body of a post.
   """
-  def record(%Post{} = post) do
-    handle_pattern()
-    |> Regex.run(post.body, capture: :all_but_first)
-    |> process_handles(post)
+  @spec record(Post.t()) :: {:ok, [String.t()]}
+  def record(%Post{space_user_id: author_id, body: body} = post) do
+    do_record(body, post, nil, author_id)
   end
 
-  defp process_handles(nil, _) do
+  @spec record(Post.t(), Reply.t()) :: {:ok, [String.t()]}
+  def record(%Post{} = post, %Reply{id: reply_id, space_user_id: author_id, body: body}) do
+    do_record(body, post, reply_id, author_id)
+  end
+
+  defp do_record(body, post, reply_id, author_id) do
+    handle_pattern()
+    |> Regex.run(body, capture: :all_but_first)
+    |> process_handles(post, reply_id, author_id)
+  end
+
+  defp process_handles(nil, _, _, _) do
     {:ok, []}
   end
 
-  defp process_handles(handles, %Post{} = post) do
+  defp process_handles(handles, post, reply_id, author_id) do
     lower_handles =
       handles
       |> Enum.map(fn handle -> String.downcase(handle) end)
@@ -90,10 +101,10 @@ defmodule Level.Mentions do
 
     query
     |> Repo.all()
-    |> insert_batch(post)
+    |> insert_batch(post, reply_id, author_id)
   end
 
-  defp insert_batch(mentioned_ids, %Post{} = post) do
+  defp insert_batch(mentioned_ids, post, reply_id, author_id) do
     now = naive_now()
 
     params =
@@ -101,8 +112,8 @@ defmodule Level.Mentions do
         %{
           space_id: post.space_id,
           post_id: post.id,
-          reply_id: nil,
-          mentioner_id: post.space_user_id,
+          reply_id: reply_id,
+          mentioner_id: author_id,
           mentioned_id: mentioned_id,
           occurred_at: now,
           updated_at: now

@@ -182,6 +182,15 @@ defmodule Level.PostsTest do
       assert :subscribed = Posts.get_subscription_state(post, space_user)
     end
 
+    test "record mentions", %{space: space, space_user: space_user, post: post} do
+      {:ok, %{space_user: %SpaceUser{id: mentioned_id}}} =
+        create_space_member(space, %{handle: "tiff"})
+
+      params = valid_reply_params() |> Map.merge(%{body: "Hey @tiff"})
+
+      assert {:ok, %{mentions: [^mentioned_id]}} = Posts.create_reply(space_user, post, params)
+    end
+
     test "logs the event", %{space_user: space_user, post: post, group: group} do
       params = valid_reply_params()
       {:ok, %{reply: reply, log: log}} = Posts.create_reply(space_user, post, params)

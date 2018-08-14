@@ -167,10 +167,16 @@ view repo currentUser now { post, mention } =
     in
         div [ class "flex py-4" ]
             [ div [ class "flex-0 pr-3" ]
-                [ button [ class "flex items-center", onClick (DismissClicked post.id) ] [ Icons.square ]
+                [ button
+                    [ class "flex items-center"
+                    , onClick (DismissClicked post.id)
+                    , rel "tooltip"
+                    , title "Dismiss"
+                    ]
+                    [ Icons.square ]
                 ]
             , div [ class "flex-1" ]
-                [ div [ class "mb-3 text-sm font-extrabold text-dusty-blue" ]
+                [ div [ class "mb-4 text-sm font-bold text-dusty-blue-dark" ]
                     [ text <| mentionersSummary repo mentionData.mentioners ]
                 , postView repo currentUser now post
                 ]
@@ -197,10 +203,15 @@ mentionersSummary repo mentioners =
                 otherCount =
                     ListHelpers.size others
             in
-                if otherCount == 0 then
-                    firstUserName ++ " mentioned you"
-                else
-                    firstUserName ++ " and " ++ (toString otherCount) ++ " others mentioned you"
+                case otherCount of
+                    0 ->
+                        firstUserName ++ " mentioned you"
+
+                    1 ->
+                        firstUserName ++ " and 1 other person mentioned you"
+
+                    _ ->
+                        firstUserName ++ " and " ++ (toString otherCount) ++ " others mentioned you"
 
         [] ->
             ""
