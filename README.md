@@ -1,8 +1,16 @@
-![Level](https://user-images.githubusercontent.com/341387/44095866-7867101e-9f9f-11e8-96a0-589fe0527bec.png)
+# ![Level](https://user-images.githubusercontent.com/341387/44095866-7867101e-9f9f-11e8-96a0-589fe0527bec.png)
+
+Level is an alternative to real-time chat designed for the software development workflow. 
+
+**Sign up at [level.app](https://level.app)** to reserve your handle and get on the updates list.
 
 [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
-Join the insiders list at [level.app](https://level.app) for periodic updates.
+## Project Status
+
+Level is currently in the **pre-launch** phase and under active development by a small groups of people. Most tasks are being tracked offline as the foundations of the product come together, in the interest of rapid development and reaching an alpha stage for companies to start using it as quickly as possible.
+
+Interested in helping out? My goal is to (eventually) keep some tasks filed in the [issue tracker](https://github.com/levelhq/level/issues) marked as good candidates for community contribution.
 
 ## Development Environment
 
