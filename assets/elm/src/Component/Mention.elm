@@ -173,10 +173,10 @@ view repo currentUser now { post, mention } =
                     , rel "tooltip"
                     , title "Dismiss"
                     ]
-                    [ Icons.square ]
+                    [ Icons.open ]
                 ]
             , div [ class "flex-1" ]
-                [ div [ class "mb-4 text-sm font-bold text-dusty-blue-dark" ]
+                [ div [ class "mb-6 text-base font-bold text-dusty-blue-darker" ]
                     [ text <| mentionersSummary repo mentionData.mentioners ]
                 , postView repo currentUser now post
                 ]
