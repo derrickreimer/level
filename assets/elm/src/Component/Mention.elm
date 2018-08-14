@@ -30,7 +30,7 @@ import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Task
-import View.Helpers exposing (displayName)
+import View.Helpers exposing (displayName, smartFormatDate)
 
 
 -- MODEL
@@ -176,8 +176,12 @@ view repo currentUser now { post, mention } =
                     [ Icons.open ]
                 ]
             , div [ class "flex-1" ]
-                [ div [ class "mb-6 text-base font-bold text-dusty-blue-darker" ]
-                    [ text <| mentionersSummary repo mentionData.mentioners ]
+                [ div [ class "mb-6" ]
+                    [ a [ Route.href (Route.Post post.id), class "text-base font-bold no-underline text-blue " ]
+                        [ text <| mentionersSummary repo mentionData.mentioners ]
+                    , span [ class "mx-3 text-sm text-dusty-blue" ]
+                        [ text <| smartFormatDate now mentionData.lastOccurredAt ]
+                    ]
                 , postView repo currentUser now post
                 ]
             ]
