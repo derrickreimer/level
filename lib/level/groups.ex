@@ -37,16 +37,11 @@ defmodule Level.Groups do
 
   def groups_base_query(%User{id: user_id}) do
     from g in Group,
-      distinct: g.id,
       join: su in SpaceUser,
       on: su.space_id == g.space_id and su.user_id == ^user_id,
       left_join: gu in GroupUser,
-      on: gu.group_id == g.id,
-      left_join: gsu in SpaceUser,
-      on: gu.space_user_id == gsu.id and gsu.user_id == ^user_id,
-      where:
-        g.is_private == false or
-          (g.is_private == true and not is_nil(gu.id) and not is_nil(gsu.id))
+      on: gu.group_id == g.id and gu.space_user_id == su.id,
+      where: g.is_private == false or (g.is_private == true and not is_nil(gu.id))
   end
 
   @doc """

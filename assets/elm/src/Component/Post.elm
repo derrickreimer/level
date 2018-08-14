@@ -23,6 +23,7 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply as Reply exposing (Reply)
+import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Icons
@@ -44,6 +45,7 @@ import View.Helpers exposing (setFocus, unsetFocus, displayName, smartFormatDate
 type alias Model =
     { id : String
     , mode : Mode
+    , showGroups : Bool
     , post : Post
     , replies : Connection Reply
     , replyComposer : ReplyComposer
@@ -59,15 +61,15 @@ type Mode
 -- LIFECYCLE
 
 
-decoder : Mode -> Decoder Model
-decoder mode =
-    Decode.map2 (init mode)
+decoder : Mode -> Bool -> Decoder Model
+decoder mode showGroups =
+    Decode.map2 (init mode showGroups)
         Post.decoder
         (field "replies" <| Connection.decoder Reply.decoder)
 
 
-init : Mode -> Post -> Connection Reply -> Model
-init mode post replies =
+init : Mode -> Bool -> Post -> Connection Reply -> Model
+init mode showGroups post replies =
     let
         replyMode =
             case mode of
@@ -77,7 +79,7 @@ init mode post replies =
                 FullPage ->
                     AlwaysExpanded
     in
-        Model (Post.getId post) mode post replies (ReplyComposer.init replyMode)
+        Model (Post.getId post) mode showGroups post replies (ReplyComposer.init replyMode)
 
 
 setup : Model -> Cmd Msg
@@ -323,7 +325,9 @@ view repo currentUser now ({ post, replies } as model) =
                         , title "Expand post"
                         ]
                         [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                        , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
+                        , viewIf model.showGroups <|
+                            groupsLabel repo postData.groups
+                        , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
                         ]
                     , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
                     , div [ class "flex items-center" ]
@@ -338,6 +342,26 @@ view repo currentUser now ({ post, replies } as model) =
                     ]
                 ]
             ]
+
+
+groupsLabel : Repo -> List Group -> Html Msg
+groupsLabel repo groups =
+    case groups of
+        [ group ] ->
+            let
+                groupData =
+                    Repo.getGroup repo group
+            in
+                span [ class "ml-3 text-sm text-dusty-blue" ]
+                    [ a
+                        [ Route.href (Route.Group groupData.id)
+                        , class "no-underline text-dusty-blue font-bold"
+                        ]
+                        [ text groupData.name ]
+                    ]
+
+        _ ->
+            text ""
 
 
 repliesView : Repo -> Post -> Date -> Connection Reply -> Mode -> Html Msg

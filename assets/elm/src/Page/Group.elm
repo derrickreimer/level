@@ -399,7 +399,7 @@ handlePostCreated : Post -> Connection Reply -> Model -> ( Model, Cmd Msg )
 handlePostCreated post replies ({ posts, group } as model) =
     let
         component =
-            Component.Post.init Component.Post.Feed post replies
+            Component.Post.init Component.Post.Feed False post replies
     in
         ( { model | posts = Connection.prepend .id component posts }
         , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)

@@ -63,9 +63,8 @@ variables groupId =
 
 postComponentsDecoder : Decoder (Connection Component.Post.Model)
 postComponentsDecoder =
-    Component.Post.Feed
-        |> Component.Post.decoder
-        |> Connection.decoder
+    Connection.decoder <|
+        Component.Post.decoder Component.Post.Feed False
 
 
 decoder : Decoder Response

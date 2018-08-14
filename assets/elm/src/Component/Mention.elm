@@ -72,7 +72,7 @@ decoder =
     Decode.map3 Model
         (field "id" string)
         (Mention.decoder)
-        (field "post" (Component.Post.decoder Component.Post.Feed))
+        (field "post" (Component.Post.decoder Component.Post.Feed True))
 
 
 

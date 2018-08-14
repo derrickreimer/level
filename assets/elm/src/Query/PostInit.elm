@@ -52,7 +52,7 @@ decoder : Decoder Response
 decoder =
     Decode.at [ "data", "space", "post" ] <|
         Decode.map Response
-            (Component.Post.decoder Component.Post.FullPage)
+            (Component.Post.decoder Component.Post.FullPage True)
 
 
 request : String -> String -> Session -> Task Session.Error ( Session, Response )
