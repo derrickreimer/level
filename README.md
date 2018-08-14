@@ -1,10 +1,10 @@
 # ![Level](https://user-images.githubusercontent.com/341387/44095866-7867101e-9f9f-11e8-96a0-589fe0527bec.png)
 
+[![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
+
 Level is an alternative to real-time chat designed for the software development workflow. 
 
 **Sign up at [level.app](https://level.app)** to reserve your handle and get on the updates list.
-
-[![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
 ## Project Status
 
