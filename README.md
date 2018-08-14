@@ -12,7 +12,7 @@ Level is currently in the **pre-launch** phase and under active development by a
 
 Interested in helping out? My goal is to (eventually) keep some tasks filed in the [issue tracker](https://github.com/levelhq/level/issues) marked as good candidates for community contribution.
 
-## Development Environment
+## Developer Setup
 
 You'll need to install the following dependencies first:
 
@@ -29,14 +29,11 @@ cd level
 script/bootstrap
 ```
 
-If your local PostgreSQL install does not have a default `postgres` user,
-open the `config/dev.secret.exs` file and update the credentials.
-Then, run the bootstrap script again.
+If your local PostgreSQL install does not have a default `postgres` user, open the `config/dev.secret.exs` file and update the credentials. Then, run the bootstrap script again.
 
-Use the `script/server` command to start up your local server and visit
-[`localhost:4000`](http://localhost:4000) from your browser.
+Use the `script/server` command to start up your local server and visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-### Node.js
+### Installing Node.js
 
 This repository includes a `.nvmrc` file targeting a specific version of Node
 that is known to be compatible with all current node dependencies. Things might work
@@ -47,23 +44,42 @@ the project root.
 Then, be sure to run `script/bootstrap` to install node dependencies with the
 correct version of node.
 
-### Elm
+### Running tests and analyses
 
-Much of the front-end is powered by [Elm](http://elm-lang.org/).
-The Elm code lives in the `assets/elm/src` directory and the corresponding test files
-live in the `assets/elm/tests` directory.
+We have a handful of helper scripts available:
 
-To run the Elm test suite, execute `script/elm-test` from the project root.
+- `script/elixir-test`: runs the Elixir test suite with coveralls
+- `script/elm-test`: runs the Elm test suite
+- `script/test`: runs the Elixir and Elm test suites
+- `script/static-analysis`: runs Credo (Elixir linting), Dialyzer, and Elixir formatter verification
+- `script/build`: runs all the test suites and static analysis
 
 ## Documentation
 
-To generate and view the project documentation locally, run the following script:
+Run the `script/docs` to generate and view the project ExDocs locally.
 
-```
-script/docs
-```
+## Heroku Deployment (Experimental)
 
-## Deployment
+One of our goals is to make self-installation as painless as possible for those who are interested in hosting their one instance.
+
+The relevant configuration files for Heroku live here: 
+
+- [app.json](https://github.com/levelhq/level/blob/master/app.json)
+- [elixir_buildpack.config](https://github.com/levelhq/level/blob/master/elixir_buildpack.config)
+- [phoenix_static_buildpack.config](https://github.com/levelhq/level/blob/master/phoenix_static_buildpack.config)
+- [Procfile](https://github.com/levelhq/level/blob/master/Procfile)
+
+We are aiming to keep seamless Heroku deployment up-to-date, with a few important "alpha software" notes:
+
+- It's possible you may find it broken on master. If you do, please file an issue.
+- As deployment needs grow more complex, it may become no longer feasible to support Heroku deploys. Caveat emptor.
+
+### Required additional services
+
+In addition to a Heroku account, you'll need the following services to get your Heroku install up and running:
+
+- An AWS account and an S3 bucket for storing file uploads. You'll be asked for AWS API keys and bucket name environment variables during setup.
+- A transactional email provider (we recommend [Postmark](https://postmarkapp.com)). You'll be asked for SMTP host, port, username, and password environment variables during setup.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/levelhq/level/tree/master)
 
