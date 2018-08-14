@@ -326,12 +326,11 @@ view repo currentUser now ({ post, replies } as model) =
                         , span [ class "mx-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
                         ]
                     , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
-                    , viewIf (model.mode == Feed) <|
-                        div [ class "flex items-center" ]
-                            [ div [ class "flex-grow" ]
-                                [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
-                                ]
+                    , div [ class "flex items-center" ]
+                        [ div [ class "flex-grow" ]
+                            [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
                             ]
+                        ]
                     ]
                 , div [ class "relative" ]
                     [ repliesView repo post now replies model.mode
