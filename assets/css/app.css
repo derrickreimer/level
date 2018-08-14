@@ -83,10 +83,6 @@ body {
   @apply .mt-2 .text-sm .text-red .font-bold;
 }
 
-.scrolled-top .group-header {
-  @apply .border-transparent;
-}
-
 .composer {
   @apply .block .relative .p-4 .bg-grey-light .w-full .rounded-lg;
 }
@@ -347,4 +343,8 @@ body {
 
 .transition-bg {
   transition: background-color 0.2s ease;
+}
+
+.scrolled-top .scrolled-top-no-border {
+  @apply .border-transparent;
 }

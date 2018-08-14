@@ -15,6 +15,7 @@ module Icons
         , logo
         , sync
         , search
+        , square
         , unlock
         )
 
@@ -297,6 +298,23 @@ search =
                 <g id="search" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
                     <circle id="Oval" cx="8" cy="8" r="8"></circle>
                     <path d="M18,18 L13.65,13.65" id="Shape"></path>
+                </g>
+            </g>
+        </svg>
+        """
+
+
+square : Html msg
+square =
+    toHtml
+        """
+        <svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="square" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
+                    <rect id="Rectangle-path" x="0" y="0" width="18" height="18" rx="2"></rect>
                 </g>
             </g>
         </svg>

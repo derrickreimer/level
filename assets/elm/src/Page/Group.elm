@@ -463,7 +463,7 @@ view repo model =
     in
         div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
+                [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
                         [ nameView groupData model.nameEditor
                         , privacyView groupData

@@ -191,9 +191,9 @@ view : Repo -> List SpaceUser -> Model -> Html Msg
 view repo featuredUsers model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "group-header sticky pin-t border-b py-4 bg-white z-50" ]
+            [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
-                    [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
+                    [ h2 [ class "font-extrabold text-3xl" ] [ text "Inbox" ]
                     ]
                 ]
             , mentionsView repo model
@@ -204,11 +204,8 @@ view repo featuredUsers model =
 
 mentionsView : Repo -> Model -> Html Msg
 mentionsView repo model =
-    div []
-        [ h3 [ class "font-extrabold text-xl my-2" ] [ text "Mentions" ]
-        , div [] <|
-            Connection.map (mentionView repo model) model.mentions
-        ]
+    div [] <|
+        Connection.map (mentionView repo model) model.mentions
 
 
 mentionView : Repo -> Model -> Component.Mention.Model -> Html Msg

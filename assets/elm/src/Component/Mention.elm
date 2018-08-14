@@ -24,11 +24,13 @@ import Date exposing (Date)
 import GraphQL exposing (Fragment)
 import Icons
 import Json.Decode as Decode exposing (Decoder, field, string)
+import ListHelpers
 import Mutation.DismissMentions as DismissMentions
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Task
+import View.Helpers exposing (displayName)
 
 
 -- MODEL
@@ -158,15 +160,21 @@ handleReplyCreated reply model =
 
 
 view : Repo -> SpaceUser -> Date -> Model -> Html Msg
-view repo currentUser now { post } =
-    div [ class "flex py-4" ]
-        [ div [ class "flex-0" ]
-            [ button [ class "flex items-center h-12 pr-4", onClick (DismissClicked post.id) ] [ Icons.checkSquare ]
+view repo currentUser now { post, mention } =
+    let
+        mentionData =
+            Mention.getCachedData mention
+    in
+        div [ class "flex py-4" ]
+            [ div [ class "flex-0 pr-3" ]
+                [ button [ class "flex items-center", onClick (DismissClicked post.id) ] [ Icons.square ]
+                ]
+            , div [ class "flex-1" ]
+                [ div [ class "mb-3 text-sm font-extrabold text-dusty-blue" ]
+                    [ text <| mentionersSummary repo mentionData.mentioners ]
+                , postView repo currentUser now post
+                ]
             ]
-        , div [ class "flex-1" ]
-            [ postView repo currentUser now post
-            ]
-        ]
 
 
 postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
@@ -174,3 +182,25 @@ postView repo currentUser now postComponent =
     postComponent
         |> Component.Post.view repo currentUser now
         |> Html.map PostComponentMsg
+
+
+mentionersSummary : Repo -> List SpaceUser -> String
+mentionersSummary repo mentioners =
+    case mentioners of
+        firstUser :: others ->
+            let
+                firstUserName =
+                    firstUser
+                        |> Repo.getSpaceUser repo
+                        |> displayName
+
+                otherCount =
+                    ListHelpers.size others
+            in
+                if otherCount == 0 then
+                    firstUserName ++ " mentioned you"
+                else
+                    firstUserName ++ " and " ++ (toString otherCount) ++ " others mentioned you"
+
+        [] ->
+            ""
