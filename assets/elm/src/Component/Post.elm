@@ -392,7 +392,7 @@ mentionView repo currentUser now ({ post } as model) =
                     , rel "tooltip"
                     , title "Dismiss"
                     ]
-                    [ Icons.open ]
+                    [ Icons.undismissed ]
                 ]
             , div [ class "flex-1" ]
                 [ div [ class "mb-6" ]
