@@ -4,6 +4,7 @@ module ListHelpers
         , takeLast
         , size
         , getBy
+        , uniqueBy
         , insertUniqueBy
         , memberBy
         , updateBy
@@ -64,6 +65,24 @@ getBy : (a -> comparable) -> comparable -> List a -> Maybe a
 getBy comparator comparable list =
     List.filter (\a -> comparator a == comparable) list
         |> List.head
+
+
+{-| Finds an item whose comparator evaluates to the same as the given item's.
+
+    uniqueBy .id [{ id = "1" }, { id = "1" }, { "id" = "2"}] == [{ id = "1" }, { id = "2"}]
+
+-}
+uniqueBy : (a -> comparable) -> List a -> List a
+uniqueBy comparator list =
+    let
+        func =
+            \item acc ->
+                if memberBy comparator item acc then
+                    acc
+                else
+                    item :: acc
+    in
+        List.foldl func [] list
 
 
 {-| Prepends an item to a list if there does not exist a list element whose

@@ -640,6 +640,7 @@ mentioners mentions =
     mentions
         |> List.map (Mention.getCachedData)
         |> List.map .mentioner
+        |> ListHelpers.uniqueBy (SpaceUser.getId)
 
 
 lastMentionAt : Date -> List Mention -> Date
