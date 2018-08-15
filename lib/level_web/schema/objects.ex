@@ -148,14 +148,14 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.space_users/3
     end
 
-    @desc "A paginated list of mentions for the current user in the space."
-    field :mentions, non_null(:mention_connection) do
+    @desc "A paginated list of posts for which the current user has undismissed mentions."
+    field :mentioned_posts, non_null(:post_connection) do
       arg :first, :integer
       arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
-      arg :order_by, :mention_order
-      resolve &Resolvers.mentions/3
+      arg :order_by, :mentioned_post_order
+      resolve &Resolvers.mentioned_posts/3
     end
   end
 
@@ -248,9 +248,9 @@ defmodule LevelWeb.Schema.Objects do
     @desc "The viewer's subscription to the post."
     field :subscription_state, non_null(:post_subscription_state)
 
-    @desc "The viewer's current mention state."
-    field :mention, :mention do
-      resolve &Resolvers.mention/3
+    @desc "A list of mentions for the current viewer."
+    field :mentions, list_of(:mention) do
+      resolve &Resolvers.mentions/3
     end
   end
 
@@ -275,16 +275,9 @@ defmodule LevelWeb.Schema.Objects do
     end
   end
 
-  @desc "A mention represents a post where a user has been mentioned."
+  @desc "A mention represents a when user has @-mentioned another user."
   object :mention do
-    field :id, non_null(:id)
-    field :post, non_null(:post), resolve: dataloader(Posts)
-    field :mentioned, non_null(:space_user), resolve: dataloader(Spaces)
-
-    field :mentioners, list_of(:space_user) do
-      resolve &Resolvers.mentioners/3
-    end
-
-    field :last_occurred_at, non_null(:time)
+    field :mentioner, non_null(:space_user), resolve: dataloader(Spaces)
+    field :occurred_at, non_null(:time)
   end
 end

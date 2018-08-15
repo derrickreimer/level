@@ -38,8 +38,8 @@ import View.Helpers exposing (displayName, smartFormatDate)
 
 type alias Model =
     { id : String
-    , mention : Mention
     , post : Component.Post.Model
+    , mentions : List Mention
     }
 
 
@@ -47,23 +47,19 @@ fragment : Fragment
 fragment =
     GraphQL.fragment
         """
-        fragment MentionFields on Mention {
-          id
-          post {
-            ...PostFields
-            replies(last: 3) {
-              ...ReplyConnectionFields
-            }
+        fragment MentionedPostFields on Post {
+          ...PostFields
+          replies(last: 3) {
+            ...ReplyConnectionFields
           }
-          mentioners {
-            ...SpaceUserFields
+          mentions {
+            ...MentionFields
           }
-          lastOccurredAt
         }
         """
         [ Post.fragment
         , Connection.fragment "ReplyConnection" Reply.fragment
-        , SpaceUser.fragment
+        , Mention.fragment
         ]
 
 
@@ -71,8 +67,8 @@ decoder : Decoder Model
 decoder =
     Decode.map3 Model
         (field "id" string)
-        (Mention.decoder)
-        (field "post" (Component.Post.decoder Component.Post.Feed True))
+        (Component.Post.decoder Component.Post.Feed True)
+        (field "mentions" (Decode.list Mention.decoder))
 
 
 
@@ -160,31 +156,45 @@ handleReplyCreated reply model =
 
 
 view : Repo -> SpaceUser -> Date -> Model -> Html Msg
-view repo currentUser now { post, mention } =
-    let
-        mentionData =
-            Mention.getCachedData mention
-    in
-        div [ class "flex py-4" ]
-            [ div [ class "flex-0 pr-3" ]
-                [ button
-                    [ class "flex items-center"
-                    , onClick (DismissClicked post.id)
-                    , rel "tooltip"
-                    , title "Dismiss"
-                    ]
-                    [ Icons.open ]
+view repo currentUser now { post, mentions } =
+    div [ class "flex py-4" ]
+        [ div [ class "flex-0 pr-3" ]
+            [ button
+                [ class "flex items-center"
+                , onClick (DismissClicked post.id)
+                , rel "tooltip"
+                , title "Dismiss"
                 ]
-            , div [ class "flex-1" ]
-                [ div [ class "mb-6" ]
-                    [ a [ Route.href (Route.Post post.id), class "text-base font-bold no-underline text-dusty-blue-darker" ]
-                        [ text <| mentionersSummary repo mentionData.mentioners ]
-                    , span [ class "mx-3 text-sm text-dusty-blue" ]
-                        [ text <| smartFormatDate now mentionData.lastOccurredAt ]
-                    ]
-                , postView repo currentUser now post
-                ]
+                [ Icons.open ]
             ]
+        , div [ class "flex-1" ]
+            [ div [ class "mb-6" ]
+                [ a [ Route.href (Route.Post post.id), class "text-base font-bold no-underline text-dusty-blue-darker" ]
+                    [ text <| mentionersSummary repo (mentioners mentions) ]
+                , span [ class "mx-3 text-sm text-dusty-blue" ]
+                    [ text <| smartFormatDate now (lastOccurredAt now mentions) ]
+                ]
+            , postView repo currentUser now post
+            ]
+        ]
+
+
+mentioners : List Mention -> List SpaceUser
+mentioners mentions =
+    mentions
+        |> List.map (Mention.getCachedData)
+        |> List.map .mentioner
+
+
+lastOccurredAt : Date -> List Mention -> Date
+lastOccurredAt now mentions =
+    mentions
+        |> List.map (Mention.getCachedData)
+        |> List.map .occurredAt
+        |> List.map Date.toTime
+        |> List.maximum
+        |> Maybe.withDefault (Date.toTime now)
+        |> Date.fromTime
 
 
 postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg

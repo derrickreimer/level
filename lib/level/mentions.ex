@@ -52,6 +52,14 @@ defmodule Level.Mentions do
       where: is_nil(m.dismissed_at)
   end
 
+  @spec base_query(User.t()) :: Ecto.Query.t()
+  def base_query(%User{id: user_id}) do
+    from m in UserMention,
+      join: su in assoc(m, :mentioned),
+      where: su.user_id == ^user_id,
+      where: is_nil(m.dismissed_at)
+  end
+
   @doc """
   Builds a base query for fetching grouped user mentions.
   """
@@ -191,6 +199,7 @@ defmodule Level.Mentions do
   def dataloader_data(_), do: raise("authentication required")
 
   @impl true
+  def dataloader_query(UserMention, %{current_user: user}), do: base_query(user)
   def dataloader_query(GroupedUserMention, %{current_user: user}), do: grouped_base_query(user)
   def dataloader_query(_, _), do: raise("query not valid for this context")
 end

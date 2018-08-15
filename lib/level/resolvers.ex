@@ -9,7 +9,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.GroupMembershipConnection
   alias Level.Resolvers.GroupPostConnection
   alias Level.Resolvers.GroupConnection
-  alias Level.Resolvers.MentionConnection
+  alias Level.Resolvers.MentionedPostConnection
   alias Level.Resolvers.ReplyConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
@@ -18,6 +18,7 @@ defmodule Level.Resolvers do
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
   alias Level.Mentions
+  alias Level.Mentions.UserMention
   alias Level.Mentions.GroupedUserMention
   alias Level.Pagination
   alias Level.Posts.Post
@@ -31,6 +32,9 @@ defmodule Level.Resolvers do
 
   @typedoc "The return value for paginated connections"
   @type paginated_result :: {:ok, Pagination.Result.t()} | {:error, String.t()}
+
+  @typedoc "The return value for a dataloader resolver"
+  @type dataloader_result :: {:middleware, any(), any()}
 
   @doc """
   Fetches a space by id.
@@ -150,17 +154,17 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches mentions for the current user by space id.
+  Fetches mentions for the current user in a given scope.
   """
-  @spec mentions(Space.t(), map(), info()) :: paginated_result()
-  def mentions(%Space{} = space, args, info) do
-    MentionConnection.get(space, struct(MentionConnection, args), info)
+  @spec mentions(Post.t(), map(), info()) :: dataloader_result()
+  def mentions(%Post{} = post, _args, %{context: %{loader: loader}}) do
+    dataloader_one(loader, Mentions, {:many, UserMention}, post_id: post.id)
   end
 
   @doc """
   Fetches the current grouped mention for the current user and a given post.
   """
-  @spec mention(Post.t(), map(), info()) :: {:middleware, any(), any()}
+  @spec mention(Post.t(), map(), info()) :: dataloader_result()
   def mention(%Post{} = post, _args, %{context: %{loader: loader}}) do
     dataloader_one(loader, Mentions, {:one, GroupedUserMention}, post_id: post.id)
   end
@@ -168,7 +172,7 @@ defmodule Level.Resolvers do
   @doc """
   Fetches the current user's membership.
   """
-  @spec group_membership(Group.t(), map(), info()) :: {:middleware, any(), any()}
+  @spec group_membership(Group.t(), map(), info()) :: dataloader_result()
   def group_membership(%Group{} = group, _args, %{context: %{loader: loader}}) do
     dataloader_one(loader, Groups, {:one, GroupUser}, group_id: group.id)
   end
@@ -176,7 +180,7 @@ defmodule Level.Resolvers do
   @doc """
   Fetches mentioners for a grouped user mention.
   """
-  @spec mentioners(GroupedUserMention.t(), any(), info()) :: {:middleware, any(), any()}
+  @spec mentioners(GroupedUserMention.t(), any(), info()) :: dataloader_result()
   def mentioners(%GroupedUserMention{} = grouped_mention, _, %{context: %{loader: loader}}) do
     dataloader_many(loader, Spaces, SpaceUser, Mentions.mentioner_ids(grouped_mention))
   end
@@ -184,7 +188,7 @@ defmodule Level.Resolvers do
   @doc """
   Fetches is bookmarked status for a group.
   """
-  @spec is_bookmarked(Group.t(), any(), info()) :: {:middleware, any(), any()}
+  @spec is_bookmarked(Group.t(), any(), info()) :: dataloader_result()
   def is_bookmarked(%Group{} = group, _, %{context: %{loader: loader}}) do
     source_name = Groups
     batch_key = {:one, GroupBookmark}
@@ -201,6 +205,14 @@ defmodule Level.Resolvers do
 
   defp handle_bookmark_fetch(%GroupBookmark{}), do: {:ok, true}
   defp handle_bookmark_fetch(_), do: {:ok, false}
+
+  @doc """
+  Fetches posts for which the current user has undismissed mentions.
+  """
+  @spec mentioned_posts(Space.t(), map(), info()) :: paginated_result()
+  def mentioned_posts(%Space{} = space, args, info) do
+    MentionedPostConnection.get(space, struct(MentionedPostConnection, args), info)
+  end
 
   # Dataloader helpers
 

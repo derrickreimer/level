@@ -22,13 +22,13 @@ document =
           $spaceId: ID!
         ) {
           space(id: $spaceId) {
-            mentions(first: 10) {
-              ...MentionConnectionFields
+            mentionedPosts(first: 10) {
+              ...PostConnectionFields
             }
           }
         }
         """
-        [ Connection.fragment "MentionConnection" Component.Mention.fragment
+        [ Connection.fragment "PostConnection" Component.Mention.fragment
         ]
 
 
@@ -42,7 +42,7 @@ variables spaceId =
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "space", "mentions" ] <|
+    Decode.at [ "data", "space", "mentionedPosts" ] <|
         Decode.map Response (Connection.decoder Component.Mention.decoder)
 
 

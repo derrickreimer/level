@@ -8,6 +8,7 @@ defmodule Level.Posts.Post do
   import Ecto.Changeset
 
   alias Level.Groups.Group
+  alias Level.Mentions.UserMention
   alias Level.Posts.PostGroup
   alias Level.Posts.Reply
   alias Level.Spaces.Space
@@ -25,10 +26,14 @@ defmodule Level.Posts.Post do
     belongs_to :author, SpaceUser, foreign_key: :space_user_id
     many_to_many :groups, Group, join_through: PostGroup
     has_many :replies, Reply
+    has_many :user_mentions, UserMention
 
     # Holds the subscription state for the current user.
     # This is populated automatically by the posts_base_query.
     field :subscription_state, :string, virtual: true
+
+    # Used for paginating
+    field :last_occurred_at, :naive_datetime, virtual: true
 
     timestamps()
   end

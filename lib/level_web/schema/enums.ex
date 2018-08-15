@@ -75,7 +75,7 @@ defmodule LevelWeb.Schema.Enums do
     value :posted_at
   end
 
-  enum :mention_order_field do
+  enum :mentioned_post_order_field do
     value :last_occurred_at
   end
 

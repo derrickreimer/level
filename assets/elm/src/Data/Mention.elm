@@ -4,7 +4,6 @@ module Data.Mention
         , Record
         , fragment
         , decoder
-        , getId
         , getCachedData
         )
 
@@ -23,9 +22,8 @@ type Mention
 
 
 type alias Record =
-    { id : String
-    , mentioners : List SpaceUser
-    , lastOccurredAt : Date
+    { mentioner : SpaceUser
+    , occurredAt : Date
     }
 
 
@@ -34,11 +32,10 @@ fragment =
     GraphQL.fragment
         """
         fragment MentionFields on Mention {
-          id
-          mentioners {
+          mentioner {
             ...SpaceUserFields
           }
-          lastOccurredAt
+          occurredAt
         }
         """
         [ SpaceUser.fragment
@@ -52,20 +49,14 @@ fragment =
 decoder : Decoder Mention
 decoder =
     Decode.map Mention <|
-        (Decode.map3 Record
-            (field "id" Decode.string)
-            (field "mentioners" (Decode.list SpaceUser.decoder))
-            (field "lastOccurredAt" dateDecoder)
+        (Decode.map2 Record
+            (field "mentioner" SpaceUser.decoder)
+            (field "occurredAt" dateDecoder)
         )
 
 
 
 -- API
-
-
-getId : Mention -> String
-getId (Mention { id }) =
-    id
 
 
 getCachedData : Mention -> Record
