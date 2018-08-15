@@ -20,7 +20,9 @@ defmodule Level.Resolvers do
   alias Level.Mentions
   alias Level.Mentions.UserMention
   alias Level.Pagination
+  alias Level.Posts
   alias Level.Posts.Post
+  alias Level.Posts.PostUser
   alias Level.Spaces
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
@@ -197,6 +199,27 @@ defmodule Level.Resolvers do
     MentionedPostConnection.get(space, struct(MentionedPostConnection, args), info)
   end
 
+  @doc """
+  Fetches the current subscription state for a post.
+  """
+  @spec subscription_state(Post.t(), map(), info()) :: dataloader_result()
+  def subscription_state(%Post{} = post, _, %{context: %{loader: loader}}) do
+    source_name = Posts
+    batch_key = {:one, PostUser}
+    item_key = [post_id: post.id]
+
+    loader
+    |> Dataloader.load(source_name, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(source_name, batch_key, item_key)
+      |> handle_subscription_state_fetch()
+    end)
+  end
+
+  defp handle_subscription_state_fetch(%PostUser{subscription_state: state}), do: {:ok, state}
+  defp handle_subscription_state_fetch(_), do: {:ok, "NOT_SUBSCRIBED"}
+
   # Dataloader helpers
 
   defp dataloader_one(loader, source_name, batch_key, item_key) do
@@ -205,16 +228,6 @@ defmodule Level.Resolvers do
     |> on_load(fn loader ->
       loader
       |> Dataloader.get(source_name, batch_key, item_key)
-      |> tuplize()
-    end)
-  end
-
-  defp dataloader_many(loader, source_name, batch_key, item_keys) do
-    loader
-    |> Dataloader.load_many(source_name, batch_key, item_keys)
-    |> on_load(fn loader ->
-      loader
-      |> Dataloader.get_many(source_name, batch_key, item_keys)
       |> tuplize()
     end)
   end

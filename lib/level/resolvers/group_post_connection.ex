@@ -31,7 +31,7 @@ defmodule Level.Resolvers.GroupPostConnection do
   """
   def get(group, args, %{context: %{current_user: user}}) do
     query =
-      from [p, su, g, gu, pu] in Posts.posts_base_query(user),
+      from [p, su, g, gu] in Posts.posts_base_query(user),
         where: g.id == ^group.id
 
     args = process_args(args)

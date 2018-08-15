@@ -31,11 +31,11 @@ defmodule Level.Resolvers.MentionedPostConnection do
   """
   def get(space, args, %{context: %{current_user: user}}) do
     base_query =
-      from [p, su, g, gu, pu] in Posts.posts_base_query(user),
+      from [p, su, g, gu] in Posts.posts_base_query(user),
         where: p.space_id == ^space.id,
         join: m in assoc(p, :user_mentions),
         where: m.mentioned_id == su.id and is_nil(m.dismissed_at),
-        group_by: [p.id, pu.subscription_state],
+        group_by: p.id,
         select_merge: %{last_occurred_at: max(m.occurred_at)}
 
     query = from(p in subquery(base_query))

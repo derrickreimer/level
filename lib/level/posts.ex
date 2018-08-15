@@ -49,13 +49,7 @@ defmodule Level.Posts do
       join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == su.id and gu.group_id == g.id,
-      left_join: pu in PostUser,
-      on: pu.space_user_id == su.id and pu.post_id == p.id,
-      where: g.is_private == false or not is_nil(gu.id),
-      select: %{
-        p
-        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "NOT_SUBSCRIBED")
-      }
+      where: g.is_private == false or not is_nil(gu.id)
   end
 
   @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
@@ -64,13 +58,7 @@ defmodule Level.Posts do
       join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id),
-      left_join: pu in PostUser,
-      on: pu.space_user_id == ^space_user_id and pu.post_id == p.id,
-      select: %{
-        p
-        | subscription_state: fragment("coalesce(?, ?)", pu.subscription_state, "NOT_SUBSCRIBED")
-      }
+      where: g.is_private == false or not is_nil(gu.id)
   end
 
   @doc """
@@ -386,5 +374,12 @@ defmodule Level.Posts do
 
   @impl true
   def dataloader_query(Post, %{current_user: user}), do: posts_base_query(user)
+
+  def dataloader_query(PostUser, %{current_user: user}) do
+    from pu in PostUser,
+      join: su in assoc(pu, :space_user),
+      where: su.user_id == ^user.id
+  end
+
   def dataloader_query(_, _), do: raise("query not valid for this context")
 end

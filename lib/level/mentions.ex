@@ -18,12 +18,6 @@ defmodule Level.Mentions do
 
   @behaviour Level.DataloaderSource
 
-  defmacro aggregate_ids(column) do
-    quote do
-      fragment("array_agg(?) FILTER (WHERE ? IS NOT NULL)", unquote(column), unquote(column))
-    end
-  end
-
   @doc """
   The pattern for matching handles in a body of text.
   """

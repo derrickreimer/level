@@ -246,7 +246,9 @@ defmodule LevelWeb.Schema.Objects do
 
     # Viewer-contextual fields
     @desc "The viewer's subscription to the post."
-    field :subscription_state, non_null(:post_subscription_state)
+    field :subscription_state, non_null(:post_subscription_state) do
+      resolve &Resolvers.subscription_state/3
+    end
 
     @desc "A list of mentions for the current viewer."
     field :mentions, list_of(:mention) do
