@@ -37,6 +37,11 @@ document =
               ...PostConnectionFields
               edges {
                 node {
+                  mention {
+                    mentioners {
+                      ...SpaceUserFields
+                    }
+                  }
                   replies(last: 5) {
                     ...ReplyConnectionFields
                   }

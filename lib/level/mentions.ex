@@ -12,6 +12,12 @@ defmodule Level.Mentions do
   alias Level.Mentions.UserMention
   alias Level.Mentions.GroupedUserMention
   alias Level.Pubsub
+  alias Level.Users.User
+
+  # Suppress dialyzer warnings about dataloader functions
+  @dialyzer {:nowarn_function, dataloader_data: 1}
+
+  @behaviour Level.DataloaderSource
 
   defmacro aggregate_ids(column) do
     quote do
@@ -53,6 +59,22 @@ defmodule Level.Mentions do
   def grouped_base_query(%SpaceUser{id: space_user_id}) do
     from m in {"user_mentions", GroupedUserMention},
       where: m.mentioned_id == ^space_user_id,
+      where: is_nil(m.dismissed_at),
+      group_by: [m.mentioned_id, m.post_id],
+      select: %{
+        struct(m, [:post_id, :mentioned_id])
+        | reply_ids: aggregate_ids(m.reply_id),
+          mentioner_ids: aggregate_ids(m.mentioner_id),
+          last_occurred_at: max(m.occurred_at),
+          id: m.post_id
+      }
+  end
+
+  @spec grouped_base_query(User.t()) :: Ecto.Query.t()
+  def grouped_base_query(%User{id: user_id}) do
+    from m in {"user_mentions", GroupedUserMention},
+      join: su in assoc(m, :mentioned),
+      where: su.user_id == ^user_id,
       where: is_nil(m.dismissed_at),
       group_by: [m.mentioned_id, m.post_id],
       select: %{
@@ -160,4 +182,15 @@ defmodule Level.Mentions do
   defp naive_now do
     DateTime.utc_now() |> DateTime.to_naive()
   end
+
+  @impl true
+  def dataloader_data(%{current_user: _user} = params) do
+    Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
+  end
+
+  def dataloader_data(_), do: raise("authentication required")
+
+  @impl true
+  def dataloader_query(GroupedUserMention, %{current_user: user}), do: grouped_base_query(user)
+  def dataloader_query(_, _), do: raise("query not valid for this context")
 end

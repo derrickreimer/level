@@ -5,6 +5,7 @@ defmodule LevelWeb.Absinthe do
 
   alias Level.Groups
   alias Level.Repo
+  alias Level.Mentions
   alias Level.Posts
   alias Level.Spaces
   alias Level.Users.User
@@ -34,5 +35,6 @@ defmodule LevelWeb.Absinthe do
     |> Dataloader.add_source(Groups, Groups.dataloader_data(params))
     |> Dataloader.add_source(Spaces, Spaces.dataloader_data(params))
     |> Dataloader.add_source(Posts, Posts.dataloader_data(params))
+    |> Dataloader.add_source(Mentions, Mentions.dataloader_data(params))
   end
 end

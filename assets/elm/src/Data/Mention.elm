@@ -9,9 +9,7 @@ module Data.Mention
         )
 
 import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Pipeline
-import Data.Post as Post exposing (Post)
+import Json.Decode as Decode exposing (Decoder, field)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import Util exposing (dateDecoder)
@@ -26,7 +24,6 @@ type Mention
 
 type alias Record =
     { id : String
-    , post : Post
     , mentioners : List SpaceUser
     , lastOccurredAt : Date
     }
@@ -38,17 +35,13 @@ fragment =
         """
         fragment MentionFields on Mention {
           id
-          post {
-            ...PostFields
-          }
           mentioners {
             ...SpaceUserFields
           }
           lastOccurredAt
         }
         """
-        [ Post.fragment
-        , SpaceUser.fragment
+        [ SpaceUser.fragment
         ]
 
 
@@ -59,11 +52,10 @@ fragment =
 decoder : Decoder Mention
 decoder =
     Decode.map Mention <|
-        (Pipeline.decode Record
-            |> Pipeline.required "id" Decode.string
-            |> Pipeline.required "post" Post.decoder
-            |> Pipeline.required "mentioners" (Decode.list SpaceUser.decoder)
-            |> Pipeline.required "lastOccurredAt" dateDecoder
+        (Decode.map3 Record
+            (field "id" Decode.string)
+            (field "mentioners" (Decode.list SpaceUser.decoder))
+            (field "lastOccurredAt" dateDecoder)
         )
 
 

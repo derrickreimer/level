@@ -177,7 +177,7 @@ view repo currentUser now { post, mention } =
                 ]
             , div [ class "flex-1" ]
                 [ div [ class "mb-6" ]
-                    [ a [ Route.href (Route.Post post.id), class "text-base font-bold no-underline text-blue " ]
+                    [ a [ Route.href (Route.Post post.id), class "text-base font-bold no-underline text-dusty-blue-darker" ]
                         [ text <| mentionersSummary repo mentionData.mentioners ]
                     , span [ class "mx-3 text-sm text-dusty-blue" ]
                         [ text <| smartFormatDate now mentionData.lastOccurredAt ]

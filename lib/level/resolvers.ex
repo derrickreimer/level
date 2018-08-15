@@ -158,21 +158,19 @@ defmodule Level.Resolvers do
   end
 
   @doc """
+  Fetches the current grouped mention for the current user and a given post.
+  """
+  @spec mention(Post.t(), map(), info()) :: {:middleware, any(), any()}
+  def mention(%Post{} = post, _args, %{context: %{loader: loader}}) do
+    dataloader_one(loader, Mentions, {:one, GroupedUserMention}, post_id: post.id)
+  end
+
+  @doc """
   Fetches the current user's membership.
   """
   @spec group_membership(Group.t(), map(), info()) :: {:middleware, any(), any()}
-  def group_membership(%Group{} = group, _args, %{context: %{loader: loader}} = _info) do
-    source_name = Level.Groups
-    batch_key = {:one, GroupUser}
-    item_key = [group_id: group.id]
-
-    loader
-    |> Dataloader.load(source_name, batch_key, item_key)
-    |> on_load(fn loader ->
-      loader
-      |> Dataloader.get(source_name, batch_key, item_key)
-      |> to_ok_tuple()
-    end)
+  def group_membership(%Group{} = group, _args, %{context: %{loader: loader}}) do
+    dataloader_one(loader, Groups, {:one, GroupUser}, group_id: group.id)
   end
 
   @doc """
@@ -180,17 +178,7 @@ defmodule Level.Resolvers do
   """
   @spec mentioners(GroupedUserMention.t(), any(), info()) :: {:middleware, any(), any()}
   def mentioners(%GroupedUserMention{} = grouped_mention, _, %{context: %{loader: loader}}) do
-    source_name = Spaces
-    batch_key = SpaceUser
-    item_keys = Mentions.mentioner_ids(grouped_mention)
-
-    loader
-    |> Dataloader.load_many(source_name, batch_key, item_keys)
-    |> on_load(fn loader ->
-      loader
-      |> Dataloader.get_many(source_name, batch_key, item_keys)
-      |> to_ok_tuple()
-    end)
+    dataloader_many(loader, Spaces, SpaceUser, Mentions.mentioner_ids(grouped_mention))
   end
 
   @doc """
@@ -214,7 +202,27 @@ defmodule Level.Resolvers do
   defp handle_bookmark_fetch(%GroupBookmark{}), do: {:ok, true}
   defp handle_bookmark_fetch(_), do: {:ok, false}
 
-  defp to_ok_tuple(value) do
-    {:ok, value}
+  # Dataloader helpers
+
+  defp dataloader_one(loader, source_name, batch_key, item_key) do
+    loader
+    |> Dataloader.load(source_name, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(source_name, batch_key, item_key)
+      |> tuplize()
+    end)
   end
+
+  defp dataloader_many(loader, source_name, batch_key, item_keys) do
+    loader
+    |> Dataloader.load_many(source_name, batch_key, item_keys)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get_many(source_name, batch_key, item_keys)
+      |> tuplize()
+    end)
+  end
+
+  defp tuplize(value), do: {:ok, value}
 end
