@@ -8,6 +8,7 @@ module Component.Mention
         , teardown
         , update
         , handleReplyCreated
+        , handleMentionsDismissed
         , view
         )
 
@@ -30,7 +31,7 @@ import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Task
-import View.Helpers exposing (displayName, smartFormatDate)
+import View.Helpers exposing (displayName, smartFormatDate, viewUnless, viewIf)
 
 
 -- MODEL
@@ -40,6 +41,7 @@ type alias Model =
     { id : String
     , post : Component.Post.Model
     , mentions : List Mention
+    , isDismissed : Bool
     }
 
 
@@ -65,10 +67,11 @@ fragment =
 
 decoder : Decoder Model
 decoder =
-    Decode.map3 Model
+    Decode.map4 Model
         (field "id" string)
         (Component.Post.decoder Component.Post.Feed True)
         (field "mentions" (Decode.list Mention.decoder))
+        (Decode.succeed False)
 
 
 
@@ -151,30 +154,41 @@ handleReplyCreated reply model =
         )
 
 
+handleMentionsDismissed : Model -> ( Model, Cmd Msg )
+handleMentionsDismissed model =
+    ( { model | isDismissed = True }, Cmd.none )
+
+
 
 -- VIEW
 
 
 view : Repo -> SpaceUser -> Date -> Model -> Html Msg
-view repo currentUser now { post, mentions } =
+view repo currentUser now { post, mentions, isDismissed } =
     div [ class "flex py-4" ]
         [ div [ class "flex-0 pr-3" ]
-            [ button
-                [ class "flex items-center"
-                , onClick (DismissClicked post.id)
-                , rel "tooltip"
-                , title "Dismiss"
-                ]
-                [ Icons.open ]
+            [ viewUnless isDismissed <|
+                button
+                    [ class "flex items-center"
+                    , onClick (DismissClicked post.id)
+                    , rel "tooltip"
+                    , title "Dismiss"
+                    ]
+                    [ Icons.open ]
+            , viewIf isDismissed <|
+                div
+                    [ class "flex items-center"
+                    ]
+                    [ Icons.closed ]
             ]
         , div [ class "flex-1" ]
             [ div [ class "mb-6" ]
-                [ a [ Route.href (Route.Post post.id), class "text-base font-bold no-underline text-dusty-blue-darker" ]
-                    [ text <| mentionersSummary repo (mentioners mentions) ]
+                [ descriptionView repo isDismissed post mentions
                 , span [ class "mx-3 text-sm text-dusty-blue" ]
                     [ text <| smartFormatDate now (lastOccurredAt now mentions) ]
                 ]
-            , postView repo currentUser now post
+            , viewUnless isDismissed <|
+                postView repo currentUser now post
             ]
         ]
 
@@ -202,6 +216,19 @@ postView repo currentUser now postComponent =
     postComponent
         |> Component.Post.view repo currentUser now
         |> Html.map PostComponentMsg
+
+
+descriptionView : Repo -> Bool -> Component.Post.Model -> List Mention -> Html Msg
+descriptionView repo isDismissed post mentions =
+    a
+        [ Route.href (Route.Post post.id)
+        , classList
+            [ ( "text-base font-bold no-underline", True )
+            , ( "text-dusty-blue", isDismissed )
+            , ( "text-dusty-blue-darker", not isDismissed )
+            ]
+        ]
+        [ text <| mentionersSummary repo (mentioners mentions) ]
 
 
 mentionersSummary : Repo -> List SpaceUser -> String

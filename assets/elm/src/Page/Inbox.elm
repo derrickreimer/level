@@ -166,9 +166,13 @@ handleMentionsDismissed post ({ mentions } as model) =
     in
         case Connection.get .id id mentions of
             Just component ->
-                ( { model | mentions = Connection.remove .id id model.mentions }
-                , Cmd.map (MentionComponentMsg id) (Component.Mention.teardown component)
-                )
+                let
+                    ( newComponent, cmd ) =
+                        Component.Mention.handleMentionsDismissed component
+                in
+                    ( { model | mentions = Connection.update .id newComponent mentions }
+                    , Cmd.map (MentionComponentMsg id) cmd
+                    )
 
             Nothing ->
                 ( model, Cmd.none )
