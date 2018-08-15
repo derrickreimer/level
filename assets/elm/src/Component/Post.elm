@@ -8,9 +8,11 @@ module Component.Post
         , setup
         , teardown
         , update
-        , view
-        , sidebarView
         , handleReplyCreated
+        , handleMentionsDismissed
+        , postView
+        , mentionView
+        , sidebarView
         )
 
 import Date exposing (Date)
@@ -24,11 +26,14 @@ import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Data.Reply as Reply exposing (Reply)
 import Data.Group as Group exposing (Group)
+import Data.Mention as Mention exposing (Mention)
 import Data.Post as Post exposing (Post)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Icons
 import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
+import ListHelpers
 import Mutation.CreateReply as CreateReply
+import Mutation.DismissMentions as DismissMentions
 import Query.Replies
 import ReplyComposer exposing (ReplyComposer, Mode(..))
 import Repo exposing (Repo)
@@ -134,6 +139,8 @@ type Msg
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
     | PreviousRepliesRequested
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
+    | DismissMentionsClicked
+    | MentionsDismissed (Result Session.Error ( Session, DismissMentions.Response ))
     | NoOp
 
 
@@ -261,6 +268,25 @@ update msg spaceId session ({ post, replyComposer } as model) =
         PreviousRepliesFetched (Err _) ->
             noCmd session model
 
+        DismissMentionsClicked ->
+            let
+                cmd =
+                    session
+                        |> DismissMentions.request spaceId model.id
+                        |> Task.attempt MentionsDismissed
+            in
+                ( ( model, cmd ), session )
+
+        MentionsDismissed (Ok ( session, _ )) ->
+            -- TODO
+            ( ( model, Cmd.none ), session )
+
+        MentionsDismissed (Err Session.Expired) ->
+            redirectToLogin session model
+
+        MentionsDismissed (Err _) ->
+            ( ( model, Cmd.none ), session )
+
         NoOp ->
             noCmd session model
 
@@ -296,12 +322,17 @@ handleReplyCreated reply ({ post, replies, mode } as model) =
             ( model, Cmd.none )
 
 
+handleMentionsDismissed : Model -> ( Model, Cmd Msg )
+handleMentionsDismissed model =
+    ( model, Cmd.none )
 
--- VIEW
 
 
-view : Repo -> SpaceUser -> Date -> Model -> Html Msg
-view repo currentUser now ({ post, replies } as model) =
+-- VIEWS
+
+
+postView : Repo -> SpaceUser -> Date -> Model -> Html Msg
+postView repo currentUser now ({ post, replies } as model) =
     let
         currentUserData =
             currentUser
@@ -342,6 +373,40 @@ view repo currentUser now ({ post, replies } as model) =
                     ]
                 ]
             ]
+
+
+mentionView : Repo -> SpaceUser -> Date -> Model -> Html Msg
+mentionView repo currentUser now ({ post } as model) =
+    let
+        postData =
+            Repo.getPost repo post
+
+        mentions =
+            postData.mentions
+    in
+        div [ class "flex py-4" ]
+            [ div [ class "flex-0 pr-3" ]
+                [ button
+                    [ class "flex items-center"
+                    , onClick DismissMentionsClicked
+                    , rel "tooltip"
+                    , title "Dismiss"
+                    ]
+                    [ Icons.open ]
+                ]
+            , div [ class "flex-1" ]
+                [ div [ class "mb-6" ]
+                    [ mentionDescription repo post mentions
+                    , span [ class "mx-3 text-sm text-dusty-blue" ]
+                        [ text <| smartFormatDate now (lastMentionAt now mentions) ]
+                    ]
+                , postView repo currentUser now model
+                ]
+            ]
+
+
+
+-- INTERNAL VIEW FUNCTIONS
 
 
 groupsLabel : Repo -> List Group -> Html Msg
@@ -515,6 +580,47 @@ statusView state =
                 buildView Icons.closed "Closed"
 
 
+mentionDescription : Repo -> Post -> List Mention -> Html Msg
+mentionDescription repo post mentions =
+    a
+        [ Route.href (Route.Post <| Post.getId post)
+        , classList
+            [ ( "text-base font-bold no-underline", True )
+            , ( "text-dusty-blue-darker", True )
+            ]
+        ]
+        [ text <|
+            mentionersSummary repo (mentioners mentions)
+        ]
+
+
+mentionersSummary : Repo -> List SpaceUser -> String
+mentionersSummary repo mentioners =
+    case mentioners of
+        firstUser :: others ->
+            let
+                firstUserName =
+                    firstUser
+                        |> Repo.getSpaceUser repo
+                        |> displayName
+
+                otherCount =
+                    ListHelpers.size others
+            in
+                case otherCount of
+                    0 ->
+                        firstUserName ++ " mentioned you"
+
+                    1 ->
+                        firstUserName ++ " and 1 other person mentioned you"
+
+                    _ ->
+                        firstUserName ++ " and " ++ (toString otherCount) ++ " others mentioned you"
+
+        [] ->
+            ""
+
+
 
 -- UTILS
 
@@ -527,3 +633,21 @@ replyNodeId replyId =
 replyComposerId : String -> String
 replyComposerId postId =
     "reply-composer-" ++ postId
+
+
+mentioners : List Mention -> List SpaceUser
+mentioners mentions =
+    mentions
+        |> List.map (Mention.getCachedData)
+        |> List.map .mentioner
+
+
+lastMentionAt : Date -> List Mention -> Date
+lastMentionAt now mentions =
+    mentions
+        |> List.map (Mention.getCachedData)
+        |> List.map .occurredAt
+        |> List.map Date.toTime
+        |> List.maximum
+        |> Maybe.withDefault (Date.toTime now)
+        |> Date.fromTime

@@ -3,14 +3,16 @@ module Query.InboxInit exposing (Response, request)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Task exposing (Task)
+import Component.Post
 import Connection exposing (Connection)
-import Component.Mention
+import Data.Post as Post exposing (Post)
+import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Session exposing (Session)
 
 
 type alias Response =
-    { mentions : Connection Component.Mention.Model
+    { mentionedPosts : Connection Component.Post.Model
     }
 
 
@@ -24,11 +26,19 @@ document =
           space(id: $spaceId) {
             mentionedPosts(first: 10) {
               ...PostConnectionFields
+              edges {
+                node {
+                  replies(last: 5) {
+                    ...ReplyConnectionFields
+                  }
+                }
+              }
             }
           }
         }
         """
-        [ Connection.fragment "PostConnection" Component.Mention.fragment
+        [ Connection.fragment "PostConnection" Post.fragment
+        , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 
@@ -43,7 +53,7 @@ variables spaceId =
 decoder : Decoder Response
 decoder =
     Decode.at [ "data", "space", "mentionedPosts" ] <|
-        Decode.map Response (Connection.decoder Component.Mention.decoder)
+        Decode.map Response (Connection.decoder (Component.Post.decoder Component.Post.Feed True))
 
 
 request : String -> Session -> Task Session.Error ( Session, Response )

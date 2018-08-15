@@ -17,6 +17,7 @@ import Json.Decode as Decode exposing (Decoder, field, list, string, succeed, fa
 import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
+import Data.Mention as Mention exposing (Mention)
 import Data.Reply as Reply exposing (Reply)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
@@ -50,6 +51,7 @@ type alias Record =
     , groups : List Group
     , postedAt : Date
     , subscriptionState : SubscriptionState
+    , mentions : List Mention
     }
 
 
@@ -71,12 +73,16 @@ fragment =
               groups {
                 ...GroupFields
               }
+              mentions {
+                ...MentionFields
+              }
             }
             """
     in
         GraphQL.fragment body
             [ SpaceUser.fragment
             , Group.fragment
+            , Mention.fragment
             ]
 
 
@@ -96,6 +102,7 @@ decoder =
             |> Pipeline.required "groups" (list Group.decoder)
             |> Pipeline.required "postedAt" dateDecoder
             |> Pipeline.required "subscriptionState" subscriptionStateDecoder
+            |> Pipeline.required "mentions" (list Mention.decoder)
         )
 
 

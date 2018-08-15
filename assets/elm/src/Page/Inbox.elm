@@ -16,7 +16,7 @@ module Page.Inbox
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
-import Component.Mention
+import Component.Post
 import Connection exposing (Connection)
 import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
@@ -41,7 +41,7 @@ import View.Helpers exposing (displayName, injectHtml, smartFormatDate)
 type alias Model =
     { space : Space
     , currentUser : SpaceUser
-    , mentions : Connection Component.Mention.Model
+    , mentionedPosts : Connection Component.Post.Model
     , now : Date
     }
 
@@ -68,17 +68,17 @@ init space currentUser session =
 
 
 buildModel : Space -> SpaceUser -> ( ( Session, InboxInit.Response ), Date ) -> Task Session.Error ( Session, Model )
-buildModel space currentUser ( ( session, { mentions } ), now ) =
-    Task.succeed ( session, Model space currentUser mentions now )
+buildModel space currentUser ( ( session, { mentionedPosts } ), now ) =
+    Task.succeed ( session, Model space currentUser mentionedPosts now )
 
 
 setup : Model -> Cmd Msg
 setup model =
     let
         mentionsCmd =
-            model.mentions
+            model.mentionedPosts
                 |> Connection.toList
-                |> List.map (\mention -> Cmd.map (MentionComponentMsg mention.id) (Component.Mention.setup mention))
+                |> List.map (\component -> Cmd.map (PostComponentMsg component.id) (Component.Post.setup component))
                 |> Cmd.batch
     in
         mentionsCmd
@@ -88,9 +88,9 @@ teardown : Model -> Cmd Msg
 teardown model =
     let
         mentionsCmd =
-            model.mentions
+            model.mentionedPosts
                 |> Connection.toList
-                |> List.map (\mention -> Cmd.map (MentionComponentMsg mention.id) (Component.Mention.teardown mention))
+                |> List.map (\component -> Cmd.map (PostComponentMsg component.id) (Component.Post.teardown component))
                 |> Cmd.batch
     in
         mentionsCmd
@@ -102,7 +102,7 @@ teardown model =
 
 type Msg
     = Tick Time
-    | MentionComponentMsg String Component.Mention.Msg
+    | PostComponentMsg String Component.Post.Msg
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -112,15 +112,15 @@ update msg session model =
             { model | now = Date.fromTime time }
                 |> noCmd session
 
-        MentionComponentMsg id msg ->
-            case Connection.get .id id model.mentions of
-                Just mention ->
+        PostComponentMsg id msg ->
+            case Connection.get .id id model.mentionedPosts of
+                Just component ->
                     let
-                        ( ( newMention, cmd ), newSession ) =
-                            Component.Mention.update msg (Space.getId model.space) session mention
+                        ( ( newComponent, cmd ), newSession ) =
+                            Component.Post.update msg (Space.getId model.space) session component
                     in
-                        ( ( { model | mentions = Connection.update .id newMention model.mentions }
-                          , Cmd.map (MentionComponentMsg id) cmd
+                        ( ( { model | mentionedPosts = Connection.update .id newComponent model.mentionedPosts }
+                          , Cmd.map (PostComponentMsg id) cmd
                           )
                         , newSession
                         )
@@ -139,19 +139,19 @@ noCmd session model =
 
 
 handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated reply ({ mentions } as model) =
+handleReplyCreated reply ({ mentionedPosts } as model) =
     let
         id =
             Reply.getPostId reply
     in
-        case Connection.get .id id mentions of
+        case Connection.get .id id mentionedPosts of
             Just component ->
                 let
                     ( newComponent, cmd ) =
-                        Component.Mention.handleReplyCreated reply component
+                        Component.Post.handleReplyCreated reply component
                 in
-                    ( { model | mentions = Connection.update .id newComponent mentions }
-                    , Cmd.map (MentionComponentMsg id) cmd
+                    ( { model | mentionedPosts = Connection.update .id newComponent mentionedPosts }
+                    , Cmd.map (PostComponentMsg id) cmd
                     )
 
             Nothing ->
@@ -159,19 +159,19 @@ handleReplyCreated reply ({ mentions } as model) =
 
 
 handleMentionsDismissed : Post -> Model -> ( Model, Cmd Msg )
-handleMentionsDismissed post ({ mentions } as model) =
+handleMentionsDismissed post ({ mentionedPosts } as model) =
     let
         id =
             Post.getId post
     in
-        case Connection.get .id id mentions of
+        case Connection.get .id id mentionedPosts of
             Just component ->
                 let
                     ( newComponent, cmd ) =
-                        Component.Mention.handleMentionsDismissed component
+                        Component.Post.handleMentionsDismissed component
                 in
-                    ( { model | mentions = Connection.update .id newComponent mentions }
-                    , Cmd.map (MentionComponentMsg id) cmd
+                    ( { model | mentionedPosts = Connection.update .id newComponent mentionedPosts }
+                    , Cmd.map (PostComponentMsg id) cmd
                     )
 
             Nothing ->
@@ -209,14 +209,14 @@ view repo featuredUsers model =
 mentionsView : Repo -> Model -> Html Msg
 mentionsView repo model =
     div [] <|
-        Connection.map (mentionView repo model) model.mentions
+        Connection.map (mentionView repo model) model.mentionedPosts
 
 
-mentionView : Repo -> Model -> Component.Mention.Model -> Html Msg
+mentionView : Repo -> Model -> Component.Post.Model -> Html Msg
 mentionView repo model component =
     component
-        |> Component.Mention.view repo model.currentUser model.now
-        |> Html.map (MentionComponentMsg component.id)
+        |> Component.Post.mentionView repo model.currentUser model.now
+        |> Html.map (PostComponentMsg component.id)
 
 
 sidebarView : Repo -> List SpaceUser -> Html Msg

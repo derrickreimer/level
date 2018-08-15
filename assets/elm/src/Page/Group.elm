@@ -599,7 +599,7 @@ postsView repo currentUser now connection =
 postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
 postView repo currentUser now component =
     div [ class "p-4" ]
-        [ Component.Post.view repo currentUser now component
+        [ Component.Post.postView repo currentUser now component
             |> Html.map (PostComponentMsg component.id)
         ]
 
