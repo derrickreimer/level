@@ -99,17 +99,16 @@ document =
             ... on PostSubscribedPayload {
               post {
                 ...PostFields
-                replies(first: 5) {
-                  ...ReplyConnectionFields
-                }
               }
             }
             ... on PostUnsubscribedPayload {
               post {
                 ...PostFields
-                replies(first: 5) {
-                  ...ReplyConnectionFields
-                }
+              }
+            }
+            ... on UserMentionedPayload {
+              post {
+                ...PostFields
               }
             }
           }

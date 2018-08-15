@@ -91,6 +91,7 @@ defmodule Level.Mentions do
     query
     |> Repo.all()
     |> insert_batch(post, reply_id, author_id)
+    |> after_record(post)
   end
 
   defp insert_batch(mentioned_ids, post, reply_id, author_id) do
@@ -110,6 +111,14 @@ defmodule Level.Mentions do
       end)
 
     Repo.insert_all(UserMention, params)
+    {:ok, mentioned_ids}
+  end
+
+  defp after_record({:ok, mentioned_ids}, post) do
+    Enum.each(mentioned_ids, fn id ->
+      Pubsub.publish(:user_mentioned, id, post)
+    end)
+
     {:ok, mentioned_ids}
   end
 

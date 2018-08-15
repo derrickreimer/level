@@ -17,7 +17,8 @@ defmodule LevelWeb.Schema.Subscriptions do
       :group_bookmarked_payload,
       :group_unbookmarked_payload,
       :post_subscribed_payload,
-      :post_unsubscribed_payload
+      :post_unsubscribed_payload,
+      :user_mentioned_payload
     ]
 
     resolve_type &type_resolver/2
@@ -102,6 +103,12 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for the mentioned dismissed event."
   object :mentions_dismissed_payload do
+    @desc "The post."
+    field :post, :post
+  end
+
+  @desc "The payload for the user mentioned event."
+  object :user_mentioned_payload do
     @desc "The post."
     field :post, :post
   end
