@@ -10,7 +10,6 @@ defmodule Level.Mentions do
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Mentions.UserMention
-  alias Level.Mentions.GroupedUserMention
   alias Level.Pubsub
   alias Level.Users.User
 
@@ -58,40 +57,6 @@ defmodule Level.Mentions do
       join: su in assoc(m, :mentioned),
       where: su.user_id == ^user_id,
       where: is_nil(m.dismissed_at)
-  end
-
-  @doc """
-  Builds a base query for fetching grouped user mentions.
-  """
-  @spec grouped_base_query(SpaceUser.t()) :: Ecto.Query.t()
-  def grouped_base_query(%SpaceUser{id: space_user_id}) do
-    from m in {"user_mentions", GroupedUserMention},
-      where: m.mentioned_id == ^space_user_id,
-      where: is_nil(m.dismissed_at),
-      group_by: [m.mentioned_id, m.post_id],
-      select: %{
-        struct(m, [:post_id, :mentioned_id])
-        | reply_ids: aggregate_ids(m.reply_id),
-          mentioner_ids: aggregate_ids(m.mentioner_id),
-          last_occurred_at: max(m.occurred_at),
-          id: m.post_id
-      }
-  end
-
-  @spec grouped_base_query(User.t()) :: Ecto.Query.t()
-  def grouped_base_query(%User{id: user_id}) do
-    from m in {"user_mentions", GroupedUserMention},
-      join: su in assoc(m, :mentioned),
-      where: su.user_id == ^user_id,
-      where: is_nil(m.dismissed_at),
-      group_by: [m.mentioned_id, m.post_id],
-      select: %{
-        struct(m, [:post_id, :mentioned_id])
-        | reply_ids: aggregate_ids(m.reply_id),
-          mentioner_ids: aggregate_ids(m.mentioner_id),
-          last_occurred_at: max(m.occurred_at),
-          id: m.post_id
-      }
   end
 
   @doc """
@@ -155,20 +120,6 @@ defmodule Level.Mentions do
   end
 
   @doc """
-  Get and prepares the mentioner ids for a given grouped mention.
-  """
-  @spec mentioner_ids(GroupedUserMention.t()) :: [String.t()]
-  def mentioner_ids(grouped_mention) do
-    grouped_mention.mentioner_ids
-    |> Enum.map(&Ecto.UUID.load/1)
-    |> Enum.map(&map_loaded_uuid/1)
-    |> Enum.reject(&is_nil/1)
-  end
-
-  defp map_loaded_uuid({:ok, value}), do: value
-  defp map_loaded_uuid(_), do: nil
-
-  @doc """
   Dismisses all mentions for given post id.
   """
   @spec dismiss_all(SpaceUser.t(), Post.t()) :: :ok | no_return()
@@ -200,6 +151,5 @@ defmodule Level.Mentions do
 
   @impl true
   def dataloader_query(UserMention, %{current_user: user}), do: base_query(user)
-  def dataloader_query(GroupedUserMention, %{current_user: user}), do: grouped_base_query(user)
   def dataloader_query(_, _), do: raise("query not valid for this context")
 end

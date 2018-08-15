@@ -19,7 +19,6 @@ defmodule Level.Resolvers do
   alias Level.Groups.GroupUser
   alias Level.Mentions
   alias Level.Mentions.UserMention
-  alias Level.Mentions.GroupedUserMention
   alias Level.Pagination
   alias Level.Posts.Post
   alias Level.Spaces
@@ -162,27 +161,11 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches the current grouped mention for the current user and a given post.
-  """
-  @spec mention(Post.t(), map(), info()) :: dataloader_result()
-  def mention(%Post{} = post, _args, %{context: %{loader: loader}}) do
-    dataloader_one(loader, Mentions, {:one, GroupedUserMention}, post_id: post.id)
-  end
-
-  @doc """
   Fetches the current user's membership.
   """
   @spec group_membership(Group.t(), map(), info()) :: dataloader_result()
   def group_membership(%Group{} = group, _args, %{context: %{loader: loader}}) do
     dataloader_one(loader, Groups, {:one, GroupUser}, group_id: group.id)
-  end
-
-  @doc """
-  Fetches mentioners for a grouped user mention.
-  """
-  @spec mentioners(GroupedUserMention.t(), any(), info()) :: dataloader_result()
-  def mentioners(%GroupedUserMention{} = grouped_mention, _, %{context: %{loader: loader}}) do
-    dataloader_many(loader, Spaces, SpaceUser, Mentions.mentioner_ids(grouped_mention))
   end
 
   @doc """
