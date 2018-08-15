@@ -1,4 +1,4 @@
-# ![Level](https://user-images.githubusercontent.com/341387/44097665-e7f114e4-9fa3-11e8-8641-39fb338897bd.png)
+# [<img src="https://user-images.githubusercontent.com/341387/44155659-8193fca4-a073-11e8-8842-0e2f1cd89627.png" width="150" alt="Level">](https://level.app)
 
 [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
