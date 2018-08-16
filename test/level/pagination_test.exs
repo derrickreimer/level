@@ -1,11 +1,12 @@
 defmodule Level.PaginationTest do
   use Level.DataCase, async: true
 
+  import Ecto.Query
+
   alias Level.Pagination
   alias Level.Pagination.Args
-  alias Level.Spaces.SpaceUser
   alias Level.Pagination.Result
-  import Ecto.Query
+  alias Level.Spaces.SpaceUser
 
   describe "fetch_result/3" do
     setup do

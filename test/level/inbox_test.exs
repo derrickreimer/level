@@ -1,8 +1,8 @@
 defmodule Level.InboxTest do
   use Level.DataCase, async: true
 
-  alias Level.Inbox
   alias Level.Groups
+  alias Level.Inbox
   alias Level.Posts
   alias Level.Posts.PostLog
   alias Level.Repo

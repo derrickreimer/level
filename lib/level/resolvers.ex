@@ -7,13 +7,6 @@ defmodule Level.Resolvers do
   import Absinthe.Resolution.Helpers
   import Ecto.Query, warn: false
 
-  alias Level.Resolvers.GroupMembershipConnection
-  alias Level.Resolvers.GroupPostConnection
-  alias Level.Resolvers.GroupConnection
-  alias Level.Resolvers.MentionedPostConnection
-  alias Level.Resolvers.ReplyConnection
-  alias Level.Resolvers.SpaceUserConnection
-  alias Level.Resolvers.UserGroupMembershipConnection
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
@@ -22,6 +15,13 @@ defmodule Level.Resolvers do
   alias Level.Pagination
   alias Level.Posts.Post
   alias Level.Posts.PostUser
+  alias Level.Resolvers.GroupConnection
+  alias Level.Resolvers.GroupMembershipConnection
+  alias Level.Resolvers.GroupPostConnection
+  alias Level.Resolvers.MentionedPostConnection
+  alias Level.Resolvers.ReplyConnection
+  alias Level.Resolvers.SpaceUserConnection
+  alias Level.Resolvers.UserGroupMembershipConnection
   alias Level.Spaces
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser

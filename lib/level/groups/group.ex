@@ -6,10 +6,9 @@ defmodule Level.Groups.Group do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Level.Groups.GroupUser
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
-  alias Level.Groups.Group
-  alias Level.Groups.GroupUser
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -33,14 +32,14 @@ defmodule Level.Groups.Group do
   end
 
   @doc false
-  def create_changeset(%Group{} = group, attrs) do
+  def create_changeset(%__MODULE__{} = group, attrs) do
     group
     |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_private])
     |> validate()
   end
 
   @doc false
-  def update_changeset(%Group{} = group, attrs) do
+  def update_changeset(%__MODULE__{} = group, attrs) do
     group
     |> cast(attrs, [:name, :description, :is_private])
     |> validate()

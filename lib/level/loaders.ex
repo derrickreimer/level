@@ -1,4 +1,8 @@
 defmodule Level.Loaders do
+  @moduledoc """
+  Sources for Dataloader.
+  """
+
   alias Level.Loaders.Database
 
   # Suppress dialyzer warnings about dataloader functions

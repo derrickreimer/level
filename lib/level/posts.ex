@@ -101,7 +101,7 @@ defmodule Level.Posts do
       PostLog.insert(:post_created, post, group, space_user)
     end)
     |> Repo.transaction()
-    |> after_create_post(space_user, group)
+    |> after_create_post(group)
   end
 
   defp create_post_changeset(space_user, params) do
@@ -127,16 +127,19 @@ defmodule Level.Posts do
   end
 
   defp after_create_post(
-         {:ok, %{post: %Post{id: post_id}} = data},
-         %SpaceUser{} = space_user,
+         {:ok, %{post: post, mentions: mentioned_ids} = data},
          %Group{id: group_id}
        ) do
-    {:ok, post} = get_post(space_user, post_id)
     Pubsub.publish(:post_created, group_id, post)
-    {:ok, %{data | post: post}}
+
+    Enum.each(mentioned_ids, fn id ->
+      Pubsub.publish(:user_mentioned, id, post)
+    end)
+
+    {:ok, data}
   end
 
-  defp after_create_post(err, _space_user, _group), do: err
+  defp after_create_post(err, _group), do: err
 
   @doc """
   Subscribes a user to a post.
@@ -300,8 +303,16 @@ defmodule Level.Posts do
     end)
   end
 
-  defp after_create_reply({:ok, %{reply: %Reply{} = reply}} = result, %Post{id: post_id}) do
+  defp after_create_reply(
+         {:ok, %{reply: reply, mentions: mentioned_ids}} = result,
+         %Post{id: post_id} = post
+       ) do
     Pubsub.publish(:reply_created, post_id, reply)
+
+    Enum.each(mentioned_ids, fn id ->
+      Pubsub.publish(:user_mentioned, id, post)
+    end)
+
     result
   end
 

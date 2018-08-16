@@ -3,16 +3,16 @@ defmodule Level.Groups do
   The Groups context.
   """
 
+  import Ecto.Changeset, only: [change: 2, unique_constraint: 3]
   import Ecto.Query, warn: false
   import Level.Gettext
-  import Ecto.Changeset, only: [change: 2, unique_constraint: 3]
 
   alias Ecto.Multi
-  alias Level.Pubsub
-  alias Level.Repo
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
+  alias Level.Pubsub
+  alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 

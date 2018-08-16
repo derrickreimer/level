@@ -5,12 +5,12 @@ defmodule Level.Mentions do
 
   import Ecto.Query
 
+  alias Level.Mentions.UserMention
   alias Level.Posts.Post
   alias Level.Posts.Reply
+  alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
-  alias Level.Mentions.UserMention
-  alias Level.Pubsub
   alias Level.Users.User
 
   @doc """
@@ -86,31 +86,23 @@ defmodule Level.Mentions do
     query
     |> Repo.all()
     |> insert_batch(post, reply_id, author_id)
-    |> after_record(post)
   end
 
   defp insert_batch(mentioned_ids, post, reply_id, author_id) do
-    Enum.map(mentioned_ids, fn mentioned_id ->
-      params = %{
-        space_id: post.space_id,
-        post_id: post.id,
-        reply_id: reply_id,
-        mentioner_id: author_id,
-        mentioned_id: mentioned_id
-      }
+    _ =
+      Enum.map(mentioned_ids, fn mentioned_id ->
+        params = %{
+          space_id: post.space_id,
+          post_id: post.id,
+          reply_id: reply_id,
+          mentioner_id: author_id,
+          mentioned_id: mentioned_id
+        }
 
-      %UserMention{}
-      |> Ecto.Changeset.change(params)
-      |> Repo.insert()
-    end)
-
-    {:ok, mentioned_ids}
-  end
-
-  defp after_record({:ok, mentioned_ids}, post) do
-    Enum.each(mentioned_ids, fn id ->
-      Pubsub.publish(:user_mentioned, id, post)
-    end)
+        %UserMention{}
+        |> Ecto.Changeset.change(params)
+        |> Repo.insert()
+      end)
 
     {:ok, mentioned_ids}
   end

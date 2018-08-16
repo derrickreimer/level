@@ -3,9 +3,9 @@ defmodule LevelWeb.Schema do
 
   use Absinthe.Schema
 
+  alias Level.Groups
   alias Level.Posts
   alias Level.Spaces
-  alias Level.Groups
 
   import Level.Gettext
 

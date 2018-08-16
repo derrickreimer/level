@@ -9,11 +9,11 @@ defmodule Level.Spaces do
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Pubsub
+  alias Level.Repo
   alias Level.Spaces.OpenInvitation
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceSetupStep
   alias Level.Spaces.SpaceUser
-  alias Level.Repo
   alias Level.Users.User
 
   @typedoc "The result of creating a space"

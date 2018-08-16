@@ -20,7 +20,9 @@ defmodule LevelWeb.UserSocket do
     with "Bearer " <> token <- auth,
          {:ok, %{user: user}} <- Auth.get_user_by_token(token) do
       socket =
-        Absinthe.Phoenix.Socket.put_opts(socket, context: LevelWeb.Absinthe.build_context(user))
+        Absinthe.Phoenix.Socket.put_options(socket,
+          context: LevelWeb.Absinthe.build_context(user)
+        )
 
       {:ok, socket}
     else

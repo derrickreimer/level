@@ -1,8 +1,8 @@
 defmodule Level.ResolversTest do
   use Level.DataCase, async: true
 
-  alias Level.Resolvers
   alias Level.Groups
+  alias Level.Resolvers
 
   describe "groups/3" do
     setup do
