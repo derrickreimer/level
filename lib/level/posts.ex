@@ -87,71 +87,70 @@ defmodule Level.Posts do
   Posts a message to a group.
   """
   @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()
-  def create_post(space_user, group, params) do
-    Multi.new()
-    |> Multi.insert(:post, create_post_changeset(space_user, params))
-    |> Multi.run(:post_group, fn %{post: post} ->
-      create_post_group(space_user.space_id, post.id, group.id)
-    end)
-    |> Multi.run(:subscribe, fn %{post: post} -> {:ok, subscribe(post, space_user)} end)
-    |> Multi.run(:mentions, fn %{post: post} ->
-      Mentions.record(post)
-    end)
-    |> Multi.run(:log, fn %{post: post} ->
-      PostLog.insert(:post_created, post, group, space_user)
-    end)
-    |> Repo.transaction()
-    |> after_create_post(group)
-  end
-
-  defp create_post_changeset(space_user, params) do
+  def create_post(author, group, params) do
     params_with_relations =
       params
-      |> Map.put(:space_id, space_user.space_id)
-      |> Map.put(:space_user_id, space_user.id)
+      |> Map.put(:space_id, author.space_id)
+      |> Map.put(:space_user_id, author.id)
 
-    %Post{}
-    |> Post.create_changeset(params_with_relations)
+    Multi.new()
+    |> insert_post(params_with_relations)
+    |> associate_with_group(group)
+    |> record_post_mentions()
+    |> log_post_created(group, author)
+    |> Repo.transaction()
+    |> after_create_post(author, group)
   end
 
-  defp create_post_group(space_id, post_id, group_id) do
-    params = %{
-      space_id: space_id,
-      post_id: post_id,
-      group_id: group_id
-    }
+  def insert_post(multi, params) do
+    Multi.insert(multi, :post, Post.create_changeset(%Post{}, params))
+  end
 
-    %PostGroup{}
-    |> Ecto.Changeset.change(params)
-    |> Repo.insert()
+  defp associate_with_group(multi, group) do
+    Multi.run(multi, :post_group, fn %{post: post} ->
+      %PostGroup{}
+      |> Ecto.Changeset.change(%{space_id: post.space_id, post_id: post.id, group_id: group.id})
+      |> Repo.insert()
+    end)
+  end
+
+  defp record_post_mentions(multi) do
+    Multi.run(multi, :mentions, fn %{post: post} ->
+      Mentions.record(post)
+    end)
+  end
+
+  defp log_post_created(multi, group, author) do
+    Multi.run(multi, :log, fn %{post: post} ->
+      PostLog.insert(:post_created, post, group, author)
+    end)
   end
 
   defp after_create_post(
-         {:ok, %{post: post, mentions: mentioned_ids} = data},
+         {:ok, %{post: post, mentions: mentioned_ids}} = result,
+         author,
          %Group{id: group_id}
        ) do
+    _ = subscribe(post, author)
     Pubsub.publish(:post_created, group_id, post)
 
     Enum.each(mentioned_ids, fn id ->
       Pubsub.publish(:user_mentioned, id, post)
     end)
 
-    {:ok, data}
+    result
   end
 
-  defp after_create_post(err, _group), do: err
+  defp after_create_post(err, _author, _group), do: err
 
   @doc """
   Subscribes a user to a post.
   """
   @spec subscribe(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def subscribe(
-        %Post{id: post_id, space_id: space_id},
-        %SpaceUser{id: space_user_id} = space_user
-      ) do
+  def subscribe(%Post{} = post, %SpaceUser{id: space_user_id}) do
     params = %{
-      space_id: space_id,
-      post_id: post_id,
+      space_id: post.space_id,
+      post_id: post.id,
       space_user_id: space_user_id,
       subscription_state: "SUBSCRIBED"
     }
@@ -162,19 +161,12 @@ defmodule Level.Posts do
       on_conflict: :replace_all,
       conflict_target: [:post_id, :space_user_id]
     )
-    |> after_subscribe(space_user, post_id)
+    |> after_subscribe(space_user_id, post)
   end
 
-  defp after_subscribe({:ok, _}, space_user, post_id) do
-    # Fetch a clean copy of the post with contextual data included
-    case get_post(space_user, post_id) do
-      {:ok, post} ->
-        Pubsub.publish(:post_subscribed, space_user.id, post)
-        :ok
-
-      _ ->
-        :error
-    end
+  defp after_subscribe({:ok, _}, space_user_id, post) do
+    Pubsub.publish(:post_subscribed, space_user_id, post)
+    :ok
   end
 
   defp after_subscribe(_, _, _), do: :error
@@ -182,14 +174,11 @@ defmodule Level.Posts do
   @doc """
   Unsubscribes a user from a post.
   """
-  @spec unsubscribe(Post.t(), SpaceUser.t()) :: :ok | no_return()
-  def unsubscribe(
-        %Post{id: post_id, space_id: space_id},
-        %SpaceUser{id: space_user_id} = space_user
-      ) do
+  @spec unsubscribe(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
+  def unsubscribe(%Post{} = post, %SpaceUser{id: space_user_id}) do
     params = %{
-      space_id: space_id,
-      post_id: post_id,
+      space_id: post.space_id,
+      post_id: post.id,
       space_user_id: space_user_id,
       subscription_state: "UNSUBSCRIBED"
     }
@@ -200,19 +189,12 @@ defmodule Level.Posts do
       on_conflict: :replace_all,
       conflict_target: [:post_id, :space_user_id]
     )
-    |> after_unsubscribe(space_user, post_id)
+    |> after_unsubscribe(space_user_id, post)
   end
 
-  defp after_unsubscribe({:ok, _}, space_user, post_id) do
-    # Fetch a clean copy of the post with contextual data included
-    case get_post(space_user, post_id) do
-      {:ok, post} ->
-        Pubsub.publish(:post_unsubscribed, space_user.id, post)
-        :ok
-
-      _ ->
-        :error
-    end
+  defp after_unsubscribe({:ok, _}, space_user_id, post) do
+    Pubsub.publish(:post_unsubscribed, space_user_id, post)
+    :ok
   end
 
   defp after_unsubscribe(_, _, _), do: :error
@@ -258,31 +240,24 @@ defmodule Level.Posts do
   Adds a reply to a post.
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
-  def create_reply(%SpaceUser{} = space_user, %Post{} = post, params) do
+  def create_reply(%SpaceUser{} = author, %Post{} = post, params) do
     params_with_relations =
       params
-      |> Map.put(:space_id, space_user.space_id)
-      |> Map.put(:space_user_id, space_user.id)
+      |> Map.put(:space_id, author.space_id)
+      |> Map.put(:space_user_id, author.id)
       |> Map.put(:post_id, post.id)
 
     Multi.new()
     |> insert_reply(params_with_relations)
-    |> subscribe_upon_reply(post, space_user)
     |> record_reply_mentions(post)
-    |> log_reply_created(post, space_user)
-    |> record_view_upon_reply(post, space_user)
+    |> log_reply_created(post, author)
+    |> record_view_upon_reply(post, author)
     |> Repo.transaction()
-    |> after_create_reply(post)
+    |> after_create_reply(author, post)
   end
 
   defp insert_reply(multi, params) do
     Multi.insert(multi, :reply, Reply.create_changeset(%Reply{}, params))
-  end
-
-  defp subscribe_upon_reply(multi, post, space_user) do
-    Multi.run(multi, :subscribe, fn _ ->
-      {:ok, subscribe(post, space_user)}
-    end)
   end
 
   defp record_reply_mentions(multi, post) do
@@ -305,8 +280,10 @@ defmodule Level.Posts do
 
   defp after_create_reply(
          {:ok, %{reply: reply, mentions: mentioned_ids}} = result,
+         author,
          %Post{id: post_id} = post
        ) do
+    _ = subscribe(post, author)
     Pubsub.publish(:reply_created, post_id, reply)
 
     Enum.each(mentioned_ids, fn id ->
@@ -316,7 +293,7 @@ defmodule Level.Posts do
     result
   end
 
-  defp after_create_reply(err, _post), do: err
+  defp after_create_reply(err, _author, _post), do: err
 
   @doc """
   Records a view event.
