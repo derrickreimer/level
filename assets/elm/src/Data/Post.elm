@@ -13,7 +13,7 @@ module Data.Post
         )
 
 import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, field, list, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, field, list, string, int, succeed, fail)
 import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
@@ -52,6 +52,7 @@ type alias Record =
     , postedAt : Date
     , subscriptionState : SubscriptionState
     , mentions : List Mention
+    , fetchedAt : Int
     }
 
 
@@ -76,6 +77,7 @@ fragment =
               mentions {
                 ...MentionFields
               }
+              fetchedAt
             }
             """
     in
@@ -103,6 +105,7 @@ decoder =
             |> Pipeline.required "postedAt" dateDecoder
             |> Pipeline.required "subscriptionState" subscriptionStateDecoder
             |> Pipeline.required "mentions" (list Mention.decoder)
+            |> Pipeline.required "fetchedAt" int
         )
 
 

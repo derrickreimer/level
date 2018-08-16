@@ -10,7 +10,7 @@ module Data.SpaceUser
         , getCachedData
         )
 
-import Json.Decode as Decode exposing (Decoder, maybe, field, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, maybe, field, string, int, succeed, fail)
 import GraphQL exposing (Fragment)
 
 
@@ -27,6 +27,7 @@ type alias Record =
     , lastName : String
     , role : Role
     , avatarUrl : Maybe String
+    , fetchedAt : Int
     }
 
 
@@ -45,6 +46,7 @@ fragment =
           lastName
           role
           avatarUrl
+          fetchedAt
         }
         """
         []
@@ -75,12 +77,13 @@ roleDecoder =
 decoder : Decoder SpaceUser
 decoder =
     Decode.map SpaceUser <|
-        Decode.map5 Record
+        Decode.map6 Record
             (field "id" string)
             (field "firstName" string)
             (field "lastName" string)
             (field "role" roleDecoder)
             (field "avatarUrl" (maybe string))
+            (field "fetchedAt" int)
 
 
 

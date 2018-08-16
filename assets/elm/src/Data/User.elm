@@ -8,7 +8,7 @@ module Data.User
         , getCachedData
         )
 
-import Json.Decode as Decode exposing (Decoder, field, maybe, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, field, maybe, string, int, succeed, fail)
 import GraphQL exposing (Fragment)
 
 
@@ -25,6 +25,7 @@ type alias Record =
     , firstName : String
     , lastName : String
     , avatarUrl : Maybe String
+    , fetchedAt : Int
     }
 
 
@@ -38,6 +39,7 @@ fragment =
           firstName
           lastName
           avatarUrl
+          fetchedAt
         }
         """
         []
@@ -50,12 +52,13 @@ fragment =
 decoder : Decoder User
 decoder =
     Decode.map User <|
-        Decode.map5 Record
+        Decode.map6 Record
             (field "id" string)
             (field "email" string)
             (field "firstName" string)
             (field "lastName" string)
             (field "avatarUrl" (maybe string))
+            (field "fetchedAt" int)
 
 
 

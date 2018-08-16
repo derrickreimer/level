@@ -1,4 +1,12 @@
-module IdentityMap exposing (IdentityMap, init, get, set, getList)
+module IdentityMap
+    exposing
+        ( IdentityMap
+        , Node
+        , init
+        , get
+        , set
+        , getList
+        )
 
 import Dict exposing (Dict)
 
@@ -11,24 +19,46 @@ type IdentityMap a
     = IdentityMap (Dict Id a)
 
 
-init : IdentityMap a
+type alias Node a =
+    { a | id : Id, fetchedAt : Int }
+
+
+init : IdentityMap (Node a)
 init =
     Dict.empty
         |> IdentityMap
 
 
-get : IdentityMap a -> (a -> Id) -> a -> a
-get (IdentityMap dict) toId record =
-    Dict.get (toId record) dict
-        |> Maybe.withDefault record
+get : IdentityMap (Node a) -> Node a -> Node a
+get (IdentityMap dict) record =
+    case Dict.get record.id dict of
+        Just savedRecord ->
+            if savedRecord.fetchedAt < record.fetchedAt then
+                record
+            else
+                savedRecord
+
+        Nothing ->
+            record
 
 
-set : IdentityMap a -> (a -> Id) -> a -> IdentityMap a
-set (IdentityMap dict) toId record =
-    Dict.insert (toId record) record dict
-        |> IdentityMap
+set : IdentityMap (Node a) -> Node a -> IdentityMap (Node a)
+set (IdentityMap dict) record =
+    let
+        newDict =
+            case Dict.get record.id dict of
+                Just savedRecord ->
+                    if savedRecord.fetchedAt < record.fetchedAt then
+                        Dict.insert record.id record dict
+                    else
+                        dict
+
+                Nothing ->
+                    Dict.insert record.id record dict
+    in
+        IdentityMap newDict
 
 
-getList : IdentityMap a -> (a -> Id) -> List a -> List a
-getList map toId list =
-    List.map (get map toId) list
+getList : IdentityMap (Node a) -> List (Node a) -> List (Node a)
+getList imap list =
+    List.map (get imap) list

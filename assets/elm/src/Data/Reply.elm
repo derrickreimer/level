@@ -10,7 +10,7 @@ module Data.Reply
         )
 
 import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, string)
+import Json.Decode as Decode exposing (Decoder, string, int)
 import Json.Decode.Pipeline as Pipeline
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
@@ -31,6 +31,7 @@ type alias Record =
     , bodyHtml : String
     , author : SpaceUser
     , postedAt : Date
+    , fetchedAt : Int
     }
 
 
@@ -47,6 +48,7 @@ fragment =
             ...SpaceUserFields
           }
           postedAt
+          fetchedAt
         }
         """
         [ Data.SpaceUser.fragment
@@ -67,6 +69,7 @@ decoder =
             |> Pipeline.required "bodyHtml" string
             |> Pipeline.required "author" Data.SpaceUser.decoder
             |> Pipeline.required "postedAt" dateDecoder
+            |> Pipeline.required "fetchedAt" int
         )
 
 
