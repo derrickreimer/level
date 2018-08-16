@@ -16,11 +16,6 @@ defmodule Level.Groups do
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
-  # Suppress dialyzer warnings about dataloader functions
-  @dialyzer {:nowarn_function, dataloader_data: 1}
-
-  @behaviour Level.DataloaderSource
-
   @doc """
   Generate the query for listing all accessible groups.
   """
@@ -332,28 +327,4 @@ defmodule Level.Groups do
     |> Ecto.Changeset.change(state: "CLOSED")
     |> Repo.update()
   end
-
-  @impl true
-  def dataloader_data(%{current_user: _user} = params) do
-    Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
-  end
-
-  def dataloader_data(_), do: raise("authentication required")
-
-  @impl true
-  def dataloader_query(Group, %{current_user: user}), do: groups_base_query(user)
-
-  def dataloader_query(GroupBookmark, %{current_user: %User{id: user_id}}) do
-    from b in GroupBookmark,
-      join: su in assoc(b, :space_user),
-      where: su.user_id == ^user_id
-  end
-
-  def dataloader_query(GroupUser, %{current_user: %User{id: user_id}}) do
-    from gu in GroupUser,
-      join: su in assoc(gu, :space_user),
-      where: su.user_id == ^user_id
-  end
-
-  def dataloader_query(_, _), do: raise("query not valid for this context")
 end

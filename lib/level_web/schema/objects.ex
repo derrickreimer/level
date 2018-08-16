@@ -76,7 +76,7 @@ defmodule LevelWeb.Schema.Objects do
     field :id, non_null(:id)
     field :state, non_null(:space_user_state)
     field :role, non_null(:space_user_role)
-    field :space, non_null(:space), resolve: dataloader(Spaces)
+    field :space, non_null(:space), resolve: dataloader(:db)
     field :first_name, non_null(:string)
     field :last_name, non_null(:string)
     field :handle, non_null(:string)
@@ -199,7 +199,7 @@ defmodule LevelWeb.Schema.Objects do
     field :is_private, non_null(:boolean)
     field :inserted_at, non_null(:time)
     field :updated_at, non_null(:time)
-    field :space, non_null(:space), resolve: dataloader(Spaces)
+    field :space, non_null(:space), resolve: dataloader(:db)
     field :creator, non_null(:user), resolve: dataloader(:db)
 
     @desc "Posts sent to the group."
@@ -247,8 +247,8 @@ defmodule LevelWeb.Schema.Objects do
 
   @desc "A group membership defines the relationship between a user and group."
   object :group_membership do
-    field :group, non_null(:group), resolve: dataloader(Groups)
-    field :space_user, non_null(:space_user), resolve: dataloader(Spaces)
+    field :group, non_null(:group), resolve: dataloader(:db)
+    field :space_user, non_null(:space_user), resolve: dataloader(:db)
     field :state, non_null(:group_membership_state)
 
     interface :fetch_timeable
@@ -264,9 +264,9 @@ defmodule LevelWeb.Schema.Objects do
     field :id, non_null(:id)
     field :state, non_null(:post_state)
     field :body, non_null(:string)
-    field :space, non_null(:space), resolve: dataloader(Spaces)
-    field :author, non_null(:space_user), resolve: dataloader(Spaces)
-    field :groups, list_of(:group), resolve: dataloader(Groups)
+    field :space, non_null(:space), resolve: dataloader(:db)
+    field :author, non_null(:space_user), resolve: dataloader(:db)
+    field :groups, list_of(:group), resolve: dataloader(:db)
 
     field :body_html, non_null(:string) do
       resolve fn post, _, _ ->
@@ -313,8 +313,8 @@ defmodule LevelWeb.Schema.Objects do
     field :id, non_null(:id)
     field :post_id, non_null(:id)
     field :body, non_null(:string)
-    field :space, non_null(:space), resolve: dataloader(Spaces)
-    field :author, non_null(:space_user), resolve: dataloader(Spaces)
+    field :space, non_null(:space), resolve: dataloader(:db)
+    field :author, non_null(:space_user), resolve: dataloader(:db)
 
     field :body_html, non_null(:string) do
       resolve fn reply, _, _ ->
@@ -338,7 +338,7 @@ defmodule LevelWeb.Schema.Objects do
 
   @desc "A mention represents a when user has @-mentioned another user."
   object :mention do
-    field :mentioner, non_null(:space_user), resolve: dataloader(Spaces)
+    field :mentioner, non_null(:space_user), resolve: dataloader(:db)
     field :occurred_at, non_null(:time)
   end
 

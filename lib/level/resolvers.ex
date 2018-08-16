@@ -14,14 +14,12 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.ReplyConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
-  alias Level.Groups
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
   alias Level.Mentions
   alias Level.Mentions.UserMention
   alias Level.Pagination
-  alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostUser
   alias Level.Spaces
@@ -163,9 +161,9 @@ defmodule Level.Resolvers do
 
   # @spec mentions(Post.t(), map(), info()) :: dataloader_result()
   # def mentions(%Post{} = post, _args, %{context: %{loader: loader}}) do
-  #   # dataloader_one(loader, Mentions, {:many, UserMention}, post_id: post.id)
+  #   # dataloader_one(loader, :db, {:many, UserMention}, post_id: post.id)
 
-  #   source_name = Mentions
+  #   source_name = :db
   #   batch_key = {:many, UserMention}
   #   item_key = [post_id: post.id]
 
@@ -194,7 +192,7 @@ defmodule Level.Resolvers do
   """
   @spec group_membership(Group.t(), map(), info()) :: dataloader_result()
   def group_membership(%Group{} = group, _args, %{context: %{loader: loader}}) do
-    dataloader_one(loader, Groups, {:one, GroupUser}, group_id: group.id)
+    dataloader_one(loader, :db, {:one, GroupUser}, group_id: group.id)
   end
 
   @doc """
@@ -202,7 +200,7 @@ defmodule Level.Resolvers do
   """
   @spec is_bookmarked(Group.t(), any(), info()) :: dataloader_result()
   def is_bookmarked(%Group{} = group, _, %{context: %{loader: loader}}) do
-    source_name = Groups
+    source_name = :db
     batch_key = {:one, GroupBookmark}
     item_key = [group_id: group.id]
 
@@ -231,7 +229,7 @@ defmodule Level.Resolvers do
   """
   @spec subscription_state(Post.t(), map(), info()) :: dataloader_result()
   def subscription_state(%Post{} = post, _, %{context: %{loader: loader}}) do
-    source_name = Posts
+    source_name = :db
     batch_key = {:one, PostUser}
     item_key = [post_id: post.id]
 

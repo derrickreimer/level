@@ -3,11 +3,7 @@ defmodule LevelWeb.Absinthe do
   A plug for establishing absinthe context.
   """
 
-  alias Level.Groups
-  alias Level.Repo
-  alias Level.Mentions
-  alias Level.Posts
-  alias Level.Spaces
+  alias Level.Loaders
   alias Level.Users.User
 
   # Suppress dialyzer warnings about dataloader functions
@@ -31,10 +27,6 @@ defmodule LevelWeb.Absinthe do
 
   defp build_loader(params) do
     Dataloader.new()
-    |> Dataloader.add_source(:db, Dataloader.Ecto.new(Repo))
-    |> Dataloader.add_source(Groups, Groups.dataloader_data(params))
-    |> Dataloader.add_source(Spaces, Spaces.dataloader_data(params))
-    |> Dataloader.add_source(Posts, Posts.dataloader_data(params))
-    |> Dataloader.add_source(Mentions, Mentions.dataloader_data(params))
+    |> Dataloader.add_source(:db, Loaders.database_source(params))
   end
 end

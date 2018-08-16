@@ -16,11 +16,6 @@ defmodule Level.Spaces do
   alias Level.Repo
   alias Level.Users.User
 
-  # Suppress dialyzer warnings about dataloader functions
-  @dialyzer {:nowarn_function, dataloader_data: 1}
-
-  @behaviour Level.DataloaderSource
-
   @typedoc "The result of creating a space"
   @type create_space_result ::
           {:ok,
@@ -368,16 +363,4 @@ defmodule Level.Spaces do
   end
 
   defp handle_space_user_update(err), do: err
-
-  @impl true
-  def dataloader_data(%{current_user: _user} = params) do
-    Dataloader.Ecto.new(Repo, query: &dataloader_query/2, default_params: params)
-  end
-
-  def dataloader_data(_), do: raise("authentication required")
-
-  @impl true
-  def dataloader_query(Space, %{current_user: user}), do: spaces_base_query(user)
-  def dataloader_query(SpaceUser, %{current_user: user}), do: space_users_base_query(user)
-  def dataloader_query(_, _), do: raise("query not valid for this context")
 end
