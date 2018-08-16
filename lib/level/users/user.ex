@@ -58,6 +58,7 @@ defmodule Level.Users.User do
   def update_changeset(struct, attrs \\ %{}) do
     struct
     |> cast(attrs, [:email, :handle, :first_name, :last_name, :password, :time_zone, :avatar])
+    |> validate_required([:email, :handle, :first_name, :last_name])
     |> validate()
     |> put_password_hash()
   end

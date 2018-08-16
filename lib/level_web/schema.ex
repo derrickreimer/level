@@ -56,6 +56,7 @@ defmodule LevelWeb.Schema do
     field :update_user, type: :update_user_payload do
       arg :first_name, :string
       arg :last_name, :string
+      arg :handle, :string
       arg :email, :string
 
       resolve &Level.Mutations.update_user/2

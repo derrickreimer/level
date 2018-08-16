@@ -193,7 +193,7 @@ view repo featuredUsers model =
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
-                    [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
+                    [ h2 [ class "font-black text-2xl" ] [ text "Inbox" ]
                     ]
                 ]
             , mentionsView repo model
@@ -218,7 +218,7 @@ mentionView repo model component =
 sidebarView : Repo -> List SpaceUser -> Html Msg
 sidebarView repo featuredUsers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ]
+        [ h3 [ class "mb-2 text-base font-black" ]
             [ a
                 [ Route.href (Route.SpaceUsers Route.SpaceUsers.Root)
                 , class "flex items-center text-dusty-blue-darkest no-underline"
@@ -232,7 +232,7 @@ sidebarView repo featuredUsers =
             [ Route.href Route.SpaceSettings
             , class "text-sm text-blue no-underline"
             ]
-            [ text "Manage this space" ]
+            [ text "Space Settings" ]
         ]
 
 

@@ -33,6 +33,7 @@ import Session exposing (Session)
 type alias Model =
     { firstName : String
     , lastName : String
+    , handle : String
     , email : String
     , avatarUrl : Maybe String
     , errors : List ValidationError
@@ -47,7 +48,7 @@ type alias Model =
 
 title : String
 title =
-    "Manage my profile"
+    "User Settings"
 
 
 
@@ -67,7 +68,15 @@ buildModel ( session, { user } ) =
             User.getCachedData user
 
         model =
-            Model userData.firstName userData.lastName userData.email userData.avatarUrl [] False Nothing
+            Model
+                userData.firstName
+                userData.lastName
+                userData.handle
+                userData.email
+                userData.avatarUrl
+                []
+                False
+                Nothing
     in
         Task.succeed ( session, model )
 
@@ -90,6 +99,7 @@ type Msg
     = EmailChanged String
     | FirstNameChanged String
     | LastNameChanged String
+    | HandleChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, UpdateUser.Response ))
     | AvatarSubmitted (Result Session.Error ( Session, UpdateUserAvatar.Response ))
@@ -109,11 +119,14 @@ update msg session model =
         LastNameChanged val ->
             noCmd session { model | lastName = val }
 
+        HandleChanged val ->
+            noCmd session { model | handle = val }
+
         Submit ->
             let
                 cmd =
                     session
-                        |> UpdateUser.request model.firstName model.lastName model.email
+                        |> UpdateUser.request model.firstName model.lastName model.handle model.email
                         |> Task.attempt Submitted
             in
                 ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
@@ -127,6 +140,7 @@ update msg session model =
                     { model
                         | firstName = userData.firstName
                         , lastName = userData.lastName
+                        , handle = userData.handle
                         , email = userData.email
                         , isSubmitting = False
                     }
@@ -201,7 +215,7 @@ view : Repo -> Model -> Html Msg
 view repo ({ errors } as model) =
     div [ class "ml-56 mr-24" ]
         [ div [ class "mx-auto max-w-md leading-normal py-8" ]
-            [ h1 [ class "pb-8 font-extrabold text-3xl" ] [ text "Manage my profile" ]
+            [ h1 [ class "pb-8 font-black text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
                     [ div [ class "pb-6" ]
@@ -239,6 +253,36 @@ view repo ({ errors } as model) =
                                 , errorView "lastName" errors
                                 ]
                             ]
+                        ]
+                    , div [ class "pb-6" ]
+                        [ label [ for "handle", class "input-label" ] [ text "Handle" ]
+                        , div
+                            [ classList
+                                [ ( "input-field inline-flex leading-none items-baseline", True )
+                                , ( "input-field-error", isInvalid "handle" errors )
+                                ]
+                            ]
+                            [ label
+                                [ for "handle"
+                                , class "mr-1 flex-none text-dusty-blue-darker select-none font-black"
+                                ]
+                                [ text "@" ]
+                            , div [ class "flex-1" ]
+                                [ input
+                                    [ id "handle"
+                                    , type_ "text"
+                                    , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                                    , name "handle"
+                                    , placeholder "janesmith"
+                                    , value model.handle
+                                    , onInput HandleChanged
+                                    , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                                    , disabled model.isSubmitting
+                                    ]
+                                    []
+                                ]
+                            ]
+                        , errorView "handle" errors
                         ]
                     , div [ class "pb-6" ]
                         [ label [ for "email", class "input-label" ] [ text "Email address" ]

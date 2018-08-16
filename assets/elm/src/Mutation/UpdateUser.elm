@@ -22,11 +22,13 @@ document =
         mutation UpdateUser(
           $firstName: String,
           $lastName: String,
+          $handle: String,
           $email: String
         ) {
           updateUser(
             firstName: $firstName,
             lastName: $lastName,
+            handle: $handle,
             email: $email
           ) {
             ...ValidationFields
@@ -41,12 +43,13 @@ document =
         ]
 
 
-variables : String -> String -> String -> Maybe Encode.Value
-variables firstName lastName email =
+variables : String -> String -> String -> String -> Maybe Encode.Value
+variables firstName lastName handle email =
     Just <|
         Encode.object
             [ ( "firstName", Encode.string firstName )
             , ( "lastName", Encode.string lastName )
+            , ( "handle", Encode.string handle )
             , ( "email", Encode.string email )
             ]
 
@@ -79,7 +82,7 @@ decoder =
             |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> String -> Session -> Task Session.Error ( Session, Response )
-request firstName lastName email session =
+request : String -> String -> String -> String -> Session -> Task Session.Error ( Session, Response )
+request firstName lastName handle email session =
     Session.request session <|
-        GraphQL.request document (variables firstName lastName email) decoder
+        GraphQL.request document (variables firstName lastName handle email) decoder
