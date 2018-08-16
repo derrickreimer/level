@@ -5,6 +5,7 @@ defmodule Level.Resolvers do
   """
 
   import Absinthe.Resolution.Helpers
+  import Ecto.Query, warn: false
 
   alias Level.Resolvers.GroupMembershipConnection
   alias Level.Resolvers.GroupPostConnection
@@ -157,9 +158,35 @@ defmodule Level.Resolvers do
   @doc """
   Fetches mentions for the current user in a given scope.
   """
-  @spec mentions(Post.t(), map(), info()) :: dataloader_result()
-  def mentions(%Post{} = post, _args, %{context: %{loader: loader}}) do
-    dataloader_one(loader, Mentions, {:many, UserMention}, post_id: post.id)
+
+  # TODO: diagnose why mentions are coming back empty in subscription payloads
+
+  # @spec mentions(Post.t(), map(), info()) :: dataloader_result()
+  # def mentions(%Post{} = post, _args, %{context: %{loader: loader}}) do
+  #   # dataloader_one(loader, Mentions, {:many, UserMention}, post_id: post.id)
+
+  #   source_name = Mentions
+  #   batch_key = {:many, UserMention}
+  #   item_key = [post_id: post.id]
+
+  #   loader
+  #   |> Dataloader.load(source_name, batch_key, item_key)
+  #   |> on_load(fn loader ->
+  #     IO.inspect(loader)
+
+  #     loader
+  #     |> Dataloader.get(source_name, batch_key, item_key)
+  #     |> tuplize()
+  #   end)
+  # end
+
+  @spec mentions(Post.t(), map(), info()) :: {:ok, [UserMention.t()]}
+  def mentions(%Post{} = post, _args, %{context: %{current_user: user}}) do
+    user
+    |> Mentions.base_query()
+    |> where([m, su], m.post_id == ^post.id)
+    |> Level.Repo.all()
+    |> tuplize()
   end
 
   @doc """
