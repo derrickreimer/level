@@ -16,6 +16,16 @@ defmodule LevelWeb.Schema.Objects do
   import_types LevelWeb.Schema.Scalars
   import_types LevelWeb.Schema.InputObjects
 
+  @desc """
+  Interface for objects containg a `fetched_at` field corresponding with
+  the time at which the object was fetched from the database. This field
+  can be used to compare freshness between two copies of the same object.
+  """
+  interface :fetch_timeable do
+    field :fetched_at, non_null(:timestamp)
+    resolve_type fn _, _ -> nil end
+  end
+
   @desc "A user represents a person belonging to a specific space."
   object :user do
     field :id, non_null(:id)
@@ -52,6 +62,13 @@ defmodule LevelWeb.Schema.Objects do
         {:ok, AssetStore.avatar_url(user)}
       end
     end
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
+    end
   end
 
   @desc "A space user defines a user's identity within a particular space."
@@ -79,6 +96,13 @@ defmodule LevelWeb.Schema.Objects do
       resolve fn space_user, _, _ ->
         {:ok, AssetStore.avatar_url(space_user)}
       end
+    end
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
     end
   end
 
@@ -157,6 +181,13 @@ defmodule LevelWeb.Schema.Objects do
       arg :order_by, :mentioned_post_order
       resolve &Resolvers.mentioned_posts/3
     end
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
+    end
   end
 
   @desc "A group is a collection of users within a space."
@@ -205,6 +236,13 @@ defmodule LevelWeb.Schema.Objects do
     field :is_bookmarked, non_null(:boolean) do
       resolve &Resolvers.is_bookmarked/3
     end
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
+    end
   end
 
   @desc "A group membership defines the relationship between a user and group."
@@ -212,6 +250,13 @@ defmodule LevelWeb.Schema.Objects do
     field :group, non_null(:group), resolve: dataloader(Groups)
     field :space_user, non_null(:space_user), resolve: dataloader(Spaces)
     field :state, non_null(:group_membership_state)
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
+    end
   end
 
   @desc "A post represents a conversation."
@@ -254,6 +299,13 @@ defmodule LevelWeb.Schema.Objects do
     field :mentions, list_of(:mention) do
       resolve &Resolvers.mentions/3
     end
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
+    end
   end
 
   @desc "A reply represents a response to a post."
@@ -275,11 +327,22 @@ defmodule LevelWeb.Schema.Objects do
         {:ok, reply.inserted_at}
       end
     end
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
+    end
   end
 
   @desc "A mention represents a when user has @-mentioned another user."
   object :mention do
     field :mentioner, non_null(:space_user), resolve: dataloader(Spaces)
     field :occurred_at, non_null(:time)
+  end
+
+  def fetched_at_resolver(_, _) do
+    {:ok, DateTime.utc_now()}
   end
 end
