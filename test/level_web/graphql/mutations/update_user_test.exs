@@ -72,7 +72,7 @@ defmodule LevelWeb.GraphQL.UpdateUserTest do
                  "errors" => [
                    %{
                      "attribute" => "firstName",
-                     "message" => "should be at least 1 character(s)"
+                     "message" => "can't be blank"
                    }
                  ]
                }
