@@ -25,6 +25,7 @@ type alias Record =
     { id : String
     , firstName : String
     , lastName : String
+    , handle : String
     , role : Role
     , avatarUrl : Maybe String
     , fetchedAt : Int
@@ -44,6 +45,7 @@ fragment =
           id
           firstName
           lastName
+          handle
           role
           avatarUrl
           fetchedAt
@@ -77,10 +79,11 @@ roleDecoder =
 decoder : Decoder SpaceUser
 decoder =
     Decode.map SpaceUser <|
-        Decode.map6 Record
+        Decode.map7 Record
             (field "id" string)
             (field "firstName" string)
             (field "lastName" string)
+            (field "handle" string)
             (field "role" roleDecoder)
             (field "avatarUrl" (maybe string))
             (field "fetchedAt" int)
