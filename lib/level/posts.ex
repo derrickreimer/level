@@ -102,7 +102,7 @@ defmodule Level.Posts do
     |> after_create_post(author, group)
   end
 
-  def insert_post(multi, params) do
+  defp insert_post(multi, params) do
     Multi.insert(multi, :post, Post.create_changeset(%Post{}, params))
   end
 
