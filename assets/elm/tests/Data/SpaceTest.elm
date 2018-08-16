@@ -22,7 +22,8 @@ decoders =
                               "id": "9999",
                               "name": "Drip",
                               "slug": "drip",
-                              "avatarUrl": "src"
+                              "avatarUrl": "src",
+                              "fetchedAt": 0
                             }
                             """
 
@@ -31,6 +32,7 @@ decoders =
                             , name = "Drip"
                             , slug = "drip"
                             , avatarUrl = Just "src"
+                            , fetchedAt = 0
                             }
                     in
                         case decodeString Space.decoder json of
