@@ -18,7 +18,8 @@ defmodule LevelWeb.Schema.Subscriptions do
       :group_unbookmarked_payload,
       :post_subscribed_payload,
       :post_unsubscribed_payload,
-      :user_mentioned_payload
+      :user_mentioned_payload,
+      :mentions_dismissed_payload
     ]
 
     resolve_type &type_resolver/2
@@ -32,7 +33,7 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for messages propagated to a post topic."
   union :post_subscription_payload do
-    types [:reply_created_payload, :mentions_dismissed_payload]
+    types [:reply_created_payload]
     resolve_type &type_resolver/2
   end
 

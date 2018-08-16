@@ -116,11 +116,11 @@ defmodule Level.Mentions do
     |> where([m], m.post_id == ^post_id)
     |> exclude(:select)
     |> Repo.update_all(set: [dismissed_at: naive_now()])
-    |> handle_dismiss_all(post)
+    |> handle_dismiss_all(space_user, post)
   end
 
-  defp handle_dismiss_all(_, %Post{id: post_id} = post) do
-    Pubsub.publish(:mentions_dismissed, post_id, post)
+  defp handle_dismiss_all(_, %SpaceUser{id: space_user_id}, post) do
+    Pubsub.publish(:mentions_dismissed, space_user_id, post)
     :ok
   end
 

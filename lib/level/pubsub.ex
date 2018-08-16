@@ -54,6 +54,10 @@ defmodule Level.Pubsub do
     do_publish(%{type: :user_mentioned, post: post}, space_user_subscription: space_user_id)
   end
 
+  def publish(:mentions_dismissed, space_user_id, %Post{} = post) do
+    do_publish(%{type: :mentions_dismissed, post: post}, space_user_subscription: space_user_id)
+  end
+
   # Group
 
   def publish(:post_created, group_id, %Post{} = post) do
@@ -75,10 +79,6 @@ defmodule Level.Pubsub do
 
   def publish(:reply_created, post_id, %Reply{} = reply) do
     do_publish(%{type: :reply_created, reply: reply}, post_subscription: post_id)
-  end
-
-  def publish(:mentions_dismissed, post_id, %Post{} = post) do
-    do_publish(%{type: :mentions_dismissed, post: post}, post_subscription: post_id)
   end
 
   defp do_publish(payload, topics) do

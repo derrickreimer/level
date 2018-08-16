@@ -7,6 +7,7 @@ module Subscription.SpaceUserSubscription
         , postSubscribedDecoder
         , postUnsubscribedDecoder
         , userMentionedDecoder
+        , mentionsDismissedDecoder
         )
 
 import Json.Decode as Decode
@@ -77,6 +78,14 @@ userMentionedDecoder =
         Post.decoder
 
 
+mentionsDismissedDecoder : Decode.Decoder Post
+mentionsDismissedDecoder =
+    Subscription.decoder "spaceUser"
+        "MentionsDismissed"
+        "post"
+        Post.decoder
+
+
 
 -- INTERNAL
 
@@ -116,6 +125,11 @@ document =
               }
             }
             ... on UserMentionedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on MentionsDismissedPayload {
               post {
                 ...PostFields
               }
