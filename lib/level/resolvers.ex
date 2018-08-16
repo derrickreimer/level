@@ -161,21 +161,21 @@ defmodule Level.Resolvers do
 
   # @spec mentions(Post.t(), map(), info()) :: dataloader_result()
   # def mentions(%Post{} = post, _args, %{context: %{loader: loader}}) do
-  #   # dataloader_one(loader, :db, {:many, UserMention}, post_id: post.id)
+  #   dataloader_one(loader, :db, {:many, UserMention}, post_id: post.id)
 
-  #   source_name = :db
-  #   batch_key = {:many, UserMention}
-  #   item_key = [post_id: post.id]
+  #   # source_name = :db
+  #   # batch_key = {:many, UserMention}
+  #   # item_key = [post_id: post.id]
 
-  #   loader
-  #   |> Dataloader.load(source_name, batch_key, item_key)
-  #   |> on_load(fn loader ->
-  #     IO.inspect(loader)
+  #   # loader
+  #   # |> Dataloader.load(source_name, batch_key, item_key)
+  #   # |> on_load(fn loader ->
+  #   #   IO.inspect(loader)
 
-  #     loader
-  #     |> Dataloader.get(source_name, batch_key, item_key)
-  #     |> tuplize()
-  #   end)
+  #   #   loader
+  #   #   |> Dataloader.get(source_name, batch_key, item_key)
+  #   #   |> tuplize()
+  #   # end)
   # end
 
   @spec mentions(Post.t(), map(), info()) :: {:ok, [UserMention.t()]}

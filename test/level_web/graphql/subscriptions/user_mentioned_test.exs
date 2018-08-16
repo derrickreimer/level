@@ -45,7 +45,7 @@ defmodule LevelWeb.GraphQL.UserMentionedTest do
   # """
 
   # setup do
-  #   {:ok, result} = create_user_and_space(%{handle: "derrick"})
+  #   {:ok, result} = create_user_and_space()
   #   {:ok, Map.put(result, :socket, build_socket(result.user))}
   # end
 
@@ -55,12 +55,12 @@ defmodule LevelWeb.GraphQL.UserMentionedTest do
   #   space_user: space_user
   # } do
   #   {:ok, %{group: group}} = create_group(space_user)
-  #   {:ok, %{space_user: another_user}} = create_space_member(space, %{handle: "tiff"})
+  #   {:ok, %{space_user: another_user}} = create_space_member(space)
 
   #   ref = push_subscription(socket, @operation, %{"id" => space_user.id})
   #   assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-  #   {:ok, %{post: _post}} = create_post(another_user, group, %{body: "Hey @derrick"})
+  #   {:ok, %{post: _post}} = create_post(another_user, group, %{body: "Hey @#{space_user.handle}"})
 
   #   push_data = %{
   #     result: %{
@@ -68,7 +68,7 @@ defmodule LevelWeb.GraphQL.UserMentionedTest do
   #         "spaceUserSubscription" => %{
   #           "__typename" => "UserMentionedPayload",
   #           "post" => %{
-  #             "body" => "Hey @derrick",
+  #             "body" => "Hey @#{space_user.handle}",
   #             "mentions" => [
   #               %{
   #                 "mentioner" => %{

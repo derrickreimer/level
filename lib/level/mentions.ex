@@ -90,22 +90,20 @@ defmodule Level.Mentions do
   end
 
   defp insert_batch(mentioned_ids, post, reply_id, author_id) do
-    now = naive_now()
+    Enum.map(mentioned_ids, fn mentioned_id ->
+      params = %{
+        space_id: post.space_id,
+        post_id: post.id,
+        reply_id: reply_id,
+        mentioner_id: author_id,
+        mentioned_id: mentioned_id
+      }
 
-    params =
-      Enum.map(mentioned_ids, fn mentioned_id ->
-        %{
-          space_id: post.space_id,
-          post_id: post.id,
-          reply_id: reply_id,
-          mentioner_id: author_id,
-          mentioned_id: mentioned_id,
-          occurred_at: now,
-          updated_at: now
-        }
-      end)
+      %UserMention{}
+      |> Ecto.Changeset.change(params)
+      |> Repo.insert()
+    end)
 
-    Repo.insert_all(UserMention, params)
     {:ok, mentioned_ids}
   end
 
