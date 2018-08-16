@@ -11,7 +11,6 @@ module Component.Post
         , handleReplyCreated
         , handleMentionsDismissed
         , postView
-        , mentionView
         , sidebarView
         )
 
@@ -344,6 +343,12 @@ postView repo currentUser now ({ post, replies } as model) =
         authorData =
             postData.author
                 |> Repo.getSpaceUser repo
+
+        mentions =
+            postData.mentions
+
+        body =
+            postData.bodyHtml
     in
         div [ class "flex" ]
             [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
@@ -360,7 +365,7 @@ postView repo currentUser now ({ post, replies } as model) =
                             groupsLabel repo postData.groups
                         , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
                         ]
-                    , div [ class "markdown mb-2" ] [ injectHtml [] postData.bodyHtml ]
+                    , div [ class "markdown mb-2" ] [ injectHtml [] body ]
                     , div [ class "flex items-center" ]
                         [ div [ class "flex-grow" ]
                             [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -373,40 +378,6 @@ postView repo currentUser now ({ post, replies } as model) =
                     ]
                 ]
             ]
-
-
-mentionView : Repo -> SpaceUser -> Date -> Model -> Html Msg
-mentionView repo currentUser now ({ post } as model) =
-    let
-        postData =
-            Repo.getPost repo post
-
-        mentions =
-            postData.mentions
-    in
-        div [ class "flex py-4" ]
-            [ div [ class "flex-0 pr-3" ]
-                [ button
-                    [ class "flex items-center"
-                    , onClick DismissMentionsClicked
-                    , rel "tooltip"
-                    , title "Dismiss"
-                    ]
-                    [ Icons.undismissed ]
-                ]
-            , div [ class "flex-1" ]
-                [ div [ class "mb-6" ]
-                    [ mentionDescription repo post mentions
-                    , span [ class "mx-3 text-sm text-dusty-blue" ]
-                        [ text <| smartFormatDate now (lastMentionAt now mentions) ]
-                    ]
-                , postView repo currentUser now model
-                ]
-            ]
-
-
-
--- INTERNAL VIEW FUNCTIONS
 
 
 groupsLabel : Repo -> List Group -> Html Msg
@@ -580,18 +551,18 @@ statusView state =
                 buildView Icons.closed "Closed"
 
 
-mentionDescription : Repo -> Post -> List Mention -> Html Msg
-mentionDescription repo post mentions =
-    a
-        [ Route.href (Route.Post <| Post.getId post)
-        , classList
-            [ ( "text-base font-bold no-underline", True )
-            , ( "text-dusty-blue-darker", True )
+mentionBannerView : Repo -> Post -> Date -> List Mention -> Html Msg
+mentionBannerView repo post now mentions =
+    viewUnless (List.isEmpty mentions) <|
+        div [ class "mb-4" ]
+            [ a
+                [ Route.href (Route.Post <| Post.getId post)
+                , class "flex items-center text-sm font-normal no-underline text-dusty-blue-darker"
+                ]
+                [ div [ class "mr-2" ] [ Icons.atSign ]
+                , text <| mentionersSummary repo (mentioners mentions)
+                ]
             ]
-        ]
-        [ text <|
-            mentionersSummary repo (mentioners mentions)
-        ]
 
 
 mentionersSummary : Repo -> List SpaceUser -> String

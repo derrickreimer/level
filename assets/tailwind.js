@@ -72,6 +72,9 @@ let colors = {
 
   // Reds
   'red': '#ff1e12',
+
+  // Orange
+  'orange': '#DF9700',
 }
 
 module.exports = {

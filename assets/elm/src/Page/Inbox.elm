@@ -205,14 +205,28 @@ view repo featuredUsers model =
 mentionsView : Repo -> Model -> Html Msg
 mentionsView repo model =
     div [] <|
-        Connection.map (mentionView repo model) model.mentionedPosts
+        Connection.map (postView repo model) model.mentionedPosts
 
 
-mentionView : Repo -> Model -> Component.Post.Model -> Html Msg
-mentionView repo model component =
-    component
-        |> Component.Post.mentionView repo model.currentUser model.now
-        |> Html.map (PostComponentMsg component.id)
+postView : Repo -> Model -> Component.Post.Model -> Html Msg
+postView repo model component =
+    div [ class "py-4 flex" ]
+        [ div [ class "mr-1 py-2 flex-0" ]
+            [ label [ class "control checkbox" ]
+                [ input
+                    [ type_ "checkbox"
+                    , class "checkbox"
+                    ]
+                    []
+                , span [ class "control-indicator border-dusty-blue" ] []
+                ]
+            ]
+        , div [ class "flex-1" ]
+            [ component
+                |> Component.Post.postView repo model.currentUser model.now
+                |> Html.map (PostComponentMsg component.id)
+            ]
+        ]
 
 
 sidebarView : Repo -> List SpaceUser -> Html Msg

@@ -4,6 +4,7 @@ module Icons
         , arrowLeft
         , arrowRight
         , arrowUpRight
+        , atSign
         , bookmark
         , check
         , checkSquare
@@ -83,6 +84,24 @@ arrowUpRight =
                 <g id="arrow-up-right" transform="translate(1.000000, 1.000000)" stroke="#8A98A5" stroke-width="2">
                     <path d="M0,8 L8,0" id="Shape"></path>
                     <polyline id="Shape" points="0 0 8 0 8 8"></polyline>
+                </g>
+            </g>
+        </svg>
+        """
+
+
+atSign : Html msg
+atSign =
+    toHtml
+        """
+        <svg width="18px" height="18px" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+            <desc>Created with Sketch.</desc>
+            <defs></defs>
+            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                <g id="at-sign" transform="translate(1.000000, 1.000000)" stroke="#DF9700" stroke-width="2">
+                    <circle id="Oval" cx="8.38095238" cy="7.61904762" r="3.04761905"></circle>
+                    <path d="M11.4285714,4.57142857 L11.4285714,8.38095238 C11.4285714,9.64331752 12.4519206,10.6666667 13.7142857,10.6666667 C14.9766509,10.6666667 16,9.64331752 16,8.38095238 L16,7.61904762 C15.999777,4.07840349 13.5604834,1.00450615 10.1124865,0.19984573 C6.6644896,-0.604814687 3.11655739,1.07184135 1.54914737,4.24664634 C-0.0182626518,7.42145134 0.807962392,11.2576409 3.54333577,13.5057275 C6.27870914,15.7538142 10.2022849,15.8212831 13.0133333,13.6685714" id="Shape"></path>
                 </g>
             </g>
         </svg>
