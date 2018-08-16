@@ -24,6 +24,7 @@ type Event
     | PostSubscribed Post
     | PostUnsubscribed Post
     | MentionsDismissed Post
+    | UserMentioned Post
     | GroupMembershipUpdated Group
     | GroupUpdated Group
     | ReplyCreated Reply
@@ -50,6 +51,7 @@ eventDecoder =
         , Decode.map GroupUnbookmarked SpaceUserSubscription.groupUnbookmarkedDecoder
         , Decode.map PostSubscribed SpaceUserSubscription.postSubscribedDecoder
         , Decode.map PostUnsubscribed SpaceUserSubscription.postUnsubscribedDecoder
+        , Decode.map UserMentioned SpaceUserSubscription.userMentionedDecoder
 
         -- GROUP EVENTS
         , Decode.map GroupUpdated GroupSubscription.groupUpdatedDecoder

@@ -879,6 +879,9 @@ handleSocketResult value sharedState ({ page, repo } as model) =
         Event.PostUnsubscribed post ->
             updateRepo (Repo.setPost repo post) model
 
+        Event.UserMentioned post ->
+            updateRepo (Repo.setPost repo post) model
+
         Event.GroupUpdated group ->
             updateRepo (Repo.setGroup repo group) model
 

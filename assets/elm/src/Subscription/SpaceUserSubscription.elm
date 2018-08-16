@@ -6,6 +6,7 @@ module Subscription.SpaceUserSubscription
         , groupUnbookmarkedDecoder
         , postSubscribedDecoder
         , postUnsubscribedDecoder
+        , userMentionedDecoder
         )
 
 import Json.Decode as Decode
@@ -64,6 +65,14 @@ postUnsubscribedDecoder : Decode.Decoder Post
 postUnsubscribedDecoder =
     Subscription.decoder "spaceUser"
         "PostUnsubscribed"
+        "post"
+        Post.decoder
+
+
+userMentionedDecoder : Decode.Decoder Post
+userMentionedDecoder =
+    Subscription.decoder "spaceUser"
+        "UserMentioned"
         "post"
         Post.decoder
 
