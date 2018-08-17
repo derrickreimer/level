@@ -342,13 +342,6 @@ defmodule Level.Posts do
   defp render_mentions({:ok, html}, current_user) do
     replaced_html =
       Regex.replace(Mentions.handle_pattern(), html, fn match, handle ->
-        classes =
-          if handle == current_user.handle do
-            " is-viewer"
-          else
-            ""
-          end
-
         String.replace(
           match,
           "@#{handle}",
