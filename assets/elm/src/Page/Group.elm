@@ -485,7 +485,7 @@ nameView groupData editor =
             h2 [ class "flex-no-shrink" ]
                 [ span
                     [ onClick NameClicked
-                    , class "font-black text-2xl cursor-pointer"
+                    , class "font-extrabold text-2xl cursor-pointer"
                     ]
                     [ text groupData.name ]
                 ]
@@ -496,7 +496,7 @@ nameView groupData editor =
                     [ type_ "text"
                     , id "name-editor-value"
                     , classList
-                        [ ( "-ml-2 px-2 bg-grey-light font-black text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
+                        [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
                         , ( "shake", not <| List.isEmpty editor.errors )
                         ]
                     , value editor.value
@@ -514,7 +514,7 @@ nameView groupData editor =
             h2 [ class "flex-no-shrink" ]
                 [ input
                     [ type_ "text"
-                    , class "-ml-2 px-2 bg-grey-light font-black text-2xl text-dusty-blue-darkest rounded no-outline"
+                    , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline"
                     , value editor.value
                     , disabled True
                     ]
@@ -607,7 +607,7 @@ postView repo currentUser now component =
 sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Html Msg
 sidebarView repo state featuredMemberships =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-black" ] [ text "Members" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Members" ]
         , memberListView repo featuredMemberships
         , subscribeButtonView state
         ]

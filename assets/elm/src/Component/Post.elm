@@ -529,7 +529,7 @@ sidebarView repo model =
             Repo.getPost repo model.post
     in
         div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
-            [ h3 [ class "mb-2 text-base font-black" ] [ text "Status" ]
+            [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Status" ]
             , statusView postData.state
             ]
 

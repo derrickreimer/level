@@ -112,7 +112,7 @@ view model =
     userLayout model.user <|
         div [ class "mx-auto max-w-sm" ]
             [ div [ class "flex items-center pb-6" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-black text-3xl" ] [ text "My Spaces" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a [ href "/spaces/new", class "btn btn-blue btn-md no-underline" ] [ text "New space" ] ]
                 ]

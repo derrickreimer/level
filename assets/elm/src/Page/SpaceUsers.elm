@@ -100,7 +100,7 @@ view repo model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
             [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-black text-3xl" ] [ text "Directory" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Directory" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a [ href "#", class "btn btn-blue btn-md no-underline" ] [ text "Invite people" ]
                     ]

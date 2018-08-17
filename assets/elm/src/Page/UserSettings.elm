@@ -215,7 +215,7 @@ view : Repo -> Model -> Html Msg
 view repo ({ errors } as model) =
     div [ class "ml-56 mr-24" ]
         [ div [ class "mx-auto max-w-md leading-normal py-8" ]
-            [ h1 [ class "pb-8 font-black text-4xl" ] [ text "User Settings" ]
+            [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
                     [ div [ class "pb-6" ]
@@ -264,7 +264,7 @@ view repo ({ errors } as model) =
                             ]
                             [ label
                                 [ for "handle"
-                                , class "mr-1 flex-none text-dusty-blue-darker select-none font-black"
+                                , class "mr-1 flex-none text-dusty-blue-darker select-none font-extrabold"
                                 ]
                                 [ text "@" ]
                             , div [ class "flex-1" ]
