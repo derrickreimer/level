@@ -8,6 +8,7 @@ defmodule Level.PostsTest do
   alias Level.Posts.PostView
   alias Level.Posts.Reply
   alias Level.Spaces.SpaceUser
+  alias Level.Users.User
 
   describe "posts_base_query/1 with users" do
     setup do
@@ -253,13 +254,22 @@ defmodule Level.PostsTest do
   end
 
   describe "render_body/1" do
-    test "converts markdown to html" do
-      assert Posts.render_body("Foo") == {:ok, "<p>Foo</p>\n"}
+    setup do
+      {:ok, %{viewer: %User{handle: "derrick"}}}
     end
 
-    test "emboldens mentions" do
-      assert Posts.render_body("@derrick Hey") ==
-               {:ok, "<p><strong class=\"user-mention\">@derrick</strong> Hey</p>\n"}
+    test "converts markdown to html", %{viewer: viewer} do
+      assert Posts.render_body("Foo", viewer) == {:ok, "<p>Foo</p>\n"}
+    end
+
+    test "emboldens mentions", %{viewer: viewer} do
+      assert Posts.render_body("@tiff Hey", viewer) ==
+               {:ok, "<p><strong class=\"user-mention\">@tiff</strong> Hey</p>\n"}
+    end
+
+    test "applies a special class for viewer mentions", %{viewer: viewer} do
+      assert Posts.render_body("@derrick Hey", viewer) ==
+               {:ok, "<p><strong class=\"user-mention is-viewer\">@derrick</strong> Hey</p>\n"}
     end
   end
 end
