@@ -269,8 +269,8 @@ defmodule LevelWeb.Schema.Objects do
     field :groups, list_of(:group), resolve: dataloader(:db)
 
     field :body_html, non_null(:string) do
-      resolve fn post, _, _ ->
-        Posts.render_body(post.body)
+      resolve fn post, _, %{context: %{current_user: user}} ->
+        Posts.render_body(post.body, user)
       end
     end
 
@@ -317,8 +317,8 @@ defmodule LevelWeb.Schema.Objects do
     field :author, non_null(:space_user), resolve: dataloader(:db)
 
     field :body_html, non_null(:string) do
-      resolve fn reply, _, _ ->
-        Posts.render_body(reply.body)
+      resolve fn reply, _, %{context: %{current_user: user}} ->
+        Posts.render_body(reply.body, user)
       end
     end
 
