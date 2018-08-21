@@ -1,7 +1,8 @@
 module Data.Setup exposing (State(..), setupStateDecoder, setupStateEncoder)
 
-import Json.Decode as Decode exposing (Decoder, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, fail, string, succeed)
 import Json.Encode as Encode
+
 
 
 -- TYPES
@@ -35,7 +36,7 @@ setupStateDecoder =
                 _ ->
                     fail "Setup state not valid"
     in
-        Decode.andThen convert string
+    Decode.andThen convert string
 
 
 

@@ -1,13 +1,13 @@
 module Query.GroupsInit exposing (Response, request)
 
-import Json.Decode as Decode exposing (Decoder)
-import Json.Encode as Encode
-import Task exposing (Task)
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Route.Groups exposing (Params(..))
 import Session exposing (Session)
+import Task exposing (Task)
 
 
 type alias Response =
@@ -84,12 +84,12 @@ variables spaceId params limit =
                 Root ->
                     []
     in
-        Just <|
-            Encode.object <|
-                List.append paramVariables
-                    [ ( "spaceId", Encode.string spaceId )
-                    , ( "limit", Encode.int limit )
-                    ]
+    Just <|
+        Encode.object <|
+            List.append paramVariables
+                [ ( "spaceId", Encode.string spaceId )
+                , ( "limit", Encode.int limit )
+                ]
 
 
 decoder : Decoder Response

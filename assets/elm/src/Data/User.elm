@@ -1,15 +1,8 @@
-module Data.User
-    exposing
-        ( User
-        , Record
-        , fragment
-        , decoder
-        , getId
-        , getCachedData
-        )
+module Data.User exposing (Record, User, decoder, fragment, getCachedData, getId)
 
-import Json.Decode as Decode exposing (Decoder, field, maybe, string, int, succeed, fail)
 import GraphQL exposing (Fragment)
+import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
+
 
 
 -- TYPES

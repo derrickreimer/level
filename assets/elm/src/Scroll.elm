@@ -1,7 +1,8 @@
 module Scroll exposing (Container(..), toAnchor, toBottom)
 
-import Scroll.Types exposing (AnchorParams, ContainerParams)
 import Ports
+import Scroll.Types exposing (AnchorParams, ContainerParams)
+
 
 
 -- TYPES

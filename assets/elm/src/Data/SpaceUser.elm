@@ -1,17 +1,8 @@
-module Data.SpaceUser
-    exposing
-        ( SpaceUser
-        , Record
-        , Role(..)
-        , fragment
-        , decoder
-        , roleDecoder
-        , getId
-        , getCachedData
-        )
+module Data.SpaceUser exposing (Record, Role(..), SpaceUser, decoder, fragment, getCachedData, getId, roleDecoder)
 
-import Json.Decode as Decode exposing (Decoder, maybe, field, string, int, succeed, fail)
 import GraphQL exposing (Fragment)
+import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
+
 
 
 -- TYPES
@@ -73,7 +64,7 @@ roleDecoder =
                 _ ->
                     fail "Role not valid"
     in
-        Decode.andThen convert string
+    Decode.andThen convert string
 
 
 decoder : Decoder SpaceUser

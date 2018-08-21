@@ -1,10 +1,11 @@
-module Socket exposing (listen, send, cancel)
+module Socket exposing (cancel, listen, send)
 
 import GraphQL exposing (Document, serializeDocument)
 import Json.Decode exposing (Value)
 import Json.Encode as Encode
 import Ports
 import Socket.Types exposing (Payload)
+
 
 
 -- INBOUND

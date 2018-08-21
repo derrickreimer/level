@@ -1,16 +1,17 @@
 module Event exposing (Event(..), decodeEvent)
 
-import Json.Decode as Decode
 import Connection exposing (Connection)
 import Data.Group exposing (Group)
 import Data.Post exposing (Post)
 import Data.Reply exposing (Reply)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
-import Subscription.SpaceSubscription as SpaceSubscription
-import Subscription.SpaceUserSubscription as SpaceUserSubscription
+import Json.Decode as Decode
 import Subscription.GroupSubscription as GroupSubscription
 import Subscription.PostSubscription as PostSubscription
+import Subscription.SpaceSubscription as SpaceSubscription
+import Subscription.SpaceUserSubscription as SpaceUserSubscription
+
 
 
 -- TYPES

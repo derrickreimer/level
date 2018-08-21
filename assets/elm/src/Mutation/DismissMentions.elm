@@ -1,12 +1,12 @@
 module Mutation.DismissMentions exposing (Response(..), request)
 
-import Task exposing (Task)
-import Json.Encode as Encode
-import Json.Decode as Decode exposing (Decoder)
-import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
+import Data.ValidationFields
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Session exposing (Session)
+import Task exposing (Task)
 
 
 type Response

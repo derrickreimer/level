@@ -1,8 +1,9 @@
-module Data.Group exposing (Group, Record, fragment, decoder, getId, getCachedData, setIsBookmarked)
+module Data.Group exposing (Group, Record, decoder, fragment, getCachedData, getId, setIsBookmarked)
 
 import Data.GroupMembership as GroupMembership exposing (GroupMembershipState(..))
-import Json.Decode as Decode exposing (Decoder, field, string, bool, int)
 import GraphQL exposing (Fragment)
+import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
+
 
 
 -- TYPES

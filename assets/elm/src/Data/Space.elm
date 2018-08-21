@@ -1,15 +1,8 @@
-module Data.Space
-    exposing
-        ( Space
-        , Record
-        , fragment
-        , decoder
-        , getId
-        , getCachedData
-        )
+module Data.Space exposing (Record, Space, decoder, fragment, getCachedData, getId)
 
-import Json.Decode as Decode exposing (Decoder, field, maybe, string, int)
 import GraphQL exposing (Fragment)
+import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
+
 
 
 -- TYPES

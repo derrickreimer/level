@@ -1,12 +1,4 @@
-module IdentityMap
-    exposing
-        ( IdentityMap
-        , Node
-        , init
-        , get
-        , set
-        , getList
-        )
+module IdentityMap exposing (IdentityMap, Node, get, getList, init, set)
 
 import Dict exposing (Dict)
 
@@ -35,6 +27,7 @@ get (IdentityMap dict) record =
         Just savedRecord ->
             if savedRecord.fetchedAt < record.fetchedAt then
                 record
+
             else
                 savedRecord
 
@@ -50,13 +43,14 @@ set (IdentityMap dict) record =
                 Just savedRecord ->
                     if savedRecord.fetchedAt < record.fetchedAt then
                         Dict.insert record.id record dict
+
                     else
                         dict
 
                 Nothing ->
                     Dict.insert record.id record dict
     in
-        IdentityMap newDict
+    IdentityMap newDict
 
 
 getList : IdentityMap (Node a) -> List (Node a) -> List (Node a)

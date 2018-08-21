@@ -1,14 +1,14 @@
 module Query.InboxInit exposing (Response, request)
 
-import Json.Decode as Decode exposing (Decoder)
-import Json.Encode as Encode
-import Task exposing (Task)
 import Component.Post
 import Connection exposing (Connection)
 import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Session exposing (Session)
+import Task exposing (Task)
 
 
 type alias Response =

@@ -1,11 +1,12 @@
-module File exposing (File, Data, init, getContents, request, receive, input, avatarInput)
+module File exposing (Data, File, avatarInput, getContents, init, input, receive, request)
 
 import File.Types exposing (Data)
-import Html exposing (Html, Attribute, label, text, button, img)
-import Html.Attributes as Attributes exposing (type_, id, class, src)
+import Html exposing (Attribute, Html, button, img, label, text)
+import Html.Attributes as Attributes exposing (class, id, src, type_)
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Ports
+
 
 
 -- TYPES
@@ -61,7 +62,7 @@ input name onChange attrs =
             , on "change" (Decode.succeed onChange)
             ]
     in
-        Html.input (defaultAttrs ++ attrs) []
+    Html.input (defaultAttrs ++ attrs) []
 
 
 avatarInput : String -> Maybe String -> msg -> Html msg

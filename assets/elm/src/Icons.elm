@@ -1,25 +1,4 @@
-module Icons
-    exposing
-        ( Toggle(..)
-        , arrowLeft
-        , arrowRight
-        , arrowUpRight
-        , atSign
-        , bookmark
-        , check
-        , checkSquare
-        , open
-        , closed
-        , comment
-        , heart
-        , lock
-        , logo
-        , sync
-        , search
-        , square
-        , undismissed
-        , unlock
-        )
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, comment, heart, lock, logo, open, search, square, sync, undismissed, unlock)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class)

@@ -1,11 +1,11 @@
 module Mutation.CompleteSetupStep exposing (Response(..), request)
 
-import Task exposing (Task)
-import Json.Encode as Encode
-import Json.Decode as Decode
 import Data.Setup exposing (State, setupStateDecoder, setupStateEncoder)
-import Session exposing (Session)
 import GraphQL exposing (Document)
+import Json.Decode as Decode
+import Json.Encode as Encode
+import Session exposing (Session)
+import Task exposing (Task)
 
 
 type Response

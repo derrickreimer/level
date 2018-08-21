@@ -1,12 +1,13 @@
 module View.Layout exposing (userLayout)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
 import Avatar
 import Data.User as User exposing (User)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Icons
 import Lazy exposing (Lazy(..))
 import View.Helpers exposing (displayName)
+
 
 
 -- VIEWS
@@ -37,13 +38,13 @@ currentUserView lazyUser =
                 userData =
                     User.getCachedData user
             in
-                a [ href "#", class "flex items-center no-underline text-dusty-blue-darker" ]
-                    [ div [] [ Avatar.personAvatar Avatar.Small userData ]
-                    , div [ class "ml-2 text-sm leading-normal" ]
-                        [ div [] [ text "Signed in as" ]
-                        , div [ class "font-bold" ] [ text (displayName userData) ]
-                        ]
+            a [ href "#", class "flex items-center no-underline text-dusty-blue-darker" ]
+                [ div [] [ Avatar.personAvatar Avatar.Small userData ]
+                , div [ class "ml-2 text-sm leading-normal" ]
+                    [ div [] [ text "Signed in as" ]
+                    , div [ class "font-bold" ] [ text (displayName userData) ]
                     ]
+                ]
 
         NotLoaded ->
             -- This is a hack to prevent any vertical shifting when the actual user is loaded

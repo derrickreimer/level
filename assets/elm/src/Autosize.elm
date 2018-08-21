@@ -1,7 +1,8 @@
-module Autosize exposing (init, update, destroy)
+module Autosize exposing (destroy, init, update)
 
 import Autosize.Types exposing (Args)
 import Ports
+
 
 
 -- API

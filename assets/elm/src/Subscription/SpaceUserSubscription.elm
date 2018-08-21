@@ -1,24 +1,15 @@
-module Subscription.SpaceUserSubscription
-    exposing
-        ( subscribe
-        , unsubscribe
-        , groupBookmarkedDecoder
-        , groupUnbookmarkedDecoder
-        , postSubscribedDecoder
-        , postUnsubscribedDecoder
-        , userMentionedDecoder
-        , mentionsDismissedDecoder
-        )
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postSubscribedDecoder, postUnsubscribedDecoder, subscribe, unsubscribe, userMentionedDecoder)
 
-import Json.Decode as Decode
-import Json.Encode as Encode
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Socket
 import Subscription
+
 
 
 -- SOCKETS
