@@ -14,7 +14,7 @@ module Page.UserSettings
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Task exposing (Task)
 import Data.User as User
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)

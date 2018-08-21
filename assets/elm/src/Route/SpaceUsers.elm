@@ -1,6 +1,6 @@
 module Route.SpaceUsers exposing (Params(..), params, segments)
 
-import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
+import Vendor.UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
 
 
 type Params

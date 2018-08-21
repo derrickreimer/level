@@ -32,7 +32,7 @@ import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Data.ValidationError exposing (ValidationError)
 import Icons
-import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
+import Vendor.Keys as Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.CreatePost as CreatePost

@@ -6,7 +6,7 @@ import Html.Events exposing (onInput, onClick, onBlur)
 import Http
 import Json.Decode as Decode exposing (decodeString)
 import Json.Encode as Encode
-import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Regex exposing (regex)
 import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
 import View.Helpers exposing (injectHtml)

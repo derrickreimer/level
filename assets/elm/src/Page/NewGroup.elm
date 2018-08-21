@@ -13,7 +13,7 @@ module Page.NewGroup
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Task exposing (Task)
 import Data.Space as Space exposing (Space)
 import Data.Group as Group exposing (Group)

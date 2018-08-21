@@ -1,33 +1,33 @@
-module View.Helpers
-    exposing
-        ( -- MISC
-          displayName
-        , injectHtml
-        , viewIf
-        , viewUnless
-          -- DOM
-        , setFocus
-        , unsetFocus
-        , selectValue
-          -- DATE HELPERS
-        , formatTime
-        , formatTimeWithoutMeridian
-        , formatDateTime
-        , formatDay
-        , onSameDay
-        , isOverOneYearAgo
-        , smartFormatDate
-        )
+module View.Helpers exposing
+    ( -- MISC
+      displayName
+    , formatDateTime
+    , formatDay
+    , formatTime
+    , formatTimeWithoutMeridian
+    , injectHtml
+    , isOverOneYearAgo
+    , onSameDay
+    , selectValue
+      -- DATE HELPERS
+    , setFocus
+    , smartFormatDate
+    , unsetFocus
+    , viewIf
+    , viewUnless
+      -- DOM
+    )
 
+import Browser.Dom exposing (blur, focus)
 import Date exposing (Date)
-import Date.Format
-import Dom exposing (focus, blur)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Encode as Encode
 import Ports
 import Task
 import Time
+import Vendor.Date.Format
+
 
 
 -- TYPES
@@ -64,6 +64,7 @@ viewIf : Bool -> Html msg -> Html msg
 viewIf truth view =
     if truth == True then
         view
+
     else
         text ""
 
@@ -74,6 +75,7 @@ viewUnless : Bool -> Html msg -> Html msg
 viewUnless truth view =
     if truth == False then
         view
+
     else
         text ""
 
@@ -108,7 +110,7 @@ selectValue id =
 -}
 formatTime : Date -> String
 formatTime date =
-    Date.Format.format "%-l:%M %P" date
+    Vendor.Date.Format.format "%-l:%M %P" date
 
 
 {-| Converts a date into a human-friendly HH:MM time string.
@@ -118,7 +120,7 @@ formatTime date =
 -}
 formatTimeWithoutMeridian : Date -> String
 formatTimeWithoutMeridian date =
-    Date.Format.format "%-l:%M" date
+    Vendor.Date.Format.format "%-l:%M" date
 
 
 {-| Converts a date into a human-friendly date and time string.
@@ -133,10 +135,11 @@ formatDateTime withYear date =
         dateString =
             if withYear then
                 "%b %-e, %Y"
+
             else
                 "%b %-e"
     in
-        Date.Format.format dateString date ++ " at " ++ formatTime date
+    Vendor.Date.Format.format dateString date ++ " at " ++ formatTime date
 
 
 {-| Converts a date into a human-friendly day string.
@@ -146,7 +149,7 @@ formatDateTime withYear date =
 -}
 formatDay : Date -> String
 formatDay date =
-    Date.Format.format "%A, %B %-e, %Y" date
+    Vendor.Date.Format.format "%A, %B %-e, %Y" date
 
 
 {-| Checks to see if two dates are on the same day.
@@ -165,21 +168,25 @@ onSameDay d1 d2 =
 -}
 isOverOneYearAgo : Date -> Date -> Bool
 isOverOneYearAgo now pastDate =
-    (Date.toTime now) - (Date.toTime pastDate) > (Time.hour * 24 * 365)
+    Date.toTime now - Date.toTime pastDate > (Time.hour * 24 * 365)
 
 
 {-| Formats the given date intelligently, relative to the current time.
 
     smartFormatDate now someTimeToday == "Today at 10:01am"
+
     smartFormatDate now daysAgo == "May 15 at 5:45pm"
+
     smartFormatDate now overOneYearAgo == "May 10, 2017 at 4:45pm"
 
 -}
 smartFormatDate : Date -> Date -> String
 smartFormatDate now date =
     if onSameDay now date then
-        "Today at " ++ (formatTime date)
+        "Today at " ++ formatTime date
+
     else if isOverOneYearAgo now date then
         formatDateTime True date
+
     else
         formatDateTime False date

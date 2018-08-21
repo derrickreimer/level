@@ -7,7 +7,7 @@ import Regex exposing (regex)
 import Task
 import Data.User as User exposing (User)
 import Data.ValidationError exposing (ValidationError, isInvalid, errorView)
-import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import Lazy exposing (Lazy(..))
 import Mutation.CreateSpace as CreateSpace
 import Query.NewSpaceInit as NewSpaceInit

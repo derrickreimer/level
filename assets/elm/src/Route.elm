@@ -1,14 +1,15 @@
-module Route exposing (Route(..), route, href, fromLocation, newUrl, modifyUrl, toLogin, toSpace)
+module Route exposing (Route(..), fromLocation, href, modifyUrl, newUrl, route, toLogin, toSpace)
 
 {-| Routing logic for the application.
 -}
 
-import Navigation exposing (Location)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
-import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
+import Navigation exposing (Location)
 import Route.Groups
 import Route.SpaceUsers
+import Vendor.UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
+
 
 
 -- ROUTING --
@@ -87,7 +88,7 @@ routeToString page =
                 SpaceSettings ->
                     [ "settings" ]
     in
-        "#/" ++ String.join "/" pieces
+    "#/" ++ String.join "/" pieces
 
 
 
@@ -113,6 +114,7 @@ fromLocation : Location -> Maybe Route
 fromLocation location =
     if String.isEmpty location.hash then
         Just Root
+
     else
         parseHash route location
 
