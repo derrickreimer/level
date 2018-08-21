@@ -59,7 +59,7 @@ clientId spaceId =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         subscription SpaceSubscription(
           $spaceId: ID!

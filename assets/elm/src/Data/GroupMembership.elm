@@ -29,7 +29,7 @@ type GroupMembershipState
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment GroupMembershipFields on GroupMembership {
           spaceUser {

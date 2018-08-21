@@ -39,7 +39,7 @@ type Role
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment SpaceUserFields on SpaceUser {
           id

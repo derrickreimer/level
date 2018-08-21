@@ -24,7 +24,7 @@ type alias Record =
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment GroupFields on Group {
           id

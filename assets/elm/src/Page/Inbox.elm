@@ -1,20 +1,5 @@
-module Page.Inbox
-    exposing
-        ( Model
-        , Msg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , handleReplyCreated
-        , handleMentionsDismissed
-        , subscriptions
-        , view
-        )
+module Page.Inbox exposing (Model, Msg(..), handleMentionsDismissed, handleReplyCreated, init, setup, subscriptions, teardown, title, update, view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
@@ -22,7 +7,8 @@ import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
-import Date exposing (Date)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Icons
 import Query.InboxInit as InboxInit
 import Repo exposing (Repo)
@@ -31,8 +17,9 @@ import Route.SpaceUsers
 import Session exposing (Session)
 import Task exposing (Task)
 import TaskHelpers
-import Time exposing (Time, every, second)
+import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (displayName, injectHtml, smartFormatDate)
+
 
 
 -- MODEL
@@ -42,7 +29,7 @@ type alias Model =
     { space : Space
     , currentUser : SpaceUser
     , mentionedPosts : Connection Component.Post.Model
-    , now : Date
+    , now : ( Zone, Posix )
     }
 
 
@@ -67,7 +54,7 @@ init space currentUser session =
         |> Task.andThen (buildModel space currentUser)
 
 
-buildModel : Space -> SpaceUser -> ( ( Session, InboxInit.Response ), Date ) -> Task Session.Error ( Session, Model )
+buildModel : Space -> SpaceUser -> ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
 buildModel space currentUser ( ( session, { mentionedPosts } ), now ) =
     Task.succeed ( session, Model space currentUser mentionedPosts now )
 
@@ -81,7 +68,7 @@ setup model =
                 |> List.map (\component -> Cmd.map (PostComponentMsg component.id) (Component.Post.setup component))
                 |> Cmd.batch
     in
-        mentionsCmd
+    mentionsCmd
 
 
 teardown : Model -> Cmd Msg
@@ -93,7 +80,7 @@ teardown model =
                 |> List.map (\component -> Cmd.map (PostComponentMsg component.id) (Component.Post.teardown component))
                 |> Cmd.batch
     in
-        mentionsCmd
+    mentionsCmd
 
 
 
@@ -101,29 +88,33 @@ teardown model =
 
 
 type Msg
-    = Tick Time
+    = Tick Posix
+    | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
 update msg session model =
     case msg of
-        Tick time ->
-            { model | now = Date.fromTime time }
+        Tick posix ->
+            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), session )
+
+        SetCurrentTime posix zone ->
+            { model | now = ( zone, posix ) }
                 |> noCmd session
 
-        PostComponentMsg id msg ->
+        PostComponentMsg id componentMsg ->
             case Connection.get .id id model.mentionedPosts of
                 Just component ->
                     let
                         ( ( newComponent, cmd ), newSession ) =
-                            Component.Post.update msg (Space.getId model.space) session component
+                            Component.Post.update componentMsg (Space.getId model.space) session component
                     in
-                        ( ( { model | mentionedPosts = Connection.update .id newComponent model.mentionedPosts }
-                          , Cmd.map (PostComponentMsg id) cmd
-                          )
-                        , newSession
-                        )
+                    ( ( { model | mentionedPosts = Connection.update .id newComponent model.mentionedPosts }
+                      , Cmd.map (PostComponentMsg id) cmd
+                      )
+                    , newSession
+                    )
 
                 Nothing ->
                     noCmd session model
@@ -144,18 +135,18 @@ handleReplyCreated reply ({ mentionedPosts } as model) =
         id =
             Reply.getPostId reply
     in
-        case Connection.get .id id mentionedPosts of
-            Just component ->
-                let
-                    ( newComponent, cmd ) =
-                        Component.Post.handleReplyCreated reply component
-                in
-                    ( { model | mentionedPosts = Connection.update .id newComponent mentionedPosts }
-                    , Cmd.map (PostComponentMsg id) cmd
-                    )
+    case Connection.get .id id mentionedPosts of
+        Just component ->
+            let
+                ( newComponent, cmd ) =
+                    Component.Post.handleReplyCreated reply component
+            in
+            ( { model | mentionedPosts = Connection.update .id newComponent mentionedPosts }
+            , Cmd.map (PostComponentMsg id) cmd
+            )
 
-            Nothing ->
-                ( model, Cmd.none )
+        Nothing ->
+            ( model, Cmd.none )
 
 
 handleMentionsDismissed : Post -> Model -> ( Model, Cmd Msg )
@@ -164,14 +155,14 @@ handleMentionsDismissed post ({ mentionedPosts } as model) =
         id =
             Post.getId post
     in
-        case Connection.get .id id mentionedPosts of
-            Just component ->
-                ( { model | mentionedPosts = Connection.remove .id id mentionedPosts }
-                , Cmd.map (PostComponentMsg id) (Component.Post.teardown component)
-                )
+    case Connection.get .id id mentionedPosts of
+        Just component ->
+            ( { model | mentionedPosts = Connection.remove .id id mentionedPosts }
+            , Cmd.map (PostComponentMsg id) (Component.Post.teardown component)
+            )
 
-            Nothing ->
-                ( model, Cmd.none )
+        Nothing ->
+            ( model, Cmd.none )
 
 
 
@@ -180,7 +171,7 @@ handleMentionsDismissed post ({ mentionedPosts } as model) =
 
 subscriptions : Sub Msg
 subscriptions =
-    every second Tick
+    every 1000 Tick
 
 
 
@@ -257,7 +248,7 @@ userItemView repo user =
             user
                 |> Repo.getSpaceUser repo
     in
-        div [ class "flex items-center pr-4 mb-px" ]
-            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
-            , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
-            ]
+    div [ class "flex items-center pr-4 mb-px" ]
+        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
+        ]

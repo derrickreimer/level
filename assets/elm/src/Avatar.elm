@@ -1,4 +1,4 @@
-module Avatar exposing (Size(..), texitar, avatar, personAvatar, thingAvatar)
+module Avatar exposing (Size(..), avatar, personAvatar, texitar, thingAvatar)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -27,14 +27,14 @@ type alias Thing a =
 an uploaded avatar image).
 -}
 texitar : Size -> String -> Html msg
-texitar size initials =
+texitar size body =
     div
         [ classList
             [ ( "avatar", True )
             , ( sizeClass size, True )
             ]
         ]
-        [ text initials ]
+        [ text body ]
 
 
 {-| An image-based avatar.
@@ -90,7 +90,7 @@ personTexitar size { firstName, lastName } =
                 _ ->
                     initials [ firstName, lastName ]
     in
-        texitar size text
+    texitar size text
 
 
 initial : String -> String

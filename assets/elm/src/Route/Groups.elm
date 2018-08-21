@@ -1,6 +1,6 @@
 module Route.Groups exposing (Params(..), params, segments)
 
-import Vendor.UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
+import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
 type Params
@@ -12,15 +12,15 @@ type Params
 params : Parser (Params -> a) a
 params =
     oneOf
-        [ Url.map Root (s "groups")
-        , Url.map After (s "groups" </> s "after" </> Url.string)
-        , Url.map Before (s "groups" </> s "before" </> Url.string)
+        [ Parser.map Root (s "groups")
+        , Parser.map After (s "groups" </> s "after" </> Parser.string)
+        , Parser.map Before (s "groups" </> s "before" </> Parser.string)
         ]
 
 
 segments : Params -> List String
-segments params =
-    case params of
+segments p =
+    case p of
         Root ->
             [ "groups" ]
 

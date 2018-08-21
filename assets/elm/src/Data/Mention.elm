@@ -1,17 +1,11 @@
-module Data.Mention
-    exposing
-        ( Mention
-        , Record
-        , fragment
-        , decoder
-        , getCachedData
-        )
+module Data.Mention exposing (Mention, Record, decoder, fragment, getCachedData)
 
-import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, field)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
+import Json.Decode as Decode exposing (Decoder, field)
+import Time exposing (Posix)
 import Util exposing (dateDecoder)
+
 
 
 -- TYPES
@@ -23,13 +17,13 @@ type Mention
 
 type alias Record =
     { mentioner : SpaceUser
-    , occurredAt : Date
+    , occurredAt : Posix
     }
 
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment MentionFields on Mention {
           mentioner {
@@ -49,10 +43,9 @@ fragment =
 decoder : Decoder Mention
 decoder =
     Decode.map Mention <|
-        (Decode.map2 Record
+        Decode.map2 Record
             (field "mentioner" SpaceUser.decoder)
             (field "occurredAt" dateDecoder)
-        )
 
 
 

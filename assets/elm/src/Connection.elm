@@ -52,7 +52,7 @@ fragment name nodeFragment =
                 ]
 
         pageInfo =
-            GraphQL.fragment
+            GraphQL.toFragment
                 """
                 fragment PageInfoFields on PageInfo {
                   hasPreviousPage
@@ -63,7 +63,7 @@ fragment name nodeFragment =
                 """
                 []
     in
-    GraphQL.fragment body [ nodeFragment, pageInfo ]
+    GraphQL.toFragment body [ nodeFragment, pageInfo ]
 
 
 
@@ -133,25 +133,25 @@ head (Connection { nodes }) =
 first : Int -> Connection a -> Subset a
 first n (Connection { nodes, pageInfo }) =
     let
-        hasNextPage =
+        subsetHasNextPage =
             size nodes > n || pageInfo.hasNextPage
 
         partialNodes =
             List.take n nodes
     in
-    Subset partialNodes pageInfo.hasPreviousPage hasNextPage
+    Subset partialNodes pageInfo.hasPreviousPage subsetHasNextPage
 
 
 last : Int -> Connection a -> Subset a
 last n (Connection { nodes, pageInfo }) =
     let
-        hasPreviousPage =
+        subsetHasPreviousPage =
             size nodes > n || pageInfo.hasPreviousPage
 
         partialNodes =
             ListHelpers.takeLast n nodes
     in
-    Subset partialNodes hasPreviousPage pageInfo.hasNextPage
+    Subset partialNodes subsetHasPreviousPage pageInfo.hasNextPage
 
 
 

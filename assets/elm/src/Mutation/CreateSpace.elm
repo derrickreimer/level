@@ -17,7 +17,7 @@ type Response
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         mutation CreateSpace(
           $name: String!,

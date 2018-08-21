@@ -18,7 +18,7 @@ type alias Response =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         query InboxInit(
           $spaceId: ID!

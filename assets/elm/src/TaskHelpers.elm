@@ -1,19 +1,13 @@
 module TaskHelpers exposing (andThenGetCurrentTime)
 
-import Date exposing (Date)
 import Task exposing (Task)
+import Time exposing (Posix, Zone)
+
 
 
 -- API
 
 
-andThenGetCurrentTime : Task x a -> Task x ( a, Date )
+andThenGetCurrentTime : Task x a -> Task x ( a, ( Zone, Posix ) )
 andThenGetCurrentTime task =
-    let
-        dateTask : a -> Task x ( a, Date )
-        dateTask result =
-            Date.now
-                |> Task.map (\now -> ( result, now ))
-    in
-        task
-            |> Task.andThen dateTask
+    Task.map3 (\res zone now -> ( res, ( zone, now ) )) task Time.here Time.now

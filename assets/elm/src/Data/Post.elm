@@ -1,27 +1,16 @@
-module Data.Post
-    exposing
-        ( Post
-        , Record
-        , State(..)
-        , SubscriptionState(..)
-        , fragment
-        , decoder
-        , decoderWithReplies
-        , getId
-        , getCachedData
-        , groupsInclude
-        )
+module Data.Post exposing (Post, Record, State(..), SubscriptionState(..), decoder, decoderWithReplies, fragment, getCachedData, getId, groupsInclude)
 
-import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, field, list, string, int, succeed, fail)
-import Json.Decode.Pipeline as Pipeline
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Mention as Mention exposing (Mention)
 import Data.Reply as Reply exposing (Reply)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
-import Util exposing (dateDecoder, (=>))
+import Json.Decode as Decode exposing (Decoder, fail, field, int, list, string, succeed)
+import Json.Decode.Pipeline as Pipeline
+import Time exposing (Posix)
+import Util exposing (dateDecoder, tuplize)
+
 
 
 -- TYPES
@@ -49,7 +38,7 @@ type alias Record =
     , bodyHtml : String
     , author : SpaceUser
     , groups : List Group
-    , postedAt : Date
+    , postedAt : Posix
     , subscriptionState : SubscriptionState
     , mentions : List Mention
     , fetchedAt : Int
@@ -81,11 +70,11 @@ fragment =
             }
             """
     in
-        GraphQL.fragment body
-            [ SpaceUser.fragment
-            , Group.fragment
-            , Mention.fragment
-            ]
+    GraphQL.toFragment body
+        [ SpaceUser.fragment
+        , Group.fragment
+        , Mention.fragment
+        ]
 
 
 
@@ -95,7 +84,7 @@ fragment =
 decoder : Decoder Post
 decoder =
     Decode.map Post <|
-        (Pipeline.decode Record
+        (Decode.succeed Record
             |> Pipeline.required "id" string
             |> Pipeline.required "state" stateDecoder
             |> Pipeline.required "body" string
@@ -111,7 +100,7 @@ decoder =
 
 decoderWithReplies : Decoder ( Post, Connection Reply )
 decoderWithReplies =
-    Decode.map2 (=>) decoder (field "replies" (Connection.decoder Reply.decoder))
+    Decode.map2 tuplize decoder (field "replies" (Connection.decoder Reply.decoder))
 
 
 stateDecoder : Decoder State
@@ -129,7 +118,7 @@ stateDecoder =
                 _ ->
                     fail "State not valid"
     in
-        Decode.andThen convert string
+    Decode.andThen convert string
 
 
 subscriptionStateDecoder : Decoder SubscriptionState
@@ -150,7 +139,7 @@ subscriptionStateDecoder =
                 _ ->
                     fail "Subscription state not valid"
     in
-        Decode.andThen convert string
+    Decode.andThen convert string
 
 
 
@@ -169,6 +158,6 @@ getCachedData (Post data) =
 
 groupsInclude : Group -> Post -> Bool
 groupsInclude group (Post data) =
-    List.filter (\g -> (Group.getId g) == (Group.getId group)) data.groups
+    List.filter (\g -> Group.getId g == Group.getId group) data.groups
         |> List.isEmpty
         |> not

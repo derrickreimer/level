@@ -1,14 +1,8 @@
-module Util
-    exposing
-        ( Lazy(..)
-        , (=>)
-        , dateDecoder
-        , postWithCsrfToken
-        )
+module Util exposing (Lazy(..), dateDecoder, postWithCsrfToken, tuplize)
 
-import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, string, andThen, succeed, fail)
 import Http
+import Json.Decode as Decode exposing (Decoder, andThen, fail, string, succeed)
+import Time exposing (Posix)
 
 
 type Lazy a
@@ -20,8 +14,8 @@ type Lazy a
 -- SUGAR
 
 
-(=>) : a -> b -> ( a, b )
-(=>) a b =
+tuplize : a -> b -> ( a, b )
+tuplize a b =
     ( a, b )
 
 
@@ -29,25 +23,11 @@ type Lazy a
 -- CUSTOM DECODERS
 
 
-{-| Decodes a Date from JSON.
-
-    decodeString dateDecoder "2017-12-28T10:00:00Z"
-    -- Ok <Thu Dec 28 2017 10:00:00 GMT>
-
+{-| Decodes a (millisecond) timestamp from JSON.
 -}
-dateDecoder : Decoder Date
+dateDecoder : Decoder Posix
 dateDecoder =
-    let
-        convert : String -> Decoder Date
-        convert raw =
-            case Date.fromString raw of
-                Ok date ->
-                    succeed date
-
-                Err error ->
-                    fail error
-    in
-        string |> andThen convert
+    Decode.int |> andThen (Decode.succeed << Time.millisToPosix)
 
 
 

@@ -1,11 +1,12 @@
-module GraphQL exposing (Fragment, Document, fragment, fragmentName, document, request, serializeDocument)
+module GraphQL exposing (Document, Fragment, fragmentName, request, serializeDocument, toDocument, toFragment)
 
 import Http
-import Json.Encode as Encode
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Regex
 import Session exposing (Session)
 import Set
+
 
 
 -- TYPES
@@ -23,13 +24,13 @@ type Document
 -- CONSTRUCTORS
 
 
-fragment : String -> List Fragment -> Fragment
-fragment body referencedFragments =
+toFragment : String -> List Fragment -> Fragment
+toFragment body referencedFragments =
     Fragment body referencedFragments
 
 
-document : String -> List Fragment -> Document
-document operation fragments =
+toDocument : String -> List Fragment -> Document
+toDocument operation fragments =
     Document operation (flatten fragments)
 
 
@@ -37,22 +38,23 @@ fragmentName : Fragment -> String
 fragmentName (Fragment body _) =
     let
         regex =
-            Regex.regex "fragment ([A-Za-z]+)"
+            Maybe.withDefault Regex.never <|
+                Regex.fromString "fragment ([A-Za-z]+)"
 
         matches =
-            Regex.find (Regex.AtMost 1) regex body
+            Regex.findAtMost 1 regex body
     in
-        case matches of
-            { submatches } :: _ ->
-                case submatches of
-                    (Just name) :: _ ->
-                        name
+    case matches of
+        { submatches } :: _ ->
+            case submatches of
+                (Just name) :: _ ->
+                    name
 
-                    _ ->
-                        "Unknown"
+                _ ->
+                    "Unknown"
 
-            _ ->
-                "Unknown"
+        _ ->
+            "Unknown"
 
 
 
@@ -65,15 +67,15 @@ request document maybeVariables decoder session =
         requestBody =
             Encode.encode 0 (buildRequestBody document maybeVariables)
     in
-        Http.request
-            { method = "POST"
-            , headers = [ Http.header "Authorization" ("Bearer " ++ session.token) ]
-            , url = "/graphql"
-            , body = Http.stringBody "application/json" requestBody
-            , expect = Http.expectJson decoder
-            , timeout = Nothing
-            , withCredentials = False
-            }
+    Http.request
+        { method = "POST"
+        , headers = [ Http.header "Authorization" ("Bearer " ++ session.token) ]
+        , url = "/graphql"
+        , body = Http.stringBody "application/json" requestBody
+        , expect = Http.expectJson decoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 serializeDocument : Document -> String
@@ -89,16 +91,16 @@ buildRequestBody document maybeVariables =
         query =
             serializeDocument document
     in
-        case maybeVariables of
-            Nothing ->
-                Encode.object
-                    [ ( "query", Encode.string query ) ]
+    case maybeVariables of
+        Nothing ->
+            Encode.object
+                [ ( "query", Encode.string query ) ]
 
-            Just variables ->
-                Encode.object
-                    [ ( "query", Encode.string query )
-                    , ( "variables", variables )
-                    ]
+        Just variables ->
+            Encode.object
+                [ ( "query", Encode.string query )
+                , ( "variables", variables )
+                ]
 
 
 
@@ -127,10 +129,10 @@ flatten fragments =
                         |> List.concat
                         |> (::) body
     in
-        fragments
-            |> List.map toList
-            |> List.concat
-            |> uniq
+    fragments
+        |> List.map toList
+        |> List.concat
+        |> uniq
 
 
 normalize : String -> String
@@ -154,12 +156,12 @@ normalize value =
                 |> List.minimum
                 |> Maybe.withDefault 0
     in
-        lines
-            |> List.tail
-            |> Maybe.withDefault []
-            |> List.map (String.dropLeft tailPadding)
-            |> (::) firstLine
-            |> String.join "\n"
+    lines
+        |> List.tail
+        |> Maybe.withDefault []
+        |> List.map (String.dropLeft tailPadding)
+        |> (::) firstLine
+        |> String.join "\n"
 
 
 countPadding : Int -> List Char -> Int

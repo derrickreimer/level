@@ -26,7 +26,7 @@ type Params
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment SpaceUserSpaceFields on SpaceUser {
           space {
@@ -40,7 +40,7 @@ fragment =
 
 document : Params -> Document
 document params =
-    GraphQL.document (documentBody params)
+    GraphQL.toDocument (documentBody params)
         [ Connection.fragment "SpaceUserConnection" fragment
         , User.fragment
         ]

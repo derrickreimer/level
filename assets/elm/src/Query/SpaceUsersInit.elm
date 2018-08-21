@@ -17,7 +17,7 @@ type alias Response =
 
 document : Params -> Document
 document params =
-    GraphQL.document (documentBody params)
+    GraphQL.toDocument (documentBody params)
         [ Connection.fragment "SpaceUserConnection" SpaceUser.fragment
         ]
 

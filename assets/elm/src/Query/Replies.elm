@@ -16,7 +16,7 @@ type alias Response =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         query PostInit(
           $spaceId: ID!

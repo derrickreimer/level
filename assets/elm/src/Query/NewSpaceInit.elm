@@ -15,7 +15,7 @@ type alias Response =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         query NewSpaceInit {
           viewer {

@@ -32,12 +32,13 @@ authenticated Http requests.
 
 -}
 
+import Debug
 import Http exposing (Request, expectJson, header, jsonBody, request, toTask)
 import Json.Decode as Json exposing (Value, field)
 import String
 import Task exposing (Task)
-import Time exposing (Time)
-import Vendor.Base64
+import Time exposing (Posix)
+import Vendor.Base64 as Base64
 
 
 {-| The following errors are modeled
@@ -73,7 +74,7 @@ decodeToken : Json.Decoder a -> String -> Result JwtError a
 decodeToken dec =
     getTokenBody
         >> Result.andThen (Base64.decode >> Result.mapError TokenDecodeError)
-        >> Result.andThen (Json.decodeString dec >> Result.mapError TokenDecodeError)
+        >> Result.andThen (Json.decodeString dec >> Result.mapError (TokenDecodeError << Json.errorToString))
 
 
 {-| All the token parsing goodness in the form of a Json Decoder
@@ -93,10 +94,10 @@ tokenDecoder inner =
                 let
                     transformedToken =
                         getTokenBody tokenStr
-                            |> Result.mapError toString
+                            |> Result.mapError (\_ -> "parsing error")
                             |> Result.andThen Base64.decode
                             |> Result.mapError ((++) "base64 error: ")
-                            |> Result.andThen (Json.decodeString inner)
+                            |> Result.andThen (Json.decodeString inner >> Result.mapError Json.errorToString)
                 in
                 case transformedToken of
                     Ok val ->
@@ -147,7 +148,7 @@ unurl =
 
 fixlength : String -> Result JwtError String
 fixlength s =
-    case String.length s % 4 of
+    case modBy 4 (String.length s) of
         0 ->
             Result.Ok s
 
@@ -172,13 +173,13 @@ checkTokenExpiry token =
 {-| Checks whether a token has expired, and returns True or False, or
 any error that occurred while decoding the token.
 -}
-isExpired : Time -> String -> Result JwtError Bool
+isExpired : Posix -> String -> Result JwtError Bool
 isExpired now token =
     decodeToken (field "exp" Json.float) token
-        |> Result.map (\exp -> now > exp * 1000)
+        |> Result.map (\exp -> toFloat (Time.posixToMillis now) > exp * 1000)
 
 
-checkUnacceptedToken : String -> Time -> JwtError
+checkUnacceptedToken : String -> Posix -> JwtError
 checkUnacceptedToken token now =
     case isExpired now token of
         Result.Ok True ->
@@ -223,7 +224,7 @@ createRequestObject :
     -> String
     -> Http.Body
     -> Json.Decoder a
-    -> { method : String, headers : List Http.Header, url : String, body : Http.Body, expect : Http.Expect a, timeout : Maybe Time, withCredentials : Bool }
+    -> { method : String, headers : List Http.Header, url : String, body : Http.Body, expect : Http.Expect a, timeout : Maybe Float, withCredentials : Bool }
 createRequestObject method token url body dec =
     { method = method
     , headers = [ header "Authorization" ("Bearer " ++ token) ]

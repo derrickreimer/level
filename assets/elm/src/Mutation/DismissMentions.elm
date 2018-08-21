@@ -16,7 +16,7 @@ type Response
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         mutation DismissMentions(
           $spaceId: ID!,

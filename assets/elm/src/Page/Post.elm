@@ -1,34 +1,22 @@
-module Page.Post
-    exposing
-        ( Model
-        , Msg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , subscriptions
-        , view
-        , handleReplyCreated
-        )
+module Page.Post exposing (Model, Msg(..), handleReplyCreated, init, setup, subscriptions, teardown, title, update, view)
 
-import Date exposing (Date)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Task exposing (Task)
-import Time exposing (Time, every, second)
 import Component.Post
 import Connection
 import Data.Reply as Reply exposing (Reply)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Mutation.RecordPostView as RecordPostView
 import Query.PostInit as PostInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Task exposing (Task)
 import TaskHelpers
+import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (displayName)
+
 
 
 -- MODEL
@@ -38,7 +26,7 @@ type alias Model =
     { post : Component.Post.Model
     , space : Space
     , user : SpaceUser
-    , now : Date
+    , now : ( Zone, Posix )
     }
 
 
@@ -55,7 +43,7 @@ title repo { user } =
         name =
             displayName userData
     in
-        "View post from " ++ name
+    "View post from " ++ name
 
 
 
@@ -70,7 +58,7 @@ init user space postId session =
         |> Task.andThen (buildModel user space)
 
 
-buildModel : SpaceUser -> Space -> ( ( Session, PostInit.Response ), Date ) -> Task Session.Error ( Session, Model )
+buildModel : SpaceUser -> Space -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
 buildModel user space ( ( session, { post } ), now ) =
     Task.succeed ( session, Model post space user now )
 
@@ -102,9 +90,9 @@ recordView session { space, post } =
                 _ ->
                     Nothing
     in
-        session
-            |> RecordPostView.request (Space.getId space) post.id maybeReplyId
-            |> Task.attempt ViewRecorded
+    session
+        |> RecordPostView.request (Space.getId space) post.id maybeReplyId
+        |> Task.attempt ViewRecorded
 
 
 
@@ -114,26 +102,27 @@ recordView session { space, post } =
 type Msg
     = PostComponentMsg Component.Post.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
-    | Tick Time
+    | Tick Posix
+    | SetCurrentTime Posix Zone
     | NoOp
 
 
 update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
 update msg repo session ({ post } as model) =
     case msg of
-        PostComponentMsg msg ->
+        PostComponentMsg componentMsg ->
             let
                 ( ( newPost, cmd ), newSession ) =
-                    Component.Post.update msg (Space.getId model.space) session post
+                    Component.Post.update componentMsg (Space.getId model.space) session post
             in
-                ( ( { model | post = newPost }
-                  , Cmd.map PostComponentMsg cmd
-                  )
-                , newSession
-                )
+            ( ( { model | post = newPost }
+              , Cmd.map PostComponentMsg cmd
+              )
+            , newSession
+            )
 
-        ViewRecorded (Ok ( session, _ )) ->
-            noCmd session model
+        ViewRecorded (Ok ( newSession, _ )) ->
+            noCmd newSession model
 
         ViewRecorded (Err Session.Expired) ->
             redirectToLogin session model
@@ -141,8 +130,11 @@ update msg repo session ({ post } as model) =
         ViewRecorded (Err _) ->
             noCmd session model
 
-        Tick time ->
-            { model | now = Date.fromTime time }
+        Tick posix ->
+            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), session )
+
+        SetCurrentTime posix zone ->
+            { model | now = ( zone, posix ) }
                 |> noCmd session
 
         NoOp ->
@@ -169,7 +161,7 @@ handleReplyCreated reply ({ post } as model) =
         ( newPost, cmd ) =
             Component.Post.handleReplyCreated reply post
     in
-        ( { model | post = newPost }, Cmd.map PostComponentMsg cmd )
+    ( { model | post = newPost }, Cmd.map PostComponentMsg cmd )
 
 
 
@@ -178,7 +170,7 @@ handleReplyCreated reply ({ post } as model) =
 
 subscriptions : Sub Msg
 subscriptions =
-    every second Tick
+    every 1000 Tick
 
 
 
@@ -195,7 +187,7 @@ view repo model =
         ]
 
 
-postView : Repo -> SpaceUser -> Date -> Component.Post.Model -> Html Msg
+postView : Repo -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
 postView repo currentUser now component =
     div [ class "pt-6" ]
         [ Component.Post.postView repo currentUser now component

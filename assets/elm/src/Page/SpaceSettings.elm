@@ -1,29 +1,19 @@
-module Page.SpaceSettings
-    exposing
-        ( Model
-        , Msg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , subscriptions
-        , view
-        )
+module Page.SpaceSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
 
+import Data.Space as Space exposing (Space)
+import Data.ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
+import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
-import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import Task exposing (Task)
-import Data.Space as Space exposing (Space)
-import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
-import File exposing (File)
+import Html.Events exposing (onClick, onInput)
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Task exposing (Task)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+
 
 
 -- MODEL
@@ -106,22 +96,22 @@ update msg session model =
                         |> UpdateSpace.request model.id model.name model.slug
                         |> Task.attempt Submitted
             in
-                ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
+            ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
 
-        Submitted (Ok ( session, UpdateSpace.Success space )) ->
+        Submitted (Ok ( newSession, UpdateSpace.Success space )) ->
             let
                 data =
                     Space.getCachedData space
             in
-                noCmd session
-                    { model
-                        | name = data.name
-                        , slug = data.slug
-                        , isSubmitting = False
-                    }
+            noCmd newSession
+                { model
+                    | name = data.name
+                    , slug = data.slug
+                    , isSubmitting = False
+                }
 
-        Submitted (Ok ( session, UpdateSpace.Invalid errors )) ->
-            noCmd session { model | isSubmitting = False, errors = errors }
+        Submitted (Ok ( newSession, UpdateSpace.Invalid errors )) ->
+            noCmd newSession { model | isSubmitting = False, errors = errors }
 
         Submitted (Err Session.Expired) ->
             redirectToLogin session model
@@ -143,17 +133,17 @@ update msg session model =
                         |> UpdateSpaceAvatar.request model.id (File.getContents file)
                         |> Task.attempt AvatarSubmitted
             in
-                ( ( { model | newAvatar = Just file }, cmd ), session )
+            ( ( { model | newAvatar = Just file }, cmd ), session )
 
-        AvatarSubmitted (Ok ( session, UpdateSpaceAvatar.Success space )) ->
+        AvatarSubmitted (Ok ( newSession, UpdateSpaceAvatar.Success space )) ->
             let
                 data =
                     Space.getCachedData space
             in
-                noCmd session { model | avatarUrl = data.avatarUrl }
+            noCmd newSession { model | avatarUrl = data.avatarUrl }
 
-        AvatarSubmitted (Ok ( session, UpdateSpaceAvatar.Invalid errors )) ->
-            noCmd session { model | errors = errors }
+        AvatarSubmitted (Ok ( newSession, UpdateSpaceAvatar.Invalid errors )) ->
+            noCmd newSession { model | errors = errors }
 
         AvatarSubmitted (Err Session.Expired) ->
             redirectToLogin session model

@@ -5,8 +5,8 @@ import Json.Decode as Decode exposing (field)
 import Json.Decode.Pipeline as Pipeline
 import Ports
 import Task exposing (Task, fail, succeed)
-import Time exposing (Time)
-import Vendor.Jwt exposing (JwtError)
+import Time exposing (Posix)
+import Vendor.Jwt as Jwt exposing (JwtError)
 
 
 
@@ -66,7 +66,7 @@ decodeToken : String -> Result JwtError Payload
 decodeToken token =
     let
         decoder =
-            Pipeline.decode Payload
+            Decode.succeed Payload
                 |> Pipeline.required "iat" Decode.int
                 |> Pipeline.required "exp" Decode.int
                 |> Pipeline.required "sub" Decode.string
@@ -80,11 +80,11 @@ there a valid cookie-based session.
 fetchNewToken : Session -> Task Error Session
 fetchNewToken session =
     let
-        request =
+        tokenRequest =
             Http.post "/api/tokens" Http.emptyBody <|
                 Decode.map init (field "token" Decode.string)
     in
-    request
+    tokenRequest
         |> Http.toTask
         |> Task.mapError handleError
 
@@ -94,30 +94,9 @@ executes the given request with that session.
 -}
 request : Session -> (Session -> Http.Request a) -> Task Error ( Session, a )
 request session innerRequest =
-    let
-        refreshIfExpired : Session -> Time -> Task Error Session
-        refreshIfExpired session now =
-            case session.payload of
-                Ok payload ->
-                    if payload.exp <= round (Time.inSeconds now) then
-                        fetchNewToken session
-
-                    else
-                        succeed session
-
-                _ ->
-                    fail Invalid
-
-        performRequest : Session -> Task Error ( Session, a )
-        performRequest session =
-            innerRequest session
-                |> Http.toTask
-                |> Task.mapError handleError
-                |> Task.map (\a -> ( session, a ))
-    in
     Time.now
         |> Task.andThen (refreshIfExpired session)
-        |> Task.andThen performRequest
+        |> Task.andThen (performRequest innerRequest)
 
 
 {-| Propagates a token to the websocket connection.
@@ -129,6 +108,28 @@ propagateToken { token } =
 
 
 -- INTERNAL
+
+
+refreshIfExpired : Session -> Posix -> Task Error Session
+refreshIfExpired session now =
+    case session.payload of
+        Ok payload ->
+            if payload.exp <= inSeconds now then
+                fetchNewToken session
+
+            else
+                succeed session
+
+        _ ->
+            fail Invalid
+
+
+performRequest : (Session -> Http.Request a) -> Session -> Task Error ( Session, a )
+performRequest innerRequest session =
+    innerRequest session
+        |> Http.toTask
+        |> Task.mapError handleError
+        |> Task.map (\a -> ( session, a ))
 
 
 handleError : Http.Error -> Error
@@ -143,3 +144,12 @@ handleError error =
 
         _ ->
             HttpError error
+
+
+inSeconds : Posix -> Int
+inSeconds posix =
+    posix
+        |> Time.posixToMillis
+        |> toFloat
+        |> (/) 1000
+        |> round

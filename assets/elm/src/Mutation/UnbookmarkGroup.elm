@@ -14,7 +14,7 @@ type Response
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         mutation UnbookmarkGroup(
           $spaceId: ID!,

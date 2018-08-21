@@ -1,28 +1,18 @@
-module Page.Setup.CreateGroups
-    exposing
-        ( Model
-        , Msg(..)
-        , ExternalMsg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , view
-        )
+module Page.Setup.CreateGroups exposing (ExternalMsg(..), Model, Msg(..), init, setup, teardown, title, update, view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
-import Task exposing (Task)
-import Session exposing (Session)
 import Data.Setup as Setup
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Session exposing (Session)
+import Task exposing (Task)
+
 
 
 -- MODEL
@@ -68,7 +58,7 @@ buildModel repo user space =
         { firstName } =
             Repo.getSpaceUser repo user
     in
-        Model spaceId firstName False [ "All Teams" ]
+    Model spaceId firstName False [ "All Teams" ]
 
 
 setup : Cmd Msg
@@ -103,43 +93,45 @@ update msg session model =
         groups =
             model.selectedGroups
     in
-        case msg of
-            GroupToggled name ->
-                if List.member name groups then
-                    ( ( { model | selectedGroups = remove name groups }, Cmd.none ), session, NoOp )
-                else
-                    ( ( { model | selectedGroups = name :: groups }, Cmd.none ), session, NoOp )
+    case msg of
+        GroupToggled name ->
+            if List.member name groups then
+                ( ( { model | selectedGroups = remove name groups }, Cmd.none ), session, NoOp )
 
-            Submit ->
-                let
-                    cmd =
-                        BulkCreateGroups.request model.spaceId groups session
-                            |> Task.attempt Submitted
-                in
-                    ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
+            else
+                ( ( { model | selectedGroups = name :: groups }, Cmd.none ), session, NoOp )
 
-            Submitted (Ok ( session, BulkCreateGroups.Success )) ->
-                let
-                    cmd =
-                        CompleteSetupStep.request model.spaceId Setup.CreateGroups False session
-                            |> Task.attempt Advanced
-                in
-                    ( ( model, cmd ), session, NoOp )
+        Submit ->
+            let
+                cmd =
+                    BulkCreateGroups.request model.spaceId groups session
+                        |> Task.attempt Submitted
+            in
+            ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
 
-            Submitted (Err Session.Expired) ->
-                redirectToLogin session model
+        Submitted (Ok ( newSession, BulkCreateGroups.Success )) ->
+            let
+                cmd =
+                    CompleteSetupStep.request model.spaceId Setup.CreateGroups False newSession
+                        |> Task.attempt Advanced
+            in
+            ( ( model, cmd ), newSession, NoOp )
 
-            Submitted (Err _) ->
-                ( ( { model | isSubmitting = False }, Cmd.none ), session, NoOp )
+        Submitted (Err Session.Expired) ->
+            redirectToLogin session model
 
-            Advanced (Ok ( session, CompleteSetupStep.Success nextState )) ->
-                ( ( model, Route.modifyUrl <| routeFor nextState ), session, SetupStateChanged nextState )
+        Submitted (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), session, NoOp )
 
-            Advanced (Err Session.Expired) ->
-                redirectToLogin session model
+        Advanced (Ok ( newSession, CompleteSetupStep.Success nextState )) ->
+            -- TODO: Re-instate navigation to next state
+            ( ( model, Cmd.none ), newSession, SetupStateChanged nextState )
 
-            Advanced (Err _) ->
-                ( ( { model | isSubmitting = False }, Cmd.none ), session, NoOp )
+        Advanced (Err Session.Expired) ->
+            redirectToLogin session model
+
+        Advanced (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), session, NoOp )
 
 
 remove : String -> List String -> List String

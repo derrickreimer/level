@@ -70,7 +70,7 @@ clientId id =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         subscription GroupSubscription(
           $groupId: ID!

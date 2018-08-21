@@ -1,30 +1,22 @@
-module Page.Groups
-    exposing
-        ( Model
-        , Msg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , view
-        )
+module Page.Groups exposing (Model, Msg(..), init, setup, teardown, title, update, view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Task exposing (Task)
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.GroupMembership exposing (GroupMembershipState(..))
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Icons
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route
 import Route.Groups
 import Session exposing (Session)
+import Task exposing (Task)
+import Tuple
 import View.Helpers exposing (setFocus, viewIf, viewUnless)
+
 
 
 -- MODEL
@@ -123,17 +115,18 @@ groupsView repo connection =
         partitions =
             connection
                 |> Connection.toList
-                |> List.indexedMap (,)
+                |> List.indexedMap Tuple.pair
                 |> partitionGroups repo []
     in
-        if List.isEmpty partitions then
-            div [ class "p-2 text-center" ]
-                [ text "Wowza! This space does not have any groups yet." ]
-        else
-            div [ class "leading-semi-loose" ]
-                [ div [] <| List.map (groupPartitionView repo) partitions
-                , paginationView connection
-                ]
+    if List.isEmpty partitions then
+        div [ class "p-2 text-center" ]
+            [ text "Wowza! This space does not have any groups yet." ]
+
+    else
+        div [ class "leading-semi-loose" ]
+            [ div [] <| List.map (groupPartitionView repo) partitions
+            , paginationView connection
+            ]
 
 
 groupPartitionView : Repo -> ( String, List IndexedGroup ) -> Html Msg
@@ -151,19 +144,19 @@ groupView repo ( index, group ) =
         groupData =
             Repo.getGroup repo group
     in
-        div []
-            [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
-                [ a [ Route.href (Route.Group groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
-                , viewIf (groupData.membershipState == Subscribed) <|
-                    div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
-                , div [ class "flex-0" ]
-                    [ viewIf groupData.isBookmarked <|
-                        Icons.bookmark Icons.On
-                    , viewUnless groupData.isBookmarked <|
-                        Icons.bookmark Icons.Off
-                    ]
+    div []
+        [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
+            [ a [ Route.href (Route.Group groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
+            , viewIf (groupData.membershipState == Subscribed) <|
+                div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
+            , div [ class "flex-0" ]
+                [ viewIf groupData.isBookmarked <|
+                    Icons.bookmark Icons.On
+                , viewUnless groupData.isBookmarked <|
+                    Icons.bookmark Icons.Off
                 ]
             ]
+        ]
 
 
 paginationView : Connection Group -> Html Msg
@@ -175,10 +168,10 @@ paginationView connection =
         endCursor =
             Connection.endCursor connection
     in
-        div [ class "flex justify-center p-4" ]
-            [ viewIf (Connection.hasPreviousPage connection) (prevButtonView startCursor)
-            , viewIf (Connection.hasNextPage connection) (nextButtonView endCursor)
-            ]
+    div [ class "flex justify-center p-4" ]
+        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView startCursor)
+        , viewIf (Connection.hasNextPage connection) (nextButtonView endCursor)
+        ]
 
 
 prevButtonView : Maybe String -> Html Msg
@@ -189,7 +182,7 @@ prevButtonView maybeCursor =
                 route =
                     Route.Groups (Route.Groups.Before cursor)
             in
-                a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
+            a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
 
         Nothing ->
             text ""
@@ -203,7 +196,7 @@ nextButtonView maybeCursor =
                 route =
                     Route.Groups (Route.Groups.After cursor)
             in
-                a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
+            a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
 
         Nothing ->
             text ""
@@ -224,7 +217,7 @@ partitionGroups repo partitions groups =
                 ( matches, remaining ) =
                     List.partition (startsWith repo letter) groups
             in
-                partitionGroups repo (( letter, matches ) :: partitions) remaining
+            partitionGroups repo (( letter, matches ) :: partitions) remaining
 
         _ ->
             List.reverse partitions
@@ -246,4 +239,4 @@ startsWith repo letter ( _, group ) =
 
 isEven : Int -> Bool
 isEven number =
-    rem number 2 == 0
+    remainderBy 2 number == 0

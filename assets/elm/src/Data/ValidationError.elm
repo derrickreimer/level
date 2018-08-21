@@ -26,7 +26,7 @@ type alias ValidationError =
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment ErrorFields on Error {
           attribute

@@ -30,10 +30,18 @@ module Vendor.Keys exposing
 -}
 
 import Html exposing (Attribute)
-import Html.Events exposing (Options, onWithOptions)
+import Html.Events
 import Json.Decode as Decode exposing (Decoder, bool, field, int)
 import List
 import Tuple
+
+
+{-| Event options.
+-}
+type alias Options =
+    { stopPropagation : Bool
+    , preventDefault : Bool
+    }
 
 
 {-| The possible modifier keys on keyboard events.
@@ -96,22 +104,17 @@ esc =
 
 
 {-| The default event options.
-
-See [`Html.Events`](events).
-
-[events]: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events#Options
-
 -}
 defaultOptions : Options
 defaultOptions =
-    Html.Events.defaultOptions
+    Options False False
 
 
 {-| Prevent the default behavior when the event fires.
 -}
 preventDefault : Options
 preventDefault =
-    { defaultOptions | preventDefault = True }
+    Options False True
 
 
 
@@ -185,11 +188,18 @@ onKeyup =
 -- PRIVATE FUNCTIONS
 
 
+type alias DecoderData msg =
+    { message : msg
+    , stopPropagation : Bool
+    , preventDefault : Bool
+    }
+
+
 onKeyboardEvent : String -> Options -> List (Listener msg) -> Attribute msg
 onKeyboardEvent action options listeners =
     eventDecoder
-        |> Decode.andThen (checkListeners listeners)
-        |> onWithOptions ("key" ++ action) options
+        |> Decode.andThen (checkListeners listeners options)
+        |> Html.Events.custom ("key" ++ action)
 
 
 eventDecoder : Decoder KeyboardEvent
@@ -216,25 +226,25 @@ mapModifiers altKey ctrlKey shiftKey metaKey =
         |> List.map Tuple.first
 
 
-checkListeners : List (Listener msg) -> KeyboardEvent -> Decoder msg
-checkListeners listeners event =
+checkListeners : List (Listener msg) -> Options -> KeyboardEvent -> Decoder (DecoderData msg)
+checkListeners listeners opts event =
     case listeners of
         [] ->
             Decode.fail "no match"
 
         [ ( modifiers, keyCode, toMsg ) ] ->
             if isMatch modifiers keyCode event then
-                Decode.succeed (toMsg event)
+                Decode.succeed <| DecoderData (toMsg event) opts.stopPropagation opts.preventDefault
 
             else
                 Decode.fail "no match"
 
         ( modifiers, keyCode, toMsg ) :: tl ->
             if isMatch modifiers keyCode event then
-                Decode.succeed (toMsg event)
+                Decode.succeed <| DecoderData (toMsg event) opts.stopPropagation opts.preventDefault
 
             else
-                checkListeners tl event
+                checkListeners tl opts event
 
 
 isMatch : List Modifier -> KeyCode -> KeyboardEvent -> Bool
@@ -245,7 +255,7 @@ isMatch modifiers keyCode event =
 hasSameMembers : List a -> List a -> Bool
 hasSameMembers a b =
     let
-        subset a b =
-            List.all (\i -> List.member i a) b
+        subset c d =
+            List.all (\i -> List.member i c) d
     in
     subset a b && subset b a

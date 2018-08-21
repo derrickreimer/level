@@ -59,7 +59,7 @@ clientId id =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         subscription PostSubscription(
           $postId: ID!

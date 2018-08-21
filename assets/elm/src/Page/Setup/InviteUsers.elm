@@ -1,26 +1,15 @@
-module Page.Setup.InviteUsers
-    exposing
-        ( Model
-        , Msg(..)
-        , ExternalMsg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , buildModel
-        , update
-        , view
-        )
+module Page.Setup.InviteUsers exposing (ExternalMsg(..), Model, Msg(..), buildModel, init, setup, teardown, title, update, view)
 
+import Data.Setup as Setup
+import Data.Space as Space exposing (Space)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Task exposing (Task)
-import Session exposing (Session)
-import Data.Setup as Setup
-import Data.Space as Space exposing (Space)
 import Mutation.CompleteSetupStep as CompleteSetupStep
 import Route exposing (Route)
+import Session exposing (Session)
+import Task exposing (Task)
+
 
 
 -- MODEL
@@ -89,10 +78,11 @@ update msg session model =
                     CompleteSetupStep.request model.spaceId Setup.InviteUsers False session
                         |> Task.attempt Advanced
             in
-                ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
+            ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
 
-        Advanced (Ok ( session, CompleteSetupStep.Success nextState )) ->
-            ( ( model, Route.modifyUrl <| routeFor nextState ), session, SetupStateChanged nextState )
+        Advanced (Ok ( newSession, CompleteSetupStep.Success nextState )) ->
+            -- TODO: Re-instate navigation to next state
+            ( ( model, Cmd.none ), newSession, SetupStateChanged nextState )
 
         Advanced (Err Session.Expired) ->
             redirectToLogin session model
