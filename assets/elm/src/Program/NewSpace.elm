@@ -1,4 +1,4 @@
-module Program.NewSpace exposing (Flags, FormField, FormState(..), Model, Msg(..), buildModel, init, main, paddedDashRegex, setup, slugField, slugify, specialCharRegex, submit, subscriptions, textField, update, view)
+module Program.NewSpace exposing (Model, Msg(..), subscriptions, update, view)
 
 import Browser exposing (Document)
 import Data.User as User exposing (User)
