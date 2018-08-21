@@ -1,25 +1,26 @@
-module Program.Spaces exposing (..)
+module Program.Spaces exposing (main)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
-import Task
 import Avatar
+import Browser exposing (Document)
 import Connection exposing (Connection)
 import Data.Space as Space exposing (Space)
 import Data.User as User exposing (User)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
 import Lazy exposing (Lazy(..))
 import Page
 import Query.SpacesInit as SpacesInit
 import Route
 import Session exposing (Session)
+import Task
 import View.Layout exposing (userLayout)
 
 
 main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    Browser.document
         { init = init
         , view = view
         , update = update
@@ -54,12 +55,12 @@ init { apiToken } =
         model =
             Model (Session.init apiToken) "" NotLoaded NotLoaded
     in
-        ( model
-        , Cmd.batch
-            [ setup model
-            , Page.setTitle "My Spaces"
-            ]
-        )
+    ( model
+    , Cmd.batch
+        [ setup model
+        , Page.setTitle "My Spaces"
+        ]
+    )
 
 
 setup : Model -> Cmd Msg
@@ -107,30 +108,32 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
-    userLayout model.user <|
-        div [ class "mx-auto max-w-sm" ]
-            [ div [ class "flex items-center pb-6" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
-                , div [ class "flex-0 flex-no-shrink" ]
-                    [ a [ href "/spaces/new", class "btn btn-blue btn-md no-underline" ] [ text "New space" ] ]
-                ]
-            , div [ class "pb-6" ]
-                [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
-                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                    , input
-                        [ id "search-input"
-                        , type_ "text"
-                        , class "flex-1 bg-transparent no-outline"
-                        , placeholder "Type to search"
-                        , onInput QueryChanged
-                        ]
-                        []
+    Document "Spaces"
+        [ userLayout model.user <|
+            div [ class "mx-auto max-w-sm" ]
+                [ div [ class "flex items-center pb-6" ]
+                    [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
+                    , div [ class "flex-0 flex-no-shrink" ]
+                        [ a [ href "/spaces/new", class "btn btn-blue btn-md no-underline" ] [ text "New space" ] ]
                     ]
+                , div [ class "pb-6" ]
+                    [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
+                        [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
+                        , input
+                            [ id "search-input"
+                            , type_ "text"
+                            , class "flex-1 bg-transparent no-outline"
+                            , placeholder "Type to search"
+                            , onInput QueryChanged
+                            ]
+                            []
+                        ]
+                    ]
+                , spacesView model.query model.spaces
                 ]
-            , spacesView model.query model.spaces
-            ]
+        ]
 
 
 spacesView : String -> Lazy (Connection Space) -> Html Msg
@@ -142,6 +145,7 @@ spacesView query lazySpaces =
         Loaded spaces ->
             if Connection.isEmpty spaces then
                 blankSlateView
+
             else
                 let
                     filteredSpaces =
@@ -149,11 +153,12 @@ spacesView query lazySpaces =
                             |> Connection.toList
                             |> filter query
                 in
-                    if List.isEmpty filteredSpaces then
-                        div [ class "ml-4 py-2 text-base" ] [ text "No spaces match your search." ]
-                    else
-                        div [ class "ml-4" ] <|
-                            List.map (spaceView query) filteredSpaces
+                if List.isEmpty filteredSpaces then
+                    div [ class "ml-4 py-2 text-base" ] [ text "No spaces match your search." ]
+
+                else
+                    div [ class "ml-4" ] <|
+                        List.map (spaceView query) filteredSpaces
 
 
 blankSlateView : Html Msg
@@ -177,6 +182,6 @@ filter query spaces =
                 |> String.toLower
                 |> String.contains (String.toLower query)
     in
-        spaces
-            |> List.map (\space -> Space.getCachedData space)
-            |> List.filter (\data -> matches data.name)
+    spaces
+        |> List.map (\space -> Space.getCachedData space)
+        |> List.filter (\data -> matches data.name)
