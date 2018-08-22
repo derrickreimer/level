@@ -9,7 +9,7 @@ import Html.Attributes as Attr
 import Route.Groups
 import Route.SpaceUsers
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, oneOf, s)
+import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
 
@@ -33,7 +33,7 @@ type Route
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map Root (s "")
+        [ Parser.map Root top
         , Parser.map SetupCreateGroups (s "setup" </> s "groups")
         , Parser.map SetupInviteUsers (s "setup" </> s "invites")
         , Parser.map Inbox (s "inbox")

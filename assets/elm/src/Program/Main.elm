@@ -1,4 +1,4 @@
-module Program.Main exposing (Flags, Model, Msg(..), Page(..), PageInit(..), SharedState, buildModel, groupLinks, handleSocketResult, init, leftSidebar, main, navigateTo, pageSubscription, pageTitle, pageView, routeFor, setup, setupPage, sidebarLink, subscriptions, teardownPage, update, updateRepo, view)
+module Program.Main exposing (main)
 
 import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
@@ -166,7 +166,7 @@ update msg model =
                             -- fragment-based routing, this entire
                             -- `case url.fragment of` expression this comment
                             -- is inside would be unnecessary.
-                            ( model, Cmd.none )
+                            ( model, Nav.load (Url.toString url) )
 
                         Just _ ->
                             ( model
