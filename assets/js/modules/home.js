@@ -7,7 +7,8 @@ const getReservationCount = node => {
 
 export function initialize() {
   const node = document.getElementById("reservation");
-  const app = Elm.Program.Reservation.init(node, {
+  const app = Elm.Program.Reservation.init({
+    node: node,
     flags: {
       csrfToken: getCsrfToken(),
       reservationCount: getReservationCount(node)
