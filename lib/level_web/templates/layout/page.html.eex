@@ -21,12 +21,21 @@
     <meta name="module" content="<%= @module %>">
     <% end %>
 
+    <%= if assigns[:page_title] do %>
+    <title><%= @page_title %></title>
+    <% else %>
     <title>Level: Distraction-free communication for software teams</title>
+    <% end %>
+
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
     <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
   </head>
 
   <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal text-xl bg-turquoise selection-turquoise"  data-stretchy-filter=".js-stretchy">
+    <%= if get_flash(@conn, :error) do %>
+      <div class="px-4 py-4 bg-red text-white text-base text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
+    <% end %>
+
     <div class="bg-white">
       <div class="container mx-auto p-8">
         <div class="flex pb-16 sm:pb-24 items-center">

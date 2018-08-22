@@ -27,7 +27,7 @@ import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (displayName, injectHtml, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
+import View.Helpers exposing (displayName, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
 
 
 

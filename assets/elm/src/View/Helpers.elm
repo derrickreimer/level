@@ -1,4 +1,4 @@
-module View.Helpers exposing (displayName, formatDateTime, formatTime, injectHtml, onSameDay, selectValue, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
+module View.Helpers exposing (displayName, formatDateTime, formatTime, onSameDay, selectValue, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
 
 import Browser.Dom exposing (blur, focus)
 import Html exposing (..)
@@ -29,16 +29,6 @@ type alias Nameable a =
 displayName : Nameable a -> String
 displayName nameable =
     nameable.firstName ++ " " ++ nameable.lastName
-
-
-{-| Inject a raw string of HTML into a div.
-
-    TODO: this no longer works in 0.19
-
--}
-injectHtml : List (Attribute msg) -> String -> Html msg
-injectHtml attrs rawHtml =
-    div (attrs ++ [ property "innerHTML" <| Encode.string rawHtml ]) []
 
 
 {-| Render the given HTML if the truth value is true.

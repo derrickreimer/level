@@ -68,6 +68,7 @@ defmodule Level.Mixfile do
       {:earmark, "~> 1.2.5"},
       {:html_sanitize_ex, "~> 1.3.0"},
       {:number, "~> 0.5.7"},
+      {:floki, "~> 0.20.3"},
 
       # Amazon S3 dependencies
       {:ex_aws, "~> 2.0"},

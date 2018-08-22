@@ -208,7 +208,7 @@ textField : FormField -> List ValidationError -> Html Msg
 textField field errors =
     let
         classes =
-            [ ( "input-field", True )
+            [ ( "input-field w-full", True )
             , ( "input-field-error", isInvalid field.name errors )
             ]
     in
@@ -233,7 +233,7 @@ slugField : String -> List ValidationError -> Html Msg
 slugField slug errors =
     let
         classes =
-            [ ( "input-field inline-flex", True )
+            [ ( "input-field inline-flex leading-none items-baseline", True )
             , ( "input-field-error", isInvalid "slug" errors )
             ]
     in

@@ -30,7 +30,7 @@ import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (displayName, injectHtml, selectValue, setFocus, smartFormatDate, viewIf, viewUnless)
+import View.Helpers exposing (displayName, selectValue, setFocus, smartFormatDate, viewIf, viewUnless)
 
 
 

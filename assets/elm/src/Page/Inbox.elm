@@ -18,7 +18,7 @@ import Session exposing (Session)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (displayName, injectHtml, smartFormatDate)
+import View.Helpers exposing (displayName, smartFormatDate)
 
 
 

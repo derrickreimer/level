@@ -10,7 +10,6 @@ import Json.Decode as Decode exposing (decodeString)
 import Json.Encode as Encode
 import Regex exposing (Regex)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.Helpers exposing (injectHtml)
 
 
 main : Program Flags Model Msg
@@ -172,7 +171,6 @@ view model =
                     [ attribute "async" ""
                     , src "https://platform.twitter.com/widgets.js"
                     ]
-                , conversionTracking
                 ]
 
         _ ->
@@ -283,21 +281,6 @@ formErrors errors =
 
         [] ->
             text ""
-
-
-conversionTracking : Html Msg
-conversionTracking =
-    injectHtml []
-        """
-        <!-- Twitter single-event website tag code -->
-        <script src="//platform.twitter.com/oct.js" type="text/javascript"></script>
-        <script type="text/javascript">twttr.conversion.trackPid('nzmuw', { tw_sale_amount: 0, tw_order_quantity: 0 });</script>
-        <noscript>
-        <img height="1" width="1" style="display:none;" alt="" src="https://analytics.twitter.com/i/adsct?txn_id=nzmuw&p_id=Twitter&tw_sale_amount=0&tw_order_quantity=0" />
-        <img height="1" width="1" style="display:none;" alt="" src="//t.co/i/adsct?txn_id=nzmuw&p_id=Twitter&tw_sale_amount=0&tw_order_quantity=0" />
-        </noscript>
-        <!-- End Twitter single-event website tag code -->
-        """
 
 
 
