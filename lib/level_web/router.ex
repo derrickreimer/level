@@ -48,6 +48,9 @@ defmodule LevelWeb.Router do
 
     get "/invites/:id", OpenInvitationController, :show
     post "/invites/:id/accept", OpenInvitationController, :accept
+
+    get "/svg-to-elm", Util.SvgToElmController, :index
+    post "/svg-to-elm", Util.SvgToElmController, :create
   end
 
   scope "/" do

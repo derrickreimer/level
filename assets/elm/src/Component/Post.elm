@@ -1,46 +1,34 @@
-module Component.Post
-    exposing
-        ( Model
-        , Msg(..)
-        , Mode(..)
-        , decoder
-        , init
-        , setup
-        , teardown
-        , update
-        , handleReplyCreated
-        , handleMentionsDismissed
-        , postView
-        , sidebarView
-        )
+module Component.Post exposing (Mode(..), Model, Msg(..), decoder, handleMentionsDismissed, handleReplyCreated, init, postView, setup, sidebarView, teardown, update)
 
-import Date exposing (Date)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
-import Json.Decode as Decode exposing (Decoder, field, maybe, string)
-import Task exposing (Task)
 import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
-import Data.Reply as Reply exposing (Reply)
 import Data.Group as Group exposing (Group)
 import Data.Mention as Mention exposing (Mention)
 import Data.Post as Post exposing (Post)
+import Data.Reply as Reply exposing (Reply)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
-import Keys exposing (Modifier(..), preventDefault, onKeydown, enter, esc)
+import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import ListHelpers
+import Markdown
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissMentions as DismissMentions
 import Query.Replies
-import ReplyComposer exposing (ReplyComposer, Mode(..))
+import ReplyComposer exposing (Mode(..), ReplyComposer)
 import Repo exposing (Repo)
 import Route
 import Scroll
 import Session exposing (Session)
 import Subscription.PostSubscription as PostSubscription
-import View.Helpers exposing (setFocus, unsetFocus, displayName, smartFormatDate, injectHtml, viewIf, viewUnless)
+import Task exposing (Task)
+import Time exposing (Posix, Zone)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
+import View.Helpers exposing (displayName, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
+
 
 
 -- MODEL
@@ -83,7 +71,7 @@ init mode showGroups post replies =
                 FullPage ->
                     AlwaysExpanded
     in
-        Model (Post.getId post) mode showGroups post replies (ReplyComposer.init replyMode)
+    Model (Post.getId post) mode showGroups post replies (ReplyComposer.init replyMode)
 
 
 setup : Model -> Cmd Msg
@@ -107,10 +95,11 @@ setupReplyComposer postId replyComposer =
             composerId =
                 replyComposerId postId
         in
-            Cmd.batch
-                [ Autosize.init composerId
-                , setFocus composerId NoOp
-                ]
+        Cmd.batch
+            [ Autosize.init composerId
+            , setFocus composerId NoOp
+            ]
+
     else
         Cmd.none
 
@@ -160,14 +149,14 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 newModel =
                     { model | replyComposer = ReplyComposer.expand replyComposer }
             in
-                ( ( newModel, cmd ), session )
+            ( ( newModel, cmd ), session )
 
         NewReplyBodyChanged val ->
             let
                 newModel =
                     { model | replyComposer = ReplyComposer.setBody val replyComposer }
             in
-                noCmd session newModel
+            noCmd session newModel
 
         NewReplySubmit ->
             let
@@ -181,9 +170,9 @@ update msg spaceId session ({ post, replyComposer } as model) =
                     CreateReply.request spaceId (Post.getId post) body session
                         |> Task.attempt NewReplySubmitted
             in
-                ( ( newModel, cmd ), session )
+            ( ( newModel, cmd ), session )
 
-        NewReplySubmitted (Ok ( session, reply )) ->
+        NewReplySubmitted (Ok ( newSession, reply )) ->
             let
                 nodeId =
                     replyComposerId (Post.getId post)
@@ -196,7 +185,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 newModel =
                     { model | replyComposer = newReplyComposer }
             in
-                ( ( newModel, setFocus nodeId NoOp ), session )
+            ( ( newModel, setFocus nodeId NoOp ), newSession )
 
         NewReplySubmitted (Err Session.Expired) ->
             redirectToLogin session model
@@ -212,10 +201,11 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 replyBody =
                     ReplyComposer.getBody replyComposer
             in
-                if replyBody == "" then
-                    ( ( model, unsetFocus nodeId NoOp ), session )
-                else
-                    noCmd session model
+            if replyBody == "" then
+                ( ( model, unsetFocus nodeId NoOp ), session )
+
+            else
+                noCmd session model
 
         NewReplyBlurred ->
             let
@@ -228,7 +218,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 newModel =
                     { model | replyComposer = ReplyComposer.blurred replyComposer }
             in
-                noCmd session newModel
+            noCmd session newModel
 
         PreviousRepliesRequested ->
             case Connection.startCursor model.replies of
@@ -238,12 +228,12 @@ update msg spaceId session ({ post, replyComposer } as model) =
                             Query.Replies.request spaceId (Post.getId model.post) cursor 10 session
                                 |> Task.attempt PreviousRepliesFetched
                     in
-                        ( ( model, cmd ), session )
+                    ( ( model, cmd ), session )
 
                 Nothing ->
                     noCmd session model
 
-        PreviousRepliesFetched (Ok ( session, response )) ->
+        PreviousRepliesFetched (Ok ( newSession, response )) ->
             let
                 firstReply =
                     Connection.head model.replies
@@ -259,7 +249,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                         Nothing ->
                             Cmd.none
             in
-                ( ( { model | replies = newReplies }, cmd ), session )
+            ( ( { model | replies = newReplies }, cmd ), newSession )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin session model
@@ -274,11 +264,11 @@ update msg spaceId session ({ post, replyComposer } as model) =
                         |> DismissMentions.request spaceId model.id
                         |> Task.attempt MentionsDismissed
             in
-                ( ( model, cmd ), session )
+            ( ( model, cmd ), session )
 
-        MentionsDismissed (Ok ( session, _ )) ->
+        MentionsDismissed (Ok ( newSession, _ )) ->
             -- TODO
-            ( ( model, Cmd.none ), session )
+            ( ( model, Cmd.none ), newSession )
 
         MentionsDismissed (Err Session.Expired) ->
             redirectToLogin session model
@@ -315,10 +305,11 @@ handleReplyCreated reply ({ post, replies, mode } as model) =
                 _ ->
                     Cmd.none
     in
-        if Reply.getPostId reply == Post.getId post then
-            ( { model | replies = Connection.append (Reply.getId) reply replies }, cmd )
-        else
-            ( model, Cmd.none )
+    if Reply.getPostId reply == Post.getId post then
+        ( { model | replies = Connection.append Reply.getId reply replies }, cmd )
+
+    else
+        ( model, Cmd.none )
 
 
 handleMentionsDismissed : Model -> ( Model, Cmd Msg )
@@ -330,8 +321,8 @@ handleMentionsDismissed model =
 -- VIEWS
 
 
-postView : Repo -> SpaceUser -> Date -> Model -> Html Msg
-postView repo currentUser now ({ post, replies } as model) =
+postView : Repo -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+postView repo currentUser (( zone, posix ) as now) ({ post, replies } as model) =
     let
         currentUserData =
             currentUser
@@ -348,36 +339,37 @@ postView repo currentUser now ({ post, replies } as model) =
             postData.mentions
 
         body =
-            postData.bodyHtml
+            postData.body
+                |> Markdown.toHtml []
     in
-        div [ class "flex" ]
-            [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
-            , div [ class "flex-grow leading-semi-loose" ]
-                [ div []
-                    [ a
-                        [ Route.href <| Route.Post postData.id
-                        , class "no-underline text-dusty-blue-darkest"
-                        , rel "tooltip"
-                        , title "Expand post"
-                        ]
-                        [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                        , viewIf model.showGroups <|
-                            groupsLabel repo postData.groups
-                        , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now postData.postedAt ]
-                        ]
-                    , div [ class "markdown mb-2" ] [ injectHtml [] body ]
-                    , div [ class "flex items-center" ]
-                        [ div [ class "flex-grow" ]
-                            [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
-                            ]
-                        ]
+    div [ class "flex" ]
+        [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
+        , div [ class "flex-grow leading-semi-loose" ]
+            [ div []
+                [ a
+                    [ Route.href <| Route.Post postData.id
+                    , class "no-underline text-dusty-blue-darkest"
+                    , rel "tooltip"
+                    , title "Expand post"
                     ]
-                , div [ class "relative" ]
-                    [ repliesView repo post now replies model.mode
-                    , replyComposerView currentUserData model
+                    [ span [ class "font-bold" ] [ text <| displayName authorData ]
+                    , viewIf model.showGroups <|
+                        groupsLabel repo postData.groups
+                    , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, postData.postedAt ) ]
+                    ]
+                , div [ class "markdown mb-2" ] [ body ]
+                , div [ class "flex items-center" ]
+                    [ div [ class "flex-grow" ]
+                        [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
+                        ]
                     ]
                 ]
+            , div [ class "relative" ]
+                [ repliesView repo post now replies model.mode
+                , replyComposerView currentUserData model
+                ]
             ]
+        ]
 
 
 groupsLabel : Repo -> List Group -> Html Msg
@@ -388,19 +380,19 @@ groupsLabel repo groups =
                 groupData =
                     Repo.getGroup repo group
             in
-                span [ class "ml-3 text-sm text-dusty-blue" ]
-                    [ a
-                        [ Route.href (Route.Group groupData.id)
-                        , class "no-underline text-dusty-blue font-bold"
-                        ]
-                        [ text groupData.name ]
+            span [ class "ml-3 text-sm text-dusty-blue" ]
+                [ a
+                    [ Route.href (Route.Group groupData.id)
+                    , class "no-underline text-dusty-blue font-bold"
                     ]
+                    [ text groupData.name ]
+                ]
 
         _ ->
             text ""
 
 
-repliesView : Repo -> Post -> Date -> Connection Reply -> Mode -> Html Msg
+repliesView : Repo -> Post -> ( Zone, Posix ) -> Connection Reply -> Mode -> Html Msg
 repliesView repo post now replies mode =
     let
         listView =
@@ -411,27 +403,27 @@ repliesView repo post now replies mode =
                 FullPage ->
                     fullPageRepliesView repo post now replies
     in
-        viewUnless (Connection.isEmptyAndExpanded replies) listView
+    viewUnless (Connection.isEmptyAndExpanded replies) listView
 
 
-feedRepliesView : Repo -> Post -> Date -> Connection Reply -> Html Msg
+feedRepliesView : Repo -> Post -> ( Zone, Posix ) -> Connection Reply -> Html Msg
 feedRepliesView repo post now replies =
     let
         { nodes, hasPreviousPage } =
             Connection.last 5 replies
     in
-        div []
-            [ viewIf hasPreviousPage <|
-                a
-                    [ Route.href (Route.Post <| Post.getId post)
-                    , class "mb-2 text-dusty-blue no-underline"
-                    ]
-                    [ text "Show more..." ]
-            , div [] (List.map (replyView repo now Feed) nodes)
-            ]
+    div []
+        [ viewIf hasPreviousPage <|
+            a
+                [ Route.href (Route.Post <| Post.getId post)
+                , class "mb-2 text-dusty-blue no-underline"
+                ]
+                [ text "Show more..." ]
+        , div [] (List.map (replyView repo now Feed) nodes)
+        ]
 
 
-fullPageRepliesView : Repo -> Post -> Date -> Connection Reply -> Html Msg
+fullPageRepliesView : Repo -> Post -> ( Zone, Posix ) -> Connection Reply -> Html Msg
 fullPageRepliesView repo post now replies =
     let
         nodes =
@@ -440,37 +432,41 @@ fullPageRepliesView repo post now replies =
         hasPreviousPage =
             Connection.hasPreviousPage replies
     in
-        div []
-            [ viewIf hasPreviousPage <|
-                button
-                    [ class "mb-2 text-dusty-blue no-underline"
-                    , onClick PreviousRepliesRequested
-                    ]
-                    [ text "Load more..." ]
-            , div [] (List.map (replyView repo now FullPage) nodes)
-            ]
+    div []
+        [ viewIf hasPreviousPage <|
+            button
+                [ class "mb-2 text-dusty-blue no-underline"
+                , onClick PreviousRepliesRequested
+                ]
+                [ text "Load more..." ]
+        , div [] (List.map (replyView repo now FullPage) nodes)
+        ]
 
 
-replyView : Repo -> Date -> Mode -> Reply -> Html Msg
-replyView repo now mode reply =
+replyView : Repo -> ( Zone, Posix ) -> Mode -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) mode reply =
     let
         replyData =
             Reply.getCachedData reply
 
         authorData =
             Repo.getSpaceUser repo replyData.author
+
+        body =
+            replyData.body
+                |> Markdown.toHtml []
     in
-        div [ id (replyNodeId replyData.id), class "flex mt-3" ]
-            [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small authorData ]
-            , div [ class "flex-grow leading-semi-loose" ]
-                [ div []
-                    [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                    , viewIf (mode == FullPage) <|
-                        span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now replyData.postedAt ]
-                    ]
-                , div [ class "markdown mb-2" ] [ injectHtml [] replyData.bodyHtml ]
+    div [ id (replyNodeId replyData.id), class "flex mt-3" ]
+        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small authorData ]
+        , div [ class "flex-grow leading-semi-loose" ]
+            [ div []
+                [ span [ class "font-bold" ] [ text <| displayName authorData ]
+                , viewIf (mode == FullPage) <|
+                    span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, replyData.postedAt ) ]
                 ]
+            , div [ class "markdown mb-2" ] [ body ]
             ]
+        ]
 
 
 replyComposerView : SpaceUser.Record -> Model -> Html Msg
@@ -507,6 +503,7 @@ replyComposerView currentUserData { post, replies, replyComposer } =
                     ]
                 ]
             ]
+
     else
         viewUnless (Connection.isEmpty replies) <|
             replyPromptView currentUserData
@@ -528,10 +525,10 @@ sidebarView repo model =
         postData =
             Repo.getPost repo model.post
     in
-        div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
-            [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Status" ]
-            , statusView postData.state
-            ]
+    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Status" ]
+        , statusView postData.state
+        ]
 
 
 statusView : Post.State -> Html Msg
@@ -543,15 +540,15 @@ statusView state =
                 , text title
                 ]
     in
-        case state of
-            Post.Open ->
-                buildView Icons.open "Open"
+    case state of
+        Post.Open ->
+            buildView Icons.open "Open"
 
-            Post.Closed ->
-                buildView Icons.closed "Closed"
+        Post.Closed ->
+            buildView Icons.closed "Closed"
 
 
-mentionBannerView : Repo -> Post -> Date -> List Mention -> Html Msg
+mentionBannerView : Repo -> Post -> ( Zone, Posix ) -> List Mention -> Html Msg
 mentionBannerView repo post now mentions =
     viewUnless (List.isEmpty mentions) <|
         div [ class "mb-4" ]
@@ -560,7 +557,7 @@ mentionBannerView repo post now mentions =
                 , class "flex items-center text-sm font-normal no-underline text-dusty-blue-darker"
                 ]
                 [ div [ class "mr-2" ] [ Icons.atSign ]
-                , text <| mentionersSummary repo (mentioners mentions)
+                , text <| mentionersSummary repo (mentionersFor mentions)
                 ]
             ]
 
@@ -578,15 +575,15 @@ mentionersSummary repo mentioners =
                 otherCount =
                     ListHelpers.size others
             in
-                case otherCount of
-                    0 ->
-                        firstUserName ++ " mentioned you"
+            case otherCount of
+                0 ->
+                    firstUserName ++ " mentioned you"
 
-                    1 ->
-                        firstUserName ++ " and 1 other person mentioned you"
+                1 ->
+                    firstUserName ++ " and 1 other person mentioned you"
 
-                    _ ->
-                        firstUserName ++ " and " ++ (toString otherCount) ++ " others mentioned you"
+                _ ->
+                    firstUserName ++ " and " ++ String.fromInt otherCount ++ " others mentioned you"
 
         [] ->
             ""
@@ -606,20 +603,23 @@ replyComposerId postId =
     "reply-composer-" ++ postId
 
 
-mentioners : List Mention -> List SpaceUser
-mentioners mentions =
+mentionersFor : List Mention -> List SpaceUser
+mentionersFor mentions =
     mentions
-        |> List.map (Mention.getCachedData)
+        |> List.map Mention.getCachedData
         |> List.map .mentioner
-        |> ListHelpers.uniqueBy (SpaceUser.getId)
+        |> ListHelpers.uniqueBy SpaceUser.getId
 
 
-lastMentionAt : Date -> List Mention -> Date
-lastMentionAt now mentions =
-    mentions
-        |> List.map (Mention.getCachedData)
-        |> List.map .occurredAt
-        |> List.map Date.toTime
-        |> List.maximum
-        |> Maybe.withDefault (Date.toTime now)
-        |> Date.fromTime
+lastMentionAt : ( Zone, Posix ) -> List Mention -> ( Zone, Posix )
+lastMentionAt ( zone, posix ) mentions =
+    let
+        millis =
+            mentions
+                |> List.map Mention.getCachedData
+                |> List.map .occurredAt
+                |> List.map Time.posixToMillis
+                |> List.maximum
+                |> Maybe.withDefault (Time.posixToMillis posix)
+    in
+    ( zone, Time.millisToPosix millis )

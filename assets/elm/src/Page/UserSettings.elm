@@ -1,30 +1,20 @@
-module Page.UserSettings
-    exposing
-        ( Model
-        , Msg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , subscriptions
-        , view
-        )
+module Page.UserSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
 
+import Data.User as User
+import Data.ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
+import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
-import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import Task exposing (Task)
-import Data.User as User
-import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor, isInvalid, errorView)
-import File exposing (File)
+import Html.Events exposing (onClick, onInput)
 import Mutation.UpdateUser as UpdateUser
 import Mutation.UpdateUserAvatar as UpdateUserAvatar
 import Query.UserSettingsInit as UserSettingsInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Task exposing (Task)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+
 
 
 -- MODEL
@@ -78,7 +68,7 @@ buildModel ( session, { user } ) =
                 False
                 Nothing
     in
-        Task.succeed ( session, model )
+    Task.succeed ( session, model )
 
 
 setup : Model -> Cmd Msg
@@ -129,24 +119,24 @@ update msg session model =
                         |> UpdateUser.request model.firstName model.lastName model.handle model.email
                         |> Task.attempt Submitted
             in
-                ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
+            ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
 
-        Submitted (Ok ( session, UpdateUser.Success user )) ->
+        Submitted (Ok ( newSession, UpdateUser.Success user )) ->
             let
                 userData =
                     User.getCachedData user
             in
-                noCmd session
-                    { model
-                        | firstName = userData.firstName
-                        , lastName = userData.lastName
-                        , handle = userData.handle
-                        , email = userData.email
-                        , isSubmitting = False
-                    }
+            noCmd newSession
+                { model
+                    | firstName = userData.firstName
+                    , lastName = userData.lastName
+                    , handle = userData.handle
+                    , email = userData.email
+                    , isSubmitting = False
+                }
 
-        Submitted (Ok ( session, UpdateUser.Invalid errors )) ->
-            noCmd session { model | isSubmitting = False, errors = errors }
+        Submitted (Ok ( newSession, UpdateUser.Invalid errors )) ->
+            noCmd newSession { model | isSubmitting = False, errors = errors }
 
         Submitted (Err Session.Expired) ->
             redirectToLogin session model
@@ -168,17 +158,17 @@ update msg session model =
                         |> UpdateUserAvatar.request (File.getContents file)
                         |> Task.attempt AvatarSubmitted
             in
-                ( ( { model | newAvatar = Just file }, cmd ), session )
+            ( ( { model | newAvatar = Just file }, cmd ), session )
 
-        AvatarSubmitted (Ok ( session, UpdateUserAvatar.Success user )) ->
+        AvatarSubmitted (Ok ( newSession, UpdateUserAvatar.Success user )) ->
             let
                 userData =
                     User.getCachedData user
             in
-                noCmd session { model | avatarUrl = userData.avatarUrl }
+            noCmd newSession { model | avatarUrl = userData.avatarUrl }
 
-        AvatarSubmitted (Ok ( session, UpdateUserAvatar.Invalid errors )) ->
-            noCmd session { model | errors = errors }
+        AvatarSubmitted (Ok ( newSession, UpdateUserAvatar.Invalid errors )) ->
+            noCmd newSession { model | errors = errors }
 
         AvatarSubmitted (Err Session.Expired) ->
             redirectToLogin session model

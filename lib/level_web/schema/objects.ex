@@ -35,8 +35,8 @@ defmodule LevelWeb.Schema.Objects do
     field :last_name, non_null(:string)
     field :handle, non_null(:string)
     field :time_zone, :string
-    field :inserted_at, non_null(:time)
-    field :updated_at, non_null(:time)
+    field :inserted_at, non_null(:timestamp)
+    field :updated_at, non_null(:timestamp)
 
     field :space_users, non_null(:space_user_connection) do
       arg :first, :integer
@@ -112,8 +112,8 @@ defmodule LevelWeb.Schema.Objects do
     field :state, non_null(:space_state)
     field :name, non_null(:string)
     field :slug, non_null(:string)
-    field :inserted_at, non_null(:time)
-    field :updated_at, non_null(:time)
+    field :inserted_at, non_null(:timestamp)
+    field :updated_at, non_null(:timestamp)
 
     field :avatar_url, :string do
       resolve fn space, _, _ ->
@@ -197,8 +197,8 @@ defmodule LevelWeb.Schema.Objects do
     field :name, non_null(:string)
     field :description, :string
     field :is_private, non_null(:boolean)
-    field :inserted_at, non_null(:time)
-    field :updated_at, non_null(:time)
+    field :inserted_at, non_null(:timestamp)
+    field :updated_at, non_null(:timestamp)
     field :space, non_null(:space), resolve: dataloader(:db)
     field :creator, non_null(:user), resolve: dataloader(:db)
 
@@ -274,7 +274,7 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
-    field :posted_at, non_null(:time) do
+    field :posted_at, non_null(:timestamp) do
       resolve fn post, _, _ ->
         {:ok, post.inserted_at}
       end
@@ -322,7 +322,7 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
-    field :posted_at, non_null(:time) do
+    field :posted_at, non_null(:timestamp) do
       resolve fn reply, _, _ ->
         {:ok, reply.inserted_at}
       end
@@ -339,7 +339,7 @@ defmodule LevelWeb.Schema.Objects do
   @desc "A mention represents a when user has @-mentioned another user."
   object :mention do
     field :mentioner, non_null(:space_user), resolve: dataloader(:db)
-    field :occurred_at, non_null(:time)
+    field :occurred_at, non_null(:timestamp)
   end
 
   def fetched_at_resolver(_, _) do

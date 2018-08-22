@@ -1,11 +1,11 @@
 module Query.NewSpaceInit exposing (Response, request)
 
-import Json.Decode as Decode exposing (Decoder)
-import Json.Encode as Encode
-import Task exposing (Task)
 import Data.User as User exposing (User)
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Session exposing (Session)
+import Task exposing (Task)
 
 
 type alias Response =
@@ -15,7 +15,7 @@ type alias Response =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         query NewSpaceInit {
           viewer {

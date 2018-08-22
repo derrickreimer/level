@@ -1,14 +1,16 @@
-module Route exposing (Route(..), route, href, fromLocation, newUrl, modifyUrl, toLogin, toSpace)
+module Route exposing (Route(..), fromUrl, href, parser, pushUrl, replaceUrl, toLogin, toSpace)
 
 {-| Routing logic for the application.
 -}
 
-import Navigation exposing (Location)
+import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
-import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
 import Route.Groups
 import Route.SpaceUsers
+import Url exposing (Url)
+import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
+
 
 
 -- ROUTING --
@@ -28,20 +30,20 @@ type Route
     | SpaceSettings
 
 
-route : Parser (Route -> a) a
-route =
+parser : Parser (Route -> a) a
+parser =
     oneOf
-        [ Url.map Root (s "")
-        , Url.map SetupCreateGroups (s "setup" </> s "groups")
-        , Url.map SetupInviteUsers (s "setup" </> s "invites")
-        , Url.map Inbox (s "inbox")
-        , Url.map SpaceUsers Route.SpaceUsers.params
-        , Url.map Groups Route.Groups.params
-        , Url.map NewGroup (s "groups" </> s "new")
-        , Url.map Group (s "groups" </> Url.string)
-        , Url.map Post (s "posts" </> Url.string)
-        , Url.map UserSettings (s "user" </> s "settings")
-        , Url.map SpaceSettings (s "settings")
+        [ Parser.map Root top
+        , Parser.map SetupCreateGroups (s "setup" </> s "groups")
+        , Parser.map SetupInviteUsers (s "setup" </> s "invites")
+        , Parser.map Inbox (s "inbox")
+        , Parser.map SpaceUsers Route.SpaceUsers.params
+        , Parser.map Groups Route.Groups.params
+        , Parser.map NewGroup (s "groups" </> s "new")
+        , Parser.map Group (s "groups" </> Parser.string)
+        , Parser.map Post (s "posts" </> Parser.string)
+        , Parser.map UserSettings (s "user" </> s "settings")
+        , Parser.map SpaceSettings (s "settings")
         ]
 
 
@@ -87,7 +89,7 @@ routeToString page =
                 SpaceSettings ->
                     [ "settings" ]
     in
-        "#/" ++ String.join "/" pieces
+    "#/" ++ String.join "/" pieces
 
 
 
@@ -99,29 +101,30 @@ href route =
     Attr.href (routeToString route)
 
 
-newUrl : Route -> Cmd msg
-newUrl =
-    routeToString >> Navigation.newUrl
+pushUrl : Nav.Key -> Route -> Cmd msg
+pushUrl key route =
+    Nav.pushUrl key (routeToString route)
 
 
-modifyUrl : Route -> Cmd msg
-modifyUrl =
-    routeToString >> Navigation.modifyUrl
+replaceUrl : Nav.Key -> Route -> Cmd msg
+replaceUrl key route =
+    Nav.replaceUrl key (routeToString route)
 
 
-fromLocation : Location -> Maybe Route
-fromLocation location =
-    if String.isEmpty location.hash then
-        Just Root
-    else
-        parseHash route location
+fromUrl : Url -> Maybe Route
+fromUrl url =
+    -- We are treating the the fragment like a path.
+    -- This makes it *literally* the path, so we can proceed
+    -- with parsing as if it had been a normal path all along.
+    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
+        |> Parser.parse parser
 
 
 toLogin : Cmd msg
 toLogin =
-    Navigation.load "/login"
+    Nav.load "/login"
 
 
 toSpace : String -> Cmd msg
 toSpace slug =
-    Navigation.load ("/" ++ slug ++ "/")
+    Nav.load ("/" ++ slug ++ "/")

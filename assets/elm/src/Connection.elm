@@ -1,32 +1,8 @@
-module Connection
-    exposing
-        ( Connection
-        , Subset
-        , fragment
-        , toList
-        , map
-        , isEmpty
-        , isExpandable
-        , isEmptyAndExpanded
-        , hasPreviousPage
-        , hasNextPage
-        , startCursor
-        , endCursor
-        , head
-        , first
-        , last
-        , decoder
-        , get
-        , update
-        , prepend
-        , append
-        , prependConnection
-        , remove
-        )
+module Connection exposing (Connection, Subset, append, decoder, endCursor, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, prepend, prependConnection, remove, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
-import Json.Decode as Decode exposing (Decoder, field, bool, maybe, string, list)
-import ListHelpers exposing (getBy, memberBy, updateBy, size)
+import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
+import ListHelpers exposing (getBy, memberBy, size, updateBy)
 
 
 type alias PageInfo =
@@ -66,7 +42,7 @@ fragment name nodeFragment =
                 [ "fragment " ++ name ++ "Fields on " ++ name ++ " {"
                 , "  edges {"
                 , "    node {"
-                , "      ..." ++ (GraphQL.fragmentName nodeFragment)
+                , "      ..." ++ GraphQL.fragmentName nodeFragment
                 , "    }"
                 , "  }"
                 , "  pageInfo {"
@@ -76,7 +52,7 @@ fragment name nodeFragment =
                 ]
 
         pageInfo =
-            GraphQL.fragment
+            GraphQL.toFragment
                 """
                 fragment PageInfoFields on PageInfo {
                   hasPreviousPage
@@ -87,7 +63,7 @@ fragment name nodeFragment =
                 """
                 []
     in
-        GraphQL.fragment body [ nodeFragment, pageInfo ]
+    GraphQL.toFragment body [ nodeFragment, pageInfo ]
 
 
 
@@ -157,25 +133,25 @@ head (Connection { nodes }) =
 first : Int -> Connection a -> Subset a
 first n (Connection { nodes, pageInfo }) =
     let
-        hasNextPage =
+        subsetHasNextPage =
             size nodes > n || pageInfo.hasNextPage
 
         partialNodes =
             List.take n nodes
     in
-        Subset partialNodes pageInfo.hasPreviousPage hasNextPage
+    Subset partialNodes pageInfo.hasPreviousPage subsetHasNextPage
 
 
 last : Int -> Connection a -> Subset a
 last n (Connection { nodes, pageInfo }) =
     let
-        hasPreviousPage =
+        subsetHasPreviousPage =
             size nodes > n || pageInfo.hasPreviousPage
 
         partialNodes =
             ListHelpers.takeLast n nodes
     in
-        Subset partialNodes hasPreviousPage pageInfo.hasNextPage
+    Subset partialNodes subsetHasPreviousPage pageInfo.hasNextPage
 
 
 
@@ -214,7 +190,7 @@ update comparator node connection =
         newNodes =
             updateBy comparator node (toList connection)
     in
-        replaceNodes newNodes connection
+    replaceNodes newNodes connection
 
 
 prepend : (a -> comparable) -> a -> Connection a -> Connection a
@@ -226,10 +202,11 @@ prepend comparator node connection =
         newNodes =
             if memberBy comparator node oldNodes then
                 oldNodes
+
             else
                 node :: oldNodes
     in
-        replaceNodes newNodes connection
+    replaceNodes newNodes connection
 
 
 append : (a -> comparable) -> a -> Connection a -> Connection a
@@ -241,10 +218,11 @@ append comparator node connection =
         newNodes =
             if memberBy comparator node oldNodes then
                 oldNodes
+
             else
                 List.append oldNodes [ node ]
     in
-        replaceNodes newNodes connection
+    replaceNodes newNodes connection
 
 
 prependConnection : Connection a -> Connection a -> Connection a
@@ -260,14 +238,18 @@ prependConnection (Connection extension) (Connection original) =
                 extension.pageInfo.startCursor
                 original.pageInfo.endCursor
     in
-        Connection (Data nodes pageInfo)
+    Connection (Data nodes pageInfo)
 
 
 remove : (a -> comparable) -> comparable -> Connection a -> Connection a
 remove comparator comparable connection =
+    let
+        flippedReplaceNodes conn list =
+            replaceNodes list conn
+    in
     toList connection
-        |> List.filter (\node -> not ((comparator node) == comparable))
-        |> (flip replaceNodes) connection
+        |> List.filter (\node -> not (comparator node == comparable))
+        |> flippedReplaceNodes connection
 
 
 

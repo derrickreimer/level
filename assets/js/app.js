@@ -20,6 +20,7 @@ import * as Main from "./modules/main";
 import * as NewSpace from "./modules/new_space";
 import * as Spaces from "./modules/spaces";
 import * as Home from "./modules/home";
+import * as SvgToElm from "./modules/svg_to_elm";
 import "stretchy";
 
 const moduleNode = document.head.querySelector("meta[name='module']");
@@ -41,6 +42,9 @@ if (moduleNode) {
     case "home":
       Home.initialize();
       break;
+
+    case "svg_to_elm":
+      SvgToElm.initialize();
 
     default:
       break;

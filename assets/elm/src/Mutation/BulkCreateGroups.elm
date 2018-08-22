@@ -1,12 +1,12 @@
 module Mutation.BulkCreateGroups exposing (Response(..), request)
 
-import Task exposing (Task)
-import Json.Encode as Encode
-import Json.Decode as Decode
 import Data.Group
 import Data.ValidationFields
-import Session exposing (Session)
 import GraphQL exposing (Document)
+import Json.Decode as Decode
+import Json.Encode as Encode
+import Session exposing (Session)
+import Task exposing (Task)
 
 
 type Response
@@ -15,7 +15,7 @@ type Response
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         mutation BulkCreateGroups(
           $spaceId: ID!,
@@ -47,7 +47,7 @@ variables spaceId names =
     Just <|
         Encode.object
             [ ( "spaceId", Encode.string spaceId )
-            , ( "names", Encode.list (List.map Encode.string names) )
+            , ( "names", Encode.list Encode.string names )
             ]
 
 

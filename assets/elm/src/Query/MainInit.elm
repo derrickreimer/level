@@ -1,16 +1,15 @@
 module Query.MainInit exposing (Response, request)
 
-import Task exposing (Task)
-import Session exposing (Session)
 import Data.Group exposing (Group)
-import Data.Setup as Setup exposing (setupStateDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
+import GraphQL exposing (Document)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
-import Task
-import GraphQL exposing (Document)
+import Session exposing (Session)
+import Setup exposing (setupStateDecoder)
+import Task exposing (Task)
 
 
 type alias Response =
@@ -25,7 +24,7 @@ type alias Response =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         query SharedState(
           $spaceId: ID!
@@ -63,7 +62,7 @@ variables spaceId =
 decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        (Pipeline.decode Response
+        (Decode.succeed Response
             |> Pipeline.custom Data.SpaceUser.decoder
             |> Pipeline.custom (Decode.at [ "space" ] Data.Space.decoder)
             |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)

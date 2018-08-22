@@ -3,6 +3,7 @@ module Socket.Types exposing (Payload)
 import Json.Encode as Encode
 
 
+
 -- TYPES
 
 

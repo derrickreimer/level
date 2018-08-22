@@ -1,7 +1,9 @@
-module Data.Setup exposing (State(..), setupStateDecoder, setupStateEncoder)
+module Setup exposing (State(..), routeFor, setupStateDecoder, setupStateEncoder)
 
-import Json.Decode as Decode exposing (Decoder, string, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, fail, string, succeed)
 import Json.Encode as Encode
+import Route exposing (Route)
+
 
 
 -- TYPES
@@ -35,7 +37,7 @@ setupStateDecoder =
                 _ ->
                     fail "Setup state not valid"
     in
-        Decode.andThen convert string
+    Decode.andThen convert string
 
 
 
@@ -53,3 +55,20 @@ setupStateEncoder raw =
 
         Complete ->
             Encode.string "COMPLETE"
+
+
+
+-- ROUTING
+
+
+routeFor : State -> Route
+routeFor state =
+    case state of
+        CreateGroups ->
+            Route.SetupCreateGroups
+
+        InviteUsers ->
+            Route.SetupInviteUsers
+
+        Complete ->
+            Route.Inbox

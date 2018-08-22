@@ -1,5 +1,5 @@
 import { getCsrfToken } from "../token";
-import { Program } from "../../elm/src/Program/Reservation.elm";
+import { Elm } from "../../elm/src/Program/Reservation.elm";
 
 const getReservationCount = node => {
   return node.dataset.reservationCount;
@@ -7,8 +7,11 @@ const getReservationCount = node => {
 
 export function initialize() {
   const node = document.getElementById("reservation");
-  const app = Program.Reservation.embed(node, {
-    csrfToken: getCsrfToken(),
-    reservationCount: getReservationCount(node)
+  const app = Elm.Program.Reservation.init({
+    node: node,
+    flags: {
+      csrfToken: getCsrfToken(),
+      reservationCount: getReservationCount(node)
+    }
   });
 }

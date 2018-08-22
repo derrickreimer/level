@@ -1,18 +1,10 @@
-module Data.ValidationError
-    exposing
-        ( ValidationError
-        , fragment
-        , decoder
-        , errorsFor
-        , errorsNotFor
-        , isInvalid
-        , errorView
-        )
+module Data.ValidationError exposing (ValidationError, decoder, errorView, errorsFor, errorsNotFor, fragment, isInvalid)
 
+import GraphQL exposing (Fragment)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode exposing (Decoder, field, string)
-import GraphQL exposing (Fragment)
+
 
 
 -- TYPES
@@ -26,7 +18,7 @@ type alias ValidationError =
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment ErrorFields on Error {
           attribute

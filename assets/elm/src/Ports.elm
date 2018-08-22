@@ -1,10 +1,11 @@
-port module Ports exposing (..)
+port module Ports exposing (autosize, cancelSocket, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, setTitle, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
 
-import Json.Decode as Decode
 import Autosize.Types
 import File.Types
+import Json.Decode as Decode
 import Scroll.Types
 import Socket.Types
+
 
 
 -- INBOUND

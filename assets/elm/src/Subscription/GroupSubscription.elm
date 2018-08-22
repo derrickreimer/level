@@ -1,21 +1,15 @@
-module Subscription.GroupSubscription
-    exposing
-        ( subscribe
-        , unsubscribe
-        , groupUpdatedDecoder
-        , postCreatedDecoder
-        , groupMembershipUpdatedDecoder
-        )
+module Subscription.GroupSubscription exposing (groupMembershipUpdatedDecoder, groupUpdatedDecoder, postCreatedDecoder, subscribe, unsubscribe)
 
-import Json.Decode as Decode
-import Json.Encode as Encode
 import Connection exposing (Connection)
 import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Socket
 import Subscription
+
 
 
 -- SOCKETS
@@ -70,7 +64,7 @@ clientId id =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         subscription GroupSubscription(
           $groupId: ID!

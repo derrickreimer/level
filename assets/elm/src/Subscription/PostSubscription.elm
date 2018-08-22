@@ -1,18 +1,13 @@
-module Subscription.PostSubscription
-    exposing
-        ( subscribe
-        , unsubscribe
-        , postUpdatedDecoder
-        , replyCreatedDecoder
-        )
+module Subscription.PostSubscription exposing (postUpdatedDecoder, replyCreatedDecoder, subscribe, unsubscribe)
 
-import Json.Decode as Decode
-import Json.Encode as Encode
 import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Socket
 import Subscription
+
 
 
 -- SOCKETS
@@ -59,7 +54,7 @@ clientId id =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         subscription PostSubscription(
           $postId: ID!

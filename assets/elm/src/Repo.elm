@@ -1,24 +1,4 @@
-module Repo
-    exposing
-        ( Repo
-        , init
-          -- GROUPS
-        , getGroup
-        , getGroups
-        , setGroup
-          -- SPACES
-        , getSpace
-        , getSpaces
-        , setSpace
-          -- SPACE USERS
-        , getSpaceUser
-        , getSpaceUsers
-        , setSpaceUser
-          -- POSTS
-        , getPost
-        , getPosts
-        , setPost
-        )
+module Repo exposing (Repo, getGroup, getGroups, getPost, getPosts, getSpace, getSpaceUser, getSpaceUsers, getSpaces, init, setGroup, setPost, setSpace, setSpaceUser)
 
 import Data.Group as Group exposing (Group)
 import Data.Post as Post exposing (Post)

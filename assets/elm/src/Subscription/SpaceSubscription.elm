@@ -1,18 +1,13 @@
-module Subscription.SpaceSubscription
-    exposing
-        ( subscribe
-        , unsubscribe
-        , spaceUpdatedDecoder
-        , spaceUserUpdatedDecoder
-        )
+module Subscription.SpaceSubscription exposing (spaceUpdatedDecoder, spaceUserUpdatedDecoder, subscribe, unsubscribe)
 
-import Json.Decode as Decode
-import Json.Encode as Encode
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Document)
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Socket
 import Subscription
+
 
 
 -- SOCKETS
@@ -59,7 +54,7 @@ clientId spaceId =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         subscription SpaceSubscription(
           $spaceId: ID!

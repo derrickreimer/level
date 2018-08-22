@@ -1,17 +1,7 @@
-module ListHelpers
-    exposing
-        ( last
-        , takeLast
-        , size
-        , getBy
-        , uniqueBy
-        , insertUniqueBy
-        , memberBy
-        , updateBy
-        , removeBy
-        )
+module ListHelpers exposing (getBy, insertUniqueBy, last, memberBy, removeBy, size, takeLast, uniqueBy, updateBy)
 
 import List
+
 
 
 -- HELPERS
@@ -19,7 +9,8 @@ import List
 
 {-| Gets the last item from a list.
 
-    last [1, 2, 3] == Just 3
+    last [ 1, 2, 3 ] == Just 3
+
     last [] == Nothing
 
 -}
@@ -28,9 +19,9 @@ last =
     List.foldl (Just >> always) Nothing
 
 
-{-| Take the last *n* members of a list.
+{-| Take the last _n_ members of a list.
 
-    takeLast 2 [1,2,3,4] == [3,4]
+    takeLast 2 [ 1, 2, 3, 4 ] == [ 3, 4 ]
 
 -}
 takeLast : Int -> List a -> List a
@@ -43,7 +34,8 @@ takeLast n list =
 
 {-| Computes the size of a list.
 
-    size [1,2,3] == 3
+    size [ 1, 2, 3 ] == 3
+
     size [] == 0
 
 -}
@@ -58,7 +50,7 @@ size =
 
 {-| Finds an item whose comparator evaluates to the same as the given item's.
 
-    getBy .id "1" [{ id = "1" }, { id = "2" }] == Just { id = "1" }
+    getBy .id "1" [ { id = "1" }, { id = "2" } ] == Just { id = "1" }
 
 -}
 getBy : (a -> comparable) -> comparable -> List a -> Maybe a
@@ -79,31 +71,35 @@ uniqueBy comparator list =
             \item acc ->
                 if memberBy comparator item acc then
                     acc
+
                 else
                     item :: acc
     in
-        List.foldl func [] list
+    List.foldl func [] list
 
 
 {-| Prepends an item to a list if there does not exist a list element whose
 comparator evaluates to the same as the item's.
 
-    insertUniqueBy .id { id = "1" } [{ id = "1" }] == [{ id = "1" }]
-    insertUniqueBy .id { id = "1" } [{ id = "2" }] == [{ id = "1" }, { id = "2" }]
+    insertUniqueBy .id { id = "1" } [ { id = "1" } ] == [ { id = "1" } ]
+
+    insertUniqueBy .id { id = "1" } [ { id = "2" } ] == [ { id = "1" }, { id = "2" } ]
 
 -}
 insertUniqueBy : (a -> comparable) -> a -> List a -> List a
 insertUniqueBy comparator item list =
     if List.filter (\i -> comparator i == comparator item) list |> List.isEmpty then
         item :: list
+
     else
         list
 
 
 {-| Determines whether an item is in the list with comparator value.
 
-    memberBy .id { id = "1" } [{ id = "1" }] == True
-    memberBy .id { id = "1" } [{ id = "2" }] == False
+    memberBy .id { id = "1" } [ { id = "1" } ] == True
+
+    memberBy .id { id = "1" } [ { id = "2" } ] == False
 
 -}
 memberBy : (a -> comparable) -> a -> List a -> Bool
@@ -133,15 +129,16 @@ updateBy comparator newItem items =
         replacer currentItem =
             if comparator currentItem == comparator newItem then
                 newItem
+
             else
                 currentItem
     in
-        List.map replacer items
+    List.map replacer items
 
 
 {-| Filters out items whose comparator evaluates to the same as the item's.
 
-    removeBy .id { id = "1" } [{ id = "1" }, { id = "2" }] == [{ id = "2" }]
+    removeBy .id { id = "1" } [ { id = "1" }, { id = "2" } ] == [ { id = "2" } ]
 
 -}
 removeBy : (a -> comparable) -> a -> List a -> List a

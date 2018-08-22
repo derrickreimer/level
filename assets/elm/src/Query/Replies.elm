@@ -1,12 +1,12 @@
 module Query.Replies exposing (Response, request)
 
-import Json.Decode as Decode exposing (Decoder)
-import Json.Encode as Encode
-import Task exposing (Task)
 import Connection exposing (Connection)
 import Data.Reply exposing (Reply)
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Session exposing (Session)
+import Task exposing (Task)
 
 
 type alias Response =
@@ -16,7 +16,7 @@ type alias Response =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         query PostInit(
           $spaceId: ID!

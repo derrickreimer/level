@@ -1,9 +1,9 @@
-module Data.SpaceTest exposing (..)
+module Data.SpaceTest exposing (decoders)
 
-import Expect exposing (Expectation)
 import Data.Space as Space
+import Expect exposing (Expectation)
+import Json.Decode as Decode exposing (decodeString)
 import Test exposing (..)
-import Json.Decode exposing (decodeString)
 import TestHelpers exposing (success)
 
 
@@ -35,12 +35,12 @@ decoders =
                             , fetchedAt = 0
                             }
                     in
-                        case decodeString Space.decoder json of
-                            Ok value ->
-                                Expect.equal expected (Space.getCachedData value)
+                    case decodeString Space.decoder json of
+                        Ok value ->
+                            Expect.equal expected (Space.getCachedData value)
 
-                            Err err ->
-                                Expect.fail err
+                        Err err ->
+                            Expect.fail (Decode.errorToString err)
             , test "does not succeed given invalid JSON" <|
                 \_ ->
                     let
@@ -54,6 +54,6 @@ decoders =
                         result =
                             decodeString Space.decoder json
                     in
-                        Expect.equal False (success result)
+                    Expect.equal False (success result)
             ]
         ]

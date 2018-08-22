@@ -1,33 +1,13 @@
-module View.Helpers
-    exposing
-        ( -- MISC
-          displayName
-        , injectHtml
-        , viewIf
-        , viewUnless
-          -- DOM
-        , setFocus
-        , unsetFocus
-        , selectValue
-          -- DATE HELPERS
-        , formatTime
-        , formatTimeWithoutMeridian
-        , formatDateTime
-        , formatDay
-        , onSameDay
-        , isOverOneYearAgo
-        , smartFormatDate
-        )
+module View.Helpers exposing (displayName, formatDateTime, formatTime, onSameDay, selectValue, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
 
-import Date exposing (Date)
-import Date.Format
-import Dom exposing (focus, blur)
+import Browser.Dom exposing (blur, focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Encode as Encode
 import Ports
 import Task
-import Time
+import Time exposing (Month(..), Posix, Weekday(..), Zone)
+
 
 
 -- TYPES
@@ -51,19 +31,13 @@ displayName nameable =
     nameable.firstName ++ " " ++ nameable.lastName
 
 
-{-| Inject a raw string of HTML into a div.
--}
-injectHtml : List (Attribute msg) -> String -> Html msg
-injectHtml attrs rawHtml =
-    div (attrs ++ [ property "innerHTML" <| Encode.string rawHtml ]) []
-
-
 {-| Render the given HTML if the truth value is true.
 -}
 viewIf : Bool -> Html msg -> Html msg
 viewIf truth view =
     if truth == True then
         view
+
     else
         text ""
 
@@ -74,6 +48,7 @@ viewUnless : Bool -> Html msg -> Html msg
 viewUnless truth view =
     if truth == False then
         view
+
     else
         text ""
 
@@ -103,83 +78,181 @@ selectValue id =
 
 {-| Converts a date into a human-friendly HH:MM PP time string.
 
-    formatTime (Date ...) == "9:18 pm"
+    formatTime ( zone, posix ) == "9:18 pm"
+
+    TODO: make this represent in am/pm time instead of military time.
 
 -}
-formatTime : Date -> String
-formatTime date =
-    Date.Format.format "%-l:%M %P" date
+formatTime : ( Zone, Posix ) -> String
+formatTime ( zone, posix ) =
+    let
+        ( hour, meridian ) =
+            posix
+                |> Time.toHour zone
+                |> toTwelveHour
 
-
-{-| Converts a date into a human-friendly HH:MM time string.
-
-    formatTime (Date ...) == "9:18"
-
--}
-formatTimeWithoutMeridian : Date -> String
-formatTimeWithoutMeridian date =
-    Date.Format.format "%-l:%M" date
+        minute =
+            posix
+                |> Time.toMinute zone
+                |> padMinutes
+    in
+    String.fromInt hour ++ ":" ++ minute ++ " " ++ meridian
 
 
 {-| Converts a date into a human-friendly date and time string.
 
-    formatDateTime False (Date ...) == "Dec 26 at 11:10 am"
-    formatDateTime True (Date ...) == "Dec 26, 2018 at 11:10 am"
+    formatDateTime False ( zone, posix ) == "Dec 26 at 11:10 am"
+
+    formatDateTime True ( zone, posix ) == "Dec 26, 2018 at 11:10 am"
 
 -}
-formatDateTime : Bool -> Date -> String
-formatDateTime withYear date =
+formatDateTime : Bool -> ( Zone, Posix ) -> String
+formatDateTime withYear ( zone, posix ) =
     let
-        dateString =
-            if withYear then
-                "%b %-e, %Y"
-            else
-                "%b %-e"
+        month =
+            posix
+                |> Time.toMonth zone
+                |> toShortMonth
+
+        day =
+            posix
+                |> Time.toDay zone
+                |> String.fromInt
+
+        year =
+            posix
+                |> Time.toYear zone
+                |> String.fromInt
+
+        dayString =
+            month ++ " " ++ day
+
+        timeString =
+            formatTime ( zone, posix )
     in
-        Date.Format.format dateString date ++ " at " ++ formatTime date
+    if withYear then
+        dayString ++ ", " ++ year ++ " at " ++ timeString
+
+    else
+        dayString ++ " at " ++ timeString
 
 
-{-| Converts a date into a human-friendly day string.
+toShortWeekday : Time.Weekday -> String
+toShortWeekday weekday =
+    case weekday of
+        Mon ->
+            "Mon"
 
-    formatDay (Date ...) == "Wed, December 26, 2017"
+        Tue ->
+            "Tue"
 
--}
-formatDay : Date -> String
-formatDay date =
-    Date.Format.format "%A, %B %-e, %Y" date
+        Wed ->
+            "Wed"
+
+        Thu ->
+            "Thu"
+
+        Fri ->
+            "Fri"
+
+        Sat ->
+            "Sat"
+
+        Sun ->
+            "Sun"
+
+
+toShortMonth : Time.Month -> String
+toShortMonth month =
+    case month of
+        Jan ->
+            "Jan"
+
+        Feb ->
+            "Feb"
+
+        Mar ->
+            "Mar"
+
+        Apr ->
+            "Apr"
+
+        May ->
+            "May"
+
+        Jun ->
+            "Jun"
+
+        Jul ->
+            "Jul"
+
+        Aug ->
+            "Aug"
+
+        Sep ->
+            "Sep"
+
+        Oct ->
+            "Oct"
+
+        Nov ->
+            "Nov"
+
+        Dec ->
+            "Dec"
 
 
 {-| Checks to see if two dates are on the same day.
 -}
-onSameDay : Date -> Date -> Bool
-onSameDay d1 d2 =
-    Date.year d1
-        == Date.year d2
-        && Date.month d1
-        == Date.month d2
-        && Date.day d1
-        == Date.day d2
-
-
-{-| Checks to see if two days are further than one year apart.
--}
-isOverOneYearAgo : Date -> Date -> Bool
-isOverOneYearAgo now pastDate =
-    (Date.toTime now) - (Date.toTime pastDate) > (Time.hour * 24 * 365)
+onSameDay : ( Zone, Posix ) -> ( Zone, Posix ) -> Bool
+onSameDay ( z1, p1 ) ( z2, p2 ) =
+    Time.toYear z1 p1
+        == Time.toYear z2 p2
+        && Time.toMonth z1 p1
+        == Time.toMonth z2 p2
+        && Time.toDay z1 p1
+        == Time.toDay z2 p2
 
 
 {-| Formats the given date intelligently, relative to the current time.
 
     smartFormatDate now someTimeToday == "Today at 10:01am"
+
     smartFormatDate now daysAgo == "May 15 at 5:45pm"
-    smartFormatDate now overOneYearAgo == "May 10, 2017 at 4:45pm"
 
 -}
-smartFormatDate : Date -> Date -> String
+smartFormatDate : ( Zone, Posix ) -> ( Zone, Posix ) -> String
 smartFormatDate now date =
     if onSameDay now date then
-        "Today at " ++ (formatTime date)
-    else if isOverOneYearAgo now date then
-        formatDateTime True date
+        "Today at " ++ formatTime date
+
     else
         formatDateTime False date
+
+
+
+-- INTERNAL
+
+
+padMinutes : Int -> String
+padMinutes minutes =
+    if minutes < 10 then
+        "0" ++ String.fromInt minutes
+
+    else
+        String.fromInt minutes
+
+
+toTwelveHour : Int -> ( Int, String )
+toTwelveHour hour =
+    if hour == 0 then
+        ( 12, "am" )
+
+    else if hour < 12 then
+        ( hour, "am" )
+
+    else if hour == 12 then
+        ( 12, "pm" )
+
+    else
+        ( remainderBy 12 hour, "pm" )

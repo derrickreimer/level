@@ -1,10 +1,12 @@
 import { getApiToken } from "../token";
 import { attachPorts } from "../ports";
-import { Program } from "../../elm/src/Program/Spaces.elm";
+import { Elm } from "../../elm/src/Program/Spaces.elm";
 
 export function initialize() {
-  const app = Program.Spaces.fullscreen({
-    apiToken: getApiToken()
+  const app = Elm.Program.Spaces.init({
+    flags: {
+      apiToken: getApiToken()
+    }
   });
 
   attachPorts(app);

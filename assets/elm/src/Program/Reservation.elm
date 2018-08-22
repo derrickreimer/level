@@ -1,20 +1,20 @@
-module Program.Reservation exposing (..)
+module Program.Reservation exposing (Model, Msg(..), subscriptions, update, view)
 
+import Browser
+import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick, onBlur)
+import Html.Events exposing (onBlur, onClick, onInput)
 import Http
 import Json.Decode as Decode exposing (decodeString)
 import Json.Encode as Encode
-import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import Regex exposing (regex)
-import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
-import View.Helpers exposing (injectHtml)
+import Regex exposing (Regex)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 
 
 main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    Browser.element
         { init = init
         , view = view
         , update = update
@@ -50,7 +50,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( (initialState flags), Cmd.none )
+    ( initialState flags, Cmd.none )
 
 
 initialState : Flags -> Model
@@ -73,7 +73,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         EmailChanged value ->
-            ( { model | email = value, handle = (slugify value) }, Cmd.none )
+            ( { model | email = value, handle = slugify value }, Cmd.none )
 
         HandleChanged value ->
             ( { model | handle = value }, Cmd.none )
@@ -103,9 +103,21 @@ slugify email =
         |> List.head
         |> Maybe.withDefault ""
         |> String.toLower
-        |> (Regex.replace Regex.All (regex "[^a-z0-9]+") (\_ -> "-"))
-        |> (Regex.replace Regex.All (regex "(^-|-$)") (\_ -> ""))
+        |> Regex.replace specialCharRegex (\_ -> "-")
+        |> Regex.replace paddedDashRegex (\_ -> "")
         |> String.slice 0 20
+
+
+specialCharRegex : Regex
+specialCharRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromString "[^a-z0-9]+"
+
+
+paddedDashRegex : Regex
+paddedDashRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromString "(^-|-$)"
 
 
 
@@ -140,7 +152,7 @@ view model =
                     [ span [] [ text "🎉 " ]
                     , strong [] [ text "Sweet! " ]
                     , span [] [ text <| "We'll save the " ]
-                    , strong [] [ text <| handle model ]
+                    , strong [] [ text <| "@" ++ model.handle ]
                     , span [] [ text " handle for you." ]
                     ]
                 , p [ class "mb-6" ]
@@ -158,9 +170,7 @@ view model =
                 , script
                     [ attribute "async" ""
                     , src "https://platform.twitter.com/widgets.js"
-                    , charset "utf-8"
                     ]
-                , conversionTracking
                 ]
 
         _ ->
@@ -170,11 +180,6 @@ view model =
 script : List (Attribute msg) -> Html msg
 script attributes =
     node "script" attributes []
-
-
-handle : Model -> String
-handle model =
-    "@" ++ model.handle
 
 
 formView : Model -> Html Msg
@@ -218,21 +223,21 @@ textField field errors =
             , ( "input-field-error", not (List.isEmpty errors) )
             ]
     in
-        div []
-            [ input
-                [ id field.name
-                , type_ field.type_
-                , classList classes
-                , name field.name
-                , placeholder field.placeholder
-                , value field.value
-                , onInput field.onInput
-                , autofocus field.autofocus
-                , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                ]
-                []
-            , formErrors errors
+    div []
+        [ input
+            [ id field.name
+            , type_ field.type_
+            , classList classes
+            , name field.name
+            , placeholder field.placeholder
+            , value field.value
+            , onInput field.onInput
+            , autofocus field.autofocus
+            , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
             ]
+            []
+        , formErrors errors
+        ]
 
 
 handleField : String -> List ValidationError -> Html Msg
@@ -243,29 +248,29 @@ handleField handle errors =
             , ( "input-field-error", not (List.isEmpty errors) )
             ]
     in
-        div []
-            [ label [ classList classes ]
-                [ span
-                    [ for "handle"
-                    , class "flex-none text-dusty-blue-darker select-none leading-none"
-                    ]
-                    [ text "level.app/" ]
-                , div [ class "flex-1 leading-none" ]
-                    [ input
-                        [ id "handle"
-                        , type_ "text"
-                        , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
-                        , name "handle"
-                        , placeholder "jane"
-                        , value handle
-                        , onInput HandleChanged
-                        , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                        ]
-                        []
-                    ]
+    div []
+        [ label [ classList classes ]
+            [ span
+                [ for "handle"
+                , class "flex-none text-dusty-blue-darker select-none leading-none"
                 ]
-            , formErrors errors
+                [ text "level.app/" ]
+            , div [ class "flex-1 leading-none" ]
+                [ input
+                    [ id "handle"
+                    , type_ "text"
+                    , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                    , name "handle"
+                    , placeholder "jane"
+                    , value handle
+                    , onInput HandleChanged
+                    , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                    ]
+                    []
+                ]
             ]
+        , formErrors errors
+        ]
 
 
 formErrors : List ValidationError -> Html Msg
@@ -276,21 +281,6 @@ formErrors errors =
 
         [] ->
             text ""
-
-
-conversionTracking : Html Msg
-conversionTracking =
-    injectHtml []
-        """
-        <!-- Twitter single-event website tag code -->
-        <script src="//platform.twitter.com/oct.js" type="text/javascript"></script>
-        <script type="text/javascript">twttr.conversion.trackPid('nzmuw', { tw_sale_amount: 0, tw_order_quantity: 0 });</script>
-        <noscript>
-        <img height="1" width="1" style="display:none;" alt="" src="https://analytics.twitter.com/i/adsct?txn_id=nzmuw&p_id=Twitter&tw_sale_amount=0&tw_order_quantity=0" />
-        <img height="1" width="1" style="display:none;" alt="" src="//t.co/i/adsct?txn_id=nzmuw&p_id=Twitter&tw_sale_amount=0&tw_order_quantity=0" />
-        </noscript>
-        <!-- End Twitter single-event website tag code -->
-        """
 
 
 

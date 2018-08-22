@@ -1,27 +1,18 @@
-module Page.NewGroup
-    exposing
-        ( Model
-        , Msg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , view
-        )
+module Page.NewGroup exposing (Model, Msg(..), init, setup, teardown, title, update, view)
 
+import Data.Group as Group exposing (Group)
+import Data.Space as Space exposing (Space)
+import Data.ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import Task exposing (Task)
-import Data.Space as Space exposing (Space)
-import Data.Group as Group exposing (Group)
-import Data.ValidationError exposing (ValidationError, errorsFor, isInvalid, errorView)
 import Mutation.CreateGroup as CreateGroup
 import Route
 import Session exposing (Session)
+import Task exposing (Task)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus)
+
 
 
 -- MODEL
@@ -94,13 +85,14 @@ update msg session model =
                         |> CreateGroup.request (Space.getId model.space) model.name model.isPrivate
                         |> Task.attempt Submitted
             in
-                ( ( { model | isSubmitting = True }, cmd ), session )
+            ( ( { model | isSubmitting = True }, cmd ), session )
 
-        Submitted (Ok ( session, CreateGroup.Success group )) ->
-            ( ( model, Route.newUrl (Route.Group <| Group.getId group) ), session )
+        Submitted (Ok ( newSession, CreateGroup.Success group )) ->
+            -- TODO: redirect to the newly created group here
+            ( ( model, Cmd.none ), newSession )
 
-        Submitted (Ok ( session, CreateGroup.Invalid errors )) ->
-            ( ( { model | isSubmitting = False, errors = errors }, Cmd.none ), session )
+        Submitted (Ok ( newSession, CreateGroup.Invalid errors )) ->
+            ( ( { model | isSubmitting = False, errors = errors }, Cmd.none ), newSession )
 
         Submitted (Err Session.Expired) ->
             redirectToLogin session model

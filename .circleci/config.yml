@@ -58,10 +58,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - sysconfcpus-v1
-      - restore_cache:
-          keys:
-            - elm-stuff-v5-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
+            - elm-stuff-v6-{{ checksum "assets/package.json" }}-{{ checksum "assets/elm/elm.json" }}
       - restore_cache:
           keys:
             - elixir-build-v3-{{ checksum "mix.lock" }}
@@ -69,39 +66,13 @@ jobs:
           name: "Install yarn packages"
           command: cd assets && yarn install
       - run:
-          name: "Correct CPU count for elm compiler"
-          command: |
-            if [ ! -d sysconfcpus/bin ];
-            then
-              # Install libsysconfcpus utility
-              # See https://github.com/elm-lang/elm-compiler/issues/1473
-              git clone https://github.com/obmarg/libsysconfcpus.git;
-              cd libsysconfcpus;
-              ./configure --prefix $CIRCLE_WORKING_DIRECTORY/sysconfcpus;
-              make && make install;
-              cd ..;
-            fi
-
-            if [ ! -f $(yarn bin)/elm-make-original ];
-            then
-              # Replace the elm-make binstub with an optimized one
-              cd assets;
-              mv $(yarn bin)/elm-make $(yarn bin)/elm-make-original;
-              printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 2\"\n\n$CIRCLE_WORKING_DIRECTORY/sysconfcpus/bin/sysconfcpus -n 2 $(yarn bin)/elm-make-original \"\$@\"" > $(yarn bin)/elm-make;
-              chmod +x $(yarn bin)/elm-make;
-            fi
-      - run:
           name: "Run Elm test suite"
           command: script/elm-test
       - save_cache:
-          key: sysconfcpus-v1
+          key: elm-stuff-v6-{{ checksum "assets/package.json" }}-{{ checksum "assets/elm/elm.json" }}
           paths:
-            - 'sysconfcpus'
-      - save_cache:
-          key: elm-stuff-v5-{{ checksum "assets/elm/elm-package.json" }}-{{ checksum "assets/elm/tests/elm-package.json" }}
-          paths:
+            - '~/.elm'
             - 'assets/elm/elm-stuff'
-            - 'assets/elm/tests/elm-stuff'
 workflows:
   version: 2
   build_and_test:

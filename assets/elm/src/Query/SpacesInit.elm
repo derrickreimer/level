@@ -1,13 +1,13 @@
 module Query.SpacesInit exposing (Response, request)
 
-import Json.Decode as Decode exposing (Decoder)
-import Json.Encode as Encode
-import Task exposing (Task)
 import Connection exposing (Connection)
 import Data.Space as Space exposing (Space)
 import Data.User as User exposing (User)
 import GraphQL exposing (Document, Fragment)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Session exposing (Session)
+import Task exposing (Task)
 
 
 type alias Response =
@@ -26,7 +26,7 @@ type Params
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment SpaceUserSpaceFields on SpaceUser {
           space {
@@ -40,7 +40,7 @@ fragment =
 
 document : Params -> Document
 document params =
-    GraphQL.document (documentBody params)
+    GraphQL.toDocument (documentBody params)
         [ Connection.fragment "SpaceUserConnection" fragment
         , User.fragment
         ]
@@ -119,18 +119,18 @@ variables params limit =
                 Root ->
                     []
     in
-        Just <|
-            Encode.object <|
-                List.append paramVariables
-                    [ ( "limit", Encode.int limit )
-                    ]
+    Just <|
+        Encode.object <|
+            List.append paramVariables
+                [ ( "limit", Encode.int limit )
+                ]
 
 
 decoder : Decoder Response
 decoder =
     Decode.at [ "data", "viewer" ] <|
         Decode.map2 Response
-            (User.decoder)
+            User.decoder
             (Decode.field "spaceUsers" (Connection.decoder (Decode.field "space" Space.decoder)))
 
 
@@ -141,5 +141,5 @@ request limit session =
         params =
             Root
     in
-        Session.request session <|
-            GraphQL.request (document params) (variables params limit) decoder
+    Session.request session <|
+        GraphQL.request (document params) (variables params limit) decoder

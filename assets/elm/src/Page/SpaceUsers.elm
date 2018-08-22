@@ -1,29 +1,21 @@
-module Page.SpaceUsers
-    exposing
-        ( Model
-        , Msg(..)
-        , title
-        , init
-        , setup
-        , teardown
-        , update
-        , view
-        )
+module Page.SpaceUsers exposing (Model, Msg(..), init, setup, teardown, title, update, view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Task exposing (Task)
 import Avatar
 import Connection exposing (Connection)
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Icons
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route
 import Route.SpaceUsers exposing (Params)
 import Session exposing (Session)
+import Task exposing (Task)
+import Tuple
 import View.Helpers exposing (displayName, viewIf)
+
 
 
 -- MODEL
@@ -122,13 +114,13 @@ usersView repo connection =
         partitions =
             connection
                 |> Connection.toList
-                |> List.indexedMap (,)
+                |> List.indexedMap Tuple.pair
                 |> partitionUsers repo []
     in
-        div [ class "leading-semi-loose" ]
-            [ div [] <| List.map (userPartitionView repo) partitions
-            , paginationView connection
-            ]
+    div [ class "leading-semi-loose" ]
+        [ div [] <| List.map (userPartitionView repo) partitions
+        , paginationView connection
+        ]
 
 
 userPartitionView : Repo -> ( String, List IndexedUser ) -> Html Msg
@@ -146,12 +138,12 @@ userView repo ( index, spaceUser ) =
         userData =
             Repo.getSpaceUser repo spaceUser
     in
-        div []
-            [ h2 [ class "flex items-center pr-4 pb-1 font-normal text-lg" ]
-                [ div [ class "mr-4" ] [ Avatar.personAvatar Avatar.Small userData ]
-                , text (displayName userData)
-                ]
+    div []
+        [ h2 [ class "flex items-center pr-4 pb-1 font-normal text-lg" ]
+            [ div [ class "mr-4" ] [ Avatar.personAvatar Avatar.Small userData ]
+            , text (displayName userData)
             ]
+        ]
 
 
 paginationView : Connection SpaceUser -> Html Msg
@@ -163,10 +155,10 @@ paginationView connection =
         endCursor =
             Connection.endCursor connection
     in
-        div [ class "flex justify-center p-4" ]
-            [ viewIf (Connection.hasPreviousPage connection) (prevButtonView startCursor)
-            , viewIf (Connection.hasNextPage connection) (nextButtonView endCursor)
-            ]
+    div [ class "flex justify-center p-4" ]
+        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView startCursor)
+        , viewIf (Connection.hasNextPage connection) (nextButtonView endCursor)
+        ]
 
 
 prevButtonView : Maybe String -> Html Msg
@@ -177,7 +169,7 @@ prevButtonView maybeCursor =
                 route =
                     Route.SpaceUsers (Route.SpaceUsers.Before cursor)
             in
-                a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
+            a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
 
         Nothing ->
             text ""
@@ -191,7 +183,7 @@ nextButtonView maybeCursor =
                 route =
                     Route.SpaceUsers (Route.SpaceUsers.After cursor)
             in
-                a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
+            a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
 
         Nothing ->
             text ""
@@ -212,7 +204,7 @@ partitionUsers repo partitions groups =
                 ( matches, remaining ) =
                     List.partition (startsWith repo letter) groups
             in
-                partitionUsers repo (( letter, matches ) :: partitions) remaining
+            partitionUsers repo (( letter, matches ) :: partitions) remaining
 
         _ ->
             List.reverse partitions
@@ -234,4 +226,4 @@ startsWith repo letter ( _, spaceUser ) =
 
 isEven : Int -> Bool
 isEven number =
-    rem number 2 == 0
+    remainderBy 2 number == 0

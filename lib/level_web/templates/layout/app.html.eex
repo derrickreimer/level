@@ -30,8 +30,10 @@
     <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
   </head>
 
-  <body class="font-sans font-antialised" data-stretchy-filter=".js-stretchy">
-    <%= render @view_module, @view_template, assigns %>
+  <body>
+    <div class="font-sans font-antialised" data-stretchy-filter=".js-stretchy">
+      <%= render @view_module, @view_template, assigns %>
+    </div>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>

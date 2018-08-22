@@ -1,19 +1,4 @@
-module ReplyComposer
-    exposing
-        ( ReplyComposer
-        , Mode(..)
-        , init
-        , getBody
-        , setBody
-        , isExpanded
-        , isSubmitting
-        , expand
-        , stayExpanded
-        , blurred
-        , submitting
-        , notSubmitting
-        , unsubmittable
-        )
+module ReplyComposer exposing (Mode(..), ReplyComposer, blurred, expand, getBody, init, isExpanded, isSubmitting, notSubmitting, setBody, stayExpanded, submitting, unsubmittable)
 
 -- TYPES
 
@@ -42,7 +27,7 @@ type Mode
 init : Mode -> ReplyComposer
 init mode =
     let
-        isExpanded =
+        expanded =
             case mode of
                 Autocollapse ->
                     False
@@ -50,7 +35,7 @@ init mode =
                 AlwaysExpanded ->
                     True
     in
-        ReplyComposer (Data "" isExpanded False mode)
+    ReplyComposer (Data "" expanded False mode)
 
 
 getBody : ReplyComposer -> String
@@ -64,13 +49,13 @@ setBody newBody (ReplyComposer data) =
 
 
 isExpanded : ReplyComposer -> Bool
-isExpanded (ReplyComposer { isExpanded }) =
-    isExpanded
+isExpanded (ReplyComposer data) =
+    data.isExpanded
 
 
 isSubmitting : ReplyComposer -> Bool
-isSubmitting (ReplyComposer { isSubmitting }) =
-    isSubmitting
+isSubmitting (ReplyComposer data) =
+    data.isSubmitting
 
 
 expand : ReplyComposer -> ReplyComposer
@@ -87,6 +72,7 @@ blurred : ReplyComposer -> ReplyComposer
 blurred (ReplyComposer data) =
     if data.body == "" && data.mode == Autocollapse then
         ReplyComposer { data | isExpanded = False }
+
     else
         ReplyComposer data
 

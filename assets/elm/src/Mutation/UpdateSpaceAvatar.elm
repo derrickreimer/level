@@ -1,13 +1,13 @@
 module Mutation.UpdateSpaceAvatar exposing (Response(..), request)
 
-import Task exposing (Task)
-import Json.Encode as Encode
-import Json.Decode as Decode exposing (Decoder)
 import Data.Space exposing (Space)
-import Data.ValidationFields
 import Data.ValidationError exposing (ValidationError)
-import Session exposing (Session)
+import Data.ValidationFields
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
+import Session exposing (Session)
+import Task exposing (Task)
 
 
 type Response
@@ -17,7 +17,7 @@ type Response
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         mutation UpdateSpaceAvatar(
           $spaceId: ID!,
@@ -72,8 +72,8 @@ decoder =
                 False ->
                     failureDecoder
     in
-        Decode.at [ "data", "updateSpaceAvatar", "success" ] Decode.bool
-            |> Decode.andThen conditionalDecoder
+    Decode.at [ "data", "updateSpaceAvatar", "success" ] Decode.bool
+        |> Decode.andThen conditionalDecoder
 
 
 request : String -> String -> Session -> Task Session.Error ( Session, Response )

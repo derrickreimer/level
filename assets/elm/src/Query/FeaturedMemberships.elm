@@ -1,13 +1,12 @@
 module Query.FeaturedMemberships exposing (Response, request)
 
-import Task exposing (Task)
-import Session exposing (Session)
 import Data.GroupMembership exposing (GroupMembership)
 import Data.SpaceUser
+import GraphQL exposing (Document)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Task
-import GraphQL exposing (Document)
+import Session exposing (Session)
+import Task exposing (Task)
 
 
 type alias Response =
@@ -16,7 +15,7 @@ type alias Response =
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         query GetFeaturedMemberships(
           $groupId: ID!

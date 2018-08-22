@@ -1,17 +1,10 @@
-module Data.GroupMembership
-    exposing
-        ( GroupMembership
-        , GroupMembershipState(..)
-        , fragment
-        , decoder
-        , stateDecoder
-        , stateEncoder
-        )
+module Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..), decoder, fragment, stateDecoder, stateEncoder)
 
-import Json.Decode as Decode exposing (Decoder, field, string, succeed, fail)
-import Json.Encode as Encode
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
+import Json.Decode as Decode exposing (Decoder, fail, field, string, succeed)
+import Json.Encode as Encode
+
 
 
 -- TYPES
@@ -29,7 +22,7 @@ type GroupMembershipState
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment GroupMembershipFields on GroupMembership {
           spaceUser {
@@ -66,7 +59,7 @@ stateDecoder =
                 _ ->
                     fail "Membership state not valid"
     in
-        Decode.andThen convert string
+    Decode.andThen convert string
 
 
 

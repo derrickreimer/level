@@ -5,7 +5,7 @@ import GraphQL exposing (Fragment)
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment ValidationFields on Validatable {
           success

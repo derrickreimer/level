@@ -1,20 +1,12 @@
-module Data.Reply
-    exposing
-        ( Reply
-        , Record
-        , fragment
-        , decoder
-        , getId
-        , getPostId
-        , getCachedData
-        )
+module Data.Reply exposing (Record, Reply, decoder, fragment, getCachedData, getId, getPostId)
 
-import Date exposing (Date)
-import Json.Decode as Decode exposing (Decoder, string, int)
-import Json.Decode.Pipeline as Pipeline
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
+import Json.Decode as Decode exposing (Decoder, int, string)
+import Json.Decode.Pipeline as Pipeline
+import Time exposing (Posix)
 import Util exposing (dateDecoder)
+
 
 
 -- TYPES
@@ -30,14 +22,14 @@ type alias Record =
     , body : String
     , bodyHtml : String
     , author : SpaceUser
-    , postedAt : Date
+    , postedAt : Posix
     , fetchedAt : Int
     }
 
 
 fragment : Fragment
 fragment =
-    GraphQL.fragment
+    GraphQL.toFragment
         """
         fragment ReplyFields on Reply {
           id
@@ -62,7 +54,7 @@ fragment =
 decoder : Decoder Reply
 decoder =
     Decode.map Reply <|
-        (Pipeline.decode Record
+        (Decode.succeed Record
             |> Pipeline.required "id" string
             |> Pipeline.required "postId" string
             |> Pipeline.required "body" string

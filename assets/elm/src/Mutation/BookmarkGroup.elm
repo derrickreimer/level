@@ -1,11 +1,11 @@
 module Mutation.BookmarkGroup exposing (Response(..), request)
 
-import Task exposing (Task)
-import Json.Encode as Encode
-import Json.Decode as Decode exposing (Decoder)
 import Data.Group as Group exposing (Group)
-import Session exposing (Session)
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
+import Session exposing (Session)
+import Task exposing (Task)
 
 
 type Response
@@ -14,7 +14,7 @@ type Response
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         mutation BookmarkGroup(
           $spaceId: ID!,

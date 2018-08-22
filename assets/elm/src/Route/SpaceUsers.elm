@@ -1,6 +1,6 @@
 module Route.SpaceUsers exposing (Params(..), params, segments)
 
-import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, string, top)
+import Url.Parser as Parser exposing ((</>), Parser, oneOf, s)
 
 
 type Params
@@ -12,15 +12,15 @@ type Params
 params : Parser (Params -> a) a
 params =
     oneOf
-        [ Url.map Root (s "users")
-        , Url.map After (s "users" </> s "after" </> Url.string)
-        , Url.map Before (s "users" </> s "before" </> Url.string)
+        [ Parser.map Root (s "users")
+        , Parser.map After (s "users" </> s "after" </> Parser.string)
+        , Parser.map Before (s "users" </> s "before" </> Parser.string)
         ]
 
 
 segments : Params -> List String
-segments params =
-    case params of
+segments p =
+    case p of
         Root ->
             [ "users" ]
 

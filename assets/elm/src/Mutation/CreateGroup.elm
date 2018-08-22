@@ -1,13 +1,13 @@
 module Mutation.CreateGroup exposing (Response(..), request)
 
-import Task exposing (Task)
-import Json.Encode as Encode
-import Json.Decode as Decode exposing (Decoder)
 import Data.Group as Group exposing (Group)
-import Data.ValidationFields as ValidationFields
 import Data.ValidationError as ValidationError exposing (ValidationError)
-import Session exposing (Session)
+import Data.ValidationFields as ValidationFields
 import GraphQL exposing (Document)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
+import Session exposing (Session)
+import Task exposing (Task)
 
 
 type Response
@@ -17,7 +17,7 @@ type Response
 
 document : Document
 document =
-    GraphQL.document
+    GraphQL.toDocument
         """
         mutation CreateGroup(
           $spaceId: ID!,
@@ -76,8 +76,8 @@ decoder =
                 False ->
                     failureDecoder
     in
-        Decode.at [ "data", "createGroup", "success" ] Decode.bool
-            |> Decode.andThen conditionalDecoder
+    Decode.at [ "data", "createGroup", "success" ] Decode.bool
+        |> Decode.andThen conditionalDecoder
 
 
 request : String -> String -> Bool -> Session -> Task Session.Error ( Session, Response )
