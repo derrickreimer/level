@@ -32,6 +32,9 @@ displayName nameable =
 
 
 {-| Inject a raw string of HTML into a div.
+
+    TODO: this no longer works in 0.19
+
 -}
 injectHtml : List (Attribute msg) -> String -> Html msg
 injectHtml attrs rawHtml =
