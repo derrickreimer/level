@@ -14,6 +14,7 @@ import Html.Events exposing (..)
 import Icons
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import ListHelpers
+import Markdown
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissMentions as DismissMentions
 import Query.Replies
@@ -338,7 +339,8 @@ postView repo currentUser (( zone, posix ) as now) ({ post, replies } as model) 
             postData.mentions
 
         body =
-            postData.bodyHtml
+            postData.body
+                |> Markdown.toHtml []
     in
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
@@ -355,7 +357,7 @@ postView repo currentUser (( zone, posix ) as now) ({ post, replies } as model) 
                         groupsLabel repo postData.groups
                     , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, postData.postedAt ) ]
                     ]
-                , div [ class "markdown mb-2" ] [ injectHtml [] body ]
+                , div [ class "markdown mb-2" ] [ body ]
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -449,6 +451,10 @@ replyView repo (( zone, posix ) as now) mode reply =
 
         authorData =
             Repo.getSpaceUser repo replyData.author
+
+        body =
+            replyData.body
+                |> Markdown.toHtml []
     in
     div [ id (replyNodeId replyData.id), class "flex mt-3" ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small authorData ]
@@ -458,7 +464,7 @@ replyView repo (( zone, posix ) as now) mode reply =
                 , viewIf (mode == FullPage) <|
                     span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, replyData.postedAt ) ]
                 ]
-            , div [ class "markdown mb-2" ] [ injectHtml [] replyData.bodyHtml ]
+            , div [ class "markdown mb-2" ] [ body ]
             ]
         ]
 
