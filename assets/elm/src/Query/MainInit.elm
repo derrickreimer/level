@@ -1,7 +1,6 @@
 module Query.MainInit exposing (Response, request)
 
 import Data.Group exposing (Group)
-import Data.Setup as Setup exposing (setupStateDecoder)
 import Data.Space exposing (Space)
 import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Document)
@@ -9,6 +8,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Session exposing (Session)
+import Setup exposing (setupStateDecoder)
 import Task exposing (Task)
 
 

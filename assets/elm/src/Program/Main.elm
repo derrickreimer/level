@@ -5,7 +5,6 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Data.Group as Group exposing (Group)
 import Data.Post as Post
-import Data.Setup as Setup
 import Data.Space as Space
 import Data.SpaceUser as SpaceUser
 import Debug
@@ -30,6 +29,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
 import Session exposing (Session)
+import Setup
 import Socket
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
@@ -224,52 +224,62 @@ update msg model =
 
         ( SetupCreateGroupsMsg pageMsg, SetupCreateGroups pageModel ) ->
             let
-                ( ( newPageModel, cmd ), session, externalMsg ) =
+                ( ( newPageModel, pageCmd ), session, externalMsg ) =
                     Page.Setup.CreateGroups.update pageMsg model.session pageModel
 
-                newModel =
+                ( newModel, cmd ) =
                     case externalMsg of
                         Page.Setup.CreateGroups.SetupStateChanged newState ->
                             case model.sharedState of
                                 Loaded sharedState ->
-                                    { model | sharedState = Loaded { sharedState | setupState = newState } }
+                                    ( { model | sharedState = Loaded { sharedState | setupState = newState } }
+                                    , Route.pushUrl model.browserKey (Setup.routeFor newState)
+                                    )
 
                                 NotLoaded ->
-                                    model
+                                    ( model, Cmd.none )
 
                         Page.Setup.CreateGroups.NoOp ->
-                            model
+                            ( model, Cmd.none )
             in
             ( { newModel
                 | session = session
                 , page = SetupCreateGroups newPageModel
               }
-            , Cmd.map SetupCreateGroupsMsg cmd
+            , Cmd.batch
+                [ Cmd.map SetupCreateGroupsMsg pageCmd
+                , cmd
+                ]
             )
 
         ( SetupInviteUsersMsg pageMsg, SetupInviteUsers pageModel ) ->
             let
-                ( ( newPageModel, cmd ), session, externalMsg ) =
+                ( ( newPageModel, pageCmd ), session, externalMsg ) =
                     Page.Setup.InviteUsers.update pageMsg model.session pageModel
 
-                newModel =
+                ( newModel, cmd ) =
                     case externalMsg of
                         Page.Setup.InviteUsers.SetupStateChanged newState ->
                             case model.sharedState of
                                 Loaded sharedState ->
-                                    { model | sharedState = Loaded { sharedState | setupState = newState } }
+                                    ( { model | sharedState = Loaded { sharedState | setupState = newState } }
+                                    , Route.pushUrl model.browserKey (Setup.routeFor newState)
+                                    )
 
                                 NotLoaded ->
-                                    model
+                                    ( model, Cmd.none )
 
                         Page.Setup.InviteUsers.NoOp ->
-                            model
+                            ( model, Cmd.none )
             in
             ( { newModel
                 | session = session
                 , page = SetupInviteUsers newPageModel
               }
-            , Cmd.map SetupInviteUsersMsg cmd
+            , Cmd.batch
+                [ Cmd.map SetupInviteUsersMsg pageCmd
+                , cmd
+                ]
             )
 
         ( SpaceUsersMsg pageMsg, SpaceUsers pageModel ) ->

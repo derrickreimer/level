@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, href, parser, replaceUrl, toLogin, toSpace)
+module Route exposing (Route(..), fromUrl, href, parser, pushUrl, replaceUrl, toLogin, toSpace)
 
 {-| Routing logic for the application.
 -}
@@ -99,6 +99,11 @@ routeToString page =
 href : Route -> Attribute msg
 href route =
     Attr.href (routeToString route)
+
+
+pushUrl : Nav.Key -> Route -> Cmd msg
+pushUrl key route =
+    Nav.pushUrl key (routeToString route)
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg

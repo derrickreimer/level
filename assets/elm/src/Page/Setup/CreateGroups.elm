@@ -1,6 +1,5 @@
 module Page.Setup.CreateGroups exposing (ExternalMsg(..), Model, Msg(..), init, setup, teardown, title, update, view)
 
-import Data.Setup as Setup
 import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Html exposing (..)
@@ -11,6 +10,7 @@ import Mutation.CompleteSetupStep as CompleteSetupStep
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
+import Setup
 import Task exposing (Task)
 
 
