@@ -9,7 +9,7 @@ defmodule LevelWeb.Util.SvgToElmController do
 
   def index(conn, _params) do
     conn
-    |> assign(:page_title, "SVG to Elm Utility")
+    |> set_assigns()
     |> render("index.html")
   end
 
@@ -19,15 +19,22 @@ defmodule LevelWeb.Util.SvgToElmController do
     |> respond_with_elm(conn)
   end
 
+  defp set_assigns(conn) do
+    conn
+    |> assign(:module, "svg_to_elm")
+    |> assign(:page_title, "SVG to Elm Utility")
+  end
+
   defp respond_with_elm({:ok, value}, conn) do
     conn
-    |> assign(:page_title, "SVG to Elm Utility")
+    |> set_assigns()
     |> assign(:elm_output, value)
     |> render("index.html")
   end
 
   defp respond_with_elm({:error, _}, conn) do
     conn
+    |> set_assigns()
     |> put_flash(:error, generic_error())
     |> render("index.html")
   end
