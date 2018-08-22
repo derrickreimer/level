@@ -1,13 +1,15 @@
 import { getApiToken } from "../token";
 import { attachPorts } from "../ports";
-import { Program } from "../../elm/src/Program/Main.elm";
+import { Elm } from "../../elm/src/Program/Main.elm";
 
 export function initialize() {
   const spaceId = document.head.querySelector("meta[name='space_id']").content;
 
-  const app = Program.Main.fullscreen({
-    apiToken: getApiToken(),
-    spaceId: spaceId
+  const app = Elm.Program.Main.init({
+    flags: {
+      apiToken: getApiToken(),
+      spaceId: spaceId
+    }
   });
 
   attachPorts(app);

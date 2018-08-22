@@ -1,4 +1,4 @@
-module View.Layout exposing (userLayout)
+module View.Layout exposing (appLayout, userLayout)
 
 import Avatar
 import Data.User as User exposing (User)
@@ -13,9 +13,18 @@ import View.Helpers exposing (displayName)
 -- VIEWS
 
 
+appLayout : List (Html msg) -> Html msg
+appLayout nodes =
+    div
+        [ class "font-sans font-antialised"
+        , Html.Attributes.attribute "data-stretchy-filter" ".js-stretchy"
+        ]
+        nodes
+
+
 userLayout : Lazy User -> Html msg -> Html msg
 userLayout lazyUser bodyView =
-    div [ class "container mx-auto p-6" ]
+    div [ class "container mx-auto p-6 font-sans font-antialised" ]
         [ div [ class "flex pb-16 sm:pb-16 items-center" ]
             [ a [ href "/spaces", class "logo logo-sm" ]
                 [ Icons.logo ]

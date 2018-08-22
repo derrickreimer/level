@@ -37,6 +37,7 @@ import Task exposing (Task)
 import Url exposing (Url)
 import Util exposing (Lazy(..))
 import View.Helpers exposing (displayName)
+import View.Layout exposing (appLayout)
 
 
 
@@ -991,7 +992,7 @@ view model =
 
         Loaded sharedState ->
             Document (pageTitle model.repo model.page)
-                [ div []
+                [ appLayout
                     [ leftSidebar sharedState model
                     , pageView model.repo sharedState model.page
                     ]
