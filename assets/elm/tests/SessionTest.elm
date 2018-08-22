@@ -1,11 +1,11 @@
-module SessionTest exposing (..)
+module SessionTest exposing (decoders)
 
 import Expect exposing (Expectation)
+import Json.Decode exposing (decodeString)
+import Session as Session
 import Test exposing (..)
 import TestHelpers exposing (success)
-import Json.Decode exposing (decodeString)
-import Jwt
-import Session as Session
+import Vendor.Jwt as Jwt
 
 
 {-| Tests for decoders.
@@ -29,7 +29,7 @@ decoders =
                             , sub = "111538528994722876"
                             }
                     in
-                        Expect.equal (Ok expected) result
+                    Expect.equal (Ok expected) result
             , test "fails with a malformed token" <|
                 \_ ->
                     let
@@ -39,6 +39,6 @@ decoders =
                         result =
                             Session.decodeToken token
                     in
-                        Expect.equal (Err (Jwt.TokenProcessingError "Wrong length")) result
+                    Expect.equal (Err (Jwt.TokenProcessingError "Wrong length")) result
             ]
         ]

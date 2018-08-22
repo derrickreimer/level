@@ -5,4 +5,4 @@
 set -e
 
 cd assets/elm
-../node_modules/.bin/elm-test --compiler ../node_modules/.bin/elm-make
+../node_modules/.bin/elm-test --compiler ../node_modules/.bin/elm

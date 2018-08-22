@@ -21,7 +21,11 @@
         }
     },
     "test-dependencies": {
-        "direct": {},
-        "indirect": {}
+        "direct": {
+            "elm-explorations/test": "1.0.0"
+        },
+        "indirect": {
+            "elm/random": "1.0.0"
+        }
     }
 }

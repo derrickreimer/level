@@ -1,4 +1,4 @@
-module Program.NewSpace exposing (Model, Msg(..), subscriptions, update, view)
+module Program.NewSpace exposing (Model, Msg(..), slugify, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Data.User as User exposing (User)

@@ -1,12 +1,12 @@
-module Program.NewSpaceTest exposing (..)
+module Program.NewSpaceTest exposing (isAlphanumeric, isLower, isValidUrl, utils)
 
 import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, list, int, string)
-import List
-import Regex
-import Program.NewSpace as NewSpace
-import Test exposing (..)
+import Fuzz exposing (Fuzzer, int, list, string)
 import Json.Decode as Decode exposing (decodeString)
+import List
+import Program.NewSpace as NewSpace
+import Regex
+import Test exposing (..)
 
 
 {-| Tests for utility functions.
@@ -34,6 +34,7 @@ utils =
 {-| Determines if a given string is lowercase.
 
     isLower "yep" == True
+
     isLower "Nope" == False
 
 -}
@@ -45,20 +46,28 @@ isLower str =
 {-| Determines if a given string is alphanumeric/dashes.
 
     isAlphanumeric "foo-bar-123" == True
+
     isAlphanumeric "withemphasis!" == False
 
 -}
 isAlphanumeric : String -> Bool
 isAlphanumeric str =
+    let
+        regex =
+            Maybe.withDefault Regex.never <|
+                Regex.fromString "[^a-z0-9-]"
+    in
     str
-        |> Regex.contains (Regex.regex "[^a-z0-9-]")
+        |> Regex.contains regex
         |> not
 
 
 {-| Determines if a given slug is valid for URLs.
 
     isValidUrl "FOO" == False
+
     isValidUrl "yay~~" == False
+
     isValidUrl "level" == True
 
 -}
