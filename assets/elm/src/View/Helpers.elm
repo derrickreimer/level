@@ -86,17 +86,17 @@ selectValue id =
 formatTime : ( Zone, Posix ) -> String
 formatTime ( zone, posix ) =
     let
-        hour =
+        ( hour, meridian ) =
             posix
                 |> Time.toHour zone
-                |> String.fromInt
+                |> toTwelveHour
 
         minute =
             posix
                 |> Time.toMinute zone
-                |> String.fromInt
+                |> padMinutes
     in
-    hour ++ ":" ++ minute
+    String.fromInt hour ++ ":" ++ minute ++ " " ++ meridian
 
 
 {-| Converts a date into a human-friendly date and time string.
@@ -228,3 +228,31 @@ smartFormatDate now date =
 
     else
         formatDateTime False date
+
+
+
+-- INTERNAL
+
+
+padMinutes : Int -> String
+padMinutes minutes =
+    if minutes < 10 then
+        "0" ++ String.fromInt minutes
+
+    else
+        String.fromInt minutes
+
+
+toTwelveHour : Int -> ( Int, String )
+toTwelveHour hour =
+    if hour == 0 then
+        ( 12, "am" )
+
+    else if hour < 12 then
+        ( hour, "am" )
+
+    else if hour == 12 then
+        ( 12, "pm" )
+
+    else
+        ( remainderBy 12 hour, "pm" )
