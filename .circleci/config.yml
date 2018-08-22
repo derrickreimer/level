@@ -59,6 +59,9 @@ jobs:
       - restore_cache:
           keys:
             - elm-stuff-v5-{{ checksum "assets/package.json" }}-{{ checksum "assets/elm/elm.json" }}
+      - restore_cache:
+          keys:
+            - elixir-build-v3-{{ checksum "mix.lock" }}
       - run:
           name: "Install yarn packages"
           command: cd assets && yarn install
