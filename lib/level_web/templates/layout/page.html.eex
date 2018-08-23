@@ -30,7 +30,7 @@
     <%= if assigns[:og] do %>
     <meta property="og:title" content="<%= @og.title %>">
     <meta property="og:type" content="text/html">
-    <meta property="og:image" content="<%= static_path(@conn, @og.image) %>">
+    <meta property="og:image" content="https://level.app<%= static_path(@conn, @og.image) %>">
     <meta property="og:description" content="<%= @og.description %>">
     <meta property="og:url" content="<%= @og.url %>">
     <% end %>
