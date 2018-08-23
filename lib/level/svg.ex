@@ -19,6 +19,13 @@ defmodule Level.Svg do
 
   # Internals
 
+  defp tree_to_elm([_ | _] = nodes) do
+    Enum.find(nodes, [], fn {node_type, _, _} ->
+      node_type == "svg"
+    end)
+    |> tree_to_elm()
+  end
+
   defp tree_to_elm({node_type, attrs, children}) do
     case cast_type(node_type) do
       nil -> nil
@@ -40,8 +47,9 @@ defmodule Level.Svg do
       |> Enum.map(&cast_attr/1)
       |> Enum.filter(&(!is_nil(&1)))
       |> Enum.join(", ")
+      |> pad_string()
 
-    node_string = "#{elm_name} [ #{attr_string} ]"
+    node_string = "#{elm_name} [#{attr_string}]"
 
     if length(children) > 0 do
       child_string =
@@ -49,12 +57,16 @@ defmodule Level.Svg do
         |> Enum.map(&tree_to_elm/1)
         |> Enum.filter(&(!is_nil(&1)))
         |> Enum.join(", ")
+        |> pad_string()
 
-      "#{node_string} [ #{child_string} ]"
+      "#{node_string} [#{child_string}]"
     else
       "#{node_string} []"
     end
   end
+
+  defp pad_string(""), do: ""
+  defp pad_string(value), do: " #{value} "
 
   # Elements
 
