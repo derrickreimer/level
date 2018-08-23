@@ -20,7 +20,8 @@ defmodule Level.Svg do
   # Internals
 
   defp tree_to_elm([_ | _] = nodes) do
-    Enum.find(nodes, [], fn {node_type, _, _} ->
+    nodes
+    |> Enum.find([], fn {node_type, _, _} ->
       node_type == "svg"
     end)
     |> tree_to_elm()
