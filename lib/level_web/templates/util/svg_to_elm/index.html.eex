@@ -30,5 +30,7 @@
     <%= submit gettext("Convert to Elm"), class: "btn btn-blue" %>
   <% end %>
 
-  <p class="my-8 py-8 border-t text-dusty-blue">Made with ♥️ by <a href="https://level.app" class="text-blue font-extrabold no-underline">Level</a></p>
+  <p class="my-8 py-8 border-t text-dusty-blue">Built with ♥️ by the maker of Level, an alternative to real-time chat for software teams. 
+    <a href="https://level.app" class="text-blue font-extrabold no-underline">Reserve your handle</a> to claim your little slice of real estate.
+  </p>
 </article>
