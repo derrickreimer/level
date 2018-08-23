@@ -27,6 +27,14 @@
     <title>Level: Distraction-free communication for software teams</title>
     <% end %>
 
+    <%= if assigns[:og] do %>
+    <meta property="og:title" content="<%= @og.title %>">
+    <meta property="og:type" content="text/html">
+    <meta property="og:image" content="<%= static_path(@conn, @og.image) %>">
+    <meta property="og:description" content="<%= @og.description %>">
+    <meta property="og:url" content="<%= @og.url %>">
+    <% end %>
+
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
     <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
   </head>

@@ -22,7 +22,8 @@ defmodule LevelWeb.Util.SvgToElmController do
   defp set_assigns(conn) do
     conn
     |> assign(:module, "svg_to_elm")
-    |> assign(:page_title, "SVG to Elm Utility")
+    |> assign(:og, og_data())
+    |> assign(:page_title, "Convert SVG to Elm")
   end
 
   defp respond_with_elm({:ok, value}, conn) do
@@ -44,5 +45,15 @@ defmodule LevelWeb.Util.SvgToElmController do
       "errors",
       "Hmm...something went wrong. If the problem persists, please file a bug report on GitHub."
     )
+  end
+
+  defp og_data do
+    %{
+      title: "Convert SVG to Elm",
+      description:
+        "A free little utility for converting raw SVGs into elm/svg code, from the maker of Level.",
+      image: "/images/avatar-light.png",
+      url: "https://level.app/svg-to-elm"
+    }
   end
 end
