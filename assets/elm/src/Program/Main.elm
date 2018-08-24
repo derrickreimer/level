@@ -450,9 +450,9 @@ navigateTo maybeRoute sharedState model =
                 |> Page.Setup.InviteUsers.init spaceSlug
                 |> transition model SetupInviteUsersInit
 
-        Just (Route.Inbox _) ->
+        Just (Route.Inbox spaceSlug) ->
             model.session
-                |> Page.Inbox.init sharedState.space sharedState.user
+                |> Page.Inbox.init spaceSlug
                 |> transition model InboxInit
 
         Just (Route.SpaceUsers params) ->
@@ -794,7 +794,7 @@ pageView repo sharedState page =
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view repo sharedState.featuredUsers
+                |> Page.Inbox.view repo (routeFor page)
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->

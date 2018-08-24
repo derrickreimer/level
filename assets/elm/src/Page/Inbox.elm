@@ -3,6 +3,7 @@ module Page.Inbox exposing (Model, Msg(..), handleMentionsDismissed, handleReply
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
@@ -10,7 +11,7 @@ import Post exposing (Post)
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import Route
+import Route exposing (Route)
 import Route.SpaceUsers
 import Session exposing (Session)
 import Space exposing (Space)
@@ -19,6 +20,7 @@ import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (displayName, smartFormatDate)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -26,8 +28,10 @@ import View.Helpers exposing (displayName, smartFormatDate)
 
 
 type alias Model =
-    { space : Space
-    , currentUser : SpaceUser
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarkedGroups : List Group
+    , featuredUsers : List SpaceUser
     , mentionedPosts : Connection Component.Post.Model
     , now : ( Zone, Posix )
     }
@@ -46,17 +50,17 @@ title =
 -- LIFECYCLE
 
 
-init : Space -> SpaceUser -> Session -> Task Session.Error ( Session, Model )
-init space currentUser session =
+init : String -> Session -> Task Session.Error ( Session, Model )
+init spaceSlug session =
     session
-        |> InboxInit.request (Space.getId space)
+        |> InboxInit.request spaceSlug
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel space currentUser)
+        |> Task.andThen buildModel
 
 
-buildModel : Space -> SpaceUser -> ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel space currentUser ( ( session, { mentionedPosts } ), now ) =
-    Task.succeed ( session, Model space currentUser mentionedPosts now )
+buildModel : ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel ( ( session, { viewer, space, bookmarkedGroups, featuredUsers, mentionedPosts } ), now ) =
+    Task.succeed ( session, Model viewer space bookmarkedGroups featuredUsers mentionedPosts now )
 
 
 setup : Model -> Cmd Msg
@@ -178,17 +182,23 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> List SpaceUser -> Model -> Html Msg
-view repo featuredUsers model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
-                [ div [ class "flex items-center" ]
-                    [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
+    spaceLayout repo
+        model.viewer
+        model.space
+        model.bookmarkedGroups
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-90 leading-normal" ]
+                [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
+                    [ div [ class "flex items-center" ]
+                        [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
+                        ]
                     ]
+                , mentionsView repo model
+                , sidebarView repo model.space model.featuredUsers
                 ]
-            , mentionsView repo model
-            , sidebarView repo model.space featuredUsers
             ]
         ]
 
@@ -214,7 +224,7 @@ postView repo model component =
             ]
         , div [ class "flex-1" ]
             [ component
-                |> Component.Post.postView repo model.space model.currentUser model.now
+                |> Component.Post.postView repo model.space model.viewer model.now
                 |> Html.map (PostComponentMsg component.id)
             ]
         ]
