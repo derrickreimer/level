@@ -224,8 +224,8 @@ update msg model =
                         Page.Setup.CreateGroups.SetupStateChanged newState ->
                             case model.sharedState of
                                 Loaded sharedState ->
-                                    ( { model | sharedState = Loaded { sharedState | setupState = newState } }
-                                    , Route.pushUrl model.browserKey (Space.routeFor sharedState.space newState)
+                                    ( model
+                                    , Route.pushUrl model.browserKey (Space.setupRoute sharedState.space newState)
                                     )
 
                                 NotLoaded ->
@@ -254,8 +254,8 @@ update msg model =
                         Page.Setup.InviteUsers.SetupStateChanged newState ->
                             case model.sharedState of
                                 Loaded sharedState ->
-                                    ( { model | sharedState = Loaded { sharedState | setupState = newState } }
-                                    , Route.pushUrl model.browserKey (Space.routeFor sharedState.space newState)
+                                    ( model
+                                    , Route.pushUrl model.browserKey (Space.setupRoute sharedState.space newState)
                                     )
 
                                 NotLoaded ->
@@ -429,7 +429,11 @@ navigateTo maybeRoute sharedState model =
                 route =
                     case role of
                         SpaceUser.Owner ->
-                            Space.routeFor sharedState.space sharedState.setupState
+                            let
+                                spaceData =
+                                    Space.getCachedData sharedState.space
+                            in
+                            Space.setupRoute sharedState.space spaceData.setupState
 
                         _ ->
                             Route.Inbox (Space.getSlug sharedState.space)
@@ -443,7 +447,7 @@ navigateTo maybeRoute sharedState model =
 
         Just (Route.SetupInviteUsers _) ->
             sharedState.space
-                |> Page.Setup.InviteUsers.init sharedState.openInvitationUrl
+                |> Page.Setup.InviteUsers.init
                 |> transition model SetupInviteUsersInit
 
         Just (Route.Inbox _) ->

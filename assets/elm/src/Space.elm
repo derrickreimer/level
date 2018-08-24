@@ -1,4 +1,4 @@
-module Space exposing (Record, SetupState(..), Space, decoder, fragment, getCachedData, getId, getSlug, routeFor, setupStateDecoder, setupStateEncoder)
+module Space exposing (Record, SetupState(..), Space, decoder, fragment, getCachedData, getId, getSlug, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
@@ -20,6 +20,7 @@ type alias Record =
     , slug : String
     , avatarUrl : Maybe String
     , setupState : SetupState
+    , openInvitationUrl : Maybe String
     , fetchedAt : Int
     }
 
@@ -40,6 +41,7 @@ fragment =
           slug
           avatarUrl
           setupState
+          openInvitationUrl
           fetchedAt
         }
         """
@@ -53,12 +55,13 @@ fragment =
 decoder : Decoder Space
 decoder =
     Decode.map Space <|
-        Decode.map6 Record
+        Decode.map7 Record
             (field "id" string)
             (field "name" string)
             (field "slug" string)
             (field "avatarUrl" (maybe string))
             (field "setupState" setupStateDecoder)
+            (field "openInvitationUrl" (maybe string))
             (field "fetchedAt" int)
 
 
@@ -119,12 +122,17 @@ getCachedData (Space record) =
     record
 
 
+setSetupState : SetupState -> Space -> Space
+setSetupState state (Space record) =
+    Space { record | setupState = state }
+
+
 
 -- ROUTING
 
 
-routeFor : Space -> SetupState -> Route
-routeFor (Space { slug }) state =
+setupRoute : Space -> SetupState -> Route
+setupRoute (Space { slug }) state =
     case state of
         CreateGroups ->
             Route.SetupCreateGroups slug

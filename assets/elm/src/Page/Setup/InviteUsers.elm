@@ -34,14 +34,18 @@ title =
 -- LIFECYCLE
 
 
-init : Maybe String -> Space -> Task Never Model
-init openInvitationUrl space =
-    Task.succeed (buildModel openInvitationUrl space)
+init : Space -> Task Never Model
+init space =
+    Task.succeed (buildModel space)
 
 
-buildModel : Maybe String -> Space -> Model
-buildModel openInvitationUrl space =
-    Model (Space.getId space) False openInvitationUrl
+buildModel : Space -> Model
+buildModel space =
+    let
+        spaceData =
+            Space.getCachedData space
+    in
+    Model (Space.getId space) False spaceData.openInvitationUrl
 
 
 setup : Cmd Msg

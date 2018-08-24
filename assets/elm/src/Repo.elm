@@ -1,12 +1,56 @@
-module Repo exposing (Repo, getGroup, getGroups, getPost, getPosts, getSpace, getSpaceUser, getSpaceUsers, getSpaces, init, setGroup, setPost, setSpace, setSpaceUser)
+module Repo exposing
+    ( Repo, init
+    , getGroup, getGroups, setGroup
+    , getSpace, getSpaces, setSpace
+    , getPost, getPosts, setPost
+    , getSpaceUser, getSpaceUsers, setSpaceUser
+    , getBookmarks
+    )
+
+{-| The Repo is the central repository for storing data.
+
+
+# Definitions
+
+@docs Repo, init
+
+
+# Groups
+
+@docs getGroup, getGroups, setGroup
+
+
+# Spaces
+
+@docs getSpace, getSpaces, setSpace
+
+
+# Posts
+
+@docs getPost, getPosts, setPost
+
+
+# Space Users
+
+@docs getSpaceUser, getSpaceUsers, setSpaceUser
+
+
+# Bookmarks
+
+@docs getBookmarks
+
+-}
 
 import Group exposing (Group)
 import IdentityMap exposing (IdentityMap)
+import Lazy exposing (Lazy(..))
 import Post exposing (Post)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 
 
+{-| The data structure for storing data.
+-}
 type Repo
     = Repo Internal
 
@@ -108,3 +152,12 @@ getPosts (Repo { posts }) list =
 setPost : Repo -> Post -> Repo
 setPost (Repo repo) post =
     Repo { repo | posts = IdentityMap.set repo.posts (Post.getCachedData post) }
+
+
+
+-- BOOKMARKS
+
+
+getBookmarks : Repo -> String -> Lazy (List Group)
+getBookmarks repo id =
+    NotLoaded
