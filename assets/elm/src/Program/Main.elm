@@ -35,7 +35,7 @@ import Task exposing (Task)
 import Url exposing (Url)
 import Util exposing (Lazy(..))
 import View.Helpers exposing (displayName)
-import View.Layout exposing (appLayout)
+import View.Layout exposing (appLayout, spaceLayout)
 
 
 
@@ -1007,98 +1007,11 @@ view model =
 
         Loaded sharedState ->
             Document (pageTitle model.repo model.page)
-                [ appLayout
-                    [ leftSidebar sharedState model
-                    , pageView model.repo sharedState model.page
+                [ spaceLayout model.repo
+                    sharedState.user
+                    sharedState.space
+                    sharedState.bookmarkedGroups
+                    (routeFor sharedState.space model.page)
+                    [ pageView model.repo sharedState model.page
                     ]
                 ]
-
-
-leftSidebar : SharedState -> Model -> Html Msg
-leftSidebar ({ space } as sharedState) ({ page, repo } as model) =
-    let
-        currentUserData =
-            Repo.getSpaceUser repo sharedState.user
-
-        spaceData =
-            Repo.getSpace repo space
-
-        slug =
-            Space.getSlug space
-    in
-    div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
-        [ div [ class "p-4" ]
-            [ a [ href "/spaces", class "block ml-2 no-underline" ]
-                [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
-                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
-                ]
-            , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ sidebarLink space "Inbox" (Just <| Route.Inbox slug) page
-                , sidebarLink space "Everything" Nothing page
-                , sidebarLink space "Drafts" Nothing page
-                ]
-            , groupLinks repo space sharedState.bookmarkedGroups page
-            , sidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.Root slug)) page
-            ]
-        , div [ class "absolute pin-b w-full" ]
-            [ a [ Route.href (Route.UserSettings slug), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
-                [ div [] [ personAvatar Avatar.Small currentUserData ]
-                , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
-                    [ div [] [ text "Signed in as" ]
-                    , div [ class "font-bold" ] [ text (displayName currentUserData) ]
-                    ]
-                ]
-            ]
-        ]
-
-
-groupLinks : Repo -> Space -> List Group -> Page -> Html Msg
-groupLinks repo space groups currentPage =
-    let
-        slug =
-            Space.getSlug space
-
-        linkify group =
-            sidebarLink space group.name (Just <| Route.Group slug group.id) currentPage
-
-        links =
-            groups
-                |> Repo.getGroups repo
-                |> List.sortBy .name
-                |> List.map linkify
-    in
-    ul [ class "mb-4 list-reset leading-semi-loose select-none" ] links
-
-
-{-| Build a link for the sidebar navigation with a special indicator for the
-current page. Pass Nothing for the route to make it a placeholder link.
--}
-sidebarLink : Space -> String -> Maybe Route -> Page -> Html Msg
-sidebarLink space title maybeRoute currentPage =
-    let
-        link route =
-            a
-                [ route
-                , class "ml-2 text-dusty-blue-darkest no-underline truncate"
-                ]
-                [ text title ]
-
-        currentItem route =
-            li [ class "flex items-center font-bold" ]
-                [ div [ class "flex-no-shrink -ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
-                , link (Route.href route)
-                ]
-    in
-    case ( maybeRoute, routeFor space currentPage ) of
-        ( Just (Route.Groups params), Just (Route.Groups _) ) ->
-            currentItem (Route.Groups params)
-
-        ( Just route, Just currentRoute ) ->
-            if route == currentRoute then
-                currentItem route
-
-            else
-                li [ class "flex" ] [ link (Route.href route) ]
-
-        ( _, _ ) ->
-            li [ class "flex" ] [ link (href "#") ]
