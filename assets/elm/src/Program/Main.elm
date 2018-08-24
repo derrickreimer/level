@@ -26,7 +26,6 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
 import Session exposing (Session)
-import Setup
 import Socket
 import Space exposing (Space)
 import SpaceUser
@@ -226,7 +225,7 @@ update msg model =
                             case model.sharedState of
                                 Loaded sharedState ->
                                     ( { model | sharedState = Loaded { sharedState | setupState = newState } }
-                                    , Route.pushUrl model.browserKey (Setup.routeFor sharedState.space newState)
+                                    , Route.pushUrl model.browserKey (Space.routeFor sharedState.space newState)
                                     )
 
                                 NotLoaded ->
@@ -256,7 +255,7 @@ update msg model =
                             case model.sharedState of
                                 Loaded sharedState ->
                                     ( { model | sharedState = Loaded { sharedState | setupState = newState } }
-                                    , Route.pushUrl model.browserKey (Setup.routeFor sharedState.space newState)
+                                    , Route.pushUrl model.browserKey (Space.routeFor sharedState.space newState)
                                     )
 
                                 NotLoaded ->
@@ -430,7 +429,7 @@ navigateTo maybeRoute sharedState model =
                 route =
                     case role of
                         SpaceUser.Owner ->
-                            Setup.routeFor sharedState.space sharedState.setupState
+                            Space.routeFor sharedState.space sharedState.setupState
 
                         _ ->
                             Route.Inbox (Space.getSlug sharedState.space)

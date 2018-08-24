@@ -6,7 +6,6 @@ import Html.Events exposing (onClick)
 import Mutation.CompleteSetupStep as CompleteSetupStep
 import Route exposing (Route)
 import Session exposing (Session)
-import Setup
 import Space exposing (Space)
 import Task exposing (Task)
 
@@ -65,7 +64,7 @@ type Msg
 
 
 type ExternalMsg
-    = SetupStateChanged Setup.State
+    = SetupStateChanged Space.SetupState
     | NoOp
 
 
@@ -75,7 +74,7 @@ update msg session model =
         Submit ->
             let
                 cmd =
-                    CompleteSetupStep.request model.spaceId Setup.InviteUsers False session
+                    CompleteSetupStep.request model.spaceId Space.InviteUsers False session
                         |> Task.attempt Advanced
             in
             ( ( { model | isSubmitting = True }, cmd ), session, NoOp )

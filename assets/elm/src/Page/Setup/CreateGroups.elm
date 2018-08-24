@@ -8,7 +8,6 @@ import Mutation.CompleteSetupStep as CompleteSetupStep
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
-import Setup
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
@@ -83,7 +82,7 @@ type Msg
 
 
 type ExternalMsg
-    = SetupStateChanged Setup.State
+    = SetupStateChanged Space.SetupState
     | NoOp
 
 
@@ -112,7 +111,7 @@ update msg session model =
         Submitted (Ok ( newSession, BulkCreateGroups.Success )) ->
             let
                 cmd =
-                    CompleteSetupStep.request model.spaceId Setup.CreateGroups False newSession
+                    CompleteSetupStep.request model.spaceId Space.CreateGroups False newSession
                         |> Task.attempt Advanced
             in
             ( ( model, cmd ), newSession, NoOp )

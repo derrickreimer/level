@@ -6,8 +6,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Session exposing (Session)
-import Setup exposing (setupStateDecoder)
-import Space exposing (Space)
+import Space exposing (Space, setupStateDecoder)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
@@ -15,7 +14,7 @@ import Task exposing (Task)
 type alias Response =
     { user : SpaceUser
     , space : Space
-    , setupState : Setup.State
+    , setupState : Space.SetupState
     , openInvitationUrl : Maybe String
     , bookmarkedGroups : List Group
     , featuredUsers : List SpaceUser
