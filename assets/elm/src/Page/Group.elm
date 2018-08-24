@@ -20,7 +20,7 @@ import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import Route
+import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -31,6 +31,7 @@ import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (displayName, selectValue, setFocus, smartFormatDate, viewIf, viewUnless)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -57,12 +58,13 @@ type alias PostComposer =
 
 
 type alias Model =
-    { group : Group
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarkedGroups : List Group
+    , group : Group
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
     , now : ( Zone, Posix )
-    , space : Space
-    , user : SpaceUser
     , nameEditor : FieldEditor
     , postComposer : PostComposer
     }
@@ -83,25 +85,26 @@ title repo { group } =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
-init user space groupId session =
+init : String -> String -> Session -> Task Session.Error ( Session, Model )
+init spaceSlug groupId session =
     session
-        |> GroupInit.request groupId
+        |> GroupInit.request spaceSlug groupId
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel user space)
+        |> Task.andThen buildModel
 
 
-buildModel : SpaceUser -> Space -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel user space ( ( session, { group, posts, featuredMemberships } ), now ) =
+buildModel : ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel ( ( session, { viewer, space, bookmarkedGroups, group, posts, featuredMemberships } ), now ) =
     let
         model =
             Model
+                viewer
+                space
+                bookmarkedGroups
                 group
                 posts
                 featuredMemberships
                 now
-                space
-                user
                 (FieldEditor NotEditing "" [])
                 (PostComposer "" False)
     in
@@ -442,30 +445,36 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
-view repo model =
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
     let
         currentUserData =
-            model.user
+            model.viewer
                 |> Repo.getSpaceUser repo
 
         groupData =
             model.group
                 |> Repo.getGroup repo
     in
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
-                [ div [ class "flex items-center" ]
-                    [ nameView groupData model.nameEditor
-                    , privacyView groupData
-                    , nameErrors model.nameEditor
-                    , controlsView groupData.isBookmarked
+    spaceLayout repo
+        model.viewer
+        model.space
+        model.bookmarkedGroups
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-90 leading-normal" ]
+                [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
+                    [ div [ class "flex items-center" ]
+                        [ nameView groupData model.nameEditor
+                        , privacyView groupData
+                        , nameErrors model.nameEditor
+                        , controlsView groupData.isBookmarked
+                        ]
                     ]
+                , newPostView model.postComposer currentUserData
+                , postsView repo model.space model.viewer model.now model.posts
+                , sidebarView repo groupData.membershipState model.featuredMemberships
                 ]
-            , newPostView model.postComposer currentUserData
-            , postsView repo model.space model.user model.now model.posts
-            , sidebarView repo groupData.membershipState model.featuredMemberships
             ]
         ]
 

@@ -402,8 +402,8 @@ type PageInit
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
-    | SetupCreateGroupsInit (Result Never Page.Setup.CreateGroups.Model)
-    | SetupInviteUsersInit (Result Never Page.Setup.InviteUsers.Model)
+    | SetupCreateGroupsInit (Result Session.Error ( Session, Page.Setup.CreateGroups.Model ))
+    | SetupInviteUsersInit (Result Session.Error ( Session, Page.Setup.InviteUsers.Model ))
 
 
 navigateTo : Maybe Route -> SharedState -> Model -> ( Model, Cmd Msg )
@@ -440,14 +440,14 @@ navigateTo maybeRoute sharedState model =
             in
             navigateTo (Just route) sharedState model
 
-        Just (Route.SetupCreateGroups _) ->
-            sharedState.space
-                |> Page.Setup.CreateGroups.init model.repo sharedState.user
+        Just (Route.SetupCreateGroups spaceSlug) ->
+            model.session
+                |> Page.Setup.CreateGroups.init spaceSlug
                 |> transition model SetupCreateGroupsInit
 
-        Just (Route.SetupInviteUsers _) ->
-            sharedState.space
-                |> Page.Setup.InviteUsers.init
+        Just (Route.SetupInviteUsers spaceSlug) ->
+            model.session
+                |> Page.Setup.InviteUsers.init spaceSlug
                 |> transition model SetupInviteUsersInit
 
         Just (Route.Inbox _) ->
@@ -465,14 +465,9 @@ navigateTo maybeRoute sharedState model =
                 |> Page.Groups.init sharedState.user sharedState.space params
                 |> transition model GroupsInit
 
-        Just (Route.Group _ groupId) ->
-            let
-                isBookmarked =
-                    List.map Group.getId sharedState.bookmarkedGroups
-                        |> List.member groupId
-            in
+        Just (Route.Group spaceSlug groupId) ->
             model.session
-                |> Page.Group.init sharedState.user sharedState.space groupId
+                |> Page.Group.init spaceSlug groupId
                 |> transition model (GroupInit groupId)
 
         Just (Route.NewGroup _) ->
@@ -666,27 +661,35 @@ setupPage pageInit model =
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        SetupCreateGroupsInit (Ok pageModel) ->
+        SetupCreateGroupsInit (Ok ( session, pageModel )) ->
             ( { model
                 | page = SetupCreateGroups pageModel
+                , session = session
                 , isTransitioning = False
               }
             , Page.Setup.CreateGroups.setup
                 |> Cmd.map SetupCreateGroupsMsg
             )
 
+        SetupCreateGroupsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
         SetupCreateGroupsInit (Err _) ->
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        SetupInviteUsersInit (Ok pageModel) ->
+        SetupInviteUsersInit (Ok ( session, pageModel )) ->
             ( { model
                 | page = SetupInviteUsers pageModel
+                , session = session
                 , isTransitioning = False
               }
             , Page.Setup.InviteUsers.setup
                 |> Cmd.map SetupInviteUsersMsg
             )
+
+        SetupInviteUsersInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
 
         SetupInviteUsersInit (Err _) ->
             -- TODO: Handle other error modes
@@ -734,21 +737,17 @@ pageSubscription page =
             Sub.none
 
 
-routeFor : Space -> Page -> Maybe Route
-routeFor space page =
-    let
-        slug =
-            Space.getSlug space
-    in
+routeFor : Page -> Maybe Route
+routeFor page =
     case page of
-        Inbox _ ->
-            Just <| Route.Inbox slug
+        Inbox { space } ->
+            Just <| Route.Inbox (Space.getSlug space)
 
-        SetupCreateGroups _ ->
-            Just <| Route.SetupCreateGroups slug
+        SetupCreateGroups { space } ->
+            Just <| Route.SetupCreateGroups (Space.getSlug space)
 
-        SetupInviteUsers _ ->
-            Just <| Route.SetupInviteUsers slug
+        SetupInviteUsers { space } ->
+            Just <| Route.SetupInviteUsers (Space.getSlug space)
 
         SpaceUsers { params } ->
             Just <| Route.SpaceUsers params
@@ -756,25 +755,27 @@ routeFor space page =
         Groups { params } ->
             Just <| Route.Groups params
 
-        Group pageModel ->
-            Just <| Route.Group slug (Group.getId pageModel.group)
+        Group { space, group } ->
+            Just <| Route.Group (Space.getSlug space) (Group.getId group)
 
-        NewGroup _ ->
-            Just <| Route.NewGroup slug
+        NewGroup { space } ->
+            Just <| Route.NewGroup (Space.getSlug space)
 
-        Post pageModel ->
-            Just <| Route.Post slug pageModel.post.id
+        Post { space, post } ->
+            Just <| Route.Post (Space.getSlug space) post.id
 
-        UserSettings _ ->
-            Just <| Route.UserSettings slug
-
-        SpaceSettings _ ->
-            Just <| Route.SpaceSettings slug
-
+        -- UserSettings { space } ->
+        --     Just <| Route.UserSettings (Space.getSlug space)
+        -- SpaceSettings { space } ->
+        --     Just <| Route.SpaceSettings (Space.getSlug space)
         Blank ->
             Nothing
 
         NotFound ->
+            Nothing
+
+        -- This is only temporary!
+        _ ->
             Nothing
 
 
@@ -783,12 +784,12 @@ pageView repo sharedState page =
     case page of
         SetupCreateGroups pageModel ->
             pageModel
-                |> Page.Setup.CreateGroups.view
+                |> Page.Setup.CreateGroups.view repo (routeFor page)
                 |> Html.map SetupCreateGroupsMsg
 
         SetupInviteUsers pageModel ->
             pageModel
-                |> Page.Setup.InviteUsers.view
+                |> Page.Setup.InviteUsers.view repo (routeFor page)
                 |> Html.map SetupInviteUsersMsg
 
         Inbox pageModel ->
@@ -808,7 +809,7 @@ pageView repo sharedState page =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view repo
+                |> Page.Group.view repo (routeFor page)
                 |> Html.map GroupMsg
 
         NewGroup pageModel ->
@@ -1011,11 +1012,5 @@ view model =
 
         Loaded sharedState ->
             Document (pageTitle model.repo model.page)
-                [ spaceLayout model.repo
-                    sharedState.user
-                    sharedState.space
-                    sharedState.bookmarkedGroups
-                    (routeFor sharedState.space model.page)
-                    [ pageView model.repo sharedState model.page
-                    ]
+                [ pageView model.repo sharedState model.page
                 ]

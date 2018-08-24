@@ -1,13 +1,18 @@
 module Page.Setup.InviteUsers exposing (ExternalMsg(..), Model, Msg(..), buildModel, init, setup, teardown, title, update, view)
 
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Mutation.CompleteSetupStep as CompleteSetupStep
+import Query.SetupInit as SetupInit
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -15,9 +20,10 @@ import Task exposing (Task)
 
 
 type alias Model =
-    { spaceId : String
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarkedGroups : List Group
     , isSubmitting : Bool
-    , openInvitationUrl : Maybe String
     }
 
 
@@ -34,18 +40,24 @@ title =
 -- LIFECYCLE
 
 
-init : Space -> Task Never Model
-init space =
-    Task.succeed (buildModel space)
+init : String -> Session -> Task Session.Error ( Session, Model )
+init spaceSlug session =
+    session
+        |> SetupInit.request spaceSlug
+        |> Task.andThen buildModel
 
 
-buildModel : Space -> Model
-buildModel space =
+buildModel : ( Session, SetupInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel ( session, { viewer, space, bookmarkedGroups } ) =
     let
-        spaceData =
-            Space.getCachedData space
+        model =
+            Model
+                viewer
+                space
+                bookmarkedGroups
+                False
     in
-    Model (Space.getId space) False spaceData.openInvitationUrl
+    Task.succeed ( session, model )
 
 
 setup : Cmd Msg
@@ -78,7 +90,7 @@ update msg session model =
         Submit ->
             let
                 cmd =
-                    CompleteSetupStep.request model.spaceId Space.InviteUsers False session
+                    CompleteSetupStep.request (Space.getId model.space) Space.InviteUsers False session
                         |> Task.attempt Advanced
             in
             ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
@@ -103,13 +115,23 @@ redirectToLogin session model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
-            [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite your colleagues" ]
-            , body model.openInvitationUrl
-            , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute { viewer, space, bookmarkedGroups, isSubmitting } =
+    let
+        spaceData =
+            Repo.getSpace repo space
+    in
+    spaceLayout repo
+        viewer
+        space
+        bookmarkedGroups
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
+                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite your colleagues" ]
+                , body spaceData.openInvitationUrl
+                , button [ class "btn btn-blue", onClick Submit, disabled isSubmitting ] [ text "Next step" ]
+                ]
             ]
         ]
 

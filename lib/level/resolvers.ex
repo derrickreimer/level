@@ -62,11 +62,11 @@ defmodule Level.Resolvers do
   end
 
   def space(_args, _info) do
-    {:error, dgettext("errors", "You must provide and `id` or `slug` to lookup a space.")}
+    {:error, dgettext("errors", "You must provide an `id` or `slug` to lookup a space.")}
   end
 
   @doc """
-  Fetches a space membership by space id.
+  Fetches a space membership by space id or slug.
   """
   @spec space_user(map(), info()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
   def space_user(%{space_id: id} = _args, %{context: %{current_user: user}} = _info) do
@@ -77,6 +77,21 @@ defmodule Level.Resolvers do
       error ->
         error
     end
+  end
+
+  def space_user(%{space_slug: slug} = _args, %{context: %{current_user: user}} = _info) do
+    case Spaces.get_space_by_slug(user, slug) do
+      {:ok, %{space_user: space_user}} ->
+        {:ok, space_user}
+
+      error ->
+        error
+    end
+  end
+
+  def space_user(_args, _info) do
+    {:error,
+     dgettext("errors", "You must provide a `space_id` or `space_slug` to lookup a space user.")}
   end
 
   @doc """
