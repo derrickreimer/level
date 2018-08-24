@@ -1,10 +1,10 @@
 module Repo exposing (Repo, getGroup, getGroups, getPost, getPosts, getSpace, getSpaceUser, getSpaceUsers, getSpaces, init, setGroup, setPost, setSpace, setSpaceUser)
 
-import Data.Group as Group exposing (Group)
-import Data.Post as Post exposing (Post)
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Group exposing (Group)
 import IdentityMap exposing (IdentityMap)
+import Post exposing (Post)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 
 
 type Repo

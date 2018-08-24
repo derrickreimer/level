@@ -1,13 +1,13 @@
 module Query.SpacesInit exposing (Response, request)
 
 import Connection exposing (Connection)
-import Data.Space as Space exposing (Space)
-import Data.User as User exposing (User)
 import GraphQL exposing (Document, Fragment)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
+import Space exposing (Space)
 import Task exposing (Task)
+import User exposing (User)
 
 
 type alias Response =

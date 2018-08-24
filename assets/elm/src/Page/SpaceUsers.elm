@@ -2,8 +2,6 @@ module Page.SpaceUsers exposing (Model, Msg(..), init, setup, teardown, title, u
 
 import Avatar
 import Connection exposing (Connection)
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
@@ -12,6 +10,8 @@ import Repo exposing (Repo)
 import Route
 import Route.SpaceUsers exposing (Params)
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
 import View.Helpers exposing (displayName, viewIf)

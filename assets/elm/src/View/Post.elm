@@ -1,8 +1,8 @@
 module View.Post exposing (bodyView)
 
-import Data.Post as Post exposing (Post)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Post exposing (Post)
 
 
 bodyView : Post.Record -> Html msg

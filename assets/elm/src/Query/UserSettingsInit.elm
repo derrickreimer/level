@@ -1,11 +1,11 @@
 module Query.UserSettingsInit exposing (Response, request)
 
-import Data.User exposing (User)
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import User exposing (User)
 
 
 type alias Response =
@@ -23,7 +23,7 @@ document =
           }
         }
         """
-        [ Data.User.fragment
+        [ User.fragment
         ]
 
 
@@ -36,7 +36,7 @@ decoder : Decoder Response
 decoder =
     Decode.at [ "data", "viewer" ] <|
         Decode.map Response
-            Data.User.decoder
+            User.decoder
 
 
 request : Session -> Task Session.Error ( Session, Response )

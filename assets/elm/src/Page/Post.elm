@@ -2,16 +2,16 @@ module Page.Post exposing (Model, Msg(..), handleReplyCreated, init, setup, subs
 
 import Component.Post
 import Connection
-import Data.Reply as Reply exposing (Reply)
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser exposing (SpaceUser)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Mutation.RecordPostView as RecordPostView
 import Query.PostInit as PostInit
+import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)

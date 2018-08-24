@@ -1,13 +1,13 @@
 module Mutation.CreateGroup exposing (Response(..), request)
 
-import Data.Group as Group exposing (Group)
-import Data.ValidationError as ValidationError exposing (ValidationError)
-import Data.ValidationFields as ValidationFields
 import GraphQL exposing (Document)
+import Group exposing (Group)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response

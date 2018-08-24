@@ -3,11 +3,8 @@ module Program.Main exposing (main)
 import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Data.Group as Group exposing (Group)
-import Data.Post as Post
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser
 import Event
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -23,6 +20,7 @@ import Page.Setup.InviteUsers
 import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.UserSettings
+import Post
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -30,6 +28,8 @@ import Route.Groups
 import Session exposing (Session)
 import Setup
 import Socket
+import Space exposing (Space)
+import SpaceUser
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)

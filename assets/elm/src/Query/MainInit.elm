@@ -1,14 +1,14 @@
 module Query.MainInit exposing (Response, request)
 
-import Data.Group exposing (Group)
-import Data.Space exposing (Space)
-import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Document)
+import Group exposing (Group)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Session exposing (Session)
 import Setup exposing (setupStateDecoder)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 
@@ -45,9 +45,9 @@ document =
           }
         }
         """
-        [ Data.SpaceUser.fragment
-        , Data.Space.fragment
-        , Data.Group.fragment
+        [ SpaceUser.fragment
+        , Space.fragment
+        , Group.fragment
         ]
 
 
@@ -63,12 +63,12 @@ decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
         (Decode.succeed Response
-            |> Pipeline.custom Data.SpaceUser.decoder
-            |> Pipeline.custom (Decode.at [ "space" ] Data.Space.decoder)
+            |> Pipeline.custom SpaceUser.decoder
+            |> Pipeline.custom (Decode.at [ "space" ] Space.decoder)
             |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)
             |> Pipeline.custom (Decode.at [ "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
-            |> Pipeline.custom (Decode.at [ "bookmarkedGroups" ] (Decode.list Data.Group.decoder))
-            |> Pipeline.custom (Decode.at [ "space", "featuredUsers" ] (Decode.list Data.SpaceUser.decoder))
+            |> Pipeline.custom (Decode.at [ "bookmarkedGroups" ] (Decode.list Group.decoder))
+            |> Pipeline.custom (Decode.at [ "space", "featuredUsers" ] (Decode.list SpaceUser.decoder))
         )
 
 

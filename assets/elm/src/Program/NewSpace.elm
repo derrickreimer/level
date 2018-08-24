@@ -1,8 +1,6 @@
 module Program.NewSpace exposing (Model, Msg(..), slugify, subscriptions, update, view)
 
 import Browser exposing (Document)
-import Data.User as User exposing (User)
-import Data.ValidationError exposing (ValidationError, errorView, isInvalid)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onBlur, onClick, onInput)
@@ -13,6 +11,8 @@ import Regex exposing (Regex)
 import Route
 import Session exposing (Session)
 import Task
+import User exposing (User)
+import ValidationError exposing (ValidationError, errorView, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Layout exposing (userLayout)
 

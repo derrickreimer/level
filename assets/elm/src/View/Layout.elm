@@ -1,11 +1,11 @@
 module View.Layout exposing (appLayout, userLayout)
 
 import Avatar
-import Data.User as User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
 import Lazy exposing (Lazy(..))
+import User exposing (User)
 import View.Helpers exposing (displayName)
 
 

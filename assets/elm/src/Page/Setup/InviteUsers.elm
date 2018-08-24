@@ -1,6 +1,5 @@
 module Page.Setup.InviteUsers exposing (ExternalMsg(..), Model, Msg(..), buildModel, init, setup, teardown, title, update, view)
 
-import Data.Space as Space exposing (Space)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -8,6 +7,7 @@ import Mutation.CompleteSetupStep as CompleteSetupStep
 import Route exposing (Route)
 import Session exposing (Session)
 import Setup
+import Space exposing (Space)
 import Task exposing (Task)
 
 

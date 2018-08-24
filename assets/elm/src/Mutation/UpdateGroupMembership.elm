@@ -1,13 +1,13 @@
 module Mutation.UpdateGroupMembership exposing (Response(..), request)
 
-import Data.GroupMembership exposing (GroupMembershipState(..), stateDecoder)
-import Data.ValidationError exposing (ValidationError)
-import Data.ValidationFields
 import GraphQL exposing (Document)
+import GroupMembership exposing (GroupMembershipState(..), stateDecoder)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response
@@ -36,7 +36,7 @@ document =
           }
         }
         """
-        [ Data.ValidationFields.fragment
+        [ ValidationFields.fragment
         ]
 
 
@@ -46,7 +46,7 @@ variables spaceId groupId state =
         Encode.object
             [ ( "spaceId", Encode.string spaceId )
             , ( "groupId", Encode.string groupId )
-            , ( "state", Data.GroupMembership.stateEncoder state )
+            , ( "state", GroupMembership.stateEncoder state )
             ]
 
 
@@ -64,7 +64,7 @@ failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
         Decode.at [ "data", "updateGroupMembership", "errors" ]
-            (Decode.list Data.ValidationError.decoder)
+            (Decode.list ValidationError.decoder)
 
 
 decoder : Decoder Response

@@ -1,7 +1,5 @@
 module Page.Setup.CreateGroups exposing (ExternalMsg(..), Model, Msg(..), init, setup, teardown, title, update, view)
 
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -11,6 +9,8 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
 import Setup
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 

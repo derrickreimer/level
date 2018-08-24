@@ -1,13 +1,13 @@
-module Data.Post exposing (Post, Record, State(..), SubscriptionState(..), decoder, decoderWithReplies, fragment, getCachedData, getId, groupsInclude)
+module Post exposing (Post, Record, State(..), SubscriptionState(..), decoder, decoderWithReplies, fragment, getCachedData, getId, groupsInclude)
 
 import Connection exposing (Connection)
-import Data.Group as Group exposing (Group)
-import Data.Mention as Mention exposing (Mention)
-import Data.Reply as Reply exposing (Reply)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
+import Group exposing (Group)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, list, string, succeed)
 import Json.Decode.Pipeline as Pipeline
+import Mention exposing (Mention)
+import Reply exposing (Reply)
+import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder, tuplize)
 

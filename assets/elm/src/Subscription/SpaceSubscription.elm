@@ -1,11 +1,11 @@
 module Subscription.SpaceSubscription exposing (spaceUpdatedDecoder, spaceUserUpdatedDecoder, subscribe, unsubscribe)
 
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Document)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Socket
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Subscription
 
 

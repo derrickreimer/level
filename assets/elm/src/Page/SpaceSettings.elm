@@ -1,7 +1,5 @@
 module Page.SpaceSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
 
-import Data.Space as Space exposing (Space)
-import Data.ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -11,7 +9,9 @@ import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Space exposing (Space)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 
 

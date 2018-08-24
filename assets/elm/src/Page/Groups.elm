@@ -1,10 +1,8 @@
 module Page.Groups exposing (Model, Msg(..), init, setup, teardown, title, update, view)
 
 import Connection exposing (Connection)
-import Data.Group as Group exposing (Group)
-import Data.GroupMembership exposing (GroupMembershipState(..))
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Group exposing (Group)
+import GroupMembership exposing (GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
@@ -13,6 +11,8 @@ import Repo exposing (Repo)
 import Route
 import Route.Groups
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
 import View.Helpers exposing (setFocus, viewIf, viewUnless)

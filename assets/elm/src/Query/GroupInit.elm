@@ -2,14 +2,14 @@ module Query.GroupInit exposing (Response, request)
 
 import Component.Post
 import Connection exposing (Connection)
-import Data.Group as Group exposing (Group)
-import Data.GroupMembership as GroupMembership exposing (GroupMembership)
-import Data.Post as Post exposing (Post)
-import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
+import Group exposing (Group)
+import GroupMembership exposing (GroupMembership)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import Post exposing (Post)
+import Reply exposing (Reply)
 import Session exposing (Session)
 import Task exposing (Task)
 

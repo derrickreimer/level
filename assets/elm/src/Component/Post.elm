@@ -3,12 +3,7 @@ module Component.Post exposing (Mode(..), Model, Msg(..), decoder, handleMention
 import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
-import Data.Group as Group exposing (Group)
-import Data.Mention as Mention exposing (Mention)
-import Data.Post as Post exposing (Post)
-import Data.Reply as Reply exposing (Reply)
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -16,14 +11,19 @@ import Icons
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import ListHelpers
 import Markdown
+import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissMentions as DismissMentions
+import Post exposing (Post)
 import Query.Replies
+import Reply exposing (Reply)
 import ReplyComposer exposing (Mode(..), ReplyComposer)
 import Repo exposing (Repo)
 import Route
 import Scroll
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)

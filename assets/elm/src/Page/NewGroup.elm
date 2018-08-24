@@ -1,15 +1,15 @@
 module Page.NewGroup exposing (Model, Msg(..), init, setup, teardown, title, update, view)
 
-import Data.Group as Group exposing (Group)
-import Data.Space as Space exposing (Space)
-import Data.ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mutation.CreateGroup as CreateGroup
 import Route
 import Session exposing (Session)
+import Space exposing (Space)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus)
 

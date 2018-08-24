@@ -1,7 +1,5 @@
 module Page.UserSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
 
-import Data.User as User
-import Data.ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -13,6 +11,8 @@ import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Task exposing (Task)
+import User
+import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 
 

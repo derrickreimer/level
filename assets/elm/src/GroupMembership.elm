@@ -1,9 +1,9 @@
-module Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..), decoder, fragment, stateDecoder, stateEncoder)
+module GroupMembership exposing (GroupMembership, GroupMembershipState(..), decoder, fragment, stateDecoder, stateEncoder)
 
-import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, fail, field, string, succeed)
 import Json.Encode as Encode
+import SpaceUser exposing (SpaceUser)
 
 
 
@@ -30,7 +30,7 @@ fragment =
           }
         }
         """
-        [ Data.SpaceUser.fragment
+        [ SpaceUser.fragment
         ]
 
 
@@ -41,7 +41,7 @@ fragment =
 decoder : Decoder GroupMembership
 decoder =
     Decode.map GroupMembership
-        (field "spaceUser" Data.SpaceUser.decoder)
+        (field "spaceUser" SpaceUser.decoder)
 
 
 stateDecoder : Decoder GroupMembershipState

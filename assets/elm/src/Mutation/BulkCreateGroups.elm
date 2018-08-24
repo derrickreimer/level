@@ -1,12 +1,12 @@
 module Mutation.BulkCreateGroups exposing (Response(..), request)
 
-import Data.Group
-import Data.ValidationFields
 import GraphQL exposing (Document)
+import Group
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import ValidationFields
 
 
 type Response
@@ -37,8 +37,8 @@ document =
           }
         }
         """
-        [ Data.Group.fragment
-        , Data.ValidationFields.fragment
+        [ Group.fragment
+        , ValidationFields.fragment
         ]
 
 

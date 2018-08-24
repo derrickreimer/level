@@ -1,13 +1,13 @@
 module Mutation.CreateReply exposing (Response(..), request)
 
-import Data.Reply exposing (Reply)
-import Data.ValidationError exposing (ValidationError)
-import Data.ValidationFields
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import Reply exposing (Reply)
 import Session exposing (Session)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response
@@ -36,8 +36,8 @@ document =
           }
         }
         """
-        [ Data.Reply.fragment
-        , Data.ValidationFields.fragment
+        [ Reply.fragment
+        , ValidationFields.fragment
         ]
 
 
@@ -55,11 +55,11 @@ conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "createReply", "reply" ] Data.Reply.decoder
+            Decode.at [ "data", "createReply", "reply" ] Reply.decoder
                 |> Decode.map Success
 
         False ->
-            Decode.at [ "data", "createReply", "errors" ] (Decode.list Data.ValidationError.decoder)
+            Decode.at [ "data", "createReply", "errors" ] (Decode.list ValidationError.decoder)
                 |> Decode.map Invalid
 
 

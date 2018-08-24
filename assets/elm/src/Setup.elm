@@ -1,9 +1,9 @@
 module Setup exposing (State(..), routeFor, setupStateDecoder, setupStateEncoder)
 
-import Data.Space as Space exposing (Space)
 import Json.Decode as Decode exposing (Decoder, fail, string, succeed)
 import Json.Encode as Encode
 import Route exposing (Route)
+import Space exposing (Space)
 
 
 

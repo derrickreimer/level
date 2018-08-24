@@ -3,8 +3,6 @@ module Program.Spaces exposing (main)
 import Avatar
 import Browser exposing (Document)
 import Connection exposing (Connection)
-import Data.Space as Space exposing (Space)
-import Data.User as User exposing (User)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -14,7 +12,9 @@ import Page
 import Query.SpacesInit as SpacesInit
 import Route
 import Session exposing (Session)
+import Space exposing (Space)
 import Task
+import User exposing (User)
 import View.Layout exposing (userLayout)
 
 

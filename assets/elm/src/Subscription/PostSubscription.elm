@@ -1,10 +1,10 @@
 module Subscription.PostSubscription exposing (postUpdatedDecoder, replyCreatedDecoder, subscribe, unsubscribe)
 
-import Data.Post as Post exposing (Post)
-import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Post exposing (Post)
+import Reply exposing (Reply)
 import Socket
 import Subscription
 

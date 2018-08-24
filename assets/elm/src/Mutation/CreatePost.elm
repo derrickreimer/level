@@ -1,15 +1,15 @@
 module Mutation.CreatePost exposing (Response(..), request)
 
 import Connection exposing (Connection)
-import Data.Post as Post exposing (Post)
-import Data.Reply as Reply exposing (Reply)
-import Data.ValidationError as ValidationError exposing (ValidationError)
-import Data.ValidationFields as ValidationFields
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import Post exposing (Post)
+import Reply exposing (Reply)
 import Session exposing (Session)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response

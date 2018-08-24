@@ -1,6 +1,6 @@
-module Data.SpaceTest exposing (decoders)
+module SpaceTest exposing (decoders)
 
-import Data.Space as Space
+import Space
 import Expect exposing (Expectation)
 import Json.Decode as Decode exposing (decodeString)
 import Test exposing (..)

@@ -1,12 +1,12 @@
 module Mutation.RecordPostView exposing (Response(..), request)
 
-import Data.ValidationError exposing (ValidationError)
-import Data.ValidationFields
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response
@@ -32,7 +32,7 @@ document =
           }
         }
         """
-        [ Data.ValidationFields.fragment
+        [ ValidationFields.fragment
         ]
 
 
@@ -62,7 +62,7 @@ conditionalDecoder success =
             Decode.succeed Success
 
         False ->
-            Decode.at [ "data", "recordPostView", "errors" ] (Decode.list Data.ValidationError.decoder)
+            Decode.at [ "data", "recordPostView", "errors" ] (Decode.list ValidationError.decoder)
                 |> Decode.map Invalid
 
 

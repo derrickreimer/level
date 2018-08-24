@@ -1,11 +1,11 @@
 module Query.NewSpaceInit exposing (Response, request)
 
-import Data.User as User exposing (User)
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import User exposing (User)
 
 
 type alias Response =

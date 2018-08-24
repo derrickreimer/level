@@ -1,11 +1,11 @@
 module Query.FeaturedMemberships exposing (Response, request)
 
-import Data.GroupMembership exposing (GroupMembership)
-import Data.SpaceUser
 import GraphQL exposing (Document)
+import GroupMembership exposing (GroupMembership)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Session exposing (Session)
+import SpaceUser
 import Task exposing (Task)
 
 
@@ -29,7 +29,7 @@ document =
           }
         }
         """
-        [ Data.SpaceUser.fragment
+        [ SpaceUser.fragment
         ]
 
 
@@ -44,7 +44,7 @@ variables groupId =
 decoder : Decode.Decoder Response
 decoder =
     Decode.at [ "data", "group", "featuredMemberships" ]
-        (Decode.list Data.GroupMembership.decoder)
+        (Decode.list GroupMembership.decoder)
 
 
 request : String -> Session -> Task Session.Error ( Session, Response )

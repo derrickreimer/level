@@ -1,7 +1,6 @@
 module Program.Reservation exposing (Model, Msg(..), subscriptions, update, view)
 
 import Browser
-import Data.ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onBlur, onClick, onInput)
@@ -9,6 +8,7 @@ import Http
 import Json.Decode as Decode exposing (decodeString)
 import Json.Encode as Encode
 import Regex exposing (Regex)
+import ValidationError exposing (ValidationError, errorsFor, errorsNotFor)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 
 
@@ -330,4 +330,4 @@ buildBody model =
 
 failureDecoder : Decode.Decoder (List ValidationError)
 failureDecoder =
-    Decode.field "errors" (Decode.list Data.ValidationError.decoder)
+    Decode.field "errors" (Decode.list ValidationError.decoder)

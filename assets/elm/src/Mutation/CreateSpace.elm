@@ -1,13 +1,13 @@
 module Mutation.CreateSpace exposing (Response(..), request)
 
-import Data.Space exposing (Space)
-import Data.ValidationError exposing (ValidationError)
-import Data.ValidationFields
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
+import Space exposing (Space)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response
@@ -34,8 +34,8 @@ document =
           }
         }
         """
-        [ Data.Space.fragment
-        , Data.ValidationFields.fragment
+        [ Space.fragment
+        , ValidationFields.fragment
         ]
 
 
@@ -51,14 +51,14 @@ variables name slug =
 successDecoder : Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "createSpace", "space" ] Data.Space.decoder
+        Decode.at [ "data", "createSpace", "space" ] Space.decoder
 
 
 failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
         Decode.at [ "data", "createSpace", "errors" ]
-            (Decode.list Data.ValidationError.decoder)
+            (Decode.list ValidationError.decoder)
 
 
 decoder : Decoder Response

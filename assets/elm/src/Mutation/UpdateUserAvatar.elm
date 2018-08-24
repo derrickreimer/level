@@ -1,13 +1,13 @@
 module Mutation.UpdateUserAvatar exposing (Response(..), request)
 
-import Data.User exposing (User)
-import Data.ValidationError exposing (ValidationError)
-import Data.ValidationFields
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import User exposing (User)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response
@@ -32,8 +32,8 @@ document =
           }
         }
         """
-        [ Data.User.fragment
-        , Data.ValidationFields.fragment
+        [ User.fragment
+        , ValidationFields.fragment
         ]
 
 
@@ -48,13 +48,13 @@ variables data =
 successDecoder : Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "updateUserAvatar", "user" ] Data.User.decoder
+        Decode.at [ "data", "updateUserAvatar", "user" ] User.decoder
 
 
 failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
-        Decode.at [ "data", "updateUserAvatar", "errors" ] (Decode.list Data.ValidationError.decoder)
+        Decode.at [ "data", "updateUserAvatar", "errors" ] (Decode.list ValidationError.decoder)
 
 
 decoder : Decoder Response

@@ -4,13 +4,8 @@ import Autosize
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
-import Data.Group as Group exposing (Group)
-import Data.GroupMembership exposing (GroupMembership, GroupMembershipState(..))
-import Data.Post as Post exposing (Post)
-import Data.Reply as Reply exposing (Reply)
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
-import Data.ValidationError exposing (ValidationError)
+import Group exposing (Group)
+import GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -20,15 +15,20 @@ import Mutation.CreatePost as CreatePost
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
+import Post exposing (Post)
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
+import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Subscription.GroupSubscription as GroupSubscription
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (displayName, selectValue, setFocus, smartFormatDate, viewIf, viewUnless)
 

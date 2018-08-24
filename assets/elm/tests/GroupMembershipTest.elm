@@ -1,8 +1,8 @@
-module Data.GroupMembershipTest exposing (decoders)
+module GroupMembershipTest exposing (decoders)
 
-import Data.GroupMembership as GroupMembership exposing (GroupMembershipState(..), stateDecoder)
 import Expect exposing (Expectation)
 import Fuzz exposing (string)
+import GroupMembership exposing (GroupMembershipState(..), stateDecoder)
 import Json.Decode as Decode exposing (decodeString, field)
 import Test exposing (..)
 import TestHelpers exposing (success)

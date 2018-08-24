@@ -2,11 +2,11 @@ module Query.InboxInit exposing (Response, request)
 
 import Component.Post
 import Connection exposing (Connection)
-import Data.Post as Post exposing (Post)
-import Data.Reply as Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import Post exposing (Post)
+import Reply exposing (Reply)
 import Session exposing (Session)
 import Task exposing (Task)
 

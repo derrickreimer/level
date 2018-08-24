@@ -1,13 +1,13 @@
 module Mutation.UpdateGroup exposing (Response(..), request)
 
-import Data.Group exposing (Group)
-import Data.ValidationError exposing (ValidationError)
-import Data.ValidationFields
 import GraphQL exposing (Document)
+import Group exposing (Group)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
 import Task exposing (Task)
+import ValidationError exposing (ValidationError)
+import ValidationFields
 
 
 type Response
@@ -38,8 +38,8 @@ document =
           }
         }
         """
-        [ Data.Group.fragment
-        , Data.ValidationFields.fragment
+        [ Group.fragment
+        , ValidationFields.fragment
         ]
 
 
@@ -74,13 +74,13 @@ variables spaceId groupId maybeName maybeIsPrivate =
 successDecoder : Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "updateGroup", "group" ] Data.Group.decoder
+        Decode.at [ "data", "updateGroup", "group" ] Group.decoder
 
 
 failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
-        Decode.at [ "data", "updateGroup", "errors" ] (Decode.list Data.ValidationError.decoder)
+        Decode.at [ "data", "updateGroup", "errors" ] (Decode.list ValidationError.decoder)
 
 
 decoder : Decoder Response

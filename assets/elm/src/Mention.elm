@@ -1,8 +1,8 @@
-module Data.Mention exposing (Mention, Record, decoder, fragment, getCachedData)
+module Mention exposing (Mention, Record, decoder, fragment, getCachedData)
 
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field)
+import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 

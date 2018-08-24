@@ -3,18 +3,18 @@ module Page.Inbox exposing (Model, Msg(..), handleMentionsDismissed, handleReply
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
-import Data.Post as Post exposing (Post)
-import Data.Reply as Reply exposing (Reply)
-import Data.Space as Space exposing (Space)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
+import Post exposing (Post)
 import Query.InboxInit as InboxInit
+import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route
 import Route.SpaceUsers
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)

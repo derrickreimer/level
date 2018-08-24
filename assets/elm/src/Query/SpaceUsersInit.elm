@@ -1,12 +1,12 @@
 module Query.SpaceUsersInit exposing (Response, request)
 
 import Connection exposing (Connection)
-import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Route.SpaceUsers exposing (Params(..))
 import Session exposing (Session)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 

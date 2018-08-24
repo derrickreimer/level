@@ -1,9 +1,9 @@
-module Data.Reply exposing (Record, Reply, decoder, fragment, getCachedData, getId, getPostId)
+module Reply exposing (Record, Reply, decoder, fragment, getCachedData, getId, getPostId)
 
-import Data.SpaceUser exposing (SpaceUser)
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, int, string)
 import Json.Decode.Pipeline as Pipeline
+import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 
@@ -43,7 +43,7 @@ fragment =
           fetchedAt
         }
         """
-        [ Data.SpaceUser.fragment
+        [ SpaceUser.fragment
         ]
 
 
@@ -59,7 +59,7 @@ decoder =
             |> Pipeline.required "postId" string
             |> Pipeline.required "body" string
             |> Pipeline.required "bodyHtml" string
-            |> Pipeline.required "author" Data.SpaceUser.decoder
+            |> Pipeline.required "author" SpaceUser.decoder
             |> Pipeline.required "postedAt" dateDecoder
             |> Pipeline.required "fetchedAt" int
         )

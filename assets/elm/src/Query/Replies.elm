@@ -1,10 +1,10 @@
 module Query.Replies exposing (Response, request)
 
 import Connection exposing (Connection)
-import Data.Reply exposing (Reply)
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import Reply exposing (Reply)
 import Session exposing (Session)
 import Task exposing (Task)
 
@@ -33,7 +33,7 @@ document =
           }
         }
         """
-        [ Connection.fragment "ReplyConnection" Data.Reply.fragment
+        [ Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 
@@ -51,7 +51,7 @@ variables spaceId postId before limit =
 decoder : Decoder Response
 decoder =
     Decode.at [ "data", "space", "post", "replies" ] <|
-        Decode.map Response (Connection.decoder Data.Reply.decoder)
+        Decode.map Response (Connection.decoder Reply.decoder)
 
 
 request : String -> String -> String -> Int -> Session -> Task Session.Error ( Session, Response )
