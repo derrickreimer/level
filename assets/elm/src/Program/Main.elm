@@ -475,9 +475,9 @@ navigateTo maybeRoute sharedState model =
                 |> Page.NewGroup.init
                 |> transition model NewGroupInit
 
-        Just (Route.Post _ postId) ->
+        Just (Route.Post spaceSlug postId) ->
             model.session
-                |> Page.Post.init sharedState.user sharedState.space postId
+                |> Page.Post.init spaceSlug postId
                 |> transition model (PostInit postId)
 
         Just (Route.UserSettings _) ->
@@ -819,7 +819,7 @@ pageView repo sharedState page =
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view repo
+                |> Page.Post.view repo (routeFor page)
                 |> Html.map PostMsg
 
         UserSettings pageModel ->

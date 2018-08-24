@@ -2,13 +2,14 @@ module Page.Post exposing (Model, Msg(..), handleReplyCreated, init, setup, subs
 
 import Component.Post
 import Connection
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Mutation.RecordPostView as RecordPostView
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import Route
+import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -16,6 +17,7 @@ import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (displayName)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -23,9 +25,10 @@ import View.Helpers exposing (displayName)
 
 
 type alias Model =
-    { post : Component.Post.Model
+    { viewer : SpaceUser
     , space : Space
-    , user : SpaceUser
+    , bookmarkedGroups : List Group
+    , post : Component.Post.Model
     , now : ( Zone, Posix )
     }
 
@@ -35,10 +38,10 @@ type alias Model =
 
 
 title : Repo -> Model -> String
-title repo { user } =
+title repo { viewer } =
     let
         userData =
-            Repo.getSpaceUser repo user
+            Repo.getSpaceUser repo viewer
 
         name =
             displayName userData
@@ -50,17 +53,17 @@ title repo { user } =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
-init user space postId session =
+init : String -> String -> Session -> Task Session.Error ( Session, Model )
+init spaceSlug postId session =
     session
-        |> PostInit.request (Space.getId space) postId
+        |> PostInit.request spaceSlug postId
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel user space)
+        |> Task.andThen buildModel
 
 
-buildModel : SpaceUser -> Space -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel user space ( ( session, { post } ), now ) =
-    Task.succeed ( session, Model post space user now )
+buildModel : ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel ( ( session, { viewer, space, bookmarkedGroups, post } ), now ) =
+    Task.succeed ( session, Model viewer space bookmarkedGroups post now )
 
 
 setup : Session -> Model -> Cmd Msg
@@ -177,12 +180,18 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
-view repo model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ postView repo model.space model.user model.now model.post
-            , sidebarView repo model.post
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
+    spaceLayout repo
+        model.viewer
+        model.space
+        model.bookmarkedGroups
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-90 leading-normal" ]
+                [ postView repo model.space model.viewer model.now model.post
+                , sidebarView repo model.post
+                ]
             ]
         ]
 
