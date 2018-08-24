@@ -457,7 +457,7 @@ navigateTo maybeRoute sharedState model =
 
         Just (Route.SpaceUsers params) ->
             model.session
-                |> Page.SpaceUsers.init sharedState.user sharedState.space params
+                |> Page.SpaceUsers.init params
                 |> transition model SpaceUsersInit
 
         Just (Route.Groups params) ->
@@ -799,7 +799,7 @@ pageView repo sharedState page =
 
         SpaceUsers pageModel ->
             pageModel
-                |> Page.SpaceUsers.view repo
+                |> Page.SpaceUsers.view repo (routeFor page)
                 |> Html.map SpaceUsersMsg
 
         Groups pageModel ->
