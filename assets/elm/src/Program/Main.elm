@@ -462,7 +462,7 @@ navigateTo maybeRoute sharedState model =
 
         Just (Route.Groups params) ->
             model.session
-                |> Page.Groups.init sharedState.user sharedState.space params
+                |> Page.Groups.init params
                 |> transition model GroupsInit
 
         Just (Route.Group spaceSlug groupId) ->
@@ -804,7 +804,7 @@ pageView repo sharedState page =
 
         Groups pageModel ->
             pageModel
-                |> Page.Groups.view repo
+                |> Page.Groups.view repo (routeFor page)
                 |> Html.map GroupsMsg
 
         Group pageModel ->

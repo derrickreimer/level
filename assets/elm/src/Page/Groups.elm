@@ -8,7 +8,7 @@ import Html.Attributes exposing (..)
 import Icons
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
-import Route
+import Route exposing (Route)
 import Route.Groups
 import Session exposing (Session)
 import Space exposing (Space)
@@ -16,6 +16,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
 import View.Helpers exposing (setFocus, viewIf, viewUnless)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -23,8 +24,9 @@ import View.Helpers exposing (setFocus, viewIf, viewUnless)
 
 
 type alias Model =
-    { space : Space
-    , user : SpaceUser
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarkedGroups : List Group
     , groups : Connection Group
     , params : Route.Groups.Params
     }
@@ -47,16 +49,16 @@ title =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> Route.Groups.Params -> Session -> Task Session.Error ( Session, Model )
-init user space params session =
+init : Route.Groups.Params -> Session -> Task Session.Error ( Session, Model )
+init params session =
     session
-        |> GroupsInit.request (Space.getId space) params 20
-        |> Task.andThen (buildModel user space params)
+        |> GroupsInit.request params 20
+        |> Task.andThen (buildModel params)
 
 
-buildModel : SpaceUser -> Space -> Route.Groups.Params -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel user space params ( session, { groups } ) =
-    Task.succeed ( session, Model space user groups params )
+buildModel : Route.Groups.Params -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel params ( session, { viewer, space, bookmarkedGroups, groups } ) =
+    Task.succeed ( session, Model viewer space bookmarkedGroups groups params )
 
 
 setup : Model -> Cmd Msg
@@ -88,23 +90,29 @@ update msg repo session model =
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
-view repo model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
-            [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Groups" ]
-                , div [ class "flex-0 flex-no-shrink" ]
-                    [ a [ Route.href (Route.NewGroup (Space.getSlug model.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
+    spaceLayout repo
+        model.viewer
+        model.space
+        model.bookmarkedGroups
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
+                [ div [ class "flex items-center pb-5" ]
+                    [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Groups" ]
+                    , div [ class "flex-0 flex-no-shrink" ]
+                        [ a [ Route.href (Route.NewGroup (Space.getSlug model.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
+                        ]
                     ]
-                ]
-            , div [ class "pb-8" ]
-                [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
-                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                , div [ class "pb-8" ]
+                    [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
+                        [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
+                        , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                        ]
                     ]
+                , groupsView repo model.space model.groups
                 ]
-            , groupsView repo model.space model.groups
             ]
         ]
 
