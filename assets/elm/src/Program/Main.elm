@@ -398,7 +398,7 @@ type PageInit
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
-    | NewGroupInit (Result Never Page.NewGroup.Model)
+    | NewGroupInit (Result Session.Error ( Session, Page.NewGroup.Model ))
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
@@ -470,9 +470,9 @@ navigateTo maybeRoute sharedState model =
                 |> Page.Group.init spaceSlug groupId
                 |> transition model (GroupInit groupId)
 
-        Just (Route.NewGroup _) ->
-            sharedState.space
-                |> Page.NewGroup.init
+        Just (Route.NewGroup spaceSlug) ->
+            model.session
+                |> Page.NewGroup.init spaceSlug
                 |> transition model NewGroupInit
 
         Just (Route.Post spaceSlug postId) ->
@@ -601,14 +601,18 @@ setupPage pageInit model =
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        NewGroupInit (Ok pageModel) ->
+        NewGroupInit (Ok ( session, pageModel )) ->
             ( { model
                 | page = NewGroup pageModel
+                , session = session
                 , isTransitioning = False
               }
             , Page.NewGroup.setup pageModel
                 |> Cmd.map NewGroupMsg
             )
+
+        NewGroupInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
 
         NewGroupInit (Err _) ->
             -- TODO: Handle other error modes
@@ -814,7 +818,7 @@ pageView repo sharedState page =
 
         NewGroup pageModel ->
             pageModel
-                |> Page.NewGroup.view
+                |> Page.NewGroup.view repo (routeFor page)
                 |> Html.map NewGroupMsg
 
         Post pageModel ->
