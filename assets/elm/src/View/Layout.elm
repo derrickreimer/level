@@ -107,7 +107,7 @@ spaceSidebar repo viewer space bookmarkedGroups maybeCurrentRoute =
             , spaceSidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.Root slug)) maybeCurrentRoute
             ]
         , div [ class "absolute pin-b w-full" ]
-            [ a [ Route.href (Route.UserSettings slug), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
+            [ a [ Route.href Route.UserSettings, class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
                 [ div [] [ personAvatar Avatar.Small viewerData ]
                 , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                     [ div [] [ text "Signed in as" ]

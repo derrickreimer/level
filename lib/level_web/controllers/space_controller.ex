@@ -27,6 +27,16 @@ defmodule LevelWeb.SpaceController do
     |> render("new.html")
   end
 
+  def show(conn, %{"path" => ["user" | _]}) do
+    user = conn.assigns[:current_user]
+
+    conn
+    |> assign(:api_token, Auth.generate_signed_jwt(user))
+    |> assign(:module, "main")
+    |> assign(:space_id, "")
+    |> render("show.html")
+  end
+
   def show(conn, %{"path" => [slug | _]}) do
     user = conn.assigns[:current_user]
 

@@ -26,7 +26,7 @@ type Route
     | Group String String
     | NewGroup String
     | Post String String
-    | UserSettings String
+    | UserSettings
     | SpaceSettings String
 
 
@@ -42,7 +42,7 @@ parser =
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
         , Parser.map Group (Parser.string </> s "groups" </> Parser.string)
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
-        , Parser.map UserSettings (Parser.string </> s "user" </> s "settings")
+        , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map SpaceSettings (Parser.string </> s "settings")
         ]
 
@@ -83,8 +83,8 @@ routeToString page =
                 Post slug id ->
                     [ slug, "posts", id ]
 
-                UserSettings slug ->
-                    [ slug, "user", "settings" ]
+                UserSettings ->
+                    [ "user", "settings" ]
 
                 SpaceSettings slug ->
                     [ slug, "settings" ]

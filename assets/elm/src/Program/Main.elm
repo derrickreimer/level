@@ -480,15 +480,15 @@ navigateTo maybeRoute sharedState model =
                 |> Page.Post.init spaceSlug postId
                 |> transition model (PostInit postId)
 
-        Just (Route.UserSettings _) ->
-            model.session
-                |> Page.UserSettings.init
-                |> transition model UserSettingsInit
-
         Just (Route.SpaceSettings spaceSlug) ->
             model.session
                 |> Page.SpaceSettings.init spaceSlug
                 |> transition model SpaceSettingsInit
+
+        Just Route.UserSettings ->
+            model.session
+                |> Page.UserSettings.init
+                |> transition model UserSettingsInit
 
 
 pageTitle : Repo -> Page -> String
@@ -788,8 +788,8 @@ routeFor page =
             Nothing
 
 
-pageView : Repo -> SharedState -> Page -> Html Msg
-pageView repo sharedState page =
+pageView : Repo -> Page -> Html Msg
+pageView repo page =
     case page of
         SetupCreateGroups pageModel ->
             pageModel
@@ -1013,13 +1013,6 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    case model.sharedState of
-        NotLoaded ->
-            Document ""
-                [ text ""
-                ]
-
-        Loaded sharedState ->
-            Document (pageTitle model.repo model.page)
-                [ pageView model.repo sharedState model.page
-                ]
+    Document (pageTitle model.repo model.page)
+        [ pageView model.repo model.page
+        ]

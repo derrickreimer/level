@@ -1,6 +1,7 @@
 module Page.UserSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
 
 import File exposing (File)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -10,8 +11,10 @@ import Query.UserSettingsInit as UserSettingsInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
-import User
+import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 
@@ -21,7 +24,8 @@ import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefa
 
 
 type alias Model =
-    { firstName : String
+    { viewer : User
+    , firstName : String
     , lastName : String
     , handle : String
     , email : String
@@ -47,7 +51,8 @@ title =
 
 init : Session -> Task Session.Error ( Session, Model )
 init session =
-    UserSettingsInit.request session
+    session
+        |> UserSettingsInit.request
         |> Task.andThen buildModel
 
 
@@ -59,6 +64,7 @@ buildModel ( session, { user } ) =
 
         model =
             Model
+                user
                 userData.firstName
                 userData.lastName
                 userData.handle
