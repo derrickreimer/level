@@ -6,6 +6,7 @@ defmodule Level.Resolvers do
 
   import Absinthe.Resolution.Helpers
   import Ecto.Query, warn: false
+  import Level.Gettext
 
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
@@ -37,7 +38,7 @@ defmodule Level.Resolvers do
   @type dataloader_result :: {:middleware, any(), any()}
 
   @doc """
-  Fetches a space by id.
+  Fetches a space by id or slug.
   """
   @spec space(map(), info()) :: {:ok, Space.t()} | {:error, String.t()}
   def space(%{id: id} = _args, %{context: %{current_user: user}} = _info) do
@@ -48,6 +49,20 @@ defmodule Level.Resolvers do
       error ->
         error
     end
+  end
+
+  def space(%{slug: slug} = _args, %{context: %{current_user: user}} = _info) do
+    case Spaces.get_space_by_slug(user, slug) do
+      {:ok, %{space: space}} ->
+        {:ok, space}
+
+      error ->
+        error
+    end
+  end
+
+  def space(_args, _info) do
+    {:error, dgettext("errors", "You must provide and `id` or `slug` to lookup a space.")}
   end
 
   @doc """

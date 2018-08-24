@@ -34,7 +34,8 @@ defmodule LevelWeb.Schema do
 
     @desc "Fetches a space."
     field :space, :space do
-      arg :id, non_null(:id)
+      arg :id, :id
+      arg :slug, :string
       resolve &Level.Resolvers.space/2
     end
 

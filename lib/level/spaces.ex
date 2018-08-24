@@ -71,7 +71,7 @@ defmodule Level.Spaces do
   @spec get_space_by_slug(User.t(), String.t()) :: get_space_result()
   def get_space_by_slug(user, slug) do
     with %Space{} = space <- Repo.get_by(Space, %{slug: slug}),
-         %SpaceUser{} = space_user <- Repo.get_by(SpaceUser, user_id: user.id, space_id: space.id) do
+         {:ok, space_user} <- get_space_user(user, space) do
       {:ok, %{space: space, space_user: space_user}}
     else
       _ ->
