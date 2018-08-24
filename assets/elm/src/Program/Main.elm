@@ -7,7 +7,6 @@ import Data.Group as Group exposing (Group)
 import Data.Post as Post
 import Data.Space as Space
 import Data.SpaceUser as SpaceUser
-import Debug
 import Event
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -990,10 +989,6 @@ handleSocketResult value sharedState ({ page, repo } as model) =
             updateRepo (Repo.setSpaceUser model.repo spaceUser) model
 
         Event.Unknown payload ->
-            let
-                debugValue =
-                    Debug.log "Unknown event" payload
-            in
             ( model, Cmd.none )
 
 
