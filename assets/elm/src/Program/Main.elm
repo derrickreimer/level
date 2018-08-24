@@ -401,7 +401,7 @@ type PageInit
     | NewGroupInit (Result Session.Error ( Session, Page.NewGroup.Model ))
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
-    | SpaceSettingsInit (Result Never Page.SpaceSettings.Model)
+    | SpaceSettingsInit (Result Session.Error ( Session, Page.SpaceSettings.Model ))
     | SetupCreateGroupsInit (Result Session.Error ( Session, Page.Setup.CreateGroups.Model ))
     | SetupInviteUsersInit (Result Session.Error ( Session, Page.Setup.InviteUsers.Model ))
 
@@ -485,9 +485,9 @@ navigateTo maybeRoute sharedState model =
                 |> Page.UserSettings.init
                 |> transition model UserSettingsInit
 
-        Just (Route.SpaceSettings _) ->
-            sharedState.space
-                |> Page.SpaceSettings.init model.repo
+        Just (Route.SpaceSettings spaceSlug) ->
+            model.session
+                |> Page.SpaceSettings.init spaceSlug
                 |> transition model SpaceSettingsInit
 
 
@@ -652,14 +652,18 @@ setupPage pageInit model =
             -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        SpaceSettingsInit (Ok pageModel) ->
+        SpaceSettingsInit (Ok ( session, pageModel )) ->
             ( { model
                 | page = SpaceSettings pageModel
+                , session = session
                 , isTransitioning = False
               }
             , Page.SpaceSettings.setup pageModel
                 |> Cmd.map SpaceSettingsMsg
             )
+
+        SpaceSettingsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
 
         SpaceSettingsInit (Err _) ->
             -- TODO: Handle other error modes
@@ -770,8 +774,9 @@ routeFor page =
 
         -- UserSettings { space } ->
         --     Just <| Route.UserSettings (Space.getSlug space)
-        -- SpaceSettings { space } ->
-        --     Just <| Route.SpaceSettings (Space.getSlug space)
+        SpaceSettings { space } ->
+            Just <| Route.SpaceSettings (Space.getSlug space)
+
         Blank ->
             Nothing
 
@@ -833,7 +838,7 @@ pageView repo sharedState page =
 
         SpaceSettings pageModel ->
             pageModel
-                |> Page.SpaceSettings.view repo
+                |> Page.SpaceSettings.view repo (routeFor page)
                 |> Html.map SpaceSettingsMsg
 
         Blank ->
