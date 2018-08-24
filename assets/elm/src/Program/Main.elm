@@ -346,7 +346,7 @@ update msg model =
         ( SocketResult value, page ) ->
             case model.sharedState of
                 Loaded sharedState ->
-                    handleSocketResult value sharedState model
+                    consumeEvent value sharedState model
 
                 NotLoaded ->
                     ( model, Cmd.none )
@@ -838,8 +838,8 @@ pageView repo sharedState page =
 -- SOCKET EVENTS
 
 
-handleSocketResult : Decode.Value -> SharedState -> Model -> ( Model, Cmd Msg )
-handleSocketResult value sharedState ({ page, repo } as model) =
+consumeEvent : Decode.Value -> SharedState -> Model -> ( Model, Cmd Msg )
+consumeEvent value sharedState ({ page, repo } as model) =
     case Event.decodeEvent value of
         Event.GroupBookmarked group ->
             let
