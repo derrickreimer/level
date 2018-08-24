@@ -1,17 +1,18 @@
 <article class="mx-auto max-w-md">
-  <h1 class="mb-8 font-black leading-tight text-5xl text-dusty-blue-darkest">Remember that time you forgot to open Slack?</h1>
+  <h1 class="mb-8 font-black leading-tight text-5xl sm:leading-tighter sm:text-6xl text text-dusty-blue-darkest">Remember that time you forgot to open Slack?</h1>
+
   <p class="mb-6">I&rsquo;m guessing you got a lot done and felt a sense of calm as you slipped deep into The Zone. After a little time passed, you began contemplating why your day was going so smoothly &mdash; and then, with a sigh, you figured it out.</p>
   <p class="mb-6">It&rsquo;s no coincidence disconnecting from real-time chat was so calm and productive.</p>
   <p class="mb-6">No falsely-urgent push notifications were competing for your attention. No ever-present red dots were enticing you to dismiss them. There were no virtual taps on the shoulder that could have waited until later.</p>
   <p class="mb-6">What if this way of working was the norm instead of a happy accident?</p>
 
-  <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">Introducing Level: an alternative to real-time chat designed for the software development workflow.</h2>
+  <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">Introducing Level: an alternative to real-time chat designed for the software development workflow.</h2>
 
   <p class="mb-6">I&rsquo;ve spent the last five years at Drip using Slack for team communication. It felt lovely at first, but before long became a source of anxiety for me and many of my colleagues.</p>
   <p class="mb-6">When it came time to decide what product to build next, I couldn&rsquo;t get this problem out of my head. I asked myself, &ldquo;Is Slack the best we can do?&rdquo;</p>
   <p class="mb-6">The answer is a <strong>definite no</strong>. As a developer, I know our tools can do so much more to protect our maker time. That&rsquo;s why I&rsquo;m building Level.</p>
 
-  <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">How Level is different</h2>
+  <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">How Level is different</h2>
 
   <p class="mb-6">Email is too siloed, too formal, and too slow. Chat is too urgent, too interruptive, and too disorganized.</p>
   <p class="mb-6">Level is the happy medium between chat and email.</p>
@@ -26,7 +27,7 @@
     <li>The product is <a href="https://github.com/levelhq/level" class="text-blue" target="_blank">open source</a></li>
   </ul>
 
-  <h2 class="mt-8 mb-6 font-extrabold leading-tight text-dusty-blue-darkest">Reserve your handle today</h2>
+  <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">Reserve your handle today</h2>
 
   <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
 </article>

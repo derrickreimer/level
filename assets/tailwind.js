@@ -210,6 +210,7 @@ module.exports = {
     '3xl': '1.875rem',  // 30px
     '4xl': '2.25rem',   // 36px
     '5xl': '3rem',      // 48px
+    '6xl': '3.75rem'
   },
 
 
@@ -254,6 +255,7 @@ module.exports = {
 
   leading: {
     'none': 1,
+    'tighter': 1.125,
     'tight': 1.25,
     'normal': 1.5,
     'semi-loose': 1.70,
