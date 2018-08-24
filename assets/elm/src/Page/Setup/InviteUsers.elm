@@ -96,19 +96,6 @@ redirectToLogin session model =
     ( ( model, Route.toLogin ), session, NoOp )
 
 
-routeFor : Setup.State -> Route
-routeFor setupState =
-    case setupState of
-        Setup.CreateGroups ->
-            Route.SetupCreateGroups
-
-        Setup.InviteUsers ->
-            Route.SetupInviteUsers
-
-        Setup.Complete ->
-            Route.Inbox
-
-
 
 -- VIEW
 

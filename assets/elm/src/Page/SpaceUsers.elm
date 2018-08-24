@@ -103,13 +103,13 @@ view repo model =
                     , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
                     ]
                 ]
-            , usersView repo model.spaceUsers
+            , usersView repo model.space model.spaceUsers
             ]
         ]
 
 
-usersView : Repo -> Connection SpaceUser -> Html Msg
-usersView repo connection =
+usersView : Repo -> Space -> Connection SpaceUser -> Html Msg
+usersView repo space connection =
     let
         partitions =
             connection
@@ -119,7 +119,7 @@ usersView repo connection =
     in
     div [ class "leading-semi-loose" ]
         [ div [] <| List.map (userPartitionView repo) partitions
-        , paginationView connection
+        , paginationView space connection
         ]
 
 
@@ -146,8 +146,8 @@ userView repo ( index, spaceUser ) =
         ]
 
 
-paginationView : Connection SpaceUser -> Html Msg
-paginationView connection =
+paginationView : Space -> Connection SpaceUser -> Html Msg
+paginationView space connection =
     let
         startCursor =
             Connection.startCursor connection
@@ -156,18 +156,18 @@ paginationView connection =
             Connection.endCursor connection
     in
     div [ class "flex justify-center p-4" ]
-        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView startCursor)
-        , viewIf (Connection.hasNextPage connection) (nextButtonView endCursor)
+        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView space startCursor)
+        , viewIf (Connection.hasNextPage connection) (nextButtonView space endCursor)
         ]
 
 
-prevButtonView : Maybe String -> Html Msg
-prevButtonView maybeCursor =
+prevButtonView : Space -> Maybe String -> Html Msg
+prevButtonView space maybeCursor =
     case maybeCursor of
         Just cursor ->
             let
                 route =
-                    Route.SpaceUsers (Route.SpaceUsers.Before cursor)
+                    Route.SpaceUsers (Route.SpaceUsers.Before (Space.getSlug space) cursor)
             in
             a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
 
@@ -175,13 +175,13 @@ prevButtonView maybeCursor =
             text ""
 
 
-nextButtonView : Maybe String -> Html Msg
-nextButtonView maybeCursor =
+nextButtonView : Space -> Maybe String -> Html Msg
+nextButtonView space maybeCursor =
     case maybeCursor of
         Just cursor ->
             let
                 route =
-                    Route.SpaceUsers (Route.SpaceUsers.After cursor)
+                    Route.SpaceUsers (Route.SpaceUsers.After (Space.getSlug space) cursor)
             in
             a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
 

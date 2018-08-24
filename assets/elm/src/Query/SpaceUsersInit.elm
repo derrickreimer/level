@@ -25,7 +25,7 @@ document params =
 documentBody : Params -> String
 documentBody params =
     case params of
-        Root ->
+        Root _ ->
             """
             query SpaceUsersInit(
               $spaceId: ID!,
@@ -42,7 +42,7 @@ documentBody params =
             }
             """
 
-        After _ ->
+        After _ _ ->
             """
             query SpaceUsersInit(
               $spaceId: ID!,
@@ -61,7 +61,7 @@ documentBody params =
             }
             """
 
-        Before _ ->
+        Before _ _ ->
             """
             query SpaceUsersInit(
               $spaceId: ID!,
@@ -86,13 +86,13 @@ variables spaceId params limit =
     let
         paramVariables =
             case params of
-                After cursor ->
+                After _ cursor ->
                     [ ( "cursor", Encode.string cursor ) ]
 
-                Before cursor ->
+                Before _ cursor ->
                     [ ( "cursor", Encode.string cursor ) ]
 
-                Root ->
+                Root _ ->
                     []
     in
     Just <|

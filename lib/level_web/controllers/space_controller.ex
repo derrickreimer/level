@@ -27,7 +27,7 @@ defmodule LevelWeb.SpaceController do
     |> render("new.html")
   end
 
-  def show(conn, %{"slug" => slug}) do
+  def show(conn, %{"path" => [slug | _]}) do
     user = conn.assigns[:current_user]
 
     case Spaces.get_space_by_slug(user, slug) do

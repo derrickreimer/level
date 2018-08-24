@@ -5,7 +5,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Data.Group as Group exposing (Group)
 import Data.Post as Post
-import Data.Space as Space
+import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser
 import Event
 import Html exposing (..)
@@ -155,19 +155,13 @@ update msg model =
         ( UrlRequest request, _ ) ->
             case request of
                 Browser.Internal url ->
-                    case url.fragment of
-                        Nothing ->
-                            -- If we got a link that didn't include a fragment,
-                            -- it's from one of those (href "") attributes that
-                            -- we have to include to make the RealWorld CSS work.
-                            --
-                            -- In an application doing path routing instead of
-                            -- fragment-based routing, this entire
-                            -- `case url.fragment of` expression this comment
-                            -- is inside would be unnecessary.
-                            ( model, Nav.load (Url.toString url) )
+                    case url.path of
+                        "/spaces" ->
+                            ( model
+                            , Nav.load (Url.toString url)
+                            )
 
-                        Just _ ->
+                        _ ->
                             ( model
                             , Nav.pushUrl model.browserKey (Url.toString url)
                             )
@@ -232,7 +226,7 @@ update msg model =
                             case model.sharedState of
                                 Loaded sharedState ->
                                     ( { model | sharedState = Loaded { sharedState | setupState = newState } }
-                                    , Route.pushUrl model.browserKey (Setup.routeFor newState)
+                                    , Route.pushUrl model.browserKey (Setup.routeFor sharedState.space newState)
                                     )
 
                                 NotLoaded ->
@@ -262,7 +256,7 @@ update msg model =
                             case model.sharedState of
                                 Loaded sharedState ->
                                     ( { model | sharedState = Loaded { sharedState | setupState = newState } }
-                                    , Route.pushUrl model.browserKey (Setup.routeFor newState)
+                                    , Route.pushUrl model.browserKey (Setup.routeFor sharedState.space newState)
                                     )
 
                                 NotLoaded ->
@@ -428,7 +422,7 @@ navigateTo maybeRoute sharedState model =
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
 
-        Just Route.Root ->
+        Just (Route.Root slug) ->
             let
                 { role } =
                     Repo.getSpaceUser model.repo sharedState.user
@@ -436,32 +430,24 @@ navigateTo maybeRoute sharedState model =
                 route =
                     case role of
                         SpaceUser.Owner ->
-                            case sharedState.setupState of
-                                Setup.CreateGroups ->
-                                    Just Route.SetupCreateGroups
-
-                                Setup.InviteUsers ->
-                                    Just Route.SetupInviteUsers
-
-                                Setup.Complete ->
-                                    Just Route.Inbox
+                            Setup.routeFor sharedState.space sharedState.setupState
 
                         _ ->
-                            Just Route.Inbox
+                            Route.Inbox (Space.getSlug sharedState.space)
             in
-            navigateTo route sharedState model
+            navigateTo (Just route) sharedState model
 
-        Just Route.SetupCreateGroups ->
+        Just (Route.SetupCreateGroups _) ->
             sharedState.space
                 |> Page.Setup.CreateGroups.init model.repo sharedState.user
                 |> transition model SetupCreateGroupsInit
 
-        Just Route.SetupInviteUsers ->
+        Just (Route.SetupInviteUsers _) ->
             sharedState.space
                 |> Page.Setup.InviteUsers.init sharedState.openInvitationUrl
                 |> transition model SetupInviteUsersInit
 
-        Just Route.Inbox ->
+        Just (Route.Inbox _) ->
             model.session
                 |> Page.Inbox.init sharedState.space sharedState.user
                 |> transition model InboxInit
@@ -476,7 +462,7 @@ navigateTo maybeRoute sharedState model =
                 |> Page.Groups.init sharedState.user sharedState.space params
                 |> transition model GroupsInit
 
-        Just (Route.Group groupId) ->
+        Just (Route.Group _ groupId) ->
             let
                 isBookmarked =
                     List.map Group.getId sharedState.bookmarkedGroups
@@ -486,22 +472,22 @@ navigateTo maybeRoute sharedState model =
                 |> Page.Group.init sharedState.user sharedState.space groupId
                 |> transition model (GroupInit groupId)
 
-        Just Route.NewGroup ->
+        Just (Route.NewGroup _) ->
             sharedState.space
                 |> Page.NewGroup.init
                 |> transition model NewGroupInit
 
-        Just (Route.Post postId) ->
+        Just (Route.Post _ postId) ->
             model.session
                 |> Page.Post.init sharedState.user sharedState.space postId
                 |> transition model (PostInit postId)
 
-        Just Route.UserSettings ->
+        Just (Route.UserSettings _) ->
             model.session
                 |> Page.UserSettings.init
                 |> transition model UserSettingsInit
 
-        Just Route.SpaceSettings ->
+        Just (Route.SpaceSettings _) ->
             sharedState.space
                 |> Page.SpaceSettings.init model.repo
                 |> transition model SpaceSettingsInit
@@ -745,17 +731,21 @@ pageSubscription page =
             Sub.none
 
 
-routeFor : Page -> Maybe Route
-routeFor page =
+routeFor : Space -> Page -> Maybe Route
+routeFor space page =
+    let
+        slug =
+            Space.getSlug space
+    in
     case page of
         Inbox _ ->
-            Just Route.Inbox
+            Just <| Route.Inbox slug
 
         SetupCreateGroups _ ->
-            Just Route.SetupCreateGroups
+            Just <| Route.SetupCreateGroups slug
 
         SetupInviteUsers _ ->
-            Just Route.SetupInviteUsers
+            Just <| Route.SetupInviteUsers slug
 
         SpaceUsers { params } ->
             Just <| Route.SpaceUsers params
@@ -764,19 +754,19 @@ routeFor page =
             Just <| Route.Groups params
 
         Group pageModel ->
-            Just <| Route.Group (Group.getId pageModel.group)
+            Just <| Route.Group slug (Group.getId pageModel.group)
 
         NewGroup _ ->
-            Just Route.NewGroup
+            Just <| Route.NewGroup slug
 
         Post pageModel ->
-            Just <| Route.Post pageModel.post.id
+            Just <| Route.Post slug pageModel.post.id
 
         UserSettings _ ->
-            Just Route.UserSettings
+            Just <| Route.UserSettings slug
 
         SpaceSettings _ ->
-            Just Route.SpaceSettings
+            Just <| Route.SpaceSettings slug
 
         Blank ->
             Nothing
@@ -1026,13 +1016,16 @@ view model =
 
 
 leftSidebar : SharedState -> Model -> Html Msg
-leftSidebar sharedState ({ page, repo } as model) =
+leftSidebar ({ space } as sharedState) ({ page, repo } as model) =
     let
         currentUserData =
             Repo.getSpaceUser repo sharedState.user
 
         spaceData =
-            Repo.getSpace repo sharedState.space
+            Repo.getSpace repo space
+
+        slug =
+            Space.getSlug space
     in
     div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
         [ div [ class "p-4" ]
@@ -1041,15 +1034,15 @@ leftSidebar sharedState ({ page, repo } as model) =
                 , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ sidebarLink "Inbox" (Just Route.Inbox) page
-                , sidebarLink "Everything" Nothing page
-                , sidebarLink "Drafts" Nothing page
+                [ sidebarLink space "Inbox" (Just <| Route.Inbox slug) page
+                , sidebarLink space "Everything" Nothing page
+                , sidebarLink space "Drafts" Nothing page
                 ]
-            , groupLinks repo sharedState.bookmarkedGroups page
-            , sidebarLink "Groups" (Just <| Route.Groups Route.Groups.Root) page
+            , groupLinks repo space sharedState.bookmarkedGroups page
+            , sidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.Root slug)) page
             ]
         , div [ class "absolute pin-b w-full" ]
-            [ a [ Route.href Route.UserSettings, class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
+            [ a [ Route.href (Route.UserSettings slug), class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
                 [ div [] [ personAvatar Avatar.Small currentUserData ]
                 , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                     [ div [] [ text "Signed in as" ]
@@ -1060,11 +1053,14 @@ leftSidebar sharedState ({ page, repo } as model) =
         ]
 
 
-groupLinks : Repo -> List Group -> Page -> Html Msg
-groupLinks repo groups currentPage =
+groupLinks : Repo -> Space -> List Group -> Page -> Html Msg
+groupLinks repo space groups currentPage =
     let
+        slug =
+            Space.getSlug space
+
         linkify group =
-            sidebarLink group.name (Just <| Route.Group group.id) currentPage
+            sidebarLink space group.name (Just <| Route.Group slug group.id) currentPage
 
         links =
             groups
@@ -1078,8 +1074,8 @@ groupLinks repo groups currentPage =
 {-| Build a link for the sidebar navigation with a special indicator for the
 current page. Pass Nothing for the route to make it a placeholder link.
 -}
-sidebarLink : String -> Maybe Route -> Page -> Html Msg
-sidebarLink title maybeRoute currentPage =
+sidebarLink : Space -> String -> Maybe Route -> Page -> Html Msg
+sidebarLink space title maybeRoute currentPage =
     let
         link route =
             a
@@ -1094,7 +1090,7 @@ sidebarLink title maybeRoute currentPage =
                 , link (Route.href route)
                 ]
     in
-    case ( maybeRoute, routeFor currentPage ) of
+    case ( maybeRoute, routeFor space currentPage ) of
         ( Just (Route.Groups params), Just (Route.Groups _) ) ->
             currentItem (Route.Groups params)
 

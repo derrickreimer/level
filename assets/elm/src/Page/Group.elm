@@ -464,7 +464,7 @@ view repo model =
                     ]
                 ]
             , newPostView model.postComposer currentUserData
-            , postsView repo model.user model.now model.posts
+            , postsView repo model.space model.user model.now model.posts
             , sidebarView repo groupData.membershipState model.featuredMemberships
             ]
         ]
@@ -580,21 +580,21 @@ newPostView ({ body, isSubmitting } as postComposer) currentUserData =
         ]
 
 
-postsView : Repo -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
-postsView repo currentUser now connection =
+postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
+postsView repo space currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Nobody has posted in this group yet." ]
 
     else
         div [] <|
-            Connection.map (postView repo currentUser now) connection
+            Connection.map (postView repo space currentUser now) connection
 
 
-postView : Repo -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView repo currentUser now component =
+postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
+postView repo space currentUser now component =
     div [ class "p-4" ]
-        [ Component.Post.postView repo currentUser now component
+        [ Component.Post.postView repo space currentUser now component
             |> Html.map (PostComponentMsg component.id)
         ]
 

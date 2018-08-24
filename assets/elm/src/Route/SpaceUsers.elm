@@ -4,28 +4,28 @@ import Url.Parser as Parser exposing ((</>), Parser, oneOf, s)
 
 
 type Params
-    = Root
-    | After String
-    | Before String
+    = Root String
+    | After String String
+    | Before String String
 
 
 params : Parser (Params -> a) a
 params =
     oneOf
-        [ Parser.map Root (s "users")
-        , Parser.map After (s "users" </> s "after" </> Parser.string)
-        , Parser.map Before (s "users" </> s "before" </> Parser.string)
+        [ Parser.map Root (Parser.string </> s "users")
+        , Parser.map After (Parser.string </> s "users" </> s "after" </> Parser.string)
+        , Parser.map Before (Parser.string </> s "users" </> s "before" </> Parser.string)
         ]
 
 
 segments : Params -> List String
 segments p =
     case p of
-        Root ->
-            [ "users" ]
+        Root slug ->
+            [ slug, "users" ]
 
-        After cursor ->
-            [ "users", "after", cursor ]
+        After slug cursor ->
+            [ slug, "users", "after", cursor ]
 
-        Before cursor ->
-            [ "users", "before", cursor ]
+        Before slug cursor ->
+            [ slug, "users", "before", cursor ]

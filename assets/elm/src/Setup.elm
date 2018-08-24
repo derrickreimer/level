@@ -1,5 +1,6 @@
 module Setup exposing (State(..), routeFor, setupStateDecoder, setupStateEncoder)
 
+import Data.Space as Space exposing (Space)
 import Json.Decode as Decode exposing (Decoder, fail, string, succeed)
 import Json.Encode as Encode
 import Route exposing (Route)
@@ -61,14 +62,18 @@ setupStateEncoder raw =
 -- ROUTING
 
 
-routeFor : State -> Route
-routeFor state =
+routeFor : Space -> State -> Route
+routeFor space state =
+    let
+        slug =
+            Space.getSlug space
+    in
     case state of
         CreateGroups ->
-            Route.SetupCreateGroups
+            Route.SetupCreateGroups slug
 
         InviteUsers ->
-            Route.SetupInviteUsers
+            Route.SetupInviteUsers slug
 
         Complete ->
-            Route.Inbox
+            Route.Inbox slug

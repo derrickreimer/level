@@ -17,33 +17,33 @@ import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
 type Route
-    = Root
-    | SetupCreateGroups
-    | SetupInviteUsers
-    | Inbox
+    = Root String
+    | SetupCreateGroups String
+    | SetupInviteUsers String
+    | Inbox String
     | SpaceUsers Route.SpaceUsers.Params
     | Groups Route.Groups.Params
-    | Group String
-    | NewGroup
-    | Post String
-    | UserSettings
-    | SpaceSettings
+    | Group String String
+    | NewGroup String
+    | Post String String
+    | UserSettings String
+    | SpaceSettings String
 
 
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map Root top
-        , Parser.map SetupCreateGroups (s "setup" </> s "groups")
-        , Parser.map SetupInviteUsers (s "setup" </> s "invites")
-        , Parser.map Inbox (s "inbox")
+        [ Parser.map Root Parser.string
+        , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
+        , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
+        , Parser.map Inbox (Parser.string </> s "inbox")
         , Parser.map SpaceUsers Route.SpaceUsers.params
         , Parser.map Groups Route.Groups.params
-        , Parser.map NewGroup (s "groups" </> s "new")
-        , Parser.map Group (s "groups" </> Parser.string)
-        , Parser.map Post (s "posts" </> Parser.string)
-        , Parser.map UserSettings (s "user" </> s "settings")
-        , Parser.map SpaceSettings (s "settings")
+        , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
+        , Parser.map Group (Parser.string </> s "groups" </> Parser.string)
+        , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
+        , Parser.map UserSettings (Parser.string </> s "user" </> s "settings")
+        , Parser.map SpaceSettings (Parser.string </> s "settings")
         ]
 
 
@@ -56,17 +56,17 @@ routeToString page =
     let
         pieces =
             case page of
-                Root ->
-                    []
+                Root slug ->
+                    [ slug ]
 
-                SetupCreateGroups ->
-                    [ "setup", "groups" ]
+                SetupCreateGroups slug ->
+                    [ slug, "setup", "groups" ]
 
-                SetupInviteUsers ->
-                    [ "setup", "invites" ]
+                SetupInviteUsers slug ->
+                    [ slug, "setup", "invites" ]
 
-                Inbox ->
-                    [ "inbox" ]
+                Inbox slug ->
+                    [ slug, "inbox" ]
 
                 SpaceUsers params ->
                     Route.SpaceUsers.segments params
@@ -74,22 +74,22 @@ routeToString page =
                 Groups params ->
                     Route.Groups.segments params
 
-                Group id ->
-                    [ "groups", id ]
+                Group slug id ->
+                    [ slug, "groups", id ]
 
-                NewGroup ->
-                    [ "groups", "new" ]
+                NewGroup slug ->
+                    [ slug, "groups", "new" ]
 
-                Post id ->
-                    [ "posts", id ]
+                Post slug id ->
+                    [ slug, "posts", id ]
 
-                UserSettings ->
-                    [ "user", "settings" ]
+                UserSettings slug ->
+                    [ slug, "user", "settings" ]
 
-                SpaceSettings ->
-                    [ "settings" ]
+                SpaceSettings slug ->
+                    [ slug, "settings" ]
     in
-    "#/" ++ String.join "/" pieces
+    "/" ++ String.join "/" pieces
 
 
 
@@ -113,11 +113,7 @@ replaceUrl key route =
 
 fromUrl : Url -> Maybe Route
 fromUrl url =
-    -- We are treating the the fragment like a path.
-    -- This makes it *literally* the path, so we can proceed
-    -- with parsing as if it had been a normal path all along.
-    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
-        |> Parser.parse parser
+    Parser.parse parser url
 
 
 toLogin : Cmd msg

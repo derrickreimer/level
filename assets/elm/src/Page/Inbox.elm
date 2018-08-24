@@ -188,7 +188,7 @@ view repo featuredUsers model =
                     ]
                 ]
             , mentionsView repo model
-            , sidebarView repo featuredUsers
+            , sidebarView repo model.space featuredUsers
             ]
         ]
 
@@ -214,18 +214,18 @@ postView repo model component =
             ]
         , div [ class "flex-1" ]
             [ component
-                |> Component.Post.postView repo model.currentUser model.now
+                |> Component.Post.postView repo model.space model.currentUser model.now
                 |> Html.map (PostComponentMsg component.id)
             ]
         ]
 
 
-sidebarView : Repo -> List SpaceUser -> Html Msg
-sidebarView repo featuredUsers =
+sidebarView : Repo -> Space -> List SpaceUser -> Html Msg
+sidebarView repo space featuredUsers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
-                [ Route.href (Route.SpaceUsers Route.SpaceUsers.Root)
+                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.Root (Space.getSlug space))
                 , class "flex items-center text-dusty-blue-darkest no-underline"
                 ]
                 [ span [ class "mr-2" ] [ text "Directory" ]
@@ -234,7 +234,7 @@ sidebarView repo featuredUsers =
             ]
         , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers
         , a
-            [ Route.href Route.SpaceSettings
+            [ Route.href (Route.SpaceSettings (Space.getSlug space))
             , class "text-sm text-blue no-underline"
             ]
             [ text "Space Settings" ]

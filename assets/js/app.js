@@ -21,7 +21,7 @@ import * as NewSpace from "./modules/new_space";
 import * as Spaces from "./modules/spaces";
 import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
-import "stretchy";
+// import "stretchy";
 
 const moduleNode = document.head.querySelector("meta[name='module']");
 

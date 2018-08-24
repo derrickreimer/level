@@ -1,4 +1,4 @@
-module Data.Space exposing (Record, Space, decoder, fragment, getCachedData, getId)
+module Data.Space exposing (Record, Space, decoder, fragment, getCachedData, getId, getSlug)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
@@ -58,6 +58,11 @@ decoder =
 getId : Space -> String
 getId (Space { id }) =
     id
+
+
+getSlug : Space -> String
+getSlug (Space { slug }) =
+    slug
 
 
 getCachedData : Space -> Record

@@ -7,6 +7,7 @@ import Data.Group as Group exposing (Group)
 import Data.Mention as Mention exposing (Mention)
 import Data.Post as Post exposing (Post)
 import Data.Reply as Reply exposing (Reply)
+import Data.Space as Space exposing (Space)
 import Data.SpaceUser as SpaceUser exposing (SpaceUser)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -321,8 +322,8 @@ handleMentionsDismissed model =
 -- VIEWS
 
 
-postView : Repo -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-postView repo currentUser (( zone, posix ) as now) ({ post, replies } as model) =
+postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+postView repo space currentUser (( zone, posix ) as now) ({ post, replies } as model) =
     let
         currentUserData =
             currentUser
@@ -347,14 +348,14 @@ postView repo currentUser (( zone, posix ) as now) ({ post, replies } as model) 
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ a
-                    [ Route.href <| Route.Post postData.id
+                    [ Route.href <| Route.Post (Space.getSlug space) postData.id
                     , class "no-underline text-dusty-blue-darkest"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
                     [ span [ class "font-bold" ] [ text <| displayName authorData ]
                     , viewIf model.showGroups <|
-                        groupsLabel repo postData.groups
+                        groupsLabel repo space postData.groups
                     , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, postData.postedAt ) ]
                     ]
                 , div [ class "markdown mb-2" ] [ body ]
@@ -365,15 +366,15 @@ postView repo currentUser (( zone, posix ) as now) ({ post, replies } as model) 
                     ]
                 ]
             , div [ class "relative" ]
-                [ repliesView repo post now replies model.mode
+                [ repliesView repo space post now replies model.mode
                 , replyComposerView currentUserData model
                 ]
             ]
         ]
 
 
-groupsLabel : Repo -> List Group -> Html Msg
-groupsLabel repo groups =
+groupsLabel : Repo -> Space -> List Group -> Html Msg
+groupsLabel repo space groups =
     case groups of
         [ group ] ->
             let
@@ -382,7 +383,7 @@ groupsLabel repo groups =
             in
             span [ class "ml-3 text-sm text-dusty-blue" ]
                 [ a
-                    [ Route.href (Route.Group groupData.id)
+                    [ Route.href (Route.Group (Space.getSlug space) groupData.id)
                     , class "no-underline text-dusty-blue font-bold"
                     ]
                     [ text groupData.name ]
@@ -392,13 +393,13 @@ groupsLabel repo groups =
             text ""
 
 
-repliesView : Repo -> Post -> ( Zone, Posix ) -> Connection Reply -> Mode -> Html Msg
-repliesView repo post now replies mode =
+repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection Reply -> Mode -> Html Msg
+repliesView repo space post now replies mode =
     let
         listView =
             case mode of
                 Feed ->
-                    feedRepliesView repo post now replies
+                    feedRepliesView repo space post now replies
 
                 FullPage ->
                     fullPageRepliesView repo post now replies
@@ -406,8 +407,8 @@ repliesView repo post now replies mode =
     viewUnless (Connection.isEmptyAndExpanded replies) listView
 
 
-feedRepliesView : Repo -> Post -> ( Zone, Posix ) -> Connection Reply -> Html Msg
-feedRepliesView repo post now replies =
+feedRepliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection Reply -> Html Msg
+feedRepliesView repo space post now replies =
     let
         { nodes, hasPreviousPage } =
             Connection.last 5 replies
@@ -415,7 +416,7 @@ feedRepliesView repo post now replies =
     div []
         [ viewIf hasPreviousPage <|
             a
-                [ Route.href (Route.Post <| Post.getId post)
+                [ Route.href (Route.Post (Space.getSlug space) (Post.getId post))
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]
@@ -546,20 +547,6 @@ statusView state =
 
         Post.Closed ->
             buildView Icons.closed "Closed"
-
-
-mentionBannerView : Repo -> Post -> ( Zone, Posix ) -> List Mention -> Html Msg
-mentionBannerView repo post now mentions =
-    viewUnless (List.isEmpty mentions) <|
-        div [ class "mb-4" ]
-            [ a
-                [ Route.href (Route.Post <| Post.getId post)
-                , class "flex items-center text-sm font-normal no-underline text-dusty-blue-darker"
-                ]
-                [ div [ class "mr-2" ] [ Icons.atSign ]
-                , text <| mentionersSummary repo (mentionersFor mentions)
-                ]
-            ]
 
 
 mentionersSummary : Repo -> List SpaceUser -> String

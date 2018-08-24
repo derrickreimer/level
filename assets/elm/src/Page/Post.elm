@@ -181,16 +181,16 @@ view : Repo -> Model -> Html Msg
 view repo model =
     div [ class "mx-56" ]
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ postView repo model.user model.now model.post
+            [ postView repo model.space model.user model.now model.post
             , sidebarView repo model.post
             ]
         ]
 
 
-postView : Repo -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView repo currentUser now component =
+postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
+postView repo space currentUser now component =
     div [ class "pt-6" ]
-        [ Component.Post.postView repo currentUser now component
+        [ Component.Post.postView repo space currentUser now component
             |> Html.map PostComponentMsg
         ]
 

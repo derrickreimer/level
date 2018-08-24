@@ -95,7 +95,7 @@ view repo model =
             [ div [ class "flex items-center pb-5" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Groups" ]
                 , div [ class "flex-0 flex-no-shrink" ]
-                    [ a [ Route.href Route.NewGroup, class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
+                    [ a [ Route.href (Route.NewGroup (Space.getSlug model.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
                     ]
                 ]
             , div [ class "pb-8" ]
@@ -104,13 +104,13 @@ view repo model =
                     , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
                     ]
                 ]
-            , groupsView repo model.groups
+            , groupsView repo model.space model.groups
             ]
         ]
 
 
-groupsView : Repo -> Connection Group -> Html Msg
-groupsView repo connection =
+groupsView : Repo -> Space -> Connection Group -> Html Msg
+groupsView repo space connection =
     let
         partitions =
             connection
@@ -124,29 +124,29 @@ groupsView repo connection =
 
     else
         div [ class "leading-semi-loose" ]
-            [ div [] <| List.map (groupPartitionView repo) partitions
-            , paginationView connection
+            [ div [] <| List.map (groupPartitionView repo space) partitions
+            , paginationView space connection
             ]
 
 
-groupPartitionView : Repo -> ( String, List IndexedGroup ) -> Html Msg
-groupPartitionView repo ( letter, indexedGroups ) =
+groupPartitionView : Repo -> Space -> ( String, List IndexedGroup ) -> Html Msg
+groupPartitionView repo space ( letter, indexedGroups ) =
     div [ class "flex" ]
         [ div [ class "flex-0 flex-no-shrink pt-1 pl-5 w-12 text-sm text-dusty-blue font-bold" ] [ text letter ]
         , div [ class "flex-1" ] <|
-            List.map (groupView repo) indexedGroups
+            List.map (groupView repo space) indexedGroups
         ]
 
 
-groupView : Repo -> IndexedGroup -> Html Msg
-groupView repo ( index, group ) =
+groupView : Repo -> Space -> IndexedGroup -> Html Msg
+groupView repo space ( index, group ) =
     let
         groupData =
             Repo.getGroup repo group
     in
     div []
         [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
-            [ a [ Route.href (Route.Group groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
+            [ a [ Route.href (Route.Group (Space.getSlug space) groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
             , viewIf (groupData.membershipState == Subscribed) <|
                 div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
             , div [ class "flex-0" ]
@@ -159,8 +159,8 @@ groupView repo ( index, group ) =
         ]
 
 
-paginationView : Connection Group -> Html Msg
-paginationView connection =
+paginationView : Space -> Connection Group -> Html Msg
+paginationView space connection =
     let
         startCursor =
             Connection.startCursor connection
@@ -169,18 +169,18 @@ paginationView connection =
             Connection.endCursor connection
     in
     div [ class "flex justify-center p-4" ]
-        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView startCursor)
-        , viewIf (Connection.hasNextPage connection) (nextButtonView endCursor)
+        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView space startCursor)
+        , viewIf (Connection.hasNextPage connection) (nextButtonView space endCursor)
         ]
 
 
-prevButtonView : Maybe String -> Html Msg
-prevButtonView maybeCursor =
+prevButtonView : Space -> Maybe String -> Html Msg
+prevButtonView space maybeCursor =
     case maybeCursor of
         Just cursor ->
             let
                 route =
-                    Route.Groups (Route.Groups.Before cursor)
+                    Route.Groups (Route.Groups.Before (Space.getSlug space) cursor)
             in
             a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
 
@@ -188,13 +188,13 @@ prevButtonView maybeCursor =
             text ""
 
 
-nextButtonView : Maybe String -> Html Msg
-nextButtonView maybeCursor =
+nextButtonView : Space -> Maybe String -> Html Msg
+nextButtonView space maybeCursor =
     case maybeCursor of
         Just cursor ->
             let
                 route =
-                    Route.Groups (Route.Groups.After cursor)
+                    Route.Groups (Route.Groups.After (Space.getSlug space) cursor)
             in
             a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
 
