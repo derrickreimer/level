@@ -85,7 +85,7 @@ defmodule LevelWeb.Router do
     get "/spaces/new", SpaceController, :new
 
     # Important: this must be the last route defined
-    get "/*path", SpaceController, :show
+    get "/*path", MainController, :index
   end
 
   def graphiql_headers(conn) do

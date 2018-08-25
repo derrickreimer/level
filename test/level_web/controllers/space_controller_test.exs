@@ -63,49 +63,4 @@ defmodule LevelWeb.SpaceControllerTest do
       assert html_response(conn, 200)
     end
   end
-
-  describe "GET /:slug" do
-    setup %{conn: conn} do
-      conn =
-        conn
-        |> bypass_through(LevelWeb.Router, :anonymous_browser)
-        |> get("/login")
-
-      {:ok, %{conn: conn}}
-    end
-
-    test "returns a 404 if user is not allowed to access it", %{conn: conn} do
-      {:ok, %{space: space}} = create_user_and_space()
-      {:ok, another_user} = create_user()
-
-      conn =
-        conn
-        |> sign_in(another_user)
-        |> get("/#{space.slug}")
-
-      assert html_response(conn, 404)
-    end
-
-    test "returns a 404 if the space does not exist", %{conn: conn} do
-      {:ok, another_user} = create_user()
-
-      conn =
-        conn
-        |> sign_in(another_user)
-        |> get("/idontexist")
-
-      assert html_response(conn, 404)
-    end
-
-    test "returns a 200 if the user can access the space", %{conn: conn} do
-      {:ok, %{space: space, user: user}} = create_user_and_space()
-
-      conn =
-        conn
-        |> sign_in(user)
-        |> get("/#{space.slug}")
-
-      assert html_response(conn, 200)
-    end
-  end
 end
