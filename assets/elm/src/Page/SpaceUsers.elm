@@ -26,7 +26,7 @@ import View.Layout exposing (spaceLayout)
 type alias Model =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , spaceUsers : Connection SpaceUser
     , params : Params
     }
@@ -57,8 +57,8 @@ init params session =
 
 
 buildModel : Params -> ( Session, SpaceUsersInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel params ( session, { viewer, space, bookmarkedGroups, spaceUsers } ) =
-    Task.succeed ( session, Model viewer space bookmarkedGroups spaceUsers params )
+buildModel params ( session, { viewer, space, bookmarks, spaceUsers } ) =
+    Task.succeed ( session, Model viewer space bookmarks spaceUsers params )
 
 
 setup : Model -> Cmd Msg
@@ -95,7 +95,7 @@ view repo maybeCurrentRoute model =
     spaceLayout repo
         model.viewer
         model.space
-        model.bookmarkedGroups
+        model.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-sm leading-normal py-8" ]

@@ -15,7 +15,7 @@ import Task exposing (Task)
 type alias Response =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , groups : Connection Group
     }
 
@@ -47,7 +47,7 @@ documentBody params =
                     ...GroupConnectionFields
                   }
                 }
-                bookmarkedGroups {
+                bookmarks {
                   ...GroupFields
                 }
               }
@@ -69,7 +69,7 @@ documentBody params =
                     ...GroupConnectionFields
                   }
                 }
-                bookmarkedGroups {
+                bookmarks {
                   ...GroupFields
                 }
               }
@@ -91,7 +91,7 @@ documentBody params =
                     ...GroupConnectionFields
                   }
                 }
-                bookmarkedGroups {
+                bookmarks {
                   ...GroupFields
                 }
               }
@@ -131,7 +131,7 @@ decoder =
         Decode.map4 Response
             SpaceUser.decoder
             (field "space" Space.decoder)
-            (field "bookmarkedGroups" (list Group.decoder))
+            (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "groups" ] (Connection.decoder Group.decoder))
 
 

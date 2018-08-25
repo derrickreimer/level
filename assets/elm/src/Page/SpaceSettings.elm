@@ -26,7 +26,7 @@ import View.Layout exposing (spaceLayout)
 type alias Model =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , id : String
     , name : String
     , slug : String
@@ -58,7 +58,7 @@ init spaceSlug session =
 
 
 buildModel : ( Session, SetupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { viewer, space, bookmarkedGroups } ) =
+buildModel ( session, { viewer, space, bookmarks } ) =
     let
         spaceData =
             Space.getCachedData space
@@ -67,7 +67,7 @@ buildModel ( session, { viewer, space, bookmarkedGroups } ) =
             Model
                 viewer
                 space
-                bookmarkedGroups
+                bookmarks
                 spaceData.id
                 spaceData.name
                 spaceData.slug
@@ -204,7 +204,7 @@ view repo maybeCurrentRoute ({ errors } as model) =
     spaceLayout repo
         model.viewer
         model.space
-        model.bookmarkedGroups
+        model.bookmarks
         maybeCurrentRoute
         [ div [ class "ml-56 mr-24" ]
             [ div [ class "mx-auto max-w-md leading-normal py-8" ]

@@ -19,7 +19,7 @@ import Task exposing (Task)
 type alias Response =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , group : Group
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
@@ -39,7 +39,7 @@ document =
             space {
               ...SpaceFields
             }
-            bookmarkedGroups {
+            bookmarks {
               ...GroupFields
             }
           }
@@ -91,7 +91,7 @@ decoder =
         (Decode.succeed Response
             |> Pipeline.custom (Decode.at [ "spaceUser" ] SpaceUser.decoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarkedGroups" ] (Decode.list Group.decoder))
+            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarks" ] (Decode.list Group.decoder))
             |> Pipeline.custom (Decode.at [ "group" ] Group.decoder)
             |> Pipeline.custom (Decode.at [ "group", "posts" ] postComponentsDecoder)
             |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list GroupMembership.decoder))

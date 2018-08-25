@@ -60,7 +60,7 @@ type alias PostComposer =
 type alias Model =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , group : Group
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
@@ -94,13 +94,13 @@ init spaceSlug groupId session =
 
 
 buildModel : ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarkedGroups, group, posts, featuredMemberships } ), now ) =
+buildModel ( ( session, { viewer, space, bookmarks, group, posts, featuredMemberships } ), now ) =
     let
         model =
             Model
                 viewer
                 space
-                bookmarkedGroups
+                bookmarks
                 group
                 posts
                 featuredMemberships
@@ -463,7 +463,7 @@ view repo maybeCurrentRoute model =
     spaceLayout repo
         model.viewer
         model.space
-        model.bookmarkedGroups
+        model.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]

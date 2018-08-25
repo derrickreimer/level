@@ -23,7 +23,7 @@ import View.Layout exposing (spaceLayout)
 type alias Model =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , isSubmitting : Bool
     , selectedGroups : List String
     }
@@ -55,13 +55,13 @@ init spaceSlug session =
 
 
 buildModel : ( Session, SetupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { viewer, space, bookmarkedGroups } ) =
+buildModel ( session, { viewer, space, bookmarks } ) =
     let
         model =
             Model
                 viewer
                 space
-                bookmarkedGroups
+                bookmarks
                 False
                 [ "All Teams" ]
     in
@@ -158,7 +158,7 @@ redirectToLogin session model =
 
 
 view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute ({ viewer, space, bookmarkedGroups } as model) =
+view repo maybeCurrentRoute ({ viewer, space, bookmarks } as model) =
     let
         viewerData =
             Repo.getSpaceUser repo model.viewer
@@ -166,7 +166,7 @@ view repo maybeCurrentRoute ({ viewer, space, bookmarkedGroups } as model) =
     spaceLayout repo
         viewer
         space
-        bookmarkedGroups
+        bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]

@@ -30,7 +30,7 @@ import View.Layout exposing (spaceLayout)
 type alias Model =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , featuredUsers : List SpaceUser
     , mentionedPosts : Connection Component.Post.Model
     , now : ( Zone, Posix )
@@ -59,8 +59,8 @@ init spaceSlug session =
 
 
 buildModel : ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarkedGroups, featuredUsers, mentionedPosts } ), now ) =
-    Task.succeed ( session, Model viewer space bookmarkedGroups featuredUsers mentionedPosts now )
+buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, mentionedPosts } ), now ) =
+    Task.succeed ( session, Model viewer space bookmarks featuredUsers mentionedPosts now )
 
 
 setup : Model -> Cmd Msg
@@ -187,7 +187,7 @@ view repo maybeCurrentRoute model =
     spaceLayout repo
         model.viewer
         model.space
-        model.bookmarkedGroups
+        model.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]

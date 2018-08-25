@@ -17,7 +17,7 @@ import Task exposing (Task)
 type alias Response =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , featuredUsers : List SpaceUser
     , mentionedPosts : Connection Component.Post.Model
     }
@@ -32,7 +32,7 @@ document =
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
-            bookmarkedGroups {
+            bookmarks {
               ...GroupFields
             }
             space {
@@ -76,7 +76,7 @@ decoder =
         Decode.map5 Response
             SpaceUser.decoder
             (field "space" Space.decoder)
-            (field "bookmarkedGroups" (list Group.decoder))
+            (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
             (Decode.at [ "space", "mentionedPosts" ] <| Connection.decoder (Component.Post.decoder Component.Post.Feed True))
 

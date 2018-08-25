@@ -292,8 +292,8 @@ defmodule Level.Groups do
   @doc """
   Lists all bookmarked groups.
   """
-  @spec list_bookmarked_groups(SpaceUser.t()) :: [Group.t()] | no_return()
-  def list_bookmarked_groups(space_user) do
+  @spec list_bookmarks(SpaceUser.t()) :: [Group.t()] | no_return()
+  def list_bookmarks(space_user) do
     space_user
     |> groups_base_query
     |> join(

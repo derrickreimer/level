@@ -789,10 +789,10 @@ consumeEvent value ({ page, repo } as model) =
         Event.GroupBookmarked group ->
             -- let
             --     groups =
-            --         sharedState.bookmarkedGroups
+            --         sharedState.bookmarks
             --             |> insertUniqueBy Group.getId group
             --     newSharedState =
-            --         { sharedState | bookmarkedGroups = groups }
+            --         { sharedState | bookmarks = groups }
             --     newModel =
             --         { model
             --             | sharedState = Loaded newSharedState
@@ -805,10 +805,10 @@ consumeEvent value ({ page, repo } as model) =
         Event.GroupUnbookmarked group ->
             -- let
             --     groups =
-            --         sharedState.bookmarkedGroups
+            --         sharedState.bookmarks
             --             |> removeBy Group.getId group
             --     newSharedState =
-            --         { sharedState | bookmarkedGroups = groups }
+            --         { sharedState | bookmarks = groups }
             --     newModel =
             --         { model
             --             | sharedState = Loaded newSharedState

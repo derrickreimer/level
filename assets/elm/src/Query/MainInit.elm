@@ -14,7 +14,7 @@ import Task exposing (Task)
 type alias Response =
     { user : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , featuredUsers : List SpaceUser
     }
 
@@ -34,7 +34,7 @@ document =
                 ...SpaceUserFields
               }
             }
-            bookmarkedGroups {
+            bookmarks {
               ...GroupFields
             }
           }
@@ -60,7 +60,7 @@ decoder =
         (Decode.succeed Response
             |> Pipeline.custom SpaceUser.decoder
             |> Pipeline.custom (Decode.at [ "space" ] Space.decoder)
-            |> Pipeline.custom (Decode.at [ "bookmarkedGroups" ] (Decode.list Group.decoder))
+            |> Pipeline.custom (Decode.at [ "bookmarks" ] (Decode.list Group.decoder))
             |> Pipeline.custom (Decode.at [ "space", "featuredUsers" ] (Decode.list SpaceUser.decoder))
         )
 

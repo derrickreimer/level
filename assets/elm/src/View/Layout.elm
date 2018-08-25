@@ -29,9 +29,9 @@ appLayout nodes =
 
 
 spaceLayout : Repo -> SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> Html msg
-spaceLayout repo viewer space bookmarkedGroups maybeCurrentRoute nodes =
+spaceLayout repo viewer space bookmarks maybeCurrentRoute nodes =
     appLayout
-        ([ spaceSidebar repo viewer space bookmarkedGroups maybeCurrentRoute ]
+        ([ spaceSidebar repo viewer space bookmarks maybeCurrentRoute ]
             ++ nodes
         )
 
@@ -81,7 +81,7 @@ currentUserView lazyUser =
 
 
 spaceSidebar : Repo -> SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
-spaceSidebar repo viewer space bookmarkedGroups maybeCurrentRoute =
+spaceSidebar repo viewer space bookmarks maybeCurrentRoute =
     let
         viewerData =
             Repo.getSpaceUser repo viewer
@@ -103,7 +103,7 @@ spaceSidebar repo viewer space bookmarkedGroups maybeCurrentRoute =
                 , spaceSidebarLink space "Everything" Nothing maybeCurrentRoute
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]
-            , groupLinks repo space bookmarkedGroups maybeCurrentRoute
+            , groupLinks repo space bookmarks maybeCurrentRoute
             , spaceSidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.Root slug)) maybeCurrentRoute
             ]
         , div [ class "absolute pin-b w-full" ]

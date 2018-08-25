@@ -25,7 +25,7 @@ import View.Layout exposing (spaceLayout)
 type alias Model =
     { viewer : SpaceUser
     , space : Space
-    , bookmarkedGroups : List Group
+    , bookmarks : List Group
     , name : String
     , isPrivate : Bool
     , isSubmitting : Bool
@@ -54,13 +54,13 @@ init spaceSlug session =
 
 
 buildModel : ( Session, SetupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { viewer, space, bookmarkedGroups } ) =
+buildModel ( session, { viewer, space, bookmarks } ) =
     let
         model =
             Model
                 viewer
                 space
-                bookmarkedGroups
+                bookmarks
                 ""
                 False
                 False
@@ -145,7 +145,7 @@ view repo maybeCurrentRoute model =
     spaceLayout repo
         model.viewer
         model.space
-        model.bookmarkedGroups
+        model.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
