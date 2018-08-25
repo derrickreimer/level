@@ -355,17 +355,18 @@ type PageInit
     | SetupInviteUsersInit (Result Session.Error ( Session, Page.Setup.InviteUsers.Model ))
 
 
+transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
+transition model toMsg task =
+    ( { model | isTransitioning = True }
+    , Cmd.batch
+        [ teardownPage model.page
+        , Cmd.map PageInitialized <| Task.attempt toMsg task
+        ]
+    )
+
+
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
-    let
-        transition modelToTransition toMsg task =
-            ( { modelToTransition | isTransitioning = True }
-            , Cmd.batch
-                [ teardownPage modelToTransition.page
-                , Cmd.map PageInitialized <| Task.attempt toMsg task
-                ]
-            )
-    in
     case maybeRoute of
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
