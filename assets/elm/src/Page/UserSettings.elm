@@ -5,6 +5,7 @@ import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Lazy exposing (Lazy(..))
 import Mutation.UpdateUser as UpdateUser
 import Mutation.UpdateUserAvatar as UpdateUserAvatar
 import Query.UserSettingsInit as UserSettingsInit
@@ -17,6 +18,7 @@ import Task exposing (Task)
 import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import View.Layout exposing (userLayout)
 
 
 
@@ -208,9 +210,9 @@ subscriptions =
 
 
 view : Repo -> Model -> Html Msg
-view repo ({ errors } as model) =
-    div [ class "ml-56 mr-24" ]
-        [ div [ class "mx-auto max-w-md leading-normal py-8" ]
+view repo ({ viewer, errors } as model) =
+    userLayout (Loaded viewer) <|
+        div [ class "mx-auto max-w-md leading-normal py-8" ]
             [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
@@ -309,4 +311,3 @@ view repo ({ errors } as model) =
                     ]
                 ]
             ]
-        ]
