@@ -20,6 +20,7 @@ import Page.Setup.InviteUsers
 import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.UserSettings
+import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
@@ -77,11 +78,16 @@ type alias Flags =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        ( model, cmd ) =
+        ( model, navigateCmd ) =
             navigateTo (Route.fromUrl url) <|
                 buildModel flags navKey
+
+        initCmd =
+            model.session
+                |> MainInit.request
+                |> Task.attempt AppInitialized
     in
-    ( model, Cmd.batch [ cmd, setup model ] )
+    ( model, Cmd.batch [ navigateCmd, initCmd ] )
 
 
 buildModel : Flags -> Nav.Key -> Model
@@ -89,13 +95,18 @@ buildModel flags navKey =
     Model navKey (Session.init flags.apiToken) Repo.init Blank True
 
 
-setup : Model -> Cmd Msg
-setup model =
-    -- Cmd.batch
-    --     [ SpaceSubscription.subscribe (Space.getId sharedState.space)
-    --     , SpaceUserSubscription.subscribe (SpaceUser.getId sharedState.user)
-    --     ]
-    Cmd.none
+setup : MainInit.Response -> Model -> Cmd Msg
+setup { spaceIds, spaceUserIds } model =
+    let
+        spaceSubs =
+            spaceIds
+                |> List.map SpaceSubscription.subscribe
+
+        spaceUserSubs =
+            spaceUserIds
+                |> List.map SpaceUserSubscription.subscribe
+    in
+    Cmd.batch (spaceSubs ++ spaceUserSubs)
 
 
 
@@ -105,6 +116,7 @@ setup model =
 type Msg
     = UrlChange Url
     | UrlRequest UrlRequest
+    | AppInitialized (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | PageInitialized PageInit
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
@@ -147,6 +159,17 @@ update msg model =
                     ( model
                     , Nav.load href
                     )
+
+        ( AppInitialized (Ok ( newSession, response )), _ ) ->
+            ( { model | session = newSession }
+            , setup response model
+            )
+
+        ( AppInitialized (Err Session.Expired), _ ) ->
+            ( model, Route.toLogin )
+
+        ( AppInitialized (Err _), _ ) ->
+            ( model, Cmd.none )
 
         ( SessionRefreshed (Ok newSession), _ ) ->
             ( { model | session = newSession }, Session.propagateToken newSession )
