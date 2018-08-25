@@ -395,9 +395,13 @@ handlePostCreated post replies ({ posts, group } as model) =
         component =
             Component.Post.init Component.Post.Feed False post replies
     in
-    ( { model | posts = Connection.prepend .id component posts }
-    , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
-    )
+    if Post.groupsInclude group post then
+        ( { model | posts = Connection.prepend .id component posts }
+        , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
+        )
+
+    else
+        ( model, Cmd.none )
 
 
 handleGroupMembershipUpdated : Group -> Session -> Model -> ( Model, Cmd Msg )

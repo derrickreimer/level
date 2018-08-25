@@ -20,8 +20,6 @@ import Page.Setup.InviteUsers
 import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.UserSettings
-import Post
-import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
@@ -59,24 +57,16 @@ main =
 
 
 type alias Model =
-    { browserKey : Nav.Key
-    , spaceId : String
+    { navKey : Nav.Key
     , session : Session
-    , sharedState : Lazy SharedState
+    , repo : Repo
     , page : Page
     , isTransitioning : Bool
-    , flashNotice : Maybe String
-    , repo : Repo
     }
-
-
-type alias SharedState =
-    MainInit.Response
 
 
 type alias Flags =
     { apiToken : String
-    , spaceId : String
     }
 
 
@@ -85,18 +75,18 @@ type alias Flags =
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url browserKey =
+init flags url navKey =
     let
         ( model, cmd ) =
             navigateTo (Route.fromUrl url) <|
-                buildModel flags browserKey
+                buildModel flags navKey
     in
     ( model, Cmd.batch [ cmd, setup model ] )
 
 
 buildModel : Flags -> Nav.Key -> Model
-buildModel flags browserKey =
-    Model browserKey flags.spaceId (Session.init flags.apiToken) NotLoaded Blank True Nothing Repo.init
+buildModel flags navKey =
+    Model navKey (Session.init flags.apiToken) Repo.init Blank True
 
 
 setup : Model -> Cmd Msg
@@ -150,7 +140,7 @@ update msg model =
 
                         _ ->
                             ( model
-                            , Nav.pushUrl model.browserKey (Url.toString url)
+                            , Nav.pushUrl model.navKey (Url.toString url)
                             )
 
                 Browser.External href ->
@@ -197,7 +187,7 @@ update msg model =
                     case externalMsg of
                         Page.Setup.CreateGroups.SetupStateChanged newState ->
                             ( model
-                            , Route.pushUrl model.browserKey (Space.setupRoute pageModel.space newState)
+                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.space newState)
                             )
 
                         Page.Setup.CreateGroups.NoOp ->
@@ -222,7 +212,7 @@ update msg model =
                     case externalMsg of
                         Page.Setup.InviteUsers.SetupStateChanged newState ->
                             ( model
-                            , Route.pushUrl model.browserKey (Space.setupRoute pageModel.space newState)
+                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.space newState)
                             )
 
                         Page.Setup.InviteUsers.NoOp ->
@@ -850,17 +840,13 @@ consumeEvent value ({ page, repo } as model) =
         Event.PostCreated ( post, replies ) ->
             case model.page of
                 Group ({ group } as pageModel) ->
-                    if Post.groupsInclude group post then
-                        let
-                            ( newPageModel, cmd ) =
-                                Page.Group.handlePostCreated post replies pageModel
-                        in
-                        ( { model | page = Group newPageModel }
-                        , Cmd.map GroupMsg cmd
-                        )
-
-                    else
-                        ( model, Cmd.none )
+                    let
+                        ( newPageModel, cmd ) =
+                            Page.Group.handlePostCreated post replies pageModel
+                    in
+                    ( { model | page = Group newPageModel }
+                    , Cmd.map GroupMsg cmd
+                    )
 
                 _ ->
                     ( model, Cmd.none )
