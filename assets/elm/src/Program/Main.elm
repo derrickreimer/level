@@ -706,8 +706,9 @@ routeFor page =
         Post { space, post } ->
             Just <| Route.Post (Space.getSlug space) post.id
 
-        -- UserSettings { space } ->
-        --     Just <| Route.UserSettings (Space.getSlug space)
+        UserSettings _ ->
+            Just <| Route.UserSettings
+
         SpaceSettings { space } ->
             Just <| Route.SpaceSettings (Space.getSlug space)
 
@@ -715,10 +716,6 @@ routeFor page =
             Nothing
 
         NotFound ->
-            Nothing
-
-        -- This is only temporary!
-        _ ->
             Nothing
 
 
