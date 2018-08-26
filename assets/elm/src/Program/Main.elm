@@ -348,15 +348,6 @@ update msg model =
 
 
 
--- MUTATIONS
-
-
-updateRepo : Repo -> Model -> ( Model, Cmd Msg )
-updateRepo newRepo model =
-    ( { model | repo = newRepo }, Cmd.none )
-
-
-
 -- PAGES
 
 
@@ -820,43 +811,43 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event ({ page, repo } as model) =
     case event of
         Event.GroupBookmarked group ->
-            updateRepo (Repo.setGroup model.repo group) model
+            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            updateRepo (Repo.setGroup model.repo group) model
+            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
 
         Event.GroupMembershipUpdated group ->
-            updateRepo (Repo.setGroup model.repo group) model
+            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
 
         Event.PostCreated ( post, replies ) ->
-            updateRepo (Repo.setPost model.repo post) model
+            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
         Event.PostUpdated post ->
-            updateRepo (Repo.setPost repo post) model
+            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
         Event.PostSubscribed post ->
-            updateRepo (Repo.setPost repo post) model
+            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
         Event.PostUnsubscribed post ->
-            updateRepo (Repo.setPost repo post) model
+            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
         Event.UserMentioned post ->
-            updateRepo (Repo.setPost repo post) model
+            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
         Event.GroupUpdated group ->
-            updateRepo (Repo.setGroup repo group) model
+            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
 
         Event.ReplyCreated reply ->
             ( model, Cmd.none )
 
         Event.MentionsDismissed post ->
-            updateRepo (Repo.setPost repo post) model
+            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
         Event.SpaceUpdated space ->
-            updateRepo (Repo.setSpace model.repo space) model
+            ( { model | repo = Repo.setSpace model.repo space }, Cmd.none )
 
         Event.SpaceUserUpdated spaceUser ->
-            updateRepo (Repo.setSpaceUser model.repo spaceUser) model
+            ( { model | repo = Repo.setSpaceUser model.repo spaceUser }, Cmd.none )
 
         Event.Unknown payload ->
             ( model, Cmd.none )
