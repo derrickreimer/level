@@ -1,10 +1,12 @@
-module Page.SpaceSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
+module Page.SpaceSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
+import Event exposing (Event)
 import File exposing (File)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Query.SetupInit as SetupInit
@@ -184,6 +186,23 @@ noCmd session model =
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 redirectToLogin session model =
     ( ( model, Route.toLogin ), session )
+
+
+
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

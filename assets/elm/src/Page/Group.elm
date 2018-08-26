@@ -1,15 +1,17 @@
-module Page.Group exposing (Model, Msg(..), handleGroupMembershipUpdated, handlePostCreated, handleReplyCreated, init, setup, subscriptions, teardown, title, update, view)
+module Page.Group exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Autosize
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
+import Event exposing (Event)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CreatePost as CreatePost
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
@@ -386,53 +388,60 @@ redirectToLogin session model =
 
 
 
--- EVENT HANDLERS
+-- EVENTS
 
 
-handlePostCreated : Post -> Connection Reply -> Model -> ( Model, Cmd Msg )
-handlePostCreated post replies ({ posts, group } as model) =
-    let
-        component =
-            Component.Post.init Component.Post.Feed False post replies
-    in
-    if Post.groupsInclude group post then
-        ( { model | posts = Connection.prepend .id component posts }
-        , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
-        )
+consumeEvent : Event -> Session -> Model -> ( Model, Cmd Msg )
+consumeEvent event session model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
 
-    else
-        ( model, Cmd.none )
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
 
+        Event.GroupMembershipUpdated group ->
+            if Group.getId group == Group.getId model.group then
+                ( model
+                , FeaturedMemberships.request (Group.getId model.group) session
+                    |> Task.attempt FeaturedMembershipsRefreshed
+                )
 
-handleGroupMembershipUpdated : Group -> Session -> Model -> ( Model, Cmd Msg )
-handleGroupMembershipUpdated group session model =
-    if Group.getId group == Group.getId model.group then
-        ( model
-        , FeaturedMemberships.request (Group.getId model.group) session
-            |> Task.attempt FeaturedMembershipsRefreshed
-        )
+            else
+                ( model, Cmd.none )
 
-    else
-        ( model, Cmd.none )
-
-
-handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated reply ({ posts } as model) =
-    let
-        postId =
-            Reply.getPostId reply
-    in
-    case Connection.get .id postId posts of
-        Just component ->
+        Event.PostCreated ( post, replies ) ->
             let
-                ( newComponent, cmd ) =
-                    Component.Post.handleReplyCreated reply component
+                component =
+                    Component.Post.init Component.Post.Feed False post replies
             in
-            ( { model | posts = Connection.update .id newComponent posts }
-            , Cmd.map (PostComponentMsg postId) cmd
-            )
+            if Post.groupsInclude model.group post then
+                ( { model | posts = Connection.prepend .id component model.posts }
+                , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
+                )
 
-        Nothing ->
+            else
+                ( model, Cmd.none )
+
+        Event.ReplyCreated reply ->
+            let
+                postId =
+                    Reply.getPostId reply
+            in
+            case Connection.get .id postId model.posts of
+                Just component ->
+                    let
+                        ( newComponent, cmd ) =
+                            Component.Post.handleReplyCreated reply component
+                    in
+                    ( { model | posts = Connection.update .id newComponent model.posts }
+                    , Cmd.map (PostComponentMsg postId) cmd
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        _ ->
             ( model, Cmd.none )
 
 

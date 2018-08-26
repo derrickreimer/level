@@ -1,10 +1,12 @@
-module Page.Post exposing (Model, Msg(..), handleReplyCreated, init, setup, subscriptions, teardown, title, update, view)
+module Page.Post exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Component.Post
 import Connection
+import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
@@ -155,16 +157,29 @@ redirectToLogin session model =
 
 
 
--- EVENT HANDLERS
+-- EVENTS
 
 
-handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated reply ({ post } as model) =
-    let
-        ( newPost, cmd ) =
-            Component.Post.handleReplyCreated reply post
-    in
-    ( { model | post = newPost }, Cmd.map PostComponentMsg cmd )
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.ReplyCreated reply ->
+            let
+                ( newPost, cmd ) =
+                    Component.Post.handleReplyCreated reply model.post
+            in
+            ( { model | post = newPost }
+            , Cmd.map PostComponentMsg cmd
+            )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

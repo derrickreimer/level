@@ -1,12 +1,14 @@
-module Page.Inbox exposing (Model, Msg(..), handleMentionsDismissed, handleReplyCreated, init, setup, subscriptions, teardown, title, update, view)
+module Page.Inbox exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
+import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Post exposing (Post)
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
@@ -130,42 +132,51 @@ noCmd session model =
 
 
 
--- EVENT HANDLERS
+-- EVENTS
 
 
-handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated reply ({ mentionedPosts } as model) =
-    let
-        id =
-            Reply.getPostId reply
-    in
-    case Connection.get .id id mentionedPosts of
-        Just component ->
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.ReplyCreated reply ->
             let
-                ( newComponent, cmd ) =
-                    Component.Post.handleReplyCreated reply component
+                postId =
+                    Reply.getPostId reply
             in
-            ( { model | mentionedPosts = Connection.update .id newComponent mentionedPosts }
-            , Cmd.map (PostComponentMsg id) cmd
-            )
+            case Connection.get .id postId model.mentionedPosts of
+                Just component ->
+                    let
+                        ( newComponent, cmd ) =
+                            Component.Post.handleReplyCreated reply component
+                    in
+                    ( { model | mentionedPosts = Connection.update .id newComponent model.mentionedPosts }
+                    , Cmd.map (PostComponentMsg postId) cmd
+                    )
 
-        Nothing ->
-            ( model, Cmd.none )
+                Nothing ->
+                    ( model, Cmd.none )
 
+        Event.MentionsDismissed post ->
+            let
+                postId =
+                    Post.getId post
+            in
+            case Connection.get .id postId model.mentionedPosts of
+                Just component ->
+                    ( { model | mentionedPosts = Connection.remove .id postId model.mentionedPosts }
+                    , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component)
+                    )
 
-handleMentionsDismissed : Post -> Model -> ( Model, Cmd Msg )
-handleMentionsDismissed post ({ mentionedPosts } as model) =
-    let
-        id =
-            Post.getId post
-    in
-    case Connection.get .id id mentionedPosts of
-        Just component ->
-            ( { model | mentionedPosts = Connection.remove .id id mentionedPosts }
-            , Cmd.map (PostComponentMsg id) (Component.Post.teardown component)
-            )
+                Nothing ->
+                    ( model, Cmd.none )
 
-        Nothing ->
+        _ ->
             ( model, Cmd.none )
 
 

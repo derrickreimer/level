@@ -1,9 +1,11 @@
-module Page.Setup.CreateGroups exposing (ExternalMsg(..), Model, Msg(..), init, setup, teardown, title, update, view)
+module Page.Setup.CreateGroups exposing (ExternalMsg(..), Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
 import Query.SetupInit as SetupInit
@@ -151,6 +153,23 @@ remove name list =
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session, ExternalMsg )
 redirectToLogin session model =
     ( ( model, Route.toLogin ), session, NoOp )
+
+
+
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

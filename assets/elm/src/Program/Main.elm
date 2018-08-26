@@ -3,7 +3,7 @@ module Program.Main exposing (main)
 import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Event
+import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -321,7 +321,17 @@ update msg model =
             ( model, Cmd.none )
 
         ( SocketResult value, page ) ->
-            consumeEvent value model
+            let
+                event =
+                    Event.decodeEvent value
+
+                ( newModel, cmd ) =
+                    consumeEvent event model
+
+                ( newModel2, cmd2 ) =
+                    sendEventToPage event newModel
+            in
+            ( newModel2, Cmd.batch [ cmd, cmd2 ] )
 
         ( SocketError value, _ ) ->
             let
@@ -803,74 +813,23 @@ pageView repo page =
 
 
 
--- SOCKET EVENTS
+-- EVENTS
 
 
-consumeEvent : Decode.Value -> Model -> ( Model, Cmd Msg )
-consumeEvent value ({ page, repo } as model) =
-    case Event.decodeEvent value of
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event ({ page, repo } as model) =
+    case event of
         Event.GroupBookmarked group ->
-            -- let
-            --     groups =
-            --         sharedState.bookmarks
-            --             |> insertUniqueBy Group.getId group
-            --     newSharedState =
-            --         { sharedState | bookmarks = groups }
-            --     newModel =
-            --         { model
-            --             | sharedState = Loaded newSharedState
-            --             , repo = Repo.setGroup model.repo group
-            --         }
-            -- in
-            -- ( newModel, Cmd.none )
-            ( model, Cmd.none )
+            updateRepo (Repo.setGroup model.repo group) model
 
         Event.GroupUnbookmarked group ->
-            -- let
-            --     groups =
-            --         sharedState.bookmarks
-            --             |> removeBy Group.getId group
-            --     newSharedState =
-            --         { sharedState | bookmarks = groups }
-            --     newModel =
-            --         { model
-            --             | sharedState = Loaded newSharedState
-            --             , repo = Repo.setGroup model.repo group
-            --         }
-            -- in
-            -- ( newModel, Cmd.none )
-            ( model, Cmd.none )
+            updateRepo (Repo.setGroup model.repo group) model
 
         Event.GroupMembershipUpdated group ->
-            case model.page of
-                Group pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Group.handleGroupMembershipUpdated group model.session pageModel
-                    in
-                    ( { model
-                        | page = Group newPageModel
-                        , repo = Repo.setGroup model.repo group
-                      }
-                    , Cmd.map GroupMsg cmd
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+            updateRepo (Repo.setGroup model.repo group) model
 
         Event.PostCreated ( post, replies ) ->
-            case model.page of
-                Group ({ group } as pageModel) ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Group.handlePostCreated post replies pageModel
-                    in
-                    ( { model | page = Group newPageModel }
-                    , Cmd.map GroupMsg cmd
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+            updateRepo (Repo.setPost model.repo post) model
 
         Event.PostUpdated post ->
             updateRepo (Repo.setPost repo post) model
@@ -888,50 +847,10 @@ consumeEvent value ({ page, repo } as model) =
             updateRepo (Repo.setGroup repo group) model
 
         Event.ReplyCreated reply ->
-            case page of
-                Inbox pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Inbox.handleReplyCreated reply pageModel
-                    in
-                    ( { model | page = Inbox newPageModel }
-                    , Cmd.map InboxMsg cmd
-                    )
-
-                Group pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Group.handleReplyCreated reply pageModel
-                    in
-                    ( { model | page = Group newPageModel }
-                    , Cmd.map GroupMsg cmd
-                    )
-
-                Post pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Post.handleReplyCreated reply pageModel
-                    in
-                    ( { model | page = Post newPageModel }
-                    , Cmd.map PostMsg cmd
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, Cmd.none )
 
         Event.MentionsDismissed post ->
-            case page of
-                Inbox pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            Page.Inbox.handleMentionsDismissed post pageModel
-                    in
-                    ( { model | page = Inbox newPageModel }
-                    , Cmd.map InboxMsg cmd
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+            updateRepo (Repo.setPost repo post) model
 
         Event.SpaceUpdated space ->
             updateRepo (Repo.setSpace model.repo space) model
@@ -940,6 +859,72 @@ consumeEvent value ({ page, repo } as model) =
             updateRepo (Repo.setSpaceUser model.repo spaceUser) model
 
         Event.Unknown payload ->
+            ( model, Cmd.none )
+
+
+sendEventToPage : Event -> Model -> ( Model, Cmd Msg )
+sendEventToPage event model =
+    let
+        updatePage toPage toPageMsg ( pageModel, pageCmd ) =
+            ( { model | page = toPage pageModel }
+            , Cmd.map toPageMsg pageCmd
+            )
+    in
+    case model.page of
+        SetupCreateGroups pageModel ->
+            pageModel
+                |> Page.Setup.CreateGroups.consumeEvent event
+                |> updatePage SetupCreateGroups SetupCreateGroupsMsg
+
+        SetupInviteUsers pageModel ->
+            pageModel
+                |> Page.Setup.InviteUsers.consumeEvent event
+                |> updatePage SetupInviteUsers SetupInviteUsersMsg
+
+        Inbox pageModel ->
+            pageModel
+                |> Page.Inbox.consumeEvent event
+                |> updatePage Inbox InboxMsg
+
+        SpaceUsers pageModel ->
+            pageModel
+                |> Page.SpaceUsers.consumeEvent event
+                |> updatePage SpaceUsers SpaceUsersMsg
+
+        Groups pageModel ->
+            pageModel
+                |> Page.Groups.consumeEvent event
+                |> updatePage Groups GroupsMsg
+
+        Group pageModel ->
+            pageModel
+                |> Page.Group.consumeEvent event model.session
+                |> updatePage Group GroupMsg
+
+        NewGroup pageModel ->
+            pageModel
+                |> Page.NewGroup.consumeEvent event
+                |> updatePage NewGroup NewGroupMsg
+
+        Post pageModel ->
+            pageModel
+                |> Page.Post.consumeEvent event
+                |> updatePage Post PostMsg
+
+        UserSettings pageModel ->
+            pageModel
+                |> Page.UserSettings.consumeEvent event
+                |> updatePage UserSettings UserSettingsMsg
+
+        SpaceSettings pageModel ->
+            pageModel
+                |> Page.SpaceSettings.consumeEvent event
+                |> updatePage SpaceSettings SpaceSettingsMsg
+
+        Blank ->
+            ( model, Cmd.none )
+
+        NotFound ->
             ( model, Cmd.none )
 
 

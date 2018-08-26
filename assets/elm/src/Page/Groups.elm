@@ -1,11 +1,13 @@
-module Page.Groups exposing (Model, Msg(..), init, setup, teardown, title, update, view)
+module Page.Groups exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Connection exposing (Connection)
+import Event exposing (Event)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -84,6 +86,23 @@ update msg repo session model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), session )
+
+
+
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

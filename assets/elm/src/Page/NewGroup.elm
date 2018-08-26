@@ -1,9 +1,11 @@
-module Page.NewGroup exposing (Model, Msg(..), init, setup, teardown, title, update, view)
+module Page.NewGroup exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CreateGroup as CreateGroup
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
@@ -134,6 +136,23 @@ noCmd session model =
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 redirectToLogin session model =
     ( ( model, Route.toLogin ), session )
+
+
+
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

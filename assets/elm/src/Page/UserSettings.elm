@@ -1,5 +1,6 @@
-module Page.UserSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
+module Page.UserSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
+import Event exposing (Event)
 import File exposing (File)
 import Group exposing (Group)
 import Html exposing (..)
@@ -194,6 +195,17 @@ noCmd session model =
 redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
 redirectToLogin session model =
     ( ( model, Route.toLogin ), session )
+
+
+
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        _ ->
+            ( model, Cmd.none )
 
 
 
