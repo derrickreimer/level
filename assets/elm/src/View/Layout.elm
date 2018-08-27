@@ -30,10 +30,11 @@ appLayout nodes =
 
 spaceLayout : Repo -> SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> Html msg
 spaceLayout repo viewer space bookmarks maybeCurrentRoute nodes =
-    appLayout
-        ([ spaceSidebar repo viewer space bookmarks maybeCurrentRoute ]
-            ++ nodes
-        )
+    let
+        sidebar =
+            spaceSidebar repo viewer space bookmarks maybeCurrentRoute
+    in
+    appLayout (sidebar :: nodes)
 
 
 userLayout : User -> Html msg -> Html msg
@@ -43,7 +44,7 @@ userLayout user bodyView =
         , Html.Attributes.attribute "data-stretchy-filter" ".js-stretchy"
         ]
         [ div [ class "flex pb-16 sm:pb-16 items-center" ]
-            [ a [ href "/spaces", class "logo logo-sm" ]
+            [ a [ Route.href Route.Spaces, class "logo logo-sm" ]
                 [ Icons.logo ]
             , div [ class "flex flex-grow justify-end" ]
                 [ currentUserView user ]
@@ -85,7 +86,7 @@ spaceSidebar repo viewer space bookmarks maybeCurrentRoute =
     in
     div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
         [ div [ class "p-4" ]
-            [ a [ href "/spaces", class "block ml-2 no-underline" ]
+            [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
                 , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
                 ]

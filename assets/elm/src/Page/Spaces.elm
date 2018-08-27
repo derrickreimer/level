@@ -9,6 +9,7 @@ import Html.Events exposing (onClick, onInput)
 import Icons
 import Query.SpacesInit as SpacesInit
 import Repo exposing (Repo)
+import Route
 import Session exposing (Session)
 import Space exposing (Space)
 import Task exposing (Task)
@@ -112,7 +113,7 @@ view repo model =
             [ div [ class "flex items-center pb-6" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
                 , div [ class "flex-0 flex-no-shrink" ]
-                    [ a [ href "/spaces/new", class "btn btn-blue btn-md no-underline" ] [ text "New space" ] ]
+                    [ a [ Route.href Route.NewSpace, class "btn btn-blue btn-md no-underline" ] [ text "New space" ] ]
                 ]
             , div [ class "pb-6" ]
                 [ label [ class "flex p-4 w-full rounded bg-grey-light" ]

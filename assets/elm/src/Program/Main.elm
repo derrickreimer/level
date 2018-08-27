@@ -158,21 +158,10 @@ update msg model =
         ( UrlRequest request, _ ) ->
             case request of
                 Browser.Internal url ->
-                    case url.path of
-                        "/spaces" ->
-                            ( model
-                            , Nav.load (Url.toString url)
-                            )
-
-                        _ ->
-                            ( model
-                            , Nav.pushUrl model.navKey (Url.toString url)
-                            )
+                    ( model, Nav.pushUrl model.navKey (Url.toString url) )
 
                 Browser.External href ->
-                    ( model
-                    , Nav.load href
-                    )
+                    ( model, Nav.load href )
 
         ( AppInitialized (Ok ( newSession, response )), _ ) ->
             ( { model | session = newSession }
