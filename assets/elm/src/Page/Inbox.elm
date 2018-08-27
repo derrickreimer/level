@@ -7,6 +7,7 @@ import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Post exposing (Post)
@@ -21,7 +22,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (displayName, smartFormatDate)
+import View.Helpers exposing (displayName, smartFormatDate, viewIf)
 import View.Layout exposing (spaceLayout)
 
 
@@ -97,6 +98,7 @@ type Msg
     = Tick Posix
     | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
+    | DismissSelected
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -124,6 +126,10 @@ update msg session model =
 
                 Nothing ->
                     noCmd session model
+
+        DismissSelected ->
+            -- TODO
+            noCmd session model
 
 
 noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -204,13 +210,22 @@ view repo maybeCurrentRoute model =
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
-                        [ h2 [ class "font-extrabold text-2xl" ] [ text "Inbox" ]
+                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
+                        , controlsView model
                         ]
                     ]
                 , mentionsView repo model
                 , sidebarView repo model.space model.featuredUsers
                 ]
             ]
+        ]
+
+
+controlsView : Model -> Html Msg
+controlsView model =
+    div [ class "flex flex-grow justify-end" ]
+        [ viewIf (arePostsSelected model.mentions) <|
+            button [ class "btn btn-xs btn-turquoise-outline", onClick DismissSelected ] [ text "Dismiss" ]
         ]
 
 
@@ -261,3 +276,14 @@ userItemView repo user =
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
         ]
+
+
+
+-- INTERNAL
+
+
+arePostsSelected : Connection Component.Post.Model -> Bool
+arePostsSelected posts =
+    posts
+        |> Connection.toList
+        |> List.any .isChecked
