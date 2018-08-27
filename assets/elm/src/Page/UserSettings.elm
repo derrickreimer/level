@@ -1,19 +1,25 @@
-module Page.UserSettings exposing (Model, Msg(..), init, setup, subscriptions, teardown, title, update, view)
+module Page.UserSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
+import Event exposing (Event)
 import File exposing (File)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Lazy exposing (Lazy(..))
 import Mutation.UpdateUser as UpdateUser
 import Mutation.UpdateUserAvatar as UpdateUserAvatar
 import Query.UserSettingsInit as UserSettingsInit
 import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
-import User
+import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import View.Layout exposing (userLayout)
 
 
 
@@ -21,7 +27,8 @@ import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefa
 
 
 type alias Model =
-    { firstName : String
+    { viewer : User
+    , firstName : String
     , lastName : String
     , handle : String
     , email : String
@@ -47,7 +54,8 @@ title =
 
 init : Session -> Task Session.Error ( Session, Model )
 init session =
-    UserSettingsInit.request session
+    session
+        |> UserSettingsInit.request
         |> Task.andThen buildModel
 
 
@@ -59,6 +67,7 @@ buildModel ( session, { user } ) =
 
         model =
             Model
+                user
                 userData.firstName
                 userData.lastName
                 userData.handle
@@ -189,6 +198,17 @@ redirectToLogin session model =
 
 
 
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        _ ->
+            ( model, Cmd.none )
+
+
+
 -- SUBSCRIPTIONS
 
 
@@ -202,9 +222,9 @@ subscriptions =
 
 
 view : Repo -> Model -> Html Msg
-view repo ({ errors } as model) =
-    div [ class "ml-56 mr-24" ]
-        [ div [ class "mx-auto max-w-md leading-normal py-8" ]
+view repo ({ viewer, errors } as model) =
+    userLayout viewer <|
+        div [ class "mx-auto max-w-md leading-normal" ]
             [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
@@ -303,4 +323,3 @@ view repo ({ errors } as model) =
                     ]
                 ]
             ]
-        ]

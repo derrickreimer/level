@@ -1,17 +1,21 @@
-module Page.Setup.CreateGroups exposing (ExternalMsg(..), Model, Msg(..), init, setup, teardown, title, update, view)
+module Page.Setup.CreateGroups exposing (ExternalMsg(..), Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Event exposing (Event)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
+import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
-import Setup
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -19,8 +23,9 @@ import Task exposing (Task)
 
 
 type alias Model =
-    { spaceId : String
-    , firstName : String
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
     , isSubmitting : Bool
     , selectedGroups : List String
     }
@@ -44,30 +49,34 @@ title =
 -- LIFECYCLE
 
 
-init : Repo -> SpaceUser -> Space -> Task Never Model
-init repo user space =
-    Task.succeed (buildModel repo user space)
+init : String -> Session -> Task Session.Error ( Session, Model )
+init spaceSlug session =
+    session
+        |> SetupInit.request spaceSlug
+        |> Task.andThen buildModel
 
 
-buildModel : Repo -> SpaceUser -> Space -> Model
-buildModel repo user space =
+buildModel : ( Session, SetupInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel ( session, { viewer, space, bookmarks } ) =
     let
-        spaceId =
-            Space.getId space
-
-        { firstName } =
-            Repo.getSpaceUser repo user
+        model =
+            Model
+                viewer
+                space
+                bookmarks
+                False
+                [ "All Teams" ]
     in
-    Model spaceId firstName False [ "All Teams" ]
+    Task.succeed ( session, model )
 
 
-setup : Cmd Msg
-setup =
+setup : Model -> Cmd Msg
+setup model =
     Cmd.none
 
 
-teardown : Cmd Msg
-teardown =
+teardown : Model -> Cmd Msg
+teardown model =
     Cmd.none
 
 
@@ -83,7 +92,7 @@ type Msg
 
 
 type ExternalMsg
-    = SetupStateChanged Setup.State
+    = SetupStateChanged Space.SetupState
     | NoOp
 
 
@@ -104,7 +113,8 @@ update msg session model =
         Submit ->
             let
                 cmd =
-                    BulkCreateGroups.request model.spaceId groups session
+                    session
+                        |> BulkCreateGroups.request (Space.getId model.space) groups
                         |> Task.attempt Submitted
             in
             ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
@@ -112,7 +122,8 @@ update msg session model =
         Submitted (Ok ( newSession, BulkCreateGroups.Success )) ->
             let
                 cmd =
-                    CompleteSetupStep.request model.spaceId Setup.CreateGroups False newSession
+                    newSession
+                        |> CompleteSetupStep.request (Space.getId model.space) Space.CreateGroups False
                         |> Task.attempt Advanced
             in
             ( ( model, cmd ), newSession, NoOp )
@@ -145,18 +156,45 @@ redirectToLogin session model =
 
 
 
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
-            [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text ("Welcome to Level, " ++ model.firstName ++ "!") ]
-            , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
-            , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
-            , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
-            , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Create these groups" ]
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute ({ viewer, space, bookmarks } as model) =
+    let
+        viewerData =
+            Repo.getSpaceUser repo model.viewer
+    in
+    spaceLayout repo
+        viewer
+        space
+        bookmarks
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
+                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text ("Welcome to Level, " ++ viewerData.firstName ++ "!") ]
+                , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
+                , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
+                , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
+                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Create these groups" ]
+                ]
             ]
         ]
 

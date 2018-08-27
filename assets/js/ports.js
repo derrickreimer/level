@@ -139,8 +139,4 @@ export const attachPorts = app => {
 
     logEvent("ports.file.request")({ id });
   });
-
-  app.ports.setTitle.subscribe(title => {
-    document.title = title;
-  });
 };

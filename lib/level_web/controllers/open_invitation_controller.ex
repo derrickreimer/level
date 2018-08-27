@@ -25,7 +25,7 @@ defmodule LevelWeb.OpenInvitationController do
          {:ok, _space_user} <- Spaces.accept_open_invitation(user, conn.assigns.invitation) do
       conn
       |> LevelWeb.Auth.sign_in(user)
-      |> redirect(to: space_path(conn, :show, [conn.assigns.space.slug]))
+      |> redirect(to: main_path(conn, :index, [conn.assigns.space.slug]))
     else
       {:error, changeset} ->
         conn
@@ -39,7 +39,7 @@ defmodule LevelWeb.OpenInvitationController do
          {:ok, _space_user} <- Spaces.accept_open_invitation(user, conn.assigns.invitation) do
       conn
       |> LevelWeb.Auth.sign_in(user)
-      |> redirect(to: space_path(conn, :show, [conn.assigns.space.slug]))
+      |> redirect(to: main_path(conn, :index, [conn.assigns.space.slug]))
     else
       _ ->
         conn
@@ -72,7 +72,7 @@ defmodule LevelWeb.OpenInvitationController do
          %Space{id: id} <- conn.assigns.space,
          {:ok, _} <- Spaces.get_space(current_user, id) do
       conn
-      |> redirect(to: space_path(conn, :show, [conn.assigns.space.slug]))
+      |> redirect(to: main_path(conn, :index, [conn.assigns.space.slug]))
       |> halt()
     else
       _ ->

@@ -17,7 +17,9 @@ import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
 type Route
-    = Root String
+    = Spaces
+    | NewSpace
+    | Root String
     | SetupCreateGroups String
     | SetupInviteUsers String
     | Inbox String
@@ -26,14 +28,16 @@ type Route
     | Group String String
     | NewGroup String
     | Post String String
-    | UserSettings String
+    | UserSettings
     | SpaceSettings String
 
 
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map Root Parser.string
+        [ Parser.map Spaces (s "spaces")
+        , Parser.map NewSpace (s "spaces" </> s "new")
+        , Parser.map Root Parser.string
         , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
         , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
         , Parser.map Inbox (Parser.string </> s "inbox")
@@ -42,7 +46,7 @@ parser =
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
         , Parser.map Group (Parser.string </> s "groups" </> Parser.string)
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
-        , Parser.map UserSettings (Parser.string </> s "user" </> s "settings")
+        , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map SpaceSettings (Parser.string </> s "settings")
         ]
 
@@ -56,6 +60,12 @@ routeToString page =
     let
         pieces =
             case page of
+                Spaces ->
+                    [ "spaces" ]
+
+                NewSpace ->
+                    [ "spaces", "new" ]
+
                 Root slug ->
                     [ slug ]
 
@@ -83,8 +93,8 @@ routeToString page =
                 Post slug id ->
                     [ slug, "posts", id ]
 
-                UserSettings slug ->
-                    [ slug, "user", "settings" ]
+                UserSettings ->
+                    [ "user", "settings" ]
 
                 SpaceSettings slug ->
                     [ slug, "settings" ]

@@ -2,23 +2,17 @@ module Query.MainInit exposing (Response, request)
 
 import GraphQL exposing (Document)
 import Group exposing (Group)
-import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Encode as Encode
 import Session exposing (Session)
-import Setup exposing (setupStateDecoder)
-import Space exposing (Space)
+import Space exposing (Space, setupStateDecoder)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 
 type alias Response =
-    { user : SpaceUser
-    , space : Space
-    , setupState : Setup.State
-    , openInvitationUrl : Maybe String
-    , bookmarkedGroups : List Group
-    , featuredUsers : List SpaceUser
+    { spaceIds : List String
+    , spaceUserIds : List String
     }
 
 
@@ -26,53 +20,40 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        query SharedState(
-          $spaceId: ID!
-        ) {
-          spaceUser(spaceId: $spaceId) {
-            ...SpaceUserFields
-            space {
-              ...SpaceFields
-              setupState
-              openInvitationUrl
-              featuredUsers {
-                ...SpaceUserFields
+        query MainInit {
+          viewer {
+            spaceUsers(
+              first: 100
+            ) {
+              edges {
+                node {
+                  id
+                  space {
+                    id
+                  }
+                }
               }
-            }
-            bookmarkedGroups {
-              ...GroupFields
             }
           }
         }
         """
-        [ SpaceUser.fragment
-        , Space.fragment
-        , Group.fragment
-        ]
+        []
 
 
-variables : String -> Maybe Encode.Value
-variables spaceId =
-    Just <|
-        Encode.object
-            [ ( "spaceId", Encode.string spaceId )
-            ]
+variables : Maybe Encode.Value
+variables =
+    Nothing
 
 
-decoder : Decode.Decoder Response
+decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "spaceUser" ] <|
-        (Decode.succeed Response
-            |> Pipeline.custom SpaceUser.decoder
-            |> Pipeline.custom (Decode.at [ "space" ] Space.decoder)
-            |> Pipeline.custom (Decode.at [ "space", "setupState" ] setupStateDecoder)
-            |> Pipeline.custom (Decode.at [ "space", "openInvitationUrl" ] (Decode.maybe Decode.string))
-            |> Pipeline.custom (Decode.at [ "bookmarkedGroups" ] (Decode.list Group.decoder))
-            |> Pipeline.custom (Decode.at [ "space", "featuredUsers" ] (Decode.list SpaceUser.decoder))
-        )
+    Decode.at [ "data", "viewer", "spaceUsers", "edges" ] <|
+        Decode.map2 Response
+            (list (Decode.at [ "node", "space", "id" ] string))
+            (list (Decode.at [ "node", "id" ] string))
 
 
-request : String -> Session -> Task Session.Error ( Session, Response )
-request spaceId session =
+request : Session -> Task Session.Error ( Session, Response )
+request session =
     Session.request session <|
-        GraphQL.request document (variables spaceId) decoder
+        GraphQL.request document variables decoder

@@ -9,7 +9,7 @@ defmodule LevelWeb.GraphQL.ListBookmarkedGroupsTest do
       $space_id: ID!
     ) {
       spaceUser(spaceId: $space_id) {
-        bookmarkedGroups {
+        bookmarks {
           name
         }
       }
@@ -35,7 +35,7 @@ defmodule LevelWeb.GraphQL.ListBookmarkedGroupsTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "spaceUser" => %{
-                 "bookmarkedGroups" => [
+                 "bookmarks" => [
                    %{
                      "name" => "Engineering"
                    }

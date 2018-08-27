@@ -4,12 +4,12 @@ import GraphQL exposing (Document)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Session exposing (Session)
-import Setup exposing (State, setupStateDecoder, setupStateEncoder)
+import Space exposing (SetupState, setupStateDecoder, setupStateEncoder)
 import Task exposing (Task)
 
 
 type Response
-    = Success State
+    = Success SetupState
 
 
 document : Document
@@ -33,7 +33,7 @@ document =
         []
 
 
-variables : String -> State -> Bool -> Maybe Encode.Value
+variables : String -> SetupState -> Bool -> Maybe Encode.Value
 variables spaceId state isSkipped =
     Just <|
         Encode.object
@@ -49,7 +49,7 @@ decoder =
         Decode.at [ "data", "completeSetupStep", "state" ] setupStateDecoder
 
 
-request : String -> State -> Bool -> Session -> Task Session.Error ( Session, Response )
+request : String -> SetupState -> Bool -> Session -> Task Session.Error ( Session, Response )
 request spaceId state isSkipped session =
     Session.request session <|
         GraphQL.request document (variables spaceId state isSkipped) decoder

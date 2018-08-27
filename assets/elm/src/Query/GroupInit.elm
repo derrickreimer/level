@@ -11,11 +11,16 @@ import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 
 type alias Response =
-    { group : Group
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    , group : Group
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
     }
@@ -26,8 +31,18 @@ document =
     GraphQL.toDocument
         """
         query GroupInit(
+          $spaceSlug: String!,
           $groupId: ID!
         ) {
+          spaceUser(spaceSlug: $spaceSlug) {
+            ...SpaceUserFields
+            space {
+              ...SpaceFields
+            }
+            bookmarks {
+              ...GroupFields
+            }
+          }
           group(id: $groupId) {
             ...GroupFields
             featuredMemberships {
@@ -48,16 +63,19 @@ document =
         """
         [ Group.fragment
         , GroupMembership.fragment
+        , SpaceUser.fragment
+        , Space.fragment
         , Connection.fragment "PostConnection" Post.fragment
         , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 
-variables : String -> Maybe Encode.Value
-variables groupId =
+variables : String -> String -> Maybe Encode.Value
+variables spaceSlug groupId =
     Just <|
         Encode.object
-            [ ( "groupId", Encode.string groupId )
+            [ ( "spaceSlug", Encode.string spaceSlug )
+            , ( "groupId", Encode.string groupId )
             ]
 
 
@@ -69,15 +87,18 @@ postComponentsDecoder =
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "group" ] <|
+    Decode.at [ "data" ] <|
         (Decode.succeed Response
-            |> Pipeline.custom Group.decoder
-            |> Pipeline.custom (Decode.at [ "posts" ] postComponentsDecoder)
-            |> Pipeline.custom (Decode.at [ "featuredMemberships" ] (Decode.list GroupMembership.decoder))
+            |> Pipeline.custom (Decode.at [ "spaceUser" ] SpaceUser.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarks" ] (Decode.list Group.decoder))
+            |> Pipeline.custom (Decode.at [ "group" ] Group.decoder)
+            |> Pipeline.custom (Decode.at [ "group", "posts" ] postComponentsDecoder)
+            |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list GroupMembership.decoder))
         )
 
 
-request : String -> Session -> Task Session.Error ( Session, Response )
-request groupId session =
+request : String -> String -> Session -> Task Session.Error ( Session, Response )
+request spaceSlug groupId session =
     Session.request session <|
-        GraphQL.request document (variables groupId) decoder
+        GraphQL.request document (variables spaceSlug groupId) decoder

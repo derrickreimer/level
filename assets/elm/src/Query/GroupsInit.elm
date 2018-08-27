@@ -3,22 +3,30 @@ module Query.GroupsInit exposing (Response, request)
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Route.Groups exposing (Params(..))
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 
 type alias Response =
-    { groups : Connection Group
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    , groups : Connection Group
     }
 
 
 document : Params -> Document
 document params =
     GraphQL.toDocument (documentBody params)
-        [ Connection.fragment "GroupConnection" Group.fragment
+        [ SpaceUser.fragment
+        , Space.fragment
+        , Group.fragment
+        , Connection.fragment "GroupConnection" Group.fragment
         ]
 
 
@@ -28,12 +36,19 @@ documentBody params =
         Root _ ->
             """
             query GroupsInit(
-              $spaceId: ID!,
+              $spaceSlug: String!,
               $limit: Int!
             ) {
-              space(id: $spaceId) {
-                groups(first: $limit) {
-                  ...GroupConnectionFields
+              spaceUser(spaceSlug: $spaceSlug) {
+                ...SpaceUserFields
+                space {
+                  ...SpaceFields
+                  groups(first: $limit) {
+                    ...GroupConnectionFields
+                  }
+                }
+                bookmarks {
+                  ...GroupFields
                 }
               }
             }
@@ -42,13 +57,20 @@ documentBody params =
         After _ cursor ->
             """
             query GroupsInit(
-              $spaceId: ID!,
+              $spaceSlug: String!,
               $cursor: Cursor!,
               $limit: Int!
             ) {
-              space(id: $spaceId) {
-                groups(first: $limit, after: $cursor) {
-                  ...GroupConnectionFields
+              spaceUser(spaceSlug: $spaceSlug) {
+                ...SpaceUserFields
+                space {
+                  ...SpaceFields
+                  groups(first: $limit, after: $cursor) {
+                    ...GroupConnectionFields
+                  }
+                }
+                bookmarks {
+                  ...GroupFields
                 }
               }
             }
@@ -57,48 +79,63 @@ documentBody params =
         Before _ cursor ->
             """
             query GroupsInit(
-              $spaceId: ID!,
+              $spaceSlug: String!,
               $cursor: Cursor!,
               $limit: Int!
             ) {
-              space(id: $spaceId) {
-                groups(last: $limit, before: $cursor) {
-                  ...GroupConnectionFields
+              spaceUser(spaceSlug: $spaceSlug) {
+                ...SpaceUserFields
+                space {
+                  ...SpaceFields
+                  groups(last: $limit, before: $cursor) {
+                    ...GroupConnectionFields
+                  }
+                }
+                bookmarks {
+                  ...GroupFields
                 }
               }
             }
             """
 
 
-variables : String -> Params -> Int -> Maybe Encode.Value
-variables spaceId params limit =
+variables : Params -> Int -> Maybe Encode.Value
+variables params limit =
     let
         paramVariables =
             case params of
-                After _ cursor ->
-                    [ ( "cursor", Encode.string cursor ) ]
+                After spaceSlug cursor ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "cursor", Encode.string cursor )
+                    , ( "limit", Encode.int limit )
+                    ]
 
-                Before _ cursor ->
-                    [ ( "cursor", Encode.string cursor ) ]
+                Before spaceSlug cursor ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "cursor", Encode.string cursor )
+                    , ( "limit", Encode.int limit )
+                    ]
 
-                Root _ ->
-                    []
+                Root spaceSlug ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "limit", Encode.int limit )
+                    ]
     in
     Just <|
-        Encode.object <|
-            List.append paramVariables
-                [ ( "spaceId", Encode.string spaceId )
-                , ( "limit", Encode.int limit )
-                ]
+        Encode.object paramVariables
 
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "space", "groups" ] <|
-        Decode.map Response (Connection.decoder Group.decoder)
+    Decode.at [ "data", "spaceUser" ] <|
+        Decode.map4 Response
+            SpaceUser.decoder
+            (field "space" Space.decoder)
+            (field "bookmarks" (list Group.decoder))
+            (Decode.at [ "space", "groups" ] (Connection.decoder Group.decoder))
 
 
-request : String -> Params -> Int -> Session -> Task Session.Error ( Session, Response )
-request spaceId params limit session =
+request : Params -> Int -> Session -> Task Session.Error ( Session, Response )
+request params limit session =
     Session.request session <|
-        GraphQL.request (document params) (variables spaceId params limit) decoder
+        GraphQL.request (document params) (variables params limit) decoder

@@ -78,14 +78,10 @@ defmodule LevelWeb.Router do
     forward "/sent_emails", Bamboo.EmailPreviewPlug
   end
 
+  # Important: this must be the last route defined
   scope "/", LevelWeb do
     pipe_through :authenticated_browser
-
-    get "/spaces", SpaceController, :index
-    get "/spaces/new", SpaceController, :new
-
-    # Important: this must be the last route defined
-    get "/*path", SpaceController, :show
+    get "/*path", MainController, :index
   end
 
   def graphiql_headers(conn) do

@@ -202,7 +202,7 @@ defmodule Level.GroupsTest do
     end
   end
 
-  describe "list_bookmarked_groups/1" do
+  describe "list_bookmarks/1" do
     setup do
       create_user_and_space()
     end
@@ -210,14 +210,14 @@ defmodule Level.GroupsTest do
     test "includes bookmarked groups", %{space_user: space_user} do
       {:ok, %{group: group}} = create_group(space_user)
       Groups.bookmark_group(group, space_user)
-      groups = Groups.list_bookmarked_groups(space_user)
+      groups = Groups.list_bookmarks(space_user)
       assert Enum.any?(groups, fn g -> g.id == group.id end)
     end
 
     test "excludes non-bookmarked groups", %{space_user: space_user} do
       {:ok, %{group: group}} = create_group(space_user)
       Groups.unbookmark_group(group, space_user)
-      groups = Groups.list_bookmarked_groups(space_user)
+      groups = Groups.list_bookmarks(space_user)
       refute Enum.any?(groups, fn g -> g.id == group.id end)
     end
 
@@ -225,7 +225,7 @@ defmodule Level.GroupsTest do
       {:ok, %{group: group}} = create_group(space_user, %{is_private: true})
       Groups.bookmark_group(group, space_user)
       Repo.delete_all(from(g in GroupUser))
-      groups = Groups.list_bookmarked_groups(space_user)
+      groups = Groups.list_bookmarks(space_user)
       refute Enum.any?(groups, fn g -> g.id == group.id end)
     end
   end

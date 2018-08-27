@@ -1,30 +1,23 @@
-module Program.NewSpace exposing (Model, Msg(..), slugify, subscriptions, update, view)
+module Page.NewSpace exposing (Model, Msg(..), consumeEvent, init, setup, slugify, subscriptions, teardown, title, update, view)
 
-import Browser exposing (Document)
+import Avatar
+import Connection exposing (Connection)
+import Event exposing (Event)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onBlur, onClick, onInput)
-import Lazy exposing (Lazy(..))
 import Mutation.CreateSpace as CreateSpace
-import Query.NewSpaceInit as NewSpaceInit
+import Query.Viewer as Viewer
 import Regex exposing (Regex)
+import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
-import Task
+import Space exposing (Space)
+import Task exposing (Task)
 import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Layout exposing (userLayout)
-
-
-main : Program Flags Model Msg
-main =
-    Browser.document
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
 
 
 
@@ -32,12 +25,10 @@ main =
 
 
 type alias Model =
-    { session : Session
-    , user : Lazy User
+    { viewer : User
     , name : String
     , slug : String
     , errors : List ValidationError
-    , lastCheckedSlug : String
     , formState : FormState
     }
 
@@ -47,41 +38,43 @@ type FormState
     | Submitting
 
 
-type alias Flags =
-    { apiToken : String
-    }
+
+-- PAGE PROPERTIES
+
+
+title : String
+title =
+    "New Space"
 
 
 
 -- LIFECYCLE
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
+init : Session -> Task Session.Error ( Session, Model )
+init session =
+    session
+        |> Viewer.request
+        |> Task.andThen buildModel
+
+
+buildModel : ( Session, Viewer.Response ) -> Task Session.Error ( Session, Model )
+buildModel ( session, { viewer } ) =
     let
         model =
-            buildModel flags
+            Model viewer "" "" [] Idle
     in
-    ( model, setup model )
-
-
-buildModel : Flags -> Model
-buildModel flags =
-    { session = Session.init flags.apiToken
-    , user = NotLoaded
-    , name = ""
-    , slug = ""
-    , errors = []
-    , lastCheckedSlug = ""
-    , formState = Idle
-    }
+    Task.succeed ( session, model )
 
 
 setup : Model -> Cmd Msg
-setup { session } =
-    session
-        |> NewSpaceInit.request
-        |> Task.attempt InitLoaded
+setup model =
+    Cmd.none
+
+
+teardown : Model -> Cmd Msg
+teardown model =
+    Cmd.none
 
 
 
@@ -89,42 +82,38 @@ setup { session } =
 
 
 type Msg
-    = InitLoaded (Result Session.Error ( Session, NewSpaceInit.Response ))
-    | NameChanged String
+    = NameChanged String
     | SlugChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session model =
     case msg of
-        InitLoaded (Ok ( newSession, { user } )) ->
-            ( { model | user = Loaded user, session = newSession }, Cmd.none )
-
-        InitLoaded (Err Session.Expired) ->
-            ( model, Route.toLogin )
-
-        InitLoaded (Err _) ->
-            ( model, Cmd.none )
-
         NameChanged val ->
-            ( { model | name = val, slug = slugify val }, Cmd.none )
+            ( ( { model | name = val, slug = slugify val }, Cmd.none ), session )
 
         SlugChanged val ->
-            ( { model | slug = val }, Cmd.none )
+            ( ( { model | slug = val }, Cmd.none ), session )
 
         Submit ->
-            ( { model | formState = Submitting }, submit model )
+            let
+                cmd =
+                    session
+                        |> CreateSpace.request model.name model.slug
+                        |> Task.attempt Submitted
+            in
+            ( ( { model | formState = Submitting }, cmd ), session )
 
         Submitted (Ok ( _, CreateSpace.Success _ )) ->
-            ( model, Route.toSpace model.slug )
+            ( ( model, Route.toSpace model.slug ), session )
 
         Submitted (Ok ( _, CreateSpace.Invalid errors )) ->
-            ( { model | errors = errors, formState = Idle }, Cmd.none )
+            ( ( { model | errors = errors, formState = Idle }, Cmd.none ), session )
 
         Submitted (Err _) ->
-            ( { model | formState = Idle }, Cmd.none )
+            ( ( { model | formState = Idle }, Cmd.none ), session )
 
 
 specialCharRegex : Regex
@@ -149,11 +138,20 @@ slugify name =
 
 
 
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    ( model, Cmd.none )
+
+
+
 -- SUBSCRIPTIONS
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions : Sub Msg
+subscriptions =
     Sub.none
 
 
@@ -171,37 +169,35 @@ type alias FormField =
     }
 
 
-view : Model -> Document Msg
-view model =
-    Document "Create a space"
-        [ userLayout model.user <|
-            div
-                [ classList
-                    [ ( "mx-auto max-w-sm leading-normal pb-8", True )
-                    , ( "shake", not (List.isEmpty model.errors) )
-                    ]
+view : Repo -> Model -> Html Msg
+view repo model =
+    userLayout model.viewer <|
+        div
+            [ classList
+                [ ( "mx-auto max-w-sm leading-normal pb-8", True )
+                , ( "shake", not (List.isEmpty model.errors) )
                 ]
-                [ div [ class "pb-6" ]
-                    [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Create a space" ]
-                    , p [] [ text "Spaces represent companies or organizations. Once you create your space, you can invite your colleagues to join." ]
-                    ]
-                , div [ class "pb-6" ]
-                    [ label [ for "name", class "input-label" ] [ text "Name your space" ]
-                    , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
-                    ]
-                , div [ class "pb-6" ]
-                    [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
-                    , slugField model.slug model.errors
-                    ]
-                , button
-                    [ type_ "submit"
-                    , class "btn btn-blue"
-                    , onClick Submit
-                    , disabled (model.formState == Submitting)
-                    ]
-                    [ text "Let's get started" ]
+            ]
+            [ div [ class "pb-6" ]
+                [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Create a space" ]
+                , p [] [ text "Spaces represent companies or organizations. Once you create your space, you can invite your colleagues to join." ]
                 ]
-        ]
+            , div [ class "pb-6" ]
+                [ label [ for "name", class "input-label" ] [ text "Name your space" ]
+                , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
+                , slugField model.slug model.errors
+                ]
+            , button
+                [ type_ "submit"
+                , class "btn btn-blue"
+                , onClick Submit
+                , disabled (model.formState == Submitting)
+                ]
+                [ text "Let's get started" ]
+            ]
 
 
 textField : FormField -> List ValidationError -> Html Msg
@@ -260,13 +256,3 @@ slugField slug errors =
             ]
         , errorView "slug" errors
         ]
-
-
-
--- HTTP
-
-
-submit : Model -> Cmd Msg
-submit model =
-    CreateSpace.request model.name model.slug model.session
-        |> Task.attempt Submitted

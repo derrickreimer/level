@@ -3,16 +3,22 @@ module Query.PostInit exposing (Response, request)
 import Component.Post
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
-import Json.Decode as Decode exposing (Decoder)
+import Group exposing (Group)
+import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Session exposing (Session)
+import Space exposing (Space)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 
 type alias Response =
-    { post : Component.Post.Model
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    , post : Component.Post.Model
     }
 
 
@@ -21,41 +27,54 @@ document =
     GraphQL.toDocument
         """
         query PostInit(
-          $spaceId: ID!
+          $spaceSlug: String!
           $postId: ID!
         ) {
-          space(id: $spaceId) {
-            post(id: $postId) {
-              ...PostFields
-              replies(last: 20) {
-                ...ReplyConnectionFields
+          spaceUser(spaceSlug: $spaceSlug) {
+            ...SpaceUserFields
+            bookmarks {
+              ...GroupFields
+            }
+            space {
+              ...SpaceFields
+              post(id: $postId) {
+                ...PostFields
+                replies(last: 20) {
+                  ...ReplyConnectionFields
+                }
               }
             }
           }
         }
         """
-        [ Post.fragment
+        [ SpaceUser.fragment
+        , Space.fragment
+        , Group.fragment
+        , Post.fragment
         , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 
 variables : String -> String -> Maybe Encode.Value
-variables spaceId postId =
+variables spaceSlug postId =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string spaceId )
+            [ ( "spaceSlug", Encode.string spaceSlug )
             , ( "postId", Encode.string postId )
             ]
 
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "space", "post" ] <|
-        Decode.map Response
-            (Component.Post.decoder Component.Post.FullPage True)
+    Decode.at [ "data", "spaceUser" ] <|
+        Decode.map4 Response
+            SpaceUser.decoder
+            (field "space" Space.decoder)
+            (field "bookmarks" (list Group.decoder))
+            (Decode.at [ "space", "post" ] (Component.Post.decoder Component.Post.FullPage True))
 
 
 request : String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceId postId session =
+request spaceSlug postId session =
     Session.request session <|
-        GraphQL.request document (variables spaceId postId) decoder
+        GraphQL.request document (variables spaceSlug postId) decoder

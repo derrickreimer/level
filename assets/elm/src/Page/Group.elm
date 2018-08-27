@@ -1,15 +1,17 @@
-module Page.Group exposing (Model, Msg(..), handleGroupMembershipUpdated, handlePostCreated, handleReplyCreated, init, setup, subscriptions, teardown, title, update, view)
+module Page.Group exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Autosize
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
+import Event exposing (Event)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CreatePost as CreatePost
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
@@ -20,7 +22,7 @@ import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import Route
+import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -31,6 +33,7 @@ import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (displayName, selectValue, setFocus, smartFormatDate, viewIf, viewUnless)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -57,12 +60,13 @@ type alias PostComposer =
 
 
 type alias Model =
-    { group : Group
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    , group : Group
     , posts : Connection Component.Post.Model
     , featuredMemberships : List GroupMembership
     , now : ( Zone, Posix )
-    , space : Space
-    , user : SpaceUser
     , nameEditor : FieldEditor
     , postComposer : PostComposer
     }
@@ -83,25 +87,26 @@ title repo { group } =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> String -> Session -> Task Session.Error ( Session, Model )
-init user space groupId session =
+init : String -> String -> Session -> Task Session.Error ( Session, Model )
+init spaceSlug groupId session =
     session
-        |> GroupInit.request groupId
+        |> GroupInit.request spaceSlug groupId
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel user space)
+        |> Task.andThen buildModel
 
 
-buildModel : SpaceUser -> Space -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel user space ( ( session, { group, posts, featuredMemberships } ), now ) =
+buildModel : ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel ( ( session, { viewer, space, bookmarks, group, posts, featuredMemberships } ), now ) =
     let
         model =
             Model
+                viewer
+                space
+                bookmarks
                 group
                 posts
                 featuredMemberships
                 now
-                space
-                user
                 (FieldEditor NotEditing "" [])
                 (PostComposer "" False)
     in
@@ -383,49 +388,60 @@ redirectToLogin session model =
 
 
 
--- EVENT HANDLERS
+-- EVENTS
 
 
-handlePostCreated : Post -> Connection Reply -> Model -> ( Model, Cmd Msg )
-handlePostCreated post replies ({ posts, group } as model) =
-    let
-        component =
-            Component.Post.init Component.Post.Feed False post replies
-    in
-    ( { model | posts = Connection.prepend .id component posts }
-    , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
-    )
+consumeEvent : Event -> Session -> Model -> ( Model, Cmd Msg )
+consumeEvent event session model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
 
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
 
-handleGroupMembershipUpdated : Group -> Session -> Model -> ( Model, Cmd Msg )
-handleGroupMembershipUpdated group session model =
-    if Group.getId group == Group.getId model.group then
-        ( model
-        , FeaturedMemberships.request (Group.getId model.group) session
-            |> Task.attempt FeaturedMembershipsRefreshed
-        )
+        Event.GroupMembershipUpdated group ->
+            if Group.getId group == Group.getId model.group then
+                ( model
+                , FeaturedMemberships.request (Group.getId model.group) session
+                    |> Task.attempt FeaturedMembershipsRefreshed
+                )
 
-    else
-        ( model, Cmd.none )
+            else
+                ( model, Cmd.none )
 
-
-handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated reply ({ posts } as model) =
-    let
-        postId =
-            Reply.getPostId reply
-    in
-    case Connection.get .id postId posts of
-        Just component ->
+        Event.PostCreated ( post, replies ) ->
             let
-                ( newComponent, cmd ) =
-                    Component.Post.handleReplyCreated reply component
+                component =
+                    Component.Post.init Component.Post.Feed False post replies
             in
-            ( { model | posts = Connection.update .id newComponent posts }
-            , Cmd.map (PostComponentMsg postId) cmd
-            )
+            if Post.groupsInclude model.group post then
+                ( { model | posts = Connection.prepend .id component model.posts }
+                , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
+                )
 
-        Nothing ->
+            else
+                ( model, Cmd.none )
+
+        Event.ReplyCreated reply ->
+            let
+                postId =
+                    Reply.getPostId reply
+            in
+            case Connection.get .id postId model.posts of
+                Just component ->
+                    let
+                        ( newComponent, cmd ) =
+                            Component.Post.handleReplyCreated reply component
+                    in
+                    ( { model | posts = Connection.update .id newComponent model.posts }
+                    , Cmd.map (PostComponentMsg postId) cmd
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        _ ->
             ( model, Cmd.none )
 
 
@@ -442,30 +458,36 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
-view repo model =
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
     let
         currentUserData =
-            model.user
+            model.viewer
                 |> Repo.getSpaceUser repo
 
         groupData =
             model.group
                 |> Repo.getGroup repo
     in
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
-                [ div [ class "flex items-center" ]
-                    [ nameView groupData model.nameEditor
-                    , privacyView groupData
-                    , nameErrors model.nameEditor
-                    , controlsView groupData.isBookmarked
+    spaceLayout repo
+        model.viewer
+        model.space
+        model.bookmarks
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-90 leading-normal" ]
+                [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
+                    [ div [ class "flex items-center" ]
+                        [ nameView groupData model.nameEditor
+                        , privacyView groupData
+                        , nameErrors model.nameEditor
+                        , controlsView groupData.isBookmarked
+                        ]
                     ]
+                , newPostView model.postComposer currentUserData
+                , postsView repo model.space model.viewer model.now model.posts
+                , sidebarView repo groupData.membershipState model.featuredMemberships
                 ]
-            , newPostView model.postComposer currentUserData
-            , postsView repo model.space model.user model.now model.posts
-            , sidebarView repo groupData.membershipState model.featuredMemberships
             ]
         ]
 

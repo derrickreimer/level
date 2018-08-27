@@ -28,7 +28,8 @@ defmodule LevelWeb.Schema do
 
     @desc "Fetches a space membership by space id."
     field :space_user, :space_user do
-      arg :space_id, non_null(:id)
+      arg :space_id, :id
+      arg :space_slug, :string
       resolve &Level.Resolvers.space_user/2
     end
 

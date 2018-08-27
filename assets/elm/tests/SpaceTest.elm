@@ -1,8 +1,8 @@
 module SpaceTest exposing (decoders)
 
-import Space
 import Expect exposing (Expectation)
 import Json.Decode as Decode exposing (decodeString)
+import Space
 import Test exposing (..)
 import TestHelpers exposing (success)
 
@@ -23,6 +23,8 @@ decoders =
                               "name": "Drip",
                               "slug": "drip",
                               "avatarUrl": "src",
+                              "openInvitationUrl": "...",
+                              "setupState": "COMPLETE",
                               "fetchedAt": 0
                             }
                             """
@@ -32,6 +34,8 @@ decoders =
                             , name = "Drip"
                             , slug = "drip"
                             , avatarUrl = Just "src"
+                            , openInvitationUrl = Just "..."
+                            , setupState = Space.Complete
                             , fetchedAt = 0
                             }
                     in

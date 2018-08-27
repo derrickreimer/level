@@ -82,10 +82,10 @@ defmodule LevelWeb.Schema.Objects do
     field :handle, non_null(:string)
 
     @desc "A list of groups the user has bookmarked."
-    field :bookmarked_groups, list_of(:group) do
+    field :bookmarks, list_of(:group) do
       resolve fn space_user, _args, %{context: %{current_user: user}} ->
         if space_user.user_id == user.id do
-          {:ok, Groups.list_bookmarked_groups(space_user)}
+          {:ok, Groups.list_bookmarks(space_user)}
         else
           {:ok, nil}
         end

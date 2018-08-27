@@ -1,13 +1,16 @@
-module Page.SpaceUsers exposing (Model, Msg(..), init, setup, teardown, title, update, view)
+module Page.SpaceUsers exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Avatar
 import Connection exposing (Connection)
+import Event exposing (Event)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
+import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
-import Route
+import Route exposing (Route)
 import Route.SpaceUsers exposing (Params)
 import Session exposing (Session)
 import Space exposing (Space)
@@ -15,6 +18,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
 import View.Helpers exposing (displayName, viewIf)
+import View.Layout exposing (spaceLayout)
 
 
 
@@ -22,8 +26,9 @@ import View.Helpers exposing (displayName, viewIf)
 
 
 type alias Model =
-    { space : Space
-    , user : SpaceUser
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
     , spaceUsers : Connection SpaceUser
     , params : Params
     }
@@ -46,16 +51,16 @@ title =
 -- LIFECYCLE
 
 
-init : SpaceUser -> Space -> Params -> Session -> Task Session.Error ( Session, Model )
-init user space params session =
+init : Params -> Session -> Task Session.Error ( Session, Model )
+init params session =
     session
-        |> SpaceUsersInit.request (Space.getId space) params 20
-        |> Task.andThen (buildModel user space params)
+        |> SpaceUsersInit.request params 20
+        |> Task.andThen (buildModel params)
 
 
-buildModel : SpaceUser -> Space -> Params -> ( Session, SpaceUsersInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel user space params ( session, { spaceUsers } ) =
-    Task.succeed ( session, Model space user spaceUsers params )
+buildModel : Params -> ( Session, SpaceUsersInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel params ( session, { viewer, space, bookmarks, spaceUsers } ) =
+    Task.succeed ( session, Model viewer space bookmarks spaceUsers params )
 
 
 setup : Model -> Cmd Msg
@@ -76,34 +81,57 @@ type Msg
     = NoOp
 
 
-update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg repo session model =
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), session )
 
 
 
+-- EVENTS
+
+
+consumeEvent : Event -> Model -> ( Model, Cmd Msg )
+consumeEvent event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
-view repo model =
-    div [ class "mx-56" ]
-        [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
-            [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Directory" ]
-                , div [ class "flex-0 flex-no-shrink" ]
-                    [ a [ href "#", class "btn btn-blue btn-md no-underline" ] [ text "Invite people" ]
+view : Repo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
+    spaceLayout repo
+        model.viewer
+        model.space
+        model.bookmarks
+        maybeCurrentRoute
+        [ div [ class "mx-56" ]
+            [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
+                [ div [ class "flex items-center pb-5" ]
+                    [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Directory" ]
+                    , div [ class "flex-0 flex-no-shrink" ]
+                        [ a [ href "#", class "btn btn-blue btn-md no-underline" ] [ text "Invite people" ]
+                        ]
                     ]
-                ]
-            , div [ class "pb-8" ]
-                [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
-                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                , div [ class "pb-8" ]
+                    [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
+                        [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
+                        , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                        ]
                     ]
+                , usersView repo model.space model.spaceUsers
                 ]
-            , usersView repo model.space model.spaceUsers
             ]
         ]
 
