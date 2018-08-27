@@ -9,7 +9,8 @@ import Mention exposing (Mention)
 import Reply exposing (Reply)
 import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
-import Util exposing (dateDecoder, tuplize)
+import Tuple
+import Util exposing (dateDecoder)
 
 
 
@@ -100,7 +101,7 @@ decoder =
 
 decoderWithReplies : Decoder ( Post, Connection Reply )
 decoderWithReplies =
-    Decode.map2 tuplize decoder (field "replies" (Connection.decoder Reply.decoder))
+    Decode.map2 Tuple.pair decoder (field "replies" (Connection.decoder Reply.decoder))
 
 
 stateDecoder : Decoder State

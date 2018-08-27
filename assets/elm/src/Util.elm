@@ -1,4 +1,4 @@
-module Util exposing (Lazy(..), dateDecoder, postWithCsrfToken, tuplize)
+module Util exposing (Lazy(..), dateDecoder, postWithCsrfToken)
 
 import Http
 import Json.Decode as Decode exposing (Decoder, andThen, fail, string, succeed)
@@ -8,15 +8,6 @@ import Time exposing (Posix)
 type Lazy a
     = NotLoaded
     | Loaded a
-
-
-
--- SUGAR
-
-
-tuplize : a -> b -> ( a, b )
-tuplize a b =
-    ( a, b )
 
 
 
