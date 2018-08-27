@@ -221,7 +221,8 @@ subscriptions =
     Sub.batch
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
-            [ ( "y", DismissMentionsClicked ) ]
+            [ ( "y", DismissMentionsClicked )
+            ]
         ]
 
 
@@ -255,7 +256,7 @@ controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
         [ viewIf (arePostsSelected model.mentions) <|
-            button [ class "btn btn-xs btn-turquoise-outline", onClick DismissMentionsClicked ] [ text "Dismiss" ]
+            button [ class "btn btn-xs btn-turquoise-outline", onClick DismissMentionsClicked ] [ text "Dismiss Selected" ]
         ]
 
 
