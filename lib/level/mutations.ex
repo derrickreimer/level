@@ -387,16 +387,15 @@ defmodule Level.Mutations do
   Dismisses all mentions for a particular post.
   """
   @spec dismiss_mentions(map(), info()) ::
-          {:ok, %{success: boolean(), post: Post.t() | nil, errors: validation_errors()}}
+          {:ok, %{success: boolean(), posts: [Post.t()] | nil, errors: validation_errors()}}
           | {:error, String.t()}
   def dismiss_mentions(
-        %{space_id: space_id, post_id: post_id},
+        %{space_id: space_id, post_ids: post_ids},
         %{context: %{current_user: user}}
       ) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
-         {:ok, post} <- Posts.get_post(space_user, post_id),
-         :ok <- Mentions.dismiss_all(space_user, post) do
-      {:ok, %{success: true, post: post, errors: []}}
+         {:ok, posts} <- Mentions.dismiss_all(space_user, post_ids) do
+      {:ok, %{success: true, posts: posts, errors: []}}
     else
       err ->
         err

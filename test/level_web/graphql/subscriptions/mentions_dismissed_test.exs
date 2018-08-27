@@ -33,7 +33,7 @@ defmodule LevelWeb.GraphQL.MentionsDismissedTest do
     ref = push_subscription(socket, @operation, %{"id" => space_user.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    :ok = Mentions.dismiss_all(space_user, post)
+    {:ok, _} = Mentions.dismiss_all(space_user, [post.id])
 
     payload = %{
       result: %{

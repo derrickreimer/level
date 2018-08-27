@@ -84,7 +84,7 @@ defmodule LevelWeb.GraphQL.MentionedPostsTest do
     {:ok, %{space_user: another_user}} = create_space_member(space, %{handle: "derrick"})
     {:ok, %{post: post}} = create_post(another_user, group, %{body: "Hey @tiff"})
 
-    Mentions.dismiss_all(space_user, post)
+    Mentions.dismiss_all(space_user, [post.id])
     variables = %{space_id: space_user.space_id}
 
     conn =

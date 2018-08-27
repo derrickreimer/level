@@ -284,7 +284,7 @@ defmodule LevelWeb.Schema.Mutations do
     The post for which mentions were dismissed. If the mutation was not successful,
     this field may be null.
     """
-    field :post, :post
+    field :posts, list_of(:post)
 
     interface :validatable
   end

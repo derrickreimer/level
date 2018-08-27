@@ -84,6 +84,31 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Fetches multiple posts by id.
+  """
+  @spec get_posts(SpaceUser.t(), [String.t()]) :: {:ok, [Post.t()]} | no_return()
+  def get_posts(%SpaceUser{} = space_user, ids) do
+    space_user
+    |> posts_base_query()
+    |> where([p], p.id in ^ids)
+    |> Repo.all()
+    |> handle_posts_query()
+  end
+
+  @spec get_posts(User.t(), [String.t()]) :: {:ok, [Post.t()]} | no_return()
+  def get_posts(%User{} = user, ids) do
+    user
+    |> posts_base_query()
+    |> where([p], p.id in ^ids)
+    |> Repo.all()
+    |> handle_posts_query()
+  end
+
+  defp handle_posts_query(posts) do
+    {:ok, posts}
+  end
+
+  @doc """
   Posts a message to a group.
   """
   @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()

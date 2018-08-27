@@ -9,14 +9,14 @@ defmodule LevelWeb.GraphQL.DismissMentionsTest do
   @query """
     mutation DismissMentions(
       $space_id: ID!,
-      $post_id: ID!
+      $post_ids: [ID]!
     ) {
       dismissMentions(
         spaceId: $space_id,
-        postId: $post_id
+        postIds: $post_ids
       ) {
         success
-        post {
+        posts {
           id
         }
         errors {
@@ -33,7 +33,7 @@ defmodule LevelWeb.GraphQL.DismissMentionsTest do
     {:ok, Map.put(result, :conn, conn)}
   end
 
-  test "dismisses mentions for the related post", %{
+  test "dismisses mentions for given posts", %{
     conn: conn,
     space: space,
     space_user: space_user
@@ -48,7 +48,7 @@ defmodule LevelWeb.GraphQL.DismissMentionsTest do
 
     variables = %{
       space_id: space.id,
-      post_id: post_id
+      post_ids: [post_id]
     }
 
     conn =
@@ -60,9 +60,11 @@ defmodule LevelWeb.GraphQL.DismissMentionsTest do
              "data" => %{
                "dismissMentions" => %{
                  "success" => true,
-                 "post" => %{
-                   "id" => post.id
-                 },
+                 "posts" => [
+                   %{
+                     "id" => post.id
+                   }
+                 ],
                  "errors" => []
                }
              }
