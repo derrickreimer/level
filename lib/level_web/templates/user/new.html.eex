@@ -2,66 +2,63 @@
   <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="bg-grey-lighter h-full min-h-screen">
-  <div class="container mx-auto px-4 py-24 flex justify-center max-w-400px">
-    <div class="w-full">
-      <div class="mb-8 flex justify-center">
-        <%= link to: page_path(@conn, :index), class: "logo" do %>
-          <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level") %>
-        <% end %>
-      </div>
+<div class="container mx-auto p-8">
+  <%= render LevelWeb.PageView, "header.html", assigns %>
 
-      <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
-        <div class="px-8 sm:px-12 py-8 bg-white rounded-lg border <%= error_shake(@changeset) %>">
-          <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darkest pb-8">Sign up for Level</h1>
+  <div class="mx-auto max-w-400px">
+    <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
+      <div class="pb-4 max-w-xs <%= error_shake(@changeset) %>">
+        <h1 class="mb-6 text-3xl font-extrabold">Sign up for Level</h1>
 
-          <div class="pb-6">
-            <%= label f, :email, gettext("Email address"), class: "input-label" %>
-            <%= text_input f, :email, class: input_classes(f, :email), autofocus: true, placeholder: "jane@smithco.com" %>
-            <%= error_tag f, :email, class: "form-errors" %>
-          </div>
+        <p class="mb-6 leading-normal">Once you create your free Level account, you can join other spaces or create your own.</p>
+        
+        <div class="pb-6">
+          <%= label f, :email, gettext("Email address"), class: "input-label" %>
+          <%= text_input f, :email, class: input_classes(f, :email), autofocus: true, placeholder: "jane@smithco.com" %>
+          <%= error_tag f, :email, class: "form-errors" %>
+        </div>
 
-          <div class="pb-6">
-            <%= label f, :first_name, gettext("Full Name"), class: "input-label" %>
-            <div class="flex">
-              <div class="flex-1 mr-2">
-                <%= text_input f, :first_name, class: input_classes(f, :first_name), placeholder: "Jane" %>
-                <%= error_tag f, :first_name, class: "form-errors" %>
-              </div>
+        <div class="pb-6">
+          <%= label f, :first_name, gettext("Full Name"), class: "input-label" %>
+          <div class="flex">
+            <div class="flex-1 mr-2">
+              <%= text_input f, :first_name, class: input_classes(f, :first_name), placeholder: "Jane" %>
+              <%= error_tag f, :first_name, class: "form-errors" %>
+            </div>
 
-              <div class="flex-1">
-                <%= text_input f, :last_name, class: input_classes(f, :last_name), placeholder: "Smith" %>
-                <%= error_tag f, :last_name, class: "form-errors" %>
-              </div>
+            <div class="flex-1">
+              <%= text_input f, :last_name, class: input_classes(f, :last_name), placeholder: "Smith" %>
+              <%= error_tag f, :last_name, class: "form-errors" %>
             </div>
           </div>
-
-          <div class="pb-6">
-            <%= label f, :handle, gettext("Handle"), class: "input-label" %>
-
-            <%= label f, :handle, class: "#{input_classes(f, :handle)} inline-flex items-baseline" do %>
-              <span class="flex-none text-dusty-blue-darker select-none leading-none">level.app/</span>
-              <div class="flex-1 leading-none">
-                <%= text_input f, :handle, class: "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker", autofocus: true, placeholder: "janesmith" %>
-              </div>
-            <% end %>
-
-            <%= error_tag f, :handle, class: "form-errors" %>
-          </div>
-
-          <div class="pb-6">
-            <%= label f, :password, gettext("Password"), class: "input-label" %>
-            <%= password_input f, :password, class: input_classes(f, :password) %>
-            <%= error_tag f, :password, class: "form-errors" %>
-          </div>
-
-          <%= submit gettext("Sign up"), class: "btn btn-blue w-full" %>
         </div>
-        <div class="px-8 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
-          <%= gettext "Already have a user account?" %>
-          <%= link gettext("Sign in"), to: session_path(@conn, :new), class: "text-blue" %>
+
+        <div class="pb-6">
+          <%= label f, :handle, gettext("Handle"), class: "input-label" %>
+
+          <%= label f, :handle, class: "#{input_classes(f, :handle)} inline-flex items-baseline" do %>
+            <span class="flex-none text-dusty-blue-darker select-none leading-none">level.app/</span>
+            <div class="flex-1 leading-none">
+              <%= text_input f, :handle, class: "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker", autofocus: true, placeholder: "janesmith" %>
+            </div>
+          <% end %>
+
+          <%= error_tag f, :handle, class: "form-errors" %>
         </div>
-      <% end %>
-    </div>
+
+        <div class="pb-6">
+          <%= label f, :password, gettext("Password"), class: "input-label" %>
+          <%= password_input f, :password, class: input_classes(f, :password) %>
+          <%= error_tag f, :password, class: "form-errors" %>
+        </div>
+
+        <%= submit gettext("Sign up free"), class: "btn btn-blue" %>
+      </div>
+
+      <p class="text-sm">
+        <%= gettext "Already have a user account?" %>
+        <%= link gettext("Sign in"), to: session_path(@conn, :new), class: "text-blue" %>
+      </p>
+    <% end %>
   </div>
 </div>

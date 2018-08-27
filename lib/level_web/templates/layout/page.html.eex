@@ -46,17 +46,7 @@
 
     <div class="bg-white">
       <div class="container mx-auto p-8">
-        <div class="flex pb-16 sm:pb-24 items-center">
-          <%= link to: page_path(@conn, :index), class: "logo" do %>
-            <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
-          <% end %>
-
-          <div class="flex flex-grow justify-start sm:justify-end">
-            <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "flex-0 ml-6 text-blue no-underline" %>
-            <%= link "Sign In", to: session_path(@conn, :new), class: "flex-0 ml-6 text-blue no-underline" %>
-          </div>
-        </div>
-
+        <%= render LevelWeb.PageView, "header.html", assigns %>
         <%= render @view_module, @view_template, assigns %>
       </div>
 

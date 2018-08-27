@@ -2,29 +2,20 @@
   <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="bg-grey-lighter h-full min-h-screen">
-  <div class="container mx-auto p-8">
-    <div class="flex pb-16 sm:pb-24 items-center">
-      <%= link to: page_path(@conn, :index), class: "logo logo-sm" do %>
-        <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
-      <% end %>
+<div class="container mx-auto p-8">
+  <%= render LevelWeb.PageView, "header.html", assigns %>
 
-      <div class="flex flex-grow justify-start sm:justify-end">
-        <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "flex-0 ml-6 text-blue no-underline" %>
-        <%= link "Sign In", to: session_path(@conn, :new), class: "flex-0 ml-6 text-blue no-underline" %>
-      </div>
-    </div>
+  <div class="mx-auto max-w-400px">
+    <%= form_for @changeset, open_invitation_path(@conn, :accept, @conn.assigns.invitation), [as: :signup], fn f -> %>
+      <div class="<%= error_shake(@changeset) %>">
+        <h2 class="mb-6 text-3xl font-extrabold">Join the <%= @conn.assigns.space.name %> space</h2>
 
-    <div class="mx-auto max-w-400px">
-      <h2 class="mb-6 text-3xl font-extrabold">Join the <%= @conn.assigns.space.name %> space</h2>
-      <p class="mb-6 leading-normal"><%= @conn.assigns.space.name %> is trying out Level, an asynchronous-first alternative to realtime chat. You&rsquo;re invited to join the trial!</p>
-      <%= if @conn.assigns.current_user do %>
-        <%= form_for @conn, open_invitation_path(@conn, :accept, @conn.assigns.invitation), [as: :invitation], fn _f -> %>
-          <%= submit gettext("Let’s go!"), class: "btn btn-blue" %>
-        <% end %>
-      <% else %>
-        <%= form_for @changeset, open_invitation_path(@conn, :accept, @conn.assigns.invitation), [as: :signup], fn f -> %>
-          <div class="max-w-xs">
+        <p class="mb-6 leading-normal"><%= @conn.assigns.space.name %> is trying out Level, a calmer alternative to real-time chat. You&rsquo;re invited to join the space!</p>
+
+        <div class="max-w-xs">
+          <%= if @conn.assigns.current_user do %>
+            <%= submit gettext("Let’s go!"), class: "btn btn-blue" %>
+          <% else %>
             <div class="pb-6">
               <%= label f, :email, gettext("Email address"), class: "input-label" %>
               <%= text_input f, :email, class: input_classes(f, :email), autofocus: true, placeholder: "jane@smithco.com" %>
@@ -47,17 +38,30 @@
             </div>
 
             <div class="pb-6">
+              <%= label f, :handle, gettext("Handle"), class: "input-label" %>
+
+              <%= label f, :handle, class: "#{input_classes(f, :handle)} inline-flex items-baseline" do %>
+                <span class="flex-none text-dusty-blue-darker select-none leading-none">level.app/</span>
+                <div class="flex-1 leading-none">
+                  <%= text_input f, :handle, class: "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker", autofocus: true, placeholder: "janesmith" %>
+                </div>
+              <% end %>
+
+              <%= error_tag f, :handle, class: "form-errors" %>
+            </div>
+
+            <div class="pb-6">
               <%= label f, :password, gettext("Password"), class: "input-label" %>
               <%= password_input f, :password, class: input_classes(f, :password) %>
               <%= error_tag f, :password, class: "form-errors" %>
             </div>
-          </div>
 
-          <%= submit gettext("Sign up and join"), class: "btn btn-blue mb-4" %>
+            <%= submit gettext("Join the space"), class: "btn btn-blue mb-4" %>
 
-          <p class="text-sm">Already have a user account? <%= link "Sign in", to: session_path(@conn, :new), class: "text-blue" %></p>
-        <% end %>
-      <% end %>
-    </div>
+            <p class="text-sm">Already have a user account? <%= link "Sign in", to: session_path(@conn, :new), class: "text-blue" %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>

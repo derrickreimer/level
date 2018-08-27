@@ -1,6 +1,7 @@
 module Page.NewSpace exposing (Model, Msg(..), consumeEvent, init, setup, slugify, subscriptions, teardown, title, update, view)
 
 import Avatar
+import Browser.Navigation as Nav
 import Connection exposing (Connection)
 import Event exposing (Event)
 import Html exposing (..)
@@ -88,8 +89,8 @@ type Msg
     | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Session -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session navKey model =
     case msg of
         NameChanged val ->
             ( ( { model | name = val, slug = slugify val }, Cmd.none ), session )
@@ -106,8 +107,8 @@ update msg session model =
             in
             ( ( { model | formState = Submitting }, cmd ), session )
 
-        Submitted (Ok ( _, CreateSpace.Success _ )) ->
-            ( ( model, Route.toSpace model.slug ), session )
+        Submitted (Ok ( _, CreateSpace.Success space )) ->
+            ( ( model, Route.pushUrl navKey (Route.SetupCreateGroups <| Space.getSlug space) ), session )
 
         Submitted (Ok ( _, CreateSpace.Invalid errors )) ->
             ( ( { model | errors = errors, formState = Idle }, Cmd.none ), session )

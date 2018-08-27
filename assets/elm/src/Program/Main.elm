@@ -189,7 +189,7 @@ update msg model =
 
         ( NewSpaceMsg pageMsg, NewSpace pageModel ) ->
             pageModel
-                |> Page.NewSpace.update pageMsg model.session
+                |> Page.NewSpace.update pageMsg model.session model.navKey
                 |> updatePage NewSpace NewSpaceMsg model
 
         ( InboxMsg pageMsg, Inbox pageModel ) ->
@@ -554,13 +554,8 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         PostInit _ (Ok ( newSession, pageModel )) ->
-            ( { model
-                | page = Post pageModel
-                , session = newSession
-                , isTransitioning = False
-              }
-            , Cmd.map PostMsg (Page.Post.setup newSession pageModel)
-            )
+            ( newSession, pageModel )
+                |> perform (Page.Post.setup newSession) Post PostMsg model
 
         PostInit _ (Err Session.Expired) ->
             ( model, Route.toLogin )

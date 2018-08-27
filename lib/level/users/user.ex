@@ -83,7 +83,7 @@ defmodule Level.Users.User do
       message: dgettext("errors", "is already taken")
     )
     |> unique_constraint(:handle,
-      name: :users_lower_email_index,
+      name: :users_lower_handle_index,
       message: dgettext("errors", "is already taken")
     )
   end
