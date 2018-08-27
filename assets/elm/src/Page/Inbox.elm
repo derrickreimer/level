@@ -9,6 +9,9 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
+import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissMentions as DismissMentions
 import Post exposing (Post)
@@ -101,6 +104,7 @@ type Msg
     | PostComponentMsg String Component.Post.Msg
     | DismissMentionsClicked
     | MentionsDismissed (Result Session.Error ( Session, DismissMentions.Response ))
+    | NoOp
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -141,9 +145,16 @@ update msg session model =
                         |> DismissMentions.request (Space.getId model.space) postIds
                         |> Task.attempt MentionsDismissed
             in
-            ( ( model, cmd ), session )
+            if List.isEmpty postIds then
+                noCmd session model
+
+            else
+                ( ( model, cmd ), session )
 
         MentionsDismissed _ ->
+            noCmd session model
+
+        NoOp ->
             noCmd session model
 
 
@@ -207,7 +218,11 @@ consumeEvent event model =
 
 subscriptions : Sub Msg
 subscriptions =
-    every 1000 Tick
+    Sub.batch
+        [ every 1000 Tick
+        , KeyboardShortcuts.subscribe
+            [ ( "y", DismissMentionsClicked ) ]
+        ]
 
 
 
