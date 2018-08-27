@@ -264,7 +264,7 @@ update msg model =
 
         ( NewGroupMsg pageMsg, NewGroup pageModel ) ->
             pageModel
-                |> Page.NewGroup.update pageMsg model.session
+                |> Page.NewGroup.update pageMsg model.session model.navKey
                 |> updatePage NewGroup NewGroupMsg model
 
         ( PostMsg pageMsg, Post pageModel ) ->

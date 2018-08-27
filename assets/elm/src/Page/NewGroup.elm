@@ -1,5 +1,6 @@
 module Page.NewGroup exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Browser.Navigation as Nav
 import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
@@ -93,8 +94,8 @@ type Msg
     | NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Session -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session navKey model =
     case msg of
         NameChanged val ->
             noCmd session { model | name = val }
@@ -109,8 +110,11 @@ update msg session model =
             ( ( { model | isSubmitting = True }, cmd ), session )
 
         Submitted (Ok ( newSession, CreateGroup.Success group )) ->
-            -- TODO: redirect to the newly created group here
-            ( ( model, Cmd.none ), newSession )
+            let
+                redirectTo =
+                    Route.Group (Space.getSlug model.space) (Group.getId group)
+            in
+            ( ( model, Route.pushUrl navKey redirectTo ), newSession )
 
         Submitted (Ok ( newSession, CreateGroup.Invalid errors )) ->
             ( ( { model | isSubmitting = False, errors = errors }, Cmd.none ), newSession )
