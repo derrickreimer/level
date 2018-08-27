@@ -58,11 +58,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-<<<<<<< HEAD
-            - elm-stuff-v7-{{ checksum "assets/package.json" }}-{{ checksum "assets/elm/elm.json" }}
-=======
             - elm-stuff-v8-{{ checksum "assets/package.json" }}-{{ checksum "assets/elm/elm.json" }}
->>>>>>> eliminate-shared-state
       - restore_cache:
           keys:
             - elixir-build-v3-{{ checksum "mix.lock" }}
@@ -73,11 +69,7 @@ jobs:
           name: "Run Elm test suite"
           command: script/elm-test
       - save_cache:
-<<<<<<< HEAD
-          key: elm-stuff-v7-{{ checksum "assets/package.json" }}-{{ checksum "assets/elm/elm.json" }}
-=======
           key: elm-stuff-v8-{{ checksum "assets/package.json" }}-{{ checksum "assets/elm/elm.json" }}
->>>>>>> eliminate-shared-state
           paths:
             - '~/.elm'
             - 'assets/elm/elm-stuff'
