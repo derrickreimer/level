@@ -610,7 +610,7 @@ postsView repo space currentUser now connection =
 
     else
         div [] <|
-            Connection.map (postView repo space currentUser now) connection
+            Connection.mapList (postView repo space currentUser now) connection
 
 
 postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg

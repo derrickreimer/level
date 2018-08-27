@@ -1,4 +1,4 @@
-module Connection exposing (Connection, Subset, append, decoder, endCursor, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, prepend, prependConnection, remove, startCursor, toList, update)
+module Connection exposing (Connection, Subset, append, decoder, endCursor, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
@@ -67,6 +67,15 @@ fragment name nodeFragment =
 
 
 
+-- TRANFORMATIONS
+
+
+map : (a -> b) -> Connection a -> Connection b
+map f (Connection data) =
+    Connection (Data (List.map f data.nodes) data.pageInfo)
+
+
+
 -- LISTS
 
 
@@ -75,8 +84,8 @@ toList (Connection { nodes }) =
     nodes
 
 
-map : (a -> b) -> Connection a -> List b
-map f connection =
+mapList : (a -> b) -> Connection a -> List b
+mapList f connection =
     List.map f (toList connection)
 
 

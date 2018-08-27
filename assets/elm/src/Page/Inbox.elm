@@ -34,7 +34,7 @@ type alias Model =
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
-    , mentionedPosts : Connection Component.Post.Model
+    , mentions : Connection Component.Post.Model
     , now : ( Zone, Posix )
     }
 
@@ -61,17 +61,17 @@ init spaceSlug session =
 
 
 buildModel : ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, mentionedPosts } ), now ) =
-    Task.succeed ( session, Model viewer space bookmarks featuredUsers mentionedPosts now )
+buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, mentions } ), now ) =
+    Task.succeed ( session, Model viewer space bookmarks featuredUsers mentions now )
 
 
 setup : Model -> Cmd Msg
 setup model =
     let
         mentionsCmd =
-            model.mentionedPosts
+            model.mentions
                 |> Connection.toList
-                |> List.map (\component -> Cmd.map (PostComponentMsg component.id) (Component.Post.setup component))
+                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
                 |> Cmd.batch
     in
     mentionsCmd
@@ -81,9 +81,9 @@ teardown : Model -> Cmd Msg
 teardown model =
     let
         mentionsCmd =
-            model.mentionedPosts
+            model.mentions
                 |> Connection.toList
-                |> List.map (\component -> Cmd.map (PostComponentMsg component.id) (Component.Post.teardown component))
+                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
                 |> Cmd.batch
     in
     mentionsCmd
@@ -110,13 +110,13 @@ update msg session model =
                 |> noCmd session
 
         PostComponentMsg id componentMsg ->
-            case Connection.get .id id model.mentionedPosts of
+            case Connection.get .id id model.mentions of
                 Just component ->
                     let
                         ( ( newComponent, cmd ), newSession ) =
                             Component.Post.update componentMsg (Space.getId model.space) session component
                     in
-                    ( ( { model | mentionedPosts = Connection.update .id newComponent model.mentionedPosts }
+                    ( ( { model | mentions = Connection.update .id newComponent model.mentions }
                       , Cmd.map (PostComponentMsg id) cmd
                       )
                     , newSession
@@ -149,13 +149,13 @@ consumeEvent event model =
                 postId =
                     Reply.getPostId reply
             in
-            case Connection.get .id postId model.mentionedPosts of
+            case Connection.get .id postId model.mentions of
                 Just component ->
                     let
                         ( newComponent, cmd ) =
                             Component.Post.handleReplyCreated reply component
                     in
-                    ( { model | mentionedPosts = Connection.update .id newComponent model.mentionedPosts }
+                    ( { model | mentions = Connection.update .id newComponent model.mentions }
                     , Cmd.map (PostComponentMsg postId) cmd
                     )
 
@@ -167,9 +167,9 @@ consumeEvent event model =
                 postId =
                     Post.getId post
             in
-            case Connection.get .id postId model.mentionedPosts of
+            case Connection.get .id postId model.mentions of
                 Just component ->
-                    ( { model | mentionedPosts = Connection.remove .id postId model.mentionedPosts }
+                    ( { model | mentions = Connection.remove .id postId model.mentions }
                     , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component)
                     )
 
@@ -217,7 +217,7 @@ view repo maybeCurrentRoute model =
 mentionsView : Repo -> Model -> Html Msg
 mentionsView repo model =
     div [] <|
-        Connection.map (postView repo model) model.mentionedPosts
+        Connection.mapList (postView repo model) model.mentions
 
 
 postView : Repo -> Model -> Component.Post.Model -> Html Msg
