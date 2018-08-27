@@ -222,22 +222,10 @@ mentionsView repo model =
 
 postView : Repo -> Model -> Component.Post.Model -> Html Msg
 postView repo model component =
-    div [ class "py-4 flex" ]
-        [ div [ class "mr-1 py-2 flex-0" ]
-            [ label [ class "control checkbox" ]
-                [ input
-                    [ type_ "checkbox"
-                    , class "checkbox"
-                    ]
-                    []
-                , span [ class "control-indicator border-dusty-blue" ] []
-                ]
-            ]
-        , div [ class "flex-1" ]
-            [ component
-                |> Component.Post.postView repo model.space model.viewer model.now
-                |> Html.map (PostComponentMsg component.id)
-            ]
+    div [ class "py-4" ]
+        [ component
+            |> Component.Post.checkableView repo model.space model.viewer model.now
+            |> Html.map (PostComponentMsg component.id)
         ]
 
 

@@ -214,7 +214,7 @@ view repo maybeCurrentRoute model =
 postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
 postView repo space currentUser now component =
     div [ class "pt-6" ]
-        [ Component.Post.postView repo space currentUser now component
+        [ Component.Post.view repo space currentUser now component
             |> Html.map PostComponentMsg
         ]
 

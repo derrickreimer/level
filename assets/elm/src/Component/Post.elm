@@ -1,4 +1,4 @@
-module Component.Post exposing (Mode(..), Model, Msg(..), decoder, handleMentionsDismissed, handleReplyCreated, init, postView, setup, sidebarView, teardown, update)
+module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, decoder, handleMentionsDismissed, handleReplyCreated, init, setup, sidebarView, teardown, update, view)
 
 import Autosize
 import Avatar exposing (personAvatar)
@@ -42,6 +42,7 @@ type alias Model =
     , post : Post
     , replies : Connection Reply
     , replyComposer : ReplyComposer
+    , isChecked : Bool
     }
 
 
@@ -72,7 +73,7 @@ init mode showGroups post replies =
                 FullPage ->
                     AlwaysExpanded
     in
-    Model (Post.getId post) mode showGroups post replies (ReplyComposer.init replyMode)
+    Model (Post.getId post) mode showGroups post replies (ReplyComposer.init replyMode) False
 
 
 setup : Model -> Cmd Msg
@@ -130,6 +131,7 @@ type Msg
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
     | DismissMentionsClicked
     | MentionsDismissed (Result Session.Error ( Session, DismissMentions.Response ))
+    | SelectionToggled
     | NoOp
 
 
@@ -277,6 +279,9 @@ update msg spaceId session ({ post, replyComposer } as model) =
         MentionsDismissed (Err _) ->
             ( ( model, Cmd.none ), session )
 
+        SelectionToggled ->
+            ( ( { model | isChecked = not model.isChecked }, Cmd.none ), session )
+
         NoOp ->
             noCmd session model
 
@@ -322,8 +327,8 @@ handleMentionsDismissed model =
 -- VIEWS
 
 
-postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-postView repo space currentUser (( zone, posix ) as now) ({ post, replies } as model) =
+view : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model) =
     let
         currentUserData =
             currentUser
@@ -369,6 +374,27 @@ postView repo space currentUser (( zone, posix ) as now) ({ post, replies } as m
                 [ repliesView repo space post now replies model.mode
                 , replyComposerView currentUserData model
                 ]
+            ]
+        ]
+
+
+checkableView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+checkableView repo space viewer now model =
+    div [ class "flex" ]
+        [ div [ class "mr-1 py-2 flex-0" ]
+            [ label [ class "control checkbox" ]
+                [ input
+                    [ type_ "checkbox"
+                    , class "checkbox"
+                    , checked model.isChecked
+                    , onClick SelectionToggled
+                    ]
+                    []
+                , span [ class "control-indicator border-dusty-blue" ] []
+                ]
+            ]
+        , div [ class "flex-1" ]
+            [ view repo space viewer now model
             ]
         ]
 
