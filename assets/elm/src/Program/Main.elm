@@ -14,11 +14,13 @@ import Page.Group
 import Page.Groups
 import Page.Inbox
 import Page.NewGroup
+import Page.NewSpace
 import Page.Post
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceSettings
 import Page.SpaceUsers
+import Page.Spaces
 import Page.UserSettings
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
@@ -121,6 +123,8 @@ type Msg
     | PageInitialized PageInit
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
+    | SpacesMsg Page.Spaces.Msg
+    | NewSpaceMsg Page.NewSpace.Msg
     | InboxMsg Page.Inbox.Msg
     | SpaceUsersMsg Page.SpaceUsers.Msg
     | GroupsMsg Page.Groups.Msg
@@ -133,6 +137,16 @@ type Msg
     | SocketStart Decode.Value
     | SocketResult Decode.Value
     | SocketError Decode.Value
+
+
+updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Session ) -> ( Model, Cmd Msg )
+updatePage toPage toPageMsg model ( ( newPageModel, pageCmd ), newSession ) =
+    ( { model
+        | session = newSession
+        , page = toPage newPageModel
+      }
+    , Cmd.map toPageMsg pageCmd
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -188,6 +202,16 @@ update msg model =
                 , Page.setTitle (pageTitle newModel.repo newModel.page)
                 ]
             )
+
+        ( SpacesMsg pageMsg, Spaces pageModel ) ->
+            pageModel
+                |> Page.Spaces.update pageMsg model.session
+                |> updatePage Spaces SpacesMsg model
+
+        ( NewSpaceMsg pageMsg, NewSpace pageModel ) ->
+            pageModel
+                |> Page.NewSpace.update pageMsg model.session
+                |> updatePage NewSpace NewSpaceMsg model
 
         ( InboxMsg pageMsg, Inbox pageModel ) ->
             let
@@ -354,6 +378,8 @@ update msg model =
 type Page
     = Blank
     | NotFound
+    | Spaces Page.Spaces.Model
+    | NewSpace Page.NewSpace.Model
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
     | Inbox Page.Inbox.Model
@@ -367,7 +393,9 @@ type Page
 
 
 type PageInit
-    = InboxInit (Result Session.Error ( Session, Page.Inbox.Model ))
+    = SpacesInit (Result Session.Error ( Session, Page.Spaces.Model ))
+    | NewSpaceInit (Result Session.Error ( Session, Page.NewSpace.Model ))
+    | InboxInit (Result Session.Error ( Session, Page.Inbox.Model ))
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
@@ -407,6 +435,16 @@ navigateTo maybeRoute model =
             model.session
                 |> Page.Setup.InviteUsers.init spaceSlug
                 |> transition model SetupInviteUsersInit
+
+        Just Route.Spaces ->
+            model.session
+                |> Page.Spaces.init
+                |> transition model SpacesInit
+
+        Just Route.NewSpace ->
+            model.session
+                |> Page.NewSpace.init
+                |> transition model NewSpaceInit
 
         Just (Route.Inbox spaceSlug) ->
             model.session
@@ -452,6 +490,12 @@ navigateTo maybeRoute model =
 pageTitle : Repo -> Page -> String
 pageTitle repo page =
     case page of
+        Spaces _ ->
+            Page.Spaces.title
+
+        NewSpace _ ->
+            Page.NewSpace.title
+
         Inbox _ ->
             Page.Inbox.title
 
@@ -491,7 +535,35 @@ pageTitle repo page =
 
 setupPage : PageInit -> Model -> ( Model, Cmd Msg )
 setupPage pageInit model =
+    let
+        perform setupFn toPage toPageMsg appModel ( newSession, pageModel ) =
+            ( { appModel
+                | page = toPage pageModel
+                , session = newSession
+                , isTransitioning = False
+              }
+            , Cmd.map toPageMsg (setupFn pageModel)
+            )
+    in
     case pageInit of
+        SpacesInit (Ok result) ->
+            perform Page.Spaces.setup Spaces SpacesMsg model result
+
+        SpacesInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        SpacesInit (Err _) ->
+            ( model, Cmd.none )
+
+        NewSpaceInit (Ok result) ->
+            perform Page.NewSpace.setup NewSpace NewSpaceMsg model result
+
+        NewSpaceInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        NewSpaceInit (Err _) ->
+            ( model, Cmd.none )
+
         InboxInit (Ok ( session, pageModel )) ->
             ( { model
                 | page = Inbox pageModel
@@ -665,6 +737,12 @@ setupPage pageInit model =
 teardownPage : Page -> Cmd Msg
 teardownPage page =
     case page of
+        Spaces pageModel ->
+            Cmd.map SpacesMsg (Page.Spaces.teardown pageModel)
+
+        NewSpace pageModel ->
+            Cmd.map NewSpaceMsg (Page.NewSpace.teardown pageModel)
+
         SpaceUsers pageModel ->
             Cmd.map SpaceUsersMsg (Page.SpaceUsers.teardown pageModel)
 
@@ -684,6 +762,12 @@ teardownPage page =
 pageSubscription : Page -> Sub Msg
 pageSubscription page =
     case page of
+        Spaces _ ->
+            Sub.map SpacesMsg Page.Spaces.subscriptions
+
+        NewSpace _ ->
+            Sub.map NewSpaceMsg Page.NewSpace.subscriptions
+
         Inbox _ ->
             Sub.map InboxMsg Page.Inbox.subscriptions
 
@@ -706,6 +790,12 @@ pageSubscription page =
 routeFor : Page -> Maybe Route
 routeFor page =
     case page of
+        Spaces _ ->
+            Just Route.Spaces
+
+        NewSpace _ ->
+            Just Route.NewSpace
+
         Inbox { space } ->
             Just <| Route.Inbox (Space.getSlug space)
 
@@ -746,6 +836,16 @@ routeFor page =
 pageView : Repo -> Page -> Html Msg
 pageView repo page =
     case page of
+        Spaces pageModel ->
+            pageModel
+                |> Page.Spaces.view repo
+                |> Html.map SpacesMsg
+
+        NewSpace pageModel ->
+            pageModel
+                |> Page.NewSpace.view repo
+                |> Html.map NewSpaceMsg
+
         SetupCreateGroups pageModel ->
             pageModel
                 |> Page.Setup.CreateGroups.view repo (routeFor page)
@@ -856,61 +956,71 @@ consumeEvent event ({ page, repo } as model) =
 sendEventToPage : Event -> Model -> ( Model, Cmd Msg )
 sendEventToPage event model =
     let
-        updatePage toPage toPageMsg ( pageModel, pageCmd ) =
+        updateWith toPage toPageMsg ( pageModel, pageCmd ) =
             ( { model | page = toPage pageModel }
             , Cmd.map toPageMsg pageCmd
             )
     in
     case model.page of
+        Spaces pageModel ->
+            pageModel
+                |> Page.Spaces.consumeEvent event
+                |> updateWith Spaces SpacesMsg
+
+        NewSpace pageModel ->
+            pageModel
+                |> Page.NewSpace.consumeEvent event
+                |> updateWith NewSpace NewSpaceMsg
+
         SetupCreateGroups pageModel ->
             pageModel
                 |> Page.Setup.CreateGroups.consumeEvent event
-                |> updatePage SetupCreateGroups SetupCreateGroupsMsg
+                |> updateWith SetupCreateGroups SetupCreateGroupsMsg
 
         SetupInviteUsers pageModel ->
             pageModel
                 |> Page.Setup.InviteUsers.consumeEvent event
-                |> updatePage SetupInviteUsers SetupInviteUsersMsg
+                |> updateWith SetupInviteUsers SetupInviteUsersMsg
 
         Inbox pageModel ->
             pageModel
                 |> Page.Inbox.consumeEvent event
-                |> updatePage Inbox InboxMsg
+                |> updateWith Inbox InboxMsg
 
         SpaceUsers pageModel ->
             pageModel
                 |> Page.SpaceUsers.consumeEvent event
-                |> updatePage SpaceUsers SpaceUsersMsg
+                |> updateWith SpaceUsers SpaceUsersMsg
 
         Groups pageModel ->
             pageModel
                 |> Page.Groups.consumeEvent event
-                |> updatePage Groups GroupsMsg
+                |> updateWith Groups GroupsMsg
 
         Group pageModel ->
             pageModel
                 |> Page.Group.consumeEvent event model.session
-                |> updatePage Group GroupMsg
+                |> updateWith Group GroupMsg
 
         NewGroup pageModel ->
             pageModel
                 |> Page.NewGroup.consumeEvent event
-                |> updatePage NewGroup NewGroupMsg
+                |> updateWith NewGroup NewGroupMsg
 
         Post pageModel ->
             pageModel
                 |> Page.Post.consumeEvent event
-                |> updatePage Post PostMsg
+                |> updateWith Post PostMsg
 
         UserSettings pageModel ->
             pageModel
                 |> Page.UserSettings.consumeEvent event
-                |> updatePage UserSettings UserSettingsMsg
+                |> updateWith UserSettings UserSettingsMsg
 
         SpaceSettings pageModel ->
             pageModel
                 |> Page.SpaceSettings.consumeEvent event
-                |> updatePage SpaceSettings SpaceSettingsMsg
+                |> updateWith SpaceSettings SpaceSettingsMsg
 
         Blank ->
             ( model, Cmd.none )

@@ -17,7 +17,9 @@ import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
 type Route
-    = Root String
+    = Spaces
+    | NewSpace
+    | Root String
     | SetupCreateGroups String
     | SetupInviteUsers String
     | Inbox String
@@ -33,7 +35,9 @@ type Route
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map Root Parser.string
+        [ Parser.map Spaces (s "spaces")
+        , Parser.map NewSpace (s "spaces" </> s "new")
+        , Parser.map Root Parser.string
         , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
         , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
         , Parser.map Inbox (Parser.string </> s "inbox")
@@ -56,6 +60,12 @@ routeToString page =
     let
         pieces =
             case page of
+                Spaces ->
+                    [ "spaces" ]
+
+                NewSpace ->
+                    [ "spaces", "new" ]
+
                 Root slug ->
                     [ slug ]
 

@@ -1,10 +1,10 @@
-module Program.NewSpaceTest exposing (isAlphanumeric, isLower, isValidUrl, utils)
+module Page.NewSpaceTest exposing (isAlphanumeric, isLower, isValidUrl, utils)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Json.Decode as Decode exposing (decodeString)
 import List
-import Program.NewSpace as NewSpace
+import Page.NewSpace as NewSpace
 import Regex
 import Test exposing (..)
 

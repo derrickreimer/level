@@ -223,7 +223,7 @@ subscriptions =
 
 view : Repo -> Model -> Html Msg
 view repo ({ viewer, errors } as model) =
-    userLayout (Loaded viewer) <|
+    userLayout viewer <|
         div [ class "mx-auto max-w-md leading-normal" ]
             [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]

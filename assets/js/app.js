@@ -17,8 +17,6 @@ import "phoenix_html";
 // paths "./socket" or full ones "web/static/js/socket".
 
 import * as Main from "./modules/main";
-import * as NewSpace from "./modules/new_space";
-import * as Spaces from "./modules/spaces";
 import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
 // import "stretchy";
@@ -29,14 +27,6 @@ if (moduleNode) {
   switch (moduleNode.content) {
     case "main":
       Main.initialize();
-      break;
-
-    case "new_space":
-      NewSpace.initialize();
-      break;
-
-    case "spaces":
-      Spaces.initialize();
       break;
 
     case "home":
