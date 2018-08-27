@@ -264,7 +264,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
             let
                 cmd =
                     session
-                        |> DismissMentions.request spaceId model.id
+                        |> DismissMentions.request spaceId [ model.id ]
                         |> Task.attempt MentionsDismissed
             in
             ( ( model, cmd ), session )

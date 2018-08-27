@@ -20,11 +20,11 @@ document =
         """
         mutation DismissMentions(
           $spaceId: ID!,
-          $postId: ID!
+          $postIds: [ID]!
         ) {
           dismissMentions(
             spaceId: $spaceId,
-            postId: $postId
+            postIds: $postId
           ) {
             ...ValidationFields
           }
@@ -34,12 +34,12 @@ document =
         ]
 
 
-variables : String -> String -> Maybe Encode.Value
-variables spaceId postId =
+variables : String -> List String -> Maybe Encode.Value
+variables spaceId postIds =
     Just <|
         Encode.object
             [ ( "spaceId", Encode.string spaceId )
-            , ( "postId", Encode.string postId )
+            , ( "postIds", Encode.list Encode.string postIds )
             ]
 
 
@@ -60,7 +60,7 @@ decoder =
         |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceId postId session =
+request : String -> List String -> Session -> Task Session.Error ( Session, Response )
+request spaceId postIds session =
     Session.request session <|
-        GraphQL.request document (variables spaceId postId) decoder
+        GraphQL.request document (variables spaceId postIds) decoder
