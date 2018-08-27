@@ -10,6 +10,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.DismissMentions as DismissMentions
 import Post exposing (Post)
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
@@ -98,7 +99,8 @@ type Msg
     = Tick Posix
     | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
-    | DismissSelected
+    | DismissMentionsClicked
+    | MentionsDismissed (Result Session.Error ( Session, DismissMentions.Response ))
 
 
 update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
@@ -127,8 +129,21 @@ update msg session model =
                 Nothing ->
                     noCmd session model
 
-        DismissSelected ->
-            -- TODO
+        DismissMentionsClicked ->
+            let
+                postIds =
+                    model.mentions
+                        |> selectedPosts
+                        |> List.map .id
+
+                cmd =
+                    session
+                        |> DismissMentions.request (Space.getId model.space) postIds
+                        |> Task.attempt MentionsDismissed
+            in
+            ( ( model, cmd ), session )
+
+        MentionsDismissed _ ->
             noCmd session model
 
 
@@ -225,7 +240,7 @@ controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
         [ viewIf (arePostsSelected model.mentions) <|
-            button [ class "btn btn-xs btn-turquoise-outline", onClick DismissSelected ] [ text "Dismiss" ]
+            button [ class "btn btn-xs btn-turquoise-outline", onClick DismissMentionsClicked ] [ text "Dismiss" ]
         ]
 
 
@@ -287,3 +302,10 @@ arePostsSelected posts =
     posts
         |> Connection.toList
         |> List.any .isChecked
+
+
+selectedPosts : Connection Component.Post.Model -> List Component.Post.Model
+selectedPosts posts =
+    posts
+        |> Connection.toList
+        |> List.filter .isChecked

@@ -24,7 +24,7 @@ document =
         ) {
           dismissMentions(
             spaceId: $spaceId,
-            postIds: $postId
+            postIds: $postIds
           ) {
             ...ValidationFields
           }
