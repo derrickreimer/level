@@ -23,7 +23,6 @@ appLayout : List (Html msg) -> Html msg
 appLayout nodes =
     div
         [ class "font-sans font-antialised"
-        , Html.Attributes.attribute "data-stretchy-filter" ".js-stretchy"
         ]
         nodes
 
@@ -41,7 +40,6 @@ userLayout : User -> Html msg -> Html msg
 userLayout user bodyView =
     div
         [ class "container mx-auto p-6 font-sans font-antialised"
-        , Html.Attributes.attribute "data-stretchy-filter" ".js-stretchy"
         ]
         [ div [ class "flex pb-16 sm:pb-16 items-center" ]
             [ a [ Route.href Route.Spaces, class "logo logo-sm" ]

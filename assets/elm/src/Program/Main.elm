@@ -9,7 +9,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Page
 import Page.Group
 import Page.Groups
 import Page.Inbox
@@ -181,16 +180,7 @@ update msg model =
             ( model, Route.toLogin )
 
         ( PageInitialized pageInit, _ ) ->
-            let
-                ( newModel, cmd ) =
-                    setupPage pageInit model
-            in
-            ( newModel
-            , Cmd.batch
-                [ cmd
-                , Page.setTitle (pageTitle newModel.repo newModel.page)
-                ]
-            )
+            setupPage pageInit model
 
         ( SpacesMsg pageMsg, Spaces pageModel ) ->
             pageModel
@@ -203,16 +193,9 @@ update msg model =
                 |> updatePage NewSpace NewSpaceMsg model
 
         ( InboxMsg pageMsg, Inbox pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.Inbox.update pageMsg model.session pageModel
-            in
-            ( { model
-                | session = session
-                , page = Inbox newPageModel
-              }
-            , Cmd.map InboxMsg cmd
-            )
+            pageModel
+                |> Page.Inbox.update pageMsg model.session
+                |> updatePage Inbox InboxMsg model
 
         ( SetupCreateGroupsMsg pageMsg, SetupCreateGroups pageModel ) ->
             let
@@ -265,67 +248,39 @@ update msg model =
             )
 
         ( SpaceUsersMsg pageMsg, SpaceUsers pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.SpaceUsers.update pageMsg model.repo model.session pageModel
-            in
-            ( { model | session = session, page = SpaceUsers newPageModel }
-            , Cmd.map SpaceUsersMsg cmd
-            )
+            pageModel
+                |> Page.SpaceUsers.update pageMsg model.session
+                |> updatePage SpaceUsers SpaceUsersMsg model
 
         ( GroupsMsg pageMsg, Groups pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.Groups.update pageMsg model.repo model.session pageModel
-            in
-            ( { model | session = session, page = Groups newPageModel }
-            , Cmd.map GroupsMsg cmd
-            )
+            pageModel
+                |> Page.Groups.update pageMsg model.session
+                |> updatePage Groups GroupsMsg model
 
         ( GroupMsg pageMsg, Group pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.Group.update pageMsg model.repo model.session pageModel
-            in
-            ( { model | session = session, page = Group newPageModel }
-            , Cmd.map GroupMsg cmd
-            )
+            pageModel
+                |> Page.Group.update pageMsg model.repo model.session
+                |> updatePage Group GroupMsg model
 
         ( NewGroupMsg pageMsg, NewGroup pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.NewGroup.update pageMsg model.session pageModel
-            in
-            ( { model | session = session, page = NewGroup newPageModel }
-            , Cmd.map NewGroupMsg cmd
-            )
+            pageModel
+                |> Page.NewGroup.update pageMsg model.session
+                |> updatePage NewGroup NewGroupMsg model
 
         ( PostMsg pageMsg, Post pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.Post.update pageMsg model.repo model.session pageModel
-            in
-            ( { model | session = session, page = Post newPageModel }
-            , Cmd.map PostMsg cmd
-            )
+            pageModel
+                |> Page.Post.update pageMsg model.session
+                |> updatePage Post PostMsg model
 
         ( UserSettingsMsg pageMsg, UserSettings pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.UserSettings.update pageMsg model.session pageModel
-            in
-            ( { model | session = session, page = UserSettings newPageModel }
-            , Cmd.map UserSettingsMsg cmd
-            )
+            pageModel
+                |> Page.UserSettings.update pageMsg model.session
+                |> updatePage UserSettings UserSettingsMsg model
 
         ( SpaceSettingsMsg pageMsg, SpaceSettings pageModel ) ->
-            let
-                ( ( newPageModel, cmd ), session ) =
-                    Page.SpaceSettings.update pageMsg model.session pageModel
-            in
-            ( { model | session = session, page = SpaceSettings newPageModel }
-            , Cmd.map SpaceSettingsMsg cmd
-            )
+            pageModel
+                |> Page.SpaceSettings.update pageMsg model.session
+                |> updatePage SpaceSettings SpaceSettingsMsg model
 
         ( SocketAbort value, _ ) ->
             ( model, Cmd.none )
@@ -553,15 +508,8 @@ setupPage pageInit model =
         NewSpaceInit (Err _) ->
             ( model, Cmd.none )
 
-        InboxInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = Inbox pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.Inbox.setup pageModel
-                |> Cmd.map InboxMsg
-            )
+        InboxInit (Ok result) ->
+            perform Page.Inbox.setup Inbox InboxMsg model result
 
         InboxInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -569,157 +517,91 @@ setupPage pageInit model =
         InboxInit (Err _) ->
             ( model, Cmd.none )
 
-        SpaceUsersInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = SpaceUsers pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.SpaceUsers.setup pageModel
-                |> Cmd.map SpaceUsersMsg
-            )
+        SpaceUsersInit (Ok result) ->
+            perform Page.SpaceUsers.setup SpaceUsers SpaceUsersMsg model result
 
         SpaceUsersInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         SpaceUsersInit (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        GroupsInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = Groups pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.Groups.setup pageModel
-                |> Cmd.map GroupsMsg
-            )
+        GroupsInit (Ok result) ->
+            perform Page.Groups.setup Groups GroupsMsg model result
 
         GroupsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         GroupsInit (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        GroupInit _ (Ok ( session, pageModel )) ->
-            ( { model
-                | page = Group pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.Group.setup pageModel
-                |> Cmd.map GroupMsg
-            )
+        GroupInit _ (Ok result) ->
+            perform Page.Group.setup Group GroupMsg model result
 
         GroupInit _ (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         GroupInit _ (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        NewGroupInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = NewGroup pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.NewGroup.setup pageModel
-                |> Cmd.map NewGroupMsg
-            )
+        NewGroupInit (Ok result) ->
+            perform Page.NewGroup.setup NewGroup NewGroupMsg model result
 
         NewGroupInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         NewGroupInit (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        PostInit _ (Ok ( session, pageModel )) ->
+        PostInit _ (Ok ( newSession, pageModel )) ->
             ( { model
                 | page = Post pageModel
-                , session = session
+                , session = newSession
                 , isTransitioning = False
               }
-            , Page.Post.setup session pageModel
-                |> Cmd.map PostMsg
+            , Cmd.map PostMsg (Page.Post.setup newSession pageModel)
             )
 
         PostInit _ (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         PostInit _ (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        UserSettingsInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = UserSettings pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.UserSettings.setup pageModel
-                |> Cmd.map UserSettingsMsg
-            )
+        UserSettingsInit (Ok result) ->
+            perform Page.UserSettings.setup UserSettings UserSettingsMsg model result
 
         UserSettingsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         UserSettingsInit (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        SpaceSettingsInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = SpaceSettings pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.SpaceSettings.setup pageModel
-                |> Cmd.map SpaceSettingsMsg
-            )
+        SpaceSettingsInit (Ok result) ->
+            perform Page.SpaceSettings.setup SpaceSettings SpaceSettingsMsg model result
 
         SpaceSettingsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         SpaceSettingsInit (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        SetupCreateGroupsInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = SetupCreateGroups pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.Setup.CreateGroups.setup
-                |> Cmd.map SetupCreateGroupsMsg
-            )
+        SetupCreateGroupsInit (Ok result) ->
+            perform Page.Setup.CreateGroups.setup SetupCreateGroups SetupCreateGroupsMsg model result
 
         SetupCreateGroupsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         SetupCreateGroupsInit (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
-        SetupInviteUsersInit (Ok ( session, pageModel )) ->
-            ( { model
-                | page = SetupInviteUsers pageModel
-                , session = session
-                , isTransitioning = False
-              }
-            , Page.Setup.InviteUsers.setup
-                |> Cmd.map SetupInviteUsersMsg
-            )
+        SetupInviteUsersInit (Ok result) ->
+            perform Page.Setup.InviteUsers.setup SetupInviteUsers SetupInviteUsersMsg model result
 
         SetupInviteUsersInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
         SetupInviteUsersInit (Err _) ->
-            -- TODO: Handle other error modes
             ( model, Cmd.none )
 
 

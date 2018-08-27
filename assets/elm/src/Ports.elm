@@ -1,4 +1,4 @@
-port module Ports exposing (autosize, cancelSocket, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, setTitle, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
+port module Ports exposing (autosize, cancelSocket, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
 
 import Autosize.Types
 import File.Types
@@ -58,6 +58,3 @@ port select : String -> Cmd msg
 
 
 port requestFile : String -> Cmd msg
-
-
-port setTitle : String -> Cmd msg

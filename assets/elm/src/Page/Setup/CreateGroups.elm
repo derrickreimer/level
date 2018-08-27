@@ -70,13 +70,13 @@ buildModel ( session, { viewer, space, bookmarks } ) =
     Task.succeed ( session, model )
 
 
-setup : Cmd Msg
-setup =
+setup : Model -> Cmd Msg
+setup model =
     Cmd.none
 
 
-teardown : Cmd Msg
-teardown =
+teardown : Model -> Cmd Msg
+teardown model =
     Cmd.none
 
 

@@ -81,8 +81,8 @@ type Msg
     = NoOp
 
 
-update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg repo session model =
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), session )

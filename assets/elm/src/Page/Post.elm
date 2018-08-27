@@ -112,8 +112,8 @@ type Msg
     | NoOp
 
 
-update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg repo session ({ post } as model) =
+update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
+update msg session ({ post } as model) =
     case msg of
         PostComponentMsg componentMsg ->
             let
