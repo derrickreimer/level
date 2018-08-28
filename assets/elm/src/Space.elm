@@ -141,4 +141,4 @@ setupRoute (Space { slug }) state =
             Route.SetupInviteUsers slug
 
         Complete ->
-            Route.Inbox slug
+            Route.Pings slug

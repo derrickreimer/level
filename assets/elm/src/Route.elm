@@ -22,7 +22,7 @@ type Route
     | Root String
     | SetupCreateGroups String
     | SetupInviteUsers String
-    | Inbox String
+    | Pings String
     | SpaceUsers Route.SpaceUsers.Params
     | Groups Route.Groups.Params
     | Group String String
@@ -40,7 +40,7 @@ parser =
         , Parser.map Root Parser.string
         , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
         , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
-        , Parser.map Inbox (Parser.string </> s "inbox")
+        , Parser.map Pings (Parser.string </> s "pings")
         , Parser.map SpaceUsers Route.SpaceUsers.params
         , Parser.map Groups Route.Groups.params
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
@@ -75,8 +75,8 @@ routeToString page =
                 SetupInviteUsers slug ->
                     [ slug, "setup", "invites" ]
 
-                Inbox slug ->
-                    [ slug, "inbox" ]
+                Pings slug ->
+                    [ slug, "pings" ]
 
                 SpaceUsers params ->
                     Route.SpaceUsers.segments params

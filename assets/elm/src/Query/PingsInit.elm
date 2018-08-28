@@ -1,4 +1,4 @@
-module Query.InboxInit exposing (Response, request)
+module Query.PingsInit exposing (Response, request)
 
 import Component.Post
 import Connection exposing (Connection)
@@ -27,7 +27,7 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        query InboxInit(
+        query PingsInit(
           $spaceSlug: String!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {

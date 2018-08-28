@@ -358,11 +358,16 @@ view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                    , viewIf model.showGroups <|
-                        groupsLabel repo space postData.groups
-                    , span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, postData.postedAt ) ]
+                    [ span [ class "font-bold" ] [ text <| displayName authorData ] ]
+                , viewIf model.showGroups <|
+                    groupsLabel repo space postData.groups
+                , a
+                    [ Route.href <| Route.Post (Space.getSlug space) postData.id
+                    , class "no-underline text-dusty-blue-darkest"
+                    , rel "tooltip"
+                    , title "Expand post"
                     ]
+                    [ span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, postData.postedAt ) ] ]
                 , div [ class "markdown mb-2" ] [ body ]
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
@@ -406,8 +411,8 @@ sidebarView repo model =
             Repo.getPost repo model.post
     in
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Mentions" ]
-        , mentionerListView repo postData.mentions
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Pings" ]
+        , pingsView repo postData.mentions
         ]
 
 
@@ -583,25 +588,32 @@ statusView state =
             buildView Icons.closed "Closed"
 
 
-mentionerListView : Repo -> List Mention -> Html Msg
-mentionerListView repo mentions =
+pingsView : Repo -> List Mention -> Html Msg
+pingsView repo mentions =
     if List.isEmpty mentions then
-        div [ class "pb-4 text-sm" ] [ text "No unaddressed mentions." ]
+        div [ class "pb-4 text-sm" ] [ text "You haven't been pinged." ]
 
     else
         let
-            mentionerViews =
+            pingerList =
                 mentions
                     |> List.map Mention.getCachedData
                     |> List.map .mentioner
                     |> ListHelpers.uniqueBy SpaceUser.getId
-                    |> List.map (mentionerItemView repo)
+                    |> List.map (pingView repo)
         in
-        div [ class "pb-4" ] mentionerViews
+        div [ class "pb-4" ]
+            [ div [ class "pb-3" ] pingerList
+            , button
+                [ class "btn btn-blue btn-xs"
+                , onClick DismissMentionsClicked
+                ]
+                [ text "Dismiss" ]
+            ]
 
 
-mentionerItemView : Repo -> SpaceUser -> Html Msg
-mentionerItemView repo user =
+pingView : Repo -> SpaceUser -> Html Msg
+pingView repo user =
     let
         userData =
             Repo.getSpaceUser repo user
@@ -610,33 +622,6 @@ mentionerItemView repo user =
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
         ]
-
-
-mentionersSummary : Repo -> List SpaceUser -> String
-mentionersSummary repo mentioners =
-    case mentioners of
-        firstUser :: others ->
-            let
-                firstUserName =
-                    firstUser
-                        |> Repo.getSpaceUser repo
-                        |> displayName
-
-                otherCount =
-                    ListHelpers.size others
-            in
-            case otherCount of
-                0 ->
-                    firstUserName ++ " mentioned you"
-
-                1 ->
-                    firstUserName ++ " and 1 other person mentioned you"
-
-                _ ->
-                    firstUserName ++ " and " ++ String.fromInt otherCount ++ " others mentioned you"
-
-        [] ->
-            ""
 
 
 

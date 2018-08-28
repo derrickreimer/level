@@ -1,4 +1,4 @@
-module Page.Inbox exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Pings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
 import Component.Post
@@ -15,7 +15,7 @@ import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissMentions as DismissMentions
 import Post exposing (Post)
-import Query.InboxInit as InboxInit
+import Query.PingsInit as PingsInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -50,7 +50,7 @@ type alias Model =
 
 title : String
 title =
-    "Inbox"
+    "Pings"
 
 
 
@@ -60,12 +60,12 @@ title =
 init : String -> Session -> Task Session.Error ( Session, Model )
 init spaceSlug session =
     session
-        |> InboxInit.request spaceSlug
+        |> PingsInit.request spaceSlug
         |> TaskHelpers.andThenGetCurrentTime
         |> Task.andThen buildModel
 
 
-buildModel : ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel : ( ( Session, PingsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
 buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, mentions } ), now ) =
     Task.succeed ( session, Model viewer space bookmarks featuredUsers mentions now )
 
@@ -241,7 +241,7 @@ view repo maybeCurrentRoute model =
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
+                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Pings" ]
                         , controlsView model
                         ]
                     ]
