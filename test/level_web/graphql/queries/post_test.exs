@@ -10,6 +10,14 @@ defmodule LevelWeb.GraphQL.PostTest do
       space(id: $space_id) {
         post(id: $post_id) {
           body
+          mentions {
+            mentioner {
+              id
+            }
+            reply {
+              id
+            }
+          }
         }
       }
     }
@@ -39,7 +47,8 @@ defmodule LevelWeb.GraphQL.PostTest do
              "data" => %{
                "space" => %{
                  "post" => %{
-                   "body" => "Hello"
+                   "body" => "Hello",
+                   "mentions" => []
                  }
                }
              }
@@ -74,6 +83,46 @@ defmodule LevelWeb.GraphQL.PostTest do
                  "message" => "Post not found"
                }
              ]
+           }
+  end
+
+  test "posts expose mentions", %{conn: conn, space: space, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
+    {:ok, %{post: post}} = create_post(space_user, group, %{body: "Hello"})
+
+    {:ok, %{space_user: another_user}} = create_space_member(space)
+
+    {:ok, %{reply: reply}} =
+      create_reply(another_user, post, %{body: "Hey @#{space_user.handle}"})
+
+    variables = %{
+      space_id: space_user.space_id,
+      post_id: post.id
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "post" => %{
+                   "body" => "Hello",
+                   "mentions" => [
+                     %{
+                       "mentioner" => %{
+                         "id" => another_user.id
+                       },
+                       "reply" => %{
+                         "id" => reply.id
+                       }
+                     }
+                   ]
+                 }
+               }
+             }
            }
   end
 end

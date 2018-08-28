@@ -12,6 +12,7 @@ defmodule Level.Loaders.Database do
   alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostUser
+  alias Level.Posts.Reply
   alias Level.Repo
   alias Level.Spaces
   alias Level.Spaces.Space
@@ -59,6 +60,10 @@ defmodule Level.Loaders.Database do
       join: su in assoc(pu, :space_user),
       where: su.user_id == ^user_id
   end
+
+  # Replies
+
+  def query(Reply, %{current_user: user}), do: Posts.replies_base_query(user)
 
   # Mentions
 

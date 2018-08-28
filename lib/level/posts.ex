@@ -57,6 +57,21 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Builds a query for posts accessible to a particular user.
+  """
+  @spec replies_base_query(User.t()) :: Ecto.Query.t()
+  def replies_base_query(%User{id: user_id} = _user) do
+    from r in Reply,
+      join: su in SpaceUser,
+      on: su.space_id == r.space_id and su.user_id == ^user_id,
+      join: p in assoc(r, :post),
+      join: g in assoc(p, :groups),
+      left_join: gu in GroupUser,
+      on: gu.space_user_id == su.id and gu.group_id == g.id,
+      where: g.is_private == false or not is_nil(gu.id)
+  end
+
+  @doc """
   Fetches a post by id.
   """
   @spec get_post(SpaceUser.t(), String.t()) :: {:ok, Post.t()} | {:error, String.t()}

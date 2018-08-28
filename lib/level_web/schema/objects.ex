@@ -339,6 +339,7 @@ defmodule LevelWeb.Schema.Objects do
   @desc "A mention represents a when user has @-mentioned another user."
   object :mention do
     field :mentioner, non_null(:space_user), resolve: dataloader(:db)
+    field :reply, :reply, resolve: dataloader(:db)
     field :occurred_at, non_null(:timestamp)
   end
 

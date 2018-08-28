@@ -462,7 +462,7 @@ feedRepliesView repo space post now replies =
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]
-        , div [] (List.map (replyView repo now Feed) nodes)
+        , div [] (List.map (replyView repo now Feed post) nodes)
         ]
 
 
@@ -482,12 +482,12 @@ fullPageRepliesView repo post now replies =
                 , onClick PreviousRepliesRequested
                 ]
                 [ text "Load more..." ]
-        , div [] (List.map (replyView repo now FullPage) nodes)
+        , div [] (List.map (replyView repo now FullPage post) nodes)
         ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Mode -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) mode reply =
+replyView : Repo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) mode post reply =
     let
         replyData =
             Reply.getCachedData reply
@@ -499,13 +499,17 @@ replyView repo (( zone, posix ) as now) mode reply =
             replyData.body
                 |> Markdown.toHtml []
     in
-    div [ id (replyNodeId replyData.id), class "flex mt-3" ]
+    div
+        [ id (replyNodeId replyData.id)
+        , classList [ ( "flex mt-3", True ) ]
+        ]
         [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small authorData ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ span [ class "font-bold" ] [ text <| displayName authorData ]
                 , viewIf (mode == FullPage) <|
-                    span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, replyData.postedAt ) ]
+                    span [ class "ml-3 text-sm text-dusty-blue" ]
+                        [ text <| smartFormatDate now ( zone, replyData.postedAt ) ]
                 ]
             , div [ class "markdown mb-2" ] [ body ]
             ]
@@ -590,6 +594,7 @@ mentionerListView repo mentions =
                 mentions
                     |> List.map Mention.getCachedData
                     |> List.map .mentioner
+                    |> ListHelpers.uniqueBy SpaceUser.getId
                     |> List.map (mentionerItemView repo)
         in
         div [ class "pb-4" ] mentionerViews
