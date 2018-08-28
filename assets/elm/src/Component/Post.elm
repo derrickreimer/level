@@ -406,8 +406,8 @@ sidebarView repo model =
             Repo.getPost repo model.post
     in
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Status" ]
-        , statusView postData.state
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Mentions" ]
+        , mentionerListView repo postData.mentions
         ]
 
 
@@ -577,6 +577,34 @@ statusView state =
 
         Post.Closed ->
             buildView Icons.closed "Closed"
+
+
+mentionerListView : Repo -> List Mention -> Html Msg
+mentionerListView repo mentions =
+    if List.isEmpty mentions then
+        div [ class "pb-4 text-sm" ] [ text "No unaddressed mentions." ]
+
+    else
+        let
+            mentionerViews =
+                mentions
+                    |> List.map Mention.getCachedData
+                    |> List.map .mentioner
+                    |> List.map (mentionerItemView repo)
+        in
+        div [ class "pb-4" ] mentionerViews
+
+
+mentionerItemView : Repo -> SpaceUser -> Html Msg
+mentionerItemView repo user =
+    let
+        userData =
+            Repo.getSpaceUser repo user
+    in
+    div [ class "flex items-center pr-4 mb-px" ]
+        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
+        ]
 
 
 mentionersSummary : Repo -> List SpaceUser -> String
