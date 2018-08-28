@@ -399,6 +399,22 @@ checkableView repo space viewer now model =
         ]
 
 
+sidebarView : Repo -> Model -> Html Msg
+sidebarView repo model =
+    let
+        postData =
+            Repo.getPost repo model.post
+    in
+    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Status" ]
+        , statusView postData.state
+        ]
+
+
+
+-- PRIVATE VIEW FUNCTIONS
+
+
 groupsLabel : Repo -> Space -> List Group -> Html Msg
 groupsLabel repo space groups =
     case groups of
@@ -543,18 +559,6 @@ replyPromptView currentUserData =
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
             [ text "Write a reply..."
             ]
-        ]
-
-
-sidebarView : Repo -> Model -> Html Msg
-sidebarView repo model =
-    let
-        postData =
-            Repo.getPost repo model.post
-    in
-    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Status" ]
-        , statusView postData.state
         ]
 
 
