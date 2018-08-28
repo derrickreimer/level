@@ -40,7 +40,11 @@ document =
               featuredUsers {
                 ...SpaceUserFields
               }
-              mentionedPosts(first: 10) {
+              posts(
+                first: 10,
+                hasPings: true,
+                orderBy: { field: LAST_PINGED_AT, direction: DESC }
+              ) {
                 ...PostConnectionFields
                 edges {
                   node {
@@ -78,7 +82,7 @@ decoder =
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
-            (Decode.at [ "space", "mentionedPosts" ] <| Connection.decoder (Component.Post.decoder Component.Post.Feed True))
+            (Decode.at [ "space", "posts" ] <| Connection.decoder (Component.Post.decoder Component.Post.Feed True))
 
 
 request : String -> Session -> Task Session.Error ( Session, Response )

@@ -69,14 +69,11 @@ defmodule LevelWeb.Schema.Enums do
 
   enum :post_order_field do
     value :posted_at
+    value :last_pinged_at
   end
 
   enum :reply_order_field do
     value :posted_at
-  end
-
-  enum :mentioned_post_order_field do
-    value :last_occurred_at
   end
 
   enum :order_direction do

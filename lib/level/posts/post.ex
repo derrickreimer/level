@@ -33,7 +33,7 @@ defmodule Level.Posts.Post do
     field :subscription_state, :string, virtual: true
 
     # Used for paginating
-    field :last_occurred_at, :naive_datetime, virtual: true
+    field :last_pinged_at, :naive_datetime, virtual: true
 
     timestamps()
   end

@@ -172,14 +172,18 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.space_users/3
     end
 
-    @desc "A paginated list of posts for which the current user has undismissed mentions."
-    field :mentioned_posts, non_null(:post_connection) do
+    @desc "A paginated list of posts ."
+    field :posts, non_null(:post_connection) do
       arg :first, :integer
       arg :last, :integer
       arg :before, :cursor
       arg :after, :cursor
-      arg :order_by, :mentioned_post_order
-      resolve &Resolvers.mentioned_posts/3
+      arg :order_by, :post_order
+
+      @desc "Filter by whether the post has pings for the current user."
+      arg :has_pings, :boolean, default_value: nil
+
+      resolve &Resolvers.posts/3
     end
 
     interface :fetch_timeable

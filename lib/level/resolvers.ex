@@ -11,7 +11,6 @@ defmodule Level.Resolvers do
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
   alias Level.Groups.GroupUser
-  alias Level.Mentions
   alias Level.Mentions.UserMention
   alias Level.Pagination
   alias Level.Posts.Post
@@ -19,7 +18,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
   alias Level.Resolvers.GroupPostConnection
-  alias Level.Resolvers.MentionedPostConnection
+  alias Level.Resolvers.PostConnection
   alias Level.Resolvers.ReplyConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
@@ -223,9 +222,9 @@ defmodule Level.Resolvers do
   @doc """
   Fetches posts for which the current user has undismissed mentions.
   """
-  @spec mentioned_posts(Space.t(), map(), info()) :: paginated_result()
-  def mentioned_posts(%Space{} = space, args, info) do
-    MentionedPostConnection.get(space, struct(MentionedPostConnection, args), info)
+  @spec posts(Space.t(), map(), info()) :: paginated_result()
+  def posts(%Space{} = space, args, info) do
+    PostConnection.get(space, struct(PostConnection, args), info)
   end
 
   @doc """

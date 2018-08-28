@@ -1,15 +1,21 @@
-defmodule LevelWeb.GraphQL.MentionedPostsTest do
+defmodule LevelWeb.GraphQL.PostsTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Mentions
 
   @query """
-    query MentionedPosts(
-      $space_id: ID!
+    query Posts(
+      $space_id: ID!,
+      $has_pings: Boolean,
+      $order_field: PostOrderField!
     ) {
       space(id: $space_id) {
-        mentionedPosts(first: 2) {
+        posts(
+          first: 2,
+          hasPings: $has_pings,
+          orderBy: { field: $order_field, direction: DESC }
+        ) {
           edges {
             node {
               body
@@ -34,7 +40,7 @@ defmodule LevelWeb.GraphQL.MentionedPostsTest do
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "spaces have a paginated mentioned posts field", %{
+  test "filtering posts by has pings", %{
     conn: conn,
     space: space,
     space_user: space_user
@@ -43,7 +49,11 @@ defmodule LevelWeb.GraphQL.MentionedPostsTest do
     {:ok, %{space_user: another_user}} = create_space_member(space, %{handle: "derrick"})
     {:ok, %{post: _post}} = create_post(another_user, group, %{body: "Hey @tiff"})
 
-    variables = %{space_id: space_user.space_id}
+    variables = %{
+      space_id: space_user.space_id,
+      has_pings: true,
+      order_field: "LAST_PINGED_AT"
+    }
 
     conn =
       conn
@@ -53,7 +63,7 @@ defmodule LevelWeb.GraphQL.MentionedPostsTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "space" => %{
-                 "mentionedPosts" => %{
+                 "posts" => %{
                    "edges" => [
                      %{
                        "node" => %{
@@ -75,7 +85,7 @@ defmodule LevelWeb.GraphQL.MentionedPostsTest do
            }
   end
 
-  test "mentioned posts exclude dismissed mentions", %{
+  test "filtering by has no pings excludes dismissed posts", %{
     conn: conn,
     space: space,
     space_user: space_user
@@ -85,7 +95,12 @@ defmodule LevelWeb.GraphQL.MentionedPostsTest do
     {:ok, %{post: post}} = create_post(another_user, group, %{body: "Hey @tiff"})
 
     Mentions.dismiss_all(space_user, [post.id])
-    variables = %{space_id: space_user.space_id}
+
+    variables = %{
+      space_id: space_user.space_id,
+      has_pings: true,
+      order_field: "LAST_PINGED_AT"
+    }
 
     conn =
       conn
@@ -95,7 +110,7 @@ defmodule LevelWeb.GraphQL.MentionedPostsTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "space" => %{
-                 "mentionedPosts" => %{
+                 "posts" => %{
                    "edges" => [],
                    "total_count" => 0
                  }
