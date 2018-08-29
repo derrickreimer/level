@@ -39,7 +39,7 @@ type alias Model =
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
-    , mentions : Connection Component.Post.Model
+    , posts : Connection Component.Post.Model
     , now : ( Zone, Posix )
     }
 
@@ -66,32 +66,32 @@ init spaceSlug session =
 
 
 buildModel : ( ( Session, PingsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, mentions } ), now ) =
-    Task.succeed ( session, Model viewer space bookmarks featuredUsers mentions now )
+buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
+    Task.succeed ( session, Model viewer space bookmarks featuredUsers posts now )
 
 
 setup : Model -> Cmd Msg
 setup model =
     let
-        mentionsCmd =
-            model.mentions
+        postsCmd =
+            model.posts
                 |> Connection.toList
                 |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
                 |> Cmd.batch
     in
-    mentionsCmd
+    postsCmd
 
 
 teardown : Model -> Cmd Msg
 teardown model =
     let
-        mentionsCmd =
-            model.mentions
+        postsCmd =
+            model.posts
                 |> Connection.toList
                 |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
                 |> Cmd.batch
     in
-    mentionsCmd
+    postsCmd
 
 
 
@@ -118,13 +118,13 @@ update msg session model =
                 |> noCmd session
 
         PostComponentMsg id componentMsg ->
-            case Connection.get .id id model.mentions of
+            case Connection.get .id id model.posts of
                 Just component ->
                     let
                         ( ( newComponent, cmd ), newSession ) =
                             Component.Post.update componentMsg (Space.getId model.space) session component
                     in
-                    ( ( { model | mentions = Connection.update .id newComponent model.mentions }
+                    ( ( { model | posts = Connection.update .id newComponent model.posts }
                       , Cmd.map (PostComponentMsg id) cmd
                       )
                     , newSession
@@ -136,7 +136,7 @@ update msg session model =
         DismissMentionsClicked ->
             let
                 postIds =
-                    model.mentions
+                    model.posts
                         |> selectedPosts
                         |> List.map .id
 
@@ -181,13 +181,13 @@ consumeEvent event model =
                 postId =
                     Reply.getPostId reply
             in
-            case Connection.get .id postId model.mentions of
+            case Connection.get .id postId model.posts of
                 Just component ->
                     let
                         ( newComponent, cmd ) =
                             Component.Post.handleReplyCreated reply component
                     in
-                    ( { model | mentions = Connection.update .id newComponent model.mentions }
+                    ( { model | posts = Connection.update .id newComponent model.posts }
                     , Cmd.map (PostComponentMsg postId) cmd
                     )
 
@@ -199,9 +199,9 @@ consumeEvent event model =
                 postId =
                     Post.getId post
             in
-            case Connection.get .id postId model.mentions of
+            case Connection.get .id postId model.posts of
                 Just component ->
-                    ( { model | mentions = Connection.remove .id postId model.mentions }
+                    ( { model | posts = Connection.remove .id postId model.posts }
                     , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component)
                     )
 
@@ -245,7 +245,7 @@ view repo maybeCurrentRoute model =
                         , controlsView model
                         ]
                     ]
-                , mentionsView repo model
+                , postsView repo model
                 , sidebarView repo model.space model.featuredUsers
                 ]
             ]
@@ -255,15 +255,20 @@ view repo maybeCurrentRoute model =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ viewIf (arePostsSelected model.mentions) <|
+        [ viewIf (arePostsSelected model.posts) <|
             button [ class "btn btn-xs btn-turquoise-outline", onClick DismissMentionsClicked ] [ text "Dismiss Selected" ]
         ]
 
 
-mentionsView : Repo -> Model -> Html Msg
-mentionsView repo model =
-    div [] <|
-        Connection.mapList (postView repo model) model.mentions
+postsView : Repo -> Model -> Html Msg
+postsView repo model =
+    if Connection.isEmptyAndExpanded model.posts then
+        div [ class "pt-8 pb-8 text-center text-lg" ]
+            [ text "You're all caught up!" ]
+
+    else
+        div [] <|
+            Connection.mapList (postView repo model) model.posts
 
 
 postView : Repo -> Model -> Component.Post.Model -> Html Msg

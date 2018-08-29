@@ -19,7 +19,7 @@ type alias Response =
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
-    , mentions : Connection Component.Post.Model
+    , posts : Connection Component.Post.Model
     }
 
 

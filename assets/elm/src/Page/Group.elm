@@ -606,7 +606,7 @@ postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Componen
 postsView repo space currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
-            [ text "Nobody has posted in this group yet." ]
+            [ text "Be the first one to post here!" ]
 
     else
         div [] <|
