@@ -36,7 +36,6 @@ type alias Record =
     { id : String
     , state : State
     , body : String
-    , bodyHtml : String
     , author : SpaceUser
     , groups : List Group
     , postedAt : Posix
@@ -55,7 +54,6 @@ fragment =
               id
               state
               body
-              bodyHtml
               postedAt
               subscriptionState
               author {
@@ -89,7 +87,6 @@ decoder =
             |> Pipeline.required "id" string
             |> Pipeline.required "state" stateDecoder
             |> Pipeline.required "body" string
-            |> Pipeline.required "bodyHtml" string
             |> Pipeline.required "author" SpaceUser.decoder
             |> Pipeline.required "groups" (list Group.decoder)
             |> Pipeline.required "postedAt" dateDecoder
