@@ -90,7 +90,7 @@ spaceSidebar repo viewer space bookmarks maybeCurrentRoute =
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ spaceSidebarLink space "Pings" (Just <| Route.Pings slug) maybeCurrentRoute
-                , spaceSidebarLink space "Everything" Nothing maybeCurrentRoute
+                , spaceSidebarLink space "Activity" (Just <| Route.Posts slug) maybeCurrentRoute
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]
             , groupLinks repo space bookmarks maybeCurrentRoute

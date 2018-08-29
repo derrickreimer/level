@@ -22,6 +22,7 @@ type Route
     | Root String
     | SetupCreateGroups String
     | SetupInviteUsers String
+    | Posts String
     | Pings String
     | SpaceUsers Route.SpaceUsers.Params
     | Groups Route.Groups.Params
@@ -40,6 +41,7 @@ parser =
         , Parser.map Root Parser.string
         , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
         , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
+        , Parser.map Posts (Parser.string </> s "posts")
         , Parser.map Pings (Parser.string </> s "pings")
         , Parser.map SpaceUsers Route.SpaceUsers.params
         , Parser.map Groups Route.Groups.params
@@ -74,6 +76,9 @@ routeToString page =
 
                 SetupInviteUsers slug ->
                     [ slug, "setup", "invites" ]
+
+                Posts slug ->
+                    [ slug, "posts" ]
 
                 Pings slug ->
                     [ slug, "pings" ]

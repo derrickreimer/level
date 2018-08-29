@@ -15,6 +15,7 @@ import Page.NewGroup
 import Page.NewSpace
 import Page.Pings
 import Page.Post
+import Page.Posts
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceSettings
@@ -124,6 +125,7 @@ type Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
     | SpacesMsg Page.Spaces.Msg
     | NewSpaceMsg Page.NewSpace.Msg
+    | PostsMsg Page.Posts.Msg
     | PingsMsg Page.Pings.Msg
     | SpaceUsersMsg Page.SpaceUsers.Msg
     | GroupsMsg Page.Groups.Msg
@@ -191,6 +193,11 @@ update msg model =
             pageModel
                 |> Page.NewSpace.update pageMsg model.session model.navKey
                 |> updatePage NewSpace NewSpaceMsg model
+
+        ( PostsMsg pageMsg, Posts pageModel ) ->
+            pageModel
+                |> Page.Posts.update pageMsg model.session
+                |> updatePage Posts PostsMsg model
 
         ( PingsMsg pageMsg, Pings pageModel ) ->
             pageModel
@@ -326,6 +333,7 @@ type Page
     | NewSpace Page.NewSpace.Model
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
+    | Posts Page.Posts.Model
     | Pings Page.Pings.Model
     | SpaceUsers Page.SpaceUsers.Model
     | Groups Page.Groups.Model
@@ -339,6 +347,7 @@ type Page
 type PageInit
     = SpacesInit (Result Session.Error ( Session, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Session, Page.NewSpace.Model ))
+    | PostsInit (Result Session.Error ( Session, Page.Posts.Model ))
     | PingsInit (Result Session.Error ( Session, Page.Pings.Model ))
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
@@ -390,6 +399,11 @@ navigateTo maybeRoute model =
                 |> Page.NewSpace.init
                 |> transition model NewSpaceInit
 
+        Just (Route.Posts spaceSlug) ->
+            model.session
+                |> Page.Posts.init spaceSlug
+                |> transition model PostsInit
+
         Just (Route.Pings spaceSlug) ->
             model.session
                 |> Page.Pings.init spaceSlug
@@ -439,6 +453,9 @@ pageTitle repo page =
 
         NewSpace _ ->
             Page.NewSpace.title
+
+        Posts _ ->
+            Page.Posts.title
 
         Pings _ ->
             Page.Pings.title
@@ -515,6 +532,15 @@ setupPage pageInit model =
             ( model, Route.toLogin )
 
         PingsInit (Err _) ->
+            ( model, Cmd.none )
+
+        PostsInit (Ok result) ->
+            perform Page.Posts.setup Posts PostsMsg model result
+
+        PostsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        PostsInit (Err _) ->
             ( model, Cmd.none )
 
         SpaceUsersInit (Ok result) ->
@@ -634,6 +660,9 @@ pageSubscription page =
         NewSpace _ ->
             Sub.map NewSpaceMsg Page.NewSpace.subscriptions
 
+        Posts _ ->
+            Sub.map PostsMsg Page.Posts.subscriptions
+
         Pings _ ->
             Sub.map PingsMsg Page.Pings.subscriptions
 
@@ -661,6 +690,9 @@ routeFor page =
 
         NewSpace _ ->
             Just Route.NewSpace
+
+        Posts { space } ->
+            Just <| Route.Posts (Space.getSlug space)
 
         Pings { space } ->
             Just <| Route.Pings (Space.getSlug space)
@@ -721,6 +753,11 @@ pageView repo page =
             pageModel
                 |> Page.Setup.InviteUsers.view repo (routeFor page)
                 |> Html.map SetupInviteUsersMsg
+
+        Posts pageModel ->
+            pageModel
+                |> Page.Posts.view repo (routeFor page)
+                |> Html.map PostsMsg
 
         Pings pageModel ->
             pageModel
@@ -847,6 +884,11 @@ sendEventToPage event model =
             pageModel
                 |> Page.Setup.InviteUsers.consumeEvent event
                 |> updateWith SetupInviteUsers SetupInviteUsersMsg
+
+        Posts pageModel ->
+            pageModel
+                |> Page.Posts.consumeEvent event
+                |> updateWith Posts PostsMsg
 
         Pings pageModel ->
             pageModel
