@@ -12,7 +12,7 @@ import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.SpaceUsers exposing (Params)
+import Route.SpaceUsers exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -179,8 +179,8 @@ paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
     div [ class "py-4" ]
         [ Pagination.view connection
-            (Route.SpaceUsers << Route.SpaceUsers.Before (Space.getSlug space))
-            (Route.SpaceUsers << Route.SpaceUsers.After (Space.getSlug space))
+            (Route.SpaceUsers << Before (Space.getSlug space))
+            (Route.SpaceUsers << After (Space.getSlug space))
         ]
 
 

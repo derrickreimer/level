@@ -8,6 +8,7 @@ import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Route.Groups
 import Route.Pings
+import Route.Posts
 import Route.SpaceUsers
 import Url exposing (Url)
 import Url.Builder as Builder exposing (absolute)
@@ -24,7 +25,7 @@ type Route
     | Root String
     | SetupCreateGroups String
     | SetupInviteUsers String
-    | Posts String
+    | Posts Route.Posts.Params
     | Pings Route.Pings.Params
     | SpaceUsers Route.SpaceUsers.Params
     | Groups Route.Groups.Params
@@ -43,7 +44,7 @@ parser =
         , Parser.map Root Parser.string
         , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
         , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
-        , Parser.map Posts (Parser.string </> s "posts")
+        , Parser.map Posts Route.Posts.parser
         , Parser.map Pings Route.Pings.parser
         , Parser.map SpaceUsers Route.SpaceUsers.parser
         , Parser.map Groups Route.Groups.parser
@@ -111,8 +112,8 @@ toString page =
         SetupInviteUsers slug ->
             absolute [ slug, "setup", "invites" ] []
 
-        Posts slug ->
-            absolute [ slug, "posts" ] []
+        Posts params ->
+            Route.Posts.toString params
 
         Pings params ->
             Route.Pings.toString params

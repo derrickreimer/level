@@ -20,7 +20,7 @@ import Query.PingsInit as PingsInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.Pings
+import Route.Pings exposing (Params(..))
 import Route.SpaceUsers
 import Session exposing (Session)
 import Space exposing (Space)
@@ -37,7 +37,8 @@ import View.Layout exposing (spaceLayout)
 
 
 type alias Model =
-    { viewer : SpaceUser
+    { params : Params
+    , viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
@@ -59,17 +60,17 @@ title =
 -- LIFECYCLE
 
 
-init : Route.Pings.Params -> Session -> Task Session.Error ( Session, Model )
+init : Params -> Session -> Task Session.Error ( Session, Model )
 init params session =
     session
         |> PingsInit.request params
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen buildModel
+        |> Task.andThen (buildModel params)
 
 
-buildModel : ( ( Session, PingsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
-    Task.succeed ( session, Model viewer space bookmarks featuredUsers posts now )
+buildModel : Params -> ( ( Session, PingsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel params ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
+    Task.succeed ( session, Model params viewer space bookmarks featuredUsers posts now )
 
 
 setup : Model -> Cmd Msg
@@ -281,8 +282,8 @@ selectionControlsView posts =
 paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
     Pagination.view connection
-        (Route.Pings << Route.Pings.Before (Space.getSlug space))
-        (Route.Pings << Route.Pings.After (Space.getSlug space))
+        (Route.Pings << Before (Space.getSlug space))
+        (Route.Pings << After (Space.getSlug space))
 
 
 postsView : Repo -> Model -> Html Msg

@@ -12,7 +12,7 @@ import Pagination
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.Groups
+import Route.Groups exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -31,7 +31,7 @@ type alias Model =
     , space : Space
     , bookmarks : List Group
     , groups : Connection Group
-    , params : Route.Groups.Params
+    , params : Params
     }
 
 
@@ -52,14 +52,14 @@ title =
 -- LIFECYCLE
 
 
-init : Route.Groups.Params -> Session -> Task Session.Error ( Session, Model )
+init : Params -> Session -> Task Session.Error ( Session, Model )
 init params session =
     session
         |> GroupsInit.request params 20
         |> Task.andThen (buildModel params)
 
 
-buildModel : Route.Groups.Params -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel : Params -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
 buildModel params ( session, { viewer, space, bookmarks, groups } ) =
     Task.succeed ( session, Model viewer space bookmarks groups params )
 
@@ -191,8 +191,8 @@ paginationView : Space -> Connection Group -> Html Msg
 paginationView space connection =
     div [ class "py-4" ]
         [ Pagination.view connection
-            (Route.Groups << Route.Groups.Before (Space.getSlug space))
-            (Route.Groups << Route.Groups.After (Space.getSlug space))
+            (Route.Groups << Before (Space.getSlug space))
+            (Route.Groups << After (Space.getSlug space))
         ]
 
 

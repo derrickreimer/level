@@ -8,6 +8,7 @@ import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import Route.Posts exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -28,7 +29,11 @@ document =
     GraphQL.toDocument
         """
         query PostsInit(
-          $spaceSlug: String!
+          $spaceSlug: String!,
+          $first: Int,
+          $last: Int,
+          $before: Cursor,
+          $after: Cursor
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -41,7 +46,10 @@ document =
                 ...SpaceUserFields
               }
               posts(
-                first: 10,
+                first: $first,
+                last: $last,
+                before: $before,
+                after: $after,
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
@@ -65,12 +73,29 @@ document =
         ]
 
 
-variables : String -> Maybe Encode.Value
-variables spaceSlug =
-    Just <|
-        Encode.object
-            [ ( "spaceSlug", Encode.string spaceSlug )
-            ]
+variables : Params -> Maybe Encode.Value
+variables params =
+    let
+        values =
+            case params of
+                Root spaceSlug ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "first", Encode.int 20 )
+                    ]
+
+                After spaceSlug cursor ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "first", Encode.int 20 )
+                    , ( "after", Encode.string cursor )
+                    ]
+
+                Before spaceSlug cursor ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "last", Encode.int 20 )
+                    , ( "before", Encode.string cursor )
+                    ]
+    in
+    Just (Encode.object values)
 
 
 decoder : Decoder Response
@@ -84,7 +109,7 @@ decoder =
             (Decode.at [ "space", "posts" ] <| Connection.decoder (Component.Post.decoder Component.Post.Feed True))
 
 
-request : String -> Session -> Task Session.Error ( Session, Response )
-request spaceSlug session =
+request : Params -> Session -> Task Session.Error ( Session, Response )
+request params session =
     Session.request session <|
-        GraphQL.request document (variables spaceSlug) decoder
+        GraphQL.request document (variables params) decoder

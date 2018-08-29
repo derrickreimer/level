@@ -13,11 +13,13 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Pagination
 import Post exposing (Post)
 import Query.PostsInit as PostsInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Posts exposing (Params(..))
 import Route.SpaceUsers
 import Session exposing (Session)
 import Space exposing (Space)
@@ -34,7 +36,8 @@ import View.Layout exposing (spaceLayout)
 
 
 type alias Model =
-    { viewer : SpaceUser
+    { params : Params
+    , viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
@@ -56,17 +59,17 @@ title =
 -- LIFECYCLE
 
 
-init : String -> Session -> Task Session.Error ( Session, Model )
-init spaceSlug session =
+init : Params -> Session -> Task Session.Error ( Session, Model )
+init params session =
     session
-        |> PostsInit.request spaceSlug
+        |> PostsInit.request params
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen buildModel
+        |> Task.andThen (buildModel params)
 
 
-buildModel : ( ( Session, PostsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
-    Task.succeed ( session, Model viewer space bookmarks featuredUsers posts now )
+buildModel : Params -> ( ( Session, PostsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel params ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
+    Task.succeed ( session, Model params viewer space bookmarks featuredUsers posts now )
 
 
 setup : Model -> Cmd Msg
@@ -201,6 +204,7 @@ view repo maybeCurrentRoute model =
                 [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]
+                        , controlsView model
                         ]
                     ]
                 , postsView repo model
@@ -208,6 +212,20 @@ view repo maybeCurrentRoute model =
                 ]
             ]
         ]
+
+
+controlsView : Model -> Html Msg
+controlsView model =
+    div [ class "flex flex-grow justify-end" ]
+        [ paginationView model.space model.posts
+        ]
+
+
+paginationView : Space -> Connection a -> Html Msg
+paginationView space connection =
+    Pagination.view connection
+        (Route.Posts << Before (Space.getSlug space))
+        (Route.Posts << After (Space.getSlug space))
 
 
 postsView : Repo -> Model -> Html Msg

@@ -400,9 +400,9 @@ navigateTo maybeRoute model =
                 |> Page.NewSpace.init
                 |> transition model NewSpaceInit
 
-        Just (Route.Posts spaceSlug) ->
+        Just (Route.Posts params) ->
             model.session
-                |> Page.Posts.init spaceSlug
+                |> Page.Posts.init params
                 |> transition model PostsInit
 
         Just (Route.Pings params) ->
@@ -692,11 +692,11 @@ routeFor page =
         NewSpace _ ->
             Just Route.NewSpace
 
-        Posts { space } ->
-            Just <| Route.Posts (Space.getSlug space)
+        Posts { params } ->
+            Just <| Route.Posts params
 
-        Pings { space } ->
-            Just <| Route.Pings (Route.Pings.Root (Space.getSlug space))
+        Pings { params } ->
+            Just <| Route.Pings params
 
         SetupCreateGroups { space } ->
             Just <| Route.SetupCreateGroups (Space.getSlug space)
