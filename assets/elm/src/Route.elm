@@ -6,6 +6,7 @@ module Route exposing (Route(..), fromUrl, href, parser, pushUrl, replaceUrl, to
 import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
+import Route.Group
 import Route.Groups
 import Route.Pings
 import Route.Posts
@@ -29,7 +30,7 @@ type Route
     | Pings Route.Pings.Params
     | SpaceUsers Route.SpaceUsers.Params
     | Groups Route.Groups.Params
-    | Group String String
+    | Group Route.Group.Params
     | NewGroup String
     | Post String String
     | UserSettings
@@ -49,7 +50,7 @@ parser =
         , Parser.map SpaceUsers Route.SpaceUsers.parser
         , Parser.map Groups Route.Groups.parser
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
-        , Parser.map Group (Parser.string </> s "groups" </> Parser.string)
+        , Parser.map Group Route.Group.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map SpaceSettings (Parser.string </> s "settings")
@@ -124,8 +125,8 @@ toString page =
         Groups params ->
             Route.Groups.toString params
 
-        Group slug id ->
-            absolute [ slug, "groups", id ] []
+        Group params ->
+            Route.Group.toString params
 
         NewGroup slug ->
             absolute [ slug, "groups", "new" ] []

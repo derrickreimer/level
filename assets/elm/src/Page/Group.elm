@@ -17,12 +17,14 @@ import Mutation.CreatePost as CreatePost
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
+import Pagination
 import Post exposing (Post)
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Group exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -60,7 +62,8 @@ type alias PostComposer =
 
 
 type alias Model =
-    { viewer : SpaceUser
+    { params : Params
+    , viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
     , group : Group
@@ -87,19 +90,20 @@ title repo { group } =
 -- LIFECYCLE
 
 
-init : String -> String -> Session -> Task Session.Error ( Session, Model )
-init spaceSlug groupId session =
+init : Params -> Session -> Task Session.Error ( Session, Model )
+init params session =
     session
-        |> GroupInit.request spaceSlug groupId
+        |> GroupInit.request params 10
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen buildModel
+        |> Task.andThen (buildModel params)
 
 
-buildModel : ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarks, group, posts, featuredMemberships } ), now ) =
+buildModel : Params -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel params ( ( session, { viewer, space, bookmarks, group, posts, featuredMemberships } ), now ) =
     let
         model =
             Model
+                params
                 viewer
                 space
                 bookmarks
@@ -479,14 +483,14 @@ view repo maybeCurrentRoute model =
                 [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
                         [ nameView groupData model.nameEditor
-                        , privacyView groupData
+                        , bookmarkButtonView groupData.isBookmarked
                         , nameErrors model.nameEditor
-                        , controlsView groupData.isBookmarked
+                        , controlsView model
                         ]
                     ]
                 , newPostView model.postComposer currentUserData
                 , postsView repo model.space model.viewer model.now model.posts
-                , sidebarView repo groupData.membershipState model.featuredMemberships
+                , sidebarView repo groupData.membershipState model.featuredMemberships groupData.isPrivate
                 ]
             ]
         ]
@@ -536,13 +540,13 @@ nameView groupData editor =
                 ]
 
 
-privacyView : Group.Record -> Html Msg
-privacyView { isPrivate } =
+privacyToggle : Bool -> Html Msg
+privacyToggle isPrivate =
     if isPrivate == True then
-        button [ class "mx-3", onClick (PrivacyToggle False) ] [ Icons.lock ]
+        button [ class "mx-2", onClick (PrivacyToggle False) ] [ Icons.lock ]
 
     else
-        button [ class "mx-3", onClick (PrivacyToggle True) ] [ Icons.unlock ]
+        button [ class "mx-2", onClick (PrivacyToggle True) ] [ Icons.unlock ]
 
 
 nameErrors : FieldEditor -> Html Msg
@@ -555,11 +559,18 @@ nameErrors editor =
             text ""
 
 
-controlsView : Bool -> Html Msg
-controlsView isBookmarked =
+controlsView : Model -> Html Msg
+controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ bookmarkButtonView isBookmarked
+        [ paginationView model.space model.group model.posts
         ]
+
+
+paginationView : Space -> Group -> Connection a -> Html Msg
+paginationView space group connection =
+    Pagination.view connection
+        (Route.Group << Before (Space.getSlug space) (Group.getId group))
+        (Route.Group << After (Space.getSlug space) (Group.getId group))
 
 
 bookmarkButtonView : Bool -> Html Msg
@@ -621,10 +632,13 @@ postView repo space currentUser now component =
         ]
 
 
-sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Html Msg
-sidebarView repo state featuredMemberships =
+sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Bool -> Html Msg
+sidebarView repo state featuredMemberships isPrivate =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Members" ]
+        [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
+            [ text "Members"
+            , privacyToggle isPrivate
+            ]
         , memberListView repo featuredMemberships
         , subscribeButtonView state
         ]

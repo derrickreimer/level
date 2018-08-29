@@ -352,7 +352,7 @@ type PageInit
     | PingsInit (Result Session.Error ( Session, Page.Pings.Model ))
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
-    | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
+    | GroupInit (Result Session.Error ( Session, Page.Group.Model ))
     | NewGroupInit (Result Session.Error ( Session, Page.NewGroup.Model ))
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
@@ -420,10 +420,10 @@ navigateTo maybeRoute model =
                 |> Page.Groups.init params
                 |> transition model GroupsInit
 
-        Just (Route.Group spaceSlug groupId) ->
+        Just (Route.Group params) ->
             model.session
-                |> Page.Group.init spaceSlug groupId
-                |> transition model (GroupInit groupId)
+                |> Page.Group.init params
+                |> transition model GroupInit
 
         Just (Route.NewGroup spaceSlug) ->
             model.session
@@ -562,13 +562,13 @@ setupPage pageInit model =
         GroupsInit (Err _) ->
             ( model, Cmd.none )
 
-        GroupInit _ (Ok result) ->
+        GroupInit (Ok result) ->
             perform Page.Group.setup Group GroupMsg model result
 
-        GroupInit _ (Err Session.Expired) ->
+        GroupInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
-        GroupInit _ (Err _) ->
+        GroupInit (Err _) ->
             ( model, Cmd.none )
 
         NewGroupInit (Ok result) ->
@@ -710,8 +710,8 @@ routeFor page =
         Groups { params } ->
             Just <| Route.Groups params
 
-        Group { space, group } ->
-            Just <| Route.Group (Space.getSlug space) (Group.getId group)
+        Group { params } ->
+            Just <| Route.Group params
 
         NewGroup { space } ->
             Just <| Route.NewGroup (Space.getSlug space)

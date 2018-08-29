@@ -20,6 +20,7 @@ import Reply exposing (Reply)
 import ReplyComposer exposing (Mode(..), ReplyComposer)
 import Repo exposing (Repo)
 import Route
+import Route.Group
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -430,7 +431,7 @@ groupsLabel repo space groups =
             in
             span [ class "ml-3 text-sm text-dusty-blue" ]
                 [ a
-                    [ Route.href (Route.Group (Space.getSlug space) groupData.id)
+                    [ Route.href (Route.Group (Route.Group.Root (Space.getSlug space) groupData.id))
                     , class "no-underline text-dusty-blue font-bold"
                     ]
                     [ text groupData.name ]

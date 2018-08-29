@@ -8,6 +8,7 @@ import Icons
 import Lazy exposing (Lazy(..))
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Group
 import Route.Groups
 import Route.Pings
 import Route.Posts
@@ -117,7 +118,7 @@ groupLinks repo space groups maybeCurrentRoute =
             Space.getSlug space
 
         linkify group =
-            spaceSidebarLink space group.name (Just <| Route.Group slug group.id) maybeCurrentRoute
+            spaceSidebarLink space group.name (Just <| Route.Group (Route.Group.Root slug group.id)) maybeCurrentRoute
 
         links =
             groups

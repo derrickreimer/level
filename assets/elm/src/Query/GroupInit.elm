@@ -10,6 +10,7 @@ import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import Route.Group exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -32,7 +33,11 @@ document =
         """
         query GroupInit(
           $spaceSlug: String!,
-          $groupId: ID!
+          $groupId: ID!,
+          $first: Int,
+          $last: Int,
+          $before: Cursor,
+          $after: Cursor
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -49,7 +54,10 @@ document =
               ...GroupMembershipFields
             }
             posts(
-              first: 20,
+              first: $first,
+              last: $last,
+              before: $before,
+              after: $after,
               orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
             ) {
               ...PostConnectionFields
@@ -73,13 +81,32 @@ document =
         ]
 
 
-variables : String -> String -> Maybe Encode.Value
-variables spaceSlug groupId =
-    Just <|
-        Encode.object
-            [ ( "spaceSlug", Encode.string spaceSlug )
-            , ( "groupId", Encode.string groupId )
-            ]
+variables : Params -> Int -> Maybe Encode.Value
+variables params limit =
+    let
+        values =
+            case params of
+                Root spaceSlug id ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "groupId", Encode.string id )
+                    , ( "first", Encode.int limit )
+                    ]
+
+                After spaceSlug id cursor ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "groupId", Encode.string id )
+                    , ( "first", Encode.int limit )
+                    , ( "after", Encode.string cursor )
+                    ]
+
+                Before spaceSlug id cursor ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "groupId", Encode.string id )
+                    , ( "last", Encode.int limit )
+                    , ( "before", Encode.string cursor )
+                    ]
+    in
+    Just (Encode.object values)
 
 
 postComponentsDecoder : Decoder (Connection Component.Post.Model)
@@ -101,7 +128,7 @@ decoder =
         )
 
 
-request : String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceSlug groupId session =
+request : Params -> Int -> Session -> Task Session.Error ( Session, Response )
+request params limit session =
     Session.request session <|
-        GraphQL.request document (variables spaceSlug groupId) decoder
+        GraphQL.request document (variables params limit) decoder
