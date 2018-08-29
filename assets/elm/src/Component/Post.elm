@@ -16,6 +16,7 @@ import Mutation.CreateReply as CreateReply
 import Mutation.DismissMentions as DismissMentions
 import Post exposing (Post)
 import Query.Replies
+import RenderedHtml
 import Reply exposing (Reply)
 import ReplyComposer exposing (Mode(..), ReplyComposer)
 import Repo exposing (Repo)
@@ -344,10 +345,6 @@ view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model
 
         mentions =
             postData.mentions
-
-        body =
-            postData.body
-                |> Markdown.toHtml []
     in
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
@@ -369,7 +366,7 @@ view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model
                     , title "Expand post"
                     ]
                     [ span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, postData.postedAt ) ] ]
-                , div [ class "markdown mb-2" ] [ body ]
+                , div [ class "markdown mb-2" ] [ RenderedHtml.node postData.bodyHtml ]
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -500,10 +497,6 @@ replyView repo (( zone, posix ) as now) mode post reply =
 
         authorData =
             Repo.getSpaceUser repo replyData.author
-
-        body =
-            replyData.body
-                |> Markdown.toHtml []
     in
     div
         [ id (replyNodeId replyData.id)
@@ -517,7 +510,9 @@ replyView repo (( zone, posix ) as now) mode post reply =
                     span [ class "ml-3 text-sm text-dusty-blue" ]
                         [ text <| smartFormatDate now ( zone, replyData.postedAt ) ]
                 ]
-            , div [ class "markdown mb-2" ] [ body ]
+            , div [ class "markdown mb-2" ]
+                [ RenderedHtml.node replyData.bodyHtml
+                ]
             ]
         ]
 

@@ -19,6 +19,9 @@ import "phoenix_html";
 import * as Main from "./modules/main";
 import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
+import "@webcomponents/custom-elements";
+import "@webcomponents/custom-elements/src/native-shim";
+import "./rendered_html";
 // import "stretchy";
 
 const moduleNode = document.head.querySelector("meta[name='module']");
