@@ -1,5 +1,6 @@
-module Route.SpaceUsers exposing (Params(..), params, segments)
+module Route.SpaceUsers exposing (Params(..), parser, toString)
 
+import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s)
 
 
@@ -9,8 +10,8 @@ type Params
     | Before String String
 
 
-params : Parser (Params -> a) a
-params =
+parser : Parser (Params -> a) a
+parser =
     oneOf
         [ Parser.map Root (Parser.string </> s "users")
         , Parser.map After (Parser.string </> s "users" </> s "after" </> Parser.string)
@@ -18,14 +19,14 @@ params =
         ]
 
 
-segments : Params -> List String
-segments p =
-    case p of
+toString : Params -> String
+toString params =
+    case params of
         Root slug ->
-            [ slug, "users" ]
+            absolute [ slug, "users" ] []
 
         After slug cursor ->
-            [ slug, "users", "after", cursor ]
+            absolute [ slug, "users", "after", cursor ] []
 
         Before slug cursor ->
-            [ slug, "users", "before", cursor ]
+            absolute [ slug, "users", "before", cursor ] []

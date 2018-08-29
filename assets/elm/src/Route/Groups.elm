@@ -1,5 +1,6 @@
-module Route.Groups exposing (Params(..), params, segments)
+module Route.Groups exposing (Params(..), parser, toString)
 
+import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
@@ -9,8 +10,8 @@ type Params
     | Before String String
 
 
-params : Parser (Params -> a) a
-params =
+parser : Parser (Params -> a) a
+parser =
     oneOf
         [ Parser.map Root (Parser.string </> s "groups")
         , Parser.map After (Parser.string </> s "groups" </> s "after" </> Parser.string)
@@ -18,14 +19,14 @@ params =
         ]
 
 
-segments : Params -> List String
-segments p =
-    case p of
+toString : Params -> String
+toString params =
+    case params of
         Root slug ->
-            [ slug, "groups" ]
+            absolute [ slug, "groups" ] []
 
         After slug cursor ->
-            [ slug, "groups", "after", cursor ]
+            absolute [ slug, "groups", "after", cursor ] []
 
         Before slug cursor ->
-            [ slug, "groups", "before", cursor ]
+            absolute [ slug, "groups", "before", cursor ] []

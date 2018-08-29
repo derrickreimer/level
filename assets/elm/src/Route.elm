@@ -9,6 +9,7 @@ import Html.Attributes as Attr
 import Route.Groups
 import Route.SpaceUsers
 import Url exposing (Url)
+import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
@@ -43,8 +44,8 @@ parser =
         , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
         , Parser.map Posts (Parser.string </> s "posts")
         , Parser.map Pings (Parser.string </> s "pings")
-        , Parser.map SpaceUsers Route.SpaceUsers.params
-        , Parser.map Groups Route.Groups.params
+        , Parser.map SpaceUsers Route.SpaceUsers.parser
+        , Parser.map Groups Route.Groups.parser
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
         , Parser.map Group (Parser.string </> s "groups" </> Parser.string)
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
@@ -57,54 +58,50 @@ parser =
 -- INTERNAL --
 
 
-routeToString : Route -> String
-routeToString page =
-    let
-        pieces =
-            case page of
-                Spaces ->
-                    [ "spaces" ]
+toString : Route -> String
+toString page =
+    case page of
+        Spaces ->
+            absolute [ "spaces" ] []
 
-                NewSpace ->
-                    [ "spaces", "new" ]
+        NewSpace ->
+            absolute [ "spaces", "new" ] []
 
-                Root slug ->
-                    [ slug ]
+        Root slug ->
+            absolute [ slug ] []
 
-                SetupCreateGroups slug ->
-                    [ slug, "setup", "groups" ]
+        SetupCreateGroups slug ->
+            absolute [ slug, "setup", "groups" ] []
 
-                SetupInviteUsers slug ->
-                    [ slug, "setup", "invites" ]
+        SetupInviteUsers slug ->
+            absolute [ slug, "setup", "invites" ] []
 
-                Posts slug ->
-                    [ slug, "posts" ]
+        Posts slug ->
+            absolute [ slug, "posts" ] []
 
-                Pings slug ->
-                    [ slug, "pings" ]
+        Pings slug ->
+            absolute [ slug, "pings" ] []
 
-                SpaceUsers params ->
-                    Route.SpaceUsers.segments params
+        SpaceUsers params ->
+            Route.SpaceUsers.toString params
 
-                Groups params ->
-                    Route.Groups.segments params
+        Groups params ->
+            Route.Groups.toString params
 
-                Group slug id ->
-                    [ slug, "groups", id ]
+        Group slug id ->
+            absolute [ slug, "groups", id ] []
 
-                NewGroup slug ->
-                    [ slug, "groups", "new" ]
+        NewGroup slug ->
+            absolute [ slug, "groups", "new" ] []
 
-                Post slug id ->
-                    [ slug, "posts", id ]
+        Post slug id ->
+            absolute [ slug, "posts", id ] []
 
-                UserSettings ->
-                    [ "user", "settings" ]
+        UserSettings ->
+            absolute [ "user", "settings" ] []
 
-                SpaceSettings slug ->
-                    [ slug, "settings" ]
-    in
-    "/" ++ String.join "/" pieces
+        SpaceSettings slug ->
+            absolute [ slug, "settings" ] []
 
 
 
@@ -113,17 +110,17 @@ routeToString page =
 
 href : Route -> Attribute msg
 href route =
-    Attr.href (routeToString route)
+    Attr.href (toString route)
 
 
 pushUrl : Nav.Key -> Route -> Cmd msg
 pushUrl key route =
-    Nav.pushUrl key (routeToString route)
+    Nav.pushUrl key (toString route)
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg
 replaceUrl key route =
-    Nav.replaceUrl key (routeToString route)
+    Nav.replaceUrl key (toString route)
 
 
 fromUrl : Url -> Maybe Route
