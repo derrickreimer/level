@@ -48,7 +48,10 @@ document =
             featuredMemberships {
               ...GroupMembershipFields
             }
-            posts(first: 20) {
+            posts(
+              first: 20,
+              orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
+            ) {
               ...PostConnectionFields
               edges {
                 node {

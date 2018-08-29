@@ -213,7 +213,11 @@ defmodule LevelWeb.Schema.Objects do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :post_order
-      resolve &Resolvers.group_posts/3
+
+      @desc "Filter by whether the post has pings for the current user."
+      arg :has_pings, :boolean, default_value: nil
+
+      resolve &Resolvers.posts/3
     end
 
     @desc "A paginated connection of group memberships."

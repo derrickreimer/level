@@ -17,7 +17,6 @@ defmodule Level.Resolvers do
   alias Level.Posts.PostUser
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
-  alias Level.Resolvers.GroupPostConnection
   alias Level.Resolvers.PostConnection
   alias Level.Resolvers.ReplyConnection
   alias Level.Resolvers.SpaceUserConnection
@@ -220,11 +219,15 @@ defmodule Level.Resolvers do
   defp handle_bookmark_fetch(_), do: {:ok, false}
 
   @doc """
-  Fetches posts for which the current user has undismissed mentions.
+  Fetches posts accessible by the current user.
   """
-  @spec posts(Space.t(), map(), info()) :: paginated_result()
+  @spec posts(Space.t() | Group.t(), map(), info()) :: paginated_result()
   def posts(%Space{} = space, args, info) do
     PostConnection.get(space, struct(PostConnection, args), info)
+  end
+
+  def posts(%Group{} = group, args, info) do
+    PostConnection.get(group, struct(PostConnection, args), info)
   end
 
   @doc """

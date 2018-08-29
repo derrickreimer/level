@@ -5,9 +5,11 @@ defmodule Level.Resolvers.PostConnection do
 
   import Ecto.Query, warn: false
 
+  alias Level.Groups.Group
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Posts
+  alias Level.Spaces.Space
 
   defstruct first: nil,
             last: nil,
@@ -32,12 +34,14 @@ defmodule Level.Resolvers.PostConnection do
         }
 
   @doc """
-  Executes a paginated query for a user's mentioned posts.
+  Executes a paginated query for posts.
   """
-  def get(space, args, %{context: %{current_user: user}}) do
+  @spec get(Space.t() | Group.t(), map(), map()) ::
+          {:ok, Pagination.Result.t()} | {:error, String.t()}
+  def get(parent, args, %{context: %{current_user: user}}) do
     base_query =
       user
-      |> build_base_query(space.id)
+      |> build_base_query(parent)
       |> add_ping_conditions(args)
       |> add_activity_conditions(args)
 
@@ -50,9 +54,14 @@ defmodule Level.Resolvers.PostConnection do
     Pagination.fetch_result(query, pagination_args)
   end
 
-  defp build_base_query(user, space_id) do
+  defp build_base_query(user, %Space{id: space_id}) do
     from [p, su, g, gu] in Posts.posts_base_query(user),
       where: p.space_id == ^space_id
+  end
+
+  defp build_base_query(user, %Group{id: group_id}) do
+    from [p, su, g, gu] in Posts.posts_base_query(user),
+      where: g.id == ^group_id
   end
 
   defp process_args(%{order_by: %{field: :posted_at} = order_by} = args) do
