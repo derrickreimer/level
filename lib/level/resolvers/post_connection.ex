@@ -25,7 +25,10 @@ defmodule Level.Resolvers.PostConnection do
           before: String.t() | nil,
           after: String.t() | nil,
           has_pings: boolean() | nil,
-          order_by: %{field: :posted_at | :last_pinged_at, direction: :asc | :desc}
+          order_by: %{
+            field: :posted_at | :last_pinged_at | :last_activity_at,
+            direction: :asc | :desc
+          }
         }
 
   @doc """
@@ -36,6 +39,7 @@ defmodule Level.Resolvers.PostConnection do
       user
       |> build_base_query(space.id)
       |> add_ping_conditions(args)
+      |> add_activity_conditions(args)
 
     pagination_args =
       args
@@ -82,4 +86,13 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp add_ping_conditions(base_query, _), do: base_query
+
+  defp add_activity_conditions(base_query, %{order_by: %{field: :last_activity_at}}) do
+    from [p, su, g, gu] in base_query,
+      left_join: pl in assoc(p, :post_logs),
+      group_by: p.id,
+      select_merge: %{last_activity_at: max(pl.occurred_at)}
+  end
+
+  defp add_activity_conditions(base_query, _), do: base_query
 end

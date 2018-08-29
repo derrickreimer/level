@@ -42,7 +42,7 @@ document =
               }
               posts(
                 first: 10,
-                orderBy: { field: POSTED_AT, direction: DESC }
+                orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
                 edges {

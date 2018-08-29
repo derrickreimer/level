@@ -70,6 +70,7 @@ defmodule LevelWeb.Schema.Enums do
   enum :post_order_field do
     value :posted_at
     value :last_pinged_at
+    value :last_activity_at
   end
 
   enum :reply_order_field do
