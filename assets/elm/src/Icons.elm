@@ -16,16 +16,34 @@ iconView svg =
     Html.div [ Html.Attributes.class "flex items-center" ] [ svg ]
 
 
-arrowLeft : Html msg
-arrowLeft =
+arrowLeft : Toggle -> Html msg
+arrowLeft toggle =
+    let
+        color =
+            case toggle of
+                On ->
+                    "#8a98a5"
+
+                Off ->
+                    "#e2e6e8"
+    in
     iconView <|
-        svg [ width "16px", height "14px", viewBox "0 0 16 14", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
+        svg [ width "16px", height "14px", viewBox "0 0 16 14", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(1.000000, 1.000000)", stroke color, strokeWidth "2" ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
-arrowRight : Html msg
-arrowRight =
+arrowRight : Toggle -> Html msg
+arrowRight toggle =
+    let
+        color =
+            case toggle of
+                On ->
+                    "#8a98a5"
+
+                Off ->
+                    "#e2e6e8"
+    in
     iconView <|
-        svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M0,7 L14,7", id "Shape" ] [], polyline [ id "Shape", points "7 0 14 7 7 14" ] [] ] ] ]
+        svg [ width "16px", height "14px", viewBox "0 0 16 14", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(8.000000, 7.000000) scale(-1, 1) translate(-8.000000, -7.000000) translate(1.000000, 1.000000)", stroke color, strokeWidth "2" ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
 arrowUpRight : Html msg

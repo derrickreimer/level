@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Pagination
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -188,45 +189,9 @@ groupView repo space ( index, group ) =
 
 paginationView : Space -> Connection Group -> Html Msg
 paginationView space connection =
-    let
-        startCursor =
-            Connection.startCursor connection
-
-        endCursor =
-            Connection.endCursor connection
-    in
-    div [ class "flex justify-center p-4" ]
-        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView space startCursor)
-        , viewIf (Connection.hasNextPage connection) (nextButtonView space endCursor)
-        ]
-
-
-prevButtonView : Space -> Maybe String -> Html Msg
-prevButtonView space maybeCursor =
-    case maybeCursor of
-        Just cursor ->
-            let
-                route =
-                    Route.Groups (Route.Groups.Before (Space.getSlug space) cursor)
-            in
-            a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
-
-        Nothing ->
-            text ""
-
-
-nextButtonView : Space -> Maybe String -> Html Msg
-nextButtonView space maybeCursor =
-    case maybeCursor of
-        Just cursor ->
-            let
-                route =
-                    Route.Groups (Route.Groups.After (Space.getSlug space) cursor)
-            in
-            a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
-
-        Nothing ->
-            text ""
+    Pagination.view connection
+        (Route.Groups << Route.Groups.Before (Space.getSlug space))
+        (Route.Groups << Route.Groups.After (Space.getSlug space))
 
 
 

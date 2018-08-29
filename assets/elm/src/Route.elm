@@ -7,6 +7,7 @@ import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Route.Groups
+import Route.Pings
 import Route.SpaceUsers
 import Url exposing (Url)
 import Url.Builder as Builder exposing (absolute)
@@ -24,7 +25,7 @@ type Route
     | SetupCreateGroups String
     | SetupInviteUsers String
     | Posts String
-    | Pings String
+    | Pings Route.Pings.Params
     | SpaceUsers Route.SpaceUsers.Params
     | Groups Route.Groups.Params
     | Group String String
@@ -43,7 +44,7 @@ parser =
         , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
         , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
         , Parser.map Posts (Parser.string </> s "posts")
-        , Parser.map Pings (Parser.string </> s "pings")
+        , Parser.map Pings Route.Pings.parser
         , Parser.map SpaceUsers Route.SpaceUsers.parser
         , Parser.map Groups Route.Groups.parser
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
@@ -52,56 +53,6 @@ parser =
         , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map SpaceSettings (Parser.string </> s "settings")
         ]
-
-
-
--- INTERNAL --
-
-
-toString : Route -> String
-toString page =
-    case page of
-        Spaces ->
-            absolute [ "spaces" ] []
-
-        NewSpace ->
-            absolute [ "spaces", "new" ] []
-
-        Root slug ->
-            absolute [ slug ] []
-
-        SetupCreateGroups slug ->
-            absolute [ slug, "setup", "groups" ] []
-
-        SetupInviteUsers slug ->
-            absolute [ slug, "setup", "invites" ] []
-
-        Posts slug ->
-            absolute [ slug, "posts" ] []
-
-        Pings slug ->
-            absolute [ slug, "pings" ] []
-
-        SpaceUsers params ->
-            Route.SpaceUsers.toString params
-
-        Groups params ->
-            Route.Groups.toString params
-
-        Group slug id ->
-            absolute [ slug, "groups", id ] []
-
-        NewGroup slug ->
-            absolute [ slug, "groups", "new" ] []
-
-        Post slug id ->
-            absolute [ slug, "posts", id ] []
-
-        UserSettings ->
-            absolute [ "user", "settings" ] []
-
-        SpaceSettings slug ->
-            absolute [ slug, "settings" ] []
 
 
 
@@ -136,3 +87,53 @@ toLogin =
 toSpace : String -> Cmd msg
 toSpace slug =
     Nav.load ("/" ++ slug ++ "/")
+
+
+
+-- INTERNAL --
+
+
+toString : Route -> String
+toString page =
+    case page of
+        Spaces ->
+            absolute [ "spaces" ] []
+
+        NewSpace ->
+            absolute [ "spaces", "new" ] []
+
+        Root slug ->
+            absolute [ slug ] []
+
+        SetupCreateGroups slug ->
+            absolute [ slug, "setup", "groups" ] []
+
+        SetupInviteUsers slug ->
+            absolute [ slug, "setup", "invites" ] []
+
+        Posts slug ->
+            absolute [ slug, "posts" ] []
+
+        Pings params ->
+            Route.Pings.toString params
+
+        SpaceUsers params ->
+            Route.SpaceUsers.toString params
+
+        Groups params ->
+            Route.Groups.toString params
+
+        Group slug id ->
+            absolute [ slug, "groups", id ] []
+
+        NewGroup slug ->
+            absolute [ slug, "groups", "new" ] []
+
+        Post slug id ->
+            absolute [ slug, "posts", id ] []
+
+        UserSettings ->
+            absolute [ "user", "settings" ] []
+
+        SpaceSettings slug ->
+            absolute [ slug, "settings" ] []

@@ -26,6 +26,7 @@ import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
+import Route.Pings
 import Session exposing (Session)
 import Socket
 import Space exposing (Space)
@@ -377,7 +378,7 @@ navigateTo maybeRoute model =
             ( { model | page = NotFound }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
-            navigateTo (Just <| Route.Pings spaceSlug) model
+            navigateTo (Just <| Route.Pings (Route.Pings.Root spaceSlug)) model
 
         Just (Route.SetupCreateGroups spaceSlug) ->
             model.session
@@ -404,9 +405,9 @@ navigateTo maybeRoute model =
                 |> Page.Posts.init spaceSlug
                 |> transition model PostsInit
 
-        Just (Route.Pings spaceSlug) ->
+        Just (Route.Pings params) ->
             model.session
-                |> Page.Pings.init spaceSlug
+                |> Page.Pings.init params
                 |> transition model PingsInit
 
         Just (Route.SpaceUsers params) ->
@@ -695,7 +696,7 @@ routeFor page =
             Just <| Route.Posts (Space.getSlug space)
 
         Pings { space } ->
-            Just <| Route.Pings (Space.getSlug space)
+            Just <| Route.Pings (Route.Pings.Root (Space.getSlug space))
 
         SetupCreateGroups { space } ->
             Just <| Route.SetupCreateGroups (Space.getSlug space)

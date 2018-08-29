@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -174,47 +175,11 @@ userView repo ( index, spaceUser ) =
         ]
 
 
-paginationView : Space -> Connection SpaceUser -> Html Msg
+paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
-    let
-        startCursor =
-            Connection.startCursor connection
-
-        endCursor =
-            Connection.endCursor connection
-    in
-    div [ class "flex justify-center p-4" ]
-        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView space startCursor)
-        , viewIf (Connection.hasNextPage connection) (nextButtonView space endCursor)
-        ]
-
-
-prevButtonView : Space -> Maybe String -> Html Msg
-prevButtonView space maybeCursor =
-    case maybeCursor of
-        Just cursor ->
-            let
-                route =
-                    Route.SpaceUsers (Route.SpaceUsers.Before (Space.getSlug space) cursor)
-            in
-            a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
-
-        Nothing ->
-            text ""
-
-
-nextButtonView : Space -> Maybe String -> Html Msg
-nextButtonView space maybeCursor =
-    case maybeCursor of
-        Just cursor ->
-            let
-                route =
-                    Route.SpaceUsers (Route.SpaceUsers.After (Space.getSlug space) cursor)
-            in
-            a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
-
-        Nothing ->
-            text ""
+    Pagination.view connection
+        (Route.SpaceUsers << Route.SpaceUsers.Before (Space.getSlug space))
+        (Route.SpaceUsers << Route.SpaceUsers.After (Space.getSlug space))
 
 
 

@@ -14,11 +14,13 @@ import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissMentions as DismissMentions
+import Pagination
 import Post exposing (Post)
 import Query.PingsInit as PingsInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Pings
 import Route.SpaceUsers
 import Session exposing (Session)
 import Space exposing (Space)
@@ -57,10 +59,10 @@ title =
 -- LIFECYCLE
 
 
-init : String -> Session -> Task Session.Error ( Session, Model )
-init spaceSlug session =
+init : Route.Pings.Params -> Session -> Task Session.Error ( Session, Model )
+init params session =
     session
-        |> PingsInit.request spaceSlug
+        |> PingsInit.request params
         |> TaskHelpers.andThenGetCurrentTime
         |> Task.andThen buildModel
 
@@ -257,7 +259,15 @@ controlsView model =
     div [ class "flex flex-grow justify-end" ]
         [ viewIf (arePostsSelected model.posts) <|
             button [ class "btn btn-xs btn-turquoise-outline", onClick DismissMentionsClicked ] [ text "Dismiss Selected" ]
+        , paginationView model.space model.posts
         ]
+
+
+paginationView : Space -> Connection a -> Html Msg
+paginationView space connection =
+    Pagination.view connection
+        (Route.Pings << Route.Pings.Before (Space.getSlug space))
+        (Route.Pings << Route.Pings.After (Space.getSlug space))
 
 
 postsView : Repo -> Model -> Html Msg

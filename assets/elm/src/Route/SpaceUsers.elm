@@ -1,7 +1,7 @@
 module Route.SpaceUsers exposing (Params(..), parser, toString)
 
 import Url.Builder as Builder exposing (absolute)
-import Url.Parser as Parser exposing ((</>), Parser, oneOf, s)
+import Url.Parser as Parser exposing ((</>), Parser, map, oneOf, s, string)
 
 
 type Params
@@ -13,9 +13,9 @@ type Params
 parser : Parser (Params -> a) a
 parser =
     oneOf
-        [ Parser.map Root (Parser.string </> s "users")
-        , Parser.map After (Parser.string </> s "users" </> s "after" </> Parser.string)
-        , Parser.map Before (Parser.string </> s "users" </> s "before" </> Parser.string)
+        [ map Root (string </> s "users")
+        , map After (string </> s "users" </> s "after" </> string)
+        , map Before (string </> s "users" </> s "before" </> string)
         ]
 
 
