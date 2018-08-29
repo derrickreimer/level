@@ -1,11 +1,14 @@
-module Query.SpaceUsersInit exposing (Response, request)
+module Query.PostsInit exposing (Response, request)
 
+import Component.Post
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
-import Route.SpaceUsers exposing (Params(..))
+import Post exposing (Post)
+import Reply exposing (Reply)
+import Route.Posts exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -16,16 +19,17 @@ type alias Response =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , spaceUsers : Connection SpaceUser
+    , featuredUsers : List SpaceUser
+    , posts : Connection Component.Post.Model
     }
 
 
-document : Params -> Document
-document params =
+document : Document
+document =
     GraphQL.toDocument
         """
-        query SpaceUsersInit(
-          $spaceSlug: ID!,
+        query PostsInit(
+          $spaceSlug: String!,
           $first: Int,
           $last: Int,
           $before: Cursor,
@@ -33,20 +37,30 @@ document params =
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
+            bookmarks {
+              ...GroupFields
+            }
             space {
               ...SpaceFields
-              spaceUsers(
+              featuredUsers {
+                ...SpaceUserFields
+              }
+              posts(
                 first: $first,
                 last: $last,
                 before: $before,
                 after: $after,
-                orderBy: { field: LAST_NAME, direction: ASC }
+                orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
-                ...SpaceUserConnectionFields
+                ...PostConnectionFields
+                edges {
+                  node {
+                    replies(last: 5) {
+                      ...ReplyConnectionFields
+                    }
+                  }
+                }
               }
-            }
-            bookmarks {
-              ...GroupFields
             }
           }
         }
@@ -54,30 +68,31 @@ document params =
         [ SpaceUser.fragment
         , Space.fragment
         , Group.fragment
-        , Connection.fragment "SpaceUserConnection" SpaceUser.fragment
+        , Connection.fragment "PostConnection" Post.fragment
+        , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 
-variables : Params -> Int -> Maybe Encode.Value
-variables params limit =
+variables : Params -> Maybe Encode.Value
+variables params =
     let
         values =
             case params of
                 Root spaceSlug ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int limit )
+                    , ( "first", Encode.int 20 )
                     ]
 
                 After spaceSlug cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "first", Encode.int 20 )
                     , ( "after", Encode.string cursor )
-                    , ( "first", Encode.int limit )
                     ]
 
                 Before spaceSlug cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "last", Encode.int 20 )
                     , ( "before", Encode.string cursor )
-                    , ( "last", Encode.int limit )
                     ]
     in
     Just (Encode.object values)
@@ -86,14 +101,15 @@ variables params limit =
 decoder : Decoder Response
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map4 Response
+        Decode.map5 Response
             SpaceUser.decoder
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
-            (Decode.at [ "space", "spaceUsers" ] (Connection.decoder SpaceUser.decoder))
+            (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
+            (Decode.at [ "space", "posts" ] <| Connection.decoder (Component.Post.decoder Component.Post.Feed True))
 
 
-request : Params -> Int -> Session -> Task Session.Error ( Session, Response )
-request params limit session =
+request : Params -> Session -> Task Session.Error ( Session, Response )
+request params session =
     Session.request session <|
-        GraphQL.request (document params) (variables params limit) decoder
+        GraphQL.request document (variables params) decoder

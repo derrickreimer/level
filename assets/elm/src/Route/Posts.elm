@@ -1,4 +1,4 @@
-module Route.Groups exposing (Params(..), parser, toString)
+module Route.Posts exposing (Params(..), parser, toString)
 
 import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, map, oneOf, s, string)
@@ -13,9 +13,9 @@ type Params
 parser : Parser (Params -> a) a
 parser =
     oneOf
-        [ map Root (string </> s "groups")
-        , map After (string </> s "groups" </> s "after" </> string)
-        , map Before (string </> s "groups" </> s "before" </> string)
+        [ map Root (string </> s "posts")
+        , map After (string </> s "posts" </> s "after" </> string)
+        , map Before (string </> s "posts" </> s "before" </> string)
         ]
 
 
@@ -23,10 +23,10 @@ toString : Params -> String
 toString params =
     case params of
         Root slug ->
-            absolute [ slug, "groups" ] []
+            absolute [ slug, "posts" ] []
 
         After slug cursor ->
-            absolute [ slug, "groups", "after", cursor ] []
+            absolute [ slug, "posts", "after", cursor ] []
 
         Before slug cursor ->
-            absolute [ slug, "groups", "before", cursor ] []
+            absolute [ slug, "posts", "before", cursor ] []

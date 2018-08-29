@@ -1,4 +1,4 @@
-module Page.Pings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Posts exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
 import Component.Post
@@ -13,14 +13,13 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.DismissMentions as DismissMentions
 import Pagination
 import Post exposing (Post)
-import Query.PingsInit as PingsInit
+import Query.PostsInit as PostsInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.Pings exposing (Params(..))
+import Route.Posts exposing (Params(..))
 import Route.SpaceUsers
 import Session exposing (Session)
 import Space exposing (Space)
@@ -53,7 +52,7 @@ type alias Model =
 
 title : String
 title =
-    "Pings"
+    "Activity"
 
 
 
@@ -63,12 +62,12 @@ title =
 init : Params -> Session -> Task Session.Error ( Session, Model )
 init params session =
     session
-        |> PingsInit.request params
+        |> PostsInit.request params
         |> TaskHelpers.andThenGetCurrentTime
         |> Task.andThen (buildModel params)
 
 
-buildModel : Params -> ( ( Session, PingsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel : Params -> ( ( Session, PostsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
 buildModel params ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
     Task.succeed ( session, Model params viewer space bookmarks featuredUsers posts now )
 
@@ -105,8 +104,6 @@ type Msg
     = Tick Posix
     | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
-    | DismissMentionsClicked
-    | MentionsDismissed (Result Session.Error ( Session, DismissMentions.Response ))
     | NoOp
 
 
@@ -135,27 +132,6 @@ update msg session model =
 
                 Nothing ->
                     noCmd session model
-
-        DismissMentionsClicked ->
-            let
-                postIds =
-                    model.posts
-                        |> filterBySelected
-                        |> List.map .id
-
-                cmd =
-                    session
-                        |> DismissMentions.request (Space.getId model.space) postIds
-                        |> Task.attempt MentionsDismissed
-            in
-            if List.isEmpty postIds then
-                noCmd session model
-
-            else
-                ( ( model, cmd ), session )
-
-        MentionsDismissed _ ->
-            noCmd session model
 
         NoOp ->
             noCmd session model
@@ -197,20 +173,6 @@ consumeEvent event model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        Event.MentionsDismissed post ->
-            let
-                postId =
-                    Post.getId post
-            in
-            case Connection.get .id postId model.posts of
-                Just component ->
-                    ( { model | posts = Connection.remove .id postId model.posts }
-                    , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component)
-                    )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
         _ ->
             ( model, Cmd.none )
 
@@ -223,9 +185,6 @@ subscriptions : Sub Msg
 subscriptions =
     Sub.batch
         [ every 1000 Tick
-        , KeyboardShortcuts.subscribe
-            [ ( "y", DismissMentionsClicked )
-            ]
         ]
 
 
@@ -244,7 +203,7 @@ view repo maybeCurrentRoute model =
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Pings" ]
+                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]
                         , controlsView model
                         ]
                     ]
@@ -258,32 +217,15 @@ view repo maybeCurrentRoute model =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ selectionControlsView model.posts
-        , paginationView model.space model.posts
+        [ paginationView model.space model.posts
         ]
-
-
-selectionControlsView : Connection Component.Post.Model -> Html Msg
-selectionControlsView posts =
-    let
-        selectedPosts =
-            filterBySelected posts
-    in
-    if List.isEmpty selectedPosts then
-        text ""
-
-    else
-        div []
-            [ selectedLabel selectedPosts
-            , button [ class "mr-4 btn btn-xs btn-blue", onClick DismissMentionsClicked ] [ text "Dismiss" ]
-            ]
 
 
 paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
     Pagination.view connection
-        (Route.Pings << Before (Space.getSlug space))
-        (Route.Pings << After (Space.getSlug space))
+        (Route.Posts << Before (Space.getSlug space))
+        (Route.Posts << After (Space.getSlug space))
 
 
 postsView : Repo -> Model -> Html Msg
@@ -301,7 +243,7 @@ postView : Repo -> Model -> Component.Post.Model -> Html Msg
 postView repo model component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.checkableView repo model.space model.viewer model.now
+            |> Component.Post.view repo model.space model.viewer model.now
             |> Html.map (PostComponentMsg component.id)
         ]
 
@@ -337,36 +279,3 @@ userItemView repo user =
         [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
         ]
-
-
-
--- INTERNAL
-
-
-filterBySelected : Connection Component.Post.Model -> List Component.Post.Model
-filterBySelected posts =
-    posts
-        |> Connection.toList
-        |> List.filter .isChecked
-
-
-selectedLabel : List a -> Html Msg
-selectedLabel list =
-    let
-        count =
-            ListHelpers.size list
-
-        target =
-            pluralize count "post" "posts"
-    in
-    span [ class "mr-2 text-sm text-dusty-blue" ]
-        [ text <| String.fromInt count ++ " " ++ target ++ " selected" ]
-
-
-pluralize : Int -> String -> String -> String
-pluralize count singular plural =
-    if count == 1 then
-        singular
-
-    else
-        plural

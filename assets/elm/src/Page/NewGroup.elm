@@ -11,6 +11,7 @@ import Mutation.CreateGroup as CreateGroup
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Group
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -112,7 +113,7 @@ update msg session navKey model =
         Submitted (Ok ( newSession, CreateGroup.Success group )) ->
             let
                 redirectTo =
-                    Route.Group (Space.getSlug model.space) (Group.getId group)
+                    Route.Group (Route.Group.Root (Space.getSlug model.space) (Group.getId group))
             in
             ( ( model, Route.pushUrl navKey redirectTo ), newSession )
 

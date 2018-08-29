@@ -8,7 +8,10 @@ import Icons
 import Lazy exposing (Lazy(..))
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Group
 import Route.Groups
+import Route.Pings
+import Route.Posts
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
@@ -89,8 +92,8 @@ spaceSidebar repo viewer space bookmarks maybeCurrentRoute =
                 , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ spaceSidebarLink space "Pings" (Just <| Route.Pings slug) maybeCurrentRoute
-                , spaceSidebarLink space "Everything" Nothing maybeCurrentRoute
+                [ spaceSidebarLink space "Pings" (Just <| Route.Pings (Route.Pings.Root slug)) maybeCurrentRoute
+                , spaceSidebarLink space "Activity" (Just <| Route.Posts (Route.Posts.Root slug)) maybeCurrentRoute
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]
             , groupLinks repo space bookmarks maybeCurrentRoute
@@ -115,7 +118,7 @@ groupLinks repo space groups maybeCurrentRoute =
             Space.getSlug space
 
         linkify group =
-            spaceSidebarLink space group.name (Just <| Route.Group slug group.id) maybeCurrentRoute
+            spaceSidebarLink space group.name (Just <| Route.Group (Route.Group.Root slug group.id)) maybeCurrentRoute
 
         links =
             groups

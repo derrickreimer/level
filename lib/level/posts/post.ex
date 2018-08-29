@@ -9,6 +9,7 @@ defmodule Level.Posts.Post do
 
   alias Level.Groups.Group
   alias Level.Mentions.UserMention
+  alias Level.Posts.PostLog
   alias Level.Posts.PostGroup
   alias Level.Posts.Reply
   alias Level.Spaces.Space
@@ -27,13 +28,11 @@ defmodule Level.Posts.Post do
     many_to_many :groups, Group, join_through: PostGroup
     has_many :replies, Reply
     has_many :user_mentions, UserMention
-
-    # Holds the subscription state for the current user.
-    # This is populated automatically by the posts_base_query.
-    field :subscription_state, :string, virtual: true
+    has_many :post_logs, PostLog
 
     # Used for paginating
     field :last_pinged_at, :naive_datetime, virtual: true
+    field :last_activity_at, :naive_datetime, virtual: true
 
     timestamps()
   end

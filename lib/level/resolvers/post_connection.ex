@@ -5,9 +5,11 @@ defmodule Level.Resolvers.PostConnection do
 
   import Ecto.Query, warn: false
 
+  alias Level.Groups.Group
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Posts
+  alias Level.Spaces.Space
 
   defstruct first: nil,
             last: nil,
@@ -25,17 +27,23 @@ defmodule Level.Resolvers.PostConnection do
           before: String.t() | nil,
           after: String.t() | nil,
           has_pings: boolean() | nil,
-          order_by: %{field: :posted_at | :last_pinged_at, direction: :asc | :desc}
+          order_by: %{
+            field: :posted_at | :last_pinged_at | :last_activity_at,
+            direction: :asc | :desc
+          }
         }
 
   @doc """
-  Executes a paginated query for a user's mentioned posts.
+  Executes a paginated query for posts.
   """
-  def get(space, args, %{context: %{current_user: user}}) do
+  @spec get(Space.t() | Group.t(), map(), map()) ::
+          {:ok, Pagination.Result.t()} | {:error, String.t()}
+  def get(parent, args, %{context: %{current_user: user}}) do
     base_query =
       user
-      |> build_base_query(space.id)
+      |> build_base_query(parent)
       |> add_ping_conditions(args)
+      |> add_activity_conditions(args)
 
     pagination_args =
       args
@@ -46,9 +54,14 @@ defmodule Level.Resolvers.PostConnection do
     Pagination.fetch_result(query, pagination_args)
   end
 
-  defp build_base_query(user, space_id) do
+  defp build_base_query(user, %Space{id: space_id}) do
     from [p, su, g, gu] in Posts.posts_base_query(user),
       where: p.space_id == ^space_id
+  end
+
+  defp build_base_query(user, %Group{id: group_id}) do
+    from [p, su, g, gu] in Posts.posts_base_query(user),
+      where: g.id == ^group_id
   end
 
   defp process_args(%{order_by: %{field: :posted_at} = order_by} = args) do
@@ -82,4 +95,13 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp add_ping_conditions(base_query, _), do: base_query
+
+  defp add_activity_conditions(base_query, %{order_by: %{field: :last_activity_at}}) do
+    from [p, su, g, gu] in base_query,
+      left_join: pl in assoc(p, :post_logs),
+      group_by: p.id,
+      select_merge: %{last_activity_at: max(pl.occurred_at)}
+  end
+
+  defp add_activity_conditions(base_query, _), do: base_query
 end

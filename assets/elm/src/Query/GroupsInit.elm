@@ -22,7 +22,34 @@ type alias Response =
 
 document : Params -> Document
 document params =
-    GraphQL.toDocument (documentBody params)
+    GraphQL.toDocument
+        """
+        query GroupsInit(
+          $spaceSlug: String!,
+          $first: Int,
+          $last: Int,
+          $before: Cursor,
+          $after: Cursor
+        ) {
+          spaceUser(spaceSlug: $spaceSlug) {
+            ...SpaceUserFields
+            space {
+              ...SpaceFields
+              groups(
+                first: $first,
+                last: $last,
+                before: $before,
+                after: $after
+              ) {
+                ...GroupConnectionFields
+              }
+            }
+            bookmarks {
+              ...GroupFields
+            }
+          }
+        }
+        """
         [ SpaceUser.fragment
         , Space.fragment
         , Group.fragment
@@ -30,99 +57,29 @@ document params =
         ]
 
 
-documentBody : Params -> String
-documentBody params =
-    case params of
-        Root _ ->
-            """
-            query GroupsInit(
-              $spaceSlug: String!,
-              $limit: Int!
-            ) {
-              spaceUser(spaceSlug: $spaceSlug) {
-                ...SpaceUserFields
-                space {
-                  ...SpaceFields
-                  groups(first: $limit) {
-                    ...GroupConnectionFields
-                  }
-                }
-                bookmarks {
-                  ...GroupFields
-                }
-              }
-            }
-            """
-
-        After _ cursor ->
-            """
-            query GroupsInit(
-              $spaceSlug: String!,
-              $cursor: Cursor!,
-              $limit: Int!
-            ) {
-              spaceUser(spaceSlug: $spaceSlug) {
-                ...SpaceUserFields
-                space {
-                  ...SpaceFields
-                  groups(first: $limit, after: $cursor) {
-                    ...GroupConnectionFields
-                  }
-                }
-                bookmarks {
-                  ...GroupFields
-                }
-              }
-            }
-            """
-
-        Before _ cursor ->
-            """
-            query GroupsInit(
-              $spaceSlug: String!,
-              $cursor: Cursor!,
-              $limit: Int!
-            ) {
-              spaceUser(spaceSlug: $spaceSlug) {
-                ...SpaceUserFields
-                space {
-                  ...SpaceFields
-                  groups(last: $limit, before: $cursor) {
-                    ...GroupConnectionFields
-                  }
-                }
-                bookmarks {
-                  ...GroupFields
-                }
-              }
-            }
-            """
-
-
 variables : Params -> Int -> Maybe Encode.Value
 variables params limit =
     let
-        paramVariables =
+        values =
             case params of
+                Root spaceSlug ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "first", Encode.int limit )
+                    ]
+
                 After spaceSlug cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "cursor", Encode.string cursor )
-                    , ( "limit", Encode.int limit )
+                    , ( "after", Encode.string cursor )
+                    , ( "first", Encode.int limit )
                     ]
 
                 Before spaceSlug cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "cursor", Encode.string cursor )
-                    , ( "limit", Encode.int limit )
-                    ]
-
-                Root spaceSlug ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "limit", Encode.int limit )
+                    , ( "before", Encode.string cursor )
+                    , ( "last", Encode.int limit )
                     ]
     in
-    Just <|
-        Encode.object paramVariables
+    Just (Encode.object values)
 
 
 decoder : Decoder Response

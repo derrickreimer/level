@@ -15,6 +15,7 @@ import Page.NewGroup
 import Page.NewSpace
 import Page.Pings
 import Page.Post
+import Page.Posts
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceSettings
@@ -25,6 +26,7 @@ import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
+import Route.Pings
 import Session exposing (Session)
 import Socket
 import Space exposing (Space)
@@ -124,6 +126,7 @@ type Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
     | SpacesMsg Page.Spaces.Msg
     | NewSpaceMsg Page.NewSpace.Msg
+    | PostsMsg Page.Posts.Msg
     | PingsMsg Page.Pings.Msg
     | SpaceUsersMsg Page.SpaceUsers.Msg
     | GroupsMsg Page.Groups.Msg
@@ -191,6 +194,11 @@ update msg model =
             pageModel
                 |> Page.NewSpace.update pageMsg model.session model.navKey
                 |> updatePage NewSpace NewSpaceMsg model
+
+        ( PostsMsg pageMsg, Posts pageModel ) ->
+            pageModel
+                |> Page.Posts.update pageMsg model.session
+                |> updatePage Posts PostsMsg model
 
         ( PingsMsg pageMsg, Pings pageModel ) ->
             pageModel
@@ -326,6 +334,7 @@ type Page
     | NewSpace Page.NewSpace.Model
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
+    | Posts Page.Posts.Model
     | Pings Page.Pings.Model
     | SpaceUsers Page.SpaceUsers.Model
     | Groups Page.Groups.Model
@@ -339,10 +348,11 @@ type Page
 type PageInit
     = SpacesInit (Result Session.Error ( Session, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Session, Page.NewSpace.Model ))
+    | PostsInit (Result Session.Error ( Session, Page.Posts.Model ))
     | PingsInit (Result Session.Error ( Session, Page.Pings.Model ))
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
-    | GroupInit String (Result Session.Error ( Session, Page.Group.Model ))
+    | GroupInit (Result Session.Error ( Session, Page.Group.Model ))
     | NewGroupInit (Result Session.Error ( Session, Page.NewGroup.Model ))
     | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
@@ -368,7 +378,7 @@ navigateTo maybeRoute model =
             ( { model | page = NotFound }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
-            navigateTo (Just <| Route.Pings spaceSlug) model
+            navigateTo (Just <| Route.Pings (Route.Pings.Root spaceSlug)) model
 
         Just (Route.SetupCreateGroups spaceSlug) ->
             model.session
@@ -390,9 +400,14 @@ navigateTo maybeRoute model =
                 |> Page.NewSpace.init
                 |> transition model NewSpaceInit
 
-        Just (Route.Pings spaceSlug) ->
+        Just (Route.Posts params) ->
             model.session
-                |> Page.Pings.init spaceSlug
+                |> Page.Posts.init params
+                |> transition model PostsInit
+
+        Just (Route.Pings params) ->
+            model.session
+                |> Page.Pings.init params
                 |> transition model PingsInit
 
         Just (Route.SpaceUsers params) ->
@@ -405,10 +420,10 @@ navigateTo maybeRoute model =
                 |> Page.Groups.init params
                 |> transition model GroupsInit
 
-        Just (Route.Group spaceSlug groupId) ->
+        Just (Route.Group params) ->
             model.session
-                |> Page.Group.init spaceSlug groupId
-                |> transition model (GroupInit groupId)
+                |> Page.Group.init params
+                |> transition model GroupInit
 
         Just (Route.NewGroup spaceSlug) ->
             model.session
@@ -439,6 +454,9 @@ pageTitle repo page =
 
         NewSpace _ ->
             Page.NewSpace.title
+
+        Posts _ ->
+            Page.Posts.title
 
         Pings _ ->
             Page.Pings.title
@@ -517,6 +535,15 @@ setupPage pageInit model =
         PingsInit (Err _) ->
             ( model, Cmd.none )
 
+        PostsInit (Ok result) ->
+            perform Page.Posts.setup Posts PostsMsg model result
+
+        PostsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        PostsInit (Err _) ->
+            ( model, Cmd.none )
+
         SpaceUsersInit (Ok result) ->
             perform Page.SpaceUsers.setup SpaceUsers SpaceUsersMsg model result
 
@@ -535,13 +562,13 @@ setupPage pageInit model =
         GroupsInit (Err _) ->
             ( model, Cmd.none )
 
-        GroupInit _ (Ok result) ->
+        GroupInit (Ok result) ->
             perform Page.Group.setup Group GroupMsg model result
 
-        GroupInit _ (Err Session.Expired) ->
+        GroupInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
-        GroupInit _ (Err _) ->
+        GroupInit (Err _) ->
             ( model, Cmd.none )
 
         NewGroupInit (Ok result) ->
@@ -634,6 +661,9 @@ pageSubscription page =
         NewSpace _ ->
             Sub.map NewSpaceMsg Page.NewSpace.subscriptions
 
+        Posts _ ->
+            Sub.map PostsMsg Page.Posts.subscriptions
+
         Pings _ ->
             Sub.map PingsMsg Page.Pings.subscriptions
 
@@ -662,8 +692,11 @@ routeFor page =
         NewSpace _ ->
             Just Route.NewSpace
 
-        Pings { space } ->
-            Just <| Route.Pings (Space.getSlug space)
+        Posts { params } ->
+            Just <| Route.Posts params
+
+        Pings { params } ->
+            Just <| Route.Pings params
 
         SetupCreateGroups { space } ->
             Just <| Route.SetupCreateGroups (Space.getSlug space)
@@ -677,8 +710,8 @@ routeFor page =
         Groups { params } ->
             Just <| Route.Groups params
 
-        Group { space, group } ->
-            Just <| Route.Group (Space.getSlug space) (Group.getId group)
+        Group { params } ->
+            Just <| Route.Group params
 
         NewGroup { space } ->
             Just <| Route.NewGroup (Space.getSlug space)
@@ -721,6 +754,11 @@ pageView repo page =
             pageModel
                 |> Page.Setup.InviteUsers.view repo (routeFor page)
                 |> Html.map SetupInviteUsersMsg
+
+        Posts pageModel ->
+            pageModel
+                |> Page.Posts.view repo (routeFor page)
+                |> Html.map PostsMsg
 
         Pings pageModel ->
             pageModel
@@ -847,6 +885,11 @@ sendEventToPage event model =
             pageModel
                 |> Page.Setup.InviteUsers.consumeEvent event
                 |> updateWith SetupInviteUsers SetupInviteUsersMsg
+
+        Posts pageModel ->
+            pageModel
+                |> Page.Posts.consumeEvent event
+                |> updateWith Posts PostsMsg
 
         Pings pageModel ->
             pageModel

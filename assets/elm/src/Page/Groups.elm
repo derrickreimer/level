@@ -8,10 +8,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Pagination
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.Groups
+import Route.Group
+import Route.Groups exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -30,7 +32,7 @@ type alias Model =
     , space : Space
     , bookmarks : List Group
     , groups : Connection Group
-    , params : Route.Groups.Params
+    , params : Params
     }
 
 
@@ -51,14 +53,14 @@ title =
 -- LIFECYCLE
 
 
-init : Route.Groups.Params -> Session -> Task Session.Error ( Session, Model )
+init : Params -> Session -> Task Session.Error ( Session, Model )
 init params session =
     session
         |> GroupsInit.request params 20
         |> Task.andThen (buildModel params)
 
 
-buildModel : Route.Groups.Params -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
+buildModel : Params -> ( Session, GroupsInit.Response ) -> Task Session.Error ( Session, Model )
 buildModel params ( session, { viewer, space, bookmarks, groups } ) =
     Task.succeed ( session, Model viewer space bookmarks groups params )
 
@@ -173,7 +175,7 @@ groupView repo space ( index, group ) =
     in
     div []
         [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
-            [ a [ Route.href (Route.Group (Space.getSlug space) groupData.id), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
+            [ a [ Route.href (Route.Group (Route.Group.Root (Space.getSlug space) groupData.id)), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
             , viewIf (groupData.membershipState == Subscribed) <|
                 div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
             , div [ class "flex-0" ]
@@ -188,45 +190,11 @@ groupView repo space ( index, group ) =
 
 paginationView : Space -> Connection Group -> Html Msg
 paginationView space connection =
-    let
-        startCursor =
-            Connection.startCursor connection
-
-        endCursor =
-            Connection.endCursor connection
-    in
-    div [ class "flex justify-center p-4" ]
-        [ viewIf (Connection.hasPreviousPage connection) (prevButtonView space startCursor)
-        , viewIf (Connection.hasNextPage connection) (nextButtonView space endCursor)
+    div [ class "py-4" ]
+        [ Pagination.view connection
+            (Route.Groups << Before (Space.getSlug space))
+            (Route.Groups << After (Space.getSlug space))
         ]
-
-
-prevButtonView : Space -> Maybe String -> Html Msg
-prevButtonView space maybeCursor =
-    case maybeCursor of
-        Just cursor ->
-            let
-                route =
-                    Route.Groups (Route.Groups.Before (Space.getSlug space) cursor)
-            in
-            a [ Route.href route, class "mx-4" ] [ Icons.arrowLeft ]
-
-        Nothing ->
-            text ""
-
-
-nextButtonView : Space -> Maybe String -> Html Msg
-nextButtonView space maybeCursor =
-    case maybeCursor of
-        Just cursor ->
-            let
-                route =
-                    Route.Groups (Route.Groups.After (Space.getSlug space) cursor)
-            in
-            a [ Route.href route, class "mx-4" ] [ Icons.arrowRight ]
-
-        Nothing ->
-            text ""
 
 
 
