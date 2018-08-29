@@ -251,7 +251,7 @@ body {
 }
 
 .user-mention.is-viewer {
-  @apply .bg-yellow-lighter .text-orange .p-1 .rounded;
+  /* @apply .bg-yellow-lighter .text-orange .p-1 .rounded; */
 }
 
 /**
