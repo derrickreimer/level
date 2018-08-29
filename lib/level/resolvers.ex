@@ -152,14 +152,6 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches posts within a given group.
-  """
-  @spec group_posts(Group.t(), map(), info()) :: paginated_result()
-  def group_posts(%Group{} = group, args, info) do
-    GroupPostConnection.get(group, struct(GroupPostConnection, args), info)
-  end
-
-  @doc """
   Fetches replies to a given post.
   """
   @spec replies(Post.t(), map(), info()) :: paginated_result()
