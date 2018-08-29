@@ -14,7 +14,7 @@ import View.Helpers exposing (viewIf)
 
 view : Connection a -> (String -> Route) -> (String -> Route) -> Html msg
 view conn toPrev toNext =
-    div [ class "flex justify-center" ]
+    div [ class "flex justify-center items-center" ]
         [ prevButton toPrev (hasPreviousPage conn) (startCursor conn)
         , nextButton toNext (hasNextPage conn) (endCursor conn)
         ]

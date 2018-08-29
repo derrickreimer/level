@@ -177,9 +177,11 @@ userView repo ( index, spaceUser ) =
 
 paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
-    Pagination.view connection
-        (Route.SpaceUsers << Route.SpaceUsers.Before (Space.getSlug space))
-        (Route.SpaceUsers << Route.SpaceUsers.After (Space.getSlug space))
+    div [ class "py-4" ]
+        [ Pagination.view connection
+            (Route.SpaceUsers << Route.SpaceUsers.Before (Space.getSlug space))
+            (Route.SpaceUsers << Route.SpaceUsers.After (Space.getSlug space))
+        ]
 
 
 

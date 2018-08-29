@@ -238,8 +238,7 @@ sidebarView repo space featuredUsers =
                 [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.Root (Space.getSlug space))
                 , class "flex items-center text-dusty-blue-darkest no-underline"
                 ]
-                [ span [ class "mr-2" ] [ text "Directory" ]
-                , Icons.arrowUpRight
+                [ text "Directory"
                 ]
             ]
         , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers

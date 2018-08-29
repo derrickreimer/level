@@ -139,7 +139,7 @@ update msg session model =
             let
                 postIds =
                     model.posts
-                        |> selectedPosts
+                        |> filterBySelected
                         |> List.map .id
 
                 cmd =
@@ -257,10 +257,25 @@ view repo maybeCurrentRoute model =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ viewIf (arePostsSelected model.posts) <|
-            button [ class "btn btn-xs btn-turquoise-outline", onClick DismissMentionsClicked ] [ text "Dismiss Selected" ]
+        [ selectionControlsView model.posts
         , paginationView model.space model.posts
         ]
+
+
+selectionControlsView : Connection Component.Post.Model -> Html Msg
+selectionControlsView posts =
+    let
+        selectedPosts =
+            filterBySelected posts
+    in
+    if List.isEmpty selectedPosts then
+        text ""
+
+    else
+        div []
+            [ selectedLabel selectedPosts
+            , button [ class "mr-4 btn btn-xs btn-blue", onClick DismissMentionsClicked ] [ text "Dismiss" ]
+            ]
 
 
 paginationView : Space -> Connection a -> Html Msg
@@ -298,8 +313,7 @@ sidebarView repo space featuredUsers =
                 [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.Root (Space.getSlug space))
                 , class "flex items-center text-dusty-blue-darkest no-underline"
                 ]
-                [ span [ class "mr-2" ] [ text "Directory" ]
-                , Icons.arrowUpRight
+                [ text "Directory"
                 ]
             ]
         , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers
@@ -328,15 +342,30 @@ userItemView repo user =
 -- INTERNAL
 
 
-arePostsSelected : Connection Component.Post.Model -> Bool
-arePostsSelected posts =
-    posts
-        |> Connection.toList
-        |> List.any .isChecked
-
-
-selectedPosts : Connection Component.Post.Model -> List Component.Post.Model
-selectedPosts posts =
+filterBySelected : Connection Component.Post.Model -> List Component.Post.Model
+filterBySelected posts =
     posts
         |> Connection.toList
         |> List.filter .isChecked
+
+
+selectedLabel : List a -> Html Msg
+selectedLabel list =
+    let
+        count =
+            ListHelpers.size list
+
+        target =
+            pluralize count "post" "posts"
+    in
+    span [ class "mr-2 text-sm text-dusty-blue" ]
+        [ text <| String.fromInt count ++ " " ++ target ++ " selected" ]
+
+
+pluralize : Int -> String -> String -> String
+pluralize count singular plural =
+    if count == 1 then
+        singular
+
+    else
+        plural

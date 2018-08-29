@@ -77,29 +77,26 @@ document =
 variables : Params -> Maybe Encode.Value
 variables params =
     let
-        value =
+        values =
             case params of
                 Root spaceSlug ->
-                    Encode.object
-                        [ ( "spaceSlug", Encode.string spaceSlug )
-                        , ( "first", Encode.int 20 )
-                        ]
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "first", Encode.int 20 )
+                    ]
 
                 After spaceSlug cursor ->
-                    Encode.object
-                        [ ( "spaceSlug", Encode.string spaceSlug )
-                        , ( "first", Encode.int 20 )
-                        , ( "after", Encode.string cursor )
-                        ]
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "first", Encode.int 20 )
+                    , ( "after", Encode.string cursor )
+                    ]
 
                 Before spaceSlug cursor ->
-                    Encode.object
-                        [ ( "spaceSlug", Encode.string spaceSlug )
-                        , ( "last", Encode.int 20 )
-                        , ( "before", Encode.string cursor )
-                        ]
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "last", Encode.int 20 )
+                    , ( "before", Encode.string cursor )
+                    ]
     in
-    Just value
+    Just (Encode.object values)
 
 
 decoder : Decoder Response

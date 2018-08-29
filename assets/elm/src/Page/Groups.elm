@@ -189,9 +189,11 @@ groupView repo space ( index, group ) =
 
 paginationView : Space -> Connection Group -> Html Msg
 paginationView space connection =
-    Pagination.view connection
-        (Route.Groups << Route.Groups.Before (Space.getSlug space))
-        (Route.Groups << Route.Groups.After (Space.getSlug space))
+    div [ class "py-4" ]
+        [ Pagination.view connection
+            (Route.Groups << Route.Groups.Before (Space.getSlug space))
+            (Route.Groups << Route.Groups.After (Space.getSlug space))
+        ]
 
 
 

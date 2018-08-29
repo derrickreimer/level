@@ -22,7 +22,35 @@ type alias Response =
 
 document : Params -> Document
 document params =
-    GraphQL.toDocument (documentBody params)
+    GraphQL.toDocument
+        """
+        query SpaceUsersInit(
+          $spaceSlug: ID!,
+          $first: Int,
+          $last: Int,
+          $before: Cursor,
+          $after: Cursor
+        ) {
+          spaceUser(spaceSlug: $spaceSlug) {
+            ...SpaceUserFields
+            space {
+              ...SpaceFields
+              spaceUsers(
+                first: $first,
+                last: $last,
+                before: $before,
+                after: $after,
+                orderBy: { field: LAST_NAME, direction: ASC }
+              ) {
+                ...SpaceUserConnectionFields
+              }
+            }
+            bookmarks {
+              ...GroupFields
+            }
+          }
+        }
+        """
         [ SpaceUser.fragment
         , Space.fragment
         , Group.fragment
@@ -30,110 +58,29 @@ document params =
         ]
 
 
-documentBody : Params -> String
-documentBody params =
-    case params of
-        Root _ ->
-            """
-            query SpaceUsersInit(
-              $spaceSlug: ID!,
-              $limit: Int!
-            ) {
-              spaceUser(spaceSlug: $spaceSlug) {
-                ...SpaceUserFields
-                space {
-                  ...SpaceFields
-                  spaceUsers(
-                    first: $limit,
-                    orderBy: { field: LAST_NAME, direction: ASC }
-                  ) {
-                    ...SpaceUserConnectionFields
-                  }
-                }
-                bookmarks {
-                  ...GroupFields
-                }
-              }
-            }
-            """
-
-        After _ _ ->
-            """
-            query SpaceUsersInit(
-              $spaceSlug: ID!,
-              $cursor: Cursor!,
-              $limit: Int!
-            ) {
-              spaceUser(spaceSlug: $spaceSlug) {
-                ...SpaceUserFields
-                space {
-                  ...SpaceFields
-                  spaceUsers(
-                    first: $limit,
-                    after: $cursor,
-                    orderBy: { field: LAST_NAME, direction: ASC }
-                  ) {
-                    ...SpaceUserConnectionFields
-                  }
-                }
-                bookmarks {
-                  ...GroupFields
-                }
-              }
-            }
-            """
-
-        Before _ _ ->
-            """
-            query SpaceUsersInit(
-              $spaceSlug: ID!,
-              $cursor: Cursor!,
-              $limit: Int!
-            ) {
-              spaceUser(spaceSlug: $spaceSlug) {
-                ...SpaceUserFields
-                space {
-                  ...SpaceFields
-                  spaceUsers(
-                    last: $limit,
-                    before: $cursor,
-                    orderBy: { field: LAST_NAME, direction: ASC }
-                  ) {
-                    ...SpaceUserConnectionFields
-                  }
-                }
-                bookmarks {
-                  ...GroupFields
-                }
-              }
-            }
-            """
-
-
 variables : Params -> Int -> Maybe Encode.Value
 variables params limit =
     let
-        paramVariables =
+        values =
             case params of
+                Root spaceSlug ->
+                    [ ( "spaceSlug", Encode.string spaceSlug )
+                    , ( "first", Encode.int limit )
+                    ]
+
                 After spaceSlug cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "cursor", Encode.string cursor )
-                    , ( "limit", Encode.int limit )
+                    , ( "after", Encode.string cursor )
+                    , ( "first", Encode.int limit )
                     ]
 
                 Before spaceSlug cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "cursor", Encode.string cursor )
-                    , ( "limit", Encode.int limit )
-                    ]
-
-                Root spaceSlug ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "limit", Encode.int limit )
+                    , ( "before", Encode.string cursor )
+                    , ( "last", Encode.int limit )
                     ]
     in
-    Just <|
-        Encode.object paramVariables
+    Just (Encode.object values)
 
 
 decoder : Decoder Response
