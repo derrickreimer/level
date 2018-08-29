@@ -16,7 +16,11 @@ module.exports = (env, argv) => ({
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader'
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env'],
+            babelrc: false
+          }
         }
       },
       {
@@ -60,15 +64,13 @@ module.exports = (env, argv) => ({
             unsafe_comps: true,
             unsafe: true,
             passes: 2
-          },
-          exclude: /custom-elements-native-shim/
+          }
         }
       }),
       new UglifyPlugin({
         uglifyOptions: {
           compress: false,
-          mangle: true,
-          exclude: /custom-elements-native-shim/
+          mangle: true
         }
       })
     ]
