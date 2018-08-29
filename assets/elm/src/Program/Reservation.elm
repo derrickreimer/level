@@ -158,28 +158,15 @@ view model =
                 , p [ class "mb-6" ]
                     [ text "If you don't mind, it would help us a ton if you share this with your followers. Here's a handy pre-populated tweet for you!" ]
                 , a
-                    [ href "https://twitter.com/share?ref_src=twsrc%5Etfw"
-                    , class "twitter-share-button"
-                    , attribute "data-url" "https://level.app"
-                    , attribute "data-size" "large"
-                    , attribute "data-text" "🔥 I just reserved my handle on Level, a distraction-free alternative to Slack designed for software teams."
-                    , attribute "data-related" "PoweredByLevel"
-                    , attribute "data-show-count" "false"
+                    [ href "https://twitter.com/share?text=I%20just%20reserved%20my%20handle%20on%20Level%2C%20a%20calmer%20alternative%20to%20real-time%20chat.&url=https%3A%2F%2Flevel.app"
+                    , target "_blank"
+                    , class "text-blue font-extrabold no-underline"
                     ]
-                    [ text "Tweet" ]
-                , script
-                    [ attribute "async" ""
-                    , src "https://platform.twitter.com/widgets.js"
-                    ]
+                    [ text "Share on Twitter" ]
                 ]
 
         _ ->
             formView model
-
-
-script : List (Attribute msg) -> Html msg
-script attributes =
-    node "script" attributes []
 
 
 formView : Model -> Html Msg
