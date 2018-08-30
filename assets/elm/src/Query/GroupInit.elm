@@ -58,6 +58,7 @@ document =
               last: $last,
               before: $before,
               after: $after,
+              filter: { watching: ALL },
               orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
             ) {
               ...PostConnectionFields

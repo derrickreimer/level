@@ -50,6 +50,7 @@ document =
                 last: $last,
                 before: $before,
                 after: $after,
+                filter: { watching: IS_WATCHING },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields

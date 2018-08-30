@@ -11,6 +11,7 @@ defmodule Level.Posts.Post do
   alias Level.Mentions.UserMention
   alias Level.Posts.PostGroup
   alias Level.Posts.PostLog
+  alias Level.Posts.PostUser
   alias Level.Posts.Reply
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
@@ -29,6 +30,7 @@ defmodule Level.Posts.Post do
     has_many :replies, Reply
     has_many :user_mentions, UserMention
     has_many :post_logs, PostLog
+    has_many :post_users, PostUser
 
     # Used for paginating
     field :last_pinged_at, :naive_datetime, virtual: true

@@ -8,13 +8,20 @@ defmodule LevelWeb.GraphQL.PostsTest do
     query Posts(
       $space_id: ID!,
       $pings: PingFilter,
-      $order_field: PostOrderField!
+      $watching: WatchingFilter,
+      $order_field: PostOrderField
     ) {
       space(id: $space_id) {
         posts(
           first: 2,
-          filter: { pings: $pings },
-          orderBy: { field: $order_field, direction: DESC }
+          filter: {
+            pings: $pings,
+            watching: $watching
+          },
+          orderBy: {
+            field: $order_field,
+            direction: DESC
+          }
         ) {
           edges {
             node {
@@ -100,6 +107,38 @@ defmodule LevelWeb.GraphQL.PostsTest do
       space_id: space_user.space_id,
       pings: "HAS_PINGS",
       order_field: "LAST_PINGED_AT"
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "posts" => %{
+                   "edges" => [],
+                   "total_count" => 0
+                 }
+               }
+             }
+           }
+  end
+
+  test "filtering by 'is watching' excludes posts the user is not watching", %{
+    conn: conn,
+    space: space,
+    space_user: space_user
+  } do
+    # Create a post in a public group that space user can _see_, but is not subscribed to
+    {:ok, %{space_user: another_user}} = create_space_member(space, %{handle: "derrick"})
+    {:ok, %{group: group}} = create_group(another_user)
+    {:ok, %{post: _post}} = create_post(another_user, group, %{body: "I'm just opining..."})
+
+    variables = %{
+      space_id: space_user.space_id,
+      watching: "IS_WATCHING"
     }
 
     conn =

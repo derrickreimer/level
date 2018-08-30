@@ -95,7 +95,6 @@ defmodule LevelWeb.Schema.Enums do
 
   enum :watching_filter do
     value :is_watching
-    value :is_not_watching
     value :all
   end
 end
