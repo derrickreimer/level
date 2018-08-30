@@ -1,5 +1,6 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyPlugin = require("uglifyjs-webpack-plugin");
 
@@ -51,28 +52,30 @@ module.exports = (env, argv) => ({
   },
   plugins: [
     new ExtractTextPlugin('../css/app.css'),
-    new CopyWebpackPlugin([{ from: 'static/', to: '../' }])
+    new CopyWebpackPlugin([{ from: 'static/', to: '../' }]),
+    new CompressionPlugin({ test: /(\.js|\.css)$/ })
   ],
   optimization: {
     minimizer: [
+      // Options borrowed from the Elm SPA example:
+      // https://github.com/rtfeldman/elm-spa-example/tree/54e3facfac9e208efe9ce02ad817d444c3411ca9#step-2
       new UglifyPlugin({
         uglifyOptions: {
           compress: {
-            pure_funcs: "F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",
-            pure_getters: "true",
-            keep_fargs: "false",
+            pure_funcs: ['F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'],
+            pure_getters: true,
+            keep_fargs: false,
             unsafe_comps: true,
             unsafe: true,
             passes: 2
-          }
-        }
-      }),
-      new UglifyPlugin({
-        uglifyOptions: {
-          compress: false,
+          },
           mangle: true
         }
       })
     ]
+  },
+  performance: {
+    maxEntrypointSize: 500000,
+    maxAssetSize: 300000
   }
 });
