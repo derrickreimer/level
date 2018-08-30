@@ -9,8 +9,8 @@ defmodule Level.Posts.Post do
 
   alias Level.Groups.Group
   alias Level.Mentions.UserMention
-  alias Level.Posts.PostLog
   alias Level.Posts.PostGroup
+  alias Level.Posts.PostLog
   alias Level.Posts.Reply
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
