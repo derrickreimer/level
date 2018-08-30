@@ -180,8 +180,8 @@ defmodule LevelWeb.Schema.Objects do
       arg :after, :cursor
       arg :order_by, :post_order
 
-      @desc "Filter by whether the post has pings for the current user."
-      arg :has_pings, :boolean, default_value: nil
+      @desc "Filtering criteria for posts."
+      arg :filter, :post_filters
 
       resolve &Resolvers.posts/3
     end
@@ -214,8 +214,8 @@ defmodule LevelWeb.Schema.Objects do
       arg :after, :cursor
       arg :order_by, :post_order
 
-      @desc "Filter by whether the post has pings for the current user."
-      arg :has_pings, :boolean, default_value: nil
+      @desc "Filtering criteria for posts."
+      arg :filter, :post_filters
 
       resolve &Resolvers.posts/3
     end

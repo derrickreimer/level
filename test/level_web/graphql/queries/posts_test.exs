@@ -7,13 +7,13 @@ defmodule LevelWeb.GraphQL.PostsTest do
   @query """
     query Posts(
       $space_id: ID!,
-      $has_pings: Boolean,
+      $pings: PingFilter,
       $order_field: PostOrderField!
     ) {
       space(id: $space_id) {
         posts(
           first: 2,
-          hasPings: $has_pings,
+          filter: { pings: $pings },
           orderBy: { field: $order_field, direction: DESC }
         ) {
           edges {
@@ -51,7 +51,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      has_pings: true,
+      pings: "HAS_PINGS",
       order_field: "LAST_PINGED_AT"
     }
 
@@ -98,7 +98,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      has_pings: true,
+      pings: "HAS_PINGS",
       order_field: "LAST_PINGED_AT"
     }
 

@@ -50,7 +50,7 @@ document =
                 last: $last,
                 before: $before,
                 after: $after,
-                hasPings: true,
+                filter: { pings: HAS_PINGS },
                 orderBy: { field: LAST_PINGED_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
