@@ -28,7 +28,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (displayName, smartFormatDate, viewIf)
+import View.Helpers exposing (displayName, smartFormatTime, viewIf)
 import View.Layout exposing (spaceLayout)
 
 

@@ -30,7 +30,7 @@ import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (displayName, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
+import View.Helpers exposing (displayName, setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
 
 
 
@@ -365,7 +365,7 @@ view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ span [ class "ml-3 text-sm text-dusty-blue" ] [ text <| smartFormatDate now ( zone, postData.postedAt ) ] ]
+                    [ View.Helpers.time now ( zone, postData.postedAt ) [ class "ml-3 text-sm text-dusty-blue" ] ]
                 , div [ class "markdown mb-2" ] [ RenderedHtml.node postData.bodyHtml ]
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
@@ -506,9 +506,7 @@ replyView repo (( zone, posix ) as now) mode post reply =
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                , viewIf (mode == FullPage) <|
-                    span [ class "ml-3 text-sm text-dusty-blue" ]
-                        [ text <| smartFormatDate now ( zone, replyData.postedAt ) ]
+                , View.Helpers.time now ( zone, replyData.postedAt ) [ class "ml-3 text-sm text-dusty-blue" ]
                 ]
             , div [ class "markdown mb-2" ]
                 [ RenderedHtml.node replyData.bodyHtml

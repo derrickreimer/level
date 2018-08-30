@@ -1,4 +1,4 @@
-module View.Helpers exposing (displayName, formatDateTime, formatTime, onSameDay, selectValue, setFocus, smartFormatDate, unsetFocus, viewIf, viewUnless)
+module View.Helpers exposing (displayName, formatTime, formatTimeOfDay, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
 
 import Browser.Dom exposing (blur, focus)
 import Html exposing (..)
@@ -78,13 +78,13 @@ selectValue id =
 
 {-| Converts a date into a human-friendly HH:MM PP time string.
 
-    formatTime ( zone, posix ) == "9:18 pm"
+    formatTimeOfDay ( zone, posix ) == "9:18 pm"
 
     TODO: make this represent in am/pm time instead of military time.
 
 -}
-formatTime : ( Zone, Posix ) -> String
-formatTime ( zone, posix ) =
+formatTimeOfDay : ( Zone, Posix ) -> String
+formatTimeOfDay ( zone, posix ) =
     let
         ( hour, meridian ) =
             posix
@@ -101,13 +101,13 @@ formatTime ( zone, posix ) =
 
 {-| Converts a date into a human-friendly date and time string.
 
-    formatDateTime False ( zone, posix ) == "Dec 26 at 11:10 am"
+    formatTime False ( zone, posix ) == "Dec 26 at 11:10 am"
 
-    formatDateTime True ( zone, posix ) == "Dec 26, 2018 at 11:10 am"
+    formatTime True ( zone, posix ) == "Dec 26, 2018 at 11:10 am"
 
 -}
-formatDateTime : Bool -> ( Zone, Posix ) -> String
-formatDateTime withYear ( zone, posix ) =
+formatTime : Bool -> Bool -> ( Zone, Posix ) -> String
+formatTime withYear withTime ( zone, posix ) =
     let
         month =
             posix
@@ -128,13 +128,11 @@ formatDateTime withYear ( zone, posix ) =
             month ++ " " ++ day
 
         timeString =
-            formatTime ( zone, posix )
+            formatTimeOfDay ( zone, posix )
     in
-    if withYear then
-        dayString ++ ", " ++ year ++ " at " ++ timeString
-
-    else
-        dayString ++ " at " ++ timeString
+    dayString
+        |> appendIf withYear (", " ++ year)
+        |> appendIf withTime (" at " ++ timeString)
 
 
 toShortWeekday : Time.Weekday -> String
@@ -216,18 +214,30 @@ onSameDay ( z1, p1 ) ( z2, p2 ) =
 
 {-| Formats the given date intelligently, relative to the current time.
 
-    smartFormatDate now someTimeToday == "Today at 10:01am"
+    smartFormatTime now someTimeToday == "Today at 10:01am"
 
-    smartFormatDate now daysAgo == "May 15 at 5:45pm"
+    smartFormatTime now daysAgo == "May 15 at 5:45pm"
 
 -}
-smartFormatDate : ( Zone, Posix ) -> ( Zone, Posix ) -> String
-smartFormatDate now date =
+smartFormatTime : ( Zone, Posix ) -> ( Zone, Posix ) -> String
+smartFormatTime now date =
     if onSameDay now date then
-        "Today at " ++ formatTime date
+        formatTimeOfDay date
 
     else
-        formatDateTime False date
+        formatTime False False date
+
+
+time : ( Zone, Posix ) -> ( Zone, Posix ) -> List (Attribute msg) -> Html msg
+time now date attrs =
+    let
+        fullTime =
+            formatTime True True date
+
+        smartTime =
+            smartFormatTime now date
+    in
+    Html.time ([ rel "tooltip", title fullTime ] ++ attrs) [ text smartTime ]
 
 
 
@@ -256,3 +266,12 @@ toTwelveHour hour =
 
     else
         ( remainderBy 12 hour, "pm" )
+
+
+appendIf : Bool -> String -> String -> String
+appendIf truth postfix string =
+    if truth then
+        string ++ postfix
+
+    else
+        string
