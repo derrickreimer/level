@@ -2,7 +2,7 @@ export function initialize() {
   let svgInput = document.getElementById("converter_svg");
   let elmOutput = document.getElementById("elm_output");
 
-  const highlight = (ev) => {
+  const highlight = ev => {
     ev.currentTarget.select();
   };
 
