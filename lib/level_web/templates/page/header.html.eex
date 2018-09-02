@@ -4,7 +4,7 @@
   <% end %>
 
   <div class="flex flex-grow justify-start sm:justify-end">
-    <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "flex-0 ml-6 text-blue no-underline" %>
+    <%= link "Journal", to: "https://leveljournal.com", class: "flex-0 ml-6 text-blue no-underline" %>
     <%= link "Sign In", to: session_path(@conn, :new), class: "flex-0 ml-6 text-blue no-underline" %>
   </div>
 </div>
