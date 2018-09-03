@@ -139,7 +139,8 @@ defmodule Level.Posts do
     |> record_post_mentions()
     |> log_post_created(group, author)
     |> Repo.transaction()
-    |> after_create_post(author, group)
+    |> subscribe_author_after_create(author)
+    |> send_events_after_create(group)
   end
 
   defp insert_post(multi, params) do
@@ -166,12 +167,17 @@ defmodule Level.Posts do
     end)
   end
 
-  defp after_create_post(
+  defp subscribe_author_after_create({:ok, %{post: post}} = result, author) do
+    _ = subscribe(post, author)
+    result
+  end
+
+  defp subscribe_author_after_create(err, _), do: err
+
+  defp send_events_after_create(
          {:ok, %{post: post, mentions: mentioned_ids}} = result,
-         author,
          %Group{id: group_id}
        ) do
-    _ = subscribe(post, author)
     Pubsub.publish(:post_created, group_id, post)
 
     Enum.each(mentioned_ids, fn id ->
@@ -181,7 +187,7 @@ defmodule Level.Posts do
     result
   end
 
-  defp after_create_post(err, _author, _group), do: err
+  defp send_events_after_create(err, _), do: err
 
   @doc """
   Subscribes a user to a post.
