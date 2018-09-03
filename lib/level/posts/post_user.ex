@@ -15,6 +15,7 @@ defmodule Level.Posts.PostUser do
 
   schema "post_users" do
     field :subscription_state, :string, read_after_writes: true
+    field :inbox_state, :string, read_after_writes: true
 
     belongs_to :space, Space
     belongs_to :post, Post
