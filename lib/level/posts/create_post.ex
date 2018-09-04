@@ -27,9 +27,7 @@ defmodule Level.Posts.CreatePost do
     |> record_mentions()
     |> log_create(group, author)
     |> Repo.transaction()
-    |> subscribe_author(author)
-    |> subscribe_mentioned()
-    |> send_events(group)
+    |> after_transaction(author, group)
   end
 
   defp build_params(author, params) do
@@ -70,36 +68,32 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp subscribe_author({:ok, %{post: post}} = result, author) do
-    Posts.subscribe(post, author)
-    result
+  defp after_transaction({:ok, %{post: post} = result}, author, group) do
+    subscribe_author(post, author)
+    subscribe_mentioned(post, result)
+    send_events(post, group, result)
+
+    {:ok, result}
   end
 
-  defp subscribe_author(err, _), do: err
+  defp after_transaction(err, _, _), do: err
 
-  defp subscribe_mentioned({:ok, %{post: post, mentions: mentioned_users}} = result) do
+  defp subscribe_author(post, author) do
+    Posts.subscribe(post, author)
+  end
+
+  defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       Posts.subscribe(post, mentioned_user)
       Posts.mark_as_unread(post, mentioned_user)
     end)
-
-    result
   end
 
-  defp subscribe_mentioned(err), do: err
-
-  defp send_events(
-         {:ok, %{post: post, mentions: mentioned_users}} = result,
-         %Group{id: group_id}
-       ) do
-    Pubsub.post_created(group_id, post)
+  defp send_events(post, group, %{mentions: mentioned_users}) do
+    Pubsub.post_created(group.id, post)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       Pubsub.user_mentioned(id, post)
     end)
-
-    result
   end
-
-  defp send_events(err, _), do: err
 end
