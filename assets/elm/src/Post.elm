@@ -32,6 +32,13 @@ type SubscriptionState
     | Unsubscribed
 
 
+type InboxState
+    = Excluded
+    | Dismissed
+    | Read
+    | Unread
+
+
 type alias Record =
     { id : String
     , state : State
@@ -41,6 +48,7 @@ type alias Record =
     , groups : List Group
     , postedAt : Posix
     , subscriptionState : SubscriptionState
+    , inboxState : InboxState
     , mentions : List Mention
     , fetchedAt : Int
     }
@@ -58,6 +66,7 @@ fragment =
               bodyHtml
               postedAt
               subscriptionState
+              inboxState
               author {
                 ...SpaceUserFields
               }
@@ -94,6 +103,7 @@ decoder =
             |> Pipeline.required "groups" (list Group.decoder)
             |> Pipeline.required "postedAt" dateDecoder
             |> Pipeline.required "subscriptionState" subscriptionStateDecoder
+            |> Pipeline.required "inboxState" inboxStateDecoder
             |> Pipeline.required "mentions" (list Mention.decoder)
             |> Pipeline.required "fetchedAt" int
         )
@@ -139,6 +149,30 @@ subscriptionStateDecoder =
 
                 _ ->
                     fail "Subscription state not valid"
+    in
+    Decode.andThen convert string
+
+
+inboxStateDecoder : Decoder InboxState
+inboxStateDecoder =
+    let
+        convert : String -> Decoder InboxState
+        convert raw =
+            case raw of
+                "EXCLUDED" ->
+                    succeed Excluded
+
+                "DISMISSED" ->
+                    succeed Dismissed
+
+                "READ" ->
+                    succeed Read
+
+                "UNREAD" ->
+                    succeed Unread
+
+                _ ->
+                    fail "Inbox state not valid"
     in
     Decode.andThen convert string
 

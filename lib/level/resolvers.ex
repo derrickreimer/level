@@ -227,21 +227,22 @@ defmodule Level.Resolvers do
   """
   @spec subscription_state(Post.t(), map(), info()) :: dataloader_result()
   def subscription_state(%Post{} = post, _, %{context: %{loader: loader}}) do
-    source_name = :db
-    batch_key = {:one, PostUser}
-    item_key = [post_id: post.id]
-
-    loader
-    |> Dataloader.load(source_name, batch_key, item_key)
-    |> on_load(fn loader ->
-      loader
-      |> Dataloader.get(source_name, batch_key, item_key)
-      |> handle_subscription_state_fetch()
-    end)
+    post_user_dataloader(loader, post, &handle_subscription_state/1)
   end
 
-  defp handle_subscription_state_fetch(%PostUser{subscription_state: state}), do: {:ok, state}
-  defp handle_subscription_state_fetch(_), do: {:ok, "NOT_SUBSCRIBED"}
+  defp handle_subscription_state(%PostUser{subscription_state: state}), do: {:ok, state}
+  defp handle_subscription_state(_), do: {:ok, "NOT_SUBSCRIBED"}
+
+  @doc """
+  Fetches the current inbox state for a post.
+  """
+  @spec inbox_state(Post.t(), map(), info()) :: dataloader_result()
+  def inbox_state(%Post{} = post, _, %{context: %{loader: loader}}) do
+    post_user_dataloader(loader, post, &handle_inbox_state/1)
+  end
+
+  defp handle_inbox_state(%PostUser{inbox_state: state}), do: {:ok, state}
+  defp handle_inbox_state(_), do: {:ok, "EXCLUDED"}
 
   # Dataloader helpers
 
@@ -256,4 +257,17 @@ defmodule Level.Resolvers do
   end
 
   defp tuplize(value), do: {:ok, value}
+
+  defp post_user_dataloader(loader, post, handler_fn) do
+    batch_key = {:one, PostUser}
+    item_key = [post_id: post.id]
+
+    loader
+    |> Dataloader.load(:db, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(:db, batch_key, item_key)
+      |> handler_fn.()
+    end)
+  end
 end

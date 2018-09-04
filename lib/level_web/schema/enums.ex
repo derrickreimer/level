@@ -46,6 +46,13 @@ defmodule LevelWeb.Schema.Enums do
     value :unsubscribed, as: "UNSUBSCRIBED"
   end
 
+  enum :inbox_state do
+    value :excluded, as: "EXCLUDED"
+    value :dismissed, as: "DISMISSED"
+    value :read, as: "READ"
+    value :unread, as: "UNREAD"
+  end
+
   enum :user_order_field do
     value :last_name
   end

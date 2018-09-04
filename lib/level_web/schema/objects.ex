@@ -303,6 +303,11 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.subscription_state/3
     end
 
+    @desc "The viewer's inbox state for the post."
+    field :inbox_state, non_null(:inbox_state) do
+      resolve &Resolvers.inbox_state/3
+    end
+
     @desc "A list of mentions for the current viewer."
     field :mentions, list_of(:mention) do
       resolve &Resolvers.mentions/3
