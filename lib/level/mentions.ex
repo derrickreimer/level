@@ -81,16 +81,15 @@ defmodule Level.Mentions do
     query =
       from su in SpaceUser,
         where: su.space_id == ^post.space_id,
-        where: fragment("lower(?)", su.handle) in ^lower_handles,
-        select: su.id
+        where: fragment("lower(?)", su.handle) in ^lower_handles
 
     query
     |> Repo.all()
     |> insert_batch(post, reply_id, author_id)
   end
 
-  defp insert_batch(mentioned_ids, post, reply_id, author_id) do
-    Enum.each(mentioned_ids, fn mentioned_id ->
+  defp insert_batch(mentioned_users, post, reply_id, author_id) do
+    Enum.each(mentioned_users, fn %SpaceUser{id: mentioned_id} ->
       params = %{
         space_id: post.space_id,
         post_id: post.id,
@@ -104,7 +103,7 @@ defmodule Level.Mentions do
       |> Repo.insert()
     end)
 
-    {:ok, mentioned_ids}
+    {:ok, mentioned_users}
   end
 
   @doc """

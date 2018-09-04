@@ -140,6 +140,7 @@ defmodule Level.Posts do
     |> log_post_created(group, author)
     |> Repo.transaction()
     |> subscribe_author_after_create(author)
+    |> subscribe_mentioned_after_create()
     |> send_events_after_create(group)
   end
 
@@ -174,13 +175,23 @@ defmodule Level.Posts do
 
   defp subscribe_author_after_create(err, _), do: err
 
+  defp subscribe_mentioned_after_create({:ok, %{post: post, mentions: mentioned_users}} = result) do
+    Enum.each(mentioned_users, fn mentioned_user ->
+      _ = subscribe(post, mentioned_user)
+    end)
+
+    result
+  end
+
+  defp subscribe_mentioned_after_create(err), do: err
+
   defp send_events_after_create(
-         {:ok, %{post: post, mentions: mentioned_ids}} = result,
+         {:ok, %{post: post, mentions: mentioned_users}} = result,
          %Group{id: group_id}
        ) do
     Pubsub.publish(:post_created, group_id, post)
 
-    Enum.each(mentioned_ids, fn id ->
+    Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       Pubsub.publish(:user_mentioned, id, post)
     end)
 
@@ -325,14 +336,14 @@ defmodule Level.Posts do
   end
 
   defp after_create_reply(
-         {:ok, %{reply: reply, mentions: mentioned_ids}} = result,
+         {:ok, %{reply: reply, mentions: mentioned_users}} = result,
          author,
          %Post{id: post_id} = post
        ) do
     _ = subscribe(post, author)
     Pubsub.publish(:reply_created, post_id, reply)
 
-    Enum.each(mentioned_ids, fn id ->
+    Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       Pubsub.publish(:user_mentioned, id, post)
     end)
 
