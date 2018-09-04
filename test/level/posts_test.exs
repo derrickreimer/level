@@ -80,6 +80,34 @@ defmodule Level.PostsTest do
     end
   end
 
+  describe "get_subscribers/1" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "includes subscribers", %{space: space, space_user: space_user, post: post} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Posts.subscribe(post, another_user)
+
+      {:ok, result} = Posts.get_subscribers(post)
+
+      ids =
+        result
+        |> Enum.map(fn user -> user.id end)
+        |> Enum.sort()
+
+      assert ids == Enum.sort([space_user.id, another_user.id])
+    end
+
+    test "excludes unsubscribes", %{space_user: space_user, post: post} do
+      Posts.unsubscribe(post, space_user)
+      assert {:ok, []} = Posts.get_subscribers(post)
+    end
+  end
+
   describe "create_post/2" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
@@ -223,12 +251,10 @@ defmodule Level.PostsTest do
     test "subscribes mentioned users and marks as unread", %{
       space: space,
       space_user: space_user,
-      group: group
+      post: post
     } do
       {:ok, %{space_user: %SpaceUser{id: mentioned_id} = mentioned}} =
         create_space_member(space, %{handle: "tiff"})
-
-      {:ok, %{post: post}} = create_post(space_user, group)
 
       params = valid_reply_params() |> Map.merge(%{body: "Hey @tiff"})
 
@@ -237,6 +263,13 @@ defmodule Level.PostsTest do
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
+    end
+
+    test "marks as unread for subscribers", %{space: space, space_user: space_user, post: post} do
+      {:ok, %{space_user: another_subscriber}} = create_space_member(space)
+      Posts.subscribe(post, another_subscriber)
+      {:ok, _} = Posts.create_reply(space_user, post, valid_reply_params())
+      assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_subscriber)
     end
 
     test "returns errors given invalid params", %{space_user: space_user, post: post} do

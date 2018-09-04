@@ -139,6 +139,25 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Fetches post subscribers.
+  """
+  @spec get_subscribers(Post.t()) :: {:ok, [SpaceUser.t()]}
+  def get_subscribers(%Post{id: post_id}) do
+    query =
+      from su in SpaceUser,
+        join: pu in assoc(su, :post_users),
+        on: pu.post_id == ^post_id and pu.subscription_state == "SUBSCRIBED"
+
+    query
+    |> Repo.all()
+    |> handle_get_subscribers()
+  end
+
+  defp handle_get_subscribers(subscribers) do
+    {:ok, subscribers}
+  end
+
+  @doc """
   Posts a message to a group.
   """
   @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()

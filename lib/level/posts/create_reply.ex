@@ -27,6 +27,7 @@ defmodule Level.Posts.CreateReply do
     |> Repo.transaction()
     |> subscribe_author(author, post)
     |> subscribe_mentioned(post)
+    |> mark_unread_for_subscribers(post)
     |> send_events(post)
   end
 
@@ -69,13 +70,24 @@ defmodule Level.Posts.CreateReply do
   defp subscribe_mentioned({:ok, %{mentions: mentioned_users}} = result, post) do
     Enum.each(mentioned_users, fn mentioned_user ->
       Posts.subscribe(post, mentioned_user)
-      Posts.mark_as_unread(post, mentioned_user)
     end)
 
     result
   end
 
   defp subscribe_mentioned(err, _), do: err
+
+  defp mark_unread_for_subscribers({:ok, _} = result, post) do
+    {:ok, subscribers} = Posts.get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      Posts.mark_as_unread(post, subscriber)
+    end)
+
+    result
+  end
+
+  defp mark_unread_for_subscribers(err, _), do: err
 
   defp send_events(
          {:ok, %{reply: reply, mentions: mentioned_users}} = result,
