@@ -97,4 +97,12 @@ defmodule LevelWeb.Schema.Enums do
     value :is_watching
     value :all
   end
+
+  enum :inbox_filter do
+    value :unread
+    value :read
+    value :dismissed
+    value :unread_or_read
+    value :all
+  end
 end

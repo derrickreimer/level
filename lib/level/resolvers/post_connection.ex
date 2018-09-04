@@ -17,7 +17,8 @@ defmodule Level.Resolvers.PostConnection do
             after: nil,
             filter: %{
               pings: :all,
-              watching: :all
+              watching: :all,
+              inbox: :all
             },
             order_by: %{
               field: :posted_at,
@@ -31,7 +32,8 @@ defmodule Level.Resolvers.PostConnection do
           after: String.t() | nil,
           filter: %{
             pings: :has_pings | :has_no_pings | :all,
-            watching: :is_watching | :all
+            watching: :is_watching | :all,
+            inbox: :unread | :read | :dismissed | :unread_or_read | :all
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -51,6 +53,7 @@ defmodule Level.Resolvers.PostConnection do
       |> apply_pings(args)
       |> apply_activity(args)
       |> apply_watching(args)
+      |> apply_inbox(args)
 
     pagination_args =
       args
@@ -121,4 +124,30 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp apply_watching(base_query, _), do: base_query
+
+  defp apply_inbox(base_query, %{filter: %{inbox: :unread}}) do
+    from [p, su, g, gu] in base_query,
+      join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == su.id and pu.inbox_state == "UNREAD"
+  end
+
+  defp apply_inbox(base_query, %{filter: %{inbox: :read}}) do
+    from [p, su, g, gu] in base_query,
+      join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == su.id and pu.inbox_state == "READ"
+  end
+
+  defp apply_inbox(base_query, %{filter: %{inbox: :unread_or_read}}) do
+    from [p, su, g, gu] in base_query,
+      join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == su.id and (pu.inbox_state == "UNREAD" or pu.inbox_state == "READ")
+  end
+
+  defp apply_inbox(base_query, %{filter: %{inbox: :dismissed}}) do
+    from [p, su, g, gu] in base_query,
+      join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == su.id and pu.inbox_state == "DISMISSED"
+  end
+
+  defp apply_inbox(base_query, _), do: base_query
 end

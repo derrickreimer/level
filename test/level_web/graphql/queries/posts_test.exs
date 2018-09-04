@@ -3,20 +3,23 @@ defmodule LevelWeb.GraphQL.PostsTest do
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Mentions
+  alias Level.Posts
 
   @query """
     query Posts(
       $space_id: ID!,
       $pings: PingFilter,
       $watching: WatchingFilter,
+      $inbox: InboxFilter,
       $order_field: PostOrderField
     ) {
       space(id: $space_id) {
         posts(
-          first: 2,
+          first: 10,
           filter: {
             pings: $pings,
-            watching: $watching
+            watching: $watching,
+            inbox: $inbox
           },
           orderBy: {
             field: $order_field,
@@ -26,11 +29,6 @@ defmodule LevelWeb.GraphQL.PostsTest do
           edges {
             node {
               body
-              mentions {
-                mentioner {
-                  handle
-                }
-              }
             }
           }
           total_count
@@ -74,14 +72,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
                    "edges" => [
                      %{
                        "node" => %{
-                         "body" => "Hey @tiff",
-                         "mentions" => [
-                           %{
-                             "mentioner" => %{
-                               "handle" => "derrick"
-                             }
-                           }
-                         ]
+                         "body" => "Hey @tiff"
                        }
                      }
                    ],
@@ -152,6 +143,123 @@ defmodule LevelWeb.GraphQL.PostsTest do
                  "posts" => %{
                    "edges" => [],
                    "total_count" => 0
+                 }
+               }
+             }
+           }
+  end
+
+  test "filtering by unread", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: unread_post}} = create_post(space_user, group, %{body: "I'm just opining..."})
+    {:ok, %{post: read_post}} = create_post(space_user, group, %{body: "Hey peeps"})
+
+    Posts.mark_as_unread(unread_post, space_user)
+    Posts.mark_as_read(read_post, space_user)
+
+    variables = %{
+      space_id: space_user.space_id,
+      inbox: "UNREAD"
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "posts" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "body" => "I'm just opining..."
+                       }
+                     }
+                   ],
+                   "total_count" => 1
+                 }
+               }
+             }
+           }
+  end
+
+  test "filtering by unread or read", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: unread_post}} = create_post(space_user, group, %{body: "I'm just opining..."})
+    {:ok, %{post: read_post}} = create_post(space_user, group, %{body: "Hey peeps"})
+    {:ok, %{post: dismissed_post}} = create_post(space_user, group, %{body: "I'm dismissed"})
+
+    Posts.mark_as_unread(unread_post, space_user)
+    Posts.mark_as_read(read_post, space_user)
+    Posts.dismiss(dismissed_post, space_user)
+
+    variables = %{
+      space_id: space_user.space_id,
+      inbox: "UNREAD_OR_READ"
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "posts" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "body" => "Hey peeps"
+                       }
+                     },
+                     %{
+                       "node" => %{
+                         "body" => "I'm just opining..."
+                       }
+                     }
+                   ],
+                   "total_count" => 2
+                 }
+               }
+             }
+           }
+  end
+
+  test "filtering by dismissed", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: unread_post}} = create_post(space_user, group, %{body: "I'm just opining..."})
+    {:ok, %{post: read_post}} = create_post(space_user, group, %{body: "Hey peeps"})
+    {:ok, %{post: dismissed_post}} = create_post(space_user, group, %{body: "I'm dismissed"})
+
+    Posts.mark_as_unread(unread_post, space_user)
+    Posts.mark_as_read(read_post, space_user)
+    Posts.dismiss(dismissed_post, space_user)
+
+    variables = %{
+      space_id: space_user.space_id,
+      inbox: "DISMISSED"
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "posts" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "body" => "I'm dismissed"
+                       }
+                     }
+                   ],
+                   "total_count" => 1
                  }
                }
              }

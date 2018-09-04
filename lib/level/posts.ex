@@ -158,24 +158,13 @@ defmodule Level.Posts do
   Subscribes a user to a post.
   """
   @spec subscribe(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def subscribe(%Post{} = post, %SpaceUser{id: space_user_id}) do
-    params = %{
-      space_id: post.space_id,
-      post_id: post.id,
-      space_user_id: space_user_id,
-      subscription_state: "SUBSCRIBED"
-    }
-
-    %PostUser{}
-    |> Ecto.Changeset.change(params)
-    |> Repo.insert(
-      on_conflict: :replace_all,
-      conflict_target: [:post_id, :space_user_id]
-    )
-    |> after_subscribe(space_user_id, post)
+  def subscribe(%Post{} = post, %SpaceUser{} = space_user) do
+    post
+    |> update_user_state(space_user, %{subscription_state: "SUBSCRIBED"})
+    |> after_subscribe(space_user.id, post)
   end
 
-  defp after_subscribe({:ok, _}, space_user_id, post) do
+  defp after_subscribe(:ok, space_user_id, post) do
     Pubsub.publish(:post_subscribed, space_user_id, post)
     :ok
   end
@@ -186,24 +175,13 @@ defmodule Level.Posts do
   Unsubscribes a user from a post.
   """
   @spec unsubscribe(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def unsubscribe(%Post{} = post, %SpaceUser{id: space_user_id}) do
-    params = %{
-      space_id: post.space_id,
-      post_id: post.id,
-      space_user_id: space_user_id,
-      subscription_state: "UNSUBSCRIBED"
-    }
-
-    %PostUser{}
-    |> Ecto.Changeset.change(params)
-    |> Repo.insert(
-      on_conflict: :replace_all,
-      conflict_target: [:post_id, :space_user_id]
-    )
-    |> after_unsubscribe(space_user_id, post)
+  def unsubscribe(%Post{} = post, %SpaceUser{} = space_user) do
+    post
+    |> update_user_state(space_user, %{subscription_state: "UNSUBSCRIBED"})
+    |> after_unsubscribe(space_user.id, post)
   end
 
-  defp after_unsubscribe({:ok, _}, space_user_id, post) do
+  defp after_unsubscribe(:ok, space_user_id, post) do
     Pubsub.publish(:post_unsubscribed, space_user_id, post)
     :ok
   end
@@ -214,29 +192,24 @@ defmodule Level.Posts do
   Marks a post as unread.
   """
   @spec mark_as_unread(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def mark_as_unread(%Post{} = post, %SpaceUser{id: space_user_id}) do
-    params = %{
-      space_id: post.space_id,
-      post_id: post.id,
-      space_user_id: space_user_id,
-      inbox_state: "UNREAD"
-    }
-
-    %PostUser{}
-    |> Ecto.Changeset.change(params)
-    |> Repo.insert(
-      on_conflict: :replace_all,
-      conflict_target: [:post_id, :space_user_id]
-    )
-    |> after_mark_as_unread()
+  def mark_as_unread(%Post{} = post, %SpaceUser{} = space_user) do
+    update_user_state(post, space_user, %{inbox_state: "UNREAD"})
   end
 
-  defp after_mark_as_unread({:ok, _}) do
-    :ok
+  @doc """
+  Marks a post as read.
+  """
+  @spec mark_as_read(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
+  def mark_as_read(%Post{} = post, %SpaceUser{} = space_user) do
+    update_user_state(post, space_user, %{inbox_state: "READ"})
   end
 
-  defp after_mark_as_unread(_) do
-    :error
+  @doc """
+  Dismiss a post from the inbox.
+  """
+  @spec dismiss(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
+  def dismiss(%Post{} = post, %SpaceUser{} = space_user) do
+    update_user_state(post, space_user, %{inbox_state: "DISMISSED"})
   end
 
   @doc """
@@ -317,4 +290,25 @@ defmodule Level.Posts do
       "user-mention"
     end
   end
+
+  # Internal
+
+  defp update_user_state(post, space_user, params) do
+    full_params =
+      params
+      |> Map.put(:space_id, post.space_id)
+      |> Map.put(:post_id, post.id)
+      |> Map.put(:space_user_id, space_user.id)
+
+    %PostUser{}
+    |> Ecto.Changeset.change(full_params)
+    |> Repo.insert(
+      on_conflict: :replace_all,
+      conflict_target: [:post_id, :space_user_id]
+    )
+    |> after_update_user_state()
+  end
+
+  defp after_update_user_state({:ok, _}), do: :ok
+  defp after_update_user_state(_), do: :error
 end

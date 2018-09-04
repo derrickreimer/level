@@ -68,5 +68,10 @@ defmodule LevelWeb.Schema.InputObjects do
     those that the user is explicity subscribed to.
     """
     field :watching, :watching_filter, default_value: :all
+
+    @desc """
+    Filter by the different inbox states.
+    """
+    field :inbox, :inbox_filter, default_value: :all
   end
 end
