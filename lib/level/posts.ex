@@ -6,14 +6,13 @@ defmodule Level.Posts do
   import Ecto.Query, warn: false
   import Level.Gettext
 
-  alias Ecto.Multi
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Markdown
   alias Level.Mentions
+  alias Level.Posts.CreatePost
+  alias Level.Posts.CreateReply
   alias Level.Posts.Post
-  alias Level.Posts.PostGroup
-  alias Level.Posts.PostLog
   alias Level.Posts.PostUser
   alias Level.Posts.PostView
   alias Level.Posts.Reply
@@ -22,16 +21,13 @@ defmodule Level.Posts do
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
+  # TODO: make these types more specific
+
   @typedoc "The result of posting to a group"
-  @type create_post_result ::
-          {:ok, %{post: Post.t(), post_group: PostGroup.t(), subscribe: :ok, log: PostLog.t()}}
-          | {:error, :post | :post_group | :subscribe | :log, any(),
-             %{optional(:post | :post_group | :subscribe | :log) => any()}}
+  @type create_post_result :: {:ok, map()} | {:error, any(), any(), map()}
 
   @typedoc "The result of replying to a post"
-  @type create_reply_result ::
-          {:ok, %{reply: Reply.t(), subscribe: :ok}}
-          | {:error, :reply | :subscribe, any(), %{optional(:reply | :subscribe) => any()}}
+  @type create_reply_result :: {:ok, map()} | {:error, any(), any(), map()}
 
   @doc """
   Builds a query for posts accessible to a particular user.
@@ -128,77 +124,8 @@ defmodule Level.Posts do
   """
   @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()
   def create_post(author, group, params) do
-    params_with_relations =
-      params
-      |> Map.put(:space_id, author.space_id)
-      |> Map.put(:space_user_id, author.id)
-
-    Multi.new()
-    |> insert_post(params_with_relations)
-    |> associate_with_group(group)
-    |> record_post_mentions()
-    |> log_post_created(group, author)
-    |> Repo.transaction()
-    |> subscribe_author_after_create(author)
-    |> subscribe_mentioned_after_create()
-    |> send_events_after_create(group)
+    CreatePost.perform(author, group, params)
   end
-
-  defp insert_post(multi, params) do
-    Multi.insert(multi, :post, Post.create_changeset(%Post{}, params))
-  end
-
-  defp associate_with_group(multi, group) do
-    Multi.run(multi, :post_group, fn %{post: post} ->
-      %PostGroup{}
-      |> Ecto.Changeset.change(%{space_id: post.space_id, post_id: post.id, group_id: group.id})
-      |> Repo.insert()
-    end)
-  end
-
-  defp record_post_mentions(multi) do
-    Multi.run(multi, :mentions, fn %{post: post} ->
-      Mentions.record(post)
-    end)
-  end
-
-  defp log_post_created(multi, group, author) do
-    Multi.run(multi, :log, fn %{post: post} ->
-      PostLog.insert(:post_created, post, group, author)
-    end)
-  end
-
-  defp subscribe_author_after_create({:ok, %{post: post}} = result, author) do
-    _ = subscribe(post, author)
-    result
-  end
-
-  defp subscribe_author_after_create(err, _), do: err
-
-  defp subscribe_mentioned_after_create({:ok, %{post: post, mentions: mentioned_users}} = result) do
-    Enum.each(mentioned_users, fn mentioned_user ->
-      _ = subscribe(post, mentioned_user)
-    end)
-
-    result
-  end
-
-  defp subscribe_mentioned_after_create(err), do: err
-
-  defp send_events_after_create(
-         {:ok, %{post: post, mentions: mentioned_users}} = result,
-         %Group{id: group_id}
-       ) do
-    Pubsub.publish(:post_created, group_id, post)
-
-    Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      Pubsub.publish(:user_mentioned, id, post)
-    end)
-
-    result
-  end
-
-  defp send_events_after_create(err, _), do: err
 
   @doc """
   Subscribes a user to a post.
@@ -298,59 +225,8 @@ defmodule Level.Posts do
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
   def create_reply(%SpaceUser{} = author, %Post{} = post, params) do
-    params_with_relations =
-      params
-      |> Map.put(:space_id, author.space_id)
-      |> Map.put(:space_user_id, author.id)
-      |> Map.put(:post_id, post.id)
-
-    Multi.new()
-    |> insert_reply(params_with_relations)
-    |> record_reply_mentions(post)
-    |> log_reply_created(post, author)
-    |> record_view_upon_reply(post, author)
-    |> Repo.transaction()
-    |> after_create_reply(author, post)
+    CreateReply.perform(author, post, params)
   end
-
-  defp insert_reply(multi, params) do
-    Multi.insert(multi, :reply, Reply.create_changeset(%Reply{}, params))
-  end
-
-  defp record_reply_mentions(multi, post) do
-    Multi.run(multi, :mentions, fn %{reply: reply} ->
-      Mentions.record(post, reply)
-    end)
-  end
-
-  defp log_reply_created(multi, post, space_user) do
-    Multi.run(multi, :log, fn %{reply: reply} ->
-      PostLog.insert(:reply_created, post, reply, space_user)
-    end)
-  end
-
-  def record_view_upon_reply(multi, post, space_user) do
-    Multi.run(multi, :post_view, fn %{reply: reply} ->
-      record_view(post, space_user, reply)
-    end)
-  end
-
-  defp after_create_reply(
-         {:ok, %{reply: reply, mentions: mentioned_users}} = result,
-         author,
-         %Post{id: post_id} = post
-       ) do
-    _ = subscribe(post, author)
-    Pubsub.publish(:reply_created, post_id, reply)
-
-    Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      Pubsub.publish(:user_mentioned, id, post)
-    end)
-
-    result
-  end
-
-  defp after_create_reply(err, _author, _post), do: err
 
   @doc """
   Records a view event.
