@@ -123,7 +123,7 @@ defmodule Level.Mentions do
     {:ok, posts} = Posts.get_posts(space_user, post_ids)
 
     Enum.each(posts, fn post ->
-      Pubsub.publish(:mentions_dismissed, space_user_id, post)
+      Pubsub.mentions_dismissed(space_user_id, post)
     end)
 
     {:ok, posts}

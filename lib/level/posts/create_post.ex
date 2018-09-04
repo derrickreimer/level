@@ -71,7 +71,7 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp subscribe_author({:ok, %{post: post}} = result, author) do
-    _ = Posts.subscribe(post, author)
+    Posts.subscribe(post, author)
     result
   end
 
@@ -79,8 +79,8 @@ defmodule Level.Posts.CreatePost do
 
   defp subscribe_mentioned({:ok, %{post: post, mentions: mentioned_users}} = result) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      _ = Posts.subscribe(post, mentioned_user)
-      _ = Posts.mark_as_unread(post, mentioned_user)
+      Posts.subscribe(post, mentioned_user)
+      Posts.mark_as_unread(post, mentioned_user)
     end)
 
     result
@@ -92,10 +92,10 @@ defmodule Level.Posts.CreatePost do
          {:ok, %{post: post, mentions: mentioned_users}} = result,
          %Group{id: group_id}
        ) do
-    Pubsub.publish(:post_created, group_id, post)
+    Pubsub.post_created(group_id, post)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      Pubsub.publish(:user_mentioned, id, post)
+      Pubsub.user_mentioned(id, post)
     end)
 
     result

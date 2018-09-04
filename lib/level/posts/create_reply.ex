@@ -25,8 +25,9 @@ defmodule Level.Posts.CreateReply do
     |> log_create(post, author)
     |> record_view(post, author)
     |> Repo.transaction()
+    |> subscribe_author(author, post)
     |> subscribe_mentioned(post)
-    |> send_events(author, post)
+    |> send_events(post)
   end
 
   defp build_params(author, post, params) do
@@ -58,10 +59,17 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
+  defp subscribe_author({:ok, _} = result, author, post) do
+    Posts.subscribe(post, author)
+    result
+  end
+
+  defp subscribe_author(err, _, _), do: err
+
   defp subscribe_mentioned({:ok, %{mentions: mentioned_users}} = result, post) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      _ = Posts.subscribe(post, mentioned_user)
-      _ = Posts.mark_as_unread(post, mentioned_user)
+      Posts.subscribe(post, mentioned_user)
+      Posts.mark_as_unread(post, mentioned_user)
     end)
 
     result
@@ -71,18 +79,16 @@ defmodule Level.Posts.CreateReply do
 
   defp send_events(
          {:ok, %{reply: reply, mentions: mentioned_users}} = result,
-         author,
          %Post{id: post_id} = post
        ) do
-    _ = Posts.subscribe(post, author)
-    Pubsub.publish(:reply_created, post_id, reply)
+    Pubsub.reply_created(post_id, reply)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      Pubsub.publish(:user_mentioned, id, post)
+      Pubsub.user_mentioned(id, post)
     end)
 
     result
   end
 
-  defp send_events(err, _author, _post), do: err
+  defp send_events(err, _post), do: err
 end

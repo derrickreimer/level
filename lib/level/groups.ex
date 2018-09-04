@@ -110,7 +110,7 @@ defmodule Level.Groups do
   end
 
   defp after_update_group({:ok, %Group{id: id} = group} = result) do
-    Pubsub.publish(:group_updated, id, group)
+    Pubsub.group_updated(id, group)
     result
   end
 
@@ -217,7 +217,7 @@ defmodule Level.Groups do
       {{:ok, %GroupUser{} = group_user}, "NOT_SUBSCRIBED"} ->
         case delete_group_membership(group, space_user, group_user) do
           {:ok, _} ->
-            Pubsub.publish(:group_membership_updated, group.id, {group, nil})
+            Pubsub.group_membership_updated(group.id, {group, nil})
             {:ok, %{group: group, group_user: nil}}
 
           {:error, _, %Ecto.Changeset{} = changeset, _} ->
@@ -227,7 +227,7 @@ defmodule Level.Groups do
       {{:ok, nil}, "SUBSCRIBED"} ->
         case create_group_membership(group, space_user) do
           {:ok, %{group_user: group_user}} ->
-            Pubsub.publish(:group_membership_updated, group.id, {group, group_user})
+            Pubsub.group_membership_updated(group.id, {group, group_user})
             {:ok, %{group: group, group_user: group_user}}
 
           {:error, _, %Ecto.Changeset{} = changeset, _} ->
@@ -260,7 +260,7 @@ defmodule Level.Groups do
 
     case Repo.insert(changeset, on_conflict: :nothing) do
       {:ok, _} ->
-        Pubsub.publish(:group_bookmarked, space_user.id, group)
+        Pubsub.group_bookmarked(space_user.id, group)
         :ok
 
       {:error, %Ecto.Changeset{errors: [uniqueness: _]}} ->
@@ -283,7 +283,7 @@ defmodule Level.Groups do
       )
 
     if count > 0 do
-      Pubsub.publish(:group_unbookmarked, space_user.id, group)
+      Pubsub.group_unbookmarked(space_user.id, group)
     end
 
     :ok

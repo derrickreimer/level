@@ -103,7 +103,7 @@ defmodule Level.Spaces do
   end
 
   defp handle_space_update({:ok, space} = result) do
-    Pubsub.publish(:space_updated, space.id, space)
+    Pubsub.space_updated(space.id, space)
     result
   end
 
@@ -358,7 +358,7 @@ defmodule Level.Spaces do
   end
 
   defp handle_space_user_update({:ok, %SpaceUser{} = space_user} = result) do
-    Pubsub.publish(:space_user_updated, space_user.space_id, space_user)
+    Pubsub.space_user_updated(space_user.space_id, space_user)
     result
   end
 

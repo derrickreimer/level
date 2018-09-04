@@ -165,7 +165,7 @@ defmodule Level.Posts do
   end
 
   defp after_subscribe(:ok, space_user_id, post) do
-    Pubsub.publish(:post_subscribed, space_user_id, post)
+    Pubsub.post_subscribed(space_user_id, post)
     :ok
   end
 
@@ -182,7 +182,7 @@ defmodule Level.Posts do
   end
 
   defp after_unsubscribe(:ok, space_user_id, post) do
-    Pubsub.publish(:post_unsubscribed, space_user_id, post)
+    Pubsub.post_unsubscribed(space_user_id, post)
     :ok
   end
 
@@ -222,7 +222,7 @@ defmodule Level.Posts do
         :ok == update_user_state(post, space_user, %{inbox_state: "DISMISSED"})
       end)
 
-    Pubsub.publish(:posts_dismissed, space_user.id, dismissed_posts)
+    Pubsub.posts_dismissed(space_user.id, dismissed_posts)
     {:ok, dismissed_posts}
   end
 
