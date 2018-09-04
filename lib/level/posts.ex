@@ -120,11 +120,38 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Fetches a reply.
+  """
+  @spec get_reply(Post.t(), String.t()) :: {:ok, Reply.t()} | {:error, String.t()}
+  def get_reply(%Post{} = post, id) do
+    post
+    |> Ecto.assoc(:replies)
+    |> Repo.get_by(id: id)
+    |> handle_reply_query()
+  end
+
+  defp handle_reply_query(%Reply{} = reply) do
+    {:ok, reply}
+  end
+
+  defp handle_reply_query(_) do
+    {:error, dgettext("errors", "Reply not found")}
+  end
+
+  @doc """
   Posts a message to a group.
   """
   @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()
   def create_post(author, group, params) do
     CreatePost.perform(author, group, params)
+  end
+
+  @doc """
+  Adds a reply to a post.
+  """
+  @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
+  def create_reply(%SpaceUser{} = author, %Post{} = post, params) do
+    CreateReply.perform(author, post, params)
   end
 
   @doc """
@@ -184,48 +211,46 @@ defmodule Level.Posts do
   defp after_unsubscribe(_, _, _), do: :error
 
   @doc """
-  Determines a user's subscription state with a post.
+  Marks a post as unread.
   """
-  @spec get_subscription_state(Post.t(), SpaceUser.t()) ::
-          :subscribed | :unsubscribed | :not_subscribed | no_return()
-  def get_subscription_state(%Post{id: post_id}, %SpaceUser{id: space_user_id}) do
+  @spec mark_as_unread(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
+  def mark_as_unread(%Post{} = post, %SpaceUser{id: space_user_id}) do
+    params = %{
+      space_id: post.space_id,
+      post_id: post.id,
+      space_user_id: space_user_id,
+      inbox_state: "UNREAD"
+    }
+
+    %PostUser{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert(
+      on_conflict: :replace_all,
+      conflict_target: [:post_id, :space_user_id]
+    )
+    |> after_mark_as_unread()
+  end
+
+  defp after_mark_as_unread({:ok, _}) do
+    :ok
+  end
+
+  defp after_mark_as_unread(_) do
+    :error
+  end
+
+  @doc """
+  Fetches state attributes describing a user's relationship to a post.
+  """
+  @spec get_user_state(Post.t(), SpaceUser.t()) :: %{inbox: String.t(), subscription: String.t()}
+  def get_user_state(%Post{id: post_id}, %SpaceUser{id: space_user_id}) do
     case Repo.get_by(PostUser, %{post_id: post_id, space_user_id: space_user_id}) do
-      %PostUser{subscription_state: state} ->
-        parse_subscription_state(state)
+      %PostUser{inbox_state: inbox_state, subscription_state: subscription_state} ->
+        %{inbox: inbox_state, subscription: subscription_state}
 
       _ ->
-        :not_subscribed
+        %{inbox: "EXCLUDED", subscription: "NOT_SUBSCRIBED"}
     end
-  end
-
-  defp parse_subscription_state("SUBSCRIBED"), do: :subscribed
-  defp parse_subscription_state("UNSUBSCRIBED"), do: :unsubscribed
-
-  @doc """
-  Fetches a reply.
-  """
-  @spec get_reply(Post.t(), String.t()) :: {:ok, Reply.t()} | {:error, String.t()}
-  def get_reply(%Post{} = post, id) do
-    post
-    |> Ecto.assoc(:replies)
-    |> Repo.get_by(id: id)
-    |> handle_reply_query()
-  end
-
-  defp handle_reply_query(%Reply{} = reply) do
-    {:ok, reply}
-  end
-
-  defp handle_reply_query(_) do
-    {:error, dgettext("errors", "Reply not found")}
-  end
-
-  @doc """
-  Adds a reply to a post.
-  """
-  @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
-  def create_reply(%SpaceUser{} = author, %Post{} = post, params) do
-    CreateReply.perform(author, post, params)
   end
 
   @doc """

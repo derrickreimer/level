@@ -80,6 +80,7 @@ defmodule Level.Posts.CreatePost do
   defp subscribe_mentioned({:ok, %{post: post, mentions: mentioned_users}} = result) do
     Enum.each(mentioned_users, fn mentioned_user ->
       _ = Posts.subscribe(post, mentioned_user)
+      _ = Posts.mark_as_unread(post, mentioned_user)
     end)
 
     result

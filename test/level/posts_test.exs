@@ -108,7 +108,9 @@ defmodule Level.PostsTest do
     test "subscribes the user to the post", %{space_user: space_user, group: group} do
       params = valid_post_params()
       {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
-      assert :subscribed = Posts.get_subscription_state(post, space_user)
+
+      assert %{inbox: "EXCLUDED", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, space_user)
     end
 
     test "logs the event", %{space_user: space_user, group: group} do
@@ -120,7 +122,7 @@ defmodule Level.PostsTest do
       assert log.post_id == post.id
     end
 
-    test "subscribes mentioned users and places in their inboxes", %{
+    test "subscribes mentioned users and marks as unread", %{
       space: space,
       space_user: space_user,
       group: group
@@ -133,7 +135,8 @@ defmodule Level.PostsTest do
       {:ok, %{post: post, mentions: [%SpaceUser{id: ^mentioned_id}]}} =
         Posts.create_post(space_user, group, params)
 
-      assert :subscribed = Posts.get_subscription_state(post, mentioned)
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, mentioned)
     end
 
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
@@ -159,11 +162,11 @@ defmodule Level.PostsTest do
     } do
       {:ok, %{space_user: another_space_user}} = create_space_member(space)
       :ok = Posts.subscribe(post, another_space_user)
-      assert :subscribed = Posts.get_subscription_state(post, another_space_user)
+      assert %{subscription: "SUBSCRIBED"} = Posts.get_user_state(post, another_space_user)
     end
 
     test "ignores repeated subscribes", %{space_user: space_user, post: post} do
-      assert :subscribed = Posts.get_subscription_state(post, space_user)
+      assert %{subscription: "SUBSCRIBED"} = Posts.get_user_state(post, space_user)
       assert :ok = Posts.subscribe(post, space_user)
     end
   end
@@ -187,7 +190,7 @@ defmodule Level.PostsTest do
       :ok = Posts.unsubscribe(post, space_user)
       params = valid_reply_params()
       {:ok, %{reply: _reply}} = Posts.create_reply(space_user, post, params)
-      assert :subscribed = Posts.get_subscription_state(post, space_user)
+      assert %{subscription: "SUBSCRIBED"} = Posts.get_user_state(post, space_user)
     end
 
     test "record mentions", %{space: space, space_user: space_user, post: post} do
