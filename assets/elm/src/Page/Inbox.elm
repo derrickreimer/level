@@ -1,4 +1,4 @@
-module Page.Pings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Inbox exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
 import Component.Post
@@ -16,11 +16,11 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissMentions as DismissMentions
 import Pagination
 import Post exposing (Post)
-import Query.PingsInit as PingsInit
+import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.Pings exposing (Params(..))
+import Route.Inbox exposing (Params(..))
 import Route.SpaceUsers
 import Session exposing (Session)
 import Space exposing (Space)
@@ -53,7 +53,7 @@ type alias Model =
 
 title : String
 title =
-    "Pings"
+    "Inbox"
 
 
 
@@ -63,12 +63,12 @@ title =
 init : Params -> Session -> Task Session.Error ( Session, Model )
 init params session =
     session
-        |> PingsInit.request params
+        |> InboxInit.request params
         |> TaskHelpers.andThenGetCurrentTime
         |> Task.andThen (buildModel params)
 
 
-buildModel : Params -> ( ( Session, PingsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
+buildModel : Params -> ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
 buildModel params ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
     Task.succeed ( session, Model params viewer space bookmarks featuredUsers posts now )
 
@@ -244,7 +244,7 @@ view repo maybeCurrentRoute model =
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Pings" ]
+                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
                         , controlsView model
                         ]
                     ]
@@ -282,8 +282,8 @@ selectionControlsView posts =
 paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
     Pagination.view connection
-        (Route.Pings << Before (Space.getSlug space))
-        (Route.Pings << After (Space.getSlug space))
+        (Route.Inbox << Before (Space.getSlug space))
+        (Route.Inbox << After (Space.getSlug space))
 
 
 postsView : Repo -> Model -> Html Msg

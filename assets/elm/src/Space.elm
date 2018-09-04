@@ -4,7 +4,7 @@ import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
 import Json.Encode as Encode
 import Route exposing (Route)
-import Route.Pings
+import Route.Inbox
 
 
 
@@ -142,4 +142,4 @@ setupRoute (Space { slug }) state =
             Route.SetupInviteUsers slug
 
         Complete ->
-            Route.Pings (Route.Pings.Root slug)
+            Route.Inbox (Route.Inbox.Root slug)

@@ -1,4 +1,4 @@
-module Query.PingsInit exposing (Response, request)
+module Query.InboxInit exposing (Response, request)
 
 import Component.Post
 import Connection exposing (Connection)
@@ -8,7 +8,7 @@ import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
-import Route.Pings exposing (Params(..))
+import Route.Inbox exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -28,7 +28,7 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        query PingsInit(
+        query InboxInit(
           $spaceSlug: String!,
           $first: Int,
           $last: Int,
@@ -50,7 +50,7 @@ document =
                 last: $last,
                 before: $before,
                 after: $after,
-                filter: { pings: HAS_PINGS },
+                filter: { inbox: UNREAD_OR_READ },
                 orderBy: { field: LAST_PINGED_AT, direction: DESC }
               ) {
                 ...PostConnectionFields

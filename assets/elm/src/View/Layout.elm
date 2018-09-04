@@ -10,7 +10,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Route.Groups
-import Route.Pings
+import Route.Inbox
 import Route.Posts
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -92,7 +92,7 @@ spaceSidebar repo viewer space bookmarks maybeCurrentRoute =
                 , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ spaceSidebarLink space "Pings" (Just <| Route.Pings (Route.Pings.Root slug)) maybeCurrentRoute
+                [ spaceSidebarLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.Root slug)) maybeCurrentRoute
                 , spaceSidebarLink space "Activity" (Just <| Route.Posts (Route.Posts.Root slug)) maybeCurrentRoute
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]

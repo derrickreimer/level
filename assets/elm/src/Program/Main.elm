@@ -11,9 +11,9 @@ import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Page.Group
 import Page.Groups
+import Page.Inbox
 import Page.NewGroup
 import Page.NewSpace
-import Page.Pings
 import Page.Post
 import Page.Posts
 import Page.Setup.CreateGroups
@@ -26,7 +26,7 @@ import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
-import Route.Pings
+import Route.Inbox
 import Session exposing (Session)
 import Socket
 import Space exposing (Space)
@@ -127,7 +127,7 @@ type Msg
     | SpacesMsg Page.Spaces.Msg
     | NewSpaceMsg Page.NewSpace.Msg
     | PostsMsg Page.Posts.Msg
-    | PingsMsg Page.Pings.Msg
+    | InboxMsg Page.Inbox.Msg
     | SpaceUsersMsg Page.SpaceUsers.Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
@@ -200,10 +200,10 @@ update msg model =
                 |> Page.Posts.update pageMsg model.session
                 |> updatePage Posts PostsMsg model
 
-        ( PingsMsg pageMsg, Pings pageModel ) ->
+        ( InboxMsg pageMsg, Inbox pageModel ) ->
             pageModel
-                |> Page.Pings.update pageMsg model.session
-                |> updatePage Pings PingsMsg model
+                |> Page.Inbox.update pageMsg model.session
+                |> updatePage Inbox InboxMsg model
 
         ( SetupCreateGroupsMsg pageMsg, SetupCreateGroups pageModel ) ->
             let
@@ -335,7 +335,7 @@ type Page
     | SetupCreateGroups Page.Setup.CreateGroups.Model
     | SetupInviteUsers Page.Setup.InviteUsers.Model
     | Posts Page.Posts.Model
-    | Pings Page.Pings.Model
+    | Inbox Page.Inbox.Model
     | SpaceUsers Page.SpaceUsers.Model
     | Groups Page.Groups.Model
     | Group Page.Group.Model
@@ -349,7 +349,7 @@ type PageInit
     = SpacesInit (Result Session.Error ( Session, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Session, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Session, Page.Posts.Model ))
-    | PingsInit (Result Session.Error ( Session, Page.Pings.Model ))
+    | InboxInit (Result Session.Error ( Session, Page.Inbox.Model ))
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Session, Page.Group.Model ))
@@ -378,7 +378,7 @@ navigateTo maybeRoute model =
             ( { model | page = NotFound }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
-            navigateTo (Just <| Route.Pings (Route.Pings.Root spaceSlug)) model
+            navigateTo (Just <| Route.Inbox (Route.Inbox.Root spaceSlug)) model
 
         Just (Route.SetupCreateGroups spaceSlug) ->
             model.session
@@ -405,10 +405,10 @@ navigateTo maybeRoute model =
                 |> Page.Posts.init params
                 |> transition model PostsInit
 
-        Just (Route.Pings params) ->
+        Just (Route.Inbox params) ->
             model.session
-                |> Page.Pings.init params
-                |> transition model PingsInit
+                |> Page.Inbox.init params
+                |> transition model InboxInit
 
         Just (Route.SpaceUsers params) ->
             model.session
@@ -458,8 +458,8 @@ pageTitle repo page =
         Posts _ ->
             Page.Posts.title
 
-        Pings _ ->
-            Page.Pings.title
+        Inbox _ ->
+            Page.Inbox.title
 
         SpaceUsers _ ->
             Page.SpaceUsers.title
@@ -526,13 +526,13 @@ setupPage pageInit model =
         NewSpaceInit (Err _) ->
             ( model, Cmd.none )
 
-        PingsInit (Ok result) ->
-            perform Page.Pings.setup Pings PingsMsg model result
+        InboxInit (Ok result) ->
+            perform Page.Inbox.setup Inbox InboxMsg model result
 
-        PingsInit (Err Session.Expired) ->
+        InboxInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
-        PingsInit (Err _) ->
+        InboxInit (Err _) ->
             ( model, Cmd.none )
 
         PostsInit (Ok result) ->
@@ -664,8 +664,8 @@ pageSubscription page =
         Posts _ ->
             Sub.map PostsMsg Page.Posts.subscriptions
 
-        Pings _ ->
-            Sub.map PingsMsg Page.Pings.subscriptions
+        Inbox _ ->
+            Sub.map InboxMsg Page.Inbox.subscriptions
 
         Group _ ->
             Sub.map GroupMsg Page.Group.subscriptions
@@ -695,8 +695,8 @@ routeFor page =
         Posts { params } ->
             Just <| Route.Posts params
 
-        Pings { params } ->
-            Just <| Route.Pings params
+        Inbox { params } ->
+            Just <| Route.Inbox params
 
         SetupCreateGroups { space } ->
             Just <| Route.SetupCreateGroups (Space.getSlug space)
@@ -760,10 +760,10 @@ pageView repo page =
                 |> Page.Posts.view repo (routeFor page)
                 |> Html.map PostsMsg
 
-        Pings pageModel ->
+        Inbox pageModel ->
             pageModel
-                |> Page.Pings.view repo (routeFor page)
-                |> Html.map PingsMsg
+                |> Page.Inbox.view repo (routeFor page)
+                |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
             pageModel
@@ -891,10 +891,10 @@ sendEventToPage event model =
                 |> Page.Posts.consumeEvent event
                 |> updateWith Posts PostsMsg
 
-        Pings pageModel ->
+        Inbox pageModel ->
             pageModel
-                |> Page.Pings.consumeEvent event
-                |> updateWith Pings PingsMsg
+                |> Page.Inbox.consumeEvent event
+                |> updateWith Inbox InboxMsg
 
         SpaceUsers pageModel ->
             pageModel
