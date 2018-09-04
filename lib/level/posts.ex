@@ -213,6 +213,19 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Dismisses multiple posts from the inbox.
+  """
+  @spec dismiss_all(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
+  def dismiss_all(%SpaceUser{} = space_user, posts) do
+    dismissed_posts =
+      Enum.filter(posts, fn post ->
+        :ok == update_user_state(post, space_user, %{inbox_state: "DISMISSED"})
+      end)
+
+    {:ok, dismissed_posts}
+  end
+
+  @doc """
   Fetches state attributes describing a user's relationship to a post.
   """
   @spec get_user_state(Post.t(), SpaceUser.t()) :: %{inbox: String.t(), subscription: String.t()}

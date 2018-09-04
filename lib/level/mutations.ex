@@ -402,6 +402,26 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Dismisses all mentions for a particular post.
+  """
+  @spec dismiss_posts(map(), info()) ::
+          {:ok, %{success: boolean(), posts: [Post.t()] | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+  def dismiss_posts(
+        %{space_id: space_id, post_ids: post_ids},
+        %{context: %{current_user: user}}
+      ) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, posts} <- Posts.get_posts(user, post_ids),
+         {:ok, dismissed_posts} <- Posts.dismiss_all(space_user, posts) do
+      {:ok, %{success: true, posts: dismissed_posts, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
   defp format_errors(%Ecto.Changeset{errors: errors}) do
     Enum.map(errors, fn {attr, {msg, props}} ->
       message =
