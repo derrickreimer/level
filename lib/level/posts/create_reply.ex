@@ -25,10 +25,7 @@ defmodule Level.Posts.CreateReply do
     |> log_create(post, author)
     |> record_view(post, author)
     |> Repo.transaction()
-    |> subscribe_author(author, post)
-    |> subscribe_mentioned(post)
-    |> mark_unread_for_subscribers(post)
-    |> send_events(post)
+    |> after_transaction(post, author)
   end
 
   defp build_params(author, post, params) do
@@ -60,47 +57,43 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp subscribe_author({:ok, _} = result, author, post) do
-    Posts.subscribe(post, author)
-    result
+  defp after_transaction({:ok, result}, post, author) do
+    subscribe_author(post, author)
+    subscribe_mentioned(post, result)
+    mark_unread_for_subscribers(post, author)
+    send_events(post, result)
+
+    {:ok, result}
   end
 
-  defp subscribe_author(err, _, _), do: err
+  defp after_transaction(err, _, _), do: err
 
-  defp subscribe_mentioned({:ok, %{mentions: mentioned_users}} = result, post) do
+  defp subscribe_author(post, author) do
+    Posts.subscribe(post, author)
+  end
+
+  defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       Posts.subscribe(post, mentioned_user)
     end)
-
-    result
   end
 
-  defp subscribe_mentioned(err, _), do: err
-
-  defp mark_unread_for_subscribers({:ok, _} = result, post) do
+  defp mark_unread_for_subscribers(post, author) do
     {:ok, subscribers} = Posts.get_subscribers(post)
 
     Enum.each(subscribers, fn subscriber ->
-      Posts.mark_as_unread(post, subscriber)
+      # Skip marking unread for the author
+      if subscriber.id !== author.id do
+        Posts.mark_as_unread(post, subscriber)
+      end
     end)
-
-    result
   end
 
-  defp mark_unread_for_subscribers(err, _), do: err
-
-  defp send_events(
-         {:ok, %{reply: reply, mentions: mentioned_users}} = result,
-         %Post{id: post_id} = post
-       ) do
-    Pubsub.reply_created(post_id, reply)
+  defp send_events(post, %{reply: reply, mentions: mentioned_users}) do
+    Pubsub.reply_created(post.id, reply)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       Pubsub.user_mentioned(id, post)
     end)
-
-    result
   end
-
-  defp send_events(err, _post), do: err
 end
