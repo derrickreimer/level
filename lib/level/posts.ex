@@ -14,6 +14,7 @@ defmodule Level.Posts do
   alias Level.Posts.CreateReply
   alias Level.Posts.Post
   alias Level.Posts.PostUser
+  alias Level.Posts.PostUserLog
   alias Level.Posts.PostView
   alias Level.Posts.Reply
   alias Level.Pubsub
@@ -212,24 +213,51 @@ defmodule Level.Posts do
   """
   @spec mark_as_unread(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
   def mark_as_unread(%Post{} = post, %SpaceUser{} = space_user) do
-    update_user_state(post, space_user, %{inbox_state: "UNREAD"})
+    post
+    |> update_user_state(space_user, %{inbox_state: "UNREAD"})
+    |> after_mark_as_unread(post, space_user)
   end
+
+  def after_mark_as_unread(:ok, post, space_user) do
+    PostUserLog.marked_as_unread(post, space_user)
+    :ok
+  end
+
+  def after_mark_as_unread(:error, _, _), do: :error
 
   @doc """
   Marks a post as read.
   """
   @spec mark_as_read(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
   def mark_as_read(%Post{} = post, %SpaceUser{} = space_user) do
-    update_user_state(post, space_user, %{inbox_state: "READ"})
+    post
+    |> update_user_state(space_user, %{inbox_state: "READ"})
+    |> after_mark_as_read(post, space_user)
   end
+
+  def after_mark_as_read(:ok, post, space_user) do
+    PostUserLog.marked_as_read(post, space_user)
+    :ok
+  end
+
+  def after_mark_as_read(:error, _, _), do: :error
 
   @doc """
   Dismiss a post from the inbox.
   """
   @spec dismiss(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
   def dismiss(%Post{} = post, %SpaceUser{} = space_user) do
-    update_user_state(post, space_user, %{inbox_state: "DISMISSED"})
+    post
+    |> update_user_state(space_user, %{inbox_state: "DISMISSED"})
+    |> after_dismiss(post, space_user)
   end
+
+  def after_dismiss(:ok, post, space_user) do
+    PostUserLog.dismissed(post, space_user)
+    :ok
+  end
+
+  def after_dismiss(:error, _, _), do: :error
 
   @doc """
   Dismisses multiple posts from the inbox.
@@ -238,7 +266,7 @@ defmodule Level.Posts do
   def dismiss_all(%SpaceUser{} = space_user, posts) do
     dismissed_posts =
       Enum.filter(posts, fn post ->
-        :ok == update_user_state(post, space_user, %{inbox_state: "DISMISSED"})
+        :ok == dismiss(post, space_user)
       end)
 
     Pubsub.posts_dismissed(space_user.id, dismissed_posts)
