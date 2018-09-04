@@ -50,6 +50,10 @@ defmodule Level.Pubsub do
     do_publish(%{type: :post_unsubscribed, post: post}, space_user_subscription: space_user_id)
   end
 
+  def publish(:posts_dismissed, space_user_id, posts) do
+    do_publish(%{type: :posts_dismissed, posts: posts}, space_user_subscription: space_user_id)
+  end
+
   def publish(:user_mentioned, space_user_id, %Post{} = post) do
     do_publish(%{type: :user_mentioned, post: post}, space_user_subscription: space_user_id)
   end

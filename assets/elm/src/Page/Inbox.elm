@@ -13,7 +13,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.DismissMentions as DismissMentions
+import Mutation.DismissPosts as DismissPosts
 import Pagination
 import Post exposing (Post)
 import Query.InboxInit as InboxInit
@@ -105,8 +105,8 @@ type Msg
     = Tick Posix
     | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
-    | DismissMentionsClicked
-    | MentionsDismissed (Result Session.Error ( Session, DismissMentions.Response ))
+    | DismissPostsClicked
+    | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | NoOp
 
 
@@ -136,7 +136,7 @@ update msg session model =
                 Nothing ->
                     noCmd session model
 
-        DismissMentionsClicked ->
+        DismissPostsClicked ->
             let
                 postIds =
                     model.posts
@@ -145,8 +145,8 @@ update msg session model =
 
                 cmd =
                     session
-                        |> DismissMentions.request (Space.getId model.space) postIds
-                        |> Task.attempt MentionsDismissed
+                        |> DismissPosts.request (Space.getId model.space) postIds
+                        |> Task.attempt PostsDismissed
             in
             if List.isEmpty postIds then
                 noCmd session model
@@ -154,7 +154,7 @@ update msg session model =
             else
                 ( ( model, cmd ), session )
 
-        MentionsDismissed _ ->
+        PostsDismissed _ ->
             noCmd session model
 
         NoOp ->
@@ -197,19 +197,27 @@ consumeEvent event model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        Event.MentionsDismissed post ->
+        Event.PostsDismissed posts ->
             let
-                postId =
-                    Post.getId post
-            in
-            case Connection.get .id postId model.posts of
-                Just component ->
-                    ( { model | posts = Connection.remove .id postId model.posts }
-                    , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component)
-                    )
+                remove post ( components, cmds ) =
+                    let
+                        postId =
+                            Post.getId post
+                    in
+                    case Connection.get .id postId model.posts of
+                        Just component ->
+                            ( Connection.remove .id postId model.posts
+                            , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component) :: cmds
+                            )
 
-                Nothing ->
-                    ( model, Cmd.none )
+                        Nothing ->
+                            ( components, cmds )
+
+                ( newPosts, teardownCmds ) =
+                    posts
+                        |> List.foldr remove ( model.posts, [] )
+            in
+            ( { model | posts = newPosts }, Cmd.batch teardownCmds )
 
         _ ->
             ( model, Cmd.none )
@@ -224,7 +232,7 @@ subscriptions =
     Sub.batch
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
-            [ ( "y", DismissMentionsClicked )
+            [ ( "y", DismissPostsClicked )
             ]
         ]
 
@@ -275,7 +283,7 @@ selectionControlsView posts =
     else
         div []
             [ selectedLabel selectedPosts
-            , button [ class "mr-4 btn btn-xs btn-blue", onClick DismissMentionsClicked ] [ text "Dismiss" ]
+            , button [ class "mr-4 btn btn-xs btn-blue", onClick DismissPostsClicked ] [ text "Dismiss" ]
             ]
 
 

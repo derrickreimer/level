@@ -222,6 +222,7 @@ defmodule Level.Posts do
         :ok == update_user_state(post, space_user, %{inbox_state: "DISMISSED"})
       end)
 
+    Pubsub.publish(:posts_dismissed, space_user.id, dismissed_posts)
     {:ok, dismissed_posts}
   end
 

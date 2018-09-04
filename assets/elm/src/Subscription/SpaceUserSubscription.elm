@@ -1,4 +1,4 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postSubscribedDecoder, postUnsubscribedDecoder, subscribe, unsubscribe, userMentionedDecoder)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postSubscribedDecoder, postUnsubscribedDecoder, postsDismissedDecoder, subscribe, unsubscribe, userMentionedDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -61,6 +61,14 @@ postUnsubscribedDecoder =
         Post.decoder
 
 
+postsDismissedDecoder : Decode.Decoder (List Post)
+postsDismissedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostsDismissed"
+        "posts"
+        (Decode.list Post.decoder)
+
+
 userMentionedDecoder : Decode.Decoder Post
 userMentionedDecoder =
     Subscription.decoder "spaceUser"
@@ -112,6 +120,11 @@ document =
             }
             ... on PostUnsubscribedPayload {
               post {
+                ...PostFields
+              }
+            }
+            ... on PostsDismissedPayload {
+              posts {
                 ...PostFields
               }
             }

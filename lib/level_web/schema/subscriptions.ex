@@ -18,6 +18,7 @@ defmodule LevelWeb.Schema.Subscriptions do
       :group_unbookmarked_payload,
       :post_subscribed_payload,
       :post_unsubscribed_payload,
+      :posts_dismissed_payload,
       :user_mentioned_payload,
       :mentions_dismissed_payload
     ]
@@ -85,6 +86,12 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :post_unsubscribed_payload do
     @desc "The unsubscribed post."
     field :post, :post
+  end
+
+  @desc "The payload for the posts dismissed event."
+  object :posts_dismissed_payload do
+    @desc "The dismissed posts."
+    field :posts, list_of(:post)
   end
 
   @desc "The payload for the group membership updated event."
