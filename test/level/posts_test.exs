@@ -220,6 +220,25 @@ defmodule Level.PostsTest do
       assert post_view.last_viewed_reply_id == reply.id
     end
 
+    test "subscribes mentioned users and marks as unread", %{
+      space: space,
+      space_user: space_user,
+      group: group
+    } do
+      {:ok, %{space_user: %SpaceUser{id: mentioned_id} = mentioned}} =
+        create_space_member(space, %{handle: "tiff"})
+
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      params = valid_reply_params() |> Map.merge(%{body: "Hey @tiff"})
+
+      {:ok, %{mentions: [%SpaceUser{id: ^mentioned_id}]}} =
+        Posts.create_reply(space_user, post, params)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, mentioned)
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, post: post} do
       params = valid_reply_params() |> Map.merge(%{body: nil})
       {:error, :reply, changeset, _} = Posts.create_reply(space_user, post, params)

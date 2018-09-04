@@ -25,6 +25,7 @@ defmodule Level.Posts.CreateReply do
     |> log_create(post, author)
     |> record_view(post, author)
     |> Repo.transaction()
+    |> subscribe_mentioned(post)
     |> send_events(author, post)
   end
 
@@ -56,6 +57,17 @@ defmodule Level.Posts.CreateReply do
       Posts.record_view(post, space_user, reply)
     end)
   end
+
+  defp subscribe_mentioned({:ok, %{mentions: mentioned_users}} = result, post) do
+    Enum.each(mentioned_users, fn mentioned_user ->
+      _ = Posts.subscribe(post, mentioned_user)
+      _ = Posts.mark_as_unread(post, mentioned_user)
+    end)
+
+    result
+  end
+
+  defp subscribe_mentioned(err, _), do: err
 
   defp send_events(
          {:ok, %{reply: reply, mentions: mentioned_users}} = result,
