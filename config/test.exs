@@ -35,3 +35,8 @@ config :level, Level.Mailer, adapter: Bamboo.TestAdapter
 
 # Configure asset storage
 config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
+
+# Configure web push notifications
+config :level, :web_push,
+  public_key: System.get_env("LEVEL_WEB_PUSH_PUBLIC_KEY"),
+  private_key: System.get_env("LEVEL_WEB_PUSH_PRIVATE_KEY")

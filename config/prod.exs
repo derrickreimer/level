@@ -41,6 +41,11 @@ config :level, Level.Mailer,
 # Configure asset storage
 config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
 
+# Configure browser push notifications
+config :level, :web_push,
+  public_key: System.get_env("LEVEL_WEB_PUSH_PUBLIC_KEY"),
+  private_key: System.get_env("LEVEL_WEB_PUSH_PRIVATE_KEY")
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key
