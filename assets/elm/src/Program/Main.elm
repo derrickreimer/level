@@ -830,44 +830,19 @@ consumeEvent event ({ page, repo } as model) =
             ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
         Event.PostsSubscribed posts ->
-            let
-                newRepo =
-                    posts
-                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
-            in
-            ( { model | repo = newRepo }, Cmd.none )
+            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
 
         Event.PostsUnsubscribed posts ->
-            let
-                newRepo =
-                    posts
-                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
-            in
-            ( { model | repo = newRepo }, Cmd.none )
+            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
 
         Event.PostsMarkedAsUnread posts ->
-            let
-                newRepo =
-                    posts
-                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
-            in
-            ( { model | repo = newRepo }, Cmd.none )
+            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
 
         Event.PostsMarkedAsRead posts ->
-            let
-                newRepo =
-                    posts
-                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
-            in
-            ( { model | repo = newRepo }, Cmd.none )
+            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
 
         Event.PostsDismissed posts ->
-            let
-                newRepo =
-                    posts
-                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
-            in
-            ( { model | repo = newRepo }, Cmd.none )
+            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
 
         Event.UserMentioned post ->
             ( { model | repo = Repo.setPost model.repo post }, Cmd.none )

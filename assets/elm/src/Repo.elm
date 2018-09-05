@@ -2,7 +2,7 @@ module Repo exposing
     ( Repo, init
     , getGroup, getGroups, setGroup
     , getSpace, getSpaces, setSpace
-    , getPost, getPosts, setPost
+    , getPost, getPosts, setPost, setPosts
     , getSpaceUser, getSpaceUsers, setSpaceUser
     , getBookmarks
     )
@@ -27,7 +27,7 @@ module Repo exposing
 
 # Posts
 
-@docs getPost, getPosts, setPost
+@docs getPost, getPosts, setPost, setPosts
 
 
 # Space Users
@@ -152,6 +152,11 @@ getPosts (Repo { posts }) list =
 setPost : Repo -> Post -> Repo
 setPost (Repo repo) post =
     Repo { repo | posts = IdentityMap.set repo.posts (Post.getCachedData post) }
+
+
+setPosts : Repo -> List Post -> Repo
+setPosts repo posts =
+    List.foldr (\post acc -> setPost acc post) repo posts
 
 
 
