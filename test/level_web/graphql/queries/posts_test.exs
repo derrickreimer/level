@@ -193,7 +193,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     Posts.mark_as_unread(unread_post, space_user)
     Posts.mark_as_read(read_post, space_user)
-    Posts.dismiss(dismissed_post, space_user)
+    Posts.dismiss_all(space_user, [dismissed_post])
 
     variables = %{
       space_id: space_user.space_id,
@@ -236,7 +236,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     Posts.mark_as_unread(unread_post, space_user)
     Posts.mark_as_read(read_post, space_user)
-    Posts.dismiss(dismissed_post, space_user)
+    Posts.dismiss_all(space_user, [dismissed_post])
 
     variables = %{
       space_id: space_user.space_id,

@@ -218,12 +218,13 @@ defmodule Level.Posts do
     |> after_mark_as_unread(post, space_user)
   end
 
-  def after_mark_as_unread(:ok, post, space_user) do
+  defp after_mark_as_unread(:ok, post, space_user) do
     PostUserLog.marked_as_unread(post, space_user)
+    Pubsub.posts_marked_as_unread(space_user.id, [post])
     :ok
   end
 
-  def after_mark_as_unread(:error, _, _), do: :error
+  defp after_mark_as_unread(:error, _, _), do: :error
 
   @doc """
   Marks a post as read.
@@ -235,32 +236,16 @@ defmodule Level.Posts do
     |> after_mark_as_read(post, space_user)
   end
 
-  def after_mark_as_read(:ok, post, space_user) do
+  defp after_mark_as_read(:ok, post, space_user) do
     PostUserLog.marked_as_read(post, space_user)
+    Pubsub.posts_marked_as_read(space_user.id, [post])
     :ok
   end
 
-  def after_mark_as_read(:error, _, _), do: :error
+  defp after_mark_as_read(:error, _, _), do: :error
 
   @doc """
-  Dismiss a post from the inbox.
-  """
-  @spec dismiss(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def dismiss(%Post{} = post, %SpaceUser{} = space_user) do
-    post
-    |> update_user_state(space_user, %{inbox_state: "DISMISSED"})
-    |> after_dismiss(post, space_user)
-  end
-
-  def after_dismiss(:ok, post, space_user) do
-    PostUserLog.dismissed(post, space_user)
-    :ok
-  end
-
-  def after_dismiss(:error, _, _), do: :error
-
-  @doc """
-  Dismisses multiple posts from the inbox.
+  Dismisses the given posts from the inbox.
   """
   @spec dismiss_all(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
   def dismiss_all(%SpaceUser{} = space_user, posts) do
@@ -272,6 +257,19 @@ defmodule Level.Posts do
     Pubsub.posts_dismissed(space_user.id, dismissed_posts)
     {:ok, dismissed_posts}
   end
+
+  defp dismiss(%Post{} = post, %SpaceUser{} = space_user) do
+    post
+    |> update_user_state(space_user, %{inbox_state: "DISMISSED"})
+    |> after_dismiss(post, space_user)
+  end
+
+  defp after_dismiss(:ok, post, space_user) do
+    PostUserLog.dismissed(post, space_user)
+    :ok
+  end
+
+  defp after_dismiss(:error, _, _), do: :error
 
   @doc """
   Fetches state attributes describing a user's relationship to a post.

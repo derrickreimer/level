@@ -38,6 +38,14 @@ defmodule Level.Pubsub do
     publish_to_space_user(id, :post_unsubscribed, %{post: post})
   end
 
+  def posts_marked_as_unread(id, posts) do
+    publish_to_space_user(id, :posts_marked_as_unread, %{posts: posts})
+  end
+
+  def posts_marked_as_read(id, posts) do
+    publish_to_space_user(id, :posts_marked_as_read, %{posts: posts})
+  end
+
   def posts_dismissed(id, posts) do
     publish_to_space_user(id, :posts_dismissed, %{posts: posts})
   end
