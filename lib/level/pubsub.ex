@@ -12,80 +12,81 @@ defmodule Level.Pubsub do
 
   # Space
 
-  def space_updated(space_id, %Space{} = space) do
-    do_publish(
-      %{type: :space_updated, space: space},
-      space_subscription: space_id
-    )
+  def space_updated(id, %Space{} = space) do
+    publish_to_space(id, :space_updated, %{space: space})
   end
 
-  def space_user_updated(space_id, %SpaceUser{} = space_user) do
-    do_publish(
-      %{type: :space_user_updated, space_user: space_user},
-      space_subscription: space_id
-    )
+  def space_user_updated(id, %SpaceUser{} = space_user) do
+    publish_to_space(id, :space_user_updated, %{space_user: space_user})
   end
 
   # Space user
 
-  def group_bookmarked(space_user_id, %Group{} = group) do
-    do_publish(
-      %{type: :group_bookmarked, group: group},
-      space_user_subscription: space_user_id
-    )
+  def group_bookmarked(id, %Group{} = group) do
+    publish_to_space_user(id, :group_bookmarked, %{group: group})
   end
 
-  def group_unbookmarked(space_user_id, %Group{} = group) do
-    do_publish(
-      %{type: :group_unbookmarked, group: group},
-      space_user_subscription: space_user_id
-    )
+  def group_unbookmarked(id, %Group{} = group) do
+    publish_to_space_user(id, :group_unbookmarked, %{group: group})
   end
 
-  def post_subscribed(space_user_id, %Post{} = post) do
-    do_publish(%{type: :post_subscribed, post: post}, space_user_subscription: space_user_id)
+  def post_subscribed(id, %Post{} = post) do
+    publish_to_space_user(id, :post_subscribed, %{post: post})
   end
 
-  def post_unsubscribed(space_user_id, %Post{} = post) do
-    do_publish(%{type: :post_unsubscribed, post: post}, space_user_subscription: space_user_id)
+  def post_unsubscribed(id, %Post{} = post) do
+    publish_to_space_user(id, :post_unsubscribed, %{post: post})
   end
 
-  def posts_dismissed(space_user_id, posts) do
-    do_publish(%{type: :posts_dismissed, posts: posts}, space_user_subscription: space_user_id)
+  def posts_dismissed(id, posts) do
+    publish_to_space_user(id, :posts_dismissed, %{posts: posts})
   end
 
-  def user_mentioned(space_user_id, %Post{} = post) do
-    do_publish(%{type: :user_mentioned, post: post}, space_user_subscription: space_user_id)
+  def user_mentioned(id, %Post{} = post) do
+    publish_to_space_user(id, :user_mentioned, %{post: post})
   end
 
-  def mentions_dismissed(space_user_id, %Post{} = post) do
-    do_publish(%{type: :mentions_dismissed, post: post}, space_user_subscription: space_user_id)
+  def mentions_dismissed(id, %Post{} = post) do
+    publish_to_space_user(id, :mentions_dismissed, %{post: post})
   end
 
   # Group
 
-  def post_created(group_id, %Post{} = post) do
-    do_publish(%{type: :post_created, post: post}, group_subscription: group_id)
+  def post_created(id, %Post{} = post) do
+    publish_to_group(id, :post_created, %{post: post})
   end
 
-  def group_membership_updated(group_id, {%Group{} = group, group_user}) do
-    do_publish(
-      %{type: :group_membership_updated, group: group, membership: group_user},
-      group_subscription: group_id
-    )
+  def group_membership_updated(id, {%Group{} = group, group_user}) do
+    publish_to_group(id, :group_membership_updated, %{group: group, membership: group_user})
   end
 
-  def group_updated(group_id, %Group{} = group) do
-    do_publish(%{type: :group_updated, group: group}, group_subscription: group_id)
+  def group_updated(id, %Group{} = group) do
+    publish_to_group(id, :group_updated, %{group: group})
   end
 
   # Post
 
-  def reply_created(post_id, %Reply{} = reply) do
-    do_publish(%{type: :reply_created, reply: reply}, post_subscription: post_id)
+  def reply_created(id, %Reply{} = reply) do
+    publish_to_post(id, :reply_created, %{reply: reply})
   end
 
   # Internal
+
+  defp publish_to_space(id, type, data) do
+    do_publish(Map.merge(data, %{type: type}), space_subscription: id)
+  end
+
+  defp publish_to_space_user(id, type, data) do
+    do_publish(Map.merge(data, %{type: type}), space_user_subscription: id)
+  end
+
+  defp publish_to_group(id, type, data) do
+    do_publish(Map.merge(data, %{type: type}), group_subscription: id)
+  end
+
+  defp publish_to_post(id, type, data) do
+    do_publish(Map.merge(data, %{type: type}), post_subscription: id)
+  end
 
   defp do_publish(payload, topics) do
     Absinthe.Subscription.publish(LevelWeb.Endpoint, payload, topics)
