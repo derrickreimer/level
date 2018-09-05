@@ -1,4 +1,4 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postSubscribedDecoder, postUnsubscribedDecoder, postsDismissedDecoder, subscribe, unsubscribe, userMentionedDecoder)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, subscribe, unsubscribe, userMentionedDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -45,20 +45,36 @@ groupUnbookmarkedDecoder =
         Group.decoder
 
 
-postSubscribedDecoder : Decode.Decoder Post
-postSubscribedDecoder =
+postsSubscribedDecoder : Decode.Decoder (List Post)
+postsSubscribedDecoder =
     Subscription.decoder "spaceUser"
-        "PostSubscribed"
-        "post"
-        Post.decoder
+        "PostsSubscribed"
+        "posts"
+        (Decode.list Post.decoder)
 
 
-postUnsubscribedDecoder : Decode.Decoder Post
-postUnsubscribedDecoder =
+postsUnsubscribedDecoder : Decode.Decoder (List Post)
+postsUnsubscribedDecoder =
     Subscription.decoder "spaceUser"
-        "PostUnsubscribed"
-        "post"
-        Post.decoder
+        "PostsUnsubscribed"
+        "posts"
+        (Decode.list Post.decoder)
+
+
+postsMarkedAsUnreadDecoder : Decode.Decoder (List Post)
+postsMarkedAsUnreadDecoder =
+    Subscription.decoder "spaceUser"
+        "PostsMarkedAsUnread"
+        "posts"
+        (Decode.list Post.decoder)
+
+
+postsMarkedAsReadDecoder : Decode.Decoder (List Post)
+postsMarkedAsReadDecoder =
+    Subscription.decoder "spaceUser"
+        "PostsMarkedAsRead"
+        "posts"
+        (Decode.list Post.decoder)
 
 
 postsDismissedDecoder : Decode.Decoder (List Post)
@@ -113,13 +129,23 @@ document =
                 ...GroupFields
               }
             }
-            ... on PostSubscribedPayload {
-              post {
+            ... on PostsSubscribedPayload {
+              posts {
                 ...PostFields
               }
             }
-            ... on PostUnsubscribedPayload {
-              post {
+            ... on PostsUnsubscribedPayload {
+              posts {
+                ...PostFields
+              }
+            }
+            ... on PostsMarkedAsUnreadPayload {
+              posts {
+                ...PostFields
+              }
+            }
+            ... on PostsMarkedAsReadPayload {
+              posts {
                 ...PostFields
               }
             }

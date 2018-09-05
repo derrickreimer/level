@@ -30,12 +30,12 @@ defmodule Level.Pubsub do
     publish_to_space_user(id, :group_unbookmarked, %{group: group})
   end
 
-  def post_subscribed(id, %Post{} = post) do
-    publish_to_space_user(id, :post_subscribed, %{post: post})
+  def posts_subscribed(id, posts) do
+    publish_to_space_user(id, :posts_subscribed, %{posts: posts})
   end
 
-  def post_unsubscribed(id, %Post{} = post) do
-    publish_to_space_user(id, :post_unsubscribed, %{post: post})
+  def posts_unsubscribed(id, posts) do
+    publish_to_space_user(id, :posts_unsubscribed, %{posts: posts})
   end
 
   def posts_marked_as_unread(id, posts) do

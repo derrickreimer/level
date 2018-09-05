@@ -39,7 +39,7 @@ defmodule LevelWeb.GraphQL.DismissPostsTest do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: post}} = create_post(space_user, group)
 
-    Posts.mark_as_unread(post, space_user)
+    Posts.mark_as_unread(space_user, [post])
 
     variables = %{
       space_id: space.id,

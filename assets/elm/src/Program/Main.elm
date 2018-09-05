@@ -829,11 +829,37 @@ consumeEvent event ({ page, repo } as model) =
         Event.PostUpdated post ->
             ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
 
-        Event.PostSubscribed post ->
-            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
+        Event.PostsSubscribed posts ->
+            let
+                newRepo =
+                    posts
+                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
+            in
+            ( { model | repo = newRepo }, Cmd.none )
 
-        Event.PostUnsubscribed post ->
-            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
+        Event.PostsUnsubscribed posts ->
+            let
+                newRepo =
+                    posts
+                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
+            in
+            ( { model | repo = newRepo }, Cmd.none )
+
+        Event.PostsMarkedAsUnread posts ->
+            let
+                newRepo =
+                    posts
+                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
+            in
+            ( { model | repo = newRepo }, Cmd.none )
+
+        Event.PostsMarkedAsRead posts ->
+            let
+                newRepo =
+                    posts
+                        |> List.foldr (\post acc -> Repo.setPost acc post) model.repo
+            in
+            ( { model | repo = newRepo }, Cmd.none )
 
         Event.PostsDismissed posts ->
             let

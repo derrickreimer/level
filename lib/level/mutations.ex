@@ -414,7 +414,7 @@ defmodule Level.Mutations do
       ) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
          {:ok, posts} <- Posts.get_posts(user, post_ids),
-         {:ok, dismissed_posts} <- Posts.dismiss_all(space_user, posts) do
+         {:ok, dismissed_posts} <- Posts.dismiss(space_user, posts) do
       {:ok, %{success: true, posts: dismissed_posts, errors: []}}
     else
       err ->

@@ -58,7 +58,7 @@ defmodule Level.InboxTest do
     } do
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
-      Posts.unsubscribe(post, space_user)
+      Posts.unsubscribe(space_user, [post])
 
       assert nil ==
                space_user

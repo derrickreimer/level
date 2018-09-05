@@ -16,8 +16,8 @@ defmodule LevelWeb.Schema.Subscriptions do
     types [
       :group_bookmarked_payload,
       :group_unbookmarked_payload,
-      :post_subscribed_payload,
-      :post_unsubscribed_payload,
+      :posts_subscribed_payload,
+      :posts_unsubscribed_payload,
       :posts_marked_as_unread_payload,
       :posts_marked_as_read_payload,
       :posts_dismissed_payload,
@@ -78,27 +78,27 @@ defmodule LevelWeb.Schema.Subscriptions do
     field :post, :post
   end
 
-  @desc "The payload for the post subscribed event."
-  object :post_subscribed_payload do
-    @desc "The subscribed post."
-    field :post, :post
+  @desc "The payload for the posts subscribed event."
+  object :posts_subscribed_payload do
+    @desc "The subscribed posts."
+    field :posts, list_of(:post)
   end
 
-  @desc "The payload for the post unsubscribed event."
-  object :post_unsubscribed_payload do
-    @desc "The unsubscribed post."
-    field :post, :post
+  @desc "The payload for the posts unsubscribed event."
+  object :posts_unsubscribed_payload do
+    @desc "The unsubscribed posts."
+    field :posts, list_of(:post)
   end
 
   @desc "The payload for the posts marked as unread event."
   object :posts_marked_as_unread_payload do
-    @desc "The dismissed posts."
+    @desc "The posts marked as unread."
     field :posts, list_of(:post)
   end
 
   @desc "The payload for the posts marked as read event."
   object :posts_marked_as_read_payload do
-    @desc "The dismissed posts."
+    @desc "The posts marked as read."
     field :posts, list_of(:post)
   end
 

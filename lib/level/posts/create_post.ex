@@ -79,13 +79,13 @@ defmodule Level.Posts.CreatePost do
   defp after_transaction(err, _, _), do: err
 
   defp subscribe_author(post, author) do
-    Posts.subscribe(post, author)
+    Posts.subscribe(author, [post])
   end
 
   defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      Posts.subscribe(post, mentioned_user)
-      Posts.mark_as_unread(post, mentioned_user)
+      Posts.subscribe(mentioned_user, [post])
+      Posts.mark_as_unread(mentioned_user, [post])
     end)
   end
 

@@ -22,8 +22,10 @@ type Event
     | GroupUnbookmarked Group
     | PostCreated ( Post, Connection Reply )
     | PostUpdated Post
-    | PostSubscribed Post
-    | PostUnsubscribed Post
+    | PostsSubscribed (List Post)
+    | PostsUnsubscribed (List Post)
+    | PostsMarkedAsUnread (List Post)
+    | PostsMarkedAsRead (List Post)
     | PostsDismissed (List Post)
     | MentionsDismissed Post
     | UserMentioned Post
@@ -51,8 +53,10 @@ eventDecoder =
         [ -- SPACE USER EVENTS
           Decode.map GroupBookmarked SpaceUserSubscription.groupBookmarkedDecoder
         , Decode.map GroupUnbookmarked SpaceUserSubscription.groupUnbookmarkedDecoder
-        , Decode.map PostSubscribed SpaceUserSubscription.postSubscribedDecoder
-        , Decode.map PostUnsubscribed SpaceUserSubscription.postUnsubscribedDecoder
+        , Decode.map PostsSubscribed SpaceUserSubscription.postsSubscribedDecoder
+        , Decode.map PostsUnsubscribed SpaceUserSubscription.postsUnsubscribedDecoder
+        , Decode.map PostsMarkedAsUnread SpaceUserSubscription.postsMarkedAsUnreadDecoder
+        , Decode.map PostsMarkedAsRead SpaceUserSubscription.postsMarkedAsReadDecoder
         , Decode.map PostsDismissed SpaceUserSubscription.postsDismissedDecoder
         , Decode.map UserMentioned SpaceUserSubscription.userMentionedDecoder
         , Decode.map MentionsDismissed SpaceUserSubscription.mentionsDismissedDecoder

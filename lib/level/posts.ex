@@ -175,101 +175,99 @@ defmodule Level.Posts do
   end
 
   @doc """
-  Subscribes a user to a post.
+  Subscribes a user to the given posts.
   """
-  @spec subscribe(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def subscribe(%Post{} = post, %SpaceUser{} = space_user) do
-    post
-    |> update_user_state(space_user, %{subscription_state: "SUBSCRIBED"})
-    |> after_subscribe(space_user.id, post)
+  @spec subscribe(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
+  def subscribe(%SpaceUser{} = space_user, posts) do
+    space_user
+    |> update_many_user_states(posts, %{subscription_state: "SUBSCRIBED"})
+    |> after_subscribe(space_user)
   end
 
-  defp after_subscribe(:ok, space_user_id, post) do
-    Pubsub.post_subscribed(space_user_id, post)
-    :ok
-  end
+  defp after_subscribe({:ok, posts} = result, space_user) do
+    Enum.each(posts, fn post ->
+      PostUserLog.subscribed(post, space_user)
+    end)
 
-  defp after_subscribe(_, _, _), do: :error
+    Pubsub.posts_subscribed(space_user.id, posts)
+    result
+  end
 
   @doc """
-  Unsubscribes a user from a post.
+  Unsubscribes a user from the given posts.
   """
-  @spec unsubscribe(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def unsubscribe(%Post{} = post, %SpaceUser{} = space_user) do
-    post
-    |> update_user_state(space_user, %{subscription_state: "UNSUBSCRIBED"})
-    |> after_unsubscribe(space_user.id, post)
+  @spec unsubscribe(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
+  def unsubscribe(%SpaceUser{} = space_user, posts) do
+    space_user
+    |> update_many_user_states(posts, %{subscription_state: "UNSUBSCRIBED"})
+    |> after_unsubscribe(space_user)
   end
 
-  defp after_unsubscribe(:ok, space_user_id, post) do
-    Pubsub.post_unsubscribed(space_user_id, post)
-    :ok
-  end
+  defp after_unsubscribe({:ok, posts} = result, space_user) do
+    Enum.each(posts, fn post ->
+      PostUserLog.unsubscribed(post, space_user)
+    end)
 
-  defp after_unsubscribe(_, _, _), do: :error
+    Pubsub.posts_unsubscribed(space_user.id, posts)
+    result
+  end
 
   @doc """
-  Marks a post as unread.
+  Marks the given posts as unread.
   """
-  @spec mark_as_unread(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def mark_as_unread(%Post{} = post, %SpaceUser{} = space_user) do
-    post
-    |> update_user_state(space_user, %{inbox_state: "UNREAD"})
-    |> after_mark_as_unread(post, space_user)
+  @spec mark_as_unread(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
+  def mark_as_unread(%SpaceUser{} = space_user, posts) do
+    space_user
+    |> update_many_user_states(posts, %{inbox_state: "UNREAD"})
+    |> after_mark_as_unread(space_user)
   end
 
-  defp after_mark_as_unread(:ok, post, space_user) do
-    PostUserLog.marked_as_unread(post, space_user)
-    Pubsub.posts_marked_as_unread(space_user.id, [post])
-    :ok
-  end
+  defp after_mark_as_unread({:ok, posts} = result, space_user) do
+    Enum.each(posts, fn post ->
+      PostUserLog.marked_as_unread(post, space_user)
+    end)
 
-  defp after_mark_as_unread(:error, _, _), do: :error
+    Pubsub.posts_marked_as_unread(space_user.id, posts)
+    result
+  end
 
   @doc """
-  Marks a post as read.
+  Marks the given posts as read.
   """
-  @spec mark_as_read(Post.t(), SpaceUser.t()) :: :ok | :error | no_return()
-  def mark_as_read(%Post{} = post, %SpaceUser{} = space_user) do
-    post
-    |> update_user_state(space_user, %{inbox_state: "READ"})
-    |> after_mark_as_read(post, space_user)
+  @spec mark_as_read(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
+  def mark_as_read(%SpaceUser{} = space_user, posts) do
+    space_user
+    |> update_many_user_states(posts, %{inbox_state: "READ"})
+    |> after_mark_as_read(space_user)
   end
 
-  defp after_mark_as_read(:ok, post, space_user) do
-    PostUserLog.marked_as_read(post, space_user)
-    Pubsub.posts_marked_as_read(space_user.id, [post])
-    :ok
-  end
+  defp after_mark_as_read({:ok, posts} = result, space_user) do
+    Enum.each(posts, fn post ->
+      PostUserLog.marked_as_read(post, space_user)
+    end)
 
-  defp after_mark_as_read(:error, _, _), do: :error
+    Pubsub.posts_marked_as_read(space_user.id, posts)
+    result
+  end
 
   @doc """
   Dismisses the given posts from the inbox.
   """
-  @spec dismiss_all(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
-  def dismiss_all(%SpaceUser{} = space_user, posts) do
-    dismissed_posts =
-      Enum.filter(posts, fn post ->
-        :ok == dismiss(post, space_user)
-      end)
-
-    Pubsub.posts_dismissed(space_user.id, dismissed_posts)
-    {:ok, dismissed_posts}
+  @spec dismiss(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
+  def dismiss(%SpaceUser{} = space_user, posts) do
+    space_user
+    |> update_many_user_states(posts, %{inbox_state: "DISMISSED"})
+    |> after_dismiss(space_user)
   end
 
-  defp dismiss(%Post{} = post, %SpaceUser{} = space_user) do
-    post
-    |> update_user_state(space_user, %{inbox_state: "DISMISSED"})
-    |> after_dismiss(post, space_user)
-  end
+  defp after_dismiss({:ok, posts} = result, space_user) do
+    Enum.each(posts, fn post ->
+      PostUserLog.dismissed(post, space_user)
+    end)
 
-  defp after_dismiss(:ok, post, space_user) do
-    PostUserLog.dismissed(post, space_user)
-    :ok
+    Pubsub.posts_dismissed(space_user.id, posts)
+    result
   end
-
-  defp after_dismiss(:error, _, _), do: :error
 
   @doc """
   Fetches state attributes describing a user's relationship to a post.
@@ -352,7 +350,16 @@ defmodule Level.Posts do
 
   # Internal
 
-  defp update_user_state(post, space_user, params) do
+  defp update_many_user_states(space_user, posts, params) do
+    updated_posts =
+      Enum.filter(posts, fn post ->
+        :ok == update_user_state(space_user, post, params)
+      end)
+
+    {:ok, updated_posts}
+  end
+
+  defp update_user_state(space_user, post, params) do
     full_params =
       params
       |> Map.put(:space_id, post.space_id)

@@ -154,8 +154,8 @@ defmodule LevelWeb.GraphQL.PostsTest do
     {:ok, %{post: unread_post}} = create_post(space_user, group, %{body: "I'm just opining..."})
     {:ok, %{post: read_post}} = create_post(space_user, group, %{body: "Hey peeps"})
 
-    Posts.mark_as_unread(unread_post, space_user)
-    Posts.mark_as_read(read_post, space_user)
+    Posts.mark_as_unread(space_user, [unread_post])
+    Posts.mark_as_read(space_user, [read_post])
 
     variables = %{
       space_id: space_user.space_id,
@@ -191,9 +191,9 @@ defmodule LevelWeb.GraphQL.PostsTest do
     {:ok, %{post: read_post}} = create_post(space_user, group, %{body: "Hey peeps"})
     {:ok, %{post: dismissed_post}} = create_post(space_user, group, %{body: "I'm dismissed"})
 
-    Posts.mark_as_unread(unread_post, space_user)
-    Posts.mark_as_read(read_post, space_user)
-    Posts.dismiss_all(space_user, [dismissed_post])
+    Posts.mark_as_unread(space_user, [unread_post])
+    Posts.mark_as_read(space_user, [read_post])
+    Posts.dismiss(space_user, [dismissed_post])
 
     variables = %{
       space_id: space_user.space_id,
@@ -234,9 +234,9 @@ defmodule LevelWeb.GraphQL.PostsTest do
     {:ok, %{post: read_post}} = create_post(space_user, group, %{body: "Hey peeps"})
     {:ok, %{post: dismissed_post}} = create_post(space_user, group, %{body: "I'm dismissed"})
 
-    Posts.mark_as_unread(unread_post, space_user)
-    Posts.mark_as_read(read_post, space_user)
-    Posts.dismiss_all(space_user, [dismissed_post])
+    Posts.mark_as_unread(space_user, [unread_post])
+    Posts.mark_as_read(space_user, [read_post])
+    Posts.dismiss(space_user, [dismissed_post])
 
     variables = %{
       space_id: space_user.space_id,

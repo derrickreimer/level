@@ -90,7 +90,7 @@ defmodule Level.PostsTest do
 
     test "includes subscribers", %{space: space, space_user: space_user, post: post} do
       {:ok, %{space_user: another_user}} = create_space_member(space)
-      Posts.subscribe(post, another_user)
+      Posts.subscribe(another_user, [post])
 
       {:ok, result} = Posts.get_subscribers(post)
 
@@ -103,7 +103,7 @@ defmodule Level.PostsTest do
     end
 
     test "excludes unsubscribes", %{space_user: space_user, post: post} do
-      Posts.unsubscribe(post, space_user)
+      Posts.unsubscribe(space_user, [post])
       assert {:ok, []} = Posts.get_subscribers(post)
     end
   end
@@ -189,13 +189,13 @@ defmodule Level.PostsTest do
       post: post
     } do
       {:ok, %{space_user: another_space_user}} = create_space_member(space)
-      :ok = Posts.subscribe(post, another_space_user)
+      {:ok, [^post]} = Posts.subscribe(another_space_user, [post])
       assert %{subscription: "SUBSCRIBED"} = Posts.get_user_state(post, another_space_user)
     end
 
     test "ignores repeated subscribes", %{space_user: space_user, post: post} do
       assert %{subscription: "SUBSCRIBED"} = Posts.get_user_state(post, space_user)
-      assert :ok = Posts.subscribe(post, space_user)
+      assert {:ok, [^post]} = Posts.subscribe(space_user, [post])
     end
   end
 
@@ -215,7 +215,7 @@ defmodule Level.PostsTest do
     end
 
     test "subscribes the user to the post", %{space_user: space_user, post: post} do
-      :ok = Posts.unsubscribe(post, space_user)
+      {:ok, _} = Posts.unsubscribe(space_user, [post])
       params = valid_reply_params()
       {:ok, %{reply: _reply}} = Posts.create_reply(space_user, post, params)
       assert %{subscription: "SUBSCRIBED"} = Posts.get_user_state(post, space_user)
@@ -267,7 +267,7 @@ defmodule Level.PostsTest do
 
     test "marks as unread for subscribers", %{space: space, space_user: space_user, post: post} do
       {:ok, %{space_user: another_subscriber}} = create_space_member(space)
-      Posts.subscribe(post, another_subscriber)
+      Posts.subscribe(another_subscriber, [post])
       {:ok, _} = Posts.create_reply(space_user, post, valid_reply_params())
       assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_subscriber)
     end
