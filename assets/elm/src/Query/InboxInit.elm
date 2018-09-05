@@ -51,12 +51,12 @@ document =
                 before: $before,
                 after: $after,
                 filter: { inbox: UNREAD_OR_READ },
-                orderBy: { field: LAST_PINGED_AT, direction: DESC }
+                orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
                 edges {
                   node {
-                    replies(last: 5) {
+                    replies(last: 3) {
                       ...ReplyConnectionFields
                     }
                   }
