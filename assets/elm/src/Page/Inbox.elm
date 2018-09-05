@@ -204,9 +204,9 @@ consumeEvent event model =
                         postId =
                             Post.getId post
                     in
-                    case Connection.get .id postId model.posts of
+                    case Connection.get .id postId components of
                         Just component ->
-                            ( Connection.remove .id postId model.posts
+                            ( Connection.remove .id postId components
                             , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component) :: cmds
                             )
 
@@ -214,8 +214,7 @@ consumeEvent event model =
                             ( components, cmds )
 
                 ( newPosts, teardownCmds ) =
-                    posts
-                        |> List.foldr remove ( model.posts, [] )
+                    List.foldr remove ( model.posts, [] ) posts
             in
             ( { model | posts = newPosts }, Cmd.batch teardownCmds )
 
