@@ -19,9 +19,10 @@ import "phoenix_html";
 import * as Main from "./modules/main";
 import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
-import "@webcomponents/custom-elements";
-import "./rendered_html";
+import * as Notifications from "./notifications";
+import "./custom_elements/rendered_html";
 
+// Initialize the current page module
 const moduleNode = document.head.querySelector("meta[name='module']");
 
 if (moduleNode) {
@@ -42,6 +43,7 @@ if (moduleNode) {
   }
 }
 
+// Track scroll position and set a .scrolled-top class
 setInterval(() => {
   if (window.scrollY < 5) {
     document.body.classList.add("scrolled-top");
@@ -49,3 +51,6 @@ setInterval(() => {
     document.body.classList.remove("scrolled-top");
   }
 }, 100);
+
+// Initialize notifications
+Notifications.initialize();

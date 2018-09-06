@@ -1,3 +1,5 @@
+import "@webcomponents/custom-elements";
+
 customElements.define(
   "rendered-html",
   class RenderedHtml extends HTMLElement {
