@@ -156,7 +156,7 @@ defmodule LevelWeb.Auth do
   Generates a fully-signed JSON Web Token (JWT) for a particular user for use by
   front end clients.
   """
-  def generate_signed_jwt(user, lifespan_seconds \\ 15 * 60) do
+  def generate_signed_jwt(user, lifespan_seconds \\ 5 * 60) do
     user
     |> generate_jwt(lifespan_seconds)
     |> sign

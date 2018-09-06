@@ -14,8 +14,8 @@ import Vendor.Jwt as Jwt exposing (JwtError)
 
 
 type alias Payload =
-    { iat : Int
-    , exp : Int
+    { iat : Float
+    , exp : Float
     , sub : String
     }
 
@@ -67,8 +67,8 @@ decodeToken token =
     let
         decoder =
             Decode.succeed Payload
-                |> Pipeline.required "iat" Decode.int
-                |> Pipeline.required "exp" Decode.int
+                |> Pipeline.required "iat" Decode.float
+                |> Pipeline.required "exp" Decode.float
                 |> Pipeline.required "sub" Decode.string
     in
     Jwt.decodeToken decoder token
@@ -114,7 +114,7 @@ refreshIfExpired : Session -> Posix -> Task Error Session
 refreshIfExpired session now =
     case session.payload of
         Ok payload ->
-            if payload.exp <= inSeconds now then
+            if toFloat (Time.posixToMillis now) >= payload.exp * 1000 then
                 fetchNewToken session
 
             else
@@ -144,12 +144,3 @@ handleError error =
 
         _ ->
             HttpError error
-
-
-inSeconds : Posix -> Int
-inSeconds posix =
-    posix
-        |> Time.posixToMillis
-        |> toFloat
-        |> (/) 1000
-        |> round
