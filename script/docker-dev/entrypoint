@@ -1,0 +1,11 @@
+#!/bin/bash -l
+# -l is required to bootstrap nvm
+set -e
+
+cd $(dirname $0)
+
+./db-bootstrap
+
+cd ../..
+
+./script/server

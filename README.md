@@ -54,6 +54,20 @@ We have a handful of helper scripts available:
 - `script/static-analysis`: runs Credo (Elixir linting), Dialyzer, and Elixir formatter verification
 - `script/build`: runs all the test suites and static analysis
 
+
+## Development Environment Alternative: Docker
+
+If you prefer to contain the dev environment with Docker instead of installing
+all Level dependencies by hand globally on your machine, you can
+[install Docker](https://www.docker.com/community-edition#/download)
+and docker-compose and then run:
+
+`docker-compose up --build` (or see [other options](./docker-compose.md))
+
+Wait until Level starts, then visit
+[`localhost:4000`](http://localhost:4000) from your browser.
+
+
 ## Documentation
 
 Run the `script/docs` to generate and view the project ExDocs locally.

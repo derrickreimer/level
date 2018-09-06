@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+cd $(dirname $0)
+
+if [ "$PWD" != "/opt/level/script/docker-dev" ] ; then
+  echo "This script is only intended to run inside a Docker container. Exiting..."
+  exit 1
+fi
+
+# Wait until database level_dev exists (it is created when level-dev-db
+# container boots, due to POSTGRES_DB in docker-compose.yml)
+# https://stackoverflow.com/a/16783253
+function db_is_ready {
+  psql -h level-dev-db -U postgres -lqt | cut -d \| -f 1 | grep -qw "level_dev"
+}
+while [ ! db_is_ready ]; do
+  echo "Waiting for db container to boot"
+  sleep 0.5
+done
+
+# Bootstrap dev database schema and initial contents
+# https://github.com/levelhq/level/blob/master/script/bootstrap#L46-L48
+cd ../.. && mix ecto.create && mix ecto.load

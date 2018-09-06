@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+
+  level-dev-db:
+    environment:
+      POSTGRES_DB: level_dev
+    image: postgres:10.4
+
+  level-dev:
+    build: .
+    depends_on:
+    - level-dev-db
+    environment:
+      LEVEL_DB_HOSTNAME: level-dev-db
+      LEVEL_TEST_DB_HOSTNAME: level-dev-db
+    ports:
+    - "4000:4000"
+    volumes:
+    # Using bind mounts to share some files between the container and the host
+    # This allows us to use the our normal editor, git workflow etc on the host,
+    # https://docs.docker.com/storage/bind-mounts/
+    #
+    # REMARK: It is desired to not shadow ./deps or ./assets/node_modules
+    # from the Docker cache (see Dockerfile), hence enumeration of relevant
+    # directories below, instead of mounting the entire level directory.
+    - "./assets/css:/opt/level/assets/css"
+    - "./assets/elm:/opt/level/assets/elm"
+    - "./assets/js:/opt/level/assets/js"
+    - "./assets/static:/opt/level/assets/static"
+    - "./assets/package.json:/opt/level/assets/package.json"
+    - "./assets/yarn.lock:/opt/level/assets/yarn.lock"
+    - "./config:/opt/level/config"
+    - "./lib:/opt/level/lib"
+    - "./script:/opt/level/script"
+    - "./test:/opt/level/test"
+    - "./mix.exs:/opt/level/mix.exs"
+    - "./mix.lock:/opt/level/mix.lock"
+    working_dir: /opt/level

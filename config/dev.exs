@@ -44,7 +44,7 @@ config :phoenix, :stacktrace_depth, 20
 config :level, Level.Repo,
   adapter: Ecto.Adapters.Postgres,
   database: "level_dev",
-  hostname: "localhost",
+  hostname: System.get_env("LEVEL_DB_HOSTNAME") || "localhost",
   pool_size: 10
 
 # Mailer
