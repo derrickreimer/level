@@ -7,7 +7,7 @@ import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Page.Group
 import Page.Groups
@@ -22,6 +22,7 @@ import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
+import PushManager
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -66,11 +67,14 @@ type alias Model =
     , repo : Repo
     , page : Page
     , isTransitioning : Bool
+    , supportsNotifications : Bool
+    , hasPushSubscription : Bool
     }
 
 
 type alias Flags =
     { apiToken : String
+    , supportsNotifications : Bool
     }
 
 
@@ -90,12 +94,25 @@ init flags url navKey =
                 |> MainInit.request
                 |> Task.attempt AppInitialized
     in
-    ( model, Cmd.batch [ navigateCmd, initCmd ] )
+    ( model
+    , Cmd.batch
+        [ navigateCmd
+        , initCmd
+        , PushManager.getSubscription
+        ]
+    )
 
 
 buildModel : Flags -> Nav.Key -> Model
 buildModel flags navKey =
-    Model navKey (Session.init flags.apiToken) Repo.init Blank True
+    Model
+        navKey
+        (Session.init flags.apiToken)
+        Repo.init
+        Blank
+        True
+        flags.supportsNotifications
+        False
 
 
 setup : MainInit.Response -> Model -> Cmd Msg
@@ -139,6 +156,7 @@ type Msg
     | SocketStart Decode.Value
     | SocketResult Decode.Value
     | SocketError Decode.Value
+    | PushManagerIn Decode.Value
 
 
 updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Session ) -> ( Model, Cmd Msg )
@@ -317,6 +335,17 @@ update msg model =
                         |> Task.attempt SessionRefreshed
             in
             ( model, cmd )
+
+        ( PushManagerIn value, _ ) ->
+            case PushManager.decodePayload value of
+                PushManager.Subscription (Just _) ->
+                    ( { model | hasPushSubscription = True }, Cmd.none )
+
+                PushManager.Subscription Nothing ->
+                    ( { model | hasPushSubscription = False }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
@@ -955,6 +984,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Socket.listen SocketAbort SocketStart SocketResult SocketError
+        , PushManager.receive PushManagerIn
         , pageSubscription model.page
         ]
 

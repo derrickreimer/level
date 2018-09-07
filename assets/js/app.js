@@ -19,8 +19,11 @@ import "phoenix_html";
 import * as Main from "./modules/main";
 import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
-import * as Notifications from "./notifications";
+import * as Background from "./background";
 import "./custom_elements/rendered_html";
+
+// Initialize service worker
+Background.registerWorker();
 
 // Initialize the current page module
 const moduleNode = document.head.querySelector("meta[name='module']");
@@ -51,6 +54,3 @@ setInterval(() => {
     document.body.classList.remove("scrolled-top");
   }
 }, 100);
-
-// Initialize notifications
-Notifications.initialize();

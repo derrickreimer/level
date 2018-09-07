@@ -6,8 +6,10 @@ import {
 import { getApiToken } from "./token";
 import * as AbsintheSocket from "@absinthe/socket";
 import autosize from "autosize";
+import * as Background from "./background";
 
-const logEvent = eventName => (...args) => console.log(eventName, ...args);
+const logEvent = eventName => (...args) =>
+  console.log("[" + eventName + "]", ...args);
 
 export const attachPorts = app => {
   let phoenixSocket = createPhoenixSocket(getApiToken());
@@ -139,4 +141,25 @@ export const attachPorts = app => {
 
     logEvent("ports.file.request")({ id });
   });
+
+  if (Background.isSupported) {
+    app.ports.pushManagerOut.subscribe(method => {
+      logEvent("ports.pushManager.out")({ method });
+
+      switch (method) {
+        case "getSubscription":
+          Background.getPushSubscription().then(subscription => {
+            const payload = {
+              type: "subscription",
+              subscription: JSON.stringify(subscription)
+            };
+
+            app.ports.pushManagerIn.send(payload);
+            logEvent("ports.pushManager.in")(payload);
+          });
+
+          break;
+      }
+    });
+  }
 };

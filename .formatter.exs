@@ -6,8 +6,7 @@
     inspect: 2,
 
     # Phoenix
-    plug: 1,
-    plug: 2,
+    plug: :*,
     action_fallback: 1,
     render: 2,
     render: 3,
