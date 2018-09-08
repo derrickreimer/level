@@ -422,6 +422,21 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Registers a push subscription.
+  """
+  @spec register_push_subscription(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors()}}
+  def register_push_subscription(%{data: data}, %{context: %{current_user: user}}) do
+    case Users.create_push_subscription(user, data) do
+      {:ok, _} ->
+        {:ok, %{success: true, errors: []}}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+    end
+  end
+
   defp format_errors(%Ecto.Changeset{errors: errors}) do
     Enum.map(errors, fn {attr, {msg, props}} ->
       message =

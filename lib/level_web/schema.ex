@@ -201,6 +201,13 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.dismiss_posts/2
     end
+
+    @desc "Registers a push subscription."
+    field :register_push_subscription, type: :register_push_subscription_payload do
+      arg :data, non_null(:string)
+
+      resolve &Level.Mutations.register_push_subscription/2
+    end
   end
 
   subscription do
