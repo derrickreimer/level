@@ -1,4 +1,8 @@
 defmodule Level.WebPush.Subscription do
+  @moduledoc """
+  Represents a web push subscription.
+  """
+
   @enforce_keys [:endpoint, :keys]
   defstruct [:endpoint, :keys]
 
