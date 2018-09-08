@@ -1,11 +1,13 @@
 defmodule Level.WebPush.Subscription do
-  @enforce_keys [:endpoint, :auth, :p256dh]
-  defstruct [:endpoint, :auth, :p256dh]
+  @enforce_keys [:endpoint, :keys]
+  defstruct [:endpoint, :keys]
 
   @type t :: %__MODULE__{
           endpoint: String.t(),
-          auth: String.t(),
-          p256dh: String.t()
+          keys: %{
+            auth: String.t(),
+            p256dh: String.t()
+          }
         }
 
   def parse(data) do
@@ -17,7 +19,7 @@ defmodule Level.WebPush.Subscription do
   defp after_decode(
          {:ok, %{"endpoint" => endpoint, "keys" => %{"auth" => auth, "p256dh" => p256dh}}}
        ) do
-    {:ok, %__MODULE__{endpoint: endpoint, auth: auth, p256dh: p256dh}}
+    {:ok, %__MODULE__{endpoint: endpoint, keys: %{auth: auth, p256dh: p256dh}}}
   end
 
   defp after_decode({:ok, _}) do

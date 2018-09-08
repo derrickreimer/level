@@ -19,8 +19,8 @@ defmodule Level.WebPushTest do
     test "parses valid data" do
       {:ok, %Subscription{} = subscription} = WebPush.parse_subscription(@valid_data)
       assert subscription.endpoint == "https://endpoint.test"
-      assert subscription.auth == "auth"
-      assert subscription.p256dh == "p256dh"
+      assert subscription.keys.auth == "auth"
+      assert subscription.keys.p256dh == "p256dh"
     end
 
     test "errors out if keys are not valid" do

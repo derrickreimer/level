@@ -42,7 +42,8 @@ config :level, Level.Mailer,
 config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
 
 # Configure browser push notifications
-config :level, :web_push,
+config :web_push_encryption, :vapid_details,
+  subject: "https://level.app",
   public_key: System.get_env("LEVEL_WEB_PUSH_PUBLIC_KEY"),
   private_key: System.get_env("LEVEL_WEB_PUSH_PRIVATE_KEY")
 

@@ -19,7 +19,8 @@ config :level, :asset_store, bucket: "REPLACE ME"
 #    LEVEL_WEB_PUSH_PUBLIC_KEY
 #    LEVEL_WEB_PUSH_PRIVATE_KEY
 #
-config :level, :web_push,
+config :web_push_encryption, :vapid_details,
+  subject: "REPLACE ME",
   public_key: "REPLACE ME",
   private_key: "REPLACE ME"
 
