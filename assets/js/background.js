@@ -1,64 +1,44 @@
 const log = (...args) => console.log("[bg]", ...args);
 const error = (...args) => console.error("[bg]", ...args);
 
+/**
+ * Fetches the VAPID public key.
+ * @returns {String}
+ */
 const getPublicKey = () => {
   return document.head.querySelector("meta[name='web_push_public_key']")
     .content;
 };
 
 /**
- * Gets the subscription.
+ * Fetches the subscription, which will resolve to null if it does not exist.
+ * @returns {Promise}
  */
 export function getPushSubscription() {
-  return new Promise((resolve, reject) => {
-    navigator.serviceWorker.ready.then(registration => {
-      registration.pushManager
-        .getSubscription()
-        .then(subscription => resolve(subscription))
-        .catch(err => reject(err));
-    });
+  return navigator.serviceWorker.ready.then(registration => {
+    return registration.pushManager.getSubscription();
   });
 }
 
 /**
  * Initiates a subscription flow.
+ * @returns {Promise}
  */
 export function subscribe() {
-  navigator.serviceWorker.ready.then(registration => {
+  return navigator.serviceWorker.ready.then(registration => {
     const convertedKey = urlBase64ToUint8Array(getPublicKey());
 
-    registration.pushManager
-      .subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedKey
-      })
-      .then(subscription => {
-        // TODO: save subscription to the server
-        log("Subscription established");
-        return subscription;
-      })
-      .catch(err => {
-        log("Permission setting", Notification.permission);
-
-        if (Notification.permission === "denied") {
-          // The user denied the notification permission which
-          // means we failed to subscribe and the user will need
-          // to manually change the notification permission to
-          // subscribe to push messages
-          log("Permission for notifications was denied.");
-        } else {
-          // A problem occurred with the subscription, this can
-          // often be down to an issue or lack of the gcm_sender_id
-          // and / or gcm_user_visible_only
-          error("Unable to subscribe to push.", err);
-        }
-      });
+    return registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedKey
+    });
   });
 }
 
 /**
- * Private: Convert a base64 string into format required 
- * for push manager subscriptions.
+ * Convert a base64 string into format required  for push manager subscriptions.
+ * @param {String} base64String A url-safe base64-encoded value.
+ * @returns {Uint8Array}
  */
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - base64String.length % 4) % 4);
@@ -77,6 +57,7 @@ function urlBase64ToUint8Array(base64String) {
 
 /**
  * Checks to see if service workers are supported.
+ * @returns {Boolean}
  */
 export const isSupported = () => {
   if (!("serviceWorker" in navigator)) return false;
@@ -86,6 +67,7 @@ export const isSupported = () => {
 
 /**
  * Initializes the service worker.
+ * @returns {Promise}
  */
 export function registerWorker() {
   if (!isSupported()) {
@@ -93,31 +75,13 @@ export function registerWorker() {
     return;
   }
 
-  navigator.serviceWorker
+  return navigator.serviceWorker
     .register("/service-worker.js")
-    .then(subscription => {
-      log("Service worker successfully registered.", subscription);
+    .then(registration => {
+      log("Service worker successfully registered.", { registration });
+      return registration;
     })
     .catch(err => {
       error("Unable to register service worker.", err);
     });
-}
-
-/**
- * Prompts the user for permission to send notifications.
- */
-export function askPermission() {
-  return new Promise((resolve, reject) => {
-    const permissionResult = Notification.requestPermission(result => {
-      resolve(result);
-    });
-
-    if (permissionResult) {
-      permissionResult.then(resolve, reject);
-    }
-  }).then(permissionResult => {
-    if (permissionResult !== "granted") {
-      throw new Error("We weren't granted permission.");
-    }
-  });
 }

@@ -761,8 +761,8 @@ routeFor page =
             Nothing
 
 
-pageView : Repo -> Page -> Html Msg
-pageView repo page =
+pageView : Repo -> Page -> Bool -> Html Msg
+pageView repo page hasPushSubscription =
     case page of
         Spaces pageModel ->
             pageModel
@@ -791,7 +791,7 @@ pageView repo page =
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view repo (routeFor page)
+                |> Page.Inbox.view repo (routeFor page) hasPushSubscription
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
@@ -996,5 +996,5 @@ subscriptions model =
 view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
-        [ pageView model.repo model.page
+        [ pageView model.repo model.page model.hasPushSubscription
         ]

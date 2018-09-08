@@ -159,6 +159,23 @@ export const attachPorts = app => {
           });
 
           break;
+
+        case "subscribe":
+          Background.subscribe()
+            .then(subscription => {
+              const payload = {
+                type: "subscription",
+                subscription: JSON.stringify(subscription)
+              };
+
+              app.ports.pushManagerIn.send(payload);
+              logEvent("ports.pushManager.in")(payload);
+            })
+            .catch(err => {
+              console.error(err);
+            });
+
+          break;
       }
     });
   }
