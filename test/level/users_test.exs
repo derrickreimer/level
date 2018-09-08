@@ -3,6 +3,7 @@ defmodule Level.UsersTest do
 
   alias Level.Spaces.SpaceUser
   alias Level.Users
+  alias Level.Users.PushSubscription
 
   describe "create_user/1" do
     test "creates a new user given valid params" do
@@ -36,6 +37,33 @@ defmodule Level.UsersTest do
       {:ok, %{user: user, space_user: space_user}} = create_user_and_space()
       {:ok, _} = Users.update_user(user, %{first_name: "Paul"})
       assert %SpaceUser{first_name: "Paul"} = Repo.get(SpaceUser, space_user.id)
+    end
+  end
+
+  describe "create_push_subscription/2" do
+    setup do
+      {:ok, user} = create_user()
+      {:ok, %{user: user}}
+    end
+
+    test "inserts the subscription for the user", %{user: user} do
+      {:ok, "a"} = Users.create_push_subscription(user, "a")
+      assert [%PushSubscription{data: "a"}] = Users.get_push_subscriptions(user)
+
+      # Gracefully handle duplicates
+      {:ok, "a"} = Users.create_push_subscription(user, "a")
+      assert [%PushSubscription{data: "a"}] = Users.get_push_subscriptions(user)
+
+      # Can have multiple distinct subscriptions
+      {:ok, "b"} = Users.create_push_subscription(user, "b")
+
+      data =
+        user
+        |> Users.get_push_subscriptions()
+        |> Enum.map(fn sub -> sub.data end)
+        |> Enum.sort()
+
+      assert data == ["a", "b"]
     end
   end
 end

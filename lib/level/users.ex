@@ -10,6 +10,7 @@ defmodule Level.Users do
   alias Level.AssetStore
   alias Level.Repo
   alias Level.Spaces
+  alias Level.Users.PushSubscription
   alias Level.Users.Reservation
   alias Level.Users.User
 
@@ -139,5 +140,33 @@ defmodule Level.Users do
   @spec reservation_count() :: Integer.t()
   def reservation_count do
     Repo.one(from(r in Reservation, select: count(r.id)))
+  end
+
+  @doc """
+  Inserts a push subscription (gracefully de-duplicated).
+  """
+  @spec create_push_subscription(User.t(), String.t()) ::
+          {:ok, String.t()} | {:error, Ecto.Changeset.t()}
+  def create_push_subscription(%User{id: user_id}, data) do
+    %PushSubscription{}
+    |> PushSubscription.create_changeset(%{user_id: user_id, data: data})
+    |> Repo.insert(on_conflict: :nothing)
+    |> handle_create_push_subscription()
+  end
+
+  defp handle_create_push_subscription({:ok, %PushSubscription{data: data}}) do
+    {:ok, data}
+  end
+
+  defp handle_create_push_subscription(err), do: err
+
+  @doc """
+  Fetches all push subscriptions for the given user.
+  """
+  @spec get_push_subscriptions(User.t()) :: [PushSubscription.t()]
+  def get_push_subscriptions(%User{} = user) do
+    user
+    |> Ecto.assoc(:push_subscriptions)
+    |> Repo.all()
   end
 end

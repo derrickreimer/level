@@ -11,6 +11,7 @@ defmodule Level.Users.User do
   alias Ecto.Changeset
   alias Level.Spaces.SpaceUser
   alias Level.Users
+  alias Level.Users.PushSubscription
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -31,6 +32,7 @@ defmodule Level.Users.User do
     field :session_salt, :string
     field :avatar, :string
     has_many :space_users, SpaceUser
+    has_many :push_subscriptions, PushSubscription
 
     timestamps()
   end
