@@ -9,6 +9,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Page.Group
 import Page.Groups
 import Page.Inbox
@@ -157,6 +158,7 @@ type Msg
     | SocketResult Decode.Value
     | SocketError Decode.Value
     | PushManagerIn Decode.Value
+    | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
 
 
 updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Session ) -> ( Model, Cmd Msg )
@@ -338,14 +340,23 @@ update msg model =
 
         ( PushManagerIn value, _ ) ->
             case PushManager.decodePayload value of
-                PushManager.Subscription (Just _) ->
-                    ( { model | hasPushSubscription = True }, Cmd.none )
+                PushManager.Subscription (Just data) ->
+                    let
+                        cmd =
+                            model.session
+                                |> RegisterPushSubscription.request data
+                                |> Task.attempt PushSubscriptionRegistered
+                    in
+                    ( { model | hasPushSubscription = True }, cmd )
 
                 PushManager.Subscription Nothing ->
                     ( { model | hasPushSubscription = False }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
+
+        ( PushSubscriptionRegistered _, _ ) ->
+            ( model, Cmd.none )
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
