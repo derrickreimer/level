@@ -31,4 +31,8 @@ defmodule Level.WebPushTest do
       assert {:error, :parse_error} = WebPush.parse_subscription(~s({"foo"))
     end
   end
+
+  # TODO
+  describe "send_notification/2" do
+  end
 end
