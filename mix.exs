@@ -69,7 +69,8 @@ defmodule Level.Mixfile do
       {:html_sanitize_ex, "~> 1.3.0"},
       {:number, "~> 0.5.7"},
       {:floki, "~> 0.20.3"},
-      {:web_push_encryption, "~> 0.1.3"},
+      {:web_push_encryption,
+       git: "https://github.com/tuvistavie/elixir-web-push-encryption.git", ref: "8925090"},
 
       # Amazon S3 dependencies
       {:ex_aws, "~> 2.0"},
