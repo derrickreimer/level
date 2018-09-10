@@ -54,6 +54,108 @@ We have a handful of helper scripts available:
 - `script/static-analysis`: runs Credo (Elixir linting), Dialyzer, and Elixir formatter verification
 - `script/build`: runs all the test suites and static analysis
 
+## Dependencies
+
+The following environment variables must be set in production:
+
+<table>
+  <thead>
+    <tr>
+      <th>Variable</th>
+      <th>Description</th>
+    </tr>
+  <thead>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>AWS</strong></td>
+    </tr>
+    <tr>
+      <td><code>AWS_ACCESS_KEY_ID</code></td>
+      <td>The AWS access key id for your account (with access to S3).</td>
+    </tr>
+    <tr>
+      <td><code>AWS_SECRET_ACCESS_KEY</code></td>
+      <td>The AWS secret access key corresponding to the access key id.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_ASSET_STORE_BUCKET</code></td>
+      <td>The name of the S3 bucket in which to store uploaded assets.</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Host</strong></td>
+    </tr>
+    <tr>
+      <td><code>PORT</code></td>
+      <td>The port on which to host the application (typically 80).</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_HOST</code></td>
+      <td>The domain on which you are serving the app (used for generating URLs).</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_MAILER_HOST</code></td>
+      <td>The domain via which to send transaction emails (usually same as <code>LEVEL_HOST</code>).</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_SECRET_KEY_BASE</code></td>
+      <td>A secret key for verifying the integrity of signed cookies.</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Database</strong></td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_DATABASE_URL</code></td>
+      <td>The URL for the PostgreSQL database.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_POOL_SIZE</code></td>
+      <td>The maximum number of database connections each process may consume.</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>SMTP</strong><br>We recommend <a href="https://postmarkapp.com/">Postmark</a>.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_SMTP_HOST</code></td>
+      <td>The hostname of the your SMTP provider.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_SMTP_PORT</code></td>
+      <td>The port number for your SMTP provider.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_SMTP_USERNAME</code></td>
+      <td>The username for your SMTP provider.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_SMTP_PASSWORD</code></td>
+      <td>The password for your SMTP provider.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_SMTP_PASSWORD</code></td>
+      <td>The password for your SMTP provider.</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Web Push Notifications</strong><br>See instructions here: https://github.com/web-push-libs/web-push#command-line</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_WEB_PUSH_PUBLIC_KEY</code></td>
+      <td>A VAPID public key.</td>
+    </tr>
+    <tr>
+      <td><code>LEVEL_WEB_PUSH_PRIVATE_KEY</code></td>
+      <td>A VAPID private key.</td>
+    </tr>
+  </tbody>
+</table>
+
 ## Documentation
 
 Run the `script/docs` to generate and view the project ExDocs locally.
