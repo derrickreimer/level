@@ -61,12 +61,10 @@ defmodule Level.Posts.CreateReply do
   end
 
   defp after_transaction({:ok, result}, post, author) do
-    Task.start(fn ->
-      subscribe_author(post, author)
-      subscribe_mentioned(post, result)
-      mark_unread_for_subscribers(post, author, result.reply)
-      send_events(post, result)
-    end)
+    subscribe_author(post, author)
+    subscribe_mentioned(post, result)
+    mark_unread_for_subscribers(post, author, result.reply)
+    send_events(post, result)
 
     {:ok, result}
   end
