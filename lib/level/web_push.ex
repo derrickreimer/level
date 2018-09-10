@@ -6,8 +6,6 @@ defmodule Level.WebPush do
   alias Level.WebPush.Payload
   alias Level.WebPush.Subscription
 
-  @adapter Application.get_env(:level, __MODULE__)[:adapter]
-
   @doc """
   Parses raw stringified JSON subscription data.
   """
@@ -26,6 +24,10 @@ defmodule Level.WebPush do
   def send(%Payload{} = payload, %Subscription{} = subscription) do
     payload
     |> Payload.serialize()
-    |> @adapter.send_web_push(subscription)
+    |> adapter().send_web_push(subscription)
+  end
+
+  defp adapter do
+    Application.get_env(:level, __MODULE__)[:adapter]
   end
 end
