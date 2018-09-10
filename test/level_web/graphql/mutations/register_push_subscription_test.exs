@@ -3,7 +3,7 @@ defmodule LevelWeb.GraphQL.RegisterPushSubscriptionTest do
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Users
-  alias Level.Users.PushSubscription
+  alias Level.WebPush.Subscription
 
   @query """
     mutation RegisterPushSubscription(
@@ -28,7 +28,7 @@ defmodule LevelWeb.GraphQL.RegisterPushSubscriptionTest do
   end
 
   test "registers push subscription data", %{conn: conn, user: user} do
-    variables = %{data: "the data"}
+    variables = %{data: valid_push_subscription_data("foo")}
 
     conn =
       conn
@@ -44,6 +44,6 @@ defmodule LevelWeb.GraphQL.RegisterPushSubscriptionTest do
              }
            }
 
-    assert [%PushSubscription{data: "the data"}] = Users.get_push_subscriptions(user.id)
+    assert [%Subscription{endpoint: "foo"}] = Users.get_push_subscriptions(user.id)
   end
 end

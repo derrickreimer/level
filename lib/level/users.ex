@@ -13,6 +13,7 @@ defmodule Level.Users do
   alias Level.Users.PushSubscription
   alias Level.Users.Reservation
   alias Level.Users.User
+  alias Level.WebPush
 
   @doc """
   Regex for validating handle format.
@@ -146,8 +147,18 @@ defmodule Level.Users do
   Inserts a push subscription (gracefully de-duplicated).
   """
   @spec create_push_subscription(User.t(), String.t()) ::
-          {:ok, String.t()} | {:error, Ecto.Changeset.t()}
+          {:ok, String.t()} | {:error, atom()} | {:error, Ecto.Changeset.t()}
   def create_push_subscription(%User{id: user_id}, data) do
+    with {:ok, subscription} <- WebPush.parse_subscription(data),
+         {:ok, _} <- persist_push_subscription(user_id, data) do
+      {:ok, subscription}
+    else
+      err ->
+        err
+    end
+  end
+
+  defp persist_push_subscription(user_id, data) do
     %PushSubscription{}
     |> PushSubscription.create_changeset(%{user_id: user_id, data: data})
     |> Repo.insert(on_conflict: :nothing)
@@ -163,9 +174,23 @@ defmodule Level.Users do
   @doc """
   Fetches all push subscriptions for the given user.
   """
-  @spec get_push_subscriptions(String.t()) :: [PushSubscription.t()]
+  @spec get_push_subscriptions(String.t()) :: [WebPush.Subscription.t()]
   def get_push_subscriptions(user_id) do
     query = from ps in PushSubscription, where: ps.user_id == ^user_id
-    Repo.all(query)
+
+    query
+    |> Repo.all()
+    |> parse_push_subscription_records()
+  end
+
+  defp parse_push_subscription_records(records) do
+    records
+    |> Enum.map(fn record ->
+      case WebPush.parse_subscription(record.data) do
+        {:ok, subscription} -> subscription
+        _ -> nil
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
   end
 end

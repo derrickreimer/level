@@ -55,6 +55,19 @@ defmodule Level.TestHelpers do
     }
   end
 
+  def valid_push_subscription_data(endpoint \\ "https://endpoint.test") do
+    """
+      {
+        "endpoint": "#{endpoint}",
+        "expirationTime": null,
+        "keys": {
+          "p256dh": "p256dh",
+          "auth": "auth"
+        }
+      }
+    """
+  end
+
   def create_user_and_space(user_params \\ %{}, space_params \\ %{}) do
     user_params = valid_user_params() |> Map.merge(user_params)
     space_params = valid_space_params() |> Map.merge(space_params)

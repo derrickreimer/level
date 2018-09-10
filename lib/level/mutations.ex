@@ -434,6 +434,9 @@ defmodule Level.Mutations do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset)}}
+
+      {:error, _} ->
+        {:ok, %{success: false, errors: []}}
     end
   end
 

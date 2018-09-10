@@ -106,10 +106,9 @@ defmodule Level.Posts.CreateReply do
     # add rules around who actually gets notified
     body = "@#{author.handle}: " <> reply.body
     payload = %Payload{body: body, tag: post.id}
-    push_subscriptions = Users.get_push_subscriptions(user_id)
+    subscriptions = Users.get_push_subscriptions(user_id)
 
-    Enum.each(push_subscriptions, fn push_subscription ->
-      {:ok, subscription} = WebPush.parse_subscription(push_subscription.data)
+    Enum.each(subscriptions, fn subscription ->
       WebPush.send(payload, subscription)
     end)
   end

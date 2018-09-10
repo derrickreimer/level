@@ -3,7 +3,7 @@ defmodule Level.UsersTest do
 
   alias Level.Spaces.SpaceUser
   alias Level.Users
-  alias Level.Users.PushSubscription
+  alias Level.WebPush.Subscription
 
   describe "create_user/1" do
     test "creates a new user given valid params" do
@@ -47,28 +47,36 @@ defmodule Level.UsersTest do
     end
 
     test "inserts the subscription for the user", %{user: user} do
-      {:ok, "a"} = Users.create_push_subscription(user, "a")
-      assert [%PushSubscription{data: "a"}] = Users.get_push_subscriptions(user.id)
-
       # Gracefully handle duplicates
-      {:ok, "a"} = Users.create_push_subscription(user, "a")
-      assert [%PushSubscription{data: "a"}] = Users.get_push_subscriptions(user.id)
+      {:ok, _} = Users.create_push_subscription(user, valid_push_subscription_data("a"))
+      {:ok, _} = Users.create_push_subscription(user, valid_push_subscription_data("a"))
+      assert [%Subscription{endpoint: "a"}] = Users.get_push_subscriptions(user.id)
 
       # A user can have multiple distinct subscriptions
-      {:ok, "b"} = Users.create_push_subscription(user, "b")
+      {:ok, _} = Users.create_push_subscription(user, valid_push_subscription_data("b"))
 
       data =
         user.id
         |> Users.get_push_subscriptions()
-        |> Enum.map(fn sub -> sub.data end)
+        |> Enum.map(fn sub -> sub.endpoint end)
         |> Enum.sort()
 
       assert data == ["a", "b"]
 
       # Multiple users can have the same subscription
       {:ok, another_user} = create_user()
-      {:ok, "a"} = Users.create_push_subscription(another_user, "a")
-      assert [%PushSubscription{data: "a"}] = Users.get_push_subscriptions(another_user.id)
+      {:ok, _} = Users.create_push_subscription(another_user, valid_push_subscription_data("a"))
+      assert [%Subscription{endpoint: "a"}] = Users.get_push_subscriptions(another_user.id)
+    end
+
+    test "returns a parse error if payload is invalid", %{user: user} do
+      assert {:error, :parse_error} = Users.create_push_subscription(user, "{")
+      assert [] = Users.get_push_subscriptions(user.id)
+    end
+
+    test "returns an invalid keys error if payload has wrong data", %{user: user} do
+      assert {:error, :invalid_keys} = Users.create_push_subscription(user, ~s({"foo": "bar"}))
+      assert [] = Users.get_push_subscriptions(user.id)
     end
   end
 end
