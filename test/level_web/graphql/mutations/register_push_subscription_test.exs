@@ -44,6 +44,6 @@ defmodule LevelWeb.GraphQL.RegisterPushSubscriptionTest do
              }
            }
 
-    assert [%PushSubscription{data: "the data"}] = Users.get_push_subscriptions(user)
+    assert [%PushSubscription{data: "the data"}] = Users.get_push_subscriptions(user.id)
   end
 end

@@ -163,13 +163,6 @@ defmodule Level.Users do
   @doc """
   Fetches all push subscriptions for the given user.
   """
-  @spec get_push_subscriptions(User.t()) :: [PushSubscription.t()]
-  def get_push_subscriptions(%User{} = user) do
-    user
-    |> Ecto.assoc(:push_subscriptions)
-    |> Repo.all()
-  end
-
   @spec get_push_subscriptions(String.t()) :: [PushSubscription.t()]
   def get_push_subscriptions(user_id) do
     query = from ps in PushSubscription, where: ps.user_id == ^user_id
