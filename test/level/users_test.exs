@@ -54,7 +54,7 @@ defmodule Level.UsersTest do
       {:ok, "a"} = Users.create_push_subscription(user, "a")
       assert [%PushSubscription{data: "a"}] = Users.get_push_subscriptions(user)
 
-      # Can have multiple distinct subscriptions
+      # A user can have multiple distinct subscriptions
       {:ok, "b"} = Users.create_push_subscription(user, "b")
 
       data =
@@ -64,6 +64,11 @@ defmodule Level.UsersTest do
         |> Enum.sort()
 
       assert data == ["a", "b"]
+
+      # Multiple users can have the same subscription
+      {:ok, another_user} = create_user()
+      {:ok, "a"} = Users.create_push_subscription(another_user, "a")
+      assert [%PushSubscription{data: "a"}] = Users.get_push_subscriptions(another_user)
     end
   end
 end
