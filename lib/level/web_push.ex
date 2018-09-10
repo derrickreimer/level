@@ -5,6 +5,8 @@ defmodule Level.WebPush do
 
   alias Level.WebPush.Subscription
 
+  @adapter Application.get_env(:level, __MODULE__)[:adapter]
+
   @doc """
   Parses raw stringified JSON subscription data.
   """
@@ -26,6 +28,6 @@ defmodule Level.WebPush do
       %{text: text}
       |> Poison.encode!()
 
-    WebPushEncryption.send_web_push(body, subscription)
+    @adapter.send_web_push(body, subscription)
   end
 end

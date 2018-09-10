@@ -41,6 +41,9 @@ config :level, Level.Mailer,
 # Configure asset storage
 config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
 
+# Web push
+config :level, Level.WebPush, adapter: Level.WebPush.HttpAdapter
+
 # Configure browser push notifications
 config :web_push_encryption, :vapid_details,
   subject: "https://level.app",

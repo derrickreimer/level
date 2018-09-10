@@ -71,6 +71,7 @@ defmodule Level.Mixfile do
       {:floki, "~> 0.20.3"},
       {:web_push_encryption,
        git: "https://github.com/tuvistavie/elixir-web-push-encryption.git", ref: "8925090"},
+      {:mox, "~> 0.4.0", only: :test},
 
       # Amazon S3 dependencies
       {:ex_aws, "~> 2.0"},

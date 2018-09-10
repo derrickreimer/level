@@ -50,6 +50,9 @@ config :level, Level.Repo,
 # Mailer
 config :level, Level.Mailer, adapter: Bamboo.LocalAdapter
 
+# Web push
+config :level, Level.WebPush, adapter: Level.WebPush.HttpAdapter
+
 # Import secrets not tracked under version control.
 # Use config/secret_template.exs as a starting point.
 import_config "dev.secret.exs"

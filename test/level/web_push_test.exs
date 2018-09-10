@@ -1,6 +1,8 @@
 defmodule Level.WebPushTest do
   use Level.DataCase, async: true
 
+  import Mox
+
   alias Level.WebPush
   alias Level.WebPush.Subscription
 
@@ -32,7 +34,26 @@ defmodule Level.WebPushTest do
     end
   end
 
-  # TODO
   describe "send_notification/2" do
+    setup :verify_on_exit!
+
+    test "assembles a notification body and passes it to the adapter" do
+      {:ok, sub} = WebPush.parse_subscription(@valid_data)
+
+      Level.WebPush.TestAdapter
+      |> expect(:send_web_push, fn received_body, received_sub ->
+        assert received_body == model_notification_body("foo")
+        assert received_sub == sub
+
+        {:ok, %{status_code: 201}}
+      end)
+
+      assert {:ok, %{status_code: 201}} = WebPush.send_notification(sub, "foo")
+    end
+  end
+
+  def model_notification_body(text) do
+    %{text: text}
+    |> Poison.encode!()
   end
 end
