@@ -4,6 +4,7 @@ defmodule Level.WebPushTest do
   import Mox
 
   alias Level.WebPush
+  alias Level.WebPush.Payload
   alias Level.WebPush.Subscription
 
   @valid_data """
@@ -34,26 +35,22 @@ defmodule Level.WebPushTest do
     end
   end
 
-  describe "send_notification/2" do
+  describe "send/2" do
     setup :verify_on_exit!
 
     test "assembles a notification body and passes it to the adapter" do
       {:ok, sub} = WebPush.parse_subscription(@valid_data)
+      payload = %Payload{body: "foo", tag: "bar"}
 
       Level.WebPush.TestAdapter
-      |> expect(:send_web_push, fn received_body, received_sub ->
-        assert received_body == model_notification_body("foo")
+      |> expect(:send_web_push, fn received_payload, received_sub ->
+        assert received_payload == Payload.serialize(payload)
         assert received_sub == sub
 
         {:ok, %{status_code: 201}}
       end)
 
-      assert {:ok, %{status_code: 201}} = WebPush.send_notification(sub, "foo")
+      assert {:ok, %{status_code: 201}} = WebPush.send(payload, sub)
     end
-  end
-
-  def model_notification_body(text) do
-    %{text: text}
-    |> Poison.encode!()
   end
 end

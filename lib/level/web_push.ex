@@ -3,6 +3,7 @@ defmodule Level.WebPush do
   Functions for sending web push notifications.
   """
 
+  alias Level.WebPush.Payload
   alias Level.WebPush.Subscription
 
   @adapter Application.get_env(:level, __MODULE__)[:adapter]
@@ -21,13 +22,10 @@ defmodule Level.WebPush do
   @doc """
   Sends a notification to a particular subscription.
   """
-  @spec send_notification(Subscription.t(), String.t()) ::
-          {:ok, any()} | {:error, atom()} | no_return()
-  def send_notification(%Subscription{} = subscription, text) do
-    body =
-      %{text: text}
-      |> Poison.encode!()
-
-    @adapter.send_web_push(body, subscription)
+  @spec send(Payload.t(), Subscription.t()) :: {:ok, any()} | {:error, atom()} | no_return()
+  def send(%Payload{} = payload, %Subscription{} = subscription) do
+    payload
+    |> Payload.serialize()
+    |> @adapter.send_web_push(subscription)
   end
 end
