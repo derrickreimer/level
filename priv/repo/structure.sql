@@ -329,6 +329,20 @@ CREATE TABLE public.posts (
 
 
 --
+-- Name: push_subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.push_subscriptions (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    digest text NOT NULL,
+    data text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: replies; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -533,6 +547,14 @@ ALTER TABLE ONLY public.posts
 
 
 --
+-- Name: push_subscriptions push_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.push_subscriptions
+    ADD CONSTRAINT push_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: replies replies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -671,6 +693,13 @@ CREATE UNIQUE INDEX post_users_post_id_space_user_id_index ON public.post_users 
 --
 
 CREATE INDEX posts_id_index ON public.posts USING btree (id);
+
+
+--
+-- Name: push_subscriptions_user_id_digest_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX push_subscriptions_user_id_digest_index ON public.push_subscriptions USING btree (user_id, digest);
 
 
 --
@@ -983,6 +1012,14 @@ ALTER TABLE ONLY public.posts
 
 
 --
+-- Name: push_subscriptions push_subscriptions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.push_subscriptions
+    ADD CONSTRAINT push_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: replies replies_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1082,5 +1119,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406);
 

@@ -14,7 +14,7 @@ defmodule LevelWeb.Endpoint do
     at: "/",
     from: :level,
     gzip: true,
-    only: ~w(css fonts images js favicon.ico robots.txt)
+    only: ~w(css fonts images js favicon.ico robots.txt service-worker.js)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

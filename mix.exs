@@ -69,6 +69,8 @@ defmodule Level.Mixfile do
       {:html_sanitize_ex, "~> 1.3.0"},
       {:number, "~> 0.5.7"},
       {:floki, "~> 0.20.3"},
+      {:web_push_encryption, "~> 0.2.1"},
+      {:mox, "~> 0.4.0", only: :test},
 
       # Amazon S3 dependencies
       {:ex_aws, "~> 2.0"},

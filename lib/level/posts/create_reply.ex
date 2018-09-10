@@ -10,6 +10,9 @@ defmodule Level.Posts.CreateReply do
   alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
+  alias Level.Users
+  alias Level.WebPush
+  alias Level.WebPush.Payload
 
   # TODO: make this more specific
   @type result :: {:ok, map()} | {:error, any(), any(), map()}
@@ -60,7 +63,7 @@ defmodule Level.Posts.CreateReply do
   defp after_transaction({:ok, result}, post, author) do
     subscribe_author(post, author)
     subscribe_mentioned(post, result)
-    mark_unread_for_subscribers(post, author)
+    mark_unread_for_subscribers(post, author, result.reply)
     send_events(post, result)
 
     {:ok, result}
@@ -78,13 +81,14 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp mark_unread_for_subscribers(post, author) do
+  defp mark_unread_for_subscribers(post, author, reply) do
     {:ok, subscribers} = Posts.get_subscribers(post)
 
     Enum.each(subscribers, fn subscriber ->
       # Skip marking unread for the author
       if subscriber.id !== author.id do
         Posts.mark_as_unread(subscriber, [post])
+        send_push_notification(subscriber, post, author, reply)
       end
     end)
   end
@@ -94,6 +98,18 @@ defmodule Level.Posts.CreateReply do
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       Pubsub.user_mentioned(id, post)
+    end)
+  end
+
+  defp send_push_notification(%SpaceUser{user_id: user_id}, post, author, reply) do
+    # TODO: move this logic into a context module and
+    # add rules around who actually gets notified
+    body = "@#{author.handle}: " <> reply.body
+    payload = %Payload{body: body, tag: post.id}
+    subscriptions = Users.get_push_subscriptions(user_id)
+
+    Enum.each(subscriptions, fn subscription ->
+      WebPush.send(payload, subscription)
     end)
   end
 end

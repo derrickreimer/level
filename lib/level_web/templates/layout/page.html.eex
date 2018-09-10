@@ -16,6 +16,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <meta name="csrf_token" content="<%= Plug.CSRFProtection.get_csrf_token() %>">
+    <meta name="web_push_public_key" content="<%= Application.get_env(:web_push_encryption, :vapid_details)[:public_key] %>">
 
     <%= if assigns[:module] do %>
     <meta name="module" content="<%= @module %>">

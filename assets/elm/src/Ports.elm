@@ -1,4 +1,4 @@
-port module Ports exposing (autosize, cancelSocket, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
+port module Ports exposing (autosize, cancelSocket, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
 
 import Autosize.Types
 import File.Types
@@ -32,6 +32,9 @@ port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
 port receiveFile : (File.Types.Data -> msg) -> Sub msg
 
 
+port pushManagerIn : (Decode.Value -> msg) -> Sub msg
+
+
 
 -- OUTBOUND
 
@@ -58,3 +61,6 @@ port select : String -> Cmd msg
 
 
 port requestFile : String -> Cmd msg
+
+
+port pushManagerOut : String -> Cmd msg

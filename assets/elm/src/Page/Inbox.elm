@@ -16,6 +16,7 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissPosts as DismissPosts
 import Pagination
 import Post exposing (Post)
+import PushManager
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -28,7 +29,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (displayName, smartFormatTime, viewIf)
+import View.Helpers exposing (displayName, smartFormatTime, viewIf, viewUnless)
 import View.Layout exposing (spaceLayout)
 
 
@@ -107,6 +108,7 @@ type Msg
     | PostComponentMsg String Component.Post.Msg
     | DismissPostsClicked
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
+    | PushSubscribeClicked
     | NoOp
 
 
@@ -156,6 +158,9 @@ update msg session model =
 
         PostsDismissed _ ->
             noCmd session model
+
+        PushSubscribeClicked ->
+            ( ( model, PushManager.subscribe ), session )
 
         NoOp ->
             noCmd session model
@@ -240,8 +245,8 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
+view : Repo -> Maybe Route -> Bool -> Model -> Html Msg
+view repo maybeCurrentRoute hasPushSubscription model =
     spaceLayout repo
         model.viewer
         model.space
@@ -256,7 +261,7 @@ view repo maybeCurrentRoute model =
                         ]
                     ]
                 , postsView repo model
-                , sidebarView repo model.space model.featuredUsers
+                , sidebarView repo model.space model.featuredUsers hasPushSubscription
                 ]
             ]
         ]
@@ -313,8 +318,8 @@ postView repo model component =
         ]
 
 
-sidebarView : Repo -> Space -> List SpaceUser -> Html Msg
-sidebarView repo space featuredUsers =
+sidebarView : Repo -> Space -> List SpaceUser -> Bool -> Html Msg
+sidebarView repo space featuredUsers hasPushSubscription =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
@@ -325,11 +330,17 @@ sidebarView repo space featuredUsers =
                 ]
             ]
         , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers
+        , viewUnless hasPushSubscription <|
+            button
+                [ class "block text-sm text-blue"
+                , onClick PushSubscribeClicked
+                ]
+                [ text "Enable notifications" ]
         , a
             [ Route.href (Route.SpaceSettings (Space.getSlug space))
             , class "text-sm text-blue no-underline"
             ]
-            [ text "Space Settings" ]
+            [ text "Space settings" ]
         ]
 
 

@@ -16,6 +16,8 @@
     <meta name="module" content="<%= @module %>">
     <% end %>
 
+    <meta name="web_push_public_key" content="<%= Application.get_env(:web_push_encryption, :vapid_details)[:public_key] %>">
+
     <%= if assigns[:page_title] do %>
     <title><%= @page_title %></title>
     <% else %>
