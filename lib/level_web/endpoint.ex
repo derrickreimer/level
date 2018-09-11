@@ -4,7 +4,7 @@ defmodule LevelWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :level
   use Absinthe.Phoenix.Endpoint
 
-  socket "/socket", LevelWeb.UserSocket
+  socket "/socket", LevelWeb.UserSocket, websocket: [timeout: 45_000, check_origin: false]
 
   # Serve at "/" the static files from "priv/static" directory.
   #

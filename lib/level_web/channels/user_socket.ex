@@ -9,13 +9,6 @@ defmodule LevelWeb.UserSocket do
   ## Channels
   channel "posts:*", LevelWeb.PostChannel
 
-  ## Transports
-  transport :websocket, Phoenix.Transports.WebSocket,
-    timeout: 45_000,
-    check_origin: false
-
-  # transport :longpoll, Phoenix.Transports.LongPoll
-
   def connect(%{"Authorization" => auth}, socket) do
     with "Bearer " <> token <- auth,
          {:ok, %{user: user}} <- Auth.get_user_by_token(token) do
