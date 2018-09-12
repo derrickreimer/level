@@ -23,18 +23,18 @@ export const attachPorts = app => {
     let channel = phoenixSocket.channel(topic, {});
     let presence = new Presence(channel);
 
-    presence.onJoin((id, current, presence) => {
+    presence.onJoin((userId, current, presence) => {
       const callback = 'onJoin';
-      const data = { id, current, presence };
+      const data = { userId, current, presence };
       const payload = { callback, topic, data };
 
       app.ports.presenceIn.send(payload);
       logEvent("presenceIn")(payload);
     });
 
-    presence.onLeave((id, current, presence) => {
+    presence.onLeave((userId, current, presence) => {
       const callback = 'onLeave';
-      const data = { id, current, presence };
+      const data = { userId, current, presence };
       const payload = { callback, topic, data };
 
       app.ports.presenceIn.send(payload);
@@ -44,8 +44,8 @@ export const attachPorts = app => {
     presence.onSync(() => {
       const callback = 'onSync';
 
-      const data = presence.list((key, pres) => {
-        return { userId: key, data: pres };
+      const data = presence.list((userId, presence) => {
+        return { userId, presence };
       });
 
       const payload = { callback, topic, data };

@@ -1,8 +1,9 @@
-module Page.Post exposing (Model, Msg(..), consumeEvent, init, receivePresenceState, setup, subscriptions, teardown, title, update, view)
+module Page.Post exposing (Model, Msg(..), consumeEvent, init, receivePresence, setup, subscriptions, teardown, title, update, view)
 
 import Component.Post
 import Connection
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -10,6 +11,7 @@ import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
 import Presence exposing (PresenceList)
+import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -122,51 +124,61 @@ type Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | Tick Posix
     | SetCurrentTime Posix Zone
+    | SpaceUserFetched (Result Session.Error ( Globals, GetSpaceUser.Response ))
     | NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session ({ post } as model) =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals ({ post } as model) =
     case msg of
         PostComponentMsg componentMsg ->
             let
                 ( ( newPost, cmd ), newSession ) =
-                    Component.Post.update componentMsg (Space.getId model.space) session post
+                    Component.Post.update componentMsg (Space.getId model.space) globals.session post
             in
             ( ( { model | post = newPost }
               , Cmd.map PostComponentMsg cmd
               )
-            , newSession
+            , { globals | session = newSession }
             )
 
         ViewRecorded (Ok ( newSession, _ )) ->
-            noCmd newSession model
+            noCmd { globals | session = newSession } model
 
         ViewRecorded (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         ViewRecorded (Err _) ->
-            noCmd session model
+            noCmd globals model
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), session )
+            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
         SetCurrentTime posix zone ->
             { model | now = ( zone, posix ) }
-                |> noCmd session
+                |> noCmd globals
+
+        SpaceUserFetched (Ok ( newGlobals, _ )) ->
+            noCmd newGlobals model
+
+        SpaceUserFetched (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        SpaceUserFetched (Err _) ->
+            noCmd globals model
 
         NoOp ->
-            noCmd session model
+            noCmd globals model
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
-redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-redirectToLogin session model =
-    ( ( model, Route.toLogin ), session )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 
@@ -195,13 +207,29 @@ consumeEvent event model =
             ( model, Cmd.none )
 
 
-receivePresenceState : Presence.Topic -> PresenceList -> Model -> ( Model, Cmd Msg )
-receivePresenceState topic list model =
-    if topic == viewingTopic model then
-        ( { model | currentViewers = Loaded list }, Cmd.none )
+receivePresence : Presence.Event -> Globals -> Model -> ( Model, Cmd Msg )
+receivePresence event globals model =
+    case event of
+        Presence.Sync topic list ->
+            if topic == viewingTopic model then
+                ( { model | currentViewers = Loaded list }, Cmd.none )
 
-    else
-        ( model, Cmd.none )
+            else
+                ( model, Cmd.none )
+
+        Presence.Join topic presence ->
+            if topic == viewingTopic model then
+                ( model
+                , globals
+                    |> GetSpaceUser.request (Space.getId model.space) (Presence.getUserId presence)
+                    |> Task.attempt SpaceUserFetched
+                )
+
+            else
+                ( model, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

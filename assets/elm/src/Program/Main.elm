@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -25,6 +26,7 @@ import Page.Spaces
 import Page.UserSettings
 import Presence exposing (PresenceList)
 import PushManager
+import Query.GetSpaceUser as GetSpaceUser
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -180,6 +182,17 @@ updatePageWithSession toPage toPageMsg model ( ( newPageModel, pageCmd ), newSes
     )
 
 
+updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Globals ) -> ( Model, Cmd Msg )
+updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
+    ( { model
+        | session = newGlobals.session
+        , repo = newGlobals.repo
+        , page = toPage newPageModel
+      }
+    , Cmd.map toPageMsg pageCmd
+    )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.page ) of
@@ -306,8 +319,8 @@ update msg model =
 
         ( PostMsg pageMsg, Post pageModel ) ->
             pageModel
-                |> Page.Post.update pageMsg model.session
-                |> updatePageWithSession Post PostMsg model
+                |> Page.Post.update pageMsg (Globals model.session model.repo)
+                |> updatePageWithGlobals Post PostMsg model
 
         ( UserSettingsMsg pageMsg, UserSettings pageModel ) ->
             pageModel
@@ -368,16 +381,7 @@ update msg model =
             ( model, Cmd.none )
 
         ( PresenceIn value, _ ) ->
-            case Presence.decode value of
-                Presence.Sync topic list ->
-                    sendPresenceToPage topic list model
-
-                Presence.Join topic presence ->
-                    -- TODO: fetch the user and put in the repo if it's not there already
-                    ( model, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            sendPresenceToPage (Presence.decode value) model
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
@@ -1008,12 +1012,12 @@ sendEventToPage event model =
             ( model, Cmd.none )
 
 
-sendPresenceToPage : Presence.Topic -> PresenceList -> Model -> ( Model, Cmd Msg )
-sendPresenceToPage topic list model =
+sendPresenceToPage : Presence.Event -> Model -> ( Model, Cmd Msg )
+sendPresenceToPage event model =
     case model.page of
         Post pageModel ->
             pageModel
-                |> Page.Post.receivePresenceState topic list
+                |> Page.Post.receivePresence event (Globals model.session model.repo)
                 |> updatePage Post PostMsg model
 
         _ ->
