@@ -63,7 +63,7 @@ export const attachPorts = app => {
     if (!channel) return;
 
     channel.leave();
-    delete channel[topic];
+    delete channels[topic];
   };
 
   app.ports.updateToken.subscribe(token => {
