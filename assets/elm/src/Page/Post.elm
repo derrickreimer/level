@@ -10,7 +10,7 @@ import Html.Attributes exposing (..)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
-import Presence exposing (PresenceList)
+import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
@@ -221,24 +221,39 @@ receivePresence event globals model =
     case event of
         Presence.Sync topic list ->
             if topic == viewingTopic model then
-                ( { model | currentViewers = Loaded list }, Cmd.none )
+                handleSync list model
 
             else
                 ( model, Cmd.none )
 
         Presence.Join topic presence ->
             if topic == viewingTopic model then
-                ( model
-                , globals.session
-                    |> GetSpaceUser.request (Space.getId model.space) (Presence.getUserId presence)
-                    |> Task.attempt SpaceUserFetched
-                )
+                handleJoin presence globals model
 
             else
                 ( model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
+
+
+handleSync : PresenceList -> Model -> ( Model, Cmd Msg )
+handleSync list model =
+    ( { model | currentViewers = Loaded list }, Cmd.none )
+
+
+handleJoin : Presence -> Globals -> Model -> ( Model, Cmd Msg )
+handleJoin presence { session, repo } model =
+    case Repo.getSpaceUserByUserId repo (Presence.getUserId presence) of
+        Just _ ->
+            ( model, Cmd.none )
+
+        Nothing ->
+            ( model
+            , session
+                |> GetSpaceUser.request (Space.getId model.space) (Presence.getUserId presence)
+                |> Task.attempt SpaceUserFetched
+            )
 
 
 
