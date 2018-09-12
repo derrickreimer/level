@@ -14,6 +14,7 @@ type SpaceUser
 
 type alias Record =
     { id : String
+    , userId : String
     , firstName : String
     , lastName : String
     , handle : String
@@ -34,6 +35,7 @@ fragment =
         """
         fragment SpaceUserFields on SpaceUser {
           id
+          userId
           firstName
           lastName
           handle
@@ -70,8 +72,9 @@ roleDecoder =
 decoder : Decoder SpaceUser
 decoder =
     Decode.map SpaceUser <|
-        Decode.map7 Record
+        Decode.map8 Record
             (field "id" string)
+            (field "userId" string)
             (field "firstName" string)
             (field "lastName" string)
             (field "handle" string)

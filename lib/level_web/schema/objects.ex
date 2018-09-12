@@ -74,6 +74,7 @@ defmodule LevelWeb.Schema.Objects do
   @desc "A space user defines a user's identity within a particular space."
   object :space_user do
     field :id, non_null(:id)
+    field :user_id, non_null(:id)
     field :state, non_null(:space_user_state)
     field :role, non_null(:space_user_role)
     field :space, non_null(:space), resolve: dataloader(:db)

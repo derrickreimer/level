@@ -3,7 +3,7 @@ module Repo exposing
     , getGroup, getGroups, setGroup
     , getSpace, getSpaces, setSpace
     , getPost, getPosts, setPost, setPosts
-    , getSpaceUser, getSpaceUsers, setSpaceUser
+    , getSpaceUser, getSpaceUsers, setSpaceUser, getSpaceUsersByUserId, getSpaceUserByUserId
     , getBookmarks
     )
 
@@ -32,7 +32,7 @@ module Repo exposing
 
 # Space Users
 
-@docs getSpaceUser, getSpaceUsers, setSpaceUser
+@docs getSpaceUser, getSpaceUsers, setSpaceUser, getSpaceUsersByUserId, getSpaceUserByUserId
 
 
 # Bookmarks
@@ -132,6 +132,19 @@ getSpaceUsers (Repo { spaceUsers }) list =
 setSpaceUser : Repo -> SpaceUser -> Repo
 setSpaceUser (Repo repo) user =
     Repo { repo | spaceUsers = IdentityMap.set repo.spaceUsers (SpaceUser.getCachedData user) }
+
+
+getSpaceUserByUserId : Repo -> String -> Maybe SpaceUser.Record
+getSpaceUserByUserId (Repo { spaceUsers }) userId =
+    spaceUsers
+        |> IdentityMap.filter (\record -> record.userId == userId)
+        |> List.head
+
+
+getSpaceUsersByUserId : Repo -> List String -> List SpaceUser.Record
+getSpaceUsersByUserId (Repo repo) userIds =
+    repo.spaceUsers
+        |> IdentityMap.filter (\record -> List.any (\id -> id == record.userId) userIds)
 
 
 

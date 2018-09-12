@@ -89,7 +89,7 @@ spaceSidebar repo viewer space bookmarks maybeCurrentRoute =
         [ div [ class "p-4" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
-                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest tracking-semi-tight" ] [ text spaceData.name ]
+                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest" ] [ text spaceData.name ]
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ spaceSidebarLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.Root slug)) maybeCurrentRoute

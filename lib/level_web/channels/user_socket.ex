@@ -7,24 +7,17 @@ defmodule LevelWeb.UserSocket do
   alias LevelWeb.Auth
 
   ## Channels
-  # channel "room:*", Level.RoomChannel
-
-  ## Transports
-  transport :websocket, Phoenix.Transports.WebSocket,
-    timeout: 45_000,
-    check_origin: false
-
-  # transport :longpoll, Phoenix.Transports.LongPoll
+  channel "posts:*", LevelWeb.PostChannel
 
   def connect(%{"Authorization" => auth}, socket) do
     with "Bearer " <> token <- auth,
          {:ok, %{user: user}} <- Auth.get_user_by_token(token) do
-      socket =
-        Absinthe.Phoenix.Socket.put_options(socket,
-          context: LevelWeb.Absinthe.build_context(user)
-        )
+      socket_with_opts =
+        socket
+        |> put_absinthe_options(user)
+        |> assign(:current_user, user)
 
-      {:ok, socket}
+      {:ok, socket_with_opts}
     else
       _ -> :error
     end
@@ -32,6 +25,12 @@ defmodule LevelWeb.UserSocket do
 
   def connect(_params, _socket) do
     :error
+  end
+
+  defp put_absinthe_options(socket, user) do
+    Absinthe.Phoenix.Socket.put_options(socket,
+      context: LevelWeb.Absinthe.build_context(user)
+    )
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -44,5 +43,5 @@ defmodule LevelWeb.UserSocket do
   #     Level.Endpoint.broadcast("users_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
-  def id(_socket), do: nil
+  def id(socket), do: "user_socket:#{socket.assigns.current_user.id}"
 end
