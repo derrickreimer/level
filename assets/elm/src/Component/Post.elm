@@ -1,4 +1,4 @@
-module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, decoder, handleMentionsDismissed, handleReplyCreated, init, setup, sidebarView, teardown, update, view)
+module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, decoder, handleMentionsDismissed, handleReplyCreated, init, setup, teardown, update, view)
 
 import Autosize
 import Avatar exposing (personAvatar)
@@ -402,21 +402,6 @@ checkableView repo space viewer now model =
         ]
 
 
-sidebarView : Repo -> Model -> Html Msg
-sidebarView repo model =
-    -- TODO: figure out just what should go in the sidebar
-    --
-    -- let
-    --     postData =
-    --         Repo.getPost repo model.post
-    -- in
-    -- div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
-    --     [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Pings" ]
-    --     , pingsView repo postData.mentions
-    --     ]
-    text ""
-
-
 
 -- PRIVATE VIEW FUNCTIONS
 
@@ -546,7 +531,7 @@ replyComposerView currentUserData { post, replies, replyComposer } =
                                 , onClick NewReplySubmit
                                 , disabled (ReplyComposer.unsubmittable replyComposer)
                                 ]
-                                [ text "Post reply" ]
+                                [ text "Send" ]
                             ]
                         ]
                     ]
@@ -583,42 +568,6 @@ statusView state =
 
         Post.Closed ->
             buildView Icons.closed "Closed"
-
-
-pingsView : Repo -> List Mention -> Html Msg
-pingsView repo mentions =
-    if List.isEmpty mentions then
-        div [ class "pb-4 text-sm" ] [ text "You haven't been pinged." ]
-
-    else
-        let
-            pingerList =
-                mentions
-                    |> List.map Mention.getCachedData
-                    |> List.map .mentioner
-                    |> ListHelpers.uniqueBy SpaceUser.getId
-                    |> List.map (pingView repo)
-        in
-        div [ class "pb-4" ]
-            [ div [ class "pb-3" ] pingerList
-            , button
-                [ class "btn btn-blue btn-xs"
-                , onClick DismissMentionsClicked
-                ]
-                [ text "Dismiss" ]
-            ]
-
-
-pingView : Repo -> SpaceUser -> Html Msg
-pingView repo user =
-    let
-        userData =
-            Repo.getSpaceUser repo user
-    in
-    div [ class "flex items-center pr-4 mb-px" ]
-        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
-        ]
 
 
 

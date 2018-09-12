@@ -23,7 +23,7 @@ import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
-import Presence
+import Presence exposing (PresenceList)
 import PushManager
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
@@ -163,8 +163,15 @@ type Msg
     | PresenceIn Decode.Value
 
 
-updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Session ) -> ( Model, Cmd Msg )
-updatePage toPage toPageMsg model ( ( newPageModel, pageCmd ), newSession ) =
+updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( a, Cmd b ) -> ( Model, Cmd Msg )
+updatePage toPage toPageMsg model ( pageModel, pageCmd ) =
+    ( { model | page = toPage pageModel }
+    , Cmd.map toPageMsg pageCmd
+    )
+
+
+updatePageWithSession : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Session ) -> ( Model, Cmd Msg )
+updatePageWithSession toPage toPageMsg model ( ( newPageModel, pageCmd ), newSession ) =
     ( { model
         | session = newSession
         , page = toPage newPageModel
@@ -210,22 +217,22 @@ update msg model =
         ( SpacesMsg pageMsg, Spaces pageModel ) ->
             pageModel
                 |> Page.Spaces.update pageMsg model.session
-                |> updatePage Spaces SpacesMsg model
+                |> updatePageWithSession Spaces SpacesMsg model
 
         ( NewSpaceMsg pageMsg, NewSpace pageModel ) ->
             pageModel
                 |> Page.NewSpace.update pageMsg model.session model.navKey
-                |> updatePage NewSpace NewSpaceMsg model
+                |> updatePageWithSession NewSpace NewSpaceMsg model
 
         ( PostsMsg pageMsg, Posts pageModel ) ->
             pageModel
                 |> Page.Posts.update pageMsg model.session
-                |> updatePage Posts PostsMsg model
+                |> updatePageWithSession Posts PostsMsg model
 
         ( InboxMsg pageMsg, Inbox pageModel ) ->
             pageModel
                 |> Page.Inbox.update pageMsg model.session
-                |> updatePage Inbox InboxMsg model
+                |> updatePageWithSession Inbox InboxMsg model
 
         ( SetupCreateGroupsMsg pageMsg, SetupCreateGroups pageModel ) ->
             let
@@ -280,37 +287,37 @@ update msg model =
         ( SpaceUsersMsg pageMsg, SpaceUsers pageModel ) ->
             pageModel
                 |> Page.SpaceUsers.update pageMsg model.session
-                |> updatePage SpaceUsers SpaceUsersMsg model
+                |> updatePageWithSession SpaceUsers SpaceUsersMsg model
 
         ( GroupsMsg pageMsg, Groups pageModel ) ->
             pageModel
                 |> Page.Groups.update pageMsg model.session
-                |> updatePage Groups GroupsMsg model
+                |> updatePageWithSession Groups GroupsMsg model
 
         ( GroupMsg pageMsg, Group pageModel ) ->
             pageModel
                 |> Page.Group.update pageMsg model.repo model.session
-                |> updatePage Group GroupMsg model
+                |> updatePageWithSession Group GroupMsg model
 
         ( NewGroupMsg pageMsg, NewGroup pageModel ) ->
             pageModel
                 |> Page.NewGroup.update pageMsg model.session model.navKey
-                |> updatePage NewGroup NewGroupMsg model
+                |> updatePageWithSession NewGroup NewGroupMsg model
 
         ( PostMsg pageMsg, Post pageModel ) ->
             pageModel
                 |> Page.Post.update pageMsg model.session
-                |> updatePage Post PostMsg model
+                |> updatePageWithSession Post PostMsg model
 
         ( UserSettingsMsg pageMsg, UserSettings pageModel ) ->
             pageModel
                 |> Page.UserSettings.update pageMsg model.session
-                |> updatePage UserSettings UserSettingsMsg model
+                |> updatePageWithSession UserSettings UserSettingsMsg model
 
         ( SpaceSettingsMsg pageMsg, SpaceSettings pageModel ) ->
             pageModel
                 |> Page.SpaceSettings.update pageMsg model.session
-                |> updatePage SpaceSettings SpaceSettingsMsg model
+                |> updatePageWithSession SpaceSettings SpaceSettingsMsg model
 
         ( SocketAbort value, _ ) ->
             ( model, Cmd.none )
@@ -361,8 +368,16 @@ update msg model =
             ( model, Cmd.none )
 
         ( PresenceIn value, _ ) ->
-            -- TODO: process the incoming list presence data
-            ( model, Cmd.none )
+            case Presence.decode value of
+                Presence.Sync topic list ->
+                    sendPresenceToPage topic list model
+
+                Presence.Join topic presence ->
+                    -- TODO: fetch the user and put in the repo if it's not there already
+                    ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
@@ -920,82 +935,88 @@ consumeEvent event ({ page, repo } as model) =
 
 sendEventToPage : Event -> Model -> ( Model, Cmd Msg )
 sendEventToPage event model =
-    let
-        updateWith toPage toPageMsg ( pageModel, pageCmd ) =
-            ( { model | page = toPage pageModel }
-            , Cmd.map toPageMsg pageCmd
-            )
-    in
     case model.page of
         Spaces pageModel ->
             pageModel
                 |> Page.Spaces.consumeEvent event
-                |> updateWith Spaces SpacesMsg
+                |> updatePage Spaces SpacesMsg model
 
         NewSpace pageModel ->
             pageModel
                 |> Page.NewSpace.consumeEvent event
-                |> updateWith NewSpace NewSpaceMsg
+                |> updatePage NewSpace NewSpaceMsg model
 
         SetupCreateGroups pageModel ->
             pageModel
                 |> Page.Setup.CreateGroups.consumeEvent event
-                |> updateWith SetupCreateGroups SetupCreateGroupsMsg
+                |> updatePage SetupCreateGroups SetupCreateGroupsMsg model
 
         SetupInviteUsers pageModel ->
             pageModel
                 |> Page.Setup.InviteUsers.consumeEvent event
-                |> updateWith SetupInviteUsers SetupInviteUsersMsg
+                |> updatePage SetupInviteUsers SetupInviteUsersMsg model
 
         Posts pageModel ->
             pageModel
                 |> Page.Posts.consumeEvent event
-                |> updateWith Posts PostsMsg
+                |> updatePage Posts PostsMsg model
 
         Inbox pageModel ->
             pageModel
                 |> Page.Inbox.consumeEvent event
-                |> updateWith Inbox InboxMsg
+                |> updatePage Inbox InboxMsg model
 
         SpaceUsers pageModel ->
             pageModel
                 |> Page.SpaceUsers.consumeEvent event
-                |> updateWith SpaceUsers SpaceUsersMsg
+                |> updatePage SpaceUsers SpaceUsersMsg model
 
         Groups pageModel ->
             pageModel
                 |> Page.Groups.consumeEvent event
-                |> updateWith Groups GroupsMsg
+                |> updatePage Groups GroupsMsg model
 
         Group pageModel ->
             pageModel
                 |> Page.Group.consumeEvent event model.session
-                |> updateWith Group GroupMsg
+                |> updatePage Group GroupMsg model
 
         NewGroup pageModel ->
             pageModel
                 |> Page.NewGroup.consumeEvent event
-                |> updateWith NewGroup NewGroupMsg
+                |> updatePage NewGroup NewGroupMsg model
 
         Post pageModel ->
             pageModel
                 |> Page.Post.consumeEvent event
-                |> updateWith Post PostMsg
+                |> updatePage Post PostMsg model
 
         UserSettings pageModel ->
             pageModel
                 |> Page.UserSettings.consumeEvent event
-                |> updateWith UserSettings UserSettingsMsg
+                |> updatePage UserSettings UserSettingsMsg model
 
         SpaceSettings pageModel ->
             pageModel
                 |> Page.SpaceSettings.consumeEvent event
-                |> updateWith SpaceSettings SpaceSettingsMsg
+                |> updatePage SpaceSettings SpaceSettingsMsg model
 
         Blank ->
             ( model, Cmd.none )
 
         NotFound ->
+            ( model, Cmd.none )
+
+
+sendPresenceToPage : Presence.Topic -> PresenceList -> Model -> ( Model, Cmd Msg )
+sendPresenceToPage topic list model =
+    case model.page of
+        Post pageModel ->
+            pageModel
+                |> Page.Post.receivePresenceState topic list
+                |> updatePage Post PostMsg model
+
+        _ ->
             ( model, Cmd.none )
 
 

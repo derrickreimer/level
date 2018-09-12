@@ -1,4 +1,4 @@
-module Page.Post exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Post exposing (Model, Msg(..), consumeEvent, init, receivePresenceState, setup, subscriptions, teardown, title, update, view)
 
 import Component.Post
 import Connection
@@ -6,9 +6,10 @@ import Event exposing (Event)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
-import Presence
+import Presence exposing (PresenceList)
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -21,6 +22,7 @@ import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (displayName)
 import View.Layout exposing (spaceLayout)
+import View.PresenceList
 
 
 
@@ -33,6 +35,7 @@ type alias Model =
     , bookmarks : List Group
     , post : Component.Post.Model
     , now : ( Zone, Posix )
+    , currentViewers : Lazy PresenceList
     }
 
 
@@ -52,6 +55,11 @@ title repo { viewer } =
     "View post from " ++ name
 
 
+viewingTopic : Model -> String
+viewingTopic { post } =
+    "posts:" ++ post.id
+
+
 
 -- LIFECYCLE
 
@@ -66,7 +74,7 @@ init spaceSlug postId session =
 
 buildModel : ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
 buildModel ( ( session, { viewer, space, bookmarks, post } ), now ) =
-    Task.succeed ( session, Model viewer space bookmarks post now )
+    Task.succeed ( session, Model viewer space bookmarks post now NotLoaded )
 
 
 setup : Session -> Model -> Cmd Msg
@@ -74,15 +82,15 @@ setup session ({ post } as model) =
     Cmd.batch
         [ Cmd.map PostComponentMsg (Component.Post.setup post)
         , recordView session model
-        , Presence.join ("posts:" ++ post.id)
+        , Presence.join (viewingTopic model)
         ]
 
 
 teardown : Model -> Cmd Msg
-teardown { post } =
+teardown ({ post } as model) =
     Cmd.batch
         [ Cmd.map PostComponentMsg (Component.Post.teardown post)
-        , Presence.leave ("posts:" ++ post.id)
+        , Presence.leave (viewingTopic model)
         ]
 
 
@@ -162,7 +170,7 @@ redirectToLogin session model =
 
 
 
--- EVENTS
+-- INBOUND EVENTS
 
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
@@ -185,6 +193,15 @@ consumeEvent event model =
 
         _ ->
             ( model, Cmd.none )
+
+
+receivePresenceState : Presence.Topic -> PresenceList -> Model -> ( Model, Cmd Msg )
+receivePresenceState topic list model =
+    if topic == viewingTopic model then
+        ( { model | currentViewers = Loaded list }, Cmd.none )
+
+    else
+        ( model, Cmd.none )
 
 
 
@@ -210,7 +227,7 @@ view repo maybeCurrentRoute model =
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ postView repo model.space model.viewer model.now model.post
-                , sidebarView repo model.post
+                , sidebarView repo model
                 ]
             ]
         ]
@@ -224,7 +241,18 @@ postView repo space currentUser now component =
         ]
 
 
-sidebarView : Repo -> Component.Post.Model -> Html Msg
-sidebarView repo component =
-    Component.Post.sidebarView repo component
-        |> Html.map PostComponentMsg
+sidebarView : Repo -> Model -> Html Msg
+sidebarView repo model =
+    let
+        listView =
+            case model.currentViewers of
+                Loaded state ->
+                    View.PresenceList.view repo state
+
+                NotLoaded ->
+                    div [ class "pb-4 text-sm" ] [ text "Loading..." ]
+    in
+    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
+        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Who’s Here" ]
+        , listView
+        ]

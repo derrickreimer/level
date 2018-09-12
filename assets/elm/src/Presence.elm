@@ -1,18 +1,31 @@
-module Presence exposing (Presence, State, decodeState, join, leave, receive, stateDecoder)
+module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, join, leave, receive)
 
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Ports
 
 
-type alias Presence =
+type alias PresenceData =
     { userId : String
     }
 
 
-type alias State =
-    { topic : String
-    , list : List Presence
-    }
+type Presence
+    = Presence PresenceData
+
+
+type alias Topic =
+    String
+
+
+type alias PresenceList =
+    List Presence
+
+
+type Event
+    = Sync Topic PresenceList
+    | Join Topic Presence
+    | Leave Topic Presence
+    | Unknown
 
 
 
@@ -42,19 +55,41 @@ leave topic =
 -- DECODERS
 
 
+decode : Decode.Value -> Event
+decode value =
+    Decode.decodeValue decoder value
+        |> Result.withDefault Unknown
+
+
+decoder : Decoder Event
+decoder =
+    field "callback" string
+        |> Decode.andThen eventDecoder
+
+
+eventDecoder : String -> Decoder Event
+eventDecoder callback =
+    case callback of
+        "onSync" ->
+            Decode.map2 Sync
+                (field "topic" string)
+                (field "data" (list presenceDecoder))
+
+        "onJoin" ->
+            Decode.map2 Join
+                (field "topic" string)
+                (field "data" presenceDecoder)
+
+        "onLeave" ->
+            Decode.map2 Leave
+                (field "topic" string)
+                (field "data" presenceDecoder)
+
+        _ ->
+            Decode.succeed Unknown
+
+
 presenceDecoder : Decoder Presence
 presenceDecoder =
-    Decode.map Presence
-        (field "userId" string)
-
-
-stateDecoder : Decoder State
-stateDecoder =
-    Decode.map2 State
-        (field "topic" string)
-        (field "list" (list presenceDecoder))
-
-
-decodeState : Decode.Value -> Result Decode.Error State
-decodeState value =
-    Decode.decodeValue stateDecoder value
+    Decode.map Presence <|
+        Decode.map PresenceData (field "userId" string)

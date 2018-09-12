@@ -10,7 +10,7 @@ import autosize from "autosize";
 import * as Background from "./background";
 
 const logEvent = eventName => (...args) =>
-  console.log("[" + eventName + "]", ...args);
+  console.log("[ports." + eventName + "]", ...args);
 
 export const attachPorts = app => {
   let phoenixSocket = createPhoenixSocket(getApiToken());
@@ -23,17 +23,39 @@ export const attachPorts = app => {
     let channel = phoenixSocket.channel(topic, {});
     let presence = new Presence(channel);
 
+    presence.onJoin((id, current, presence) => {
+      const callback = 'onJoin';
+      const data = { id, current, presence };
+      const payload = { callback, topic, data };
+
+      app.ports.presenceIn.send(payload);
+      logEvent("presenceIn")(payload);
+    });
+
+    presence.onLeave((id, current, presence) => {
+      const callback = 'onLeave';
+      const data = { id, current, presence };
+      const payload = { callback, topic, data };
+
+      app.ports.presenceIn.send(payload);
+      logEvent("presenceIn")(payload);
+    });
+
     presence.onSync(() => {
-      let list = presence.list((key, pres) => {
+      const callback = 'onSync';
+
+      const data = presence.list((key, pres) => {
         return { userId: key, data: pres };
       });
-      app.ports.presenceIn.send({ topic, list });
-      logEvent("presence.onSync")({ list });
+
+      const payload = { callback, topic, data };
+
+      app.ports.presenceIn.send(payload);
+      logEvent("presenceIn")(payload);
     });
 
     channel.join();
     channels[topic] = channel;
-    logEvent("presence.join")({ channel, presence, phoenixSocket });
   };
 
   const leaveChannel = topic => {
@@ -42,13 +64,11 @@ export const attachPorts = app => {
 
     channel.leave();
     delete channel[topic];
-
-    logEvent("presence.leave")({ channel, phoenixSocket });
   };
 
   app.ports.updateToken.subscribe(token => {
     updateSocketToken(phoenixSocket, token);
-    logEvent("ports.updateToken")(token);
+    logEvent("updateToken")(token);
   });
 
   app.ports.sendSocket.subscribe(doc => {
@@ -56,22 +76,24 @@ export const attachPorts = app => {
 
     AbsintheSocket.observe(absintheSocket, notifier, {
       onAbort: data => {
-        logEvent("ports.socket.abort")(data);
+        logEvent("socketAbort")(data);
         app.ports.socketAbort.send(data);
       },
       onError: data => {
-        logEvent("ports.socket.error")(data);
+        logEvent("socketError")(data);
         app.ports.socketError.send(data);
       },
       onStart: data => {
-        logEvent("ports.socket.start")(data);
+        logEvent("socketStart")(data);
         app.ports.socketStart.send(data);
       },
       onResult: data => {
-        logEvent("ports.socket.result")(data);
+        logEvent("socketResult")(data);
         app.ports.socketResult.send(data);
       }
     });
+
+    logEvent("sendSocket")(doc);
   });
 
   app.ports.cancelSocket.subscribe(clientId => {
@@ -80,7 +102,7 @@ export const attachPorts = app => {
     });
 
     notifiers.forEach(notifier => {
-      logEvent("ports.socket.cancel")(notifier);
+      logEvent("socket.cancel")(notifier);
       AbsintheSocket.cancel(absintheSocket, notifier);
     });
   });
@@ -97,6 +119,8 @@ export const attachPorts = app => {
         leaveChannel(topic);
         break;
     }
+
+    logEvent("presenceOut")(arg);
   });
 
   app.ports.scrollTo.subscribe(arg => {
@@ -118,7 +142,7 @@ export const attachPorts = app => {
         container.scrollTop = anchor.offsetTop + offset;
       }
 
-      logEvent("ports.scrollTo")(arg);
+      logEvent("scrollTo")(arg);
     });
   });
 
@@ -135,7 +159,7 @@ export const attachPorts = app => {
         container.scrollTop = container.scrollHeight;
       }
 
-      logEvent("ports.scrollToBottom")(arg);
+      logEvent("scrollToBottom")(arg);
     });
   });
 
@@ -148,7 +172,7 @@ export const attachPorts = app => {
       if (method === "update") autosize.update(node);
       if (method === "destroy") autosize.destroy(node);
 
-      logEvent("ports.autosize")(arg);
+      logEvent("autosize")(arg);
     });
   });
 
@@ -156,7 +180,7 @@ export const attachPorts = app => {
     requestAnimationFrame(() => {
       let node = document.getElementById(id);
       node.select();
-      logEvent("ports.select")(id);
+      logEvent("select")(id);
     });
   });
 
@@ -179,18 +203,16 @@ export const attachPorts = app => {
       };
 
       app.ports.receiveFile.send(payload);
-      logEvent("ports.file.receive")(payload);
+      logEvent("file.receive")(payload);
     };
 
     reader.readAsDataURL(file);
 
-    logEvent("ports.file.request")({ id });
+    logEvent("requestFile")({ id });
   });
 
   if (Background.isSupported) {
     app.ports.pushManagerOut.subscribe(method => {
-      logEvent("ports.pushManager.out")({ method });
-
       switch (method) {
         case "getSubscription":
           Background.getPushSubscription().then(subscription => {
@@ -200,7 +222,7 @@ export const attachPorts = app => {
             };
 
             app.ports.pushManagerIn.send(payload);
-            logEvent("ports.pushManager.in")(payload);
+            logEvent("pushManagerIn")(payload);
           });
 
           break;
@@ -214,7 +236,7 @@ export const attachPorts = app => {
               };
 
               app.ports.pushManagerIn.send(payload);
-              logEvent("ports.pushManager.in")(payload);
+              logEvent("pushManagerIn")(payload);
             })
             .catch(err => {
               console.error(err);
@@ -222,6 +244,8 @@ export const attachPorts = app => {
 
           break;
       }
+
+      logEvent("pushManagerOut")(method);
     });
   }
 };
