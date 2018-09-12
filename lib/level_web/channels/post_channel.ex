@@ -1,4 +1,8 @@
 defmodule LevelWeb.PostChannel do
+  @moduledoc """
+  Represents the post channel.
+  """
+
   use LevelWeb, :channel
 
   alias Level.Posts
