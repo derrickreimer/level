@@ -1,4 +1,4 @@
-module IdentityMap exposing (IdentityMap, Node, get, getList, init, set)
+module IdentityMap exposing (IdentityMap, Node, filter, get, getList, init, set)
 
 import Dict exposing (Dict)
 
@@ -56,3 +56,10 @@ set (IdentityMap dict) record =
 getList : IdentityMap (Node a) -> List (Node a) -> List (Node a)
 getList imap list =
     List.map (get imap) list
+
+
+filter : (Node a -> Bool) -> IdentityMap (Node a) -> List (Node a)
+filter fn (IdentityMap dict) =
+    dict
+        |> Dict.values
+        |> List.filter fn

@@ -1,4 +1,4 @@
-module ListHelpers exposing (getBy, insertUniqueBy, last, memberBy, removeBy, size, takeLast, uniqueBy, updateBy)
+module ListHelpers exposing (getBy, insertUniqueBy, last, memberBy, removeBy, takeLast, uniqueBy, updateBy)
 
 import List
 
@@ -30,18 +30,6 @@ takeLast n list =
         |> List.reverse
         |> List.take n
         |> List.reverse
-
-
-{-| Computes the size of a list.
-
-    size [ 1, 2, 3 ] == 3
-
-    size [] == 0
-
--}
-size : List a -> Int
-size =
-    List.foldl (\_ t -> t + 1) 0
 
 
 

@@ -124,7 +124,7 @@ type Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | Tick Posix
     | SetCurrentTime Posix Zone
-    | SpaceUserFetched (Result Session.Error ( Globals, GetSpaceUser.Response ))
+    | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | NoOp
 
 
@@ -158,8 +158,17 @@ update msg globals ({ post } as model) =
             { model | now = ( zone, posix ) }
                 |> noCmd globals
 
-        SpaceUserFetched (Ok ( newGlobals, _ )) ->
-            noCmd newGlobals model
+        SpaceUserFetched (Ok ( newSession, response )) ->
+            let
+                newRepo =
+                    case response of
+                        GetSpaceUser.Success spaceUser ->
+                            Repo.setSpaceUser globals.repo spaceUser
+
+                        _ ->
+                            globals.repo
+            in
+            noCmd { globals | session = newSession, repo = newRepo } model
 
         SpaceUserFetched (Err Session.Expired) ->
             redirectToLogin globals model
@@ -220,7 +229,7 @@ receivePresence event globals model =
         Presence.Join topic presence ->
             if topic == viewingTopic model then
                 ( model
-                , globals
+                , globals.session
                     |> GetSpaceUser.request (Space.getId model.space) (Presence.getUserId presence)
                     |> Task.attempt SpaceUserFetched
                 )

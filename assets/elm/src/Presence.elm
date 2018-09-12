@@ -1,4 +1,4 @@
-module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, join, leave, receive)
+module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, join, leave, receive)
 
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Ports
@@ -102,3 +102,8 @@ presenceDecoder =
 getUserId : Presence -> String
 getUserId (Presence { userId }) =
     userId
+
+
+getUserIds : PresenceList -> List String
+getUserIds list =
+    List.map getUserId list

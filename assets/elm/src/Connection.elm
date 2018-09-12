@@ -2,7 +2,7 @@ module Connection exposing (Connection, Subset, append, decoder, endCursor, firs
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
-import ListHelpers exposing (getBy, memberBy, size, updateBy)
+import ListHelpers exposing (getBy, memberBy, updateBy)
 
 
 type alias PageInfo =
@@ -143,7 +143,7 @@ first : Int -> Connection a -> Subset a
 first n (Connection { nodes, pageInfo }) =
     let
         subsetHasNextPage =
-            size nodes > n || pageInfo.hasNextPage
+            List.length nodes > n || pageInfo.hasNextPage
 
         partialNodes =
             List.take n nodes
@@ -155,7 +155,7 @@ last : Int -> Connection a -> Subset a
 last n (Connection { nodes, pageInfo }) =
     let
         subsetHasPreviousPage =
-            size nodes > n || pageInfo.hasPreviousPage
+            List.length nodes > n || pageInfo.hasPreviousPage
 
         partialNodes =
             ListHelpers.takeLast n nodes

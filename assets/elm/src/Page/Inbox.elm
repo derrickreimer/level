@@ -372,7 +372,7 @@ selectedLabel : List a -> Html Msg
 selectedLabel list =
     let
         count =
-            ListHelpers.size list
+            List.length list
 
         target =
             pluralize count "post" "posts"

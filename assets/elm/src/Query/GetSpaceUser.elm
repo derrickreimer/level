@@ -1,4 +1,4 @@
-module Query.GetSpaceUser exposing (Response, request)
+module Query.GetSpaceUser exposing (Response(..), request)
 
 import Connection exposing (Connection)
 import Globals exposing (Globals)
@@ -58,17 +58,7 @@ decoder =
 -- REQUESTS
 
 
-request : String -> String -> Globals -> Task Session.Error ( Globals, Response )
-request spaceId userId globals =
-    Globals.request globals repoUpdater <|
+request : String -> String -> Session -> Task Session.Error ( Session, Response )
+request spaceId userId session =
+    Session.request session <|
         GraphQL.request document (variables spaceId userId) decoder
-
-
-repoUpdater : Response -> Repo -> Repo
-repoUpdater response repo =
-    case response of
-        Success spaceUser ->
-            Repo.setSpaceUser repo spaceUser
-
-        _ ->
-            repo
