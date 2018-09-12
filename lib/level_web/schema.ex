@@ -46,6 +46,13 @@ defmodule LevelWeb.Schema do
       resolve &Level.Resolvers.group/2
     end
 
+    @desc "Fetches a space user by space and user id."
+    field :space_user_by_user_id, :space_user do
+      arg :space_id, non_null(:id)
+      arg :user_id, non_null(:id)
+      resolve &Level.Resolvers.space_user_by_user_id/2
+    end
+
     # @desc "Fetches mentions for the current user."
     # field :mentions, :mention_connection do
     #   arg :space_id, non_null(:id)

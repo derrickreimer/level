@@ -15,6 +15,7 @@ defmodule Level.Resolvers do
   alias Level.Pagination
   alias Level.Posts.Post
   alias Level.Posts.PostUser
+  alias Level.Repo
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
   alias Level.Resolvers.PostConnection
@@ -243,6 +244,28 @@ defmodule Level.Resolvers do
 
   defp handle_inbox_state(%PostUser{inbox_state: state}), do: {:ok, state}
   defp handle_inbox_state(_), do: {:ok, "EXCLUDED"}
+
+  @doc """
+  Fetches a space user by user id.
+  """
+  @spec space_user_by_user_id(map(), info()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
+  def space_user_by_user_id(%{space_id: space_id, user_id: user_id}, %{
+        context: %{current_user: user}
+      }) do
+    user
+    |> Spaces.space_users_base_query()
+    |> where([su], su.user_id == ^user_id and su.space_id == ^space_id)
+    |> Repo.one()
+    |> handle_space_user_by_user_id()
+  end
+
+  defp handle_space_user_by_user_id(%SpaceUser{} = space_user) do
+    {:ok, space_user}
+  end
+
+  defp handle_space_user_by_user_id(nil) do
+    {:error, dgettext("errors", "User not found")}
+  end
 
   # Dataloader helpers
 
