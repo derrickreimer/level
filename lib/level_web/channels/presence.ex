@@ -68,6 +68,7 @@ defmodule LevelWeb.Presence do
   information, while maintaining the required `:metas` field from the
   original presence data.
   """
-  use Phoenix.Presence, otp_app: :level,
-                        pubsub_server: Level.PubSub
+  use Phoenix.Presence,
+    otp_app: :level,
+    pubsub_server: Level.PubSub
 end
