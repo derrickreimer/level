@@ -23,6 +23,7 @@ import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
+import Presence
 import PushManager
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
@@ -159,6 +160,7 @@ type Msg
     | SocketError Decode.Value
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
+    | PresenceIn Decode.Value
 
 
 updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Session ) -> ( Model, Cmd Msg )
@@ -356,6 +358,10 @@ update msg model =
                     ( model, Cmd.none )
 
         ( PushSubscriptionRegistered _, _ ) ->
+            ( model, Cmd.none )
+
+        ( PresenceIn value, _ ) ->
+            -- TODO: process the incoming list presence data
             ( model, Cmd.none )
 
         ( _, _ ) ->
@@ -688,6 +694,12 @@ teardownPage page =
         SpaceSettings pageModel ->
             Cmd.map SpaceSettingsMsg (Page.SpaceSettings.teardown pageModel)
 
+        Posts pageModel ->
+            Cmd.map PostsMsg (Page.Posts.teardown pageModel)
+
+        Post pageModel ->
+            Cmd.map PostMsg (Page.Post.teardown pageModel)
+
         _ ->
             Cmd.none
 
@@ -996,6 +1008,7 @@ subscriptions model =
     Sub.batch
         [ Socket.listen SocketAbort SocketStart SocketResult SocketError
         , PushManager.receive PushManagerIn
+        , Presence.receive PresenceIn
         , pageSubscription model.page
         ]
 

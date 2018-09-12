@@ -5,8 +5,8 @@ defmodule LevelWeb.UserSocketTest do
     setup do
       # A dummy value to demonstrate that it doesn't matter
       absinthe_socket =
-        "asdf"
-        |> socket(absinthe: %{schema: Schema, opts: []})
+        LevelWeb.UserSocket
+        |> socket("asdf", absinthe: %{schema: Schema, opts: []})
 
       {:ok, %{absinthe_socket: absinthe_socket}}
     end

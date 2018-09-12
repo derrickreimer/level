@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
+import Presence
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -73,12 +74,16 @@ setup session ({ post } as model) =
     Cmd.batch
         [ Cmd.map PostComponentMsg (Component.Post.setup post)
         , recordView session model
+        , Presence.join ("posts:" ++ post.id)
         ]
 
 
 teardown : Model -> Cmd Msg
 teardown { post } =
-    Cmd.map PostComponentMsg (Component.Post.teardown post)
+    Cmd.batch
+        [ Cmd.map PostComponentMsg (Component.Post.teardown post)
+        , Presence.leave ("posts:" ++ post.id)
+        ]
 
 
 recordView : Session -> Model -> Cmd Msg

@@ -3,6 +3,7 @@ import {
   createAbsintheSocket,
   updateSocketToken
 } from "./socket";
+import { Presence } from "phoenix";
 import { getApiToken } from "./token";
 import * as AbsintheSocket from "@absinthe/socket";
 import autosize from "autosize";
@@ -14,6 +15,36 @@ const logEvent = eventName => (...args) =>
 export const attachPorts = app => {
   let phoenixSocket = createPhoenixSocket(getApiToken());
   let absintheSocket = createAbsintheSocket(phoenixSocket);
+  let channels = {};
+
+  const joinChannel = topic => {
+    if (channels[topic]) return;
+
+    let channel = phoenixSocket.channel(topic, {});
+    let presence = new Presence(channel);
+
+    presence.onSync(() => {
+      let list = presence.list((key, pres) => {
+        return { userId: key, data: pres };
+      });
+      app.ports.presenceIn.send({ topic, list });
+      logEvent("presence.onSync")({ list });
+    });
+
+    channel.join();
+    channels[topic] = channel;
+    logEvent("presence.join")({ channel, presence, phoenixSocket });
+  };
+
+  const leaveChannel = topic => {
+    let channel = channels[topic];
+    if (!channel) return;
+
+    channel.leave();
+    delete channel[topic];
+
+    logEvent("presence.leave")({ channel, phoenixSocket });
+  };
 
   app.ports.updateToken.subscribe(token => {
     updateSocketToken(phoenixSocket, token);
@@ -52,6 +83,20 @@ export const attachPorts = app => {
       logEvent("ports.socket.cancel")(notifier);
       AbsintheSocket.cancel(absintheSocket, notifier);
     });
+  });
+
+  app.ports.presenceOut.subscribe(arg => {
+    const { method, topic } = arg;
+
+    switch (method) {
+      case 'join':
+        joinChannel(topic);
+        break;
+
+      case 'leave':
+        leaveChannel(topic);
+        break;
+    }
   });
 
   app.ports.scrollTo.subscribe(arg => {
