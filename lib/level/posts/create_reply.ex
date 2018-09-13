@@ -105,7 +105,7 @@ defmodule Level.Posts.CreateReply do
     # TODO: move this logic into a context module and
     # add rules around who actually gets notified
     body = "@#{author.handle}: " <> reply.body
-    payload = %Payload{body: body, tag: post.id}
+    payload = %Payload{body: body, tag: nil}
     subscriptions = Users.get_push_subscriptions(user_id)
 
     Enum.each(subscriptions, fn subscription ->
