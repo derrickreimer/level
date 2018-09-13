@@ -3,6 +3,8 @@ defmodule Level.WebPush.HttpAdapter do
   The HTTP client for sending real web pushes.
   """
 
+  alias Level.WebPush.Subscription
+
   @behaviour Level.WebPush.Adapter
 
   @doc """

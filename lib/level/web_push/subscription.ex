@@ -14,6 +14,10 @@ defmodule Level.WebPush.Subscription do
           }
         }
 
+  @doc """
+  Parses a raw subscription payload.
+  """
+  @spec parse(String.t()) :: {:ok, t()} | {:error, :invalid_keys | :parse_error}
   def parse(data) do
     data
     |> Poison.decode()
@@ -30,11 +34,7 @@ defmodule Level.WebPush.Subscription do
     {:error, :invalid_keys}
   end
 
-  defp after_decode({:error, _}) do
-    {:error, :parse_error}
-  end
-
-  defp after_decode({:error, _, _}) do
+  defp after_decode(_) do
     {:error, :parse_error}
   end
 end

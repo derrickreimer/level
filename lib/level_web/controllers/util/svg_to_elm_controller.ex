@@ -3,8 +3,6 @@ defmodule LevelWeb.Util.SvgToElmController do
 
   use LevelWeb, :controller
 
-  import Level.Gettext
-
   plug :put_layout, "page.html"
 
   def index(conn, _params) do
@@ -31,20 +29,6 @@ defmodule LevelWeb.Util.SvgToElmController do
     |> set_assigns()
     |> assign(:elm_output, value)
     |> render("index.html")
-  end
-
-  defp respond_with_elm({:error, _}, conn) do
-    conn
-    |> set_assigns()
-    |> put_flash(:error, generic_error())
-    |> render("index.html")
-  end
-
-  defp generic_error do
-    dgettext(
-      "errors",
-      "Hmm...something went wrong. If the problem persists, please file a bug report on GitHub."
-    )
   end
 
   defp og_data do

@@ -8,6 +8,10 @@ defmodule LevelWeb.PostChannel do
   alias Level.Posts
   alias LevelWeb.Presence
 
+  @dialyzer [
+    {:nowarn_function, handle_info: 2}
+  ]
+
   def join("posts:" <> post_id, _payload, socket) do
     if authorized?(socket, post_id) do
       send(self(), :after_join)

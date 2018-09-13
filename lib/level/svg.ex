@@ -6,7 +6,7 @@ defmodule Level.Svg do
   @doc """
   Transforms raw SVGs into elm/svg syntax.
   """
-  @spec to_elm(String.t()) :: {:ok, String.t()} | {:error, String.t()}
+  @spec to_elm(String.t()) :: {:ok, String.t()}
   def to_elm(raw_svg) do
     raw_svg
     |> Floki.parse()

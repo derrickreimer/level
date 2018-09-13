@@ -69,9 +69,9 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp after_transaction({:ok, %{post: post} = result}, author, group) do
-    subscribe_author(post, author)
-    subscribe_mentioned(post, result)
-    send_events(post, group, result)
+    _ = subscribe_author(post, author)
+    _ = subscribe_mentioned(post, result)
+    _ = send_events(post, group, result)
 
     {:ok, result}
   end
@@ -79,21 +79,21 @@ defmodule Level.Posts.CreatePost do
   defp after_transaction(err, _, _), do: err
 
   defp subscribe_author(post, author) do
-    Posts.subscribe(author, [post])
+    _ = Posts.subscribe(author, [post])
   end
 
   defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      Posts.subscribe(mentioned_user, [post])
-      Posts.mark_as_unread(mentioned_user, [post])
+      _ = Posts.subscribe(mentioned_user, [post])
+      _ = Posts.mark_as_unread(mentioned_user, [post])
     end)
   end
 
   defp send_events(post, group, %{mentions: mentioned_users}) do
-    Pubsub.post_created(group.id, post)
+    _ = Pubsub.post_created(group.id, post)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      Pubsub.user_mentioned(id, post)
+      _ = Pubsub.user_mentioned(id, post)
     end)
   end
 end

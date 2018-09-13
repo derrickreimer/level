@@ -61,10 +61,10 @@ defmodule Level.Posts.CreateReply do
   end
 
   defp after_transaction({:ok, result}, post, author) do
-    subscribe_author(post, author)
-    subscribe_mentioned(post, result)
-    mark_unread_for_subscribers(post, author, result.reply)
-    send_events(post, result)
+    _ = subscribe_author(post, author)
+    _ = subscribe_mentioned(post, result)
+    _ = mark_unread_for_subscribers(post, author, result.reply)
+    _ = send_events(post, result)
 
     {:ok, result}
   end
@@ -87,21 +87,21 @@ defmodule Level.Posts.CreateReply do
     Enum.each(subscribers, fn subscriber ->
       # Skip marking unread for the author
       if subscriber.id !== author.id do
-        Posts.mark_as_unread(subscriber, [post])
-        send_push_notification(subscriber, post, author, reply)
+        _ = Posts.mark_as_unread(subscriber, [post])
+        _ = send_push_notification(subscriber, post, author, reply)
       end
     end)
   end
 
   defp send_events(post, %{reply: reply, mentions: mentioned_users}) do
-    Pubsub.reply_created(post.id, reply)
+    _ = Pubsub.reply_created(post.id, reply)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      Pubsub.user_mentioned(id, post)
+      _ = Pubsub.user_mentioned(id, post)
     end)
   end
 
-  defp send_push_notification(%SpaceUser{user_id: user_id}, post, author, reply) do
+  defp send_push_notification(%SpaceUser{user_id: user_id}, _post, author, reply) do
     # TODO: move this logic into a context module and
     # add rules around who actually gets notified
     body = "@#{author.handle}: " <> reply.body

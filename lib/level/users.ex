@@ -138,7 +138,7 @@ defmodule Level.Users do
   @doc """
   Count the number of reservations.
   """
-  @spec reservation_count() :: Integer.t()
+  @spec reservation_count() :: integer()
   def reservation_count do
     Repo.one(from(r in Reservation, select: count(r.id)))
   end
