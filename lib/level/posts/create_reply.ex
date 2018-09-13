@@ -60,10 +60,14 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp after_transaction({:ok, result}, post, author) do
+  defp after_transaction({:ok, %{reply: reply} = result}, post, author) do
     _ = subscribe_author(post, author)
     _ = subscribe_mentioned(post, result)
-    _ = mark_unread_for_subscribers(post, author, result.reply)
+
+    {:ok, subscribers} = Posts.get_subscribers(post)
+
+    _ = mark_unread_for_subscribers(post, reply, subscribers, author)
+    _ = send_push_notifications(post, reply, subscribers, author)
     _ = send_events(post, result)
 
     {:ok, result}
@@ -81,16 +85,41 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp mark_unread_for_subscribers(post, author, reply) do
-    {:ok, subscribers} = Posts.get_subscribers(post)
-
+  defp mark_unread_for_subscribers(post, _reply, subscribers, author) do
     Enum.each(subscribers, fn subscriber ->
       # Skip marking unread for the author
       if subscriber.id !== author.id do
         _ = Posts.mark_as_unread(subscriber, [post])
-        _ = send_push_notification(subscriber, post, author, reply)
       end
     end)
+  end
+
+  defp send_push_notifications(post, reply, subscribers, author) do
+    present_user_ids =
+      ("posts:" <> post.id)
+      |> LevelWeb.Presence.list()
+      |> Map.keys()
+      |> MapSet.new()
+
+    subscribed_user_ids =
+      subscribers
+      |> Enum.map(fn subscriber -> subscriber.user_id end)
+      |> MapSet.new()
+
+    notifiable_ids =
+      present_user_ids
+      |> MapSet.intersection(subscribed_user_ids)
+      |> MapSet.delete(author.user_id)
+      |> MapSet.to_list()
+
+    subscription_map = Users.get_push_subscriptions(notifiable_ids)
+    body = "@#{author.handle}: " <> reply.body
+    payload = %Payload{body: body, tag: nil}
+
+    subscription_map
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.each(fn subscription -> WebPush.send(payload, subscription) end)
   end
 
   defp send_events(post, %{reply: reply, mentions: mentioned_users}) do
@@ -98,18 +127,6 @@ defmodule Level.Posts.CreateReply do
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       _ = Pubsub.user_mentioned(id, post)
-    end)
-  end
-
-  defp send_push_notification(%SpaceUser{user_id: user_id}, _post, author, reply) do
-    # TODO: move this logic into a context module and
-    # add rules around who actually gets notified
-    body = "@#{author.handle}: " <> reply.body
-    payload = %Payload{body: body, tag: nil}
-    subscriptions = Users.get_push_subscriptions(user_id)
-
-    Enum.each(subscriptions, fn subscription ->
-      WebPush.send(payload, subscription)
     end)
   end
 end

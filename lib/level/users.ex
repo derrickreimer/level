@@ -172,11 +172,13 @@ defmodule Level.Users do
   defp handle_create_push_subscription(err), do: err
 
   @doc """
-  Fetches all push subscriptions for the given user.
+  Fetches all push subscriptions for the given user ids.
   """
-  @spec get_push_subscriptions(String.t()) :: [WebPush.Subscription.t()]
-  def get_push_subscriptions(user_id) do
-    query = from ps in PushSubscription, where: ps.user_id == ^user_id
+  @spec get_push_subscriptions([String.t()]) :: %{
+          optional(String.t()) => [WebPush.Subscription.t()]
+        }
+  def get_push_subscriptions(user_ids) do
+    query = from ps in PushSubscription, where: ps.user_id in ^user_ids
 
     query
     |> Repo.all()
@@ -187,10 +189,11 @@ defmodule Level.Users do
     records
     |> Enum.map(fn record ->
       case WebPush.parse_subscription(record.data) do
-        {:ok, subscription} -> subscription
+        {:ok, subscription} -> [record.user_id, subscription]
         _ -> nil
       end
     end)
     |> Enum.reject(&is_nil/1)
+    |> Enum.group_by(&List.first/1, &List.last/1)
   end
 end
