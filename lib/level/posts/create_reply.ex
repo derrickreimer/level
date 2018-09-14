@@ -137,7 +137,7 @@ defmodule Level.Posts.CreateReply do
     subscription_map
     |> Map.values()
     |> List.flatten()
-    |> Enum.each(fn subscription -> web_push.send(payload, subscription) end)
+    |> Enum.each(fn subscription -> web_push.send_web_push(payload, subscription) end)
   end
 
   defp send_events(post, %{reply: reply, mentions: mentioned_users}, %{pubsub: pubsub}) do
