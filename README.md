@@ -136,10 +136,6 @@ The following environment variables must be set in production:
       <td><code>LEVEL_SMTP_PASSWORD</code></td>
       <td>The password for your SMTP provider.</td>
     </tr>
-    <tr>
-      <td><code>LEVEL_SMTP_PASSWORD</code></td>
-      <td>The password for your SMTP provider.</td>
-    </tr>
   </tbody>
   <tbody>
     <tr>
