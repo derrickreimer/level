@@ -20,8 +20,9 @@ defmodule Level.WebPush do
   @doc """
   Sends a notification to a particular subscription.
   """
-  @spec send(Payload.t(), Subscription.t()) :: {:ok, any()} | {:error, atom()} | no_return()
-  def send(%Payload{} = payload, %Subscription{} = subscription) do
+  @spec send_web_push(Payload.t(), Subscription.t()) ::
+          {:ok, any()} | {:error, atom()} | no_return()
+  def send_web_push(%Payload{} = payload, %Subscription{} = subscription) do
     payload
     |> Payload.serialize()
     |> adapter().send_web_push(subscription)

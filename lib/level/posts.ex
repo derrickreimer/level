@@ -171,7 +171,11 @@ defmodule Level.Posts do
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
   def create_reply(%SpaceUser{} = author, %Post{} = post, params) do
-    CreateReply.perform(author, post, params)
+    CreateReply.perform(author, post, params, %{
+      presence: LevelWeb.Presence,
+      web_push: Level.WebPush,
+      pubsub: Level.Pubsub
+    })
   end
 
   @doc """

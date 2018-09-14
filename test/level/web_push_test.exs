@@ -50,7 +50,7 @@ defmodule Level.WebPushTest do
         {:ok, %{status_code: 201}}
       end)
 
-      assert {:ok, %{status_code: 201}} = WebPush.send(payload, sub)
+      assert {:ok, %{status_code: 201}} = WebPush.send_web_push(payload, sub)
     end
   end
 end
