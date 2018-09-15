@@ -10,7 +10,6 @@ defmodule Level.Users do
   alias Level.AssetStore
   alias Level.Repo
   alias Level.Spaces
-  alias Level.Users.PushSubscription
   alias Level.Users.Reservation
   alias Level.Users.User
   alias Level.WebPush
@@ -147,29 +146,10 @@ defmodule Level.Users do
   Inserts a push subscription (gracefully de-duplicated).
   """
   @spec create_push_subscription(User.t(), String.t()) ::
-          {:ok, String.t()} | {:error, atom()} | {:error, Ecto.Changeset.t()}
+          {:ok, WebPush.Subscription.t()} | {:error, atom()}
   def create_push_subscription(%User{id: user_id}, data) do
-    with {:ok, subscription} <- WebPush.parse_subscription(data),
-         {:ok, _} <- persist_push_subscription(user_id, data) do
-      {:ok, subscription}
-    else
-      err ->
-        err
-    end
+    WebPush.subscribe(user_id, data, repo: Repo)
   end
-
-  defp persist_push_subscription(user_id, data) do
-    %PushSubscription{}
-    |> PushSubscription.create_changeset(%{user_id: user_id, data: data})
-    |> Repo.insert(on_conflict: :nothing)
-    |> handle_create_push_subscription()
-  end
-
-  defp handle_create_push_subscription({:ok, %PushSubscription{data: data}}) do
-    {:ok, data}
-  end
-
-  defp handle_create_push_subscription(err), do: err
 
   @doc """
   Fetches all push subscriptions for the given user ids.
@@ -178,22 +158,6 @@ defmodule Level.Users do
           optional(String.t()) => [WebPush.Subscription.t()]
         }
   def get_push_subscriptions(user_ids) do
-    query = from ps in PushSubscription, where: ps.user_id in ^user_ids
-
-    query
-    |> Repo.all()
-    |> parse_push_subscription_records()
-  end
-
-  defp parse_push_subscription_records(records) do
-    records
-    |> Enum.map(fn record ->
-      case WebPush.parse_subscription(record.data) do
-        {:ok, subscription} -> [record.user_id, subscription]
-        _ -> nil
-      end
-    end)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.group_by(&List.first/1, &List.last/1)
+    WebPush.get_subscriptions(user_ids, repo: Repo)
   end
 end
