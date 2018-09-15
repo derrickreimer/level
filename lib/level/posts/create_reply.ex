@@ -15,11 +15,11 @@ defmodule Level.Posts.CreateReply do
   alias Level.WebPush
 
   @typedoc "Dependencies injected in the perform function"
-  @type options :: %{
+  @type options :: [
           presence: any(),
           web_push: any(),
-          pubsub: any()
-        }
+          events: any()
+        ]
 
   @typedoc "The result of calling the perform function"
   @type result :: {:ok, map()} | {:error, any(), any(), map()}
@@ -110,10 +110,10 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp send_push_notifications(post, reply, subscribers, author, %{
-         presence: presence,
-         web_push: web_push
-       }) do
+  defp send_push_notifications(post, reply, subscribers, author, opts) do
+    presence = Keyword.get(opts, :presence)
+    web_push = Keyword.get(opts, :web_push)
+
     present_user_ids =
       ("posts:" <> post.id)
       |> presence.list()
@@ -140,11 +140,13 @@ defmodule Level.Posts.CreateReply do
     |> Enum.each(fn subscription -> web_push.send_web_push(payload, subscription) end)
   end
 
-  defp send_events(post, %{reply: reply, mentions: mentioned_users}, %{pubsub: pubsub}) do
-    _ = pubsub.reply_created(post.id, reply)
+  defp send_events(post, %{reply: reply, mentions: mentioned_users}, opts) do
+    events = Keyword.get(opts, :events)
+
+    _ = events.reply_created(post.id, reply)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      _ = pubsub.user_mentioned(id, post)
+      _ = events.user_mentioned(id, post)
     end)
   end
 end

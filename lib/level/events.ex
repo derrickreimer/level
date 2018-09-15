@@ -1,4 +1,4 @@
-defmodule Level.Pubsub do
+defmodule Level.Events do
   @moduledoc """
   This module encapsulates behavior for publishing messages to listeners
   (such as Absinthe GraphQL subscriptions).
