@@ -11,7 +11,6 @@ defmodule Level.Posts.CreateReply do
   alias Level.Posts.Reply
   alias Level.Repo
   alias Level.Spaces.SpaceUser
-  alias Level.Users
   alias Level.WebPush
 
   @typedoc "Dependencies injected in the perform function"
@@ -131,13 +130,12 @@ defmodule Level.Posts.CreateReply do
       |> MapSet.delete(author.user_id)
       |> MapSet.to_list()
 
-    subscription_map = Users.get_push_subscriptions(notifiable_ids)
     payload = build_push_payload(reply, author)
 
-    subscription_map
-    |> Map.values()
-    |> List.flatten()
-    |> Enum.each(fn subscription -> web_push.send_web_push(payload, subscription) end)
+    notifiable_ids
+    |> Enum.each(fn user_id ->
+      web_push.send_web_push(user_id, payload)
+    end)
   end
 
   defp send_events(post, %{reply: reply, mentions: mentioned_users}, opts) do

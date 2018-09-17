@@ -1,25 +1,46 @@
 defmodule Level.WebPush do
   @moduledoc """
-  Functions for sending web push notifications.
+  The subsystem for recording push subscriptions and send them.
   """
+
+  use Supervisor
 
   import Ecto.Query
 
   alias Ecto.Changeset
+  alias Level.Repo
   alias Level.WebPush.Payload
   alias Level.WebPush.Schema
   alias Level.WebPush.Subscription
+  alias Level.WebPush.User
+  alias Level.WebPush.UserSupervisor
+
+  @doc """
+  Starts the process supervisor.
+  """
+  def start_link(arg) do
+    Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
+  end
+
+  @impl true
+  def init(_arg) do
+    children = [
+      UserSupervisor
+    ]
+
+    Supervisor.init(children, strategy: :one_for_one)
+  end
 
   @doc """
   Registers a push subscription.
   """
-  @spec subscribe(String.t(), String.t(), repo: Ecto.Repo.t()) ::
+  @spec subscribe(String.t(), String.t()) ::
           {:ok, Subscription.t()} | {:error, :invalid_keys | :parse_error | :database_error}
-  def subscribe(user_id, data, [repo: _] = opts) do
+  def subscribe(user_id, data) do
     case parse_subscription(data) do
       {:ok, subscription} ->
         subscription
-        |> persist(user_id, data, opts)
+        |> persist(user_id, data)
         |> after_persist()
 
       err ->
@@ -27,12 +48,12 @@ defmodule Level.WebPush do
     end
   end
 
-  defp persist(subscription, user_id, data, repo: repo) do
+  defp persist(subscription, user_id, data) do
     result =
       %Schema{}
       |> Changeset.change(%{user_id: user_id, data: data})
       |> Changeset.change(%{digest: compute_digest(data)})
-      |> repo.insert(on_conflict: :nothing)
+      |> Repo.insert(on_conflict: :nothing)
 
     {result, subscription}
   end
@@ -54,13 +75,13 @@ defmodule Level.WebPush do
   @doc """
   Fetches all subscriptions for a list of user ids.
   """
-  @spec get_subscriptions([String.t()], repo: Ecto.Repo.t()) :: %{
+  @spec get_subscriptions([String.t()]) :: %{
           optional(String.t()) => [Subscription.t()]
         }
-  def get_subscriptions(user_ids, repo: repo) do
+  def get_subscriptions(user_ids) do
     user_ids
     |> build_query()
-    |> repo.all()
+    |> Repo.all()
     |> parse_records()
   end
 
@@ -94,15 +115,24 @@ defmodule Level.WebPush do
   @doc """
   Sends a notification to a particular subscription.
   """
-  @spec send_web_push(Payload.t(), Subscription.t()) ::
-          {:ok, any()} | {:error, atom()} | no_return()
-  def send_web_push(%Payload{} = payload, %Subscription{} = subscription) do
-    payload
-    |> Payload.serialize()
-    |> adapter().send_web_push(subscription)
+  @spec send_web_push(String.t(), Payload.t()) :: :ok | :ignore | {:error, any()}
+  def send_web_push(user_id, %Payload{} = payload) do
+    user_id
+    |> UserSupervisor.start_user()
+    |> handle_start_user(user_id, payload)
   end
 
-  defp adapter do
-    Application.get_env(:level, __MODULE__)[:adapter]
+  defp handle_start_user({:ok, _pid}, user_id, payload) do
+    User.send_web_push(user_id, payload)
   end
+
+  defp handle_start_user({:ok, _pid, _info}, user_id, payload) do
+    User.send_web_push(user_id, payload)
+  end
+
+  defp handle_start_user({:error, {:already_started, _pid}}, user_id, payload) do
+    User.send_web_push(user_id, payload)
+  end
+
+  defp handle_start_user(err, _, _), do: err
 end

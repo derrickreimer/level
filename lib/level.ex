@@ -12,7 +12,8 @@ defmodule Level do
         id: Absinthe.Subscription,
         start: {Absinthe.Subscription, :start_link, [LevelWeb.Endpoint]}
       },
-      {Registry, keys: :unique, name: Level.Registry}
+      {Registry, keys: :unique, name: Level.Registry},
+      Level.WebPush
     ]
 
     opts = [strategy: :one_for_one, name: Level.Supervisor]

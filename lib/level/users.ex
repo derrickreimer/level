@@ -148,7 +148,7 @@ defmodule Level.Users do
   @spec create_push_subscription(User.t(), String.t()) ::
           {:ok, WebPush.Subscription.t()} | {:error, atom()}
   def create_push_subscription(%User{id: user_id}, data) do
-    WebPush.subscribe(user_id, data, repo: Repo)
+    WebPush.subscribe(user_id, data)
   end
 
   @doc """
@@ -158,6 +158,6 @@ defmodule Level.Users do
           optional(String.t()) => [WebPush.Subscription.t()]
         }
   def get_push_subscriptions(user_ids) do
-    WebPush.get_subscriptions(user_ids, repo: Repo)
+    WebPush.get_subscriptions(user_ids)
   end
 end
