@@ -3,12 +3,12 @@ defmodule Level.WebPush.Payload do
   Represents a web push payload.
   """
 
-  @enforce_keys [:body, :tag]
+  @enforce_keys [:body]
   defstruct [:body, :tag]
 
   @type t :: %__MODULE__{
           body: String.t(),
-          tag: String.t()
+          tag: String.t() | nil
         }
 
   @doc """

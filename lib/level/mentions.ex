@@ -5,11 +5,11 @@ defmodule Level.Mentions do
 
   import Ecto.Query
 
+  alias Level.Events
   alias Level.Mentions.UserMention
   alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.Reply
-  alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -123,7 +123,7 @@ defmodule Level.Mentions do
     {:ok, posts} = Posts.get_posts(space_user, post_ids)
 
     Enum.each(posts, fn post ->
-      Pubsub.mentions_dismissed(space_user_id, post)
+      Events.mentions_dismissed(space_user_id, post)
     end)
 
     {:ok, posts}

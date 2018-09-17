@@ -387,7 +387,7 @@ defmodule Level.Mutations do
   Dismisses all mentions for a particular post.
   """
   @spec dismiss_mentions(map(), info()) ::
-          {:ok, %{success: boolean(), posts: [Post.t()] | nil, errors: validation_errors()}}
+          {:ok, %{success: boolean(), posts: [Posts.Post.t()] | nil, errors: validation_errors()}}
           | {:error, String.t()}
   def dismiss_mentions(
         %{space_id: space_id, post_ids: post_ids},
@@ -406,7 +406,7 @@ defmodule Level.Mutations do
   Dismisses all mentions for a particular post.
   """
   @spec dismiss_posts(map(), info()) ::
-          {:ok, %{success: boolean(), posts: [Post.t()] | nil, errors: validation_errors()}}
+          {:ok, %{success: boolean(), posts: [Posts.Post.t()] | nil, errors: validation_errors()}}
           | {:error, String.t()}
   def dismiss_posts(
         %{space_id: space_id, post_ids: post_ids},
@@ -431,9 +431,6 @@ defmodule Level.Mutations do
     case Users.create_push_subscription(user, data) do
       {:ok, _} ->
         {:ok, %{success: true, errors: []}}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:ok, %{success: false, errors: format_errors(changeset)}}
 
       {:error, _} ->
         {:ok, %{success: false, errors: []}}

@@ -6,6 +6,7 @@ defmodule Level.Posts do
   import Ecto.Query, warn: false
   import Level.Gettext
 
+  alias Level.Events
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Markdown
@@ -17,7 +18,6 @@ defmodule Level.Posts do
   alias Level.Posts.PostUserLog
   alias Level.Posts.PostView
   alias Level.Posts.Reply
-  alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -171,11 +171,11 @@ defmodule Level.Posts do
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()
   def create_reply(%SpaceUser{} = author, %Post{} = post, params) do
-    CreateReply.perform(author, post, params, %{
+    CreateReply.perform(author, post, params,
       presence: LevelWeb.Presence,
       web_push: Level.WebPush,
-      pubsub: Level.Pubsub
-    })
+      events: Level.Events
+    )
   end
 
   @doc """
@@ -193,7 +193,7 @@ defmodule Level.Posts do
       PostUserLog.subscribed(post, space_user)
     end)
 
-    Pubsub.posts_subscribed(space_user.id, posts)
+    Events.posts_subscribed(space_user.id, posts)
     result
   end
 
@@ -212,7 +212,7 @@ defmodule Level.Posts do
       PostUserLog.unsubscribed(post, space_user)
     end)
 
-    Pubsub.posts_unsubscribed(space_user.id, posts)
+    Events.posts_unsubscribed(space_user.id, posts)
     result
   end
 
@@ -231,7 +231,7 @@ defmodule Level.Posts do
       PostUserLog.marked_as_unread(post, space_user)
     end)
 
-    Pubsub.posts_marked_as_unread(space_user.id, posts)
+    Events.posts_marked_as_unread(space_user.id, posts)
     result
   end
 
@@ -250,7 +250,7 @@ defmodule Level.Posts do
       PostUserLog.marked_as_read(post, space_user)
     end)
 
-    Pubsub.posts_marked_as_read(space_user.id, posts)
+    Events.posts_marked_as_read(space_user.id, posts)
     result
   end
 
@@ -269,7 +269,7 @@ defmodule Level.Posts do
       PostUserLog.dismissed(post, space_user)
     end)
 
-    Pubsub.posts_dismissed(space_user.id, posts)
+    Events.posts_dismissed(space_user.id, posts)
     result
   end
 

@@ -14,6 +14,9 @@ defmodule Level.WebPush.Subscription do
           }
         }
 
+  # Poison.decode() seems to have a buggy typespec
+  @dialyzer {:nowarn_function, after_decode: 1}
+
   @doc """
   Parses a raw subscription payload.
   """

@@ -3,13 +3,13 @@ defmodule Level.Posts.CreatePost do
 
   alias Ecto.Changeset
   alias Ecto.Multi
+  alias Level.Events
   alias Level.Groups.Group
   alias Level.Mentions
   alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostGroup
   alias Level.Posts.PostLog
-  alias Level.Pubsub
   alias Level.Repo
   alias Level.Spaces.SpaceUser
 
@@ -90,10 +90,10 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp send_events(post, group, %{mentions: mentioned_users}) do
-    _ = Pubsub.post_created(group.id, post)
+    _ = Events.post_created(group.id, post)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      _ = Pubsub.user_mentioned(id, post)
+      _ = Events.user_mentioned(id, post)
     end)
   end
 end

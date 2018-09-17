@@ -8,7 +8,7 @@ defmodule Level.Spaces do
 
   alias Ecto.Multi
   alias Level.AssetStore
-  alias Level.Pubsub
+  alias Level.Events
   alias Level.Repo
   alias Level.Spaces.OpenInvitation
   alias Level.Spaces.Space
@@ -103,7 +103,7 @@ defmodule Level.Spaces do
   end
 
   defp handle_space_update({:ok, space} = result) do
-    Pubsub.space_updated(space.id, space)
+    Events.space_updated(space.id, space)
     result
   end
 
@@ -358,7 +358,7 @@ defmodule Level.Spaces do
   end
 
   defp handle_space_user_update({:ok, %SpaceUser{} = space_user} = result) do
-    Pubsub.space_user_updated(space_user.space_id, space_user)
+    Events.space_user_updated(space_user.space_id, space_user)
     result
   end
 
