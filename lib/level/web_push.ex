@@ -12,8 +12,9 @@ defmodule Level.WebPush do
   alias Level.WebPush.Payload
   alias Level.WebPush.Schema
   alias Level.WebPush.Subscription
-  alias Level.WebPush.User
+  alias Level.WebPush.SubscriptionSupervisor
   alias Level.WebPush.UserSupervisor
+  alias Level.WebPush.UserWorker
 
   @doc """
   Starts the process supervisor.
@@ -25,7 +26,8 @@ defmodule Level.WebPush do
   @impl true
   def init(_arg) do
     children = [
-      UserSupervisor
+      UserSupervisor,
+      SubscriptionSupervisor
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
@@ -118,21 +120,21 @@ defmodule Level.WebPush do
   @spec send_web_push(String.t(), Payload.t()) :: :ok | :ignore | {:error, any()}
   def send_web_push(user_id, %Payload{} = payload) do
     user_id
-    |> UserSupervisor.start_user()
-    |> handle_start_user(user_id, payload)
+    |> UserSupervisor.start_worker()
+    |> handle_start_worker(user_id, payload)
   end
 
-  defp handle_start_user({:ok, _pid}, user_id, payload) do
-    User.send_web_push(user_id, payload)
+  defp handle_start_worker({:ok, _pid}, user_id, payload) do
+    UserWorker.send_web_push(user_id, payload)
   end
 
-  defp handle_start_user({:ok, _pid, _info}, user_id, payload) do
-    User.send_web_push(user_id, payload)
+  defp handle_start_worker({:ok, _pid, _info}, user_id, payload) do
+    UserWorker.send_web_push(user_id, payload)
   end
 
-  defp handle_start_user({:error, {:already_started, _pid}}, user_id, payload) do
-    User.send_web_push(user_id, payload)
+  defp handle_start_worker({:error, {:already_started, _pid}}, user_id, payload) do
+    UserWorker.send_web_push(user_id, payload)
   end
 
-  defp handle_start_user(err, _, _), do: err
+  defp handle_start_worker(err, _, _), do: err
 end

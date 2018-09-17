@@ -1,4 +1,4 @@
-defmodule Level.WebPush.User do
+defmodule Level.WebPush.UserWorker do
   @moduledoc """
   A server process representing a user.
   """
@@ -11,8 +11,14 @@ defmodule Level.WebPush.User do
   alias Level.WebPush.Payload
   alias Level.WebPush.Schema
   alias Level.WebPush.Subscription
+  alias Level.WebPush.SubscriptionSupervisor
+  alias Level.WebPush.SubscriptionWorker
 
   defstruct [:user_id]
+
+  @type t :: %{
+          user_id: String.t()
+        }
 
   # Client
 
@@ -43,8 +49,8 @@ defmodule Level.WebPush.User do
   def handle_cast({:send_web_push, payload}, state) do
     state.user_id
     |> fetch_subscriptions()
-    |> Enum.each(fn subscription ->
-      send_to_subscription(payload, subscription)
+    |> Enum.each(fn {id, subscription} ->
+      send_to_subscription(id, subscription, payload)
     end)
 
     {:noreply, state}
@@ -65,22 +71,32 @@ defmodule Level.WebPush.User do
 
   defp parse_records(records) do
     records
-    |> Enum.map(fn %Schema{data: data} ->
+    |> Enum.map(fn %Schema{data: data, digest: id} ->
       case Subscription.parse(data) do
-        {:ok, subscription} -> subscription
+        {:ok, subscription} -> {id, subscription}
         _ -> nil
       end
     end)
     |> Enum.reject(&is_nil/1)
   end
 
-  defp send_to_subscription(payload, subscription) do
-    payload
-    |> Payload.serialize()
-    |> adapter().send_web_push(subscription)
+  defp send_to_subscription(id, subscription, payload) do
+    id
+    |> SubscriptionSupervisor.start_worker(subscription)
+    |> handle_start_worker(id, payload)
   end
 
-  defp adapter do
-    Application.get_env(:level, Level.WebPush)[:adapter]
+  defp handle_start_worker({:ok, _pid}, id, payload) do
+    SubscriptionWorker.send_web_push(id, payload)
   end
+
+  defp handle_start_worker({:ok, _pid, _info}, id, payload) do
+    SubscriptionWorker.send_web_push(id, payload)
+  end
+
+  defp handle_start_worker({:error, {:already_started, _pid}}, id, payload) do
+    SubscriptionWorker.send_web_push(id, payload)
+  end
+
+  defp handle_start_worker(err, _, _), do: err
 end
