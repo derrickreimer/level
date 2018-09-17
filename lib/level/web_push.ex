@@ -37,7 +37,8 @@ defmodule Level.WebPush do
   Registers a push subscription.
   """
   @spec subscribe(String.t(), String.t()) ::
-          {:ok, Subscription.t()} | {:error, :invalid_keys | :parse_error | :database_error}
+          {:ok, %{digest: String.t(), subscription: Subscription.t()}}
+          | {:error, :invalid_keys | :parse_error | :database_error}
   def subscribe(user_id, data) do
     case parse_subscription(data) do
       {:ok, subscription} ->
@@ -60,8 +61,8 @@ defmodule Level.WebPush do
     {result, subscription}
   end
 
-  defp after_persist({{:ok, _}, subscription}) do
-    {:ok, subscription}
+  defp after_persist({{:ok, record}, subscription}) do
+    {:ok, %{digest: record.digest, subscription: subscription}}
   end
 
   defp after_persist({_, _}) do

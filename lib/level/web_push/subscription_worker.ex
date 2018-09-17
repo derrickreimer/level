@@ -5,9 +5,7 @@ defmodule Level.WebPush.SubscriptionWorker do
 
   use GenServer
   require Logger
-  import Ecto.Query
 
-  alias Level.Repo
   alias Level.WebPush.Payload
   alias Level.WebPush.Schema
   alias Level.WebPush.Subscription
@@ -49,18 +47,17 @@ defmodule Level.WebPush.SubscriptionWorker do
 
   @impl true
   def handle_cast({:send_web_push, payload}, state) do
-    do_send_web_push(state, payload, 0)
+    make_request(state, payload, 0)
   end
 
   @impl true
   def handle_info({:retry_web_push, payload, attempts}, state) do
-    do_send_web_push(state, payload, attempts)
+    make_request(state, payload, attempts)
   end
 
-  defp do_send_web_push(state, payload, attempts) do
+  defp make_request(state, payload, attempts) do
     payload
-    |> Payload.serialize()
-    |> adapter().send_web_push(state.subscription)
+    |> adapter().make_request(state.subscription)
     |> handle_push_response(state, payload, attempts)
   end
 
@@ -69,12 +66,12 @@ defmodule Level.WebPush.SubscriptionWorker do
   end
 
   defp handle_push_response({:ok, %_{status_code: 404}}, state, _, _) do
-    delete_subscription(state.digest)
+    adapter().delete_subscription(state.digest)
     {:stop, :normal, state}
   end
 
   defp handle_push_response({:ok, %_{status_code: 410}}, state, _, _) do
-    delete_subscription(state.digest)
+    adapter().delete_subscription(state.digest)
     {:noreply, state}
   end
 
@@ -95,24 +92,14 @@ defmodule Level.WebPush.SubscriptionWorker do
 
   defp handle_push_response(_, state, payload, attempts) do
     if attempts < @max_attempts do
-      schedule_retry(state.digest, payload, attempts + 1)
+      schedule_retry(payload, attempts + 1)
     end
 
     {:noreply, state}
   end
 
-  defp schedule_retry(digest, payload, attempts) do
-    Process.send_after(via_tuple(digest), {:retry_web_push, payload, attempts}, @retry_delay)
-  end
-
-  defp delete_subscription(digest) do
-    digest
-    |> build_query()
-    |> Repo.delete_all()
-  end
-
-  defp build_query(digest) do
-    from r in Schema, where: r.digest == ^digest
+  defp schedule_retry(payload, attempts) do
+    Process.send_after(self(), {:retry_web_push, payload, attempts}, @retry_delay)
   end
 
   # Internal

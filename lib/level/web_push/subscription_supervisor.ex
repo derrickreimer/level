@@ -13,8 +13,8 @@ defmodule Level.WebPush.SubscriptionSupervisor do
     DynamicSupervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end
 
-  def start_worker(id, subscription) do
-    spec = {SubscriptionWorker, [id, subscription]}
+  def start_worker(digest, subscription) do
+    spec = {SubscriptionWorker, [digest, subscription]}
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 
