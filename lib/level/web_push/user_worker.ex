@@ -71,31 +71,31 @@ defmodule Level.WebPush.UserWorker do
 
   defp parse_records(records) do
     records
-    |> Enum.map(fn %Schema{data: data, digest: id} ->
+    |> Enum.map(fn %Schema{data: data, digest: digest} ->
       case Subscription.parse(data) do
-        {:ok, subscription} -> {id, subscription}
+        {:ok, subscription} -> {digest, subscription}
         _ -> nil
       end
     end)
     |> Enum.reject(&is_nil/1)
   end
 
-  defp send_to_subscription(id, subscription, payload) do
-    id
+  defp send_to_subscription(digest, subscription, payload) do
+    digest
     |> SubscriptionSupervisor.start_worker(subscription)
-    |> handle_start_worker(id, payload)
+    |> handle_start_worker(digest, payload)
   end
 
-  defp handle_start_worker({:ok, _pid}, id, payload) do
-    SubscriptionWorker.send_web_push(id, payload)
+  defp handle_start_worker({:ok, _pid}, digest, payload) do
+    SubscriptionWorker.send_web_push(digest, payload)
   end
 
-  defp handle_start_worker({:ok, _pid, _info}, id, payload) do
-    SubscriptionWorker.send_web_push(id, payload)
+  defp handle_start_worker({:ok, _pid, _info}, digest, payload) do
+    SubscriptionWorker.send_web_push(digest, payload)
   end
 
-  defp handle_start_worker({:error, {:already_started, _pid}}, id, payload) do
-    SubscriptionWorker.send_web_push(id, payload)
+  defp handle_start_worker({:error, {:already_started, _pid}}, digest, payload) do
+    SubscriptionWorker.send_web_push(digest, payload)
   end
 
   defp handle_start_worker(err, _, _), do: err
