@@ -158,7 +158,7 @@ Run the `script/docs` to generate and view the project ExDocs locally.
 
 ## Heroku Deployment (Experimental)
 
-One of our goals is to make self-installation as painless as possible for those who are interested in hosting their one instance.
+One of our goals is to make self-installation as painless as possible for those who are interested in hosting their own instance.
 
 The relevant configuration files for Heroku live here: 
 
