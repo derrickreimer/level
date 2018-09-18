@@ -90,7 +90,7 @@ defmodule Level.WebPush.SubscriptionWorker do
   end
 
   defp handle_push_response(_, state, payload, attempts) do
-    if attempts < max_attempts() do
+    if attempts < max_attempts() - 1 do
       schedule_retry(payload, attempts + 1)
     end
 

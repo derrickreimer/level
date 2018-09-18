@@ -102,8 +102,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
     test "stops retrying after max attempts",
          %{
            digest: digest,
-           subscription: subscription,
-           worker_pid: worker_pid
+           subscription: subscription
          } do
       payload = %Payload{body: "Hello"}
       expect_response(500, payload, subscription, max_attempts())
@@ -116,7 +115,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
       # because it ends up slipping into the mailbox ahead of the
       # final retry messages, which causes the test process to end
       # before the retries have a chance to finish.
-      Process.sleep(100)
+      Process.sleep(1000)
     end
   end
 
