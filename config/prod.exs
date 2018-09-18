@@ -42,7 +42,10 @@ config :level, Level.Mailer,
 config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
 
 # Web push
-config :level, Level.WebPush, adapter: Level.WebPush.HttpAdapter
+config :level, Level.WebPush,
+  adapter: Level.WebPush.HttpAdapter,
+  retry_timeout: 1000,
+  max_attempts: 5
 
 # Configure browser push notifications
 config :web_push_encryption, :vapid_details,

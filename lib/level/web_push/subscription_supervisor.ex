@@ -1,11 +1,11 @@
-defmodule Level.WebPush.UserSupervisor do
+defmodule Level.WebPush.SubscriptionSupervisor do
   @moduledoc """
-  The supervisor for user processes.
+  The supervisor for subscription processes.
   """
 
   use DynamicSupervisor
 
-  alias Level.WebPush.UserWorker
+  alias Level.WebPush.SubscriptionWorker
 
   # Client
 
@@ -13,8 +13,8 @@ defmodule Level.WebPush.UserSupervisor do
     DynamicSupervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end
 
-  def start_worker(user_id) do
-    spec = {UserWorker, user_id}
+  def start_worker(digest, subscription) do
+    spec = {SubscriptionWorker, [digest, subscription]}
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 

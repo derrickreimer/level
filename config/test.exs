@@ -37,7 +37,10 @@ config :level, Level.Mailer, adapter: Bamboo.TestAdapter
 config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
 
 # Web push
-config :level, Level.WebPush, adapter: Level.WebPush.TestAdapter
+config :level, Level.WebPush,
+  adapter: Level.WebPush.TestAdapter,
+  retry_timeout: 0,
+  max_attempts: 3
 
 # Configure web push notifications
 config :web_push_encryption, :vapid_details,

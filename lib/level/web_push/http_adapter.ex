@@ -3,16 +3,14 @@ defmodule Level.WebPush.HttpAdapter do
   The HTTP client for sending real web pushes.
   """
 
-  alias Level.WebPush.Subscription
+  alias Level.WebPush.Payload
 
   @behaviour Level.WebPush.Adapter
 
-  @doc """
-  Sends a web push.
-  """
-  @spec send_web_push(String.t(), Subscription.t()) :: {:ok, any()} | {:error, atom()}
   @impl true
-  def send_web_push(body, subscription) do
-    WebPushEncryption.send_web_push(body, subscription)
+  def make_request(payload, subscription) do
+    payload
+    |> Payload.serialize()
+    |> WebPushEncryption.send_web_push(subscription)
   end
 end

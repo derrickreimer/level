@@ -51,7 +51,10 @@ config :level, Level.Repo,
 config :level, Level.Mailer, adapter: Bamboo.LocalAdapter
 
 # Web push
-config :level, Level.WebPush, adapter: Level.WebPush.HttpAdapter
+config :level, Level.WebPush,
+  adapter: Level.WebPush.HttpAdapter,
+  retry_timeout: 1000,
+  max_attempts: 5
 
 # Import secrets not tracked under version control.
 # Use config/secret_template.exs as a starting point.
