@@ -13,6 +13,7 @@ defmodule Level.Loaders.Database do
   alias Level.Posts.Post
   alias Level.Posts.PostUser
   alias Level.Posts.Reply
+  alias Level.Posts.ReplyView
   alias Level.Repo
   alias Level.Spaces
   alias Level.Spaces.Space
@@ -64,6 +65,12 @@ defmodule Level.Loaders.Database do
   # Replies
 
   def query(Reply, %{current_user: user}), do: Posts.replies_base_query(user)
+
+  def query(ReplyView, %{current_user: %User{id: user_id}}) do
+    from rv in ReplyView,
+      join: su in assoc(rv, :space_user),
+      where: su.user_id == ^user_id
+  end
 
   # Mentions
 

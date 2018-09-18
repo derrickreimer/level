@@ -15,6 +15,8 @@ defmodule Level.Resolvers do
   alias Level.Pagination
   alias Level.Posts.Post
   alias Level.Posts.PostUser
+  alias Level.Posts.Reply
+  alias Level.Posts.ReplyView
   alias Level.Repo
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
@@ -181,6 +183,27 @@ defmodule Level.Resolvers do
   def mentions(%Post{} = post, _args, %{context: %{loader: loader}}) do
     dataloader_one(loader, :db, {:many, UserMention}, post_id: post.id)
   end
+
+  @doc """
+  Determines whether the current user has viewed the reply.
+  """
+  @spec has_viewed_reply(Reply.t(), map(), info()) :: dataloader_result()
+  def has_viewed_reply(%Reply{} = reply, _args, %{context: %{loader: loader}}) do
+    source_name = :db
+    batch_key = {:many, ReplyView}
+    item_key = [reply_id: reply.id]
+
+    loader
+    |> Dataloader.load(source_name, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(source_name, batch_key, item_key)
+      |> handle_reply_views_fetched()
+    end)
+  end
+
+  defp handle_reply_views_fetched([]), do: {:ok, false}
+  defp handle_reply_views_fetched(_), do: {:ok, true}
 
   @doc """
   Fetches the current user's membership.
