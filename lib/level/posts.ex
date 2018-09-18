@@ -18,6 +18,7 @@ defmodule Level.Posts do
   alias Level.Posts.PostUserLog
   alias Level.Posts.PostView
   alias Level.Posts.Reply
+  alias Level.Posts.ReplyView
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -314,6 +315,39 @@ defmodule Level.Posts do
     %PostView{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
+  end
+
+  @doc """
+  Records reply views.
+  """
+  @spec record_reply_views(SpaceUser.t(), [Reply.t()]) :: {:ok, [Reply.t()]}
+  def record_reply_views(%SpaceUser{} = space_user, replies) do
+    now = NaiveDateTime.utc_now()
+
+    entries =
+      replies
+      |> Enum.map(fn reply ->
+        [
+          space_user_id: space_user.id,
+          reply_id: reply.id,
+          post_id: reply.post_id,
+          space_id: reply.space_id,
+          occurred_at: now
+        ]
+      end)
+
+    ReplyView
+    |> Repo.insert_all(entries)
+
+    {:ok, replies}
+  end
+
+  @doc """
+  Determines whether a user has viewed a reply.
+  """
+  @spec viewed_reply?(Reply.t(), SpaceUser.t()) :: boolean() | no_return()
+  def viewed_reply?(%Reply{} = reply, %SpaceUser{} = space_user) do
+    Repo.get_by(ReplyView, reply_id: reply.id, space_user_id: space_user.id) != nil
   end
 
   @doc """
