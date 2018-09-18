@@ -338,7 +338,11 @@ defmodule Level.Posts do
 
     ReplyView
     |> Repo.insert_all(entries)
+    |> after_record_reply_views(space_user.id, replies)
+  end
 
+  defp after_record_reply_views(_result, space_user_id, replies) do
+    Events.replies_viewed(space_user_id, replies)
     {:ok, replies}
   end
 
