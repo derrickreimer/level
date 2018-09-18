@@ -31,4 +31,32 @@ defmodule Level.WebPushTest do
       assert {:error, :parse_error} = WebPush.parse_subscription(~s({"foo"))
     end
   end
+
+  # describe "send_web_push/2" do
+  #   setup :set_mox_global
+  #   setup :verify_on_exit!
+
+  #   setup do
+  #     {:ok, user} = create_user()
+  #     {:ok, data} = WebPush.subscribe(user.id, @valid_data)
+  #     {:ok, Map.merge(data, %{user: user})}
+  #   end
+
+  #   test "assembles a notification body and passes it to the adapter", %{
+  #     user: user,
+  #     subscription: subscription
+  #   } do
+  #     payload = %Payload{body: "Hello world"}
+
+  #     Level.WebPush.TestAdapter
+  #     |> expect(:send_web_push, fn body, sub ->
+  #       assert body == Payload.serialize(payload)
+  #       assert sub.endpoint == subscription.endpoint
+
+  #       {:ok, %{status_code: 201}}
+  #     end)
+
+  #     assert :ok = WebPush.send_web_push(user.id, payload)
+  #   end
+  # end
 end

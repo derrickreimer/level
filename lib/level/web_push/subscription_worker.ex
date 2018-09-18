@@ -5,7 +5,9 @@ defmodule Level.WebPush.SubscriptionWorker do
 
   use GenServer
   require Logger
+  import Ecto.Query
 
+  alias Level.Repo
   alias Level.WebPush.Payload
   alias Level.WebPush.Schema
   alias Level.WebPush.Subscription
@@ -66,13 +68,13 @@ defmodule Level.WebPush.SubscriptionWorker do
   end
 
   defp handle_push_response({:ok, %_{status_code: 404}}, state, _, _) do
-    adapter().delete_subscription(state.digest)
+    delete_subscription(state.digest)
     {:stop, :normal, state}
   end
 
   defp handle_push_response({:ok, %_{status_code: 410}}, state, _, _) do
-    adapter().delete_subscription(state.digest)
-    {:noreply, state}
+    delete_subscription(state.digest)
+    {:stop, :normal, state}
   end
 
   defp handle_push_response({:ok, %_{status_code: 400} = resp}, state, _, _) do
@@ -101,6 +103,19 @@ defmodule Level.WebPush.SubscriptionWorker do
   defp schedule_retry(payload, attempts) do
     Process.send_after(self(), {:retry_web_push, payload, attempts}, @retry_delay)
   end
+
+  defp delete_subscription(digest) do
+    digest
+    |> by_digest()
+    |> Repo.delete_all()
+    |> handle_delete()
+  end
+
+  defp by_digest(digest) do
+    from r in Schema, where: r.digest == ^digest
+  end
+
+  defp handle_delete(_), do: :ok
 
   # Internal
 
