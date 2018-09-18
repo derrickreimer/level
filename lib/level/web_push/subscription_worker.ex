@@ -19,9 +19,6 @@ defmodule Level.WebPush.SubscriptionWorker do
           subscription: Subscription.t()
         }
 
-  @retry_delay 1000
-  @max_attempts 5
-
   # Client
 
   def start_link([digest, subscription]) do
@@ -93,7 +90,7 @@ defmodule Level.WebPush.SubscriptionWorker do
   end
 
   defp handle_push_response(_, state, payload, attempts) do
-    if attempts < @max_attempts do
+    if attempts < max_attempts() do
       schedule_retry(payload, attempts + 1)
     end
 
@@ -101,7 +98,14 @@ defmodule Level.WebPush.SubscriptionWorker do
   end
 
   defp schedule_retry(payload, attempts) do
-    Process.send_after(self(), {:retry_web_push, payload, attempts}, @retry_delay)
+    timeout = retry_timeout()
+    message = {:retry_web_push, payload, attempts}
+
+    if timeout > 0 do
+      Process.send_after(self(), message, timeout)
+    else
+      send(self(), message)
+    end
   end
 
   defp delete_subscription(digest) do
@@ -121,5 +125,13 @@ defmodule Level.WebPush.SubscriptionWorker do
 
   defp adapter do
     Application.get_env(:level, Level.WebPush)[:adapter]
+  end
+
+  defp retry_timeout do
+    Application.get_env(:level, Level.WebPush)[:retry_timeout]
+  end
+
+  defp max_attempts do
+    Application.get_env(:level, Level.WebPush)[:max_attempts]
   end
 end

@@ -36,7 +36,12 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
   end
 
   describe "send_web_push/2" do
-    test "makes a request", %{digest: digest, subscription: subscription, worker_pid: worker_pid} do
+    test "makes a request",
+         %{
+           digest: digest,
+           subscription: subscription,
+           worker_pid: worker_pid
+         } do
       payload = %Payload{body: "Hello"}
       expect_response(201, payload, subscription)
       assert :ok == SubscriptionWorker.send_web_push(digest, payload)
@@ -78,12 +83,51 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
 
       assert %{} = WebPush.get_subscriptions([user_id])
     end
+
+    test "retries until success",
+         %{
+           digest: digest,
+           subscription: subscription,
+           worker_pid: worker_pid
+         } do
+      payload = %Payload{body: "Hello"}
+      expect_response(500, payload, subscription)
+      expect_response(201, payload, subscription)
+      assert :ok == SubscriptionWorker.send_web_push(digest, payload)
+
+      # Wait for the cast call to complete
+      :sys.get_state(worker_pid)
+    end
+
+    test "stops retrying after max attempts",
+         %{
+           digest: digest,
+           subscription: subscription,
+           worker_pid: worker_pid
+         } do
+      payload = %Payload{body: "Hello"}
+      expect_response(500, payload, subscription, max_attempts())
+      assert :ok == SubscriptionWorker.send_web_push(digest, payload)
+
+      # This is hack to give the retries enough time to loop.
+      # Is there a better way?
+      #
+      # The :sys.get_state(worker_pid) technique does not work here,
+      # because it ends up slipping into the mailbox ahead of the
+      # final retry messages, which causes the test process to end
+      # before the retries have a chance to finish.
+      Process.sleep(100)
+    end
   end
 
-  defp expect_response(status_code, payload, subscription) do
+  defp expect_response(status_code, payload, subscription, n \\ 1) do
     Level.WebPush.TestAdapter
-    |> expect(:make_request, fn ^payload, ^subscription ->
+    |> expect(:make_request, n, fn ^payload, ^subscription ->
       {:ok, %HTTPoison.Response{status_code: status_code}}
     end)
+  end
+
+  defp max_attempts do
+    Application.get_env(:level, Level.WebPush)[:max_attempts]
   end
 end
