@@ -92,7 +92,7 @@ update msg session model =
         Submit ->
             let
                 cmd =
-                    CompleteSetupStep.request (Space.getId model.space) Space.InviteUsers False session
+                    CompleteSetupStep.request (Space.id model.space) Space.InviteUsers False session
                         |> Task.attempt Advanced
             in
             ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
@@ -121,10 +121,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

@@ -1,4 +1,4 @@
-module Reply exposing (Record, Reply, decoder, fragment, getCachedData, getId, getPostId, id)
+module Reply exposing (Record, Reply, decoder, fragment, getCachedData, getPostId, id)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, int, string)
@@ -79,11 +79,6 @@ decoder =
 
 
 -- API
-
-
-getId : Reply -> String
-getId (Reply data) =
-    data.id
 
 
 getPostId : Reply -> String

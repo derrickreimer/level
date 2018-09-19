@@ -114,7 +114,7 @@ update msg session model =
             let
                 cmd =
                     session
-                        |> BulkCreateGroups.request (Space.getId model.space) groups
+                        |> BulkCreateGroups.request (Space.id model.space) groups
                         |> Task.attempt Submitted
             in
             ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
@@ -123,7 +123,7 @@ update msg session model =
             let
                 cmd =
                     newSession
-                        |> CompleteSetupStep.request (Space.getId model.space) Space.CreateGroups False
+                        |> CompleteSetupStep.request (Space.id model.space) Space.CreateGroups False
                         |> Task.attempt Advanced
             in
             ( ( model, cmd ), newSession, NoOp )
@@ -163,10 +163,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

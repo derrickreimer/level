@@ -131,13 +131,13 @@ recordView session { space, postComp } =
         maybeReplyId =
             case nodes of
                 [ lastReply ] ->
-                    Just (Reply.getId lastReply)
+                    Just (Reply.id lastReply)
 
                 _ ->
                     Nothing
     in
     session
-        |> RecordPostView.request (Space.getId space) postComp.id maybeReplyId
+        |> RecordPostView.request (Space.id space) postComp.id maybeReplyId
         |> Task.attempt ViewRecorded
 
 
@@ -160,7 +160,7 @@ update msg globals model =
         PostComponentMsg componentMsg ->
             let
                 ( ( newPostComp, cmd ), newSession ) =
-                    Component.Post.update componentMsg (Space.getId model.space) globals.session model.postComp
+                    Component.Post.update componentMsg (Space.id model.space) globals.session model.postComp
             in
             ( ( { model | postComp = newPostComp }
               , Cmd.map PostComponentMsg cmd
@@ -224,10 +224,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.ReplyCreated reply ->
             let
@@ -277,7 +277,7 @@ handleJoin presence { session, repo } model =
         Nothing ->
             ( model
             , session
-                |> GetSpaceUser.request (Space.getId model.space) (Presence.getUserId presence)
+                |> GetSpaceUser.request (Space.id model.space) (Presence.getUserId presence)
                 |> Task.attempt SpaceUserFetched
             )
 

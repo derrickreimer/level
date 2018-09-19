@@ -1,4 +1,4 @@
-module Space exposing (Record, SetupState(..), Space, decoder, fragment, getCachedData, getId, getSlug, id, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder)
+module Space exposing (Record, SetupState(..), Space, decoder, fragment, getCachedData, getSlug, id, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
@@ -115,11 +115,6 @@ setupStateEncoder raw =
 
 
 -- API
-
-
-getId : Space -> String
-getId (Space data) =
-    data.id
 
 
 getSlug : Space -> String

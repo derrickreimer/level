@@ -124,7 +124,7 @@ setup { group, posts } =
             Cmd.batch
                 [ setFocus "post-composer" NoOp
                 , Autosize.init "post-composer"
-                , setupSockets (Group.getId group)
+                , setupSockets (Group.id group)
                 ]
 
         postsCmd =
@@ -139,7 +139,7 @@ teardown : Model -> Cmd Msg
 teardown { group, posts } =
     let
         pageCmd =
-            teardownSockets (Group.getId group)
+            teardownSockets (Group.id group)
 
         postsCmd =
             Connection.toList posts
@@ -208,7 +208,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             if newPostSubmittable postComposer then
                 let
                     cmd =
-                        CreatePost.request (Space.getId model.space) (Group.getId model.group) postComposer.body session
+                        CreatePost.request (Space.id model.space) (Group.id model.group) postComposer.body session
                             |> Task.attempt NewPostSubmitted
                 in
                 ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), session )
@@ -234,7 +234,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         MembershipStateToggled state ->
             let
                 cmd =
-                    UpdateGroupMembership.request (Space.getId model.space) (Group.getId model.group) state session
+                    UpdateGroupMembership.request (Space.id model.space) (Group.id model.group) state session
                         |> Task.attempt MembershipStateSubmitted
             in
             ( ( model, cmd ), session )
@@ -268,7 +268,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         NameEditorSubmit ->
             let
                 cmd =
-                    UpdateGroup.request (Space.getId model.space) (Group.getId model.group) (Just nameEditor.value) Nothing session
+                    UpdateGroup.request (Space.id model.space) (Group.id model.group) (Just nameEditor.value) Nothing session
                         |> Task.attempt NameEditorSubmitted
             in
             ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), session )
@@ -316,7 +316,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                 Just post ->
                     let
                         ( ( newPost, cmd ), newSession ) =
-                            Component.Post.update componentMsg (Space.getId model.space) session post
+                            Component.Post.update componentMsg (Space.id model.space) session post
                     in
                     ( ( { model | posts = Connection.update .id newPost model.posts }
                       , Cmd.map (PostComponentMsg postId) cmd
@@ -331,7 +331,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             let
                 cmd =
                     session
-                        |> BookmarkGroup.request (Space.getId model.space) (Group.getId model.group)
+                        |> BookmarkGroup.request (Space.id model.space) (Group.id model.group)
                         |> Task.attempt Bookmarked
             in
             ( ( model, cmd ), session )
@@ -349,7 +349,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
             let
                 cmd =
                     session
-                        |> UnbookmarkGroup.request (Space.getId model.space) (Group.getId model.group)
+                        |> UnbookmarkGroup.request (Space.id model.space) (Group.id model.group)
                         |> Task.attempt Unbookmarked
             in
             ( ( model, cmd ), session )
@@ -366,7 +366,7 @@ update msg repo session ({ postComposer, nameEditor } as model) =
         PrivacyToggle isPrivate ->
             let
                 cmd =
-                    UpdateGroup.request (Space.getId model.space) (Group.getId model.group) Nothing (Just isPrivate) session
+                    UpdateGroup.request (Space.id model.space) (Group.id model.group) Nothing (Just isPrivate) session
                         |> Task.attempt PrivacyToggled
             in
             ( ( model, cmd ), session )
@@ -399,15 +399,15 @@ consumeEvent : Event -> Session -> Model -> ( Model, Cmd Msg )
 consumeEvent event session model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.GroupMembershipUpdated group ->
-            if Group.getId group == Group.getId model.group then
+            if Group.id group == Group.id model.group then
                 ( model
-                , FeaturedMemberships.request (Group.getId model.group) session
+                , FeaturedMemberships.request (Group.id model.group) session
                     |> Task.attempt FeaturedMembershipsRefreshed
                 )
 
@@ -569,8 +569,8 @@ controlsView model =
 paginationView : Space -> Group -> Connection a -> Html Msg
 paginationView space group connection =
     Pagination.view connection
-        (Route.Group << Before (Space.getSlug space) (Group.getId group))
-        (Route.Group << After (Space.getSlug space) (Group.getId group))
+        (Route.Group << Before (Space.getSlug space) (Group.id group))
+        (Route.Group << After (Space.getSlug space) (Group.id group))
 
 
 bookmarkButtonView : Bool -> Html Msg

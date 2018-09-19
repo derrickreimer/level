@@ -250,7 +250,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 cmd =
                     case firstReply of
                         Just reply ->
-                            Scroll.toAnchor Scroll.Document (replyNodeId (Reply.getId reply)) 200
+                            Scroll.toAnchor Scroll.Document (replyNodeId (Reply.id reply)) 200
 
                         Nothing ->
                             Cmd.none
@@ -315,7 +315,7 @@ handleReplyCreated reply ({ post, replies, mode } as model) =
                     Cmd.none
     in
     if Reply.getPostId reply == Post.id post then
-        ( { model | replies = Connection.append Reply.getId reply replies }, cmd )
+        ( { model | replies = Connection.append Reply.id reply replies }, cmd )
 
     else
         ( model, Cmd.none )
@@ -584,7 +584,7 @@ mentionersFor mentions =
     mentions
         |> List.map Mention.getCachedData
         |> List.map .mentioner
-        |> ListHelpers.uniqueBy SpaceUser.getId
+        |> ListHelpers.uniqueBy SpaceUser.id
 
 
 lastMentionAt : ( Zone, Posix ) -> List Mention -> ( Zone, Posix )

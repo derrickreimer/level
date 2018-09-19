@@ -93,7 +93,7 @@ groups (Post data) =
 
 groupsInclude : Group -> Post -> Bool
 groupsInclude group (Post data) =
-    List.filter (\g -> Group.getId g == Group.getId group) data.groups
+    List.filter (\g -> Group.id g == Group.id group) data.groups
         |> List.isEmpty
         |> not
 

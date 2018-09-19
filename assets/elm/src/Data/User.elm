@@ -1,4 +1,4 @@
-module User exposing (Record, User, decoder, fragment, getCachedData, getId)
+module User exposing (Record, User, decoder, fragment, getCachedData)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
@@ -59,11 +59,6 @@ decoder =
 
 
 -- API
-
-
-getId : User -> String
-getId (User { id }) =
-    id
 
 
 getCachedData : User -> Record

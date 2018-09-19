@@ -127,7 +127,7 @@ update msg session model =
                 Just component ->
                     let
                         ( ( newComponent, cmd ), newSession ) =
-                            Component.Post.update componentMsg (Space.getId model.space) session component
+                            Component.Post.update componentMsg (Space.id model.space) session component
                     in
                     ( ( { model | posts = Connection.update .id newComponent model.posts }
                       , Cmd.map (PostComponentMsg id) cmd
@@ -147,7 +147,7 @@ update msg session model =
 
                 cmd =
                     session
-                        |> DismissPosts.request (Space.getId model.space) postIds
+                        |> DismissPosts.request (Space.id model.space) postIds
                         |> Task.attempt PostsDismissed
             in
             if List.isEmpty postIds then
@@ -179,10 +179,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.ReplyCreated reply ->
             let

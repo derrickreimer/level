@@ -1,4 +1,4 @@
-module SpaceUser exposing (Record, Role(..), SpaceUser, decoder, fragment, getCachedData, getId, roleDecoder)
+module SpaceUser exposing (Record, Role(..), SpaceUser, decoder, fragment, getCachedData, roleDecoder)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
@@ -82,11 +82,6 @@ decoder =
 
 
 -- API
-
-
-getId : SpaceUser -> String
-getId (SpaceUser { id }) =
-    id
 
 
 getCachedData : SpaceUser -> Record

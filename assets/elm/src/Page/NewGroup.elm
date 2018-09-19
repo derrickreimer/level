@@ -105,7 +105,7 @@ update msg session navKey model =
             let
                 cmd =
                     session
-                        |> CreateGroup.request (Space.getId model.space) model.name model.isPrivate
+                        |> CreateGroup.request (Space.id model.space) model.name model.isPrivate
                         |> Task.attempt Submitted
             in
             ( ( { model | isSubmitting = True }, cmd ), session )
@@ -113,7 +113,7 @@ update msg session navKey model =
         Submitted (Ok ( newSession, CreateGroup.Success group )) ->
             let
                 redirectTo =
-                    Route.Group (Route.Group.Root (Space.getSlug model.space) (Group.getId group))
+                    Route.Group (Route.Group.Root (Space.getSlug model.space) (Group.id group))
             in
             ( ( model, Route.pushUrl navKey redirectTo ), newSession )
 
@@ -151,10 +151,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.getId group model.bookmarks }, Cmd.none )
+            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
