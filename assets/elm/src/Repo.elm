@@ -2,7 +2,7 @@ module Repo exposing
     ( Repo, init
     , getGroup, getGroups, setGroup
     , getSpace, getSpaces, setSpace
-    , getPost, getPosts, setPost, setPosts
+    , getPost, setPost
     , getSpaceUser, getSpaceUsers, setSpaceUser, getSpaceUsersByUserId, getSpaceUserByUserId
     , getBookmarks
     )
@@ -27,7 +27,7 @@ module Repo exposing
 
 # Posts
 
-@docs getPost, getPosts, setPost, setPosts
+@docs getPost, setPost
 
 
 # Space Users
@@ -44,7 +44,7 @@ module Repo exposing
 import Group exposing (Group)
 import IdentityMap exposing (IdentityMap)
 import Lazy exposing (Lazy(..))
-import Post exposing (Post)
+import Post.Types
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 
@@ -59,7 +59,7 @@ type alias Internal =
     { groups : IdentityMap Group.Record
     , spaceUsers : IdentityMap SpaceUser.Record
     , spaces : IdentityMap Space.Record
-    , posts : IdentityMap Post.Record
+    , posts : IdentityMap Post.Types.Data
     }
 
 
@@ -151,25 +151,14 @@ getSpaceUsersByUserId (Repo repo) userIds =
 -- POSTS
 
 
-getPost : Repo -> Post -> Post.Record
-getPost (Repo { posts }) post =
-    IdentityMap.get posts (Post.getCachedData post)
+getPost : Repo -> Post.Types.Data -> Post.Types.Data
+getPost (Repo { posts }) data =
+    IdentityMap.get posts data
 
 
-getPosts : Repo -> List Post -> List Post.Record
-getPosts (Repo { posts }) list =
-    List.map Post.getCachedData list
-        |> IdentityMap.getList posts
-
-
-setPost : Repo -> Post -> Repo
-setPost (Repo repo) post =
-    Repo { repo | posts = IdentityMap.set repo.posts (Post.getCachedData post) }
-
-
-setPosts : Repo -> List Post -> Repo
-setPosts repo posts =
-    List.foldr (\post acc -> setPost acc post) repo posts
+setPost : Repo -> Post.Types.Data -> Repo
+setPost (Repo repo) data =
+    Repo { repo | posts = IdentityMap.set repo.posts data }
 
 
 

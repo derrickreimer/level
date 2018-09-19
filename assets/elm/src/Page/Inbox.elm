@@ -207,7 +207,7 @@ consumeEvent event model =
                 remove post ( components, cmds ) =
                     let
                         postId =
-                            Post.getId post
+                            Post.id post
                     in
                     case Connection.get .id postId components of
                         Just component ->

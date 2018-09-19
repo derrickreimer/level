@@ -421,7 +421,7 @@ consumeEvent event session model =
             in
             if Post.groupsInclude model.group post then
                 ( { model | posts = Connection.prepend .id component model.posts }
-                , Cmd.map (PostComponentMsg <| Post.getId post) (Component.Post.setup component)
+                , Cmd.map (PostComponentMsg <| Post.id post) (Component.Post.setup component)
                 )
 
             else

@@ -15,6 +15,7 @@ import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissMentions as DismissMentions
 import Post exposing (Post)
+import Post.Types
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
@@ -75,7 +76,7 @@ init mode showGroups post replies =
                 FullPage ->
                     AlwaysExpanded
     in
-    Model (Post.getId post) mode showGroups post replies (ReplyComposer.init replyMode) False
+    Model (Post.id post) mode showGroups post replies (ReplyComposer.init replyMode) False
 
 
 setup : Model -> Cmd Msg
@@ -172,7 +173,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                     ReplyComposer.getBody replyComposer
 
                 cmd =
-                    CreateReply.request spaceId (Post.getId post) body session
+                    CreateReply.request spaceId (Post.id post) body session
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newModel, cmd ), session )
@@ -180,7 +181,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
                 nodeId =
-                    replyComposerId (Post.getId post)
+                    replyComposerId (Post.id post)
 
                 newReplyComposer =
                     replyComposer
@@ -230,7 +231,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 Just cursor ->
                     let
                         cmd =
-                            Query.Replies.request spaceId (Post.getId model.post) cursor 10 session
+                            Query.Replies.request spaceId (Post.id model.post) cursor 10 session
                                 |> Task.attempt PreviousRepliesFetched
                     in
                     ( ( model, cmd ), session )
@@ -313,7 +314,7 @@ handleReplyCreated reply ({ post, replies, mode } as model) =
                 _ ->
                     Cmd.none
     in
-    if Reply.getPostId reply == Post.getId post then
+    if Reply.getPostId reply == Post.id post then
         ( { model | replies = Connection.append Reply.getId reply replies }, cmd )
 
     else
@@ -336,37 +337,31 @@ view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model
             currentUser
                 |> Repo.getSpaceUser repo
 
-        postData =
-            Repo.getPost repo post
-
         authorData =
-            postData.author
+            Post.author post
                 |> Repo.getSpaceUser repo
-
-        mentions =
-            postData.mentions
     in
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ a
-                    [ Route.href <| Route.Post (Space.getSlug space) postData.id
+                    [ Route.href <| Route.Post (Space.getSlug space) (Post.id post)
                     , class "no-underline text-dusty-blue-darkest"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
                     [ span [ class "font-bold" ] [ text <| displayName authorData ] ]
                 , viewIf model.showGroups <|
-                    groupsLabel repo space postData.groups
+                    groupsLabel repo space (Post.groups post)
                 , a
-                    [ Route.href <| Route.Post (Space.getSlug space) postData.id
+                    [ Route.href <| Route.Post (Space.getSlug space) (Post.id post)
                     , class "no-underline text-dusty-blue-darkest"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ View.Helpers.time now ( zone, postData.postedAt ) [ class "ml-3 text-sm text-dusty-blue" ] ]
-                , div [ class "markdown mb-2" ] [ RenderedHtml.node postData.bodyHtml ]
+                    [ View.Helpers.time now ( zone, Post.postedAt post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
+                , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml repo post) ]
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -449,7 +444,7 @@ feedRepliesView repo space post now replies =
     div []
         [ viewIf hasPreviousPage <|
             a
-                [ Route.href (Route.Post (Space.getSlug space) (Post.getId post))
+                [ Route.href (Route.Post (Space.getSlug space) (Post.id post))
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]
@@ -512,7 +507,7 @@ replyComposerView currentUserData { post, replies, replyComposer } =
                     [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUserData ]
                     , div [ class "flex-grow" ]
                         [ textarea
-                            [ id (replyComposerId <| Post.getId post)
+                            [ id (replyComposerId <| Post.id post)
                             , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                             , placeholder "Write a reply..."
                             , onInput NewReplyBodyChanged
@@ -553,7 +548,7 @@ replyPromptView currentUserData =
         ]
 
 
-statusView : Post.State -> Html Msg
+statusView : Post.Types.State -> Html Msg
 statusView state =
     let
         buildView icon title =
@@ -563,10 +558,10 @@ statusView state =
                 ]
     in
     case state of
-        Post.Open ->
+        Post.Types.Open ->
             buildView Icons.open "Open"
 
-        Post.Closed ->
+        Post.Types.Closed ->
             buildView Icons.closed "Closed"
 
 

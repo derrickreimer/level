@@ -1,16 +1,57 @@
-module Post exposing (Post, Record, State(..), SubscriptionState(..), decoder, decoderWithReplies, fragment, getCachedData, getId, groupsInclude)
+module Post exposing
+    ( Post
+    , id, fetchedAt, postedAt, author, groups, groupsInclude
+    , state, body, bodyHtml, subscriptionState, inboxState, mentions
+    , update, updateMany
+    , fragment
+    , decoder, decoderWithReplies
+    )
+
+{-| A post represents a message posted to group.
+
+
+# Types
+
+@docs Post
+
+
+# Immutable Properties
+
+@docs id, fetchedAt, postedAt, author, groups, groupsInclude
+
+
+# Mutable Properties
+
+@docs state, body, bodyHtml, subscriptionState, inboxState, mentions
+
+
+# Mutations
+
+@docs update, updateMany
+
+
+# GraphQL
+
+@docs fragment
+
+
+# Decoders
+
+@docs decoder, decoderWithReplies
+
+-}
 
 import Connection exposing (Connection)
 import GraphQL exposing (Fragment)
 import Group exposing (Group)
-import Json.Decode as Decode exposing (Decoder, fail, field, int, list, string, succeed)
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (Decoder, field)
+import List
 import Mention exposing (Mention)
+import Post.Types exposing (Data, InboxState, State, SubscriptionState)
 import Reply exposing (Reply)
+import Repo exposing (Repo)
 import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
-import Tuple
-import Util exposing (dateDecoder)
 
 
 
@@ -18,73 +59,100 @@ import Util exposing (dateDecoder)
 
 
 type Post
-    = Post Record
+    = Post Data
 
 
-type State
-    = Open
-    | Closed
+
+-- IMMUTABLE PROPERTIES
 
 
-type SubscriptionState
-    = NotSubscribed
-    | Subscribed
-    | Unsubscribed
+id : Post -> String
+id (Post data) =
+    data.id
 
 
-type InboxState
-    = Excluded
-    | Dismissed
-    | Read
-    | Unread
+fetchedAt : Post -> Int
+fetchedAt (Post data) =
+    data.fetchedAt
 
 
-type alias Record =
-    { id : String
-    , state : State
-    , body : String
-    , bodyHtml : String
-    , author : SpaceUser
-    , groups : List Group
-    , postedAt : Posix
-    , subscriptionState : SubscriptionState
-    , inboxState : InboxState
-    , mentions : List Mention
-    , fetchedAt : Int
-    }
+postedAt : Post -> Posix
+postedAt (Post data) =
+    data.postedAt
+
+
+author : Post -> SpaceUser
+author (Post data) =
+    data.author
+
+
+groups : Post -> List Group
+groups (Post data) =
+    data.groups
+
+
+groupsInclude : Group -> Post -> Bool
+groupsInclude group (Post data) =
+    List.filter (\g -> Group.getId g == Group.getId group) data.groups
+        |> List.isEmpty
+        |> not
+
+
+
+-- MUTABLE PROPERTIES
+
+
+state : Repo -> Post -> State
+state repo (Post data) =
+    data.state
+
+
+body : Repo -> Post -> String
+body repo (Post data) =
+    data.body
+
+
+bodyHtml : Repo -> Post -> String
+bodyHtml repo (Post data) =
+    data.bodyHtml
+
+
+subscriptionState : Repo -> Post -> SubscriptionState
+subscriptionState repo (Post data) =
+    data.subscriptionState
+
+
+inboxState : Repo -> Post -> InboxState
+inboxState repo (Post data) =
+    data.inboxState
+
+
+mentions : Repo -> Post -> List Mention
+mentions repo (Post data) =
+    data.mentions
+
+
+
+-- MUTATIONS
+
+
+update : Repo -> Post -> Repo
+update repo (Post data) =
+    Repo.setPost repo data
+
+
+updateMany : Repo -> List Post -> Repo
+updateMany repo posts =
+    List.foldr (\post acc -> update acc post) repo posts
+
+
+
+-- GRAPHQL
 
 
 fragment : Fragment
 fragment =
-    let
-        body =
-            """
-            fragment PostFields on Post {
-              id
-              state
-              body
-              bodyHtml
-              postedAt
-              subscriptionState
-              inboxState
-              author {
-                ...SpaceUserFields
-              }
-              groups {
-                ...GroupFields
-              }
-              mentions {
-                ...MentionFields
-              }
-              fetchedAt
-            }
-            """
-    in
-    GraphQL.toFragment body
-        [ SpaceUser.fragment
-        , Group.fragment
-        , Mention.fragment
-        ]
+    Post.Types.fragment
 
 
 
@@ -93,106 +161,9 @@ fragment =
 
 decoder : Decoder Post
 decoder =
-    Decode.map Post <|
-        (Decode.succeed Record
-            |> Pipeline.required "id" string
-            |> Pipeline.required "state" stateDecoder
-            |> Pipeline.required "body" string
-            |> Pipeline.required "bodyHtml" string
-            |> Pipeline.required "author" SpaceUser.decoder
-            |> Pipeline.required "groups" (list Group.decoder)
-            |> Pipeline.required "postedAt" dateDecoder
-            |> Pipeline.required "subscriptionState" subscriptionStateDecoder
-            |> Pipeline.required "inboxState" inboxStateDecoder
-            |> Pipeline.required "mentions" (list Mention.decoder)
-            |> Pipeline.required "fetchedAt" int
-        )
+    Decode.map Post Post.Types.decoder
 
 
 decoderWithReplies : Decoder ( Post, Connection Reply )
 decoderWithReplies =
     Decode.map2 Tuple.pair decoder (field "replies" (Connection.decoder Reply.decoder))
-
-
-stateDecoder : Decoder State
-stateDecoder =
-    let
-        convert : String -> Decoder State
-        convert raw =
-            case raw of
-                "OPEN" ->
-                    succeed Open
-
-                "CLOSED" ->
-                    succeed Closed
-
-                _ ->
-                    fail "State not valid"
-    in
-    Decode.andThen convert string
-
-
-subscriptionStateDecoder : Decoder SubscriptionState
-subscriptionStateDecoder =
-    let
-        convert : String -> Decoder SubscriptionState
-        convert raw =
-            case raw of
-                "SUBSCRIBED" ->
-                    succeed Subscribed
-
-                "UNSUBSCRIBED" ->
-                    succeed Unsubscribed
-
-                "NOT_SUBSCRIBED" ->
-                    succeed NotSubscribed
-
-                _ ->
-                    fail "Subscription state not valid"
-    in
-    Decode.andThen convert string
-
-
-inboxStateDecoder : Decoder InboxState
-inboxStateDecoder =
-    let
-        convert : String -> Decoder InboxState
-        convert raw =
-            case raw of
-                "EXCLUDED" ->
-                    succeed Excluded
-
-                "DISMISSED" ->
-                    succeed Dismissed
-
-                "READ" ->
-                    succeed Read
-
-                "UNREAD" ->
-                    succeed Unread
-
-                _ ->
-                    fail "Inbox state not valid"
-    in
-    Decode.andThen convert string
-
-
-
--- CRUD
-
-
-getId : Post -> String
-getId (Post { id }) =
-    id
-
-
-getCachedData : Post -> Record
-getCachedData (Post data) =
-    data
-
-
-groupsInclude : Group -> Post -> Bool
-groupsInclude group (Post data) =
-    List.filter (\g -> Group.getId g == Group.getId group) data.groups
-        |> List.isEmpty
-        |> not

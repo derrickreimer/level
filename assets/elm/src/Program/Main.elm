@@ -24,6 +24,7 @@ import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
+import Post
 import Presence exposing (PresenceList)
 import PushManager
 import Query.GetSpaceUser as GetSpaceUser
@@ -895,28 +896,28 @@ consumeEvent event ({ page, repo } as model) =
             ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
 
         Event.PostCreated ( post, replies ) ->
-            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
+            ( { model | repo = Post.update model.repo post }, Cmd.none )
 
         Event.PostUpdated post ->
-            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
+            ( { model | repo = Post.update model.repo post }, Cmd.none )
 
         Event.PostsSubscribed posts ->
-            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
+            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
 
         Event.PostsUnsubscribed posts ->
-            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
+            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
 
         Event.PostsMarkedAsUnread posts ->
-            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
+            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
 
         Event.PostsMarkedAsRead posts ->
-            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
+            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
 
         Event.PostsDismissed posts ->
-            ( { model | repo = Repo.setPosts model.repo posts }, Cmd.none )
+            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
 
         Event.UserMentioned post ->
-            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
+            ( { model | repo = Post.update model.repo post }, Cmd.none )
 
         Event.GroupUpdated group ->
             ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
@@ -925,7 +926,7 @@ consumeEvent event ({ page, repo } as model) =
             ( model, Cmd.none )
 
         Event.MentionsDismissed post ->
-            ( { model | repo = Repo.setPost model.repo post }, Cmd.none )
+            ( { model | repo = Post.update model.repo post }, Cmd.none )
 
         Event.SpaceUpdated space ->
             ( { model | repo = Repo.setSpace model.repo space }, Cmd.none )
