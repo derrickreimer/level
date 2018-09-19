@@ -85,14 +85,19 @@ init spaceSlug postId globals =
 buildModel : Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Globals, Model )
 buildModel globals ( ( newSession, resp ), now ) =
     let
+        postComp =
+            Component.Post.init Component.Post.FullPage True resp.post resp.replies
+
         model =
-            Model resp.viewer resp.space resp.bookmarks resp.post now NotLoaded
+            Model resp.viewer resp.space resp.bookmarks postComp now NotLoaded
 
         newNewRepo =
             globals.newRepo
                 |> NewRepo.setSpace resp.space
                 |> NewRepo.setSpaceUser resp.viewer
                 |> NewRepo.setGroups resp.bookmarks
+                |> NewRepo.setPost resp.post
+                |> NewRepo.setReplies (Connection.toList resp.replies)
 
         newGlobals =
             { globals | session = newSession, newRepo = newNewRepo }

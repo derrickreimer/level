@@ -18,7 +18,8 @@ type alias Response =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , post : Component.Post.Model
+    , post : Post
+    , replies : Connection Reply
     }
 
 
@@ -67,11 +68,12 @@ variables spaceSlug postId =
 decoder : Decoder Response
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map4 Response
+        Decode.map5 Response
             SpaceUser.decoder
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
-            (Decode.at [ "space", "post" ] (Component.Post.decoder Component.Post.FullPage True))
+            (Decode.at [ "space", "post" ] Post.decoder)
+            (Decode.at [ "space", "post", "replies" ] (Connection.decoder Reply.decoder))
 
 
 request : String -> String -> Session -> Task Session.Error ( Session, Response )
