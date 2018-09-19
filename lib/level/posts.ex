@@ -141,6 +141,22 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Fetches replies by id.
+  """
+  @spec get_replies(User.t(), [String.t()]) :: {:ok, [Reply.t()]} | no_return()
+  def get_replies(%User{} = user, ids) do
+    user
+    |> replies_base_query()
+    |> where([r], r.id in ^ids)
+    |> Repo.all()
+    |> handle_get_replies()
+  end
+
+  defp handle_get_replies(replies) do
+    {:ok, replies}
+  end
+
+  @doc """
   Fetches post subscribers.
   """
   @spec get_subscribers(Post.t()) :: {:ok, [SpaceUser.t()]}
