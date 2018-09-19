@@ -1,7 +1,7 @@
 module Reply exposing (Record, Reply, decoder, fragment, getCachedData, getId, getPostId)
 
 import GraphQL exposing (Fragment)
-import Json.Decode as Decode exposing (Decoder, int, string)
+import Json.Decode as Decode exposing (Decoder, bool, int, string)
 import Json.Decode.Pipeline as Pipeline
 import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
@@ -22,6 +22,7 @@ type alias Record =
     , body : String
     , bodyHtml : String
     , author : SpaceUser
+    , hasViewed : Bool
     , postedAt : Posix
     , fetchedAt : Int
     }
@@ -39,6 +40,7 @@ fragment =
           author {
             ...SpaceUserFields
           }
+          hasViewed
           postedAt
           fetchedAt
         }
@@ -60,6 +62,7 @@ decoder =
             |> Pipeline.required "body" string
             |> Pipeline.required "bodyHtml" string
             |> Pipeline.required "author" SpaceUser.decoder
+            |> Pipeline.required "hasViewed" bool
             |> Pipeline.required "postedAt" dateDecoder
             |> Pipeline.required "fetchedAt" int
         )

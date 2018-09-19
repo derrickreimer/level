@@ -342,6 +342,13 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    # Viewer-contextual fields
+
+    @desc "Determines whether the current viewer has viewed the reply."
+    field :has_viewed, non_null(:boolean) do
+      resolve &Resolvers.has_viewed_reply/3
+    end
+
     interface :fetch_timeable
 
     @desc "The timestamp representing when the object was fetched."

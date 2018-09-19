@@ -22,7 +22,8 @@ defmodule LevelWeb.Schema.Subscriptions do
       :posts_marked_as_read_payload,
       :posts_dismissed_payload,
       :user_mentioned_payload,
-      :mentions_dismissed_payload
+      :mentions_dismissed_payload,
+      :replies_viewed_payload
     ]
 
     resolve_type &type_resolver/2
@@ -106,6 +107,12 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :posts_dismissed_payload do
     @desc "The dismissed posts."
     field :posts, list_of(:post)
+  end
+
+  @desc "The payload for the replies viewed event."
+  object :replies_viewed_payload do
+    @desc "The viewed replies."
+    field :replies, list_of(:reply)
   end
 
   @desc "The payload for the group membership updated event."

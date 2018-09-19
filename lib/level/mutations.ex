@@ -437,6 +437,24 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Records reply views.
+  """
+  @spec record_reply_views(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors, replies: [Reply.t()]}}
+  def record_reply_views(%{space_id: space_id, reply_ids: reply_ids}, %{
+        context: %{current_user: user}
+      }) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, fetched_replies} <- Posts.get_replies(user, reply_ids),
+         {:ok, replies} <- Posts.record_reply_views(space_user, fetched_replies) do
+      {:ok, %{success: true, errors: [], replies: replies}}
+    else
+      _ ->
+        {:ok, %{success: false, errors: []}}
+    end
+  end
+
   defp format_errors(%Ecto.Changeset{errors: errors}) do
     Enum.map(errors, fn {attr, {msg, props}} ->
       message =

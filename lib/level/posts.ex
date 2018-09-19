@@ -18,6 +18,7 @@ defmodule Level.Posts do
   alias Level.Posts.PostUserLog
   alias Level.Posts.PostView
   alias Level.Posts.Reply
+  alias Level.Posts.ReplyView
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -137,6 +138,22 @@ defmodule Level.Posts do
 
   defp handle_reply_query(_) do
     {:error, dgettext("errors", "Reply not found")}
+  end
+
+  @doc """
+  Fetches replies by id.
+  """
+  @spec get_replies(User.t(), [String.t()]) :: {:ok, [Reply.t()]} | no_return()
+  def get_replies(%User{} = user, ids) do
+    user
+    |> replies_base_query()
+    |> where([r], r.id in ^ids)
+    |> Repo.all()
+    |> handle_get_replies()
+  end
+
+  defp handle_get_replies(replies) do
+    {:ok, replies}
   end
 
   @doc """
@@ -314,6 +331,43 @@ defmodule Level.Posts do
     %PostView{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
+  end
+
+  @doc """
+  Records reply views.
+  """
+  @spec record_reply_views(SpaceUser.t(), [Reply.t()]) :: {:ok, [Reply.t()]}
+  def record_reply_views(%SpaceUser{} = space_user, replies) do
+    now = NaiveDateTime.utc_now()
+
+    entries =
+      replies
+      |> Enum.map(fn reply ->
+        [
+          space_user_id: space_user.id,
+          reply_id: reply.id,
+          post_id: reply.post_id,
+          space_id: reply.space_id,
+          occurred_at: now
+        ]
+      end)
+
+    ReplyView
+    |> Repo.insert_all(entries)
+    |> after_record_reply_views(space_user.id, replies)
+  end
+
+  defp after_record_reply_views(_result, space_user_id, replies) do
+    Events.replies_viewed(space_user_id, replies)
+    {:ok, replies}
+  end
+
+  @doc """
+  Determines whether a user has viewed a reply.
+  """
+  @spec viewed_reply?(Reply.t(), SpaceUser.t()) :: boolean() | no_return()
+  def viewed_reply?(%Reply{} = reply, %SpaceUser{} = space_user) do
+    Repo.get_by(ReplyView, reply_id: reply.id, space_user_id: space_user.id) != nil
   end
 
   @doc """

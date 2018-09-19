@@ -58,6 +58,10 @@ defmodule Level.Events do
     publish_to_space_user(id, :mentions_dismissed, %{post: post})
   end
 
+  def replies_viewed(id, replies) do
+    publish_to_space_user(id, :replies_viewed, %{replies: replies})
+  end
+
   # Group
 
   def post_created(id, %Post{} = post) do

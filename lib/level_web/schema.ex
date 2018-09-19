@@ -215,6 +215,14 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.register_push_subscription/2
     end
+
+    @desc "Marks the list of replies as viewed by the current user."
+    field :record_reply_views, type: :record_reply_views_payload do
+      arg :space_id, non_null(:id)
+      arg :reply_ids, non_null(list_of(:id))
+
+      resolve &Level.Mutations.record_reply_views/2
+    end
   end
 
   subscription do

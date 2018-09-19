@@ -316,6 +316,34 @@ defmodule Level.PostsTest do
     end
   end
 
+  describe "record_reply_views/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "marks the replies as read for the given user", %{
+      space: space,
+      space_user: space_user,
+      post: post
+    } do
+      {:ok, %{reply: reply}} = create_reply(space_user, post)
+      {:ok, %{reply: another_reply}} = create_reply(space_user, post)
+      {:ok, %{space_user: another_member}} = create_space_member(space)
+
+      refute Posts.viewed_reply?(reply, another_member)
+      refute Posts.viewed_reply?(another_reply, another_member)
+
+      {:ok, returned_replies} = Posts.record_reply_views(another_member, [reply, another_reply])
+
+      assert Posts.viewed_reply?(reply, another_member)
+      assert Posts.viewed_reply?(another_reply, another_member)
+      assert returned_replies == [reply, another_reply]
+    end
+  end
+
   describe "render_body/1" do
     setup do
       {:ok, %{viewer: %User{handle: "derrick"}}}
