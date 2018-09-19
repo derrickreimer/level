@@ -35,7 +35,7 @@ type alias Model =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , post : Component.Post.Model
+    , postComp : Component.Post.Model
     , now : ( Zone, Posix )
     , currentViewers : Lazy PresenceList
     }
@@ -58,8 +58,8 @@ title repo { viewer } =
 
 
 viewingTopic : Model -> String
-viewingTopic { post } =
-    "posts:" ++ post.id
+viewingTopic { postComp } =
+    "posts:" ++ postComp.id
 
 
 
@@ -80,27 +80,27 @@ buildModel ( ( session, { viewer, space, bookmarks, post } ), now ) =
 
 
 setup : Session -> Model -> Cmd Msg
-setup session ({ post } as model) =
+setup session ({ postComp } as model) =
     Cmd.batch
-        [ Cmd.map PostComponentMsg (Component.Post.setup post)
+        [ Cmd.map PostComponentMsg (Component.Post.setup postComp)
         , recordView session model
         , Presence.join (viewingTopic model)
         ]
 
 
 teardown : Model -> Cmd Msg
-teardown ({ post } as model) =
+teardown ({ postComp } as model) =
     Cmd.batch
-        [ Cmd.map PostComponentMsg (Component.Post.teardown post)
+        [ Cmd.map PostComponentMsg (Component.Post.teardown postComp)
         , Presence.leave (viewingTopic model)
         ]
 
 
 recordView : Session -> Model -> Cmd Msg
-recordView session { space, post } =
+recordView session { space, postComp } =
     let
         { nodes } =
-            Connection.last 1 post.replies
+            Connection.last 1 postComp.replies
 
         maybeReplyId =
             case nodes of
@@ -111,7 +111,7 @@ recordView session { space, post } =
                     Nothing
     in
     session
-        |> RecordPostView.request (Space.getId space) post.id maybeReplyId
+        |> RecordPostView.request (Space.getId space) postComp.id maybeReplyId
         |> Task.attempt ViewRecorded
 
 
@@ -129,14 +129,14 @@ type Msg
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
-update msg globals ({ post } as model) =
+update msg globals model =
     case msg of
         PostComponentMsg componentMsg ->
             let
-                ( ( newPost, cmd ), newSession ) =
-                    Component.Post.update componentMsg (Space.getId model.space) globals.session post
+                ( ( newPostComp, cmd ), newSession ) =
+                    Component.Post.update componentMsg (Space.getId model.space) globals.session model.postComp
             in
-            ( ( { model | post = newPost }
+            ( ( { model | postComp = newPostComp }
               , Cmd.map PostComponentMsg cmd
               )
             , { globals | session = newSession }
@@ -205,10 +205,10 @@ consumeEvent event model =
 
         Event.ReplyCreated reply ->
             let
-                ( newPost, cmd ) =
-                    Component.Post.handleReplyCreated reply model.post
+                ( newPostComp, cmd ) =
+                    Component.Post.handleReplyCreated reply model.postComp
             in
-            ( { model | post = newPost }
+            ( { model | postComp = newPostComp }
             , Cmd.map PostComponentMsg cmd
             )
 
@@ -278,7 +278,7 @@ view repo maybeCurrentRoute model =
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ postView repo model.space model.viewer model.now model.post
+                [ postView repo model.space model.viewer model.now model.postComp
                 , sidebarView repo model
                 ]
             ]
