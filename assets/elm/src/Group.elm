@@ -1,4 +1,4 @@
-module Group exposing (Group, Record, decoder, fragment, getCachedData, getId, setIsBookmarked)
+module Group exposing (Group, Record, decoder, fragment, getCachedData, getId, id, setIsBookmarked)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -42,6 +42,15 @@ fragment =
 
 
 
+-- ACCESSORS
+
+
+id : Group -> String
+id (Group data) =
+    data.id
+
+
+
 -- DECODERS
 
 
@@ -70,8 +79,8 @@ stateDecoder =
 
 
 getId : Group -> String
-getId (Group { id }) =
-    id
+getId (Group data) =
+    data.id
 
 
 getCachedData : Group -> Record

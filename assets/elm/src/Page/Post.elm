@@ -41,6 +41,13 @@ type alias Model =
     }
 
 
+type alias Data =
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    }
+
+
 
 -- PAGE PROPERTIES
 
@@ -66,24 +73,32 @@ viewingTopic { postComp } =
 -- LIFECYCLE
 
 
-init : String -> String -> Session -> Task Session.Error ( Session, Model )
-init spaceSlug postId session =
-    session
+init : String -> String -> Globals -> Task Session.Error ( Globals, Model )
+init spaceSlug postId globals =
+    globals.session
         |> PostInit.request spaceSlug postId
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen buildModel
+        |> Task.andThen (buildModel globals)
 
 
-buildModel : ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel ( ( session, { viewer, space, bookmarks, post } ), now ) =
-    Task.succeed ( session, Model viewer space bookmarks post now NotLoaded )
+buildModel : Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Globals, Model )
+buildModel globals ( ( newSession, resp ), now ) =
+    let
+        model =
+            Model resp.viewer resp.space resp.bookmarks resp.post now NotLoaded
+
+        -- TODO: update globals with data received from resp!
+        newGlobals =
+            { globals | session = newSession }
+    in
+    Task.succeed ( newGlobals, model )
 
 
-setup : Session -> Model -> Cmd Msg
-setup session ({ postComp } as model) =
+setup : Globals -> Model -> Cmd Msg
+setup globals ({ postComp } as model) =
     Cmd.batch
         [ Cmd.map PostComponentMsg (Component.Post.setup postComp)
-        , recordView session model
+        , recordView globals.session model
         , Presence.join (viewingTopic model)
         ]
 

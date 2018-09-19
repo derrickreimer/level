@@ -11,6 +11,7 @@ import Html.Attributes exposing (..)
 import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
+import NewRepo exposing (NewRepo)
 import Page.Group
 import Page.Groups
 import Page.Inbox
@@ -70,6 +71,7 @@ type alias Model =
     { navKey : Nav.Key
     , session : Session
     , repo : Repo
+    , newRepo : NewRepo
     , page : Page
     , isTransitioning : Bool
     , supportsNotifications : Bool
@@ -114,6 +116,7 @@ buildModel flags navKey =
         navKey
         (Session.init flags.apiToken)
         Repo.init
+        NewRepo.empty
         Blank
         True
         flags.supportsNotifications
@@ -188,6 +191,7 @@ updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlo
     ( { model
         | session = newGlobals.session
         , repo = newGlobals.repo
+        , newRepo = newGlobals.newRepo
         , page = toPage newPageModel
       }
     , Cmd.map toPageMsg pageCmd
@@ -320,7 +324,7 @@ update msg model =
 
         ( PostMsg pageMsg, Post pageModel ) ->
             pageModel
-                |> Page.Post.update pageMsg (Globals model.session model.repo)
+                |> Page.Post.update pageMsg (Globals model.session model.repo model.newRepo)
                 |> updatePageWithGlobals Post PostMsg model
 
         ( UserSettingsMsg pageMsg, UserSettings pageModel ) ->
@@ -420,7 +424,7 @@ type PageInit
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Session, Page.Group.Model ))
     | NewGroupInit (Result Session.Error ( Session, Page.NewGroup.Model ))
-    | PostInit String (Result Session.Error ( Session, Page.Post.Model ))
+    | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Session, Page.SpaceSettings.Model ))
     | SetupCreateGroupsInit (Result Session.Error ( Session, Page.Setup.CreateGroups.Model ))
@@ -497,7 +501,7 @@ navigateTo maybeRoute model =
                 |> transition model NewGroupInit
 
         Just (Route.Post spaceSlug postId) ->
-            model.session
+            Globals model.session model.repo model.newRepo
                 |> Page.Post.init spaceSlug postId
                 |> transition model (PostInit postId)
 
@@ -568,6 +572,17 @@ setupPage pageInit model =
             ( { appModel
                 | page = toPage pageModel
                 , session = newSession
+                , isTransitioning = False
+              }
+            , Cmd.map toPageMsg (setupFn pageModel)
+            )
+
+        performWithGlobals setupFn toPage toPageMsg appModel ( newGlobals, pageModel ) =
+            ( { appModel
+                | page = toPage pageModel
+                , session = newGlobals.session
+                , repo = newGlobals.repo
+                , newRepo = newGlobals.newRepo
                 , isTransitioning = False
               }
             , Cmd.map toPageMsg (setupFn pageModel)
@@ -646,9 +661,9 @@ setupPage pageInit model =
         NewGroupInit (Err _) ->
             ( model, Cmd.none )
 
-        PostInit _ (Ok ( newSession, pageModel )) ->
-            ( newSession, pageModel )
-                |> perform (Page.Post.setup newSession) Post PostMsg model
+        PostInit _ (Ok ( newGlobals, pageModel )) ->
+            ( newGlobals, pageModel )
+                |> performWithGlobals (Page.Post.setup newGlobals) Post PostMsg model
 
         PostInit _ (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -788,8 +803,8 @@ routeFor page =
         NewGroup { space } ->
             Just <| Route.NewGroup (Space.getSlug space)
 
-        Post { space, post } ->
-            Just <| Route.Post (Space.getSlug space) post.id
+        Post { space, postComp } ->
+            Just <| Route.Post (Space.getSlug space) postComp.id
 
         UserSettings _ ->
             Just <| Route.UserSettings
@@ -1018,7 +1033,7 @@ sendPresenceToPage event model =
     case model.page of
         Post pageModel ->
             pageModel
-                |> Page.Post.receivePresence event (Globals model.session model.repo)
+                |> Page.Post.receivePresence event (Globals model.session model.repo model.newRepo)
                 |> updatePage Post PostMsg model
 
         _ ->
