@@ -1,4 +1,4 @@
-module NewRepo exposing (NewRepo, empty)
+module NewRepo exposing (NewRepo, empty, setGroup, setGroups, setSpace, setSpaceUser)
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -22,16 +22,21 @@ empty =
     NewRepo (InternalData Dict.empty Dict.empty Dict.empty)
 
 
-setSpace : NewRepo -> Space -> NewRepo
-setSpace (NewRepo data) space =
+setSpace : Space -> NewRepo -> NewRepo
+setSpace space (NewRepo data) =
     NewRepo { data | spaces = Dict.insert (Space.id space) space data.spaces }
 
 
-setSpaceUser : NewRepo -> SpaceUser -> NewRepo
-setSpaceUser (NewRepo data) spaceUser =
+setSpaceUser : SpaceUser -> NewRepo -> NewRepo
+setSpaceUser spaceUser (NewRepo data) =
     NewRepo { data | spaceUsers = Dict.insert (SpaceUser.id spaceUser) spaceUser data.spaceUsers }
 
 
-setGroup : NewRepo -> Group -> NewRepo
-setGroup (NewRepo data) group =
+setGroup : Group -> NewRepo -> NewRepo
+setGroup group (NewRepo data) =
     NewRepo { data | groups = Dict.insert (Group.id group) group data.groups }
+
+
+setGroups : List Group -> NewRepo -> NewRepo
+setGroups groups repo =
+    List.foldr setGroup repo groups

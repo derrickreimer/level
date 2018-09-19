@@ -10,6 +10,7 @@ import Html.Attributes exposing (..)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
+import NewRepo
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
@@ -87,9 +88,14 @@ buildModel globals ( ( newSession, resp ), now ) =
         model =
             Model resp.viewer resp.space resp.bookmarks resp.post now NotLoaded
 
-        -- TODO: update globals with data received from resp!
+        newNewRepo =
+            globals.newRepo
+                |> NewRepo.setSpace resp.space
+                |> NewRepo.setSpaceUser resp.viewer
+                |> NewRepo.setGroups resp.bookmarks
+
         newGlobals =
-            { globals | session = newSession }
+            { globals | session = newSession, newRepo = newNewRepo }
     in
     Task.succeed ( newGlobals, model )
 
