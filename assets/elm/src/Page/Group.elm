@@ -17,6 +17,7 @@ import Mutation.CreatePost as CreatePost
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
+import NewRepo exposing (NewRepo)
 import Pagination
 import Post exposing (Post)
 import Query.FeaturedMemberships as FeaturedMemberships
@@ -627,7 +628,7 @@ postsView repo space currentUser now connection =
 postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
 postView repo space currentUser now component =
     div [ class "p-4" ]
-        [ Component.Post.view repo space currentUser now component
+        [ Component.Post.view repo NewRepo.empty space currentUser now component
             |> Html.map (PostComponentMsg component.id)
         ]
 

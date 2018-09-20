@@ -14,6 +14,7 @@ import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissPosts as DismissPosts
+import NewRepo exposing (NewRepo)
 import Pagination
 import Post exposing (Post)
 import PushManager
@@ -313,7 +314,7 @@ postView : Repo -> Model -> Component.Post.Model -> Html Msg
 postView repo model component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.checkableView repo model.space model.viewer model.now
+            |> Component.Post.checkableView repo NewRepo.empty model.space model.viewer model.now
             |> Html.map (PostComponentMsg component.id)
         ]
 

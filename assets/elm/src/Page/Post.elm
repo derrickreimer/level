@@ -194,15 +194,17 @@ update msg globals model =
 
         SpaceUserFetched (Ok ( newSession, response )) ->
             let
-                newRepo =
+                ( newRepo, newNewRepo ) =
                     case response of
                         GetSpaceUser.Success spaceUser ->
-                            Repo.setSpaceUser globals.repo spaceUser
+                            ( Repo.setSpaceUser globals.repo spaceUser
+                            , NewRepo.setSpaceUser spaceUser globals.newRepo
+                            )
 
                         _ ->
-                            globals.repo
+                            ( globals.repo, globals.newRepo )
             in
-            noCmd { globals | session = newSession, repo = newRepo } model
+            noCmd { globals | session = newSession, repo = newRepo, newRepo = newNewRepo } model
 
         SpaceUserFetched (Err Session.Expired) ->
             redirectToLogin globals model
@@ -303,31 +305,41 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
+view : Repo -> NewRepo -> Maybe Route -> Model -> Html Msg
+view repo newRepo maybeCurrentRoute model =
+    case resolveData newRepo model of
+        Just data ->
+            viewWithData repo newRepo maybeCurrentRoute model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+viewWithData : Repo -> NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+viewWithData repo newRepo maybeCurrentRoute model data =
     spaceLayout repo
-        model.viewer
-        model.space
-        model.bookmarks
+        data.viewer
+        data.space
+        data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ postView repo model.space model.viewer model.now model.postComp
-                , sidebarView repo model
+                [ postView repo newRepo data.space data.viewer model.now model.postComp
+                , sidebarView newRepo model
                 ]
             ]
         ]
 
 
-postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView repo space currentUser now component =
+postView : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
+postView repo newRepo space currentUser now component =
     div [ class "pt-6" ]
-        [ Component.Post.view repo space currentUser now component
+        [ Component.Post.view repo newRepo space currentUser now component
             |> Html.map PostComponentMsg
         ]
 
 
-sidebarView : Repo -> Model -> Html Msg
+sidebarView : NewRepo -> Model -> Html Msg
 sidebarView repo model =
     let
         listView =

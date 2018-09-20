@@ -13,6 +13,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import NewRepo exposing (NewRepo)
 import Pagination
 import Post exposing (Post)
 import Query.PostsInit as PostsInit
@@ -243,7 +244,7 @@ postView : Repo -> Model -> Component.Post.Model -> Html Msg
 postView repo model component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.view repo model.space model.viewer model.now
+            |> Component.Post.view repo NewRepo.empty model.space model.viewer model.now
             |> Html.map (PostComponentMsg component.id)
         ]
 

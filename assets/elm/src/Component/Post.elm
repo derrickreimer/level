@@ -14,6 +14,7 @@ import Markdown
 import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissMentions as DismissMentions
+import NewRepo exposing (NewRepo)
 import Post exposing (Post)
 import Post.Types
 import Query.Replies
@@ -330,8 +331,8 @@ handleMentionsDismissed model =
 -- VIEWS
 
 
-view : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model) =
+view : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+view repo newRepo space currentUser (( zone, posix ) as now) ({ post, replies } as model) =
     let
         currentUserData =
             currentUser
@@ -376,8 +377,8 @@ view repo space currentUser (( zone, posix ) as now) ({ post, replies } as model
         ]
 
 
-checkableView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-checkableView repo space viewer now model =
+checkableView : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+checkableView repo newRepo space viewer now model =
     div [ class "flex" ]
         [ div [ class "mr-1 py-2 flex-0" ]
             [ label [ class "control checkbox" ]
@@ -392,7 +393,7 @@ checkableView repo space viewer now model =
                 ]
             ]
         , div [ class "flex-1" ]
-            [ view repo space viewer now model
+            [ view repo newRepo space viewer now model
             ]
         ]
 

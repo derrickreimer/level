@@ -1,6 +1,8 @@
-module SpaceUser exposing (Record, Role(..), SpaceUser, decoder, fragment, getCachedData, id, roleDecoder)
+module SpaceUser exposing (Record, Role(..), SpaceUser, avatar, decoder, displayName, fragment, getCachedData, id, lastName, roleDecoder, userId)
 
+import Avatar
 import GraphQL exposing (Fragment)
+import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 
 
@@ -54,6 +56,26 @@ fragment =
 id : SpaceUser -> String
 id (SpaceUser data) =
     data.id
+
+
+userId : SpaceUser -> String
+userId (SpaceUser data) =
+    data.userId
+
+
+lastName : SpaceUser -> String
+lastName (SpaceUser data) =
+    data.lastName
+
+
+displayName : SpaceUser -> String
+displayName (SpaceUser data) =
+    data.firstName ++ " " ++ data.lastName
+
+
+avatar : Avatar.Size -> SpaceUser -> Html msg
+avatar size (SpaceUser data) =
+    Avatar.personAvatar size data
 
 
 
