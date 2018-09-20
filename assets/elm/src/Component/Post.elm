@@ -43,7 +43,7 @@ type alias Model =
     , mode : Mode
     , showGroups : Bool
     , postId : String
-    , replies : Connection Reply
+    , replyIds : Connection String
     , replyComposer : ReplyComposer
     , isChecked : Bool
     }
@@ -84,11 +84,11 @@ decoder : Mode -> Bool -> Decoder Model
 decoder mode showGroups =
     Decode.map2 (init mode showGroups)
         Post.decoder
-        (field "replies" <| Connection.decoder Reply.decoder)
+        (field "replies" <| Connection.decoder (Decode.field "id" Decode.string))
 
 
-init : Mode -> Bool -> Post -> Connection Reply -> Model
-init mode showGroups post replies =
+init : Mode -> Bool -> Post -> Connection String -> Model
+init mode showGroups post replyIds =
     let
         replyMode =
             case mode of
@@ -98,7 +98,7 @@ init mode showGroups post replies =
                 FullPage ->
                     AlwaysExpanded
     in
-    Model (Post.id post) mode showGroups (Post.id post) replies (ReplyComposer.init replyMode) False
+    Model (Post.id post) mode showGroups (Post.id post) replyIds (ReplyComposer.init replyMode) False
 
 
 setup : Model -> Cmd Msg
@@ -244,7 +244,7 @@ update msg spaceId session model =
             noCmd session newModel
 
         PreviousRepliesRequested ->
-            case Connection.startCursor model.replies of
+            case Connection.startCursor model.replyIds of
                 Just cursor ->
                     let
                         cmd =
@@ -258,21 +258,21 @@ update msg spaceId session model =
 
         PreviousRepliesFetched (Ok ( newSession, response )) ->
             let
-                firstReply =
-                    Connection.head model.replies
+                maybeFirstReplyId =
+                    Connection.head model.replyIds
 
-                newReplies =
-                    Connection.prependConnection response.replies model.replies
+                newReplyIds =
+                    Connection.prependConnection (Connection.map Reply.id response.replies) model.replyIds
 
                 cmd =
-                    case firstReply of
-                        Just reply ->
-                            Scroll.toAnchor Scroll.Document (replyNodeId (Reply.id reply)) 200
+                    case maybeFirstReplyId of
+                        Just firstReplyId ->
+                            Scroll.toAnchor Scroll.Document (replyNodeId firstReplyId) 200
 
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | replies = newReplies }, cmd ), newSession )
+            ( ( { model | replyIds = newReplyIds }, cmd ), newSession )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin session model
@@ -312,8 +312,8 @@ handleReplyCreated reply model =
                 _ ->
                     Cmd.none
     in
-    if Reply.getPostId reply == model.postId then
-        ( { model | replies = Connection.append Reply.id reply model.replies }, cmd )
+    if Reply.postId reply == model.postId then
+        ( { model | replyIds = Connection.append identity (Reply.id reply) model.replyIds }, cmd )
 
     else
         ( model, Cmd.none )
@@ -339,7 +339,7 @@ view repo newRepo space currentUser now model =
 
 
 resolvedView : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
-resolvedView repo newRepo space currentUser (( zone, posix ) as now) ({ replies } as model) data =
+resolvedView repo newRepo space currentUser (( zone, posix ) as now) model data =
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow leading-semi-loose" ]
@@ -368,7 +368,7 @@ resolvedView repo newRepo space currentUser (( zone, posix ) as now) ({ replies 
                     ]
                 ]
             , div [ class "relative" ]
-                [ repliesView repo space data.post now replies model.mode
+                [ repliesView repo newRepo space data.post now model.replyIds model.mode
                 , replyComposerView currentUser data.post model
                 ]
             ]
@@ -420,25 +420,28 @@ groupsLabel repo space groups =
             text ""
 
 
-repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection Reply -> Mode -> Html Msg
-repliesView repo space post now replies mode =
+repliesView : Repo -> NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
+repliesView repo newRepo space post now replyIds mode =
     let
         listView =
             case mode of
                 Feed ->
-                    feedRepliesView repo space post now replies
+                    feedRepliesView repo newRepo space post now replyIds
 
                 FullPage ->
-                    fullPageRepliesView repo post now replies
+                    fullPageRepliesView repo newRepo post now replyIds
     in
-    viewUnless (Connection.isEmptyAndExpanded replies) listView
+    viewUnless (Connection.isEmptyAndExpanded replyIds) listView
 
 
-feedRepliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection Reply -> Html Msg
-feedRepliesView repo space post now replies =
+feedRepliesView : Repo -> NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
+feedRepliesView repo newRepo space post now replyIds =
     let
         { nodes, hasPreviousPage } =
-            Connection.last 5 replies
+            Connection.last 5 replyIds
+
+        replies =
+            NewRepo.getReplies nodes newRepo
     in
     div []
         [ viewIf hasPreviousPage <|
@@ -447,18 +450,18 @@ feedRepliesView repo space post now replies =
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]
-        , div [] (List.map (replyView repo now Feed post) nodes)
+        , div [] (List.map (replyView repo newRepo now Feed post) replies)
         ]
 
 
-fullPageRepliesView : Repo -> Post -> ( Zone, Posix ) -> Connection Reply -> Html Msg
-fullPageRepliesView repo post now replies =
+fullPageRepliesView : Repo -> NewRepo -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
+fullPageRepliesView repo newRepo post now replyIds =
     let
-        nodes =
-            Connection.toList replies
+        replies =
+            NewRepo.getReplies (Connection.toList replyIds) newRepo
 
         hasPreviousPage =
-            Connection.hasPreviousPage replies
+            Connection.hasPreviousPage replyIds
     in
     div []
         [ viewIf hasPreviousPage <|
@@ -467,39 +470,36 @@ fullPageRepliesView repo post now replies =
                 , onClick PreviousRepliesRequested
                 ]
                 [ text "Load more..." ]
-        , div [] (List.map (replyView repo now FullPage post) nodes)
+        , div [] (List.map (replyView repo newRepo now FullPage post) replies)
         ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) mode post reply =
+replyView : Repo -> NewRepo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
+replyView repo newRepo (( zone, posix ) as now) mode post reply =
     let
-        replyData =
-            Reply.getCachedData reply
-
-        authorData =
-            Repo.getSpaceUser repo replyData.author
+        author =
+            Reply.author reply
     in
     div
-        [ id (replyNodeId replyData.id)
+        [ id (replyNodeId (Reply.id reply))
         , classList [ ( "flex mt-3", True ) ]
         ]
-        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small authorData ]
+        [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
-                [ span [ class "font-bold" ] [ text <| displayName authorData ]
-                , View.Helpers.time now ( zone, replyData.postedAt ) [ class "ml-3 text-sm text-dusty-blue" ]
+                [ span [ class "font-bold" ] [ text <| SpaceUser.displayName author ]
+                , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue" ]
                 ]
             , div [ class "markdown mb-2" ]
-                [ RenderedHtml.node replyData.bodyHtml
+                [ RenderedHtml.node (Reply.bodyHtml reply)
                 ]
             ]
         ]
 
 
 replyComposerView : SpaceUser -> Post -> Model -> Html Msg
-replyComposerView currentUser post { replies, replyComposer } =
-    if ReplyComposer.isExpanded replyComposer then
+replyComposerView currentUser post model =
+    if ReplyComposer.isExpanded model.replyComposer then
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
             [ div [ class "composer p-3" ]
                 [ div [ class "flex" ]
@@ -515,15 +515,15 @@ replyComposerView currentUser post { replies, replyComposer } =
                                 , ( [], esc, \event -> NewReplyEscaped )
                                 ]
                             , onBlur NewReplyBlurred
-                            , value (ReplyComposer.getBody replyComposer)
-                            , readonly (ReplyComposer.isSubmitting replyComposer)
+                            , value (ReplyComposer.getBody model.replyComposer)
+                            , readonly (ReplyComposer.isSubmitting model.replyComposer)
                             ]
                             []
                         , div [ class "flex justify-end" ]
                             [ button
                                 [ class "btn btn-blue btn-sm"
                                 , onClick NewReplySubmit
-                                , disabled (ReplyComposer.unsubmittable replyComposer)
+                                , disabled (ReplyComposer.unsubmittable model.replyComposer)
                                 ]
                                 [ text "Send" ]
                             ]
@@ -533,7 +533,7 @@ replyComposerView currentUser post { replies, replyComposer } =
             ]
 
     else
-        viewUnless (Connection.isEmpty replies) <|
+        viewUnless (Connection.isEmpty model.replyIds) <|
             replyPromptView currentUser
 
 

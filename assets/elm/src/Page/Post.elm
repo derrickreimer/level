@@ -95,7 +95,7 @@ buildModel : Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> T
 buildModel globals ( ( newSession, resp ), now ) =
     let
         postComp =
-            Component.Post.init Component.Post.FullPage True resp.post resp.replies
+            Component.Post.init Component.Post.FullPage True resp.post (Connection.map Reply.id resp.replies)
 
         model =
             Model resp.viewer resp.space resp.bookmarks postComp now NotLoaded
@@ -136,12 +136,12 @@ recordView : Session -> Model -> Cmd Msg
 recordView session { space, postComp } =
     let
         { nodes } =
-            Connection.last 1 postComp.replies
+            Connection.last 1 postComp.replyIds
 
         maybeReplyId =
             case nodes of
-                [ lastReply ] ->
-                    Just (Reply.id lastReply)
+                [ lastReplyId ] ->
+                    Just lastReplyId
 
                 _ ->
                     Nothing

@@ -159,7 +159,7 @@ consumeEvent event model =
         Event.ReplyCreated reply ->
             let
                 postId =
-                    Reply.getPostId reply
+                    Reply.postId reply
             in
             case Connection.get .id postId model.posts of
                 Just component ->

@@ -1,4 +1,4 @@
-module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReply, getSpace, getSpaceUser, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser)
+module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser)
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -96,6 +96,11 @@ setPosts posts repo =
 getReply : String -> NewRepo -> Maybe Reply
 getReply id (NewRepo data) =
     Dict.get id data.replies
+
+
+getReplies : List String -> NewRepo -> List Reply
+getReplies ids repo =
+    List.filterMap (\id -> getReply id repo) ids
 
 
 setReply : Reply -> NewRepo -> NewRepo

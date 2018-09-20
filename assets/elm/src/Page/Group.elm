@@ -418,7 +418,7 @@ consumeEvent event session model =
         Event.PostCreated ( post, replies ) ->
             let
                 component =
-                    Component.Post.init Component.Post.Feed False post replies
+                    Component.Post.init Component.Post.Feed False post (Connection.map Reply.id replies)
             in
             if Post.groupsInclude model.group post then
                 ( { model | posts = Connection.prepend .id component model.posts }
@@ -431,7 +431,7 @@ consumeEvent event session model =
         Event.ReplyCreated reply ->
             let
                 postId =
-                    Reply.getPostId reply
+                    Reply.postId reply
             in
             case Connection.get .id postId model.posts of
                 Just component ->
