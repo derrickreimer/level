@@ -1,4 +1,4 @@
-module NewRepo exposing (NewRepo, empty, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser)
+module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReply, getSpace, getSpaceUser, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser)
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -26,14 +26,34 @@ empty =
     NewRepo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
 
 
+getSpace : String -> NewRepo -> Maybe Space
+getSpace id (NewRepo data) =
+    Dict.get id data.spaces
+
+
 setSpace : Space -> NewRepo -> NewRepo
 setSpace space (NewRepo data) =
     NewRepo { data | spaces = Dict.insert (Space.id space) space data.spaces }
 
 
+getSpaceUser : String -> NewRepo -> Maybe SpaceUser
+getSpaceUser id (NewRepo data) =
+    Dict.get id data.spaceUsers
+
+
 setSpaceUser : SpaceUser -> NewRepo -> NewRepo
 setSpaceUser spaceUser (NewRepo data) =
     NewRepo { data | spaceUsers = Dict.insert (SpaceUser.id spaceUser) spaceUser data.spaceUsers }
+
+
+getGroup : String -> NewRepo -> Maybe Group
+getGroup id (NewRepo data) =
+    Dict.get id data.groups
+
+
+getGroups : List String -> NewRepo -> List Group
+getGroups ids repo =
+    List.filterMap (\id -> getGroup id repo) ids
 
 
 setGroup : Group -> NewRepo -> NewRepo
@@ -46,6 +66,11 @@ setGroups groups repo =
     List.foldr setGroup repo groups
 
 
+getPost : String -> NewRepo -> Maybe Post
+getPost id (NewRepo data) =
+    Dict.get id data.posts
+
+
 setPost : Post -> NewRepo -> NewRepo
 setPost post (NewRepo data) =
     NewRepo { data | posts = Dict.insert (Post.id post) post data.posts }
@@ -54,6 +79,11 @@ setPost post (NewRepo data) =
 setPosts : List Post -> NewRepo -> NewRepo
 setPosts posts repo =
     List.foldr setPost repo posts
+
+
+getReply : String -> NewRepo -> Maybe Reply
+getReply id (NewRepo data) =
+    Dict.get id data.replies
 
 
 setReply : Reply -> NewRepo -> NewRepo

@@ -10,7 +10,7 @@ import Html.Attributes exposing (..)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
-import NewRepo
+import NewRepo exposing (NewRepo)
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
@@ -47,6 +47,14 @@ type alias Data =
     , space : Space
     , bookmarks : List Group
     }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map3 Data
+        (NewRepo.getSpaceUser (SpaceUser.id model.viewer) repo)
+        (NewRepo.getSpace (Space.id model.space) repo)
+        (Just <| NewRepo.getGroups (List.map Group.id model.bookmarks) repo)
 
 
 
