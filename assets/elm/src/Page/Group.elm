@@ -474,7 +474,7 @@ view repo maybeCurrentRoute model =
             model.group
                 |> Repo.getGroup repo
     in
-    spaceLayout repo
+    spaceLayout
         model.viewer
         model.space
         model.bookmarks
@@ -570,8 +570,8 @@ controlsView model =
 paginationView : Space -> Group -> Connection a -> Html Msg
 paginationView space group connection =
     Pagination.view connection
-        (Route.Group << Before (Space.getSlug space) (Group.id group))
-        (Route.Group << After (Space.getSlug space) (Group.id group))
+        (Route.Group << Before (Space.slug space) (Group.id group))
+        (Route.Group << After (Space.slug space) (Group.id group))
 
 
 bookmarkButtonView : Bool -> Html Msg

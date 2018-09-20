@@ -108,7 +108,7 @@ update msg session navKey model =
             ( ( { model | formState = Submitting }, cmd ), session )
 
         Submitted (Ok ( _, CreateSpace.Success space )) ->
-            ( ( model, Route.pushUrl navKey (Route.SetupCreateGroups <| Space.getSlug space) ), session )
+            ( ( model, Route.pushUrl navKey (Route.SetupCreateGroups <| Space.slug space) ), session )
 
         Submitted (Ok ( _, CreateSpace.Invalid errors )) ->
             ( ( { model | errors = errors, formState = Idle }, Cmd.none ), session )

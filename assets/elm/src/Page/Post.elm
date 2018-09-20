@@ -319,7 +319,7 @@ view repo newRepo maybeCurrentRoute model =
 
 resolvedView : Repo -> NewRepo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo newRepo maybeCurrentRoute model data =
-    spaceLayout repo
+    spaceLayout
         data.viewer
         data.space
         data.bookmarks

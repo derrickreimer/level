@@ -1,6 +1,8 @@
-module Space exposing (Record, SetupState(..), Space, decoder, fragment, getCachedData, getSlug, id, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder)
+module Space exposing (Record, SetupState(..), Space, avatar, decoder, fragment, getCachedData, id, name, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
 
+import Avatar
 import GraphQL exposing (Fragment)
+import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
 import Json.Encode as Encode
 import Route exposing (Route)
@@ -56,6 +58,21 @@ fragment =
 id : Space -> String
 id (Space data) =
     data.id
+
+
+name : Space -> String
+name (Space data) =
+    data.name
+
+
+slug : Space -> String
+slug (Space data) =
+    data.slug
+
+
+avatar : Avatar.Size -> Space -> Html msg
+avatar size (Space data) =
+    Avatar.thingAvatar size data
 
 
 
@@ -117,11 +134,6 @@ setupStateEncoder raw =
 -- API
 
 
-getSlug : Space -> String
-getSlug (Space { slug }) =
-    slug
-
-
 getCachedData : Space -> Record
 getCachedData (Space record) =
     record
@@ -137,13 +149,13 @@ setSetupState state (Space record) =
 
 
 setupRoute : Space -> SetupState -> Route
-setupRoute (Space { slug }) state =
+setupRoute (Space data) state =
     case state of
         CreateGroups ->
-            Route.SetupCreateGroups slug
+            Route.SetupCreateGroups data.slug
 
         InviteUsers ->
-            Route.SetupInviteUsers slug
+            Route.SetupInviteUsers data.slug
 
         Complete ->
-            Route.Inbox (Route.Inbox.Root slug)
+            Route.Inbox (Route.Inbox.Root data.slug)

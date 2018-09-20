@@ -113,7 +113,7 @@ update msg session navKey model =
         Submitted (Ok ( newSession, CreateGroup.Success group )) ->
             let
                 redirectTo =
-                    Route.Group (Route.Group.Root (Space.getSlug model.space) (Group.id group))
+                    Route.Group (Route.Group.Root (Space.slug model.space) (Group.id group))
             in
             ( ( model, Route.pushUrl navKey redirectTo ), newSession )
 
@@ -166,7 +166,7 @@ consumeEvent event model =
 
 view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
-    spaceLayout repo
+    spaceLayout
         model.viewer
         model.space
         model.bookmarks

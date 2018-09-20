@@ -140,7 +140,7 @@ view repo maybeCurrentRoute { viewer, space, bookmarks, isSubmitting } =
         spaceData =
             Repo.getSpace repo space
     in
-    spaceLayout repo
+    spaceLayout
         viewer
         space
         bookmarks

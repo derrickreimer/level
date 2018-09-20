@@ -6,7 +6,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
 import Lazy exposing (Lazy(..))
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Route.Groups
@@ -30,11 +29,11 @@ appLayout nodes =
         nodes
 
 
-spaceLayout : Repo -> SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> Html msg
-spaceLayout repo viewer space bookmarks maybeCurrentRoute nodes =
+spaceLayout : SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> Html msg
+spaceLayout viewer space bookmarks maybeCurrentRoute nodes =
     let
         sidebar =
-            spaceSidebar repo viewer space bookmarks maybeCurrentRoute
+            spaceSidebar viewer space bookmarks maybeCurrentRoute
     in
     appLayout (sidebar :: nodes)
 
@@ -73,57 +72,46 @@ currentUserView user =
         ]
 
 
-spaceSidebar : Repo -> SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
-spaceSidebar repo viewer space bookmarks maybeCurrentRoute =
-    let
-        viewerData =
-            Repo.getSpaceUser repo viewer
-
-        spaceData =
-            Repo.getSpace repo space
-
-        slug =
-            Space.getSlug space
-    in
+spaceSidebar : SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
+spaceSidebar viewer space bookmarks maybeCurrentRoute =
     div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen" ]
         [ div [ class "p-4" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
-                [ div [ class "mb-2" ] [ thingAvatar Avatar.Small spaceData ]
-                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest" ] [ text spaceData.name ]
+                [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
+                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest" ] [ text (Space.name space) ]
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ spaceSidebarLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.Root slug)) maybeCurrentRoute
-                , spaceSidebarLink space "Activity" (Just <| Route.Posts (Route.Posts.Root slug)) maybeCurrentRoute
+                [ spaceSidebarLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.Root (Space.slug space))) maybeCurrentRoute
+                , spaceSidebarLink space "Activity" (Just <| Route.Posts (Route.Posts.Root (Space.slug space))) maybeCurrentRoute
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]
-            , groupLinks repo space bookmarks maybeCurrentRoute
-            , spaceSidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.Root slug)) maybeCurrentRoute
+            , groupLinks space bookmarks maybeCurrentRoute
+            , spaceSidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.Root (Space.slug space))) maybeCurrentRoute
             ]
         , div [ class "absolute pin-b w-full" ]
             [ a [ Route.href Route.UserSettings, class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
-                [ div [] [ personAvatar Avatar.Small viewerData ]
+                [ div [] [ SpaceUser.avatar Avatar.Small viewer ]
                 , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
                     [ div [] [ text "Signed in as" ]
-                    , div [ class "font-bold" ] [ text (displayName viewerData) ]
+                    , div [ class "font-bold" ] [ text (SpaceUser.displayName viewer) ]
                     ]
                 ]
             ]
         ]
 
 
-groupLinks : Repo -> Space -> List Group -> Maybe Route -> Html msg
-groupLinks repo space groups maybeCurrentRoute =
+groupLinks : Space -> List Group -> Maybe Route -> Html msg
+groupLinks space groups maybeCurrentRoute =
     let
         slug =
-            Space.getSlug space
+            Space.slug space
 
         linkify group =
-            spaceSidebarLink space group.name (Just <| Route.Group (Route.Group.Root slug group.id)) maybeCurrentRoute
+            spaceSidebarLink space (Group.name group) (Just <| Route.Group (Route.Group.Root slug (Group.id group))) maybeCurrentRoute
 
         links =
             groups
-                |> Repo.getGroups repo
-                |> List.sortBy .name
+                |> List.sortBy Group.name
                 |> List.map linkify
     in
     ul [ class "mb-4 list-reset leading-semi-loose select-none" ] links

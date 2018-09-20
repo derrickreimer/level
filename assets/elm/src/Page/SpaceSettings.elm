@@ -220,7 +220,7 @@ subscriptions =
 
 view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute ({ errors } as model) =
-    spaceLayout repo
+    spaceLayout
         model.viewer
         model.space
         model.bookmarks

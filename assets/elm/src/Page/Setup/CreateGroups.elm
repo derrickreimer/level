@@ -182,7 +182,7 @@ view repo maybeCurrentRoute ({ viewer, space, bookmarks } as model) =
         viewerData =
             Repo.getSpaceUser repo model.viewer
     in
-    spaceLayout repo
+    spaceLayout
         viewer
         space
         bookmarks

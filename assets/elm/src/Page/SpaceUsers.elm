@@ -112,7 +112,7 @@ consumeEvent event model =
 
 view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
-    spaceLayout repo
+    spaceLayout
         model.viewer
         model.space
         model.bookmarks
@@ -179,8 +179,8 @@ paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
     div [ class "py-4" ]
         [ Pagination.view connection
-            (Route.SpaceUsers << Before (Space.getSlug space))
-            (Route.SpaceUsers << After (Space.getSlug space))
+            (Route.SpaceUsers << Before (Space.slug space))
+            (Route.SpaceUsers << After (Space.slug space))
         ]
 
 

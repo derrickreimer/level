@@ -195,7 +195,7 @@ subscriptions =
 
 view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
-    spaceLayout repo
+    spaceLayout
         model.viewer
         model.space
         model.bookmarks
@@ -225,8 +225,8 @@ controlsView model =
 paginationView : Space -> Connection a -> Html Msg
 paginationView space connection =
     Pagination.view connection
-        (Route.Posts << Before (Space.getSlug space))
-        (Route.Posts << After (Space.getSlug space))
+        (Route.Posts << Before (Space.slug space))
+        (Route.Posts << After (Space.slug space))
 
 
 postsView : Repo -> Model -> Html Msg
@@ -254,7 +254,7 @@ sidebarView repo space featuredUsers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
-                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.Root (Space.getSlug space))
+                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.Root (Space.slug space))
                 , class "flex items-center text-dusty-blue-darkest no-underline"
                 ]
                 [ text "Directory"
@@ -262,7 +262,7 @@ sidebarView repo space featuredUsers =
             ]
         , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers
         , a
-            [ Route.href (Route.SpaceSettings (Space.getSlug space))
+            [ Route.href (Route.SpaceSettings (Space.slug space))
             , class "text-sm text-blue no-underline"
             ]
             [ text "Space Settings" ]

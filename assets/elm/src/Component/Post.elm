@@ -343,7 +343,7 @@ resolvedView newRepo space currentUser (( zone, posix ) as now) model data =
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ a
-                    [ Route.href <| Route.Post (Space.getSlug space) model.postId
+                    [ Route.href <| Route.Post (Space.slug space) model.postId
                     , class "no-underline text-dusty-blue-darkest"
                     , rel "tooltip"
                     , title "Expand post"
@@ -352,7 +352,7 @@ resolvedView newRepo space currentUser (( zone, posix ) as now) model data =
                 , viewIf model.showGroups <|
                     groupsLabel space (NewRepo.getGroups (Post.groupIds data.post) newRepo)
                 , a
-                    [ Route.href <| Route.Post (Space.getSlug space) model.postId
+                    [ Route.href <| Route.Post (Space.slug space) model.postId
                     , class "no-underline text-dusty-blue-darkest"
                     , rel "tooltip"
                     , title "Expand post"
@@ -404,7 +404,7 @@ groupsLabel space groups =
         [ group ] ->
             span [ class "ml-3 text-sm text-dusty-blue" ]
                 [ a
-                    [ Route.href (Route.Group (Route.Group.Root (Space.getSlug space) (Group.id group)))
+                    [ Route.href (Route.Group (Route.Group.Root (Space.slug space) (Group.id group)))
                     , class "no-underline text-dusty-blue font-bold"
                     ]
                     [ text (Group.name group) ]
@@ -440,7 +440,7 @@ feedRepliesView newRepo space post now replyIds =
     div []
         [ viewIf hasPreviousPage <|
             a
-                [ Route.href (Route.Post (Space.getSlug space) (Post.id post))
+                [ Route.href (Route.Post (Space.slug space) (Post.id post))
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]

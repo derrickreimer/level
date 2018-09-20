@@ -113,7 +113,7 @@ consumeEvent event model =
 
 view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
-    spaceLayout repo
+    spaceLayout
         model.viewer
         model.space
         model.bookmarks
@@ -123,7 +123,7 @@ view repo maybeCurrentRoute model =
                 [ div [ class "flex items-center pb-5" ]
                     [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Groups" ]
                     , div [ class "flex-0 flex-no-shrink" ]
-                        [ a [ Route.href (Route.NewGroup (Space.getSlug model.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
+                        [ a [ Route.href (Route.NewGroup (Space.slug model.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
                         ]
                     ]
                 , div [ class "pb-8" ]
@@ -175,7 +175,7 @@ groupView repo space ( index, group ) =
     in
     div []
         [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
-            [ a [ Route.href (Route.Group (Route.Group.Root (Space.getSlug space) groupData.id)), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
+            [ a [ Route.href (Route.Group (Route.Group.Root (Space.slug space) groupData.id)), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
             , viewIf (groupData.membershipState == Subscribed) <|
                 div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
             , div [ class "flex-0" ]
@@ -192,8 +192,8 @@ paginationView : Space -> Connection Group -> Html Msg
 paginationView space connection =
     div [ class "py-4" ]
         [ Pagination.view connection
-            (Route.Groups << Before (Space.getSlug space))
-            (Route.Groups << After (Space.getSlug space))
+            (Route.Groups << Before (Space.slug space))
+            (Route.Groups << After (Space.slug space))
         ]
 
 

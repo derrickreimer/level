@@ -787,10 +787,10 @@ routeFor page =
             Just <| Route.Inbox params
 
         SetupCreateGroups { space } ->
-            Just <| Route.SetupCreateGroups (Space.getSlug space)
+            Just <| Route.SetupCreateGroups (Space.slug space)
 
         SetupInviteUsers { space } ->
-            Just <| Route.SetupInviteUsers (Space.getSlug space)
+            Just <| Route.SetupInviteUsers (Space.slug space)
 
         SpaceUsers { params } ->
             Just <| Route.SpaceUsers params
@@ -802,16 +802,16 @@ routeFor page =
             Just <| Route.Group params
 
         NewGroup { space } ->
-            Just <| Route.NewGroup (Space.getSlug space)
+            Just <| Route.NewGroup (Space.slug space)
 
         Post { space, postComp } ->
-            Just <| Route.Post (Space.getSlug space) postComp.id
+            Just <| Route.Post (Space.slug space) postComp.id
 
         UserSettings _ ->
             Just <| Route.UserSettings
 
         SpaceSettings { space } ->
-            Just <| Route.SpaceSettings (Space.getSlug space)
+            Just <| Route.SpaceSettings (Space.slug space)
 
         Blank ->
             Nothing
