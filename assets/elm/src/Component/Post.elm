@@ -81,12 +81,12 @@ resolveData repo model =
 decoder : Mode -> Bool -> Decoder Model
 decoder mode showGroups =
     Decode.map2 (init mode showGroups)
-        Post.decoder
-        (field "replies" <| Connection.decoder (Decode.field "id" Decode.string))
+        (field "id" Decode.string)
+        (field "replies" <| Connection.decoder (field "id" Decode.string))
 
 
-init : Mode -> Bool -> Post -> Connection String -> Model
-init mode showGroups post replyIds =
+init : Mode -> Bool -> String -> Connection String -> Model
+init mode showGroups postId replyIds =
     let
         replyMode =
             case mode of
@@ -96,7 +96,7 @@ init mode showGroups post replyIds =
                 FullPage ->
                     AlwaysExpanded
     in
-    Model (Post.id post) mode showGroups (Post.id post) replyIds (ReplyComposer.init replyMode) False
+    Model postId mode showGroups postId replyIds (ReplyComposer.init replyMode) False
 
 
 setup : Model -> Cmd Msg

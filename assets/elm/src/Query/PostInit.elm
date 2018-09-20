@@ -16,18 +16,16 @@ import Task exposing (Task)
 
 
 type alias Response =
-    { viewer : SpaceUser
-    , space : Space
-    , bookmarks : List Group
-    , post : Post
-    , author : SpaceUser
-    , groups : List Group
-    , replies : Connection Reply
+    { viewerId : String
+    , spaceId : String
+    , bookmarkIds : List String
+    , postId : String
+    , replyIds : Connection String
     , repo : NewRepo
     }
 
 
-type alias InternalResponse =
+type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
@@ -80,10 +78,10 @@ variables spaceSlug postId =
             ]
 
 
-decoder : Decoder InternalResponse
+decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map7 InternalResponse
+        Decode.map7 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
@@ -93,7 +91,7 @@ decoder =
             (Decode.at [ "space", "post", "replies" ] (Connection.decoder Reply.decoder))
 
 
-buildResponse : ( Session, InternalResponse ) -> ( Session, Response )
+buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
         repo =
@@ -108,13 +106,11 @@ buildResponse ( session, data ) =
 
         resp =
             Response
-                data.viewer
-                data.space
-                data.bookmarks
-                data.post
-                data.author
-                data.groups
-                data.replies
+                (SpaceUser.id data.viewer)
+                (Space.id data.space)
+                (List.map Group.id data.bookmarks)
+                (Post.id data.post)
+                (Connection.map Reply.id data.replies)
                 repo
     in
     ( session, resp )

@@ -33,9 +33,9 @@ import View.PresenceList
 
 
 type alias Model =
-    { viewer : SpaceUser
-    , space : Space
-    , bookmarks : List Group
+    { viewerId : String
+    , spaceId : String
+    , bookmarkIds : List String
     , postComp : Component.Post.Model
     , now : ( Zone, Posix )
     , currentViewers : Lazy PresenceList
@@ -52,9 +52,9 @@ type alias Data =
 resolveData : NewRepo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map3 Data
-        (NewRepo.getSpaceUser (SpaceUser.id model.viewer) repo)
-        (NewRepo.getSpace (Space.id model.space) repo)
-        (Just <| NewRepo.getGroups (List.map Group.id model.bookmarks) repo)
+        (NewRepo.getSpaceUser model.viewerId repo)
+        (NewRepo.getSpace model.spaceId repo)
+        (Just <| NewRepo.getGroups model.bookmarkIds repo)
 
 
 
@@ -80,17 +80,27 @@ init spaceSlug postId globals =
     globals.session
         |> PostInit.request spaceSlug postId
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel globals)
+        |> Task.map (buildModel globals)
 
 
-buildModel : Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Globals, Model )
+buildModel : Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
 buildModel globals ( ( newSession, resp ), now ) =
     let
         postComp =
-            Component.Post.init Component.Post.FullPage True resp.post (Connection.map Reply.id resp.replies)
+            Component.Post.init
+                Component.Post.FullPage
+                True
+                resp.postId
+                resp.replyIds
 
         model =
-            Model resp.viewer resp.space resp.bookmarks postComp now NotLoaded
+            Model
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
+                postComp
+                now
+                NotLoaded
 
         newNewRepo =
             NewRepo.union resp.repo globals.newRepo
@@ -98,7 +108,7 @@ buildModel globals ( ( newSession, resp ), now ) =
         newGlobals =
             { globals | session = newSession, newRepo = newNewRepo }
     in
-    Task.succeed ( newGlobals, model )
+    ( newGlobals, model )
 
 
 setup : Globals -> Model -> Cmd Msg
@@ -119,10 +129,10 @@ teardown ({ postComp } as model) =
 
 
 recordView : Session -> Model -> Cmd Msg
-recordView session { space, postComp } =
+recordView session model =
     let
         { nodes } =
-            Connection.last 1 postComp.replyIds
+            Connection.last 1 model.postComp.replyIds
 
         maybeReplyId =
             case nodes of
@@ -133,7 +143,7 @@ recordView session { space, postComp } =
                     Nothing
     in
     session
-        |> RecordPostView.request (Space.id space) postComp.id maybeReplyId
+        |> RecordPostView.request model.spaceId model.postComp.id maybeReplyId
         |> Task.attempt ViewRecorded
 
 
@@ -156,7 +166,7 @@ update msg globals model =
         PostComponentMsg componentMsg ->
             let
                 ( ( newPostComp, cmd ), newSession ) =
-                    Component.Post.update componentMsg (Space.id model.space) globals.session model.postComp
+                    Component.Post.update componentMsg model.spaceId globals.session model.postComp
             in
             ( ( { model | postComp = newPostComp }
               , Cmd.map PostComponentMsg cmd
@@ -220,10 +230,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.ReplyCreated reply ->
             let
@@ -273,7 +283,7 @@ handleJoin presence globals model =
         Nothing ->
             ( model
             , globals.session
-                |> GetSpaceUser.request (Space.id model.space) (Presence.getUserId presence)
+                |> GetSpaceUser.request model.spaceId (Presence.getUserId presence)
                 |> Task.attempt SpaceUserFetched
             )
 

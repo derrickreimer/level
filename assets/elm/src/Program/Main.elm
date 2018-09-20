@@ -804,8 +804,9 @@ routeFor page =
         NewGroup { space } ->
             Just <| Route.NewGroup (Space.slug space)
 
-        Post { space, postComp } ->
-            Just <| Route.Post (Space.slug space) postComp.id
+        Post { spaceId, postComp } ->
+            -- TODO: store params on the page and use the slug
+            Just <| Route.Post spaceId postComp.id
 
         UserSettings _ ->
             Just <| Route.UserSettings
