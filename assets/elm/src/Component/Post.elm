@@ -352,7 +352,7 @@ resolvedView repo newRepo space currentUser (( zone, posix ) as now) ({ replies 
                     ]
                     [ span [ class "font-bold" ] [ text <| SpaceUser.displayName data.author ] ]
                 , viewIf model.showGroups <|
-                    groupsLabel repo space (Post.groups data.post)
+                    groupsLabel repo space (NewRepo.getGroups (Post.groupIds data.post) newRepo)
                 , a
                     [ Route.href <| Route.Post (Space.getSlug space) model.postId
                     , class "no-underline text-dusty-blue-darkest"

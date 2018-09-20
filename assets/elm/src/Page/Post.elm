@@ -106,7 +106,7 @@ buildModel globals ( ( newSession, resp ), now ) =
                 |> NewRepo.setSpaceUser resp.viewer
                 |> NewRepo.setGroups resp.bookmarks
                 |> NewRepo.setPost resp.post
-                |> NewRepo.setSpaceUser (Post.author resp.post)
+                |> NewRepo.setSpaceUser resp.author
                 |> NewRepo.setReplies (Connection.toList resp.replies)
 
         newGlobals =

@@ -40,12 +40,11 @@ type alias Data =
     , state : State
     , body : String
     , bodyHtml : String
-    , author : SpaceUser
-    , groups : List Group
+    , authorId : String
+    , groupIds : List String
     , postedAt : Posix
     , subscriptionState : SubscriptionState
     , inboxState : InboxState
-    , mentions : List Mention
     , fetchedAt : Int
     }
 
@@ -73,9 +72,6 @@ fragment =
               groups {
                 ...GroupFields
               }
-              mentions {
-                ...MentionFields
-              }
               fetchedAt
             }
             """
@@ -98,12 +94,11 @@ decoder =
         |> required "state" stateDecoder
         |> required "body" string
         |> required "bodyHtml" string
-        |> required "author" SpaceUser.decoder
-        |> required "groups" (list Group.decoder)
+        |> required "author" (field "id" string)
+        |> required "groups" (list (field "id" string))
         |> required "postedAt" dateDecoder
         |> required "subscriptionState" subscriptionStateDecoder
         |> required "inboxState" inboxStateDecoder
-        |> required "mentions" (list Mention.decoder)
         |> required "fetchedAt" int
 
 

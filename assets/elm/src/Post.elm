@@ -1,7 +1,7 @@
 module Post exposing
     ( Post
-    , id, fetchedAt, postedAt, authorId, author, groups, groupsInclude
-    , state, body, bodyHtml, subscriptionState, inboxState, mentions
+    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude
+    , state, body, bodyHtml, subscriptionState, inboxState
     , update, updateMany
     , fragment
     , decoder, decoderWithReplies
@@ -17,12 +17,12 @@ module Post exposing
 
 # Immutable Properties
 
-@docs id, fetchedAt, postedAt, authorId, author, groups, groupsInclude
+@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude
 
 
 # Mutable Properties
 
-@docs state, body, bodyHtml, subscriptionState, inboxState, mentions
+@docs state, body, bodyHtml, subscriptionState, inboxState
 
 
 # Mutations
@@ -83,22 +83,17 @@ postedAt (Post data) =
 
 authorId : Post -> String
 authorId (Post data) =
-    SpaceUser.id data.author
+    data.authorId
 
 
-author : Post -> SpaceUser
-author (Post data) =
-    data.author
-
-
-groups : Post -> List Group
-groups (Post data) =
-    data.groups
+groupIds : Post -> List String
+groupIds (Post data) =
+    data.groupIds
 
 
 groupsInclude : Group -> Post -> Bool
 groupsInclude group (Post data) =
-    List.filter (\g -> Group.id g == Group.id group) data.groups
+    List.filter (\gid -> gid == Group.id group) data.groupIds
         |> List.isEmpty
         |> not
 
@@ -130,11 +125,6 @@ subscriptionState repo (Post data) =
 inboxState : Repo -> Post -> InboxState
 inboxState repo (Post data) =
     data.inboxState
-
-
-mentions : Repo -> Post -> List Mention
-mentions repo (Post data) =
-    data.mentions
 
 
 
