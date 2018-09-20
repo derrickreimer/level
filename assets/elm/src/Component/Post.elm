@@ -13,7 +13,6 @@ import ListHelpers
 import Markdown
 import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
-import Mutation.DismissMentions as DismissMentions
 import NewRepo exposing (NewRepo)
 import Post exposing (Post)
 import Post.Types
@@ -43,7 +42,7 @@ type alias Model =
     { id : String
     , mode : Mode
     , showGroups : Bool
-    , post : Post
+    , postId : String
     , replies : Connection Reply
     , replyComposer : ReplyComposer
     , isChecked : Bool
@@ -53,6 +52,28 @@ type alias Model =
 type Mode
     = Feed
     | FullPage
+
+
+type alias Data =
+    { post : Post
+    , author : SpaceUser
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    let
+        maybePost =
+            NewRepo.getPost model.postId repo
+    in
+    case maybePost of
+        Just post ->
+            Maybe.map2 Data
+                (Just post)
+                (NewRepo.getSpaceUser (Post.authorId post) repo)
+
+        Nothing ->
+            Nothing
 
 
 
@@ -77,21 +98,21 @@ init mode showGroups post replies =
                 FullPage ->
                     AlwaysExpanded
     in
-    Model (Post.id post) mode showGroups post replies (ReplyComposer.init replyMode) False
+    Model (Post.id post) mode showGroups (Post.id post) replies (ReplyComposer.init replyMode) False
 
 
 setup : Model -> Cmd Msg
-setup { id, mode, replyComposer } =
+setup model =
     Cmd.batch
-        [ PostSubscription.subscribe id
-        , setupReplyComposer id replyComposer
-        , setupScrollPosition mode
+        [ PostSubscription.subscribe model.postId
+        , setupReplyComposer model.postId model.replyComposer
+        , setupScrollPosition model.mode
         ]
 
 
 teardown : Model -> Cmd Msg
-teardown { id } =
-    PostSubscription.unsubscribe id
+teardown model =
+    PostSubscription.unsubscribe model.postId
 
 
 setupReplyComposer : String -> ReplyComposer -> Cmd Msg
@@ -133,19 +154,17 @@ type Msg
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
     | PreviousRepliesRequested
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
-    | DismissMentionsClicked
-    | MentionsDismissed (Result Session.Error ( Session, DismissMentions.Response ))
     | SelectionToggled
     | NoOp
 
 
 update : Msg -> String -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg spaceId session ({ post, replyComposer } as model) =
+update msg spaceId session model =
     case msg of
         ExpandReplyComposer ->
             let
                 nodeId =
-                    replyComposerId model.id
+                    replyComposerId model.postId
 
                 cmd =
                     Cmd.batch
@@ -154,27 +173,27 @@ update msg spaceId session ({ post, replyComposer } as model) =
                         ]
 
                 newModel =
-                    { model | replyComposer = ReplyComposer.expand replyComposer }
+                    { model | replyComposer = ReplyComposer.expand model.replyComposer }
             in
             ( ( newModel, cmd ), session )
 
         NewReplyBodyChanged val ->
             let
                 newModel =
-                    { model | replyComposer = ReplyComposer.setBody val replyComposer }
+                    { model | replyComposer = ReplyComposer.setBody val model.replyComposer }
             in
             noCmd session newModel
 
         NewReplySubmit ->
             let
                 newModel =
-                    { model | replyComposer = ReplyComposer.submitting replyComposer }
+                    { model | replyComposer = ReplyComposer.submitting model.replyComposer }
 
                 body =
-                    ReplyComposer.getBody replyComposer
+                    ReplyComposer.getBody model.replyComposer
 
                 cmd =
-                    CreateReply.request spaceId (Post.id post) body session
+                    CreateReply.request spaceId model.postId body session
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newModel, cmd ), session )
@@ -182,10 +201,10 @@ update msg spaceId session ({ post, replyComposer } as model) =
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
                 nodeId =
-                    replyComposerId (Post.id post)
+                    replyComposerId model.postId
 
                 newReplyComposer =
-                    replyComposer
+                    model.replyComposer
                         |> ReplyComposer.notSubmitting
                         |> ReplyComposer.setBody ""
 
@@ -203,10 +222,10 @@ update msg spaceId session ({ post, replyComposer } as model) =
         NewReplyEscaped ->
             let
                 nodeId =
-                    replyComposerId model.id
+                    replyComposerId model.postId
 
                 replyBody =
-                    ReplyComposer.getBody replyComposer
+                    ReplyComposer.getBody model.replyComposer
             in
             if replyBody == "" then
                 ( ( model, unsetFocus nodeId NoOp ), session )
@@ -217,13 +236,10 @@ update msg spaceId session ({ post, replyComposer } as model) =
         NewReplyBlurred ->
             let
                 nodeId =
-                    replyComposerId model.id
-
-                replyBody =
-                    ReplyComposer.getBody replyComposer
+                    replyComposerId model.postId
 
                 newModel =
-                    { model | replyComposer = ReplyComposer.blurred replyComposer }
+                    { model | replyComposer = ReplyComposer.blurred model.replyComposer }
             in
             noCmd session newModel
 
@@ -232,7 +248,7 @@ update msg spaceId session ({ post, replyComposer } as model) =
                 Just cursor ->
                     let
                         cmd =
-                            Query.Replies.request spaceId (Post.id model.post) cursor 10 session
+                            Query.Replies.request spaceId model.postId cursor 10 session
                                 |> Task.attempt PreviousRepliesFetched
                     in
                     ( ( model, cmd ), session )
@@ -264,25 +280,6 @@ update msg spaceId session ({ post, replyComposer } as model) =
         PreviousRepliesFetched (Err _) ->
             noCmd session model
 
-        DismissMentionsClicked ->
-            let
-                cmd =
-                    session
-                        |> DismissMentions.request spaceId [ model.id ]
-                        |> Task.attempt MentionsDismissed
-            in
-            ( ( model, cmd ), session )
-
-        MentionsDismissed (Ok ( newSession, _ )) ->
-            -- TODO
-            ( ( model, Cmd.none ), newSession )
-
-        MentionsDismissed (Err Session.Expired) ->
-            redirectToLogin session model
-
-        MentionsDismissed (Err _) ->
-            ( ( model, Cmd.none ), session )
-
         SelectionToggled ->
             ( ( { model | isChecked = not model.isChecked }, Cmd.none ), session )
 
@@ -305,18 +302,18 @@ redirectToLogin session model =
 
 
 handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
-handleReplyCreated reply ({ post, replies, mode } as model) =
+handleReplyCreated reply model =
     let
         cmd =
-            case mode of
+            case model.mode of
                 FullPage ->
                     Scroll.toBottom Scroll.Document
 
                 _ ->
                     Cmd.none
     in
-    if Reply.getPostId reply == Post.id post then
-        ( { model | replies = Connection.append Reply.id reply replies }, cmd )
+    if Reply.getPostId reply == model.postId then
+        ( { model | replies = Connection.append Reply.id reply model.replies }, cmd )
 
     else
         ( model, Cmd.none )
@@ -332,37 +329,38 @@ handleMentionsDismissed model =
 
 
 view : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-view repo newRepo space currentUser (( zone, posix ) as now) ({ post, replies } as model) =
-    let
-        currentUserData =
-            currentUser
-                |> Repo.getSpaceUser repo
+view repo newRepo space currentUser now model =
+    case resolveData newRepo model of
+        Just data ->
+            resolvedView repo newRepo space currentUser now model data
 
-        authorData =
-            Post.author post
-                |> Repo.getSpaceUser repo
-    in
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
+resolvedView repo newRepo space currentUser (( zone, posix ) as now) ({ replies } as model) data =
     div [ class "flex" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ personAvatar Avatar.Medium authorData ]
+        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow leading-semi-loose" ]
             [ div []
                 [ a
-                    [ Route.href <| Route.Post (Space.getSlug space) (Post.id post)
+                    [ Route.href <| Route.Post (Space.getSlug space) model.postId
                     , class "no-underline text-dusty-blue-darkest"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ span [ class "font-bold" ] [ text <| displayName authorData ] ]
+                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName data.author ] ]
                 , viewIf model.showGroups <|
-                    groupsLabel repo space (Post.groups post)
+                    groupsLabel repo space (Post.groups data.post)
                 , a
-                    [ Route.href <| Route.Post (Space.getSlug space) (Post.id post)
+                    [ Route.href <| Route.Post (Space.getSlug space) model.postId
                     , class "no-underline text-dusty-blue-darkest"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ View.Helpers.time now ( zone, Post.postedAt post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
-                , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml repo post) ]
+                    [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
+                , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml repo data.post) ]
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -370,8 +368,8 @@ view repo newRepo space currentUser (( zone, posix ) as now) ({ post, replies } 
                     ]
                 ]
             , div [ class "relative" ]
-                [ repliesView repo space post now replies model.mode
-                , replyComposerView currentUserData model
+                [ repliesView repo space data.post now replies model.mode
+                , replyComposerView currentUser data.post model
                 ]
             ]
         ]
@@ -499,13 +497,13 @@ replyView repo (( zone, posix ) as now) mode post reply =
         ]
 
 
-replyComposerView : SpaceUser.Record -> Model -> Html Msg
-replyComposerView currentUserData { post, replies, replyComposer } =
+replyComposerView : SpaceUser -> Post -> Model -> Html Msg
+replyComposerView currentUser post { replies, replyComposer } =
     if ReplyComposer.isExpanded replyComposer then
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
             [ div [ class "composer p-3" ]
                 [ div [ class "flex" ]
-                    [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Small currentUserData ]
+                    [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea
                             [ id (replyComposerId <| Post.id post)
@@ -536,13 +534,13 @@ replyComposerView currentUserData { post, replies, replyComposer } =
 
     else
         viewUnless (Connection.isEmpty replies) <|
-            replyPromptView currentUserData
+            replyPromptView currentUser
 
 
-replyPromptView : SpaceUser.Record -> Html Msg
-replyPromptView currentUserData =
+replyPromptView : SpaceUser -> Html Msg
+replyPromptView currentUser =
     button [ class "flex my-3 items-center", onClick ExpandReplyComposer ]
-        [ div [ class "flex-no-shrink mr-3" ] [ personAvatar Avatar.Small currentUserData ]
+        [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small currentUser ]
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
             [ text "Write a reply..."
             ]
@@ -578,25 +576,3 @@ replyNodeId replyId =
 replyComposerId : String -> String
 replyComposerId postId =
     "reply-composer-" ++ postId
-
-
-mentionersFor : List Mention -> List SpaceUser
-mentionersFor mentions =
-    mentions
-        |> List.map Mention.getCachedData
-        |> List.map .mentioner
-        |> ListHelpers.uniqueBy SpaceUser.id
-
-
-lastMentionAt : ( Zone, Posix ) -> List Mention -> ( Zone, Posix )
-lastMentionAt ( zone, posix ) mentions =
-    let
-        millis =
-            mentions
-                |> List.map Mention.getCachedData
-                |> List.map .occurredAt
-                |> List.map Time.posixToMillis
-                |> List.maximum
-                |> Maybe.withDefault (Time.posixToMillis posix)
-    in
-    ( zone, Time.millisToPosix millis )

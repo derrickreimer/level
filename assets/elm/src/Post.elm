@@ -1,6 +1,6 @@
 module Post exposing
     ( Post
-    , id, fetchedAt, postedAt, author, groups, groupsInclude
+    , id, fetchedAt, postedAt, authorId, author, groups, groupsInclude
     , state, body, bodyHtml, subscriptionState, inboxState, mentions
     , update, updateMany
     , fragment
@@ -17,7 +17,7 @@ module Post exposing
 
 # Immutable Properties
 
-@docs id, fetchedAt, postedAt, author, groups, groupsInclude
+@docs id, fetchedAt, postedAt, authorId, author, groups, groupsInclude
 
 
 # Mutable Properties
@@ -79,6 +79,11 @@ fetchedAt (Post data) =
 postedAt : Post -> Posix
 postedAt (Post data) =
     data.postedAt
+
+
+authorId : Post -> String
+authorId (Post data) =
+    SpaceUser.id data.author
 
 
 author : Post -> SpaceUser

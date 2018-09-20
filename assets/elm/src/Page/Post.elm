@@ -11,6 +11,7 @@ import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
 import NewRepo exposing (NewRepo)
+import Post
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
@@ -105,6 +106,7 @@ buildModel globals ( ( newSession, resp ), now ) =
                 |> NewRepo.setSpaceUser resp.viewer
                 |> NewRepo.setGroups resp.bookmarks
                 |> NewRepo.setPost resp.post
+                |> NewRepo.setSpaceUser (Post.author resp.post)
                 |> NewRepo.setReplies (Connection.toList resp.replies)
 
         newGlobals =
@@ -309,14 +311,14 @@ view : Repo -> NewRepo -> Maybe Route -> Model -> Html Msg
 view repo newRepo maybeCurrentRoute model =
     case resolveData newRepo model of
         Just data ->
-            viewWithData repo newRepo maybeCurrentRoute model data
+            resolvedView repo newRepo maybeCurrentRoute model data
 
         Nothing ->
             text "Something went wrong."
 
 
-viewWithData : Repo -> NewRepo -> Maybe Route -> Model -> Data -> Html Msg
-viewWithData repo newRepo maybeCurrentRoute model data =
+resolvedView : Repo -> NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView repo newRepo maybeCurrentRoute model data =
     spaceLayout repo
         data.viewer
         data.space
