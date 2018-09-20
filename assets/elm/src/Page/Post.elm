@@ -16,7 +16,6 @@ import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
@@ -62,16 +61,9 @@ resolveData repo model =
 -- PAGE PROPERTIES
 
 
-title : Repo -> Model -> String
-title repo { viewer } =
-    let
-        userData =
-            Repo.getSpaceUser repo viewer
-
-        name =
-            displayName userData
-    in
-    "View post from " ++ name
+title : Model -> String
+title model =
+    "View post"
 
 
 viewingTopic : Model -> String
@@ -196,17 +188,15 @@ update msg globals model =
 
         SpaceUserFetched (Ok ( newSession, response )) ->
             let
-                ( newRepo, newNewRepo ) =
+                newNewRepo =
                     case response of
                         GetSpaceUser.Success spaceUser ->
-                            ( Repo.setSpaceUser globals.repo spaceUser
-                            , NewRepo.setSpaceUser spaceUser globals.newRepo
-                            )
+                            NewRepo.setSpaceUser spaceUser globals.newRepo
 
                         _ ->
-                            ( globals.repo, globals.newRepo )
+                            globals.newRepo
             in
-            noCmd { globals | session = newSession, repo = newRepo, newRepo = newNewRepo } model
+            noCmd { globals | session = newSession, newRepo = newNewRepo } model
 
         SpaceUserFetched (Err Session.Expired) ->
             redirectToLogin globals model
@@ -281,14 +271,14 @@ handleSync list model =
 
 
 handleJoin : Presence -> Globals -> Model -> ( Model, Cmd Msg )
-handleJoin presence { session, repo } model =
-    case Repo.getSpaceUserByUserId repo (Presence.getUserId presence) of
+handleJoin presence globals model =
+    case NewRepo.getSpaceUserByUserId (Presence.getUserId presence) globals.newRepo of
         Just _ ->
             ( model, Cmd.none )
 
         Nothing ->
             ( model
-            , session
+            , globals.session
                 |> GetSpaceUser.request (Space.id model.space) (Presence.getUserId presence)
                 |> Task.attempt SpaceUserFetched
             )
@@ -307,18 +297,18 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> NewRepo -> Maybe Route -> Model -> Html Msg
-view repo newRepo maybeCurrentRoute model =
+view : NewRepo -> Maybe Route -> Model -> Html Msg
+view newRepo maybeCurrentRoute model =
     case resolveData newRepo model of
         Just data ->
-            resolvedView repo newRepo maybeCurrentRoute model data
+            resolvedView newRepo maybeCurrentRoute model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> NewRepo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo newRepo maybeCurrentRoute model data =
+resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView newRepo maybeCurrentRoute model data =
     spaceLayout
         data.viewer
         data.space

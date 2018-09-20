@@ -545,7 +545,7 @@ pageTitle repo page =
             Page.NewGroup.title
 
         Post pageModel ->
-            Page.Post.title repo pageModel
+            Page.Post.title pageModel
 
         SpaceSettings _ ->
             Page.SpaceSettings.title
@@ -875,7 +875,7 @@ pageView repo newRepo page hasPushSubscription =
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view repo newRepo (routeFor page)
+                |> Page.Post.view newRepo (routeFor page)
                 |> Html.map PostMsg
 
         UserSettings pageModel ->

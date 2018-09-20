@@ -1,4 +1,4 @@
-module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser)
+module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser)
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -44,6 +44,14 @@ getSpaceUser id (NewRepo data) =
 getSpaceUsers : List String -> NewRepo -> List SpaceUser
 getSpaceUsers ids repo =
     List.filterMap (\id -> getSpaceUser id repo) ids
+
+
+getSpaceUserByUserId : String -> NewRepo -> Maybe SpaceUser
+getSpaceUserByUserId userId (NewRepo data) =
+    data.spaceUsers
+        |> Dict.values
+        |> List.filter (\su -> SpaceUser.userId su == userId)
+        |> List.head
 
 
 getSpaceUsersByUserId : List String -> NewRepo -> List SpaceUser
