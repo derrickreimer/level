@@ -15,7 +15,6 @@ import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
 import NewRepo exposing (NewRepo)
 import Post exposing (Post)
-import Post.Types
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
@@ -542,7 +541,7 @@ replyPromptView currentUser =
         ]
 
 
-statusView : Post.Types.State -> Html Msg
+statusView : Post.State -> Html Msg
 statusView state =
     let
         buildView icon title =
@@ -552,10 +551,10 @@ statusView state =
                 ]
     in
     case state of
-        Post.Types.Open ->
+        Post.Open ->
             buildView Icons.open "Open"
 
-        Post.Types.Closed ->
+        Post.Closed ->
             buildView Icons.closed "Closed"
 
 

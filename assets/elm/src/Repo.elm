@@ -44,7 +44,7 @@ module Repo exposing
 import Group exposing (Group)
 import IdentityMap exposing (IdentityMap)
 import Lazy exposing (Lazy(..))
-import Post.Types
+import Post exposing (Post)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 
@@ -59,7 +59,7 @@ type alias Internal =
     { groups : IdentityMap Group.Record
     , spaceUsers : IdentityMap SpaceUser.Record
     , spaces : IdentityMap Space.Record
-    , posts : IdentityMap Post.Types.Data
+    , posts : IdentityMap Post.Data
     }
 
 
@@ -151,12 +151,12 @@ getSpaceUsersByUserId (Repo repo) userIds =
 -- POSTS
 
 
-getPost : Repo -> Post.Types.Data -> Post.Types.Data
+getPost : Repo -> Post.Data -> Post.Data
 getPost (Repo { posts }) data =
     IdentityMap.get posts data
 
 
-setPost : Repo -> Post.Types.Data -> Repo
+setPost : Repo -> Post.Data -> Repo
 setPost (Repo repo) data =
     Repo { repo | posts = IdentityMap.set repo.posts data }
 

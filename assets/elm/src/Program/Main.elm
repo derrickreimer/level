@@ -3,6 +3,7 @@ module Program.Main exposing (main)
 import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Connection
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -899,55 +900,168 @@ pageView repo newRepo page hasPushSubscription =
 
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event ({ page, repo } as model) =
+consumeEvent event ({ page, repo, newRepo } as model) =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setGroup group
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.GroupUnbookmarked group ->
-            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setGroup group
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.GroupMembershipUpdated group ->
-            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setGroup group
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.PostCreated ( post, replies ) ->
-            ( { model | repo = Post.update model.repo post }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPost post
+                        |> NewRepo.setReplies (Connection.toList replies)
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.PostUpdated post ->
-            ( { model | repo = Post.update model.repo post }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPost post
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.PostsSubscribed posts ->
-            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPosts posts
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.PostsUnsubscribed posts ->
-            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPosts posts
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.PostsMarkedAsUnread posts ->
-            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPosts posts
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.PostsMarkedAsRead posts ->
-            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPosts posts
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.PostsDismissed posts ->
-            ( { model | repo = Post.updateMany model.repo posts }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPosts posts
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.UserMentioned post ->
-            ( { model | repo = Post.update model.repo post }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPost post
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.GroupUpdated group ->
-            ( { model | repo = Repo.setGroup model.repo group }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setGroup group
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.ReplyCreated reply ->
-            ( model, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setReply reply
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.MentionsDismissed post ->
-            ( { model | repo = Post.update model.repo post }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setPost post
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.SpaceUpdated space ->
-            ( { model | repo = Repo.setSpace model.repo space }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setSpace space
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.SpaceUserUpdated spaceUser ->
-            ( { model | repo = Repo.setSpaceUser model.repo spaceUser }, Cmd.none )
+            let
+                newNewRepo =
+                    model.newRepo
+                        |> NewRepo.setSpaceUser spaceUser
+            in
+            ( { model | newRepo = newNewRepo }
+            , Cmd.none
+            )
 
         Event.Unknown payload ->
             ( model, Cmd.none )

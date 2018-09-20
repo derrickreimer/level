@@ -1,8 +1,6 @@
 module Post exposing
-    ( Post
-    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude
-    , state, body, bodyHtml, subscriptionState, inboxState
-    , update, updateMany
+    ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
+    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState
     , fragment
     , decoder, decoderWithReplies
     )
@@ -12,22 +10,12 @@ module Post exposing
 
 # Types
 
-@docs Post
+@docs Post, Data, InboxState, State, SubscriptionState
 
 
-# Immutable Properties
+# Properties
 
-@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude
-
-
-# Mutable Properties
-
-@docs state, body, bodyHtml, subscriptionState, inboxState
-
-
-# Mutations
-
-@docs update, updateMany
+@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState
 
 
 # GraphQL
@@ -44,14 +32,14 @@ module Post exposing
 import Connection exposing (Connection)
 import GraphQL exposing (Fragment)
 import Group exposing (Group)
-import Json.Decode as Decode exposing (Decoder, field)
+import Json.Decode as Decode exposing (Decoder, fail, field, int, list, string, succeed)
+import Json.Decode.Pipeline as Pipeline exposing (required)
 import List
 import Mention exposing (Mention)
-import Post.Types exposing (Data, InboxState, State, SubscriptionState)
 import Reply exposing (Reply)
-import Repo exposing (Repo)
 import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
+import Util exposing (dateDecoder)
 
 
 
@@ -62,8 +50,40 @@ type Post
     = Post Data
 
 
+type State
+    = Open
+    | Closed
 
--- IMMUTABLE PROPERTIES
+
+type SubscriptionState
+    = NotSubscribed
+    | Subscribed
+    | Unsubscribed
+
+
+type InboxState
+    = Excluded
+    | Dismissed
+    | Read
+    | Unread
+
+
+type alias Data =
+    { id : String
+    , state : State
+    , body : String
+    , bodyHtml : String
+    , authorId : String
+    , groupIds : List String
+    , postedAt : Posix
+    , subscriptionState : SubscriptionState
+    , inboxState : InboxState
+    , fetchedAt : Int
+    }
+
+
+
+-- PROPERTIES
 
 
 id : Post -> String
@@ -98,17 +118,13 @@ groupsInclude group (Post data) =
         |> not
 
 
-
--- MUTABLE PROPERTIES
-
-
-state : Repo -> Post -> State
-state repo (Post data) =
+state : Post -> State
+state (Post data) =
     data.state
 
 
-body : Repo -> Post -> String
-body repo (Post data) =
+body : Post -> String
+body (Post data) =
     data.body
 
 
@@ -117,28 +133,14 @@ bodyHtml (Post data) =
     data.bodyHtml
 
 
-subscriptionState : Repo -> Post -> SubscriptionState
-subscriptionState repo (Post data) =
+subscriptionState : Post -> SubscriptionState
+subscriptionState (Post data) =
     data.subscriptionState
 
 
-inboxState : Repo -> Post -> InboxState
-inboxState repo (Post data) =
+inboxState : Post -> InboxState
+inboxState (Post data) =
     data.inboxState
-
-
-
--- MUTATIONS
-
-
-update : Repo -> Post -> Repo
-update repo (Post data) =
-    Repo.setPost repo data
-
-
-updateMany : Repo -> List Post -> Repo
-updateMany repo posts =
-    List.foldr (\post acc -> update acc post) repo posts
 
 
 
@@ -147,7 +149,32 @@ updateMany repo posts =
 
 fragment : Fragment
 fragment =
-    Post.Types.fragment
+    let
+        queryBody =
+            """
+            fragment PostFields on Post {
+              id
+              state
+              body
+              bodyHtml
+              postedAt
+              subscriptionState
+              inboxState
+              author {
+                ...SpaceUserFields
+              }
+              groups {
+                ...GroupFields
+              }
+              fetchedAt
+            }
+            """
+    in
+    GraphQL.toFragment queryBody
+        [ SpaceUser.fragment
+        , Group.fragment
+        , Mention.fragment
+        ]
 
 
 
@@ -156,9 +183,84 @@ fragment =
 
 decoder : Decoder Post
 decoder =
-    Decode.map Post Post.Types.decoder
+    Decode.map Post <|
+        (Decode.succeed Data
+            |> required "id" string
+            |> required "state" stateDecoder
+            |> required "body" string
+            |> required "bodyHtml" string
+            |> required "author" (field "id" string)
+            |> required "groups" (list (field "id" string))
+            |> required "postedAt" dateDecoder
+            |> required "subscriptionState" subscriptionStateDecoder
+            |> required "inboxState" inboxStateDecoder
+            |> required "fetchedAt" int
+        )
 
 
 decoderWithReplies : Decoder ( Post, Connection Reply )
 decoderWithReplies =
     Decode.map2 Tuple.pair decoder (field "replies" (Connection.decoder Reply.decoder))
+
+
+stateDecoder : Decoder State
+stateDecoder =
+    let
+        convert : String -> Decoder State
+        convert raw =
+            case raw of
+                "OPEN" ->
+                    succeed Open
+
+                "CLOSED" ->
+                    succeed Closed
+
+                _ ->
+                    fail "State not valid"
+    in
+    Decode.andThen convert string
+
+
+subscriptionStateDecoder : Decoder SubscriptionState
+subscriptionStateDecoder =
+    let
+        convert : String -> Decoder SubscriptionState
+        convert raw =
+            case raw of
+                "SUBSCRIBED" ->
+                    succeed Subscribed
+
+                "UNSUBSCRIBED" ->
+                    succeed Unsubscribed
+
+                "NOT_SUBSCRIBED" ->
+                    succeed NotSubscribed
+
+                _ ->
+                    fail "Subscription state not valid"
+    in
+    Decode.andThen convert string
+
+
+inboxStateDecoder : Decoder InboxState
+inboxStateDecoder =
+    let
+        convert : String -> Decoder InboxState
+        convert raw =
+            case raw of
+                "EXCLUDED" ->
+                    succeed Excluded
+
+                "DISMISSED" ->
+                    succeed Dismissed
+
+                "READ" ->
+                    succeed Read
+
+                "UNREAD" ->
+                    succeed Unread
+
+                _ ->
+                    fail "Inbox state not valid"
+    in
+    Decode.andThen convert string
