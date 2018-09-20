@@ -244,7 +244,7 @@ postView : Repo -> Model -> Component.Post.Model -> Html Msg
 postView repo model component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.view repo NewRepo.empty model.space model.viewer model.now
+            |> Component.Post.view NewRepo.empty model.space model.viewer model.now
             |> Html.map (PostComponentMsg component.id)
         ]
 

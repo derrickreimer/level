@@ -20,7 +20,6 @@ import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
 import ReplyComposer exposing (Mode(..), ReplyComposer)
-import Repo exposing (Repo)
 import Route
 import Route.Group
 import Scroll
@@ -328,18 +327,18 @@ handleMentionsDismissed model =
 -- VIEWS
 
 
-view : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-view repo newRepo space currentUser now model =
+view : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+view newRepo space currentUser now model =
     case resolveData newRepo model of
         Just data ->
-            resolvedView repo newRepo space currentUser now model data
+            resolvedView newRepo space currentUser now model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
-resolvedView repo newRepo space currentUser (( zone, posix ) as now) model data =
+resolvedView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
+resolvedView newRepo space currentUser (( zone, posix ) as now) model data =
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow leading-semi-loose" ]
@@ -352,7 +351,7 @@ resolvedView repo newRepo space currentUser (( zone, posix ) as now) model data 
                     ]
                     [ span [ class "font-bold" ] [ text <| SpaceUser.displayName data.author ] ]
                 , viewIf model.showGroups <|
-                    groupsLabel repo space (NewRepo.getGroups (Post.groupIds data.post) newRepo)
+                    groupsLabel space (NewRepo.getGroups (Post.groupIds data.post) newRepo)
                 , a
                     [ Route.href <| Route.Post (Space.getSlug space) model.postId
                     , class "no-underline text-dusty-blue-darkest"
@@ -360,7 +359,7 @@ resolvedView repo newRepo space currentUser (( zone, posix ) as now) model data 
                     , title "Expand post"
                     ]
                     [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
-                , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml repo data.post) ]
+                , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml data.post) ]
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -368,15 +367,15 @@ resolvedView repo newRepo space currentUser (( zone, posix ) as now) model data 
                     ]
                 ]
             , div [ class "relative" ]
-                [ repliesView repo newRepo space data.post now model.replyIds model.mode
+                [ repliesView newRepo space data.post now model.replyIds model.mode
                 , replyComposerView currentUser data.post model
                 ]
             ]
         ]
 
 
-checkableView : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-checkableView repo newRepo space viewer now model =
+checkableView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+checkableView newRepo space viewer now model =
     div [ class "flex" ]
         [ div [ class "mr-1 py-2 flex-0" ]
             [ label [ class "control checkbox" ]
@@ -391,7 +390,7 @@ checkableView repo newRepo space viewer now model =
                 ]
             ]
         , div [ class "flex-1" ]
-            [ view repo newRepo space viewer now model
+            [ view newRepo space viewer now model
             ]
         ]
 
@@ -400,42 +399,38 @@ checkableView repo newRepo space viewer now model =
 -- PRIVATE VIEW FUNCTIONS
 
 
-groupsLabel : Repo -> Space -> List Group -> Html Msg
-groupsLabel repo space groups =
+groupsLabel : Space -> List Group -> Html Msg
+groupsLabel space groups =
     case groups of
         [ group ] ->
-            let
-                groupData =
-                    Repo.getGroup repo group
-            in
             span [ class "ml-3 text-sm text-dusty-blue" ]
                 [ a
-                    [ Route.href (Route.Group (Route.Group.Root (Space.getSlug space) groupData.id))
+                    [ Route.href (Route.Group (Route.Group.Root (Space.getSlug space) (Group.id group)))
                     , class "no-underline text-dusty-blue font-bold"
                     ]
-                    [ text groupData.name ]
+                    [ text (Group.name group) ]
                 ]
 
         _ ->
             text ""
 
 
-repliesView : Repo -> NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
-repliesView repo newRepo space post now replyIds mode =
+repliesView : NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
+repliesView newRepo space post now replyIds mode =
     let
         listView =
             case mode of
                 Feed ->
-                    feedRepliesView repo newRepo space post now replyIds
+                    feedRepliesView newRepo space post now replyIds
 
                 FullPage ->
-                    fullPageRepliesView repo newRepo post now replyIds
+                    fullPageRepliesView newRepo post now replyIds
     in
     viewUnless (Connection.isEmptyAndExpanded replyIds) listView
 
 
-feedRepliesView : Repo -> NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
-feedRepliesView repo newRepo space post now replyIds =
+feedRepliesView : NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
+feedRepliesView newRepo space post now replyIds =
     let
         { nodes, hasPreviousPage } =
             Connection.last 5 replyIds
@@ -450,12 +445,12 @@ feedRepliesView repo newRepo space post now replyIds =
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]
-        , div [] (List.map (replyView repo newRepo now Feed post) replies)
+        , div [] (List.map (replyView newRepo now Feed post) replies)
         ]
 
 
-fullPageRepliesView : Repo -> NewRepo -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
-fullPageRepliesView repo newRepo post now replyIds =
+fullPageRepliesView : NewRepo -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
+fullPageRepliesView newRepo post now replyIds =
     let
         replies =
             NewRepo.getReplies (Connection.toList replyIds) newRepo
@@ -470,12 +465,12 @@ fullPageRepliesView repo newRepo post now replyIds =
                 , onClick PreviousRepliesRequested
                 ]
                 [ text "Load more..." ]
-        , div [] (List.map (replyView repo newRepo now FullPage post) replies)
+        , div [] (List.map (replyView newRepo now FullPage post) replies)
         ]
 
 
-replyView : Repo -> NewRepo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
-replyView repo newRepo (( zone, posix ) as now) mode post reply =
+replyView : NewRepo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
+replyView newRepo (( zone, posix ) as now) mode post reply =
     let
         author =
             Reply.author reply

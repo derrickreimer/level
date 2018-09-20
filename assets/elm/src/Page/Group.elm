@@ -490,7 +490,7 @@ view repo maybeCurrentRoute model =
                         ]
                     ]
                 , newPostView model.postComposer currentUserData
-                , postsView repo model.space model.viewer model.now model.posts
+                , postsView model.space model.viewer model.now model.posts
                 , sidebarView repo groupData.membershipState model.featuredMemberships groupData.isPrivate
                 ]
             ]
@@ -614,21 +614,21 @@ newPostView ({ body, isSubmitting } as postComposer) currentUserData =
         ]
 
 
-postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
-postsView repo space currentUser now connection =
+postsView : Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
+postsView space currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Be the first one to post here!" ]
 
     else
         div [] <|
-            Connection.mapList (postView repo space currentUser now) connection
+            Connection.mapList (postView space currentUser now) connection
 
 
-postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView repo space currentUser now component =
+postView : Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
+postView space currentUser now component =
     div [ class "p-4" ]
-        [ Component.Post.view repo NewRepo.empty space currentUser now component
+        [ Component.Post.view NewRepo.empty space currentUser now component
             |> Html.map (PostComponentMsg component.id)
         ]
 

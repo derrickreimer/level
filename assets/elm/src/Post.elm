@@ -112,8 +112,8 @@ body repo (Post data) =
     data.body
 
 
-bodyHtml : Repo -> Post -> String
-bodyHtml repo (Post data) =
+bodyHtml : Post -> String
+bodyHtml (Post data) =
     data.bodyHtml
 
 

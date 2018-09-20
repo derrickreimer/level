@@ -326,17 +326,17 @@ resolvedView repo newRepo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ postView repo newRepo data.space data.viewer model.now model.postComp
+                [ postView newRepo data.space data.viewer model.now model.postComp
                 , sidebarView newRepo model
                 ]
             ]
         ]
 
 
-postView : Repo -> NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView repo newRepo space currentUser now component =
+postView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
+postView newRepo space currentUser now component =
     div [ class "pt-6" ]
-        [ Component.Post.view repo newRepo space currentUser now component
+        [ Component.Post.view newRepo space currentUser now component
             |> Html.map PostComponentMsg
         ]
 
