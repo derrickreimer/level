@@ -1,4 +1,4 @@
-module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser)
+module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser, union)
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -119,3 +119,14 @@ setReply reply (NewRepo data) =
 setReplies : List Reply -> NewRepo -> NewRepo
 setReplies replies repo =
     List.foldr setReply repo replies
+
+
+union : NewRepo -> NewRepo -> NewRepo
+union (NewRepo newer) (NewRepo older) =
+    NewRepo <|
+        InternalData
+            (Dict.union newer.spaces older.spaces)
+            (Dict.union newer.spaceUsers older.spaceUsers)
+            (Dict.union newer.groups older.groups)
+            (Dict.union newer.posts older.posts)
+            (Dict.union newer.replies older.replies)

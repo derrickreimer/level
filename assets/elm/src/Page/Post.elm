@@ -93,13 +93,7 @@ buildModel globals ( ( newSession, resp ), now ) =
             Model resp.viewer resp.space resp.bookmarks postComp now NotLoaded
 
         newNewRepo =
-            globals.newRepo
-                |> NewRepo.setSpace resp.space
-                |> NewRepo.setSpaceUser resp.viewer
-                |> NewRepo.setGroups resp.bookmarks
-                |> NewRepo.setPost resp.post
-                |> NewRepo.setSpaceUser resp.author
-                |> NewRepo.setReplies (Connection.toList resp.replies)
+            NewRepo.union resp.repo globals.newRepo
 
         newGlobals =
             { globals | session = newSession, newRepo = newNewRepo }
