@@ -1,4 +1,4 @@
-module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser, union)
+module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser, setSpaceUsers, union)
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -64,6 +64,11 @@ getSpaceUsersByUserId userIds (NewRepo data) =
 setSpaceUser : SpaceUser -> NewRepo -> NewRepo
 setSpaceUser spaceUser (NewRepo data) =
     NewRepo { data | spaceUsers = Dict.insert (SpaceUser.id spaceUser) spaceUser data.spaceUsers }
+
+
+setSpaceUsers : List SpaceUser -> NewRepo -> NewRepo
+setSpaceUsers spaceUsers repo =
+    List.foldr setSpaceUser repo spaceUsers
 
 
 getGroup : String -> NewRepo -> Maybe Group

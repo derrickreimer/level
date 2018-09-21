@@ -6,6 +6,7 @@ import GraphQL exposing (Document)
 import Group exposing (Group)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
+import NewRepo exposing (NewRepo)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Route.Inbox exposing (Params(..))
@@ -16,11 +17,29 @@ import Task exposing (Task)
 
 
 type alias Response =
+    { viewerId : String
+    , spaceId : String
+    , bookmarkIds : List String
+    , featuredUserIds : List String
+    , postsWithRepliesIds : Connection ( String, Connection String )
+    , repo : NewRepo
+    }
+
+
+type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
-    , posts : Connection Component.Post.Model
+    , resolvedPosts : Connection ResolvedPost
+    }
+
+
+type alias ResolvedPost =
+    { post : Post
+    , replies : Connection Reply
+    , author : SpaceUser
+    , groups : List Group
     }
 
 
@@ -99,18 +118,75 @@ variables params =
     Just (Encode.object values)
 
 
-decoder : Decoder Response
+resolvedPostDecoder : Decoder ResolvedPost
+resolvedPostDecoder =
+    Decode.map4 ResolvedPost
+        Post.decoder
+        (field "replies" (Connection.decoder Reply.decoder))
+        (field "author" SpaceUser.decoder)
+        (field "groups" (list Group.decoder))
+
+
+decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map5 Response
+        Decode.map5 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
-            (Decode.at [ "space", "posts" ] <| Connection.decoder (Component.Post.decoder Component.Post.Feed True))
+            (Decode.at [ "space", "posts" ] <| Connection.decoder resolvedPostDecoder)
+
+
+setResolvedPostsOnRepo : Connection ResolvedPost -> NewRepo -> NewRepo
+setResolvedPostsOnRepo resolvedPosts repo =
+    let
+        reducer resolvedPost acc =
+            acc
+                |> NewRepo.setPost resolvedPost.post
+                |> NewRepo.setReplies (Connection.toList resolvedPost.replies)
+                |> NewRepo.setSpaceUser resolvedPost.author
+                |> NewRepo.setGroups resolvedPost.groups
+    in
+    List.foldr reducer repo (Connection.toList resolvedPosts)
+
+
+resolvedPostsToIds : Connection ResolvedPost -> Connection ( String, Connection String )
+resolvedPostsToIds resolvedPosts =
+    let
+        mapper resolvedPost =
+            ( Post.id resolvedPost.post
+            , Connection.map Reply.id resolvedPost.replies
+            )
+    in
+    Connection.map mapper resolvedPosts
+
+
+buildResponse : ( Session, Data ) -> ( Session, Response )
+buildResponse ( session, data ) =
+    let
+        repo =
+            NewRepo.empty
+                |> NewRepo.setSpace data.space
+                |> NewRepo.setSpaceUser data.viewer
+                |> NewRepo.setGroups data.bookmarks
+                |> NewRepo.setSpaceUsers data.featuredUsers
+                |> setResolvedPostsOnRepo data.resolvedPosts
+
+        resp =
+            Response
+                (SpaceUser.id data.viewer)
+                (Space.id data.space)
+                (List.map Group.id data.bookmarks)
+                (List.map SpaceUser.id data.featuredUsers)
+                (resolvedPostsToIds data.resolvedPosts)
+                repo
+    in
+    ( session, resp )
 
 
 request : Params -> Session -> Task Session.Error ( Session, Response )
 request params session =
-    Session.request session <|
-        GraphQL.request document (variables params) decoder
+    GraphQL.request document (variables params) decoder
+        |> Session.request session
+        |> Task.map buildResponse

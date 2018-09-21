@@ -420,7 +420,7 @@ type PageInit
     = SpacesInit (Result Session.Error ( Session, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Session, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Session, Page.Posts.Model ))
-    | InboxInit (Result Session.Error ( Session, Page.Inbox.Model ))
+    | InboxInit (Result Session.Error ( Globals, Page.Inbox.Model ))
     | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
     | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Session, Page.Group.Model ))
@@ -477,7 +477,7 @@ navigateTo maybeRoute model =
                 |> transition model PostsInit
 
         Just (Route.Inbox params) ->
-            model.session
+            Globals model.session model.repo model.newRepo
                 |> Page.Inbox.init params
                 |> transition model InboxInit
 
@@ -609,7 +609,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         InboxInit (Ok result) ->
-            perform Page.Inbox.setup Inbox InboxMsg model result
+            performWithGlobals Page.Inbox.setup Inbox InboxMsg model result
 
         InboxInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -851,7 +851,7 @@ pageView repo newRepo page hasPushSubscription =
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view repo (routeFor page) hasPushSubscription
+                |> Page.Inbox.view newRepo (routeFor page) hasPushSubscription
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
