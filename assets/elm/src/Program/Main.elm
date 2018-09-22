@@ -245,13 +245,13 @@ update msg model =
 
         ( PostsMsg pageMsg, Posts pageModel ) ->
             pageModel
-                |> Page.Posts.update pageMsg model.session
-                |> updatePageWithSession Posts PostsMsg model
+                |> Page.Posts.update pageMsg (Globals model.session model.repo model.newRepo)
+                |> updatePageWithGlobals Posts PostsMsg model
 
         ( InboxMsg pageMsg, Inbox pageModel ) ->
             pageModel
-                |> Page.Inbox.update pageMsg model.session
-                |> updatePageWithSession Inbox InboxMsg model
+                |> Page.Inbox.update pageMsg (Globals model.session model.repo model.newRepo)
+                |> updatePageWithGlobals Inbox InboxMsg model
 
         ( SetupCreateGroupsMsg pageMsg, SetupCreateGroups pageModel ) ->
             let
@@ -315,8 +315,8 @@ update msg model =
 
         ( GroupMsg pageMsg, Group pageModel ) ->
             pageModel
-                |> Page.Group.update pageMsg model.repo model.session
-                |> updatePageWithSession Group GroupMsg model
+                |> Page.Group.update pageMsg model.repo (Globals model.session model.repo model.newRepo)
+                |> updatePageWithGlobals Group GroupMsg model
 
         ( NewGroupMsg pageMsg, NewGroup pageModel ) ->
             pageModel

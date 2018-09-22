@@ -165,13 +165,13 @@ update msg globals model =
     case msg of
         PostComponentMsg componentMsg ->
             let
-                ( ( newPostComp, cmd ), newSession ) =
-                    Component.Post.update componentMsg model.spaceId globals.session model.postComp
+                ( ( newPostComp, cmd ), newGlobals ) =
+                    Component.Post.update componentMsg model.spaceId globals model.postComp
             in
             ( ( { model | postComp = newPostComp }
               , Cmd.map PostComponentMsg cmd
               )
-            , { globals | session = newSession }
+            , newGlobals
             )
 
         ViewRecorded (Ok ( newSession, _ )) ->

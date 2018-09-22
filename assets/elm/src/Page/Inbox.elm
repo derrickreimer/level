@@ -159,31 +159,31 @@ type Msg
     | NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), session )
+            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
         SetCurrentTime posix zone ->
             { model | now = ( zone, posix ) }
-                |> noCmd session
+                |> noCmd globals
 
         PostComponentMsg id componentMsg ->
             case Connection.get .id id model.postComps of
                 Just component ->
                     let
-                        ( ( newComponent, cmd ), newSession ) =
-                            Component.Post.update componentMsg model.spaceId session component
+                        ( ( newComponent, cmd ), newGlobals ) =
+                            Component.Post.update componentMsg model.spaceId globals component
                     in
                     ( ( { model | postComps = Connection.update .id newComponent model.postComps }
                       , Cmd.map (PostComponentMsg id) cmd
                       )
-                    , newSession
+                    , newGlobals
                     )
 
                 Nothing ->
-                    noCmd session model
+                    noCmd globals model
 
         DismissPostsClicked ->
             let
@@ -193,29 +193,29 @@ update msg session model =
                         |> List.map .id
 
                 cmd =
-                    session
+                    globals.session
                         |> DismissPosts.request model.spaceId postIds
                         |> Task.attempt PostsDismissed
             in
             if List.isEmpty postIds then
-                noCmd session model
+                noCmd globals model
 
             else
-                ( ( model, cmd ), session )
+                ( ( model, cmd ), globals )
 
         PostsDismissed _ ->
-            noCmd session model
+            noCmd globals model
 
         PushSubscribeClicked ->
-            ( ( model, PushManager.subscribe ), session )
+            ( ( model, PushManager.subscribe ), globals )
 
         NoOp ->
-            noCmd session model
+            noCmd globals model
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
 

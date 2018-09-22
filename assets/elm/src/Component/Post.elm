@@ -3,6 +3,7 @@ module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, decoder
 import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -156,8 +157,8 @@ type Msg
     | NoOp
 
 
-update : Msg -> String -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg spaceId session model =
+update : Msg -> String -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg spaceId globals model =
     case msg of
         ExpandReplyComposer ->
             let
@@ -173,14 +174,14 @@ update msg spaceId session model =
                 newModel =
                     { model | replyComposer = ReplyComposer.expand model.replyComposer }
             in
-            ( ( newModel, cmd ), session )
+            ( ( newModel, cmd ), globals )
 
         NewReplyBodyChanged val ->
             let
                 newModel =
                     { model | replyComposer = ReplyComposer.setBody val model.replyComposer }
             in
-            noCmd session newModel
+            noCmd globals newModel
 
         NewReplySubmit ->
             let
@@ -191,10 +192,10 @@ update msg spaceId session model =
                     ReplyComposer.getBody model.replyComposer
 
                 cmd =
-                    CreateReply.request spaceId model.postId body session
+                    CreateReply.request spaceId model.postId body globals.session
                         |> Task.attempt NewReplySubmitted
             in
-            ( ( newModel, cmd ), session )
+            ( ( newModel, cmd ), globals )
 
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
@@ -209,13 +210,13 @@ update msg spaceId session model =
                 newModel =
                     { model | replyComposer = newReplyComposer }
             in
-            ( ( newModel, setFocus nodeId NoOp ), newSession )
+            ( ( newModel, setFocus nodeId NoOp ), { globals | session = newSession } )
 
         NewReplySubmitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         NewReplySubmitted (Err _) ->
-            noCmd session model
+            noCmd globals model
 
         NewReplyEscaped ->
             let
@@ -226,10 +227,10 @@ update msg spaceId session model =
                     ReplyComposer.getBody model.replyComposer
             in
             if replyBody == "" then
-                ( ( model, unsetFocus nodeId NoOp ), session )
+                ( ( model, unsetFocus nodeId NoOp ), globals )
 
             else
-                noCmd session model
+                noCmd globals model
 
         NewReplyBlurred ->
             let
@@ -239,20 +240,20 @@ update msg spaceId session model =
                 newModel =
                     { model | replyComposer = ReplyComposer.blurred model.replyComposer }
             in
-            noCmd session newModel
+            noCmd globals newModel
 
         PreviousRepliesRequested ->
             case Connection.startCursor model.replyIds of
                 Just cursor ->
                     let
                         cmd =
-                            Query.Replies.request spaceId model.postId cursor 10 session
+                            Query.Replies.request spaceId model.postId cursor 10 globals.session
                                 |> Task.attempt PreviousRepliesFetched
                     in
-                    ( ( model, cmd ), session )
+                    ( ( model, cmd ), globals )
 
                 Nothing ->
-                    noCmd session model
+                    noCmd globals model
 
         PreviousRepliesFetched (Ok ( newSession, response )) ->
             let
@@ -270,29 +271,29 @@ update msg spaceId session model =
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | replyIds = newReplyIds }, cmd ), newSession )
+            ( ( { model | replyIds = newReplyIds }, cmd ), { globals | session = newSession } )
 
         PreviousRepliesFetched (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         PreviousRepliesFetched (Err _) ->
-            noCmd session model
+            noCmd globals model
 
         SelectionToggled ->
-            ( ( { model | isChecked = not model.isChecked }, Cmd.none ), session )
+            ( ( { model | isChecked = not model.isChecked }, Cmd.none ), globals )
 
         NoOp ->
-            noCmd session model
+            noCmd globals model
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
-redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-redirectToLogin session model =
-    ( ( model, Route.toLogin ), session )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 

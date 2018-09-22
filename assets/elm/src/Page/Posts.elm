@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -108,39 +109,39 @@ type Msg
     | NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), session )
+            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
         SetCurrentTime posix zone ->
             { model | now = ( zone, posix ) }
-                |> noCmd session
+                |> noCmd globals
 
         PostComponentMsg id componentMsg ->
             case Connection.get .id id model.posts of
                 Just component ->
                     let
-                        ( ( newComponent, cmd ), newSession ) =
-                            Component.Post.update componentMsg (Space.id model.space) session component
+                        ( ( newComponent, cmd ), newGlobals ) =
+                            Component.Post.update componentMsg (Space.id model.space) globals component
                     in
                     ( ( { model | posts = Connection.update .id newComponent model.posts }
                       , Cmd.map (PostComponentMsg id) cmd
                       )
-                    , newSession
+                    , newGlobals
                     )
 
                 Nothing ->
-                    noCmd session model
+                    noCmd globals model
 
         NoOp ->
-            noCmd session model
+            noCmd globals model
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
 

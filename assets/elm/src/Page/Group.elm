@@ -5,6 +5,7 @@ import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Html exposing (..)
@@ -188,61 +189,63 @@ type Msg
     | PrivacyToggled (Result Session.Error ( Session, UpdateGroup.Response ))
 
 
-update : Msg -> Repo -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg repo session ({ postComposer, nameEditor } as model) =
+update : Msg -> Repo -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg repo globals ({ postComposer, nameEditor } as model) =
     case msg of
         NoOp ->
-            noCmd session model
+            noCmd globals model
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), session )
+            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
         SetCurrentTime posix zone ->
             { model | now = ( zone, posix ) }
-                |> noCmd session
+                |> noCmd globals
 
         NewPostBodyChanged value ->
             { model | postComposer = { postComposer | body = value } }
-                |> noCmd session
+                |> noCmd globals
 
         NewPostSubmit ->
             if newPostSubmittable postComposer then
                 let
                     cmd =
-                        CreatePost.request (Space.id model.space) (Group.id model.group) postComposer.body session
+                        globals.session
+                            |> CreatePost.request (Space.id model.space) (Group.id model.group) postComposer.body
                             |> Task.attempt NewPostSubmitted
                 in
-                ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), session )
+                ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), globals )
 
             else
-                noCmd session model
+                noCmd globals model
 
         NewPostSubmitted (Ok ( newSession, response )) ->
             ( ( { model | postComposer = { postComposer | body = "", isSubmitting = False } }
               , Autosize.update "post-composer"
               )
-            , newSession
+            , { globals | session = newSession }
             )
 
         NewPostSubmitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         NewPostSubmitted (Err _) ->
             -- TODO: display error message
             { model | postComposer = { postComposer | isSubmitting = False } }
-                |> noCmd session
+                |> noCmd globals
 
         MembershipStateToggled state ->
             let
                 cmd =
-                    UpdateGroupMembership.request (Space.id model.space) (Group.id model.group) state session
+                    globals.session
+                        |> UpdateGroupMembership.request (Space.id model.space) (Group.id model.group) state
                         |> Task.attempt MembershipStateSubmitted
             in
-            ( ( model, cmd ), session )
+            ( ( model, cmd ), globals )
 
         MembershipStateSubmitted _ ->
             -- TODO: handle errors
-            noCmd session model
+            noCmd globals model
 
         NameClicked ->
             let
@@ -258,21 +261,22 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                         , selectValue "name-editor-value"
                         ]
             in
-            ( ( { model | nameEditor = newEditor }, cmd ), session )
+            ( ( { model | nameEditor = newEditor }, cmd ), globals )
 
         NameEditorChanged val ->
-            noCmd session { model | nameEditor = { nameEditor | value = val } }
+            noCmd globals { model | nameEditor = { nameEditor | value = val } }
 
         NameEditorDismissed ->
-            noCmd session { model | nameEditor = { nameEditor | state = NotEditing } }
+            noCmd globals { model | nameEditor = { nameEditor | state = NotEditing } }
 
         NameEditorSubmit ->
             let
                 cmd =
-                    UpdateGroup.request (Space.id model.space) (Group.id model.group) (Just nameEditor.value) Nothing session
+                    globals.session
+                        |> UpdateGroup.request (Space.id model.space) (Group.id model.group) (Just nameEditor.value) Nothing
                         |> Task.attempt NameEditorSubmitted
             in
-            ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), session )
+            ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), globals )
 
         NameEditorSubmitted (Ok ( newSession, UpdateGroup.Success group )) ->
             let
@@ -282,17 +286,17 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                         , nameEditor = { nameEditor | state = NotEditing }
                     }
             in
-            noCmd newSession newModel
+            noCmd { globals | session = newSession } newModel
 
         NameEditorSubmitted (Ok ( newSession, UpdateGroup.Invalid errors )) ->
             ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }
               , selectValue "name-editor-value"
               )
-            , newSession
+            , { globals | session = newSession }
             )
 
         NameEditorSubmitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         NameEditorSubmitted (Err _) ->
             let
@@ -300,96 +304,101 @@ update msg repo session ({ postComposer, nameEditor } as model) =
                     [ ValidationError "name" "Hmm, something went wrong." ]
             in
             ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }, Cmd.none )
-            , session
+            , globals
             )
 
         FeaturedMembershipsRefreshed (Ok ( newSession, memberships )) ->
-            ( ( { model | featuredMemberships = memberships }, Cmd.none ), newSession )
+            ( ( { model | featuredMemberships = memberships }, Cmd.none )
+            , { globals | session = newSession }
+            )
 
         FeaturedMembershipsRefreshed (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         FeaturedMembershipsRefreshed (Err _) ->
-            noCmd session model
+            noCmd globals model
 
         PostComponentMsg postId componentMsg ->
             case Connection.get .id postId model.posts of
                 Just post ->
                     let
-                        ( ( newPost, cmd ), newSession ) =
-                            Component.Post.update componentMsg (Space.id model.space) session post
+                        ( ( newPost, cmd ), newGlobals ) =
+                            Component.Post.update componentMsg (Space.id model.space) globals post
                     in
                     ( ( { model | posts = Connection.update .id newPost model.posts }
                       , Cmd.map (PostComponentMsg postId) cmd
                       )
-                    , newSession
+                    , newGlobals
                     )
 
                 Nothing ->
-                    noCmd session model
+                    noCmd globals model
 
         Bookmark ->
             let
                 cmd =
-                    session
+                    globals.session
                         |> BookmarkGroup.request (Space.id model.space) (Group.id model.group)
                         |> Task.attempt Bookmarked
             in
-            ( ( model, cmd ), session )
+            ( ( model, cmd ), globals )
 
         Bookmarked (Ok ( newSession, _ )) ->
-            noCmd newSession { model | group = Group.setIsBookmarked True model.group }
+            noCmd { globals | session = newSession }
+                { model | group = Group.setIsBookmarked True model.group }
 
         Bookmarked (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         Bookmarked (Err _) ->
-            noCmd session model
+            noCmd globals model
 
         Unbookmark ->
             let
                 cmd =
-                    session
+                    globals.session
                         |> UnbookmarkGroup.request (Space.id model.space) (Group.id model.group)
                         |> Task.attempt Unbookmarked
             in
-            ( ( model, cmd ), session )
+            ( ( model, cmd ), globals )
 
         Unbookmarked (Ok ( newSession, _ )) ->
-            noCmd newSession { model | group = Group.setIsBookmarked False model.group }
+            noCmd { globals | session = newSession }
+                { model | group = Group.setIsBookmarked False model.group }
 
         Unbookmarked (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         Unbookmarked (Err _) ->
-            noCmd session model
+            noCmd globals model
 
         PrivacyToggle isPrivate ->
             let
                 cmd =
-                    UpdateGroup.request (Space.id model.space) (Group.id model.group) Nothing (Just isPrivate) session
+                    globals.session
+                        |> UpdateGroup.request (Space.id model.space) (Group.id model.group) Nothing (Just isPrivate)
                         |> Task.attempt PrivacyToggled
             in
-            ( ( model, cmd ), session )
+            ( ( model, cmd ), globals )
 
         PrivacyToggled (Ok ( newSession, _ )) ->
-            noCmd newSession model
+            noCmd { globals | session = newSession } model
 
         PrivacyToggled (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         PrivacyToggled (Err _) ->
-            noCmd session model
+            noCmd globals model
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
-redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-redirectToLogin session model =
-    ( ( model, Route.toLogin ), session )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 
