@@ -2,6 +2,7 @@ module Page.SpaceSettings exposing (Model, Msg(..), consumeEvent, init, setup, s
 
 import Event exposing (Event)
 import File exposing (File)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -105,30 +106,30 @@ type Msg
     | FileReceived File.Data
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         NameChanged val ->
-            noCmd session { model | name = val }
+            noCmd globals { model | name = val }
 
         SlugChanged val ->
-            noCmd session { model | slug = val }
+            noCmd globals { model | slug = val }
 
         Submit ->
             let
                 cmd =
-                    session
+                    globals.session
                         |> UpdateSpace.request model.id model.name model.slug
                         |> Task.attempt Submitted
             in
-            ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
+            ( ( { model | isSubmitting = True, errors = [] }, cmd ), globals )
 
         Submitted (Ok ( newSession, UpdateSpace.Success space )) ->
             let
                 data =
                     Space.getCachedData space
             in
-            noCmd newSession
+            noCmd { globals | session = newSession }
                 { model
                     | name = data.name
                     , slug = data.slug
@@ -136,17 +137,17 @@ update msg session model =
                 }
 
         Submitted (Ok ( newSession, UpdateSpace.Invalid errors )) ->
-            noCmd newSession { model | isSubmitting = False, errors = errors }
+            noCmd { globals | session = newSession } { model | isSubmitting = False, errors = errors }
 
         Submitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         Submitted (Err _) ->
             -- TODO: handle unexpected exceptions
-            noCmd session { model | isSubmitting = False }
+            noCmd globals { model | isSubmitting = False }
 
         AvatarSelected ->
-            ( ( model, File.request "avatar" ), session )
+            ( ( model, File.request "avatar" ), globals )
 
         FileReceived data ->
             let
@@ -154,38 +155,38 @@ update msg session model =
                     File.init data
 
                 cmd =
-                    session
+                    globals.session
                         |> UpdateSpaceAvatar.request model.id (File.getContents file)
                         |> Task.attempt AvatarSubmitted
             in
-            ( ( { model | newAvatar = Just file }, cmd ), session )
+            ( ( { model | newAvatar = Just file }, cmd ), globals )
 
         AvatarSubmitted (Ok ( newSession, UpdateSpaceAvatar.Success space )) ->
             let
                 data =
                     Space.getCachedData space
             in
-            noCmd newSession { model | avatarUrl = data.avatarUrl }
+            noCmd { globals | session = newSession } { model | avatarUrl = data.avatarUrl }
 
         AvatarSubmitted (Ok ( newSession, UpdateSpaceAvatar.Invalid errors )) ->
-            noCmd newSession { model | errors = errors }
+            noCmd { globals | session = newSession } { model | errors = errors }
 
         AvatarSubmitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         AvatarSubmitted (Err _) ->
             -- TODO: handle unexpected exceptions
-            noCmd session { model | isSubmitting = False }
+            noCmd globals { model | isSubmitting = False }
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
-redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-redirectToLogin session model =
-    ( ( model, Route.toLogin ), session )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 

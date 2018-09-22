@@ -2,6 +2,7 @@ module Page.UserSettings exposing (Model, Msg(..), consumeEvent, init, setup, su
 
 import Event exposing (Event)
 import File exposing (File)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -106,36 +107,36 @@ type Msg
     | FileReceived File.Data
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         EmailChanged val ->
-            noCmd session { model | email = val }
+            noCmd globals { model | email = val }
 
         FirstNameChanged val ->
-            noCmd session { model | firstName = val }
+            noCmd globals { model | firstName = val }
 
         LastNameChanged val ->
-            noCmd session { model | lastName = val }
+            noCmd globals { model | lastName = val }
 
         HandleChanged val ->
-            noCmd session { model | handle = val }
+            noCmd globals { model | handle = val }
 
         Submit ->
             let
                 cmd =
-                    session
+                    globals.session
                         |> UpdateUser.request model.firstName model.lastName model.handle model.email
                         |> Task.attempt Submitted
             in
-            ( ( { model | isSubmitting = True, errors = [] }, cmd ), session )
+            ( ( { model | isSubmitting = True, errors = [] }, cmd ), globals )
 
         Submitted (Ok ( newSession, UpdateUser.Success user )) ->
             let
                 userData =
                     User.getCachedData user
             in
-            noCmd newSession
+            noCmd { globals | session = newSession }
                 { model
                     | firstName = userData.firstName
                     , lastName = userData.lastName
@@ -145,17 +146,17 @@ update msg session model =
                 }
 
         Submitted (Ok ( newSession, UpdateUser.Invalid errors )) ->
-            noCmd newSession { model | isSubmitting = False, errors = errors }
+            noCmd { globals | session = newSession } { model | isSubmitting = False, errors = errors }
 
         Submitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         Submitted (Err _) ->
             -- TODO: handle unexpected exceptions
-            noCmd session { model | isSubmitting = False }
+            noCmd globals { model | isSubmitting = False }
 
         AvatarSelected ->
-            ( ( model, File.request "avatar" ), session )
+            ( ( model, File.request "avatar" ), globals )
 
         FileReceived data ->
             let
@@ -163,38 +164,38 @@ update msg session model =
                     File.init data
 
                 cmd =
-                    session
+                    globals.session
                         |> UpdateUserAvatar.request (File.getContents file)
                         |> Task.attempt AvatarSubmitted
             in
-            ( ( { model | newAvatar = Just file }, cmd ), session )
+            ( ( { model | newAvatar = Just file }, cmd ), globals )
 
         AvatarSubmitted (Ok ( newSession, UpdateUserAvatar.Success user )) ->
             let
                 userData =
                     User.getCachedData user
             in
-            noCmd newSession { model | avatarUrl = userData.avatarUrl }
+            noCmd { globals | session = newSession } { model | avatarUrl = userData.avatarUrl }
 
         AvatarSubmitted (Ok ( newSession, UpdateUserAvatar.Invalid errors )) ->
-            noCmd newSession { model | errors = errors }
+            noCmd { globals | session = newSession } { model | errors = errors }
 
         AvatarSubmitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         AvatarSubmitted (Err _) ->
             -- TODO: handle unexpected exceptions
-            noCmd session { model | isSubmitting = False }
+            noCmd globals { model | isSubmitting = False }
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
-redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-redirectToLogin session model =
-    ( ( model, Route.toLogin ), session )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 

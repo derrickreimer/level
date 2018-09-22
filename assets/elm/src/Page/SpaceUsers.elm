@@ -3,6 +3,7 @@ module Page.SpaceUsers exposing (Model, Msg(..), consumeEvent, init, setup, tear
 import Avatar
 import Connection exposing (Connection)
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -82,11 +83,11 @@ type Msg
     = NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         NoOp ->
-            ( ( model, Cmd.none ), session )
+            ( ( model, Cmd.none ), globals )
 
 
 

@@ -3,6 +3,7 @@ module Page.Spaces exposing (Model, Msg(..), consumeEvent, init, setup, subscrip
 import Avatar
 import Connection exposing (Connection)
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -75,11 +76,11 @@ type Msg
     = QueryChanged String
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         QueryChanged val ->
-            ( ( { model | query = val }, Cmd.none ), session )
+            ( ( { model | query = val }, Cmd.none ), globals )
 
 
 

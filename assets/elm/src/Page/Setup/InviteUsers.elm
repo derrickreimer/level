@@ -1,6 +1,7 @@
 module Page.Setup.InviteUsers exposing (ExternalMsg(..), Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -86,31 +87,32 @@ type ExternalMsg
     | NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session, ExternalMsg )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals, ExternalMsg )
+update msg globals model =
     case msg of
         Submit ->
             let
                 cmd =
-                    CompleteSetupStep.request (Space.id model.space) Space.InviteUsers False session
+                    globals.session
+                        |> CompleteSetupStep.request (Space.id model.space) Space.InviteUsers False
                         |> Task.attempt Advanced
             in
-            ( ( { model | isSubmitting = True }, cmd ), session, NoOp )
+            ( ( { model | isSubmitting = True }, cmd ), globals, NoOp )
 
         Advanced (Ok ( newSession, CompleteSetupStep.Success nextState )) ->
             -- TODO: Re-instate navigation to next state
-            ( ( model, Cmd.none ), newSession, SetupStateChanged nextState )
+            ( ( model, Cmd.none ), { globals | session = newSession }, SetupStateChanged nextState )
 
         Advanced (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         Advanced (Err _) ->
-            ( ( { model | isSubmitting = False }, Cmd.none ), session, NoOp )
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals, NoOp )
 
 
-redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session, ExternalMsg )
-redirectToLogin session model =
-    ( ( model, Route.toLogin ), session, NoOp )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals, ExternalMsg )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals, NoOp )
 
 
 

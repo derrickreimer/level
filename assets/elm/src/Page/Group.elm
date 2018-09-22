@@ -189,8 +189,8 @@ type Msg
     | PrivacyToggled (Result Session.Error ( Session, UpdateGroup.Response ))
 
 
-update : Msg -> Repo -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
-update msg repo globals ({ postComposer, nameEditor } as model) =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals ({ postComposer, nameEditor } as model) =
     case msg of
         NoOp ->
             noCmd globals model
@@ -249,11 +249,8 @@ update msg repo globals ({ postComposer, nameEditor } as model) =
 
         NameClicked ->
             let
-                group =
-                    Repo.getGroup repo model.group
-
                 newEditor =
-                    { nameEditor | state = Editing, value = group.name, errors = [] }
+                    { nameEditor | state = Editing, value = Group.name model.group, errors = [] }
 
                 cmd =
                     Cmd.batch

@@ -177,16 +177,6 @@ updatePage toPage toPageMsg model ( pageModel, pageCmd ) =
     )
 
 
-updatePageWithSession : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Session ) -> ( Model, Cmd Msg )
-updatePageWithSession toPage toPageMsg model ( ( newPageModel, pageCmd ), newSession ) =
-    ( { model
-        | session = newSession
-        , page = toPage newPageModel
-      }
-    , Cmd.map toPageMsg pageCmd
-    )
-
-
 updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Globals ) -> ( Model, Cmd Msg )
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
     ( { model
@@ -201,6 +191,10 @@ updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlo
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        globals =
+            Globals model.session model.repo model.newRepo
+    in
     case ( msg, model.page ) of
         ( UrlChange url, _ ) ->
             navigateTo (Route.fromUrl url) model
@@ -235,28 +229,28 @@ update msg model =
 
         ( SpacesMsg pageMsg, Spaces pageModel ) ->
             pageModel
-                |> Page.Spaces.update pageMsg model.session
-                |> updatePageWithSession Spaces SpacesMsg model
+                |> Page.Spaces.update pageMsg globals
+                |> updatePageWithGlobals Spaces SpacesMsg model
 
         ( NewSpaceMsg pageMsg, NewSpace pageModel ) ->
             pageModel
-                |> Page.NewSpace.update pageMsg model.session model.navKey
-                |> updatePageWithSession NewSpace NewSpaceMsg model
+                |> Page.NewSpace.update pageMsg globals model.navKey
+                |> updatePageWithGlobals NewSpace NewSpaceMsg model
 
         ( PostsMsg pageMsg, Posts pageModel ) ->
             pageModel
-                |> Page.Posts.update pageMsg (Globals model.session model.repo model.newRepo)
+                |> Page.Posts.update pageMsg globals
                 |> updatePageWithGlobals Posts PostsMsg model
 
         ( InboxMsg pageMsg, Inbox pageModel ) ->
             pageModel
-                |> Page.Inbox.update pageMsg (Globals model.session model.repo model.newRepo)
+                |> Page.Inbox.update pageMsg globals
                 |> updatePageWithGlobals Inbox InboxMsg model
 
         ( SetupCreateGroupsMsg pageMsg, SetupCreateGroups pageModel ) ->
             let
-                ( ( newPageModel, pageCmd ), session, externalMsg ) =
-                    Page.Setup.CreateGroups.update pageMsg model.session pageModel
+                ( ( newPageModel, pageCmd ), newGlobals, externalMsg ) =
+                    Page.Setup.CreateGroups.update pageMsg globals pageModel
 
                 ( newModel, cmd ) =
                     case externalMsg of
@@ -269,7 +263,8 @@ update msg model =
                             ( model, Cmd.none )
             in
             ( { newModel
-                | session = session
+                | session = newGlobals.session
+                , newRepo = newGlobals.newRepo
                 , page = SetupCreateGroups newPageModel
               }
             , Cmd.batch
@@ -280,8 +275,8 @@ update msg model =
 
         ( SetupInviteUsersMsg pageMsg, SetupInviteUsers pageModel ) ->
             let
-                ( ( newPageModel, pageCmd ), session, externalMsg ) =
-                    Page.Setup.InviteUsers.update pageMsg model.session pageModel
+                ( ( newPageModel, pageCmd ), newGlobals, externalMsg ) =
+                    Page.Setup.InviteUsers.update pageMsg globals pageModel
 
                 ( newModel, cmd ) =
                     case externalMsg of
@@ -294,7 +289,8 @@ update msg model =
                             ( model, Cmd.none )
             in
             ( { newModel
-                | session = session
+                | session = newGlobals.session
+                , newRepo = newGlobals.newRepo
                 , page = SetupInviteUsers newPageModel
               }
             , Cmd.batch
@@ -305,38 +301,38 @@ update msg model =
 
         ( SpaceUsersMsg pageMsg, SpaceUsers pageModel ) ->
             pageModel
-                |> Page.SpaceUsers.update pageMsg model.session
-                |> updatePageWithSession SpaceUsers SpaceUsersMsg model
+                |> Page.SpaceUsers.update pageMsg globals
+                |> updatePageWithGlobals SpaceUsers SpaceUsersMsg model
 
         ( GroupsMsg pageMsg, Groups pageModel ) ->
             pageModel
-                |> Page.Groups.update pageMsg model.session
-                |> updatePageWithSession Groups GroupsMsg model
+                |> Page.Groups.update pageMsg globals
+                |> updatePageWithGlobals Groups GroupsMsg model
 
         ( GroupMsg pageMsg, Group pageModel ) ->
             pageModel
-                |> Page.Group.update pageMsg model.repo (Globals model.session model.repo model.newRepo)
+                |> Page.Group.update pageMsg globals
                 |> updatePageWithGlobals Group GroupMsg model
 
         ( NewGroupMsg pageMsg, NewGroup pageModel ) ->
             pageModel
-                |> Page.NewGroup.update pageMsg model.session model.navKey
-                |> updatePageWithSession NewGroup NewGroupMsg model
+                |> Page.NewGroup.update pageMsg globals model.navKey
+                |> updatePageWithGlobals NewGroup NewGroupMsg model
 
         ( PostMsg pageMsg, Post pageModel ) ->
             pageModel
-                |> Page.Post.update pageMsg (Globals model.session model.repo model.newRepo)
+                |> Page.Post.update pageMsg globals
                 |> updatePageWithGlobals Post PostMsg model
 
         ( UserSettingsMsg pageMsg, UserSettings pageModel ) ->
             pageModel
-                |> Page.UserSettings.update pageMsg model.session
-                |> updatePageWithSession UserSettings UserSettingsMsg model
+                |> Page.UserSettings.update pageMsg globals
+                |> updatePageWithGlobals UserSettings UserSettingsMsg model
 
         ( SpaceSettingsMsg pageMsg, SpaceSettings pageModel ) ->
             pageModel
-                |> Page.SpaceSettings.update pageMsg model.session
-                |> updatePageWithSession SpaceSettings SpaceSettingsMsg model
+                |> Page.SpaceSettings.update pageMsg globals
+                |> updatePageWithGlobals SpaceSettings SpaceSettingsMsg model
 
         ( SocketAbort value, _ ) ->
             ( model, Cmd.none )

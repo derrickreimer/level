@@ -2,6 +2,7 @@ module Page.Groups exposing (Model, Msg(..), consumeEvent, init, setup, teardown
 
 import Connection exposing (Connection)
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembershipState(..))
 import Html exposing (..)
@@ -83,11 +84,11 @@ type Msg
     = NoOp
 
 
-update : Msg -> Session -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         NoOp ->
-            ( ( model, Cmd.none ), session )
+            ( ( model, Cmd.none ), globals )
 
 
 

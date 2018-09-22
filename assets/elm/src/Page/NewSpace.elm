@@ -4,6 +4,7 @@ import Avatar
 import Browser.Navigation as Nav
 import Connection exposing (Connection)
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onBlur, onClick, onInput)
@@ -89,32 +90,36 @@ type Msg
     | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
 
 
-update : Msg -> Session -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session navKey model =
+update : Msg -> Globals -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals navKey model =
     case msg of
         NameChanged val ->
-            ( ( { model | name = val, slug = slugify val }, Cmd.none ), session )
+            ( ( { model | name = val, slug = slugify val }, Cmd.none ), globals )
 
         SlugChanged val ->
-            ( ( { model | slug = val }, Cmd.none ), session )
+            ( ( { model | slug = val }, Cmd.none ), globals )
 
         Submit ->
             let
                 cmd =
-                    session
+                    globals.session
                         |> CreateSpace.request model.name model.slug
                         |> Task.attempt Submitted
             in
-            ( ( { model | formState = Submitting }, cmd ), session )
+            ( ( { model | formState = Submitting }, cmd ), globals )
 
-        Submitted (Ok ( _, CreateSpace.Success space )) ->
-            ( ( model, Route.pushUrl navKey (Route.SetupCreateGroups <| Space.slug space) ), session )
+        Submitted (Ok ( newSession, CreateSpace.Success space )) ->
+            ( ( model, Route.pushUrl navKey (Route.SetupCreateGroups <| Space.slug space) )
+            , { globals | session = newSession }
+            )
 
-        Submitted (Ok ( _, CreateSpace.Invalid errors )) ->
-            ( ( { model | errors = errors, formState = Idle }, Cmd.none ), session )
+        Submitted (Ok ( newSession, CreateSpace.Invalid errors )) ->
+            ( ( { model | errors = errors, formState = Idle }, Cmd.none )
+            , { globals | session = newSession }
+            )
 
         Submitted (Err _) ->
-            ( ( { model | formState = Idle }, Cmd.none ), session )
+            ( ( { model | formState = Idle }, Cmd.none ), globals )
 
 
 specialCharRegex : Regex

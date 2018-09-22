@@ -2,6 +2,7 @@ module Page.NewGroup exposing (Model, Msg(..), consumeEvent, init, setup, teardo
 
 import Browser.Navigation as Nav
 import Event exposing (Event)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -95,52 +96,54 @@ type Msg
     | NoOp
 
 
-update : Msg -> Session -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Session )
-update msg session navKey model =
+update : Msg -> Globals -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals navKey model =
     case msg of
         NameChanged val ->
-            noCmd session { model | name = val }
+            noCmd globals { model | name = val }
 
         Submit ->
             let
                 cmd =
-                    session
+                    globals.session
                         |> CreateGroup.request (Space.id model.space) model.name model.isPrivate
                         |> Task.attempt Submitted
             in
-            ( ( { model | isSubmitting = True }, cmd ), session )
+            ( ( { model | isSubmitting = True }, cmd ), globals )
 
         Submitted (Ok ( newSession, CreateGroup.Success group )) ->
             let
                 redirectTo =
                     Route.Group (Route.Group.Root (Space.slug model.space) (Group.id group))
             in
-            ( ( model, Route.pushUrl navKey redirectTo ), newSession )
+            ( ( model, Route.pushUrl navKey redirectTo ), { globals | session = newSession } )
 
         Submitted (Ok ( newSession, CreateGroup.Invalid errors )) ->
-            ( ( { model | isSubmitting = False, errors = errors }, Cmd.none ), newSession )
+            ( ( { model | isSubmitting = False, errors = errors }, Cmd.none )
+            , { globals | session = newSession }
+            )
 
         Submitted (Err Session.Expired) ->
-            redirectToLogin session model
+            redirectToLogin globals model
 
         Submitted (Err _) ->
-            noCmd session model
+            noCmd globals model
 
         PrivacyToggled ->
-            noCmd session { model | isPrivate = not model.isPrivate }
+            noCmd globals { model | isPrivate = not model.isPrivate }
 
         NoOp ->
-            noCmd session model
+            noCmd globals model
 
 
-noCmd : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-noCmd session model =
-    ( ( model, Cmd.none ), session )
+noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+noCmd globals model =
+    ( ( model, Cmd.none ), globals )
 
 
-redirectToLogin : Session -> Model -> ( ( Model, Cmd Msg ), Session )
-redirectToLogin session model =
-    ( ( model, Route.toLogin ), session )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 
