@@ -42,20 +42,20 @@ title =
 -- LIFECYCLE
 
 
-init : Session -> Task Session.Error ( Session, Model )
-init session =
-    session
+init : Globals -> Task Session.Error ( Globals, Model )
+init globals =
+    globals.session
         |> SpacesInit.request 100
-        |> Task.andThen buildModel
+        |> Task.map (buildModel globals)
 
 
-buildModel : ( Session, SpacesInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { user, spaces } ) =
+buildModel : Globals -> ( Session, SpacesInit.Response ) -> ( Globals, Model )
+buildModel globals ( newSession, { user, spaces } ) =
     let
         model =
             Model user spaces ""
     in
-    Task.succeed ( session, model )
+    ( { globals | session = newSession }, model )
 
 
 setup : Model -> Cmd Msg

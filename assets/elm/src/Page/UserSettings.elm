@@ -53,32 +53,29 @@ title =
 -- LIFECYCLE
 
 
-init : Session -> Task Session.Error ( Session, Model )
-init session =
-    session
+init : Globals -> Task Session.Error ( Globals, Model )
+init globals =
+    globals.session
         |> UserSettingsInit.request
-        |> Task.andThen buildModel
+        |> Task.map (buildModel globals)
 
 
-buildModel : ( Session, UserSettingsInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { user } ) =
+buildModel : Globals -> ( Session, UserSettingsInit.Response ) -> ( Globals, Model )
+buildModel globals ( newSession, resp ) =
     let
-        userData =
-            User.getCachedData user
-
         model =
             Model
-                user
-                userData.firstName
-                userData.lastName
-                userData.handle
-                userData.email
-                userData.avatarUrl
+                resp.user
+                (User.firstName resp.user)
+                (User.lastName resp.user)
+                (User.handle resp.user)
+                (User.email resp.user)
+                (User.avatarUrl resp.user)
                 []
                 False
                 Nothing
     in
-    Task.succeed ( session, model )
+    ( { globals | session = newSession }, model )
 
 
 setup : Model -> Cmd Msg

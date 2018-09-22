@@ -1,4 +1,4 @@
-module User exposing (Record, User, decoder, fragment, getCachedData)
+module User exposing (Record, User, avatarUrl, decoder, email, firstName, fragment, getCachedData, handle, id, lastName)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
@@ -38,6 +38,40 @@ fragment =
         }
         """
         []
+
+
+
+-- ACCESSORS
+
+
+id : User -> String
+id (User data) =
+    data.id
+
+
+email : User -> String
+email (User data) =
+    data.email
+
+
+firstName : User -> String
+firstName (User data) =
+    data.firstName
+
+
+lastName : User -> String
+lastName (User data) =
+    data.lastName
+
+
+handle : User -> String
+handle (User data) =
+    data.handle
+
+
+avatarUrl : User -> Maybe String
+avatarUrl (User data) =
+    data.avatarUrl
 
 
 

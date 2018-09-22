@@ -53,20 +53,20 @@ title =
 -- LIFECYCLE
 
 
-init : Session -> Task Session.Error ( Session, Model )
-init session =
-    session
+init : Globals -> Task Session.Error ( Globals, Model )
+init globals =
+    globals.session
         |> Viewer.request
-        |> Task.andThen buildModel
+        |> Task.map (buildModel globals)
 
 
-buildModel : ( Session, Viewer.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { viewer } ) =
+buildModel : Globals -> ( Session, Viewer.Response ) -> ( Globals, Model )
+buildModel globals ( newSession, { viewer } ) =
     let
         model =
             Model viewer "" "" [] Idle
     in
-    Task.succeed ( session, model )
+    ( { globals | session = newSession }, model )
 
 
 setup : Model -> Cmd Msg

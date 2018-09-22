@@ -413,19 +413,19 @@ type Page
 
 
 type PageInit
-    = SpacesInit (Result Session.Error ( Session, Page.Spaces.Model ))
-    | NewSpaceInit (Result Session.Error ( Session, Page.NewSpace.Model ))
-    | PostsInit (Result Session.Error ( Session, Page.Posts.Model ))
+    = SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
+    | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
+    | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
     | InboxInit (Result Session.Error ( Globals, Page.Inbox.Model ))
-    | SpaceUsersInit (Result Session.Error ( Session, Page.SpaceUsers.Model ))
-    | GroupsInit (Result Session.Error ( Session, Page.Groups.Model ))
-    | GroupInit (Result Session.Error ( Session, Page.Group.Model ))
-    | NewGroupInit (Result Session.Error ( Session, Page.NewGroup.Model ))
+    | SpaceUsersInit (Result Session.Error ( Globals, Page.SpaceUsers.Model ))
+    | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
+    | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
+    | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
-    | UserSettingsInit (Result Session.Error ( Session, Page.UserSettings.Model ))
-    | SpaceSettingsInit (Result Session.Error ( Session, Page.SpaceSettings.Model ))
-    | SetupCreateGroupsInit (Result Session.Error ( Session, Page.Setup.CreateGroups.Model ))
-    | SetupInviteUsersInit (Result Session.Error ( Session, Page.Setup.InviteUsers.Model ))
+    | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
+    | SpaceSettingsInit (Result Session.Error ( Globals, Page.SpaceSettings.Model ))
+    | SetupCreateGroupsInit (Result Session.Error ( Globals, Page.Setup.CreateGroups.Model ))
+    | SetupInviteUsersInit (Result Session.Error ( Globals, Page.Setup.InviteUsers.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -440,6 +440,10 @@ transition model toMsg task =
 
 navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
+    let
+        globals =
+            Globals model.session model.repo model.newRepo
+    in
     case maybeRoute of
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
@@ -448,67 +452,67 @@ navigateTo maybeRoute model =
             navigateTo (Just <| Route.Inbox (Route.Inbox.Root spaceSlug)) model
 
         Just (Route.SetupCreateGroups spaceSlug) ->
-            model.session
+            globals
                 |> Page.Setup.CreateGroups.init spaceSlug
                 |> transition model SetupCreateGroupsInit
 
         Just (Route.SetupInviteUsers spaceSlug) ->
-            model.session
+            globals
                 |> Page.Setup.InviteUsers.init spaceSlug
                 |> transition model SetupInviteUsersInit
 
         Just Route.Spaces ->
-            model.session
+            globals
                 |> Page.Spaces.init
                 |> transition model SpacesInit
 
         Just Route.NewSpace ->
-            model.session
+            globals
                 |> Page.NewSpace.init
                 |> transition model NewSpaceInit
 
         Just (Route.Posts params) ->
-            model.session
+            globals
                 |> Page.Posts.init params
                 |> transition model PostsInit
 
         Just (Route.Inbox params) ->
-            Globals model.session model.repo model.newRepo
+            globals
                 |> Page.Inbox.init params
                 |> transition model InboxInit
 
         Just (Route.SpaceUsers params) ->
-            model.session
+            globals
                 |> Page.SpaceUsers.init params
                 |> transition model SpaceUsersInit
 
         Just (Route.Groups params) ->
-            model.session
+            globals
                 |> Page.Groups.init params
                 |> transition model GroupsInit
 
         Just (Route.Group params) ->
-            model.session
+            globals
                 |> Page.Group.init params
                 |> transition model GroupInit
 
         Just (Route.NewGroup spaceSlug) ->
-            model.session
+            globals
                 |> Page.NewGroup.init spaceSlug
                 |> transition model NewGroupInit
 
         Just (Route.Post spaceSlug postId) ->
-            Globals model.session model.repo model.newRepo
+            globals
                 |> Page.Post.init spaceSlug postId
                 |> transition model (PostInit postId)
 
         Just (Route.SpaceSettings spaceSlug) ->
-            model.session
+            globals
                 |> Page.SpaceSettings.init spaceSlug
                 |> transition model SpaceSettingsInit
 
         Just Route.UserSettings ->
-            model.session
+            globals
                 |> Page.UserSettings.init
                 |> transition model UserSettingsInit
 
@@ -587,7 +591,7 @@ setupPage pageInit model =
     in
     case pageInit of
         SpacesInit (Ok result) ->
-            perform Page.Spaces.setup Spaces SpacesMsg model result
+            performWithGlobals Page.Spaces.setup Spaces SpacesMsg model result
 
         SpacesInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -596,7 +600,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         NewSpaceInit (Ok result) ->
-            perform Page.NewSpace.setup NewSpace NewSpaceMsg model result
+            performWithGlobals Page.NewSpace.setup NewSpace NewSpaceMsg model result
 
         NewSpaceInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -614,7 +618,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         PostsInit (Ok result) ->
-            perform Page.Posts.setup Posts PostsMsg model result
+            performWithGlobals Page.Posts.setup Posts PostsMsg model result
 
         PostsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -623,7 +627,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         SpaceUsersInit (Ok result) ->
-            perform Page.SpaceUsers.setup SpaceUsers SpaceUsersMsg model result
+            performWithGlobals Page.SpaceUsers.setup SpaceUsers SpaceUsersMsg model result
 
         SpaceUsersInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -632,7 +636,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         GroupsInit (Ok result) ->
-            perform Page.Groups.setup Groups GroupsMsg model result
+            performWithGlobals Page.Groups.setup Groups GroupsMsg model result
 
         GroupsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -641,7 +645,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         GroupInit (Ok result) ->
-            perform Page.Group.setup Group GroupMsg model result
+            performWithGlobals Page.Group.setup Group GroupMsg model result
 
         GroupInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -650,7 +654,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         NewGroupInit (Ok result) ->
-            perform Page.NewGroup.setup NewGroup NewGroupMsg model result
+            performWithGlobals Page.NewGroup.setup NewGroup NewGroupMsg model result
 
         NewGroupInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -658,9 +662,12 @@ setupPage pageInit model =
         NewGroupInit (Err _) ->
             ( model, Cmd.none )
 
-        PostInit _ (Ok ( newGlobals, pageModel )) ->
-            ( newGlobals, pageModel )
-                |> performWithGlobals (Page.Post.setup newGlobals) Post PostMsg model
+        PostInit _ (Ok result) ->
+            let
+                ( newGlobals, pageModel ) =
+                    result
+            in
+            performWithGlobals (Page.Post.setup newGlobals) Post PostMsg model result
 
         PostInit _ (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -669,7 +676,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         UserSettingsInit (Ok result) ->
-            perform Page.UserSettings.setup UserSettings UserSettingsMsg model result
+            performWithGlobals Page.UserSettings.setup UserSettings UserSettingsMsg model result
 
         UserSettingsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -678,7 +685,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         SpaceSettingsInit (Ok result) ->
-            perform Page.SpaceSettings.setup SpaceSettings SpaceSettingsMsg model result
+            performWithGlobals Page.SpaceSettings.setup SpaceSettings SpaceSettingsMsg model result
 
         SpaceSettingsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -687,7 +694,11 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         SetupCreateGroupsInit (Ok result) ->
-            perform Page.Setup.CreateGroups.setup SetupCreateGroups SetupCreateGroupsMsg model result
+            performWithGlobals Page.Setup.CreateGroups.setup
+                SetupCreateGroups
+                SetupCreateGroupsMsg
+                model
+                result
 
         SetupCreateGroupsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -696,7 +707,11 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         SetupInviteUsersInit (Ok result) ->
-            perform Page.Setup.InviteUsers.setup SetupInviteUsers SetupInviteUsersMsg model result
+            performWithGlobals Page.Setup.InviteUsers.setup
+                SetupInviteUsers
+                SetupInviteUsersMsg
+                model
+                result
 
         SetupInviteUsersInit (Err Session.Expired) ->
             ( model, Route.toLogin )

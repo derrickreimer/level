@@ -92,31 +92,31 @@ title repo { group } =
 -- LIFECYCLE
 
 
-init : Params -> Session -> Task Session.Error ( Session, Model )
-init params session =
-    session
+init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init params globals =
+    globals.session
         |> GroupInit.request params 10
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel params)
+        |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel params ( ( session, { viewer, space, bookmarks, group, posts, featuredMemberships } ), now ) =
+buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel params globals ( ( newSession, resp ), now ) =
     let
         model =
             Model
                 params
-                viewer
-                space
-                bookmarks
-                group
-                posts
-                featuredMemberships
+                resp.viewer
+                resp.space
+                resp.bookmarks
+                resp.group
+                resp.posts
+                resp.featuredMemberships
                 now
                 (FieldEditor NotEditing "" [])
                 (PostComposer "" False)
     in
-    Task.succeed ( session, model )
+    ( { globals | session = newSession }, model )
 
 
 setup : Model -> Cmd Msg

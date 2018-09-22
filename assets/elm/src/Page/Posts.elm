@@ -61,17 +61,19 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Session -> Task Session.Error ( Session, Model )
-init params session =
-    session
+init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init params globals =
+    globals.session
         |> PostsInit.request params
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.andThen (buildModel params)
+        |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> ( ( Session, PostsInit.Response ), ( Zone, Posix ) ) -> Task Session.Error ( Session, Model )
-buildModel params ( ( session, { viewer, space, bookmarks, featuredUsers, posts } ), now ) =
-    Task.succeed ( session, Model params viewer space bookmarks featuredUsers posts now )
+buildModel : Params -> Globals -> ( ( Session, PostsInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel params globals ( ( newSession, resp ), now ) =
+    ( { globals | session = newSession }
+    , Model params resp.viewer resp.space resp.bookmarks resp.featuredUsers resp.posts now
+    )
 
 
 setup : Model -> Cmd Msg

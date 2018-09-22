@@ -53,33 +53,30 @@ title =
 -- LIFECYCLE
 
 
-init : String -> Session -> Task Session.Error ( Session, Model )
-init spaceSlug session =
-    session
+init : String -> Globals -> Task Session.Error ( Globals, Model )
+init spaceSlug globals =
+    globals.session
         |> SetupInit.request spaceSlug
-        |> Task.andThen buildModel
+        |> Task.map (buildModel globals)
 
 
-buildModel : ( Session, SetupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { viewer, space, bookmarks } ) =
+buildModel : Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel globals ( newSession, resp ) =
     let
-        spaceData =
-            Space.getCachedData space
-
         model =
             Model
-                viewer
-                space
-                bookmarks
-                spaceData.id
-                spaceData.name
-                spaceData.slug
-                spaceData.avatarUrl
+                resp.viewer
+                resp.space
+                resp.bookmarks
+                (Space.id resp.space)
+                (Space.name resp.space)
+                (Space.slug resp.space)
+                (Space.avatarUrl resp.space)
                 []
                 False
                 Nothing
     in
-    Task.succeed ( session, model )
+    ( { globals | session = newSession }, model )
 
 
 setup : Model -> Cmd Msg

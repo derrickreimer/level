@@ -53,16 +53,18 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Session -> Task Session.Error ( Session, Model )
-init params session =
-    session
+init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init params globals =
+    globals.session
         |> SpaceUsersInit.request params 20
-        |> Task.andThen (buildModel params)
+        |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> ( Session, SpaceUsersInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel params ( session, { viewer, space, bookmarks, spaceUsers } ) =
-    Task.succeed ( session, Model viewer space bookmarks spaceUsers params )
+buildModel : Params -> Globals -> ( Session, SpaceUsersInit.Response ) -> ( Globals, Model )
+buildModel params globals ( newSession, resp ) =
+    ( { globals | session = newSession }
+    , Model resp.viewer resp.space resp.bookmarks resp.spaceUsers params
+    )
 
 
 setup : Model -> Cmd Msg

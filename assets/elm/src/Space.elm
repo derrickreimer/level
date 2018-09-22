@@ -1,4 +1,4 @@
-module Space exposing (Record, SetupState(..), Space, avatar, decoder, fragment, getCachedData, id, name, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
+module Space exposing (Record, SetupState(..), Space, avatar, avatarUrl, decoder, fragment, getCachedData, id, name, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -68,6 +68,11 @@ name (Space data) =
 slug : Space -> String
 slug (Space data) =
     data.slug
+
+
+avatarUrl : Space -> Maybe String
+avatarUrl (Space data) =
+    data.avatarUrl
 
 
 avatar : Avatar.Size -> Space -> Html msg

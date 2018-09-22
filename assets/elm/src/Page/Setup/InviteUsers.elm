@@ -43,15 +43,15 @@ title =
 -- LIFECYCLE
 
 
-init : String -> Session -> Task Session.Error ( Session, Model )
-init spaceSlug session =
-    session
+init : String -> Globals -> Task Session.Error ( Globals, Model )
+init spaceSlug globals =
+    globals.session
         |> SetupInit.request spaceSlug
-        |> Task.andThen buildModel
+        |> Task.map (buildModel globals)
 
 
-buildModel : ( Session, SetupInit.Response ) -> Task Session.Error ( Session, Model )
-buildModel ( session, { viewer, space, bookmarks } ) =
+buildModel : Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel globals ( newSession, { viewer, space, bookmarks } ) =
     let
         model =
             Model
@@ -60,7 +60,7 @@ buildModel ( session, { viewer, space, bookmarks } ) =
                 bookmarks
                 False
     in
-    Task.succeed ( session, model )
+    ( { globals | session = newSession }, model )
 
 
 setup : Model -> Cmd Msg
