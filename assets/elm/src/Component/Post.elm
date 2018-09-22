@@ -255,13 +255,19 @@ update msg spaceId globals model =
                 Nothing ->
                     noCmd globals model
 
-        PreviousRepliesFetched (Ok ( newSession, response )) ->
+        PreviousRepliesFetched (Ok ( newSession, resp )) ->
             let
                 maybeFirstReplyId =
                     Connection.head model.replyIds
 
                 newReplyIds =
-                    Connection.prependConnection (Connection.map Reply.id response.replies) model.replyIds
+                    Connection.prependConnection resp.replyIds model.replyIds
+
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , newRepo = NewRepo.union resp.repo globals.newRepo
+                    }
 
                 cmd =
                     case maybeFirstReplyId of
@@ -271,7 +277,7 @@ update msg spaceId globals model =
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | replyIds = newReplyIds }, cmd ), { globals | session = newSession } )
+            ( ( { model | replyIds = newReplyIds }, cmd ), newGlobals )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin globals model

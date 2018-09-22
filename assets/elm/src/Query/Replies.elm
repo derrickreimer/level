@@ -2,15 +2,28 @@ module Query.Replies exposing (Response, request)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, field)
 import Json.Encode as Encode
+import NewRepo exposing (NewRepo)
 import Reply exposing (Reply)
 import Session exposing (Session)
+import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 
 type alias Response =
-    { replies : Connection Reply
+    { replyIds : Connection String
+    , repo : NewRepo
+    }
+
+
+type alias Data =
+    Connection ResolvedReply
+
+
+type alias ResolvedReply =
+    { reply : Reply
+    , author : SpaceUser
     }
 
 
@@ -48,13 +61,47 @@ variables spaceId postId before limit =
             ]
 
 
-decoder : Decoder Response
+resolvedReplyDecoder : Decoder ResolvedReply
+resolvedReplyDecoder =
+    Decode.map2 ResolvedReply
+        Reply.decoder
+        (field "author" SpaceUser.decoder)
+
+
+decoder : Decoder Data
 decoder =
     Decode.at [ "data", "space", "post", "replies" ] <|
-        Decode.map Response (Connection.decoder Reply.decoder)
+        Connection.decoder resolvedReplyDecoder
+
+
+setResolvedRepliesOnRepo : Connection ResolvedReply -> NewRepo -> NewRepo
+setResolvedRepliesOnRepo resolvedReplies repo =
+    let
+        reducer resolvedReply acc =
+            acc
+                |> NewRepo.setReply resolvedReply.reply
+                |> NewRepo.setSpaceUser resolvedReply.author
+    in
+    List.foldr reducer repo (Connection.toList resolvedReplies)
+
+
+buildResponse : ( Session, Data ) -> ( Session, Response )
+buildResponse ( session, data ) =
+    let
+        repo =
+            NewRepo.empty
+                |> setResolvedRepliesOnRepo data
+
+        resp =
+            Response
+                (Connection.map (Reply.id << .reply) data)
+                repo
+    in
+    ( session, resp )
 
 
 request : String -> String -> String -> Int -> Session -> Task Session.Error ( Session, Response )
 request spaceId postId before limit session =
-    Session.request session <|
-        GraphQL.request document (variables spaceId postId before limit) decoder
+    GraphQL.request document (variables spaceId postId before limit) decoder
+        |> Session.request session
+        |> Task.map buildResponse
