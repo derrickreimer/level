@@ -138,8 +138,8 @@ decoder =
             (Decode.at [ "space", "posts" ] <| Connection.decoder resolvedPostDecoder)
 
 
-setResolvedPostsOnRepo : Connection ResolvedPost -> NewRepo -> NewRepo
-setResolvedPostsOnRepo resolvedPosts repo =
+addPostsToRepo : Connection ResolvedPost -> NewRepo -> NewRepo
+addPostsToRepo resolvedPosts repo =
     let
         reducer resolvedPost acc =
             acc
@@ -151,8 +151,8 @@ setResolvedPostsOnRepo resolvedPosts repo =
     List.foldr reducer repo (Connection.toList resolvedPosts)
 
 
-resolvedPostsToIds : Connection ResolvedPost -> Connection ( String, Connection String )
-resolvedPostsToIds resolvedPosts =
+unresolvePosts : Connection ResolvedPost -> Connection ( String, Connection String )
+unresolvePosts resolvedPosts =
     let
         mapper resolvedPost =
             ( Post.id resolvedPost.post
@@ -171,7 +171,7 @@ buildResponse ( session, data ) =
                 |> NewRepo.setSpaceUser data.viewer
                 |> NewRepo.setGroups data.bookmarks
                 |> NewRepo.setSpaceUsers data.featuredUsers
-                |> setResolvedPostsOnRepo data.resolvedPosts
+                |> addPostsToRepo data.resolvedPosts
 
         resp =
             Response
@@ -179,7 +179,7 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
                 (List.map SpaceUser.id data.featuredUsers)
-                (resolvedPostsToIds data.resolvedPosts)
+                (unresolvePosts data.resolvedPosts)
                 repo
     in
     ( session, resp )

@@ -74,8 +74,8 @@ decoder =
         Connection.decoder resolvedReplyDecoder
 
 
-setResolvedRepliesOnRepo : Connection ResolvedReply -> NewRepo -> NewRepo
-setResolvedRepliesOnRepo resolvedReplies repo =
+addRepliesToRepo : Connection ResolvedReply -> NewRepo -> NewRepo
+addRepliesToRepo resolvedReplies repo =
     let
         reducer resolvedReply acc =
             acc
@@ -88,14 +88,10 @@ setResolvedRepliesOnRepo resolvedReplies repo =
 buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
-        repo =
-            NewRepo.empty
-                |> setResolvedRepliesOnRepo data
-
         resp =
             Response
                 (Connection.map (Reply.id << .reply) data)
-                repo
+                (addRepliesToRepo data NewRepo.empty)
     in
     ( session, resp )
 
