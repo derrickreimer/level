@@ -654,15 +654,15 @@ nameErrors editor =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ paginationView model.spaceId model.groupId model.postComps
+        [ paginationView model.params model.postComps
         ]
 
 
-paginationView : String -> String -> Connection a -> Html Msg
-paginationView spaceId groupId connection =
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
     Pagination.view connection
-        (Route.Group << Before spaceId groupId)
-        (Route.Group << After spaceId groupId)
+        (Route.Group << Route.Group.before params)
+        (Route.Group << Route.Group.after params)
 
 
 bookmarkButtonView : Bool -> Html Msg

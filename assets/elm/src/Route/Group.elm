@@ -1,4 +1,4 @@
-module Route.Group exposing (Params(..), parser, toString)
+module Route.Group exposing (Params(..), after, before, parser, toString)
 
 import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, map, oneOf, s, string)
@@ -30,3 +30,42 @@ toString params =
 
         Before slug id cursor ->
             absolute [ slug, "groups", id, "before", cursor ] []
+
+
+
+-- MUTATORS
+
+
+after : Params -> String -> Params
+after params cursor =
+    let
+        ( slug, id ) =
+            staticParts params
+    in
+    After slug id cursor
+
+
+before : Params -> String -> Params
+before params cursor =
+    let
+        ( slug, id ) =
+            staticParts params
+    in
+    Before slug id cursor
+
+
+
+-- INTERNAL
+
+
+staticParts : Params -> ( String, String )
+staticParts params =
+    case params of
+        Root slug id ->
+            ( slug, id )
+
+        After slug id _ ->
+            ( slug, id )
+
+        Before slug id _ ->
+            ( slug, id )
