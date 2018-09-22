@@ -9,6 +9,7 @@ import Json.Encode as Encode
 import NewRepo exposing (NewRepo)
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPost exposing (ResolvedPost)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -19,8 +20,7 @@ type alias Response =
     { viewerId : String
     , spaceId : String
     , bookmarkIds : List String
-    , postId : String
-    , replyIds : Connection String
+    , postWithRepliesId : ( String, Connection String )
     , repo : NewRepo
     }
 
@@ -29,10 +29,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , post : Post
-    , author : SpaceUser
-    , groups : List Group
-    , replies : Connection Reply
+    , resolvedPost : ResolvedPost
     }
 
 
@@ -81,14 +78,11 @@ variables spaceSlug postId =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map7 Data
+        Decode.map4 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
-            (Decode.at [ "space", "post" ] Post.decoder)
-            (Decode.at [ "space", "post", "author" ] SpaceUser.decoder)
-            (Decode.at [ "space", "post", "groups" ] (list Group.decoder))
-            (Decode.at [ "space", "post", "replies" ] (Connection.decoder Reply.decoder))
+            (Decode.at [ "space", "post" ] ResolvedPost.decoder)
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -98,19 +92,15 @@ buildResponse ( session, data ) =
             NewRepo.empty
                 |> NewRepo.setSpace data.space
                 |> NewRepo.setSpaceUser data.viewer
-                |> NewRepo.setSpaceUser data.author
-                |> NewRepo.setGroups data.groups
                 |> NewRepo.setGroups data.bookmarks
-                |> NewRepo.setPost data.post
-                |> NewRepo.setReplies (Connection.toList data.replies)
+                |> ResolvedPost.addToRepo data.resolvedPost
 
         resp =
             Response
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
-                (Post.id data.post)
-                (Connection.map Reply.id data.replies)
+                (ResolvedPost.unresolve data.resolvedPost)
                 repo
     in
     ( session, resp )

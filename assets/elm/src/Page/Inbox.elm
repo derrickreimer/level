@@ -92,7 +92,7 @@ buildModel : Globals -> Params -> ( ( Session, InboxInit.Response ), ( Zone, Pos
 buildModel globals params ( ( newSession, resp ), now ) =
     let
         postComps =
-            Connection.map buildPostComponent resp.postsWithRepliesIds
+            Connection.map buildPostComponent resp.postWithRepliesIds
 
         newGlobals =
             { globals

@@ -9,6 +9,7 @@ import Json.Encode as Encode
 import NewRepo exposing (NewRepo)
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPost exposing (ResolvedPost)
 import Route.Inbox exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
@@ -21,7 +22,7 @@ type alias Response =
     , spaceId : String
     , bookmarkIds : List String
     , featuredUserIds : List String
-    , postsWithRepliesIds : Connection ( String, Connection String )
+    , postWithRepliesIds : Connection ( String, Connection String )
     , repo : NewRepo
     }
 
@@ -32,14 +33,6 @@ type alias Data =
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
     , resolvedPosts : Connection ResolvedPost
-    }
-
-
-type alias ResolvedPost =
-    { post : Post
-    , replies : Connection Reply
-    , author : SpaceUser
-    , groups : List Group
     }
 
 
@@ -118,15 +111,6 @@ variables params =
     Just (Encode.object values)
 
 
-resolvedPostDecoder : Decoder ResolvedPost
-resolvedPostDecoder =
-    Decode.map4 ResolvedPost
-        Post.decoder
-        (field "replies" (Connection.decoder Reply.decoder))
-        (field "author" SpaceUser.decoder)
-        (field "groups" (list Group.decoder))
-
-
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
@@ -135,31 +119,17 @@ decoder =
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
-            (Decode.at [ "space", "posts" ] <| Connection.decoder resolvedPostDecoder)
+            (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPost.decoder)
 
 
 addPostsToRepo : Connection ResolvedPost -> NewRepo -> NewRepo
 addPostsToRepo resolvedPosts repo =
-    let
-        reducer resolvedPost acc =
-            acc
-                |> NewRepo.setPost resolvedPost.post
-                |> NewRepo.setReplies (Connection.toList resolvedPost.replies)
-                |> NewRepo.setSpaceUser resolvedPost.author
-                |> NewRepo.setGroups resolvedPost.groups
-    in
-    List.foldr reducer repo (Connection.toList resolvedPosts)
+    List.foldr ResolvedPost.addToRepo repo (Connection.toList resolvedPosts)
 
 
 unresolvePosts : Connection ResolvedPost -> Connection ( String, Connection String )
 unresolvePosts resolvedPosts =
-    let
-        mapper resolvedPost =
-            ( Post.id resolvedPost.post
-            , Connection.map Reply.id resolvedPost.replies
-            )
-    in
-    Connection.map mapper resolvedPosts
+    Connection.map ResolvedPost.unresolve resolvedPosts
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )

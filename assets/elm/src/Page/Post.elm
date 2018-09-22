@@ -86,12 +86,15 @@ init spaceSlug postId globals =
 buildModel : Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
 buildModel globals ( ( newSession, resp ), now ) =
     let
+        ( postId, replyIds ) =
+            resp.postWithRepliesId
+
         postComp =
             Component.Post.init
                 Component.Post.FullPage
                 True
-                resp.postId
-                resp.replyIds
+                postId
+                replyIds
 
         model =
             Model
