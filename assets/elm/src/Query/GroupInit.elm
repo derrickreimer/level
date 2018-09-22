@@ -5,11 +5,13 @@ import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembership)
-import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (Decoder, field, list)
+import Json.Decode.Pipeline as Pipeline exposing (custom)
 import Json.Encode as Encode
+import NewRepo exposing (NewRepo)
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPost exposing (ResolvedPost)
 import Route.Group exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
@@ -18,12 +20,23 @@ import Task exposing (Task)
 
 
 type alias Response =
+    { viewerId : String
+    , spaceId : String
+    , bookmarkIds : List String
+    , groupId : String
+    , postWithRepliesIds : Connection ( String, Connection String )
+    , featuredMemberIds : List String
+    , repo : NewRepo
+    }
+
+
+type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
     , group : Group
-    , posts : Connection Component.Post.Model
-    , featuredMemberships : List GroupMembership
+    , resolvedPosts : Connection ResolvedPost
+    , featuredMembers : List SpaceUser
     }
 
 
@@ -51,7 +64,9 @@ document =
           group(id: $groupId) {
             ...GroupFields
             featuredMemberships {
-              ...GroupMembershipFields
+              spaceUser {
+                ...SpaceUserFields
+              }
             }
             posts(
               first: $first,
@@ -74,7 +89,6 @@ document =
         }
         """
         [ Group.fragment
-        , GroupMembership.fragment
         , SpaceUser.fragment
         , Space.fragment
         , Connection.fragment "PostConnection" Post.fragment
@@ -110,26 +124,56 @@ variables params limit =
     Just (Encode.object values)
 
 
-postComponentsDecoder : Decoder (Connection Component.Post.Model)
-postComponentsDecoder =
-    Connection.decoder <|
-        Component.Post.decoder Component.Post.Feed False
-
-
-decoder : Decoder Response
+decoder : Decoder Data
 decoder =
     Decode.at [ "data" ] <|
-        (Decode.succeed Response
-            |> Pipeline.custom (Decode.at [ "spaceUser" ] SpaceUser.decoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarks" ] (Decode.list Group.decoder))
-            |> Pipeline.custom (Decode.at [ "group" ] Group.decoder)
-            |> Pipeline.custom (Decode.at [ "group", "posts" ] postComponentsDecoder)
-            |> Pipeline.custom (Decode.at [ "group", "featuredMemberships" ] (Decode.list GroupMembership.decoder))
+        (Decode.succeed Data
+            |> custom (Decode.at [ "spaceUser" ] SpaceUser.decoder)
+            |> custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
+            |> custom (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
+            |> custom (Decode.at [ "group" ] Group.decoder)
+            |> custom (Decode.at [ "group", "posts" ] (Connection.decoder ResolvedPost.decoder))
+            |> custom (Decode.at [ "group", "featuredMemberships" ] (list (field "spaceUser" SpaceUser.decoder)))
         )
+
+
+addPostsToRepo : Connection ResolvedPost -> NewRepo -> NewRepo
+addPostsToRepo resolvedPosts repo =
+    List.foldr ResolvedPost.addToRepo repo (Connection.toList resolvedPosts)
+
+
+unresolvePosts : Connection ResolvedPost -> Connection ( String, Connection String )
+unresolvePosts resolvedPosts =
+    Connection.map ResolvedPost.unresolve resolvedPosts
+
+
+buildResponse : ( Session, Data ) -> ( Session, Response )
+buildResponse ( session, data ) =
+    let
+        repo =
+            NewRepo.empty
+                |> NewRepo.setSpaceUser data.viewer
+                |> NewRepo.setSpace data.space
+                |> NewRepo.setGroups data.bookmarks
+                |> NewRepo.setGroup data.group
+                |> addPostsToRepo data.resolvedPosts
+                |> NewRepo.setSpaceUsers data.featuredMembers
+
+        resp =
+            Response
+                (SpaceUser.id data.viewer)
+                (Space.id data.space)
+                (List.map Group.id data.bookmarks)
+                (Group.id data.group)
+                (unresolvePosts data.resolvedPosts)
+                (List.map SpaceUser.id data.featuredMembers)
+                repo
+    in
+    ( session, resp )
 
 
 request : Params -> Int -> Session -> Task Session.Error ( Session, Response )
 request params limit session =
-    Session.request session <|
-        GraphQL.request document (variables params limit) decoder
+    GraphQL.request document (variables params limit) decoder
+        |> Session.request session
+        |> Task.map buildResponse

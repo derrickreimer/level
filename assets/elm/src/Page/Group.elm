@@ -24,7 +24,6 @@ import Post exposing (Post)
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
 import Session exposing (Session)
@@ -65,27 +64,49 @@ type alias PostComposer =
 
 type alias Model =
     { params : Params
-    , viewer : SpaceUser
-    , space : Space
-    , bookmarks : List Group
-    , group : Group
-    , posts : Connection Component.Post.Model
-    , featuredMemberships : List GroupMembership
+    , viewerId : String
+    , spaceId : String
+    , bookmarkIds : List String
+    , groupId : String
+    , featuredMemberIds : List String
+    , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
     , nameEditor : FieldEditor
     , postComposer : PostComposer
     }
 
 
+type alias Data =
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    , group : Group
+    , featuredMembers : List SpaceUser
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map5 Data
+        (NewRepo.getSpaceUser model.viewerId repo)
+        (NewRepo.getSpace model.spaceId repo)
+        (Just <| NewRepo.getGroups model.bookmarkIds repo)
+        (NewRepo.getGroup model.groupId repo)
+        (Just <| NewRepo.getSpaceUsers model.featuredMemberIds repo)
+
+
 
 -- PAGE PROPERTIES
 
 
-title : Repo -> Model -> String
-title repo { group } =
-    group
-        |> Repo.getGroup repo
-        |> .name
+title : NewRepo -> Model -> String
+title repo model =
+    case NewRepo.getGroup model.groupId repo of
+        Just group ->
+            Group.name group
+
+        Nothing ->
+            "Group"
 
 
 
@@ -103,34 +124,45 @@ init params globals =
 buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
 buildModel params globals ( ( newSession, resp ), now ) =
     let
+        postComps =
+            Connection.map buildPostComponent resp.postWithRepliesIds
+
         model =
             Model
                 params
-                resp.viewer
-                resp.space
-                resp.bookmarks
-                resp.group
-                resp.posts
-                resp.featuredMemberships
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
+                resp.groupId
+                resp.featuredMemberIds
+                postComps
                 now
                 (FieldEditor NotEditing "" [])
                 (PostComposer "" False)
+
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
     in
-    ( { globals | session = newSession }, model )
+    ( { globals | session = newSession, newRepo = newNewRepo }, model )
+
+
+buildPostComponent : ( String, Connection String ) -> Component.Post.Model
+buildPostComponent ( postId, replyIds ) =
+    Component.Post.init Component.Post.Feed False postId replyIds
 
 
 setup : Model -> Cmd Msg
-setup { group, posts } =
+setup model =
     let
         pageCmd =
             Cmd.batch
                 [ setFocus "post-composer" NoOp
                 , Autosize.init "post-composer"
-                , setupSockets (Group.id group)
+                , setupSockets model.groupId
                 ]
 
         postsCmd =
-            Connection.toList posts
+            Connection.toList model.postComps
                 |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.setup post))
                 |> Cmd.batch
     in
@@ -138,13 +170,13 @@ setup { group, posts } =
 
 
 teardown : Model -> Cmd Msg
-teardown { group, posts } =
+teardown model =
     let
         pageCmd =
-            teardownSockets (Group.id group)
+            teardownSockets model.groupId
 
         postsCmd =
-            Connection.toList posts
+            Connection.toList model.postComps
                 |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.teardown post))
                 |> Cmd.batch
     in
@@ -190,7 +222,7 @@ type Msg
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
-update msg globals ({ postComposer, nameEditor } as model) =
+update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
@@ -203,15 +235,22 @@ update msg globals ({ postComposer, nameEditor } as model) =
                 |> noCmd globals
 
         NewPostBodyChanged value ->
+            let
+                postComposer =
+                    model.postComposer
+            in
             { model | postComposer = { postComposer | body = value } }
                 |> noCmd globals
 
         NewPostSubmit ->
-            if newPostSubmittable postComposer then
+            if newPostSubmittable model.postComposer then
                 let
+                    postComposer =
+                        model.postComposer
+
                     cmd =
                         globals.session
-                            |> CreatePost.request (Space.id model.space) (Group.id model.group) postComposer.body
+                            |> CreatePost.request model.spaceId model.groupId postComposer.body
                             |> Task.attempt NewPostSubmitted
                 in
                 ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), globals )
@@ -220,6 +259,10 @@ update msg globals ({ postComposer, nameEditor } as model) =
                 noCmd globals model
 
         NewPostSubmitted (Ok ( newSession, response )) ->
+            let
+                postComposer =
+                    model.postComposer
+            in
             ( ( { model | postComposer = { postComposer | body = "", isSubmitting = False } }
               , Autosize.update "post-composer"
               )
@@ -231,6 +274,10 @@ update msg globals ({ postComposer, nameEditor } as model) =
 
         NewPostSubmitted (Err _) ->
             -- TODO: display error message
+            let
+                postComposer =
+                    model.postComposer
+            in
             { model | postComposer = { postComposer | isSubmitting = False } }
                 |> noCmd globals
 
@@ -238,7 +285,7 @@ update msg globals ({ postComposer, nameEditor } as model) =
             let
                 cmd =
                     globals.session
-                        |> UpdateGroupMembership.request (Space.id model.space) (Group.id model.group) state
+                        |> UpdateGroupMembership.request model.spaceId model.groupId state
                         |> Task.attempt MembershipStateSubmitted
             in
             ( ( model, cmd ), globals )
@@ -248,44 +295,71 @@ update msg globals ({ postComposer, nameEditor } as model) =
             noCmd globals model
 
         NameClicked ->
-            let
-                newEditor =
-                    { nameEditor | state = Editing, value = Group.name model.group, errors = [] }
+            case resolveData globals.newRepo model of
+                Just data ->
+                    let
+                        nameEditor =
+                            model.nameEditor
 
-                cmd =
-                    Cmd.batch
-                        [ setFocus "name-editor-value" NoOp
-                        , selectValue "name-editor-value"
-                        ]
-            in
-            ( ( { model | nameEditor = newEditor }, cmd ), globals )
+                        newEditor =
+                            { nameEditor | state = Editing, value = Group.name data.group, errors = [] }
+
+                        cmd =
+                            Cmd.batch
+                                [ setFocus "name-editor-value" NoOp
+                                , selectValue "name-editor-value"
+                                ]
+                    in
+                    ( ( { model | nameEditor = newEditor }, cmd ), globals )
+
+                Nothing ->
+                    noCmd globals model
 
         NameEditorChanged val ->
+            let
+                nameEditor =
+                    model.nameEditor
+            in
             noCmd globals { model | nameEditor = { nameEditor | value = val } }
 
         NameEditorDismissed ->
+            let
+                nameEditor =
+                    model.nameEditor
+            in
             noCmd globals { model | nameEditor = { nameEditor | state = NotEditing } }
 
         NameEditorSubmit ->
             let
+                nameEditor =
+                    model.nameEditor
+
                 cmd =
                     globals.session
-                        |> UpdateGroup.request (Space.id model.space) (Group.id model.group) (Just nameEditor.value) Nothing
+                        |> UpdateGroup.request model.spaceId model.groupId (Just nameEditor.value) Nothing
                         |> Task.attempt NameEditorSubmitted
             in
             ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), globals )
 
-        NameEditorSubmitted (Ok ( newSession, UpdateGroup.Success group )) ->
+        NameEditorSubmitted (Ok ( newSession, UpdateGroup.Success newGroup )) ->
             let
+                nameEditor =
+                    model.nameEditor
+
                 newModel =
-                    { model
-                        | group = group
-                        , nameEditor = { nameEditor | state = NotEditing }
-                    }
+                    { model | nameEditor = { nameEditor | state = NotEditing } }
+
+                newNewRepo =
+                    globals.newRepo
+                        |> NewRepo.setGroup newGroup
             in
-            noCmd { globals | session = newSession } newModel
+            noCmd { globals | session = newSession, newRepo = newNewRepo } newModel
 
         NameEditorSubmitted (Ok ( newSession, UpdateGroup.Invalid errors )) ->
+            let
+                nameEditor =
+                    model.nameEditor
+            in
             ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }
               , selectValue "name-editor-value"
               )
@@ -297,6 +371,9 @@ update msg globals ({ postComposer, nameEditor } as model) =
 
         NameEditorSubmitted (Err _) ->
             let
+                nameEditor =
+                    model.nameEditor
+
                 errors =
                     [ ValidationError "name" "Hmm, something went wrong." ]
             in
@@ -305,7 +382,12 @@ update msg globals ({ postComposer, nameEditor } as model) =
             )
 
         FeaturedMembershipsRefreshed (Ok ( newSession, memberships )) ->
-            ( ( { model | featuredMemberships = memberships }, Cmd.none )
+            let
+                memberIds =
+                    memberships
+                        |> List.map (SpaceUser.id << .user)
+            in
+            ( ( { model | featuredMemberIds = memberIds }, Cmd.none )
             , { globals | session = newSession }
             )
 
@@ -316,13 +398,13 @@ update msg globals ({ postComposer, nameEditor } as model) =
             noCmd globals model
 
         PostComponentMsg postId componentMsg ->
-            case Connection.get .id postId model.posts of
-                Just post ->
+            case Connection.get .id postId model.postComps of
+                Just postComp ->
                     let
-                        ( ( newPost, cmd ), newGlobals ) =
-                            Component.Post.update componentMsg (Space.id model.space) globals post
+                        ( ( newPostComp, cmd ), newGlobals ) =
+                            Component.Post.update componentMsg model.spaceId globals postComp
                     in
-                    ( ( { model | posts = Connection.update .id newPost model.posts }
+                    ( ( { model | postComps = Connection.update .id newPostComp model.postComps }
                       , Cmd.map (PostComponentMsg postId) cmd
                       )
                     , newGlobals
@@ -335,14 +417,13 @@ update msg globals ({ postComposer, nameEditor } as model) =
             let
                 cmd =
                     globals.session
-                        |> BookmarkGroup.request (Space.id model.space) (Group.id model.group)
+                        |> BookmarkGroup.request model.spaceId model.groupId
                         |> Task.attempt Bookmarked
             in
             ( ( model, cmd ), globals )
 
         Bookmarked (Ok ( newSession, _ )) ->
-            noCmd { globals | session = newSession }
-                { model | group = Group.setIsBookmarked True model.group }
+            noCmd { globals | session = newSession } model
 
         Bookmarked (Err Session.Expired) ->
             redirectToLogin globals model
@@ -354,14 +435,13 @@ update msg globals ({ postComposer, nameEditor } as model) =
             let
                 cmd =
                     globals.session
-                        |> UnbookmarkGroup.request (Space.id model.space) (Group.id model.group)
+                        |> UnbookmarkGroup.request model.spaceId model.groupId
                         |> Task.attempt Unbookmarked
             in
             ( ( model, cmd ), globals )
 
         Unbookmarked (Ok ( newSession, _ )) ->
-            noCmd { globals | session = newSession }
-                { model | group = Group.setIsBookmarked False model.group }
+            noCmd { globals | session = newSession } model
 
         Unbookmarked (Err Session.Expired) ->
             redirectToLogin globals model
@@ -373,7 +453,7 @@ update msg globals ({ postComposer, nameEditor } as model) =
             let
                 cmd =
                     globals.session
-                        |> UpdateGroup.request (Space.id model.space) (Group.id model.group) Nothing (Just isPrivate)
+                        |> UpdateGroup.request model.spaceId model.groupId Nothing (Just isPrivate)
                         |> Task.attempt PrivacyToggled
             in
             ( ( model, cmd ), globals )
@@ -406,15 +486,15 @@ consumeEvent : Event -> Session -> Model -> ( Model, Cmd Msg )
 consumeEvent event session model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupMembershipUpdated group ->
-            if Group.id group == Group.id model.group then
+            if Group.id group == model.groupId then
                 ( model
-                , FeaturedMemberships.request (Group.id model.group) session
+                , FeaturedMemberships.request model.groupId session
                     |> Task.attempt FeaturedMembershipsRefreshed
                 )
 
@@ -423,12 +503,16 @@ consumeEvent event session model =
 
         Event.PostCreated ( post, replies ) ->
             let
-                component =
-                    Component.Post.init Component.Post.Feed False (Post.id post) (Connection.map Reply.id replies)
+                postComp =
+                    Component.Post.init
+                        Component.Post.Feed
+                        False
+                        (Post.id post)
+                        (Connection.map Reply.id replies)
             in
-            if Post.groupsInclude model.group post then
-                ( { model | posts = Connection.prepend .id component model.posts }
-                , Cmd.map (PostComponentMsg <| Post.id post) (Component.Post.setup component)
+            if List.member model.groupId (Post.groupIds post) then
+                ( { model | postComps = Connection.prepend .id postComp model.postComps }
+                , Cmd.map (PostComponentMsg <| Post.id post) (Component.Post.setup postComp)
                 )
 
             else
@@ -439,13 +523,13 @@ consumeEvent event session model =
                 postId =
                     Reply.postId reply
             in
-            case Connection.get .id postId model.posts of
-                Just component ->
+            case Connection.get .id postId model.postComps of
+                Just postComp ->
                     let
-                        ( newComponent, cmd ) =
-                            Component.Post.handleReplyCreated reply component
+                        ( newPostComp, cmd ) =
+                            Component.Post.handleReplyCreated reply postComp
                     in
-                    ( { model | posts = Connection.update .id newComponent model.posts }
+                    ( { model | postComps = Connection.update .id newPostComp model.postComps }
                     , Cmd.map (PostComponentMsg postId) cmd
                     )
 
@@ -469,42 +553,43 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
+view : NewRepo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
-    let
-        currentUserData =
-            model.viewer
-                |> Repo.getSpaceUser repo
+    case resolveData repo model of
+        Just data ->
+            resolvedView repo maybeCurrentRoute model data
 
-        groupData =
-            model.group
-                |> Repo.getGroup repo
-    in
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute model data =
     spaceLayout
-        model.viewer
-        model.space
-        model.bookmarks
+        data.viewer
+        data.space
+        data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
-                        [ nameView groupData model.nameEditor
-                        , bookmarkButtonView groupData.isBookmarked
+                        [ nameView data.group model.nameEditor
+                        , bookmarkButtonView (Group.isBookmarked data.group)
                         , nameErrors model.nameEditor
                         , controlsView model
                         ]
                     ]
-                , newPostView model.postComposer currentUserData
-                , postsView model.space model.viewer model.now model.posts
-                , sidebarView repo groupData.membershipState model.featuredMemberships groupData.isPrivate
+                , newPostView model.postComposer data.viewer
+                , postsView repo data.space data.viewer model.now model.postComps
+                , sidebarView data.group data.featuredMembers
                 ]
             ]
         ]
 
 
-nameView : Group.Record -> FieldEditor -> Html Msg
-nameView groupData editor =
+nameView : Group -> FieldEditor -> Html Msg
+nameView group editor =
     case editor.state of
         NotEditing ->
             h2 [ class "flex-no-shrink" ]
@@ -512,7 +597,7 @@ nameView groupData editor =
                     [ onClick NameClicked
                     , class "font-extrabold text-2xl cursor-pointer"
                     ]
-                    [ text groupData.name ]
+                    [ text (Group.name group) ]
                 ]
 
         Editing ->
@@ -569,15 +654,15 @@ nameErrors editor =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ paginationView model.space model.group model.posts
+        [ paginationView model.spaceId model.groupId model.postComps
         ]
 
 
-paginationView : Space -> Group -> Connection a -> Html Msg
-paginationView space group connection =
+paginationView : String -> String -> Connection a -> Html Msg
+paginationView spaceId groupId connection =
     Pagination.view connection
-        (Route.Group << Before (Space.slug space) (Group.id group))
-        (Route.Group << After (Space.slug space) (Group.id group))
+        (Route.Group << Before spaceId groupId)
+        (Route.Group << After spaceId groupId)
 
 
 bookmarkButtonView : Bool -> Html Msg
@@ -591,11 +676,11 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-newPostView : PostComposer -> SpaceUser.Record -> Html Msg
-newPostView ({ body, isSubmitting } as postComposer) currentUserData =
+newPostView : PostComposer -> SpaceUser -> Html Msg
+newPostView ({ body, isSubmitting } as postComposer) currentUser =
     label [ class "composer mb-4" ]
         [ div [ class "flex" ]
-            [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Medium currentUserData ]
+            [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
             , div [ class "flex-grow" ]
                 [ textarea
                     [ id "post-composer"
@@ -620,55 +705,51 @@ newPostView ({ body, isSubmitting } as postComposer) currentUserData =
         ]
 
 
-postsView : Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
-postsView space currentUser now connection =
+postsView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
+postsView repo space currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Be the first one to post here!" ]
 
     else
         div [] <|
-            Connection.mapList (postView space currentUser now) connection
+            Connection.mapList (postView repo space currentUser now) connection
 
 
-postView : Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView space currentUser now component =
+postView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
+postView repo space currentUser now component =
     div [ class "p-4" ]
-        [ Component.Post.view NewRepo.empty space currentUser now component
+        [ Component.Post.view repo space currentUser now component
             |> Html.map (PostComponentMsg component.id)
         ]
 
 
-sidebarView : Repo -> GroupMembershipState -> List GroupMembership -> Bool -> Html Msg
-sidebarView repo state featuredMemberships isPrivate =
+sidebarView : Group -> List SpaceUser -> Html Msg
+sidebarView group featuredMembers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
             [ text "Members"
-            , privacyToggle isPrivate
+            , privacyToggle (Group.isPrivate group)
             ]
-        , memberListView repo featuredMemberships
-        , subscribeButtonView state
+        , memberListView featuredMembers
+        , subscribeButtonView (Group.membershipState group)
         ]
 
 
-memberListView : Repo -> List GroupMembership -> Html Msg
-memberListView repo featuredMemberships =
-    if List.isEmpty featuredMemberships then
+memberListView : List SpaceUser -> Html Msg
+memberListView featuredMembers =
+    if List.isEmpty featuredMembers then
         div [ class "pb-4 text-sm" ] [ text "Nobody has joined yet." ]
 
     else
-        div [ class "pb-4" ] <| List.map (memberItemView repo) featuredMemberships
+        div [ class "pb-4" ] <| List.map memberItemView featuredMembers
 
 
-memberItemView : Repo -> GroupMembership -> Html Msg
-memberItemView repo membership =
-    let
-        userData =
-            Repo.getSpaceUser repo membership.user
-    in
+memberItemView : SpaceUser -> Html Msg
+memberItemView member =
     div [ class "flex items-center pr-4 mb-px" ]
-        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
+        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny member ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName member ]
         ]
 
 

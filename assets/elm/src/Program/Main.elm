@@ -517,8 +517,8 @@ navigateTo maybeRoute model =
                 |> transition model UserSettingsInit
 
 
-pageTitle : Repo -> Page -> String
-pageTitle repo page =
+pageTitle : Repo -> NewRepo -> Page -> String
+pageTitle repo newRepo page =
     case page of
         Spaces _ ->
             Page.Spaces.title
@@ -536,7 +536,7 @@ pageTitle repo page =
             Page.SpaceUsers.title
 
         Group pageModel ->
-            Page.Group.title repo pageModel
+            Page.Group.title newRepo pageModel
 
         Groups _ ->
             Page.Groups.title
@@ -868,7 +868,7 @@ pageView repo newRepo page hasPushSubscription =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view repo (routeFor page)
+                |> Page.Group.view newRepo (routeFor page)
                 |> Html.map GroupMsg
 
         NewGroup pageModel ->
@@ -1177,6 +1177,6 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    Document (pageTitle model.repo model.page)
+    Document (pageTitle model.repo model.newRepo model.page)
         [ pageView model.repo model.newRepo model.page model.hasPushSubscription
         ]
