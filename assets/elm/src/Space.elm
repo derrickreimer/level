@@ -3,6 +3,7 @@ module Space exposing (Record, SetupState(..), Space, avatar, avatarUrl, decoder
 import Avatar
 import GraphQL exposing (Fragment)
 import Html exposing (Html)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
 import Json.Encode as Encode
 import Route exposing (Route)
@@ -18,7 +19,7 @@ type Space
 
 
 type alias Record =
-    { id : String
+    { id : Id
     , name : String
     , slug : String
     , avatarUrl : Maybe String
@@ -55,7 +56,7 @@ fragment =
 -- ACCESSORS
 
 
-id : Space -> String
+id : Space -> Id
 id (Space data) =
     data.id
 
@@ -88,7 +89,7 @@ decoder : Decoder Space
 decoder =
     Decode.map Space <|
         Decode.map7 Record
-            (field "id" string)
+            (field "id" Id.decoder)
             (field "name" string)
             (field "slug" string)
             (field "avatarUrl" (maybe string))

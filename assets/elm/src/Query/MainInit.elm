@@ -2,6 +2,7 @@ module Query.MainInit exposing (Response, request)
 
 import GraphQL exposing (Document)
 import Group exposing (Group)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Encode as Encode
 import Session exposing (Session)
@@ -11,8 +12,8 @@ import Task exposing (Task)
 
 
 type alias Response =
-    { spaceIds : List String
-    , spaceUserIds : List String
+    { spaceIds : List Id
+    , spaceUserIds : List Id
     }
 
 
@@ -49,8 +50,8 @@ decoder : Decoder Response
 decoder =
     Decode.at [ "data", "viewer", "spaceUsers", "edges" ] <|
         Decode.map2 Response
-            (list (Decode.at [ "node", "space", "id" ] string))
-            (list (Decode.at [ "node", "id" ] string))
+            (list (Decode.at [ "node", "space", "id" ] Id.decoder))
+            (list (Decode.at [ "node", "id" ] Id.decoder))
 
 
 request : Session -> Task Session.Error ( Session, Response )

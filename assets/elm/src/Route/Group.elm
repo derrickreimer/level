@@ -1,13 +1,14 @@
 module Route.Group exposing (Params(..), after, before, parser, toString)
 
+import Id exposing (Id)
 import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, map, oneOf, s, string)
 
 
 type Params
-    = Root String String
-    | After String String String
-    | Before String String String
+    = Root String Id
+    | After String Id String
+    | Before String Id String
 
 
 parser : Parser (Params -> a) a
@@ -58,7 +59,7 @@ before params cursor =
 -- INTERNAL
 
 
-staticParts : Params -> ( String, String )
+staticParts : Params -> ( String, Id )
 staticParts params =
     case params of
         Root slug id ->

@@ -1,6 +1,7 @@
 module Reply exposing (Record, Reply, author, body, bodyHtml, decoder, fragment, getCachedData, hasViewed, id, postId, postedAt)
 
 import GraphQL exposing (Fragment)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, int, string)
 import Json.Decode.Pipeline as Pipeline
 import SpaceUser exposing (SpaceUser)
@@ -53,12 +54,12 @@ fragment =
 -- ACCESSORS
 
 
-id : Reply -> String
+id : Reply -> Id
 id (Reply data) =
     data.id
 
 
-postId : Reply -> String
+postId : Reply -> Id
 postId (Reply data) =
     data.postId
 
@@ -96,8 +97,8 @@ decoder : Decoder Reply
 decoder =
     Decode.map Reply <|
         (Decode.succeed Record
-            |> Pipeline.required "id" string
-            |> Pipeline.required "postId" string
+            |> Pipeline.required "id" Id.decoder
+            |> Pipeline.required "postId" Id.decoder
             |> Pipeline.required "body" string
             |> Pipeline.required "bodyHtml" string
             |> Pipeline.required "author" SpaceUser.decoder

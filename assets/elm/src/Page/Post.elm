@@ -7,6 +7,7 @@ import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Id exposing (Id)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
@@ -33,9 +34,9 @@ import View.PresenceList
 
 
 type alias Model =
-    { viewerId : String
-    , spaceId : String
-    , bookmarkIds : List String
+    { viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
     , postComp : Component.Post.Model
     , now : ( Zone, Posix )
     , currentViewers : Lazy PresenceList
@@ -75,7 +76,7 @@ viewingTopic { postComp } =
 -- LIFECYCLE
 
 
-init : String -> String -> Globals -> Task Session.Error ( Globals, Model )
+init : String -> Id -> Globals -> Task Session.Error ( Globals, Model )
 init spaceSlug postId globals =
     globals.session
         |> PostInit.request spaceSlug postId

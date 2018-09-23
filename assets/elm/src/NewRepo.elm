@@ -2,6 +2,7 @@ module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplie
 
 import Dict exposing (Dict)
 import Group exposing (Group)
+import Id exposing (Id)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Space exposing (Space)
@@ -13,11 +14,11 @@ type NewRepo
 
 
 type alias InternalData =
-    { spaces : Dict String Space
-    , spaceUsers : Dict String SpaceUser
-    , groups : Dict String Group
-    , posts : Dict String Post
-    , replies : Dict String Reply
+    { spaces : Dict Id Space
+    , spaceUsers : Dict Id SpaceUser
+    , groups : Dict Id Group
+    , posts : Dict Id Post
+    , replies : Dict Id Reply
     }
 
 

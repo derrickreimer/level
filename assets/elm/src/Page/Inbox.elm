@@ -10,6 +10,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
@@ -41,10 +42,10 @@ import View.Layout exposing (spaceLayout)
 
 type alias Model =
     { params : Params
-    , viewerId : String
-    , spaceId : String
-    , bookmarkIds : List String
-    , featuredUserIds : List String
+    , viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , featuredUserIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
     }
@@ -112,7 +113,7 @@ buildModel globals params ( ( newSession, resp ), now ) =
     )
 
 
-buildPostComponent : ( String, Connection String ) -> Component.Post.Model
+buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent ( postId, replyIds ) =
     Component.Post.init
         Component.Post.Feed

@@ -3,6 +3,7 @@ module Query.GetSpaceUser exposing (Response(..), request)
 import Connection exposing (Connection)
 import Globals exposing (Globals)
 import GraphQL exposing (Document)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Repo exposing (Repo)
@@ -36,12 +37,12 @@ document =
         ]
 
 
-variables : String -> String -> Maybe Encode.Value
+variables : Id -> Id -> Maybe Encode.Value
 variables spaceId userId =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string spaceId )
-            , ( "userId", Encode.string userId )
+            [ ( "spaceId", Id.encoder spaceId )
+            , ( "userId", Id.encoder userId )
             ]
 
 
@@ -58,7 +59,7 @@ decoder =
 -- REQUESTS
 
 
-request : String -> String -> Session -> Task Session.Error ( Session, Response )
+request : Id -> Id -> Session -> Task Session.Error ( Session, Response )
 request spaceId userId session =
     Session.request session <|
         GraphQL.request document (variables spaceId userId) decoder

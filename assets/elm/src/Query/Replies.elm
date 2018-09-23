@@ -2,6 +2,7 @@ module Query.Replies exposing (Response, request)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field)
 import Json.Encode as Encode
 import NewRepo exposing (NewRepo)
@@ -12,7 +13,7 @@ import Task exposing (Task)
 
 
 type alias Response =
-    { replyIds : Connection String
+    { replyIds : Connection Id
     , repo : NewRepo
     }
 
@@ -50,12 +51,12 @@ document =
         ]
 
 
-variables : String -> String -> String -> Int -> Maybe Encode.Value
+variables : Id -> Id -> String -> Int -> Maybe Encode.Value
 variables spaceId postId before limit =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string spaceId )
-            , ( "postId", Encode.string postId )
+            [ ( "spaceId", Id.encoder spaceId )
+            , ( "postId", Id.encoder postId )
             , ( "before", Encode.string before )
             , ( "limit", Encode.int limit )
             ]
@@ -96,7 +97,7 @@ buildResponse ( session, data ) =
     ( session, resp )
 
 
-request : String -> String -> String -> Int -> Session -> Task Session.Error ( Session, Response )
+request : Id -> Id -> String -> Int -> Session -> Task Session.Error ( Session, Response )
 request spaceId postId before limit session =
     GraphQL.request document (variables spaceId postId before limit) decoder
         |> Session.request session

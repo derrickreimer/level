@@ -3,6 +3,7 @@ module SpaceUser exposing (Record, Role(..), SpaceUser, avatar, decoder, display
 import Avatar
 import GraphQL exposing (Fragment)
 import Html exposing (Html)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 
 
@@ -15,8 +16,8 @@ type SpaceUser
 
 
 type alias Record =
-    { id : String
-    , userId : String
+    { id : Id
+    , userId : Id
     , firstName : String
     , lastName : String
     , handle : String
@@ -53,12 +54,12 @@ fragment =
 -- ACCESSORS
 
 
-id : SpaceUser -> String
+id : SpaceUser -> Id
 id (SpaceUser data) =
     data.id
 
 
-userId : SpaceUser -> String
+userId : SpaceUser -> Id
 userId (SpaceUser data) =
     data.userId
 
@@ -104,7 +105,7 @@ decoder : Decoder SpaceUser
 decoder =
     Decode.map SpaceUser <|
         Decode.map8 Record
-            (field "id" string)
+            (field "id" Id.decoder)
             (field "userId" string)
             (field "firstName" string)
             (field "lastName" string)

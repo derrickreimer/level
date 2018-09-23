@@ -1,11 +1,12 @@
 module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, join, leave, receive)
 
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Ports
 
 
 type alias PresenceData =
-    { userId : String
+    { userId : Id
     }
 
 
@@ -92,7 +93,7 @@ eventDecoder callback =
 presenceDecoder : Decoder Presence
 presenceDecoder =
     Decode.map Presence <|
-        Decode.map PresenceData (field "userId" string)
+        Decode.map PresenceData (field "userId" Id.decoder)
 
 
 

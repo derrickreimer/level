@@ -32,6 +32,7 @@ module Post exposing
 import Connection exposing (Connection)
 import GraphQL exposing (Fragment)
 import Group exposing (Group)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, list, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (required)
 import List
@@ -69,7 +70,7 @@ type InboxState
 
 
 type alias Data =
-    { id : String
+    { id : Id
     , state : State
     , body : String
     , bodyHtml : String
@@ -86,7 +87,7 @@ type alias Data =
 -- PROPERTIES
 
 
-id : Post -> String
+id : Post -> Id
 id (Post data) =
     data.id
 
@@ -185,7 +186,7 @@ decoder : Decoder Post
 decoder =
     Decode.map Post <|
         (Decode.succeed Data
-            |> required "id" string
+            |> required "id" Id.decoder
             |> required "state" stateDecoder
             |> required "body" string
             |> required "bodyHtml" string

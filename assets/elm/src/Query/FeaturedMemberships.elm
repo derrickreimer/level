@@ -2,6 +2,7 @@ module Query.FeaturedMemberships exposing (Response, request)
 
 import GraphQL exposing (Document)
 import GroupMembership exposing (GroupMembership)
+import Id exposing (Id)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Session exposing (Session)
@@ -33,11 +34,11 @@ document =
         ]
 
 
-variables : String -> Maybe Encode.Value
+variables : Id -> Maybe Encode.Value
 variables groupId =
     Just <|
         Encode.object
-            [ ( "groupId", Encode.string groupId )
+            [ ( "groupId", Id.encoder groupId )
             ]
 
 
@@ -47,7 +48,7 @@ decoder =
         (Decode.list GroupMembership.decoder)
 
 
-request : String -> Session -> Task Session.Error ( Session, Response )
+request : Id -> Session -> Task Session.Error ( Session, Response )
 request groupId session =
     Session.request session <|
         GraphQL.request document (variables groupId) decoder

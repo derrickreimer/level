@@ -12,6 +12,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CreatePost as CreatePost
@@ -64,11 +65,11 @@ type alias PostComposer =
 
 type alias Model =
     { params : Params
-    , viewerId : String
-    , spaceId : String
-    , bookmarkIds : List String
-    , groupId : String
-    , featuredMemberIds : List String
+    , viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , groupId : Id
+    , featuredMemberIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
     , nameEditor : FieldEditor
@@ -146,7 +147,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
     ( { globals | session = newSession, newRepo = newNewRepo }, model )
 
 
-buildPostComponent : ( String, Connection String ) -> Component.Post.Model
+buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent ( postId, replyIds ) =
     Component.Post.init Component.Post.Feed False postId replyIds
 
@@ -183,12 +184,12 @@ teardown model =
     Cmd.batch [ pageCmd, postsCmd ]
 
 
-setupSockets : String -> Cmd Msg
+setupSockets : Id -> Cmd Msg
 setupSockets groupId =
     GroupSubscription.subscribe groupId
 
 
-teardownSockets : String -> Cmd Msg
+teardownSockets : Id -> Cmd Msg
 teardownSockets groupId =
     GroupSubscription.unsubscribe groupId
 

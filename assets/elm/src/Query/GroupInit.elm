@@ -5,6 +5,7 @@ import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembership)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Decode.Pipeline as Pipeline exposing (custom)
 import Json.Encode as Encode
@@ -20,12 +21,12 @@ import Task exposing (Task)
 
 
 type alias Response =
-    { viewerId : String
-    , spaceId : String
-    , bookmarkIds : List String
-    , groupId : String
-    , postWithRepliesIds : Connection ( String, Connection String )
-    , featuredMemberIds : List String
+    { viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , groupId : Id
+    , postWithRepliesIds : Connection ( Id, Connection Id )
+    , featuredMemberIds : List Id
     , repo : NewRepo
     }
 
@@ -103,20 +104,20 @@ variables params limit =
             case params of
                 Root spaceSlug id ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "groupId", Encode.string id )
+                    , ( "groupId", Id.encoder id )
                     , ( "first", Encode.int limit )
                     ]
 
                 After spaceSlug id cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "groupId", Encode.string id )
+                    , ( "groupId", Id.encoder id )
                     , ( "first", Encode.int limit )
                     , ( "after", Encode.string cursor )
                     ]
 
                 Before spaceSlug id cursor ->
                     [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "groupId", Encode.string id )
+                    , ( "groupId", Id.encoder id )
                     , ( "last", Encode.int limit )
                     , ( "before", Encode.string cursor )
                     ]

@@ -4,6 +4,7 @@ import Component.Post
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import NewRepo exposing (NewRepo)
@@ -18,11 +19,11 @@ import Task exposing (Task)
 
 
 type alias Response =
-    { viewerId : String
-    , spaceId : String
-    , bookmarkIds : List String
-    , featuredUserIds : List String
-    , postWithRepliesIds : Connection ( String, Connection String )
+    { viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , featuredUserIds : List Id
+    , postWithRepliesIds : Connection ( Id, Connection Id )
     , repo : NewRepo
     }
 
