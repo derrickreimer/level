@@ -8,10 +8,11 @@ import GroupMembership exposing (GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
+import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import NewRepo exposing (NewRepo)
 import Pagination
 import Query.GroupsInit as GroupsInit
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Route.Groups exposing (Params(..))
@@ -29,16 +30,31 @@ import View.Layout exposing (spaceLayout)
 
 
 type alias Model =
-    { viewer : SpaceUser
-    , space : Space
-    , bookmarks : List Group
-    , groups : Connection Group
-    , params : Params
+    { params : Params
+    , viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , groupIds : Connection Id
     }
 
 
 type alias IndexedGroup =
     ( Int, Group )
+
+
+type alias Data =
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map3 Data
+        (NewRepo.getSpaceUser model.viewerId repo)
+        (NewRepo.getSpace model.spaceId repo)
+        (Just <| NewRepo.getGroups model.bookmarkIds repo)
 
 
 
@@ -63,8 +79,12 @@ init params globals =
 
 buildModel : Params -> Globals -> ( Session, GroupsInit.Response ) -> ( Globals, Model )
 buildModel params globals ( newSession, resp ) =
-    ( { globals | session = newSession }
-    , Model resp.viewer resp.space resp.bookmarks resp.groups params
+    let
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
+    in
+    ( { globals | session = newSession, newRepo = newNewRepo }
+    , Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.groupIds
     )
 
 
@@ -101,10 +121,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -114,19 +134,29 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
+view : NewRepo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
+    case resolveData repo model of
+        Just data ->
+            resolvedView repo maybeCurrentRoute model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute model data =
     spaceLayout
-        model.viewer
-        model.space
-        model.bookmarks
+        data.viewer
+        data.space
+        data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
                 [ div [ class "flex items-center pb-5" ]
                     [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Groups" ]
                     , div [ class "flex-0 flex-no-shrink" ]
-                        [ a [ Route.href (Route.NewGroup (Space.slug model.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
+                        [ a [ Route.href (Route.NewGroup (Space.slug data.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
                         ]
                     ]
                 , div [ class "pb-8" ]
@@ -135,20 +165,22 @@ view repo maybeCurrentRoute model =
                         , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
                         ]
                     ]
-                , groupsView repo model.space model.groups
+                , groupsView repo data.space model.groupIds
                 ]
             ]
         ]
 
 
-groupsView : Repo -> Space -> Connection Group -> Html Msg
-groupsView repo space connection =
+groupsView : NewRepo -> Space -> Connection Id -> Html Msg
+groupsView repo space groupIds =
     let
+        groups =
+            NewRepo.getGroups (Connection.toList groupIds) repo
+
         partitions =
-            connection
-                |> Connection.toList
+            groups
                 |> List.indexedMap Tuple.pair
-                |> partitionGroups repo []
+                |> partitionGroups []
     in
     if List.isEmpty partitions then
         div [ class "p-2 text-center" ]
@@ -156,42 +188,38 @@ groupsView repo space connection =
 
     else
         div [ class "leading-semi-loose" ]
-            [ div [] <| List.map (groupPartitionView repo space) partitions
-            , paginationView space connection
+            [ div [] <| List.map (groupPartitionView space) partitions
+            , paginationView space groupIds
             ]
 
 
-groupPartitionView : Repo -> Space -> ( String, List IndexedGroup ) -> Html Msg
-groupPartitionView repo space ( letter, indexedGroups ) =
+groupPartitionView : Space -> ( String, List IndexedGroup ) -> Html Msg
+groupPartitionView space ( letter, indexedGroups ) =
     div [ class "flex" ]
         [ div [ class "flex-0 flex-no-shrink pt-1 pl-5 w-12 text-sm text-dusty-blue font-bold" ] [ text letter ]
         , div [ class "flex-1" ] <|
-            List.map (groupView repo space) indexedGroups
+            List.map (groupView space) indexedGroups
         ]
 
 
-groupView : Repo -> Space -> IndexedGroup -> Html Msg
-groupView repo space ( index, group ) =
-    let
-        groupData =
-            Repo.getGroup repo group
-    in
+groupView : Space -> IndexedGroup -> Html Msg
+groupView space ( index, group ) =
     div []
         [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
-            [ a [ Route.href (Route.Group (Route.Group.Root (Space.slug space) groupData.id)), class "flex-1 text-blue no-underline" ] [ text groupData.name ]
-            , viewIf (groupData.membershipState == Subscribed) <|
+            [ a [ Route.href (Route.Group (Route.Group.Root (Space.slug space) (Group.id group))), class "flex-1 text-blue no-underline" ] [ text <| Group.name group ]
+            , viewIf (Group.membershipState group == Subscribed) <|
                 div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
             , div [ class "flex-0" ]
-                [ viewIf groupData.isBookmarked <|
+                [ viewIf (Group.isBookmarked group) <|
                     Icons.bookmark Icons.On
-                , viewUnless groupData.isBookmarked <|
+                , viewUnless (Group.isBookmarked group) <|
                     Icons.bookmark Icons.Off
                 ]
             ]
         ]
 
 
-paginationView : Space -> Connection Group -> Html Msg
+paginationView : Space -> Connection Id -> Html Msg
 paginationView space connection =
     div [ class "py-4" ]
         [ Pagination.view connection
@@ -204,35 +232,34 @@ paginationView space connection =
 -- HELPERS
 
 
-partitionGroups : Repo -> List ( String, List IndexedGroup ) -> List IndexedGroup -> List ( String, List IndexedGroup )
-partitionGroups repo partitions groups =
+partitionGroups : List ( String, List IndexedGroup ) -> List IndexedGroup -> List ( String, List IndexedGroup )
+partitionGroups partitions groups =
     case groups of
         hd :: tl ->
             let
                 letter =
-                    firstLetter repo (Tuple.second hd)
+                    firstLetter (Tuple.second hd)
 
                 ( matches, remaining ) =
-                    List.partition (startsWith repo letter) groups
+                    List.partition (startsWith letter) groups
             in
-            partitionGroups repo (( letter, matches ) :: partitions) remaining
+            partitionGroups (( letter, matches ) :: partitions) remaining
 
         _ ->
             List.reverse partitions
 
 
-firstLetter : Repo -> Group -> String
-firstLetter repo group =
+firstLetter : Group -> String
+firstLetter group =
     group
-        |> Repo.getGroup repo
-        |> .name
+        |> Group.name
         |> String.left 1
         |> String.toUpper
 
 
-startsWith : Repo -> String -> IndexedGroup -> Bool
-startsWith repo letter ( _, group ) =
-    firstLetter repo group == letter
+startsWith : String -> IndexedGroup -> Bool
+startsWith letter ( _, group ) =
+    firstLetter group == letter
 
 
 isEven : Int -> Bool

@@ -863,7 +863,7 @@ pageView repo newRepo page hasPushSubscription =
 
         Groups pageModel ->
             pageModel
-                |> Page.Groups.view repo (routeFor page)
+                |> Page.Groups.view newRepo (routeFor page)
                 |> Html.map GroupsMsg
 
         Group pageModel ->
