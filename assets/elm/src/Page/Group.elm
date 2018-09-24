@@ -382,14 +382,13 @@ update msg globals model =
             , globals
             )
 
-        FeaturedMembershipsRefreshed (Ok ( newSession, memberships )) ->
+        FeaturedMembershipsRefreshed (Ok ( newSession, resp )) ->
             let
-                memberIds =
-                    memberships
-                        |> List.map (SpaceUser.id << .user)
+                newRepo =
+                    Repo.union resp.repo globals.repo
             in
-            ( ( { model | featuredMemberIds = memberIds }, Cmd.none )
-            , { globals | session = newSession }
+            ( ( { model | featuredMemberIds = resp.spaceUserIds }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
             )
 
         FeaturedMembershipsRefreshed (Err Session.Expired) ->
