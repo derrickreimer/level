@@ -832,7 +832,7 @@ pageView repo newRepo page hasPushSubscription =
 
         NewSpace pageModel ->
             pageModel
-                |> Page.NewSpace.view repo
+                |> Page.NewSpace.view newRepo
                 |> Html.map NewSpaceMsg
 
         SetupCreateGroups pageModel ->

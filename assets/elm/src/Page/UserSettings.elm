@@ -86,8 +86,11 @@ buildModel globals ( newSession, resp ) =
                 []
                 False
                 Nothing
+        
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
     in
-    ( { globals | session = newSession }, model )
+    ( { globals | session = newSession, newRepo = newNewRepo }, model )
 
 
 setup : Model -> Cmd Msg

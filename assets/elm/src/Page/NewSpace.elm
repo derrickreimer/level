@@ -8,10 +8,11 @@ import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onBlur, onClick, onInput)
+import Id exposing (Id)
 import Mutation.CreateSpace as CreateSpace
+import NewRepo exposing (NewRepo)
 import Query.Viewer as Viewer
 import Regex exposing (Regex)
-import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Space exposing (Space)
@@ -27,7 +28,7 @@ import View.Layout exposing (userLayout)
 
 
 type alias Model =
-    { viewer : User
+    { viewerId : Id
     , name : String
     , slug : String
     , errors : List ValidationError
@@ -38,6 +39,17 @@ type alias Model =
 type FormState
     = Idle
     | Submitting
+
+
+type alias Data =
+    { viewer : User
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map Data
+        (NewRepo.getUser model.viewerId repo)
 
 
 
@@ -61,12 +73,15 @@ init globals =
 
 
 buildModel : Globals -> ( Session, Viewer.Response ) -> ( Globals, Model )
-buildModel globals ( newSession, { viewer } ) =
+buildModel globals ( newSession, resp ) =
     let
         model =
-            Model viewer "" "" [] Idle
+            Model resp.viewerId "" "" [] Idle
+
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
     in
-    ( { globals | session = newSession }, model )
+    ( { globals | session = newSession, newRepo = newNewRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -175,9 +190,19 @@ type alias FormField =
     }
 
 
-view : Repo -> Model -> Html Msg
+view : NewRepo -> Model -> Html Msg
 view repo model =
-    userLayout model.viewer <|
+    case resolveData repo model of
+        Just data ->
+            resolvedView model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : Model -> Data -> Html Msg
+resolvedView model data =
+    userLayout data.viewer <|
         div
             [ classList
                 [ ( "mx-auto max-w-sm leading-normal pb-8", True )
