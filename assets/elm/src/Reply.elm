@@ -1,4 +1,4 @@
-module Reply exposing (Record, Reply, author, body, bodyHtml, decoder, fragment, hasViewed, id, postId, postedAt)
+module Reply exposing (Reply, author, body, bodyHtml, decoder, fragment, hasViewed, id, postId, postedAt)
 
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
@@ -14,10 +14,10 @@ import Util exposing (dateDecoder)
 
 
 type Reply
-    = Reply Record
+    = Reply Data
 
 
-type alias Record =
+type alias Data =
     { id : String
     , postId : String
     , body : String
@@ -96,7 +96,7 @@ postedAt (Reply data) =
 decoder : Decoder Reply
 decoder =
     Decode.map Reply <|
-        (Decode.succeed Record
+        (Decode.succeed Data
             |> Pipeline.required "id" Id.decoder
             |> Pipeline.required "postId" Id.decoder
             |> Pipeline.required "body" string

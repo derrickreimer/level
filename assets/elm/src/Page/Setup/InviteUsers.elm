@@ -121,7 +121,6 @@ update msg globals model =
             ( ( { model | isSubmitting = True }, cmd ), globals, NoOp )
 
         Advanced (Ok ( newSession, CompleteSetupStep.Success nextState )) ->
-            -- TODO: Re-instate navigation to next state
             ( ( model, Cmd.none )
             , { globals | session = newSession }
             , SetupStateChanged nextState

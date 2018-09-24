@@ -1,4 +1,4 @@
-module User exposing (Record, User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, handle, id, lastName)
+module User exposing (User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, handle, id, lastName)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -12,10 +12,10 @@ import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string,
 
 
 type User
-    = User Record
+    = User Data
 
 
-type alias Record =
+type alias Data =
     { id : Id
     , email : String
     , firstName : String
@@ -94,7 +94,7 @@ avatar size (User data) =
 decoder : Decoder User
 decoder =
     Decode.map User <|
-        Decode.map7 Record
+        Decode.map7 Data
             (field "id" Id.decoder)
             (field "email" string)
             (field "firstName" string)

@@ -1,4 +1,4 @@
-module Mention exposing (Mention, Record, decoder, fragment)
+module Mention exposing (Mention, decoder, fragment)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, maybe)
@@ -13,10 +13,10 @@ import Util exposing (dateDecoder)
 
 
 type Mention
-    = Mention Record
+    = Mention Data
 
 
-type alias Record =
+type alias Data =
     { mentioner : SpaceUser
     , reply : Maybe Reply
     , occurredAt : Posix
@@ -49,7 +49,7 @@ fragment =
 decoder : Decoder Mention
 decoder =
     Decode.map Mention <|
-        Decode.map3 Record
+        Decode.map3 Data
             (field "mentioner" SpaceUser.decoder)
             (field "reply" (maybe Reply.decoder))
             (field "occurredAt" dateDecoder)

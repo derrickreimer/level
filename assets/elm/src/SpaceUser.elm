@@ -1,4 +1,4 @@
-module SpaceUser exposing (Record, Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, id, lastName, roleDecoder, userId)
+module SpaceUser exposing (Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, id, lastName, roleDecoder, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -12,10 +12,10 @@ import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string,
 
 
 type SpaceUser
-    = SpaceUser Record
+    = SpaceUser Data
 
 
-type alias Record =
+type alias Data =
     { id : Id
     , userId : Id
     , firstName : String
@@ -109,7 +109,7 @@ roleDecoder =
 decoder : Decoder SpaceUser
 decoder =
     Decode.map SpaceUser <|
-        Decode.map8 Record
+        Decode.map8 Data
             (field "id" Id.decoder)
             (field "userId" string)
             (field "firstName" string)

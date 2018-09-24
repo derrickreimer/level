@@ -1,4 +1,4 @@
-module Space exposing (Record, SetupState(..), Space, avatar, avatarUrl, decoder, fragment, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
+module Space exposing (SetupState(..), Space, avatar, avatarUrl, decoder, fragment, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -15,10 +15,10 @@ import Route.Inbox
 
 
 type Space
-    = Space Record
+    = Space Data
 
 
-type alias Record =
+type alias Data =
     { id : Id
     , name : String
     , slug : String
@@ -93,7 +93,7 @@ openInvitationUrl (Space data) =
 decoder : Decoder Space
 decoder =
     Decode.map Space <|
-        Decode.map7 Record
+        Decode.map7 Data
             (field "id" Id.decoder)
             (field "name" string)
             (field "slug" string)

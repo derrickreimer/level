@@ -1,4 +1,4 @@
-module Group exposing (Group, Record, decoder, fragment, id, isBookmarked, isPrivate, membershipState, name, setIsBookmarked)
+module Group exposing (Group, decoder, fragment, id, isBookmarked, isPrivate, membershipState, name, setIsBookmarked)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -11,10 +11,10 @@ import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
 
 
 type Group
-    = Group Record
+    = Group Data
 
 
-type alias Record =
+type alias Data =
     { id : Id
     , name : String
     , isPrivate : Bool
@@ -78,7 +78,7 @@ membershipState (Group data) =
 decoder : Decoder Group
 decoder =
     Decode.map Group <|
-        Decode.map6 Record
+        Decode.map6 Data
             (field "id" Id.decoder)
             (field "name" string)
             (field "isPrivate" bool)

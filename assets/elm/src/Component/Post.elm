@@ -1,4 +1,4 @@
-module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, decoder, handleMentionsDismissed, handleReplyCreated, init, setup, teardown, update, view)
+module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleMentionsDismissed, handleReplyCreated, init, setup, teardown, update, view)
 
 import Autosize
 import Avatar exposing (personAvatar)
@@ -77,13 +77,6 @@ resolveData repo model =
 
 
 -- LIFECYCLE
-
-
-decoder : Mode -> Bool -> Decoder Model
-decoder mode showGroups =
-    Decode.map2 (init mode showGroups)
-        (field "id" Decode.string)
-        (field "replies" <| Connection.decoder (field "id" Decode.string))
 
 
 init : Mode -> Bool -> String -> Connection String -> Model
