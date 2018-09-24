@@ -12,7 +12,6 @@ import Html.Attributes exposing (..)
 import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
-import NewRepo exposing (NewRepo)
 import Page.Group
 import Page.Groups
 import Page.Inbox
@@ -31,6 +30,7 @@ import Presence exposing (PresenceList)
 import PushManager
 import Query.GetSpaceUser as GetSpaceUser
 import Query.MainInit as MainInit
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
 import Route.Inbox
@@ -70,7 +70,7 @@ main =
 type alias Model =
     { navKey : Nav.Key
     , session : Session
-    , newRepo : NewRepo
+    , repo : Repo
     , page : Page
     , isTransitioning : Bool
     , supportsNotifications : Bool
@@ -114,7 +114,7 @@ buildModel flags navKey =
     Model
         navKey
         (Session.init flags.apiToken)
-        NewRepo.empty
+        Repo.empty
         Blank
         True
         flags.supportsNotifications
@@ -178,7 +178,7 @@ updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Gl
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
     ( { model
         | session = newGlobals.session
-        , newRepo = newGlobals.newRepo
+        , repo = newGlobals.repo
         , page = toPage newPageModel
       }
     , Cmd.map toPageMsg pageCmd
@@ -189,7 +189,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         globals =
-            Globals model.session model.newRepo
+            Globals model.session model.repo
     in
     case ( msg, model.page ) of
         ( UrlChange url, _ ) ->
@@ -260,7 +260,7 @@ update msg model =
             in
             ( { newModel
                 | session = newGlobals.session
-                , newRepo = newGlobals.newRepo
+                , repo = newGlobals.repo
                 , page = SetupCreateGroups newPageModel
               }
             , Cmd.batch
@@ -286,7 +286,7 @@ update msg model =
             in
             ( { newModel
                 | session = newGlobals.session
-                , newRepo = newGlobals.newRepo
+                , repo = newGlobals.repo
                 , page = SetupInviteUsers newPageModel
               }
             , Cmd.batch
@@ -438,7 +438,7 @@ navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
         globals =
-            Globals model.session model.newRepo
+            Globals model.session model.repo
     in
     case maybeRoute of
         Nothing ->
@@ -513,8 +513,8 @@ navigateTo maybeRoute model =
                 |> transition model UserSettingsInit
 
 
-pageTitle : NewRepo -> Page -> String
-pageTitle newRepo page =
+pageTitle : Repo -> Page -> String
+pageTitle repo page =
     case page of
         Spaces _ ->
             Page.Spaces.title
@@ -532,7 +532,7 @@ pageTitle newRepo page =
             Page.SpaceUsers.title
 
         Group pageModel ->
-            Page.Group.title newRepo pageModel
+            Page.Group.title repo pageModel
 
         Groups _ ->
             Page.Groups.title
@@ -569,7 +569,7 @@ setupPage pageInit model =
             ( { appModel
                 | page = toPage pageModel
                 , session = newGlobals.session
-                , newRepo = newGlobals.newRepo
+                , repo = newGlobals.repo
                 , isTransitioning = False
               }
             , Cmd.map toPageMsg (setupFn pageModel)
@@ -817,7 +817,7 @@ routeFor page =
             Nothing
 
 
-pageView : NewRepo -> Page -> Bool -> Html Msg
+pageView : Repo -> Page -> Bool -> Html Msg
 pageView repo page hasPushSubscription =
     case page of
         Spaces pageModel ->
@@ -897,166 +897,166 @@ pageView repo page hasPushSubscription =
 
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event ({ page, newRepo } as model) =
+consumeEvent event ({ page } as model) =
     case event of
         Event.GroupBookmarked group ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setGroup group
+                repo =
+                    model.repo
+                        |> Repo.setGroup group
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.GroupUnbookmarked group ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setGroup group
+                repo =
+                    model.repo
+                        |> Repo.setGroup group
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.GroupMembershipUpdated group ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setGroup group
+                repo =
+                    model.repo
+                        |> Repo.setGroup group
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.PostCreated ( post, replies ) ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPost post
-                        |> NewRepo.setReplies (Connection.toList replies)
+                repo =
+                    model.repo
+                        |> Repo.setPost post
+                        |> Repo.setReplies (Connection.toList replies)
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.PostUpdated post ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPost post
+                repo =
+                    model.repo
+                        |> Repo.setPost post
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.PostsSubscribed posts ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPosts posts
+                repo =
+                    model.repo
+                        |> Repo.setPosts posts
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.PostsUnsubscribed posts ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPosts posts
+                repo =
+                    model.repo
+                        |> Repo.setPosts posts
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.PostsMarkedAsUnread posts ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPosts posts
+                repo =
+                    model.repo
+                        |> Repo.setPosts posts
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.PostsMarkedAsRead posts ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPosts posts
+                repo =
+                    model.repo
+                        |> Repo.setPosts posts
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.PostsDismissed posts ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPosts posts
+                repo =
+                    model.repo
+                        |> Repo.setPosts posts
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.UserMentioned post ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPost post
+                repo =
+                    model.repo
+                        |> Repo.setPost post
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.GroupUpdated group ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setGroup group
+                repo =
+                    model.repo
+                        |> Repo.setGroup group
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.ReplyCreated reply ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setReply reply
+                repo =
+                    model.repo
+                        |> Repo.setReply reply
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.MentionsDismissed post ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setPost post
+                repo =
+                    model.repo
+                        |> Repo.setPost post
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.SpaceUpdated space ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setSpace space
+                repo =
+                    model.repo
+                        |> Repo.setSpace space
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
         Event.SpaceUserUpdated spaceUser ->
             let
-                newNewRepo =
-                    model.newRepo
-                        |> NewRepo.setSpaceUser spaceUser
+                repo =
+                    model.repo
+                        |> Repo.setSpaceUser spaceUser
             in
-            ( { model | newRepo = newNewRepo }
+            ( { model | repo = repo }
             , Cmd.none
             )
 
@@ -1144,7 +1144,7 @@ sendPresenceToPage event model =
     case model.page of
         Post pageModel ->
             pageModel
-                |> Page.Post.receivePresence event (Globals model.session model.newRepo)
+                |> Page.Post.receivePresence event (Globals model.session model.repo)
                 |> updatePage Post PostMsg model
 
         _ ->
@@ -1171,6 +1171,6 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    Document (pageTitle model.newRepo model.page)
-        [ pageView model.newRepo model.page model.hasPushSubscription
+    Document (pageTitle model.repo model.page)
+        [ pageView model.repo model.page model.hasPushSubscription
         ]

@@ -9,8 +9,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Icons
 import Id exposing (Id)
-import NewRepo exposing (NewRepo)
 import Query.SpacesInit as SpacesInit
+import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Space exposing (Space)
@@ -35,10 +35,10 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map Data
-        (NewRepo.getUser model.viewerId repo)
+        (Repo.getUser model.viewerId repo)
 
 
 
@@ -67,10 +67,10 @@ buildModel globals ( newSession, resp ) =
         model =
             Model resp.userId resp.spaceIds ""
 
-        newNewRepo =
-            NewRepo.union resp.repo globals.newRepo
+        newRepo =
+            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, newRepo = newNewRepo }, model )
+    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -122,7 +122,7 @@ subscriptions =
 -- VIEW
 
 
-view : NewRepo -> Model -> Html Msg
+view : Repo -> Model -> Html Msg
 view repo model =
     case resolveData repo model of
         Just data ->
@@ -132,7 +132,7 @@ view repo model =
             text "Something went wrong."
 
 
-resolvedView : NewRepo -> Model -> Data -> Html Msg
+resolvedView : Repo -> Model -> Data -> Html Msg
 resolvedView repo model data =
     userLayout data.viewer <|
         div [ class "mx-auto max-w-sm" ]
@@ -160,7 +160,7 @@ resolvedView repo model data =
             ]
 
 
-spacesView : NewRepo -> String -> Connection Id -> Html Msg
+spacesView : Repo -> String -> Connection Id -> Html Msg
 spacesView repo query spaceIds =
     if Connection.isEmpty spaceIds then
         blankSlateView
@@ -168,7 +168,7 @@ spacesView repo query spaceIds =
     else
         let
             filteredSpaces =
-                NewRepo.getSpaces (Connection.toList spaceIds) repo
+                Repo.getSpaces (Connection.toList spaceIds) repo
                     |> filter query
         in
         if List.isEmpty filteredSpaces then

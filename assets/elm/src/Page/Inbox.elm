@@ -16,12 +16,12 @@ import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissPosts as DismissPosts
-import NewRepo exposing (NewRepo)
 import Pagination
 import Post exposing (Post)
 import PushManager
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Inbox exposing (Params(..))
 import Route.SpaceUsers
@@ -58,13 +58,13 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map4 Data
-        (NewRepo.getSpaceUser model.viewerId repo)
-        (NewRepo.getSpace model.spaceId repo)
-        (Just <| NewRepo.getGroups model.bookmarkIds repo)
-        (Just <| NewRepo.getSpaceUsers model.featuredUserIds repo)
+        (Repo.getSpaceUser model.viewerId repo)
+        (Repo.getSpace model.spaceId repo)
+        (Just <| Repo.getGroups model.bookmarkIds repo)
+        (Just <| Repo.getSpaceUsers model.featuredUserIds repo)
 
 
 
@@ -94,22 +94,20 @@ buildModel params globals ( ( newSession, resp ), now ) =
         postComps =
             Connection.map buildPostComponent resp.postWithRepliesIds
 
-        newGlobals =
-            { globals
-                | session = newSession
-                , newRepo = NewRepo.union resp.repo globals.newRepo
-            }
+        model =
+            Model
+                params
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
+                resp.featuredUserIds
+                postComps
+                now
+
+        newRepo =
+            Repo.union resp.repo globals.repo
     in
-    ( newGlobals
-    , Model
-        params
-        resp.viewerId
-        resp.spaceId
-        resp.bookmarkIds
-        resp.featuredUserIds
-        postComps
-        now
-    )
+    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
@@ -292,18 +290,18 @@ subscriptions =
 -- VIEW
 
 
-view : NewRepo -> Maybe Route -> Bool -> Model -> Html Msg
-view newRepo maybeCurrentRoute hasPushSubscription model =
-    case resolveData newRepo model of
+view : Repo -> Maybe Route -> Bool -> Model -> Html Msg
+view repo maybeCurrentRoute hasPushSubscription model =
+    case resolveData repo model of
         Just data ->
-            resolvedView newRepo maybeCurrentRoute hasPushSubscription model data
+            resolvedView repo maybeCurrentRoute hasPushSubscription model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : NewRepo -> Maybe Route -> Bool -> Model -> Data -> Html Msg
-resolvedView newRepo maybeCurrentRoute hasPushSubscription model data =
+resolvedView : Repo -> Maybe Route -> Bool -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute hasPushSubscription model data =
     spaceLayout
         data.viewer
         data.space
@@ -317,7 +315,7 @@ resolvedView newRepo maybeCurrentRoute hasPushSubscription model data =
                         , controlsView model data
                         ]
                     ]
-                , postsView newRepo model data
+                , postsView repo model data
                 , sidebarView data.space data.featuredUsers hasPushSubscription
                 ]
             ]
@@ -355,22 +353,22 @@ paginationView space connection =
         (Route.Inbox << After (Space.slug space))
 
 
-postsView : NewRepo -> Model -> Data -> Html Msg
-postsView newRepo model data =
+postsView : Repo -> Model -> Data -> Html Msg
+postsView repo model data =
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (postView newRepo model data) model.postComps
+            Connection.mapList (postView repo model data) model.postComps
 
 
-postView : NewRepo -> Model -> Data -> Component.Post.Model -> Html Msg
-postView newRepo model data component =
+postView : Repo -> Model -> Data -> Component.Post.Model -> Html Msg
+postView repo model data component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.checkableView newRepo data.space data.viewer model.now
+            |> Component.Post.checkableView repo data.space data.viewer model.now
             |> Html.map (PostComponentMsg component.id)
         ]
 

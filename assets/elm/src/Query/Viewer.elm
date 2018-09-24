@@ -5,7 +5,7 @@ import GraphQL exposing (Document)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Session exposing (Session)
 import Task exposing (Task)
 import User exposing (User)
@@ -14,7 +14,7 @@ import User exposing (User)
 type alias Response =
     { viewerId : Id
     , viewer : User
-    , repo : NewRepo
+    , repo : Repo
     }
 
 
@@ -52,8 +52,8 @@ buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
         repo =
-            NewRepo.empty
-                |> NewRepo.setUser data.viewer
+            Repo.empty
+                |> Repo.setUser data.viewer
 
         resp =
             Response

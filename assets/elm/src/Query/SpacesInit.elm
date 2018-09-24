@@ -5,7 +5,7 @@ import GraphQL exposing (Document, Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Session exposing (Session)
 import Space exposing (Space)
 import Task exposing (Task)
@@ -15,7 +15,7 @@ import User exposing (User)
 type alias Response =
     { userId : Id
     , spaceIds : Connection Id
-    , repo : NewRepo
+    , repo : Repo
     }
 
 
@@ -147,9 +147,9 @@ buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
         repo =
-            NewRepo.empty
-                |> NewRepo.setUser data.user
-                |> NewRepo.setSpaces (Connection.toList data.spaces)
+            Repo.empty
+                |> Repo.setUser data.user
+                |> Repo.setSpaces (Connection.toList data.spaces)
 
         resp =
             Response

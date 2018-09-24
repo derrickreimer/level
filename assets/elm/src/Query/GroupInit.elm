@@ -9,7 +9,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Decode.Pipeline as Pipeline exposing (custom)
 import Json.Encode as Encode
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import ResolvedPost exposing (ResolvedPost)
@@ -27,7 +27,7 @@ type alias Response =
     , groupId : Id
     , postWithRepliesIds : Connection ( Id, Connection Id )
     , featuredMemberIds : List Id
-    , repo : NewRepo
+    , repo : Repo
     }
 
 
@@ -138,7 +138,7 @@ decoder =
         )
 
 
-addPostsToRepo : Connection ResolvedPost -> NewRepo -> NewRepo
+addPostsToRepo : Connection ResolvedPost -> Repo -> Repo
 addPostsToRepo resolvedPosts repo =
     List.foldr ResolvedPost.addToRepo repo (Connection.toList resolvedPosts)
 
@@ -152,13 +152,13 @@ buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
         repo =
-            NewRepo.empty
-                |> NewRepo.setSpaceUser data.viewer
-                |> NewRepo.setSpace data.space
-                |> NewRepo.setGroups data.bookmarks
-                |> NewRepo.setGroup data.group
+            Repo.empty
+                |> Repo.setSpaceUser data.viewer
+                |> Repo.setSpace data.space
+                |> Repo.setGroups data.bookmarks
+                |> Repo.setGroup data.group
                 |> addPostsToRepo data.resolvedPosts
-                |> NewRepo.setSpaceUsers data.featuredMembers
+                |> Repo.setSpaceUsers data.featuredMembers
 
         resp =
             Response

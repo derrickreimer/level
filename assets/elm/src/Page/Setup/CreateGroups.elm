@@ -10,7 +10,7 @@ import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Query.SetupInit as SetupInit
 import Route exposing (Route)
 import Session exposing (Session)
@@ -41,12 +41,12 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map3 Data
-        (NewRepo.getSpaceUser model.viewerId repo)
-        (NewRepo.getSpace model.spaceId repo)
-        (Just <| NewRepo.getGroups model.bookmarkIds repo)
+        (Repo.getSpaceUser model.viewerId repo)
+        (Repo.getSpace model.spaceId repo)
+        (Just <| Repo.getGroups model.bookmarkIds repo)
 
 
 defaultGroups : List String
@@ -86,10 +86,10 @@ buildModel spaceSlug globals ( newSession, resp ) =
                 False
                 [ "All Teams" ]
 
-        newNewRepo =
-            NewRepo.union resp.repo globals.newRepo
+        repo =
+            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, newRepo = newNewRepo }, model )
+    ( { globals | session = newSession, repo = repo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -198,7 +198,7 @@ consumeEvent event model =
 -- VIEW
 
 
-view : NewRepo -> Maybe Route -> Model -> Html Msg
+view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
     case resolveData repo model of
         Just data ->

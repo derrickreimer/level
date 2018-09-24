@@ -10,9 +10,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onBlur, onClick, onInput)
 import Id exposing (Id)
 import Mutation.CreateSpace as CreateSpace
-import NewRepo exposing (NewRepo)
 import Query.Viewer as Viewer
 import Regex exposing (Regex)
+import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Space exposing (Space)
@@ -46,10 +46,10 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map Data
-        (NewRepo.getUser model.viewerId repo)
+        (Repo.getUser model.viewerId repo)
 
 
 
@@ -78,10 +78,10 @@ buildModel globals ( newSession, resp ) =
         model =
             Model resp.viewerId "" "" [] Idle
 
-        newNewRepo =
-            NewRepo.union resp.repo globals.newRepo
+        newRepo =
+            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, newRepo = newNewRepo }, model )
+    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -190,7 +190,7 @@ type alias FormField =
     }
 
 
-view : NewRepo -> Model -> Html Msg
+view : Repo -> Model -> Html Msg
 view repo model =
     case resolveData repo model of
         Just data ->

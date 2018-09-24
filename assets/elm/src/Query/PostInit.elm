@@ -7,7 +7,7 @@ import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import ResolvedPost exposing (ResolvedPost)
@@ -22,7 +22,7 @@ type alias Response =
     , spaceId : Id
     , bookmarkIds : List Id
     , postWithRepliesId : ( Id, Connection Id )
-    , repo : NewRepo
+    , repo : Repo
     }
 
 
@@ -90,10 +90,10 @@ buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
         repo =
-            NewRepo.empty
-                |> NewRepo.setSpace data.space
-                |> NewRepo.setSpaceUser data.viewer
-                |> NewRepo.setGroups data.bookmarks
+            Repo.empty
+                |> Repo.setSpace data.space
+                |> Repo.setSpaceUser data.viewer
+                |> Repo.setGroups data.bookmarks
                 |> ResolvedPost.addToRepo data.resolvedPost
 
         resp =

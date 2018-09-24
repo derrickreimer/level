@@ -14,7 +14,7 @@ import ListHelpers
 import Markdown
 import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Post exposing (Post)
 import Query.Replies
 import RenderedHtml
@@ -59,17 +59,17 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     let
         maybePost =
-            NewRepo.getPost model.postId repo
+            Repo.getPost model.postId repo
     in
     case maybePost of
         Just post ->
             Maybe.map2 Data
                 (Just post)
-                (NewRepo.getSpaceUser (Post.authorId post) repo)
+                (Repo.getSpaceUser (Post.authorId post) repo)
 
         Nothing ->
             Nothing
@@ -266,7 +266,7 @@ update msg spaceId globals model =
                 newGlobals =
                     { globals
                         | session = newSession
-                        , newRepo = NewRepo.union resp.repo globals.newRepo
+                        , repo = Repo.union resp.repo globals.repo
                     }
 
                 cmd =
@@ -333,18 +333,18 @@ handleMentionsDismissed model =
 -- VIEWS
 
 
-view : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-view newRepo space currentUser now model =
-    case resolveData newRepo model of
+view : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+view repo space currentUser now model =
+    case resolveData repo model of
         Just data ->
-            resolvedView newRepo space currentUser now model data
+            resolvedView repo space currentUser now model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
-resolvedView newRepo space currentUser (( zone, posix ) as now) model data =
+resolvedView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
+resolvedView repo space currentUser (( zone, posix ) as now) model data =
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow leading-semi-loose" ]
@@ -357,7 +357,7 @@ resolvedView newRepo space currentUser (( zone, posix ) as now) model data =
                     ]
                     [ span [ class "font-bold" ] [ text <| SpaceUser.displayName data.author ] ]
                 , viewIf model.showGroups <|
-                    groupsLabel space (NewRepo.getGroups (Post.groupIds data.post) newRepo)
+                    groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
                 , a
                     [ Route.href <| Route.Post (Space.slug space) model.postId
                     , class "no-underline text-dusty-blue-darkest"
@@ -373,15 +373,15 @@ resolvedView newRepo space currentUser (( zone, posix ) as now) model data =
                     ]
                 ]
             , div [ class "relative" ]
-                [ repliesView newRepo space data.post now model.replyIds model.mode
+                [ repliesView repo space data.post now model.replyIds model.mode
                 , replyComposerView currentUser data.post model
                 ]
             ]
         ]
 
 
-checkableView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-checkableView newRepo space viewer now model =
+checkableView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
+checkableView repo space viewer now model =
     div [ class "flex" ]
         [ div [ class "mr-1 py-2 flex-0" ]
             [ label [ class "control checkbox" ]
@@ -396,7 +396,7 @@ checkableView newRepo space viewer now model =
                 ]
             ]
         , div [ class "flex-1" ]
-            [ view newRepo space viewer now model
+            [ view repo space viewer now model
             ]
         ]
 
@@ -421,28 +421,28 @@ groupsLabel space groups =
             text ""
 
 
-repliesView : NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
-repliesView newRepo space post now replyIds mode =
+repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
+repliesView repo space post now replyIds mode =
     let
         listView =
             case mode of
                 Feed ->
-                    feedRepliesView newRepo space post now replyIds
+                    feedRepliesView repo space post now replyIds
 
                 FullPage ->
-                    fullPageRepliesView newRepo post now replyIds
+                    fullPageRepliesView repo post now replyIds
     in
     viewUnless (Connection.isEmptyAndExpanded replyIds) listView
 
 
-feedRepliesView : NewRepo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
-feedRepliesView newRepo space post now replyIds =
+feedRepliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
+feedRepliesView repo space post now replyIds =
     let
         { nodes, hasPreviousPage } =
             Connection.last 5 replyIds
 
         replies =
-            NewRepo.getReplies nodes newRepo
+            Repo.getReplies nodes repo
     in
     div []
         [ viewIf hasPreviousPage <|
@@ -451,15 +451,15 @@ feedRepliesView newRepo space post now replyIds =
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]
-        , div [] (List.map (replyView newRepo now Feed post) replies)
+        , div [] (List.map (replyView repo now Feed post) replies)
         ]
 
 
-fullPageRepliesView : NewRepo -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
-fullPageRepliesView newRepo post now replyIds =
+fullPageRepliesView : Repo -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
+fullPageRepliesView repo post now replyIds =
     let
         replies =
-            NewRepo.getReplies (Connection.toList replyIds) newRepo
+            Repo.getReplies (Connection.toList replyIds) repo
 
         hasPreviousPage =
             Connection.hasPreviousPage replyIds
@@ -471,12 +471,12 @@ fullPageRepliesView newRepo post now replyIds =
                 , onClick PreviousRepliesRequested
                 ]
                 [ text "Load more..." ]
-        , div [] (List.map (replyView newRepo now FullPage post) replies)
+        , div [] (List.map (replyView repo now FullPage post) replies)
         ]
 
 
-replyView : NewRepo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
-replyView newRepo (( zone, posix ) as now) mode post reply =
+replyView : Repo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) mode post reply =
     let
         author =
             Reply.author reply

@@ -7,7 +7,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -19,7 +19,7 @@ type alias Response =
     , spaceId : Id
     , bookmarkIds : List Id
     , space : Space
-    , repo : NewRepo
+    , repo : Repo
     }
 
 
@@ -76,10 +76,10 @@ buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
         repo =
-            NewRepo.empty
-                |> NewRepo.setSpaceUser data.viewer
-                |> NewRepo.setSpace data.space
-                |> NewRepo.setGroups data.bookmarks
+            Repo.empty
+                |> Repo.setSpaceUser data.viewer
+                |> Repo.setSpace data.space
+                |> Repo.setGroups data.bookmarks
 
         resp =
             Response

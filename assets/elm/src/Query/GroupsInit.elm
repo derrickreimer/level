@@ -6,7 +6,7 @@ import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Route.Groups exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
@@ -19,7 +19,7 @@ type alias Response =
     , spaceId : Id
     , bookmarkIds : List Id
     , groupIds : Connection Id
-    , repo : NewRepo
+    , repo : Repo
     }
 
 
@@ -107,11 +107,11 @@ buildResponse : ( Session, Data ) -> ( Session, Response )
 buildResponse ( session, data ) =
     let
         repo =
-            NewRepo.empty
-                |> NewRepo.setSpaceUser data.viewer
-                |> NewRepo.setSpace data.space
-                |> NewRepo.setGroups data.bookmarks
-                |> NewRepo.setGroups (Connection.toList data.groups)
+            Repo.empty
+                |> Repo.setSpaceUser data.viewer
+                |> Repo.setSpace data.space
+                |> Repo.setGroups data.bookmarks
+                |> Repo.setGroups (Connection.toList data.groups)
 
         resp =
             Response

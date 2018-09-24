@@ -3,7 +3,7 @@ module ResolvedPost exposing (ResolvedPost, addToRepo, decoder, unresolve)
 import Connection exposing (Connection)
 import Group exposing (Group)
 import Json.Decode as Decode exposing (Decoder, field, list)
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import SpaceUser exposing (SpaceUser)
@@ -26,13 +26,13 @@ decoder =
         (field "groups" (list Group.decoder))
 
 
-addToRepo : ResolvedPost -> NewRepo -> NewRepo
+addToRepo : ResolvedPost -> Repo -> Repo
 addToRepo post repo =
     repo
-        |> NewRepo.setPost post.post
-        |> NewRepo.setReplies (Connection.toList post.replies)
-        |> NewRepo.setSpaceUser post.author
-        |> NewRepo.setGroups post.groups
+        |> Repo.setPost post.post
+        |> Repo.setReplies (Connection.toList post.replies)
+        |> Repo.setSpaceUser post.author
+        |> Repo.setGroups post.groups
 
 
 unresolve : ResolvedPost -> ( String, Connection String )

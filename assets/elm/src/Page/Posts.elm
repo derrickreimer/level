@@ -15,11 +15,11 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import NewRepo exposing (NewRepo)
 import Pagination
 import Post exposing (Post)
 import Query.PostsInit as PostsInit
 import Reply exposing (Reply)
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Posts exposing (Params(..))
 import Route.SpaceUsers
@@ -56,13 +56,13 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map4 Data
-        (NewRepo.getSpaceUser model.viewerId repo)
-        (NewRepo.getSpace model.spaceId repo)
-        (Just <| NewRepo.getGroups model.bookmarkIds repo)
-        (Just <| NewRepo.getSpaceUsers model.featuredUserIds repo)
+        (Repo.getSpaceUser model.viewerId repo)
+        (Repo.getSpace model.spaceId repo)
+        (Just <| Repo.getGroups model.bookmarkIds repo)
+        (Just <| Repo.getSpaceUsers model.featuredUserIds repo)
 
 
 
@@ -92,22 +92,20 @@ buildModel params globals ( ( newSession, resp ), now ) =
         postComps =
             Connection.map buildPostComponent resp.postWithRepliesIds
 
-        newGlobals =
-            { globals
-                | session = newSession
-                , newRepo = NewRepo.union resp.repo globals.newRepo
-            }
+        model =
+            Model
+                params
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
+                resp.featuredUserIds
+                postComps
+                now
+
+        newRepo =
+            Repo.union resp.repo globals.repo
     in
-    ( newGlobals
-    , Model
-        params
-        resp.viewerId
-        resp.spaceId
-        resp.bookmarkIds
-        resp.featuredUserIds
-        postComps
-        now
-    )
+    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
@@ -239,7 +237,7 @@ subscriptions =
 -- VIEW
 
 
-view : NewRepo -> Maybe Route -> Model -> Html Msg
+view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
     case resolveData repo model of
         Just data ->
@@ -249,7 +247,7 @@ view repo maybeCurrentRoute model =
             text "Something went wrong."
 
 
-resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
     spaceLayout
         data.viewer
@@ -285,22 +283,22 @@ paginationView space connection =
         (Route.Posts << After (Space.slug space))
 
 
-postsView : NewRepo -> Model -> Data -> Html Msg
-postsView newRepo model data =
+postsView : Repo -> Model -> Data -> Html Msg
+postsView repo model data =
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (postView newRepo model data) model.postComps
+            Connection.mapList (postView repo model data) model.postComps
 
 
-postView : NewRepo -> Model -> Data -> Component.Post.Model -> Html Msg
-postView newRepo model data component =
+postView : Repo -> Model -> Data -> Component.Post.Model -> Html Msg
+postView repo model data component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.view newRepo data.space data.viewer model.now
+            |> Component.Post.view repo data.space data.viewer model.now
             |> Html.map (PostComponentMsg component.id)
         ]
 

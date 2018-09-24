@@ -10,8 +10,8 @@ import Html.Events exposing (..)
 import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CreateGroup as CreateGroup
-import NewRepo exposing (NewRepo)
 import Query.SetupInit as SetupInit
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Session exposing (Session)
@@ -47,12 +47,12 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map3 Data
-        (NewRepo.getSpaceUser model.viewerId repo)
-        (NewRepo.getSpace model.spaceId repo)
-        (Just <| NewRepo.getGroups model.bookmarkIds repo)
+        (Repo.getSpaceUser model.viewerId repo)
+        (Repo.getSpace model.spaceId repo)
+        (Just <| Repo.getGroups model.bookmarkIds repo)
 
 
 
@@ -89,10 +89,10 @@ buildModel spaceSlug globals ( newSession, resp ) =
                 False
                 []
 
-        newNewRepo =
-            NewRepo.union resp.repo globals.newRepo
+        newRepo =
+            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, newRepo = newNewRepo }, model )
+    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -188,7 +188,7 @@ consumeEvent event model =
 -- VIEW
 
 
-view : NewRepo -> Maybe Route -> Model -> Html Msg
+view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
     case resolveData repo model of
         Just data ->
@@ -198,7 +198,7 @@ view repo maybeCurrentRoute model =
             text "Something went wrong."
 
 
-resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
     spaceLayout
         data.viewer

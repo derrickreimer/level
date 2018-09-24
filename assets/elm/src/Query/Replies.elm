@@ -5,7 +5,7 @@ import GraphQL exposing (Document)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field)
 import Json.Encode as Encode
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Reply exposing (Reply)
 import Session exposing (Session)
 import SpaceUser exposing (SpaceUser)
@@ -14,7 +14,7 @@ import Task exposing (Task)
 
 type alias Response =
     { replyIds : Connection Id
-    , repo : NewRepo
+    , repo : Repo
     }
 
 
@@ -75,13 +75,13 @@ decoder =
         Connection.decoder resolvedReplyDecoder
 
 
-addRepliesToRepo : Connection ResolvedReply -> NewRepo -> NewRepo
+addRepliesToRepo : Connection ResolvedReply -> Repo -> Repo
 addRepliesToRepo resolvedReplies repo =
     let
         reducer resolvedReply acc =
             acc
-                |> NewRepo.setReply resolvedReply.reply
-                |> NewRepo.setSpaceUser resolvedReply.author
+                |> Repo.setReply resolvedReply.reply
+                |> Repo.setSpaceUser resolvedReply.author
     in
     List.foldr reducer repo (Connection.toList resolvedReplies)
 
@@ -92,7 +92,7 @@ buildResponse ( session, data ) =
         resp =
             Response
                 (Connection.map (Reply.id << .reply) data)
-                (addRepliesToRepo data NewRepo.empty)
+                (addRepliesToRepo data Repo.empty)
     in
     ( session, resp )
 

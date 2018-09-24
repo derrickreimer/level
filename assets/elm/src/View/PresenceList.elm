@@ -3,18 +3,18 @@ module View.PresenceList exposing (view)
 import Avatar
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import NewRepo exposing (NewRepo)
+import Repo exposing (Repo)
 import Presence exposing (Presence, PresenceList)
 import SpaceUser exposing (SpaceUser)
 import View.Helpers exposing (displayName)
 
 
-view : NewRepo -> PresenceList -> Html msg
+view : Repo -> PresenceList -> Html msg
 view repo list =
     let
         spaceUsers =
             repo
-                |> NewRepo.getSpaceUsersByUserId (Presence.getUserIds list)
+                |> Repo.getSpaceUsersByUserId (Presence.getUserIds list)
                 |> List.sortBy SpaceUser.lastName
     in
     if List.isEmpty spaceUsers then

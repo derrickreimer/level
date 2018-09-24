@@ -19,12 +19,12 @@ import Mutation.CreatePost as CreatePost
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
-import NewRepo exposing (NewRepo)
 import Pagination
 import Post exposing (Post)
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
 import Session exposing (Session)
@@ -86,23 +86,23 @@ type alias Data =
     }
 
 
-resolveData : NewRepo -> Model -> Maybe Data
+resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map5 Data
-        (NewRepo.getSpaceUser model.viewerId repo)
-        (NewRepo.getSpace model.spaceId repo)
-        (Just <| NewRepo.getGroups model.bookmarkIds repo)
-        (NewRepo.getGroup model.groupId repo)
-        (Just <| NewRepo.getSpaceUsers model.featuredMemberIds repo)
+        (Repo.getSpaceUser model.viewerId repo)
+        (Repo.getSpace model.spaceId repo)
+        (Just <| Repo.getGroups model.bookmarkIds repo)
+        (Repo.getGroup model.groupId repo)
+        (Just <| Repo.getSpaceUsers model.featuredMemberIds repo)
 
 
 
 -- PAGE PROPERTIES
 
 
-title : NewRepo -> Model -> String
+title : Repo -> Model -> String
 title repo model =
-    case NewRepo.getGroup model.groupId repo of
+    case Repo.getGroup model.groupId repo of
         Just group ->
             Group.name group
 
@@ -141,10 +141,10 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 (FieldEditor NotEditing "" [])
                 (PostComposer "" False)
 
-        newNewRepo =
-            NewRepo.union resp.repo globals.newRepo
+        newRepo =
+            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, newRepo = newNewRepo }, model )
+    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
@@ -296,7 +296,7 @@ update msg globals model =
             noCmd globals model
 
         NameClicked ->
-            case resolveData globals.newRepo model of
+            case resolveData globals.repo model of
                 Just data ->
                     let
                         nameEditor =
@@ -350,11 +350,11 @@ update msg globals model =
                 newModel =
                     { model | nameEditor = { nameEditor | state = NotEditing } }
 
-                newNewRepo =
-                    globals.newRepo
-                        |> NewRepo.setGroup newGroup
+                repo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
             in
-            noCmd { globals | session = newSession, newRepo = newNewRepo } newModel
+            noCmd { globals | session = newSession, repo = repo } newModel
 
         NameEditorSubmitted (Ok ( newSession, UpdateGroup.Invalid errors )) ->
             let
@@ -554,7 +554,7 @@ subscriptions =
 -- VIEW
 
 
-view : NewRepo -> Maybe Route -> Model -> Html Msg
+view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
     case resolveData repo model of
         Just data ->
@@ -564,7 +564,7 @@ view repo maybeCurrentRoute model =
             text "Something went wrong."
 
 
-resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
     spaceLayout
         data.viewer
@@ -706,7 +706,7 @@ newPostView ({ body, isSubmitting } as postComposer) currentUser =
         ]
 
 
-postsView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
+postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
 postsView repo space currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
@@ -717,7 +717,7 @@ postsView repo space currentUser now connection =
             Connection.mapList (postView repo space currentUser now) connection
 
 
-postView : NewRepo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
+postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
 postView repo space currentUser now component =
     div [ class "p-4" ]
         [ Component.Post.view repo space currentUser now component
