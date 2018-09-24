@@ -14,7 +14,6 @@ import Route.Posts
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
-import View.Helpers exposing (displayName)
 
 
 
@@ -59,15 +58,11 @@ userLayout user bodyView =
 
 currentUserView : User -> Html msg
 currentUserView user =
-    let
-        userData =
-            User.getCachedData user
-    in
     a [ href "#", class "flex items-center no-underline text-dusty-blue-darker" ]
-        [ div [] [ Avatar.personAvatar Avatar.Small userData ]
+        [ div [] [ User.avatar Avatar.Small user ]
         , div [ class "ml-2 text-sm leading-normal" ]
             [ div [] [ text "Signed in as" ]
-            , div [ class "font-bold" ] [ text (displayName userData) ]
+            , div [ class "font-bold" ] [ text (User.displayName user) ]
             ]
         ]
 

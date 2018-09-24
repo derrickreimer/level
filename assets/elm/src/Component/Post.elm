@@ -14,12 +14,12 @@ import ListHelpers
 import Markdown
 import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
-import Repo exposing (Repo)
 import Post exposing (Post)
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
 import ReplyComposer exposing (Mode(..), ReplyComposer)
+import Repo exposing (Repo)
 import Route
 import Route.Group
 import Scroll
@@ -30,7 +30,7 @@ import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (displayName, setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
+import View.Helpers exposing (setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
 
 
 

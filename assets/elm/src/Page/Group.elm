@@ -36,7 +36,7 @@ import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (displayName, selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
+import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
 import View.Layout exposing (spaceLayout)
 
 

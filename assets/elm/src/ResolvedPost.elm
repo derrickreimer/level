@@ -3,9 +3,9 @@ module ResolvedPost exposing (ResolvedPost, addToRepo, decoder, unresolve)
 import Connection exposing (Connection)
 import Group exposing (Group)
 import Json.Decode as Decode exposing (Decoder, field, list)
-import Repo exposing (Repo)
 import Post exposing (Post)
 import Reply exposing (Reply)
+import Repo exposing (Repo)
 import SpaceUser exposing (SpaceUser)
 
 

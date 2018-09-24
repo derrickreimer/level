@@ -1,4 +1,4 @@
-module View.Helpers exposing (displayName, formatTime, formatTimeOfDay, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
+module View.Helpers exposing (formatTime, formatTimeOfDay, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
 
 import Browser.Dom exposing (blur, focus)
 import Html exposing (..)
@@ -19,16 +19,6 @@ type alias Nameable a =
 
 
 -- MISC
-
-
-{-| Generate the display name for a given user.
-
-    displayName { firstName = "Derrick", lastName = "Reimer" } == "Derrick Reimer"
-
--}
-displayName : Nameable a -> String
-displayName nameable =
-    nameable.firstName ++ " " ++ nameable.lastName
 
 
 {-| Render the given HTML if the truth value is true.

@@ -9,8 +9,8 @@ import Html.Events exposing (onClick)
 import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CompleteSetupStep as CompleteSetupStep
-import Repo exposing (Repo)
 import Query.SetupInit as SetupInit
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)

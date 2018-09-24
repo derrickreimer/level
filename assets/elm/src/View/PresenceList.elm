@@ -3,10 +3,9 @@ module View.PresenceList exposing (view)
 import Avatar
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Repo exposing (Repo)
 import Presence exposing (Presence, PresenceList)
+import Repo exposing (Repo)
 import SpaceUser exposing (SpaceUser)
-import View.Helpers exposing (displayName)
 
 
 view : Repo -> PresenceList -> Html msg

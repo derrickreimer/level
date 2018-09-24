@@ -43,7 +43,6 @@ import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
 import Url exposing (Url)
 import Util exposing (Lazy(..))
-import View.Helpers exposing (displayName)
 import View.Layout exposing (appLayout, spaceLayout)
 
 

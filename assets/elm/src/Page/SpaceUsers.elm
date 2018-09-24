@@ -20,7 +20,7 @@ import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
-import View.Helpers exposing (displayName, viewIf)
+import View.Helpers exposing (viewIf)
 import View.Layout exposing (spaceLayout)
 
 

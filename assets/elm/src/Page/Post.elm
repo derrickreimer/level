@@ -24,7 +24,6 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (displayName)
 import View.Layout exposing (spaceLayout)
 import View.PresenceList
 

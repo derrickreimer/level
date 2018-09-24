@@ -1,6 +1,8 @@
-module User exposing (Record, User, avatarUrl, decoder, email, firstName, fragment, getCachedData, handle, id, lastName)
+module User exposing (Record, User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, getCachedData, handle, id, lastName)
 
+import Avatar
 import GraphQL exposing (Fragment)
+import Html exposing (Html)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 
@@ -73,6 +75,16 @@ handle (User data) =
 avatarUrl : User -> Maybe String
 avatarUrl (User data) =
     data.avatarUrl
+
+
+displayName : User -> String
+displayName (User data) =
+    data.firstName ++ " " ++ data.lastName
+
+
+avatar : Avatar.Size -> User -> Html msg
+avatar size (User data) =
+    Avatar.personAvatar size data
 
 
 
