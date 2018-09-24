@@ -11,7 +11,6 @@ import Icons
 import Id exposing (Id)
 import NewRepo exposing (NewRepo)
 import Query.SpacesInit as SpacesInit
-import Repo exposing (Repo)
 import Route
 import Session exposing (Session)
 import Space exposing (Space)

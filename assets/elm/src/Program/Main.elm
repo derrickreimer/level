@@ -31,7 +31,6 @@ import Presence exposing (PresenceList)
 import PushManager
 import Query.GetSpaceUser as GetSpaceUser
 import Query.MainInit as MainInit
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Groups
 import Route.Inbox
@@ -71,7 +70,6 @@ main =
 type alias Model =
     { navKey : Nav.Key
     , session : Session
-    , repo : Repo
     , newRepo : NewRepo
     , page : Page
     , isTransitioning : Bool
@@ -116,7 +114,6 @@ buildModel flags navKey =
     Model
         navKey
         (Session.init flags.apiToken)
-        Repo.init
         NewRepo.empty
         Blank
         True
@@ -181,7 +178,6 @@ updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Gl
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
     ( { model
         | session = newGlobals.session
-        , repo = newGlobals.repo
         , newRepo = newGlobals.newRepo
         , page = toPage newPageModel
       }
@@ -193,7 +189,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         globals =
-            Globals model.session model.repo model.newRepo
+            Globals model.session model.newRepo
     in
     case ( msg, model.page ) of
         ( UrlChange url, _ ) ->
@@ -442,7 +438,7 @@ navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
         globals =
-            Globals model.session model.repo model.newRepo
+            Globals model.session model.newRepo
     in
     case maybeRoute of
         Nothing ->
@@ -517,8 +513,8 @@ navigateTo maybeRoute model =
                 |> transition model UserSettingsInit
 
 
-pageTitle : Repo -> NewRepo -> Page -> String
-pageTitle repo newRepo page =
+pageTitle : NewRepo -> Page -> String
+pageTitle newRepo page =
     case page of
         Spaces _ ->
             Page.Spaces.title
@@ -573,7 +569,6 @@ setupPage pageInit model =
             ( { appModel
                 | page = toPage pageModel
                 , session = newGlobals.session
-                , repo = newGlobals.repo
                 , newRepo = newGlobals.newRepo
                 , isTransitioning = False
               }
@@ -822,72 +817,72 @@ routeFor page =
             Nothing
 
 
-pageView : Repo -> NewRepo -> Page -> Bool -> Html Msg
-pageView repo newRepo page hasPushSubscription =
+pageView : NewRepo -> Page -> Bool -> Html Msg
+pageView repo page hasPushSubscription =
     case page of
         Spaces pageModel ->
             pageModel
-                |> Page.Spaces.view newRepo
+                |> Page.Spaces.view repo
                 |> Html.map SpacesMsg
 
         NewSpace pageModel ->
             pageModel
-                |> Page.NewSpace.view newRepo
+                |> Page.NewSpace.view repo
                 |> Html.map NewSpaceMsg
 
         SetupCreateGroups pageModel ->
             pageModel
-                |> Page.Setup.CreateGroups.view newRepo (routeFor page)
+                |> Page.Setup.CreateGroups.view repo (routeFor page)
                 |> Html.map SetupCreateGroupsMsg
 
         SetupInviteUsers pageModel ->
             pageModel
-                |> Page.Setup.InviteUsers.view newRepo (routeFor page)
+                |> Page.Setup.InviteUsers.view repo (routeFor page)
                 |> Html.map SetupInviteUsersMsg
 
         Posts pageModel ->
             pageModel
-                |> Page.Posts.view newRepo (routeFor page)
+                |> Page.Posts.view repo (routeFor page)
                 |> Html.map PostsMsg
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view newRepo (routeFor page) hasPushSubscription
+                |> Page.Inbox.view repo (routeFor page) hasPushSubscription
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
             pageModel
-                |> Page.SpaceUsers.view newRepo (routeFor page)
+                |> Page.SpaceUsers.view repo (routeFor page)
                 |> Html.map SpaceUsersMsg
 
         Groups pageModel ->
             pageModel
-                |> Page.Groups.view newRepo (routeFor page)
+                |> Page.Groups.view repo (routeFor page)
                 |> Html.map GroupsMsg
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view newRepo (routeFor page)
+                |> Page.Group.view repo (routeFor page)
                 |> Html.map GroupMsg
 
         NewGroup pageModel ->
             pageModel
-                |> Page.NewGroup.view newRepo (routeFor page)
+                |> Page.NewGroup.view repo (routeFor page)
                 |> Html.map NewGroupMsg
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view newRepo (routeFor page)
+                |> Page.Post.view repo (routeFor page)
                 |> Html.map PostMsg
 
         UserSettings pageModel ->
             pageModel
-                |> Page.UserSettings.view newRepo
+                |> Page.UserSettings.view repo
                 |> Html.map UserSettingsMsg
 
         SpaceSettings pageModel ->
             pageModel
-                |> Page.SpaceSettings.view newRepo (routeFor page)
+                |> Page.SpaceSettings.view repo (routeFor page)
                 |> Html.map SpaceSettingsMsg
 
         Blank ->
@@ -902,7 +897,7 @@ pageView repo newRepo page hasPushSubscription =
 
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event ({ page, repo, newRepo } as model) =
+consumeEvent event ({ page, newRepo } as model) =
     case event of
         Event.GroupBookmarked group ->
             let
@@ -1149,7 +1144,7 @@ sendPresenceToPage event model =
     case model.page of
         Post pageModel ->
             pageModel
-                |> Page.Post.receivePresence event (Globals model.session model.repo model.newRepo)
+                |> Page.Post.receivePresence event (Globals model.session model.newRepo)
                 |> updatePage Post PostMsg model
 
         _ ->
@@ -1176,6 +1171,6 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
-    Document (pageTitle model.repo model.newRepo model.page)
-        [ pageView model.repo model.newRepo model.page model.hasPushSubscription
+    Document (pageTitle model.newRepo model.page)
+        [ pageView model.newRepo model.page model.hasPushSubscription
         ]

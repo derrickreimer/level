@@ -20,7 +20,6 @@ import Pagination
 import Post exposing (Post)
 import Query.PostsInit as PostsInit
 import Reply exposing (Reply)
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Posts exposing (Params(..))
 import Route.SpaceUsers

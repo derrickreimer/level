@@ -22,7 +22,6 @@ import Post exposing (Post)
 import PushManager
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Inbox exposing (Params(..))
 import Route.SpaceUsers

@@ -6,7 +6,6 @@ import GraphQL exposing (Document)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import Repo exposing (Repo)
 import Session exposing (Session)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
