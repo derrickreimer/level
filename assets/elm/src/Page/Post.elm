@@ -194,7 +194,7 @@ update msg globals model =
 
         SpaceUserFetched (Ok ( newSession, response )) ->
             let
-                repo =
+                newRepo =
                     case response of
                         GetSpaceUser.Success spaceUser ->
                             Repo.setSpaceUser spaceUser globals.repo
@@ -202,7 +202,7 @@ update msg globals model =
                         _ ->
                             globals.repo
             in
-            noCmd { globals | session = newSession, repo = repo } model
+            noCmd { globals | session = newSession, repo = newRepo } model
 
         SpaceUserFetched (Err Session.Expired) ->
             redirectToLogin globals model

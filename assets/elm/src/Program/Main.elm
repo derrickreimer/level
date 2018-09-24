@@ -28,7 +28,6 @@ import Page.UserSettings
 import Post
 import Presence exposing (PresenceList)
 import PushManager
-import Query.GetSpaceUser as GetSpaceUser
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
