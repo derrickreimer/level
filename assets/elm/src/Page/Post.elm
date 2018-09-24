@@ -343,7 +343,7 @@ sidebarView repo model =
         listView =
             case model.currentViewers of
                 Loaded state ->
-                    View.PresenceList.view repo state
+                    View.PresenceList.view repo model.spaceId state
 
                 NotLoaded ->
                     div [ class "pb-4 text-sm" ] [ text "Loading..." ]

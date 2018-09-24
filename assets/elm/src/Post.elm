@@ -188,8 +188,8 @@ decoder =
             |> required "state" stateDecoder
             |> required "body" string
             |> required "bodyHtml" string
-            |> required "author" (field "id" string)
-            |> required "groups" (list (field "id" string))
+            |> required "author" (field "id" Id.decoder)
+            |> required "groups" (list (field "id" Id.decoder))
             |> required "postedAt" dateDecoder
             |> required "subscriptionState" subscriptionStateDecoder
             |> required "inboxState" inboxStateDecoder

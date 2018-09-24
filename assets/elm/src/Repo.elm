@@ -34,7 +34,7 @@ module Repo exposing
 
 # Space Users
 
-@docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, setSpaceUser, setSpaceUsers
+@docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, filterSpaceUsers, setSpaceUser, setSpaceUsers
 
 
 # Groups

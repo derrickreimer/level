@@ -1,10 +1,11 @@
-module SpaceUser exposing (Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, id, lastName, roleDecoder, userId)
+module SpaceUser exposing (Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, id, lastName, roleDecoder, spaceId, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
 import Html exposing (Html)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
+import Json.Decode.Pipeline as Pipeline exposing (required)
 
 
 
@@ -18,6 +19,7 @@ type SpaceUser
 type alias Data =
     { id : Id
     , userId : Id
+    , spaceId : Id
     , firstName : String
     , lastName : String
     , handle : String
@@ -39,6 +41,9 @@ fragment =
         fragment SpaceUserFields on SpaceUser {
           id
           userId
+          space {
+            id
+          }
           firstName
           lastName
           handle
@@ -62,6 +67,11 @@ id (SpaceUser data) =
 userId : SpaceUser -> Id
 userId (SpaceUser data) =
     data.userId
+
+
+spaceId : SpaceUser -> Id
+spaceId (SpaceUser data) =
+    data.spaceId
 
 
 firstName : SpaceUser -> String
@@ -108,13 +118,15 @@ roleDecoder =
 
 decoder : Decoder SpaceUser
 decoder =
-    Decode.map SpaceUser <|
-        Decode.map8 Data
-            (field "id" Id.decoder)
-            (field "userId" string)
-            (field "firstName" string)
-            (field "lastName" string)
-            (field "handle" string)
-            (field "role" roleDecoder)
-            (field "avatarUrl" (maybe string))
-            (field "fetchedAt" int)
+    Decode.map SpaceUser
+        (Decode.succeed Data
+            |> required "id" Id.decoder
+            |> required "userId" Id.decoder
+            |> required "space" (field "id" Id.decoder)
+            |> required "firstName" string
+            |> required "lastName" string
+            |> required "handle" string
+            |> required "role" roleDecoder
+            |> required "avatarUrl" (maybe string)
+            |> required "fetchedAt" int
+        )
