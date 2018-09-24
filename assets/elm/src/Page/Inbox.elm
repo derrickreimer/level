@@ -86,11 +86,11 @@ init params globals =
     globals.session
         |> InboxInit.request params
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.map (buildModel globals params)
+        |> Task.map (buildModel params globals)
 
 
-buildModel : Globals -> Params -> ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
-buildModel globals params ( ( newSession, resp ), now ) =
+buildModel : Params -> Globals -> ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
             Connection.map buildPostComponent resp.postWithRepliesIds

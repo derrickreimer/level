@@ -847,7 +847,7 @@ pageView repo newRepo page hasPushSubscription =
 
         Posts pageModel ->
             pageModel
-                |> Page.Posts.view repo (routeFor page)
+                |> Page.Posts.view newRepo (routeFor page)
                 |> Html.map PostsMsg
 
         Inbox pageModel ->

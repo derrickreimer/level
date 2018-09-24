@@ -10,6 +10,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
@@ -39,13 +40,30 @@ import View.Layout exposing (spaceLayout)
 
 type alias Model =
     { params : Params
-    , viewer : SpaceUser
+    , viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , featuredUserIds : List Id
+    , postComps : Connection Component.Post.Model
+    , now : ( Zone, Posix )
+    }
+
+
+type alias Data =
+    { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
-    , posts : Connection Component.Post.Model
-    , now : ( Zone, Posix )
     }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map4 Data
+        (NewRepo.getSpaceUser model.viewerId repo)
+        (NewRepo.getSpace model.spaceId repo)
+        (Just <| NewRepo.getGroups model.bookmarkIds repo)
+        (Just <| NewRepo.getSpaceUsers model.featuredUserIds repo)
 
 
 
@@ -71,16 +89,42 @@ init params globals =
 
 buildModel : Params -> Globals -> ( ( Session, PostsInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
 buildModel params globals ( ( newSession, resp ), now ) =
-    ( { globals | session = newSession }
-    , Model params resp.viewer resp.space resp.bookmarks resp.featuredUsers resp.posts now
+    let
+        postComps =
+            Connection.map buildPostComponent resp.postWithRepliesIds
+
+        newGlobals =
+            { globals
+                | session = newSession
+                , newRepo = NewRepo.union resp.repo globals.newRepo
+            }
+    in
+    ( newGlobals
+    , Model
+        params
+        resp.viewerId
+        resp.spaceId
+        resp.bookmarkIds
+        resp.featuredUserIds
+        postComps
+        now
     )
+
+
+buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
+buildPostComponent ( postId, replyIds ) =
+    Component.Post.init
+        Component.Post.Feed
+        False
+        postId
+        replyIds
 
 
 setup : Model -> Cmd Msg
 setup model =
     let
         postsCmd =
-            model.posts
+            model.postComps
                 |> Connection.toList
                 |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
                 |> Cmd.batch
@@ -92,7 +136,7 @@ teardown : Model -> Cmd Msg
 teardown model =
     let
         postsCmd =
-            model.posts
+            model.postComps
                 |> Connection.toList
                 |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
                 |> Cmd.batch
@@ -122,13 +166,13 @@ update msg globals model =
                 |> noCmd globals
 
         PostComponentMsg id componentMsg ->
-            case Connection.get .id id model.posts of
+            case Connection.get .id id model.postComps of
                 Just component ->
                     let
                         ( ( newComponent, cmd ), newGlobals ) =
-                            Component.Post.update componentMsg (Space.id model.space) globals component
+                            Component.Post.update componentMsg model.spaceId globals component
                     in
-                    ( ( { model | posts = Connection.update .id newComponent model.posts }
+                    ( ( { model | postComps = Connection.update .id newComponent model.postComps }
                       , Cmd.map (PostComponentMsg id) cmd
                       )
                     , newGlobals
@@ -154,23 +198,23 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.ReplyCreated reply ->
             let
                 postId =
                     Reply.postId reply
             in
-            case Connection.get .id postId model.posts of
+            case Connection.get .id postId model.postComps of
                 Just component ->
                     let
                         ( newComponent, cmd ) =
                             Component.Post.handleReplyCreated reply component
                     in
-                    ( { model | posts = Connection.update .id newComponent model.posts }
+                    ( { model | postComps = Connection.update .id newComponent model.postComps }
                     , Cmd.map (PostComponentMsg postId) cmd
                     )
 
@@ -196,32 +240,42 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
+view : NewRepo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
+    case resolveData repo model of
+        Just data ->
+            resolvedView repo maybeCurrentRoute model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute model data =
     spaceLayout
-        model.viewer
-        model.space
-        model.bookmarks
+        data.viewer
+        data.space
+        data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]
-                        , controlsView model
+                        , controlsView model data
                         ]
                     ]
-                , postsView repo model
-                , sidebarView repo model.space model.featuredUsers
+                , postsView repo model data
+                , sidebarView data.space data.featuredUsers
                 ]
             ]
         ]
 
 
-controlsView : Model -> Html Msg
-controlsView model =
+controlsView : Model -> Data -> Html Msg
+controlsView model data =
     div [ class "flex flex-grow justify-end" ]
-        [ paginationView model.space model.posts
+        [ paginationView data.space model.postComps
         ]
 
 
@@ -232,28 +286,28 @@ paginationView space connection =
         (Route.Posts << After (Space.slug space))
 
 
-postsView : Repo -> Model -> Html Msg
-postsView repo model =
-    if Connection.isEmptyAndExpanded model.posts then
+postsView : NewRepo -> Model -> Data -> Html Msg
+postsView newRepo model data =
+    if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (postView repo model) model.posts
+            Connection.mapList (postView newRepo model data) model.postComps
 
 
-postView : Repo -> Model -> Component.Post.Model -> Html Msg
-postView repo model component =
+postView : NewRepo -> Model -> Data -> Component.Post.Model -> Html Msg
+postView newRepo model data component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.view NewRepo.empty model.space model.viewer model.now
+            |> Component.Post.view newRepo data.space data.viewer model.now
             |> Html.map (PostComponentMsg component.id)
         ]
 
 
-sidebarView : Repo -> Space -> List SpaceUser -> Html Msg
-sidebarView repo space featuredUsers =
+sidebarView : Space -> List SpaceUser -> Html Msg
+sidebarView space featuredUsers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
@@ -263,7 +317,7 @@ sidebarView repo space featuredUsers =
                 [ text "Directory"
                 ]
             ]
-        , div [ class "pb-4" ] <| List.map (userItemView repo) featuredUsers
+        , div [ class "pb-4" ] <| List.map userItemView featuredUsers
         , a
             [ Route.href (Route.SpaceSettings (Space.slug space))
             , class "text-sm text-blue no-underline"
@@ -272,14 +326,9 @@ sidebarView repo space featuredUsers =
         ]
 
 
-userItemView : Repo -> SpaceUser -> Html Msg
-userItemView repo user =
-    let
-        userData =
-            user
-                |> Repo.getSpaceUser repo
-    in
+userItemView : SpaceUser -> Html Msg
+userItemView user =
     div [ class "flex items-center pr-4 mb-px" ]
-        [ div [ class "flex-no-shrink mr-2" ] [ personAvatar Avatar.Tiny userData ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| displayName userData ]
+        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]
