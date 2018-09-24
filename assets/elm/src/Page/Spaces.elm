@@ -8,6 +8,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Icons
+import Id exposing (Id)
+import NewRepo exposing (NewRepo)
 import Query.SpacesInit as SpacesInit
 import Repo exposing (Repo)
 import Route
@@ -23,10 +25,21 @@ import View.Layout exposing (userLayout)
 
 
 type alias Model =
-    { viewer : User
-    , spaces : Connection Space
+    { viewerId : Id
+    , spaceIds : Connection Id
     , query : String
     }
+
+
+type alias Data =
+    { viewer : User
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map Data
+        (NewRepo.getUser model.viewerId repo)
 
 
 
@@ -50,12 +63,15 @@ init globals =
 
 
 buildModel : Globals -> ( Session, SpacesInit.Response ) -> ( Globals, Model )
-buildModel globals ( newSession, { user, spaces } ) =
+buildModel globals ( newSession, resp ) =
     let
         model =
-            Model user spaces ""
+            Model resp.userId resp.spaceIds ""
+
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
     in
-    ( { globals | session = newSession }, model )
+    ( { globals | session = newSession, newRepo = newNewRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -107,14 +123,26 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
+view : NewRepo -> Model -> Html Msg
 view repo model =
-    userLayout model.viewer <|
+    case resolveData repo model of
+        Just data ->
+            resolvedView repo model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : NewRepo -> Model -> Data -> Html Msg
+resolvedView repo model data =
+    userLayout data.viewer <|
         div [ class "mx-auto max-w-sm" ]
             [ div [ class "flex items-center pb-6" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
                 , div [ class "flex-0 flex-no-shrink" ]
-                    [ a [ Route.href Route.NewSpace, class "btn btn-blue btn-md no-underline" ] [ text "New space" ] ]
+                    [ a [ Route.href Route.NewSpace, class "btn btn-blue btn-md no-underline" ]
+                        [ text "New space" ]
+                    ]
                 ]
             , div [ class "pb-6" ]
                 [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
@@ -129,20 +157,19 @@ view repo model =
                         []
                     ]
                 ]
-            , spacesView model.query model.spaces
+            , spacesView repo model.query model.spaceIds
             ]
 
 
-spacesView : String -> Connection Space -> Html Msg
-spacesView query spaces =
-    if Connection.isEmpty spaces then
+spacesView : NewRepo -> String -> Connection Id -> Html Msg
+spacesView repo query spaceIds =
+    if Connection.isEmpty spaceIds then
         blankSlateView
 
     else
         let
             filteredSpaces =
-                spaces
-                    |> Connection.toList
+                NewRepo.getSpaces (Connection.toList spaceIds) repo
                     |> filter query
         in
         if List.isEmpty filteredSpaces then
@@ -158,22 +185,21 @@ blankSlateView =
     div [ class "py-2 text-center text-lg" ] [ text "You aren't a member of any spaces yet!" ]
 
 
-spaceView : String -> Space.Record -> Html Msg
-spaceView query spaceData =
-    a [ href ("/" ++ spaceData.slug ++ "/"), class "flex items-center pr-4 pb-1 no-underline text-blue" ]
-        [ div [ class "mr-3" ] [ Avatar.thingAvatar Avatar.Small spaceData ]
-        , h2 [ class "font-normal text-lg" ] [ text spaceData.name ]
+spaceView : String -> Space -> Html Msg
+spaceView query space =
+    a [ href ("/" ++ Space.slug space ++ "/"), class "flex items-center pr-4 pb-1 no-underline text-blue" ]
+        [ div [ class "mr-3" ] [ Space.avatar Avatar.Small space ]
+        , h2 [ class "font-normal text-lg" ] [ text <| Space.name space ]
         ]
 
 
-filter : String -> List Space -> List Space.Record
+filter : String -> List Space -> List Space
 filter query spaces =
     let
-        matches value =
-            value
+        doesMatch space =
+            space
+                |> Space.name
                 |> String.toLower
                 |> String.contains (String.toLower query)
     in
-    spaces
-        |> List.map (\space -> Space.getCachedData space)
-        |> List.filter (\data -> matches data.name)
+    List.filter doesMatch spaces

@@ -827,7 +827,7 @@ pageView repo newRepo page hasPushSubscription =
     case page of
         Spaces pageModel ->
             pageModel
-                |> Page.Spaces.view repo
+                |> Page.Spaces.view newRepo
                 |> Html.map SpacesMsg
 
         NewSpace pageModel ->

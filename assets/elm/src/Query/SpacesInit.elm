@@ -2,8 +2,10 @@ module Query.SpacesInit exposing (Response, request)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document, Fragment)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import NewRepo exposing (NewRepo)
 import Session exposing (Session)
 import Space exposing (Space)
 import Task exposing (Task)
@@ -11,6 +13,13 @@ import User exposing (User)
 
 
 type alias Response =
+    { userId : Id
+    , spaceIds : Connection Id
+    , repo : NewRepo
+    }
+
+
+type alias Data =
     { user : User
     , spaces : Connection Space
     }
@@ -126,20 +135,33 @@ variables params limit =
                 ]
 
 
-decoder : Decoder Response
+decoder : Decoder Data
 decoder =
     Decode.at [ "data", "viewer" ] <|
-        Decode.map2 Response
+        Decode.map2 Data
             User.decoder
             (Decode.field "spaceUsers" (Connection.decoder (Decode.field "space" Space.decoder)))
 
 
+buildResponse : ( Session, Data ) -> ( Session, Response )
+buildResponse ( session, data ) =
+    let
+        repo =
+            NewRepo.empty
+                |> NewRepo.setUser data.user
+                |> NewRepo.setSpaces (Connection.toList data.spaces)
+
+        resp =
+            Response
+                (User.id data.user)
+                (Connection.map Space.id data.spaces)
+                repo
+    in
+    ( session, resp )
+
+
 request : Int -> Session -> Task Session.Error ( Session, Response )
 request limit session =
-    let
-        -- TODO: Accept this as an argument instead
-        params =
-            Root
-    in
-    Session.request session <|
-        GraphQL.request (document params) (variables params limit) decoder
+    GraphQL.request (document Root) (variables Root limit) decoder
+        |> Session.request session
+        |> Task.map buildResponse

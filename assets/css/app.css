@@ -150,7 +150,7 @@ body {
 
 .avatar {
   @apply .w-9 .h-9 .text-base;
-  @apply .bg-turquoise;
+  @apply .bg-dusty-blue;
   @apply .rounded-full;
   @apply .flex .items-center .justify-center;
   @apply .font-bold .text-white .select-none;
