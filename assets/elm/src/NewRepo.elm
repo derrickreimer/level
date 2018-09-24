@@ -1,4 +1,4 @@
-module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser, setSpaceUsers, union)
+module NewRepo exposing (NewRepo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, getUser, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser, setSpaceUsers, setUser, union)
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -7,6 +7,7 @@ import Post exposing (Post)
 import Reply exposing (Reply)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
+import User exposing (User)
 
 
 type NewRepo
@@ -14,7 +15,8 @@ type NewRepo
 
 
 type alias InternalData =
-    { spaces : Dict Id Space
+    { users : Dict Id User
+    , spaces : Dict Id Space
     , spaceUsers : Dict Id SpaceUser
     , groups : Dict Id Group
     , posts : Dict Id Post
@@ -24,7 +26,17 @@ type alias InternalData =
 
 empty : NewRepo
 empty =
-    NewRepo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
+    NewRepo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
+
+
+getUser : String -> NewRepo -> Maybe User
+getUser id (NewRepo data) =
+    Dict.get id data.users
+
+
+setUser : User -> NewRepo -> NewRepo
+setUser user (NewRepo data) =
+    NewRepo { data | users = Dict.insert (User.id user) user data.users }
 
 
 getSpace : String -> NewRepo -> Maybe Space
@@ -131,6 +143,7 @@ union : NewRepo -> NewRepo -> NewRepo
 union (NewRepo newer) (NewRepo older) =
     NewRepo <|
         InternalData
+            (Dict.union newer.users older.users)
             (Dict.union newer.spaces older.spaces)
             (Dict.union newer.spaceUsers older.spaceUsers)
             (Dict.union newer.groups older.groups)

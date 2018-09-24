@@ -7,11 +7,12 @@ import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Id exposing (Id)
 import Lazy exposing (Lazy(..))
 import Mutation.UpdateUser as UpdateUser
 import Mutation.UpdateUserAvatar as UpdateUserAvatar
-import Query.UserSettingsInit as UserSettingsInit
-import Repo exposing (Repo)
+import NewRepo exposing (NewRepo)
+import Query.Viewer
 import Route
 import Session exposing (Session)
 import Space exposing (Space)
@@ -28,7 +29,7 @@ import View.Layout exposing (userLayout)
 
 
 type alias Model =
-    { viewer : User
+    { viewerId : Id
     , firstName : String
     , lastName : String
     , handle : String
@@ -38,6 +39,17 @@ type alias Model =
     , isSubmitting : Bool
     , newAvatar : Maybe File
     }
+
+
+type alias Data =
+    { viewer : User
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map Data
+        (NewRepo.getUser model.viewerId repo)
 
 
 
@@ -56,21 +68,21 @@ title =
 init : Globals -> Task Session.Error ( Globals, Model )
 init globals =
     globals.session
-        |> UserSettingsInit.request
+        |> Query.Viewer.request
         |> Task.map (buildModel globals)
 
 
-buildModel : Globals -> ( Session, UserSettingsInit.Response ) -> ( Globals, Model )
+buildModel : Globals -> ( Session, Query.Viewer.Response ) -> ( Globals, Model )
 buildModel globals ( newSession, resp ) =
     let
         model =
             Model
-                resp.user
-                (User.firstName resp.user)
-                (User.lastName resp.user)
-                (User.handle resp.user)
-                (User.email resp.user)
-                (User.avatarUrl resp.user)
+                resp.viewerId
+                (User.firstName resp.viewer)
+                (User.lastName resp.viewer)
+                (User.handle resp.viewer)
+                (User.email resp.viewer)
+                (User.avatarUrl resp.viewer)
                 []
                 False
                 Nothing
@@ -129,16 +141,12 @@ update msg globals model =
             ( ( { model | isSubmitting = True, errors = [] }, cmd ), globals )
 
         Submitted (Ok ( newSession, UpdateUser.Success user )) ->
-            let
-                userData =
-                    User.getCachedData user
-            in
             noCmd { globals | session = newSession }
                 { model
-                    | firstName = userData.firstName
-                    , lastName = userData.lastName
-                    , handle = userData.handle
-                    , email = userData.email
+                    | firstName = User.firstName user
+                    , lastName = User.lastName user
+                    , handle = User.handle user
+                    , email = User.email user
                     , isSubmitting = False
                 }
 
@@ -168,11 +176,7 @@ update msg globals model =
             ( ( { model | newAvatar = Just file }, cmd ), globals )
 
         AvatarSubmitted (Ok ( newSession, UpdateUserAvatar.Success user )) ->
-            let
-                userData =
-                    User.getCachedData user
-            in
-            noCmd { globals | session = newSession } { model | avatarUrl = userData.avatarUrl }
+            noCmd { globals | session = newSession } { model | avatarUrl = User.avatarUrl user }
 
         AvatarSubmitted (Ok ( newSession, UpdateUserAvatar.Invalid errors )) ->
             noCmd { globals | session = newSession } { model | errors = errors }
@@ -219,9 +223,19 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
-view repo ({ viewer, errors } as model) =
-    userLayout viewer <|
+view : NewRepo -> Model -> Html Msg
+view repo model =
+    case resolveData repo model of
+        Just data ->
+            resolvedView model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : Model -> Data -> Html Msg
+resolvedView model data =
+    userLayout data.viewer <|
         div [ class "mx-auto max-w-md leading-normal" ]
             [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]
@@ -233,7 +247,7 @@ view repo ({ viewer, errors } as model) =
                                 , input
                                     [ id "firstName"
                                     , type_ "text"
-                                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "firstName" errors ) ]
+                                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "firstName" model.errors ) ]
                                     , name "firstName"
                                     , placeholder "Jane"
                                     , value model.firstName
@@ -242,14 +256,14 @@ view repo ({ viewer, errors } as model) =
                                     , disabled model.isSubmitting
                                     ]
                                     []
-                                , errorView "firstName" errors
+                                , errorView "firstName" model.errors
                                 ]
                             , div [ class "flex-1" ]
                                 [ label [ for "lastName", class "input-label" ] [ text "Last Name" ]
                                 , input
                                     [ id "lastName"
                                     , type_ "text"
-                                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "lastName" errors ) ]
+                                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "lastName" model.errors ) ]
                                     , name "lastName"
                                     , placeholder "Doe"
                                     , value model.lastName
@@ -258,7 +272,7 @@ view repo ({ viewer, errors } as model) =
                                     , disabled model.isSubmitting
                                     ]
                                     []
-                                , errorView "lastName" errors
+                                , errorView "lastName" model.errors
                                 ]
                             ]
                         ]
@@ -267,7 +281,7 @@ view repo ({ viewer, errors } as model) =
                         , div
                             [ classList
                                 [ ( "input-field inline-flex leading-none items-baseline", True )
-                                , ( "input-field-error", isInvalid "handle" errors )
+                                , ( "input-field-error", isInvalid "handle" model.errors )
                                 ]
                             ]
                             [ label
@@ -290,14 +304,14 @@ view repo ({ viewer, errors } as model) =
                                     []
                                 ]
                             ]
-                        , errorView "handle" errors
+                        , errorView "handle" model.errors
                         ]
                     , div [ class "pb-6" ]
                         [ label [ for "email", class "input-label" ] [ text "Email address" ]
                         , input
                             [ id "email"
                             , type_ "email"
-                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "email" errors ) ]
+                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "email" model.errors ) ]
                             , name "email"
                             , placeholder "jane@acmeco.com"
                             , value model.email
@@ -306,7 +320,7 @@ view repo ({ viewer, errors } as model) =
                             , disabled model.isSubmitting
                             ]
                             []
-                        , errorView "email" errors
+                        , errorView "email" model.errors
                         ]
                     , button
                         [ type_ "submit"
