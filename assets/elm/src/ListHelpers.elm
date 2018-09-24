@@ -1,10 +1,15 @@
-module ListHelpers exposing (getBy, insertUniqueBy, last, memberBy, removeBy, takeLast, uniqueBy, updateBy)
+module ListHelpers exposing (last, takeLast, getBy, uniqueBy, insertUniqueBy, memberBy, updateBy, removeBy)
+
+{-| Helpers for...you guessed it, lists.
+
+
+# Helper functions
+
+@docs last, takeLast, getBy, uniqueBy, insertUniqueBy, memberBy, updateBy, removeBy
+
+-}
 
 import List
-
-
-
--- HELPERS
 
 
 {-| Gets the last item from a list.
@@ -30,10 +35,6 @@ takeLast n list =
         |> List.reverse
         |> List.take n
         |> List.reverse
-
-
-
--- COMPARABLE OPERATIONS
 
 
 {-| Finds an item whose comparator evaluates to the same as the given item's.

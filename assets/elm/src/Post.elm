@@ -36,7 +36,6 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, list, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (required)
 import List
-import Mention exposing (Mention)
 import Reply exposing (Reply)
 import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
@@ -174,7 +173,6 @@ fragment =
     GraphQL.toFragment queryBody
         [ SpaceUser.fragment
         , Group.fragment
-        , Mention.fragment
         ]
 
 

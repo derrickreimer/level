@@ -1,4 +1,57 @@
-module Repo exposing (Repo, empty, getGroup, getGroups, getPost, getReplies, getReply, getSpace, getSpaceUser, getSpaceUserByUserId, getSpaceUsers, getSpaceUsersByUserId, getSpaces, getUser, setGroup, setGroups, setPost, setPosts, setReplies, setReply, setSpace, setSpaceUser, setSpaceUsers, setSpaces, setUser, union)
+module Repo exposing
+    ( Repo
+    , empty, union
+    , getUser, setUser
+    , getSpace, getSpaces, setSpace, setSpaces
+    , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, setSpaceUser, setSpaceUsers
+    , getGroup, getGroups, setGroup, setGroups
+    , getPost, setPost, setPosts
+    , getReply, getReplies, setReply, setReplies
+    )
+
+{-| The repo is a central repository of data fetched from the server.
+
+
+# Types
+
+@docs Repo
+
+
+# Operations
+
+@docs empty, union
+
+
+# Users
+
+@docs getUser, setUser
+
+
+# Spaces
+
+@docs getSpace, getSpaces, setSpace, setSpaces
+
+
+# Space Users
+
+@docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, setSpaceUser, setSpaceUsers
+
+
+# Groups
+
+@docs getGroup, getGroups, setGroup, setGroups
+
+
+# Posts
+
+@docs getPost, setPost, setPosts
+
+
+# Replies
+
+@docs getReply, getReplies, setReply, setReplies
+
+-}
 
 import Dict exposing (Dict)
 import Group exposing (Group)
@@ -24,9 +77,29 @@ type alias InternalData =
     }
 
 
+
+-- OPERATIONS
+
+
 empty : Repo
 empty =
     Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
+
+
+union : Repo -> Repo -> Repo
+union (Repo newer) (Repo older) =
+    Repo <|
+        InternalData
+            (Dict.union newer.users older.users)
+            (Dict.union newer.spaces older.spaces)
+            (Dict.union newer.spaceUsers older.spaceUsers)
+            (Dict.union newer.groups older.groups)
+            (Dict.union newer.posts older.posts)
+            (Dict.union newer.replies older.replies)
+
+
+
+-- USERS
 
 
 getUser : String -> Repo -> Maybe User
@@ -37,6 +110,10 @@ getUser id (Repo data) =
 setUser : User -> Repo -> Repo
 setUser user (Repo data) =
     Repo { data | users = Dict.insert (User.id user) user data.users }
+
+
+
+-- SPACES
 
 
 getSpace : String -> Repo -> Maybe Space
@@ -57,6 +134,10 @@ setSpace space (Repo data) =
 setSpaces : List Space -> Repo -> Repo
 setSpaces spaces repo =
     List.foldr setSpace repo spaces
+
+
+
+-- SPACE USERS
 
 
 getSpaceUser : String -> Repo -> Maybe SpaceUser
@@ -94,6 +175,10 @@ setSpaceUsers spaceUsers repo =
     List.foldr setSpaceUser repo spaceUsers
 
 
+
+-- GROUPS
+
+
 getGroup : String -> Repo -> Maybe Group
 getGroup id (Repo data) =
     Dict.get id data.groups
@@ -114,6 +199,10 @@ setGroups groups repo =
     List.foldr setGroup repo groups
 
 
+
+-- POSTS
+
+
 getPost : String -> Repo -> Maybe Post
 getPost id (Repo data) =
     Dict.get id data.posts
@@ -127,6 +216,10 @@ setPost post (Repo data) =
 setPosts : List Post -> Repo -> Repo
 setPosts posts repo =
     List.foldr setPost repo posts
+
+
+
+-- REPLIES
 
 
 getReply : String -> Repo -> Maybe Reply
@@ -147,15 +240,3 @@ setReply reply (Repo data) =
 setReplies : List Reply -> Repo -> Repo
 setReplies replies repo =
     List.foldr setReply repo replies
-
-
-union : Repo -> Repo -> Repo
-union (Repo newer) (Repo older) =
-    Repo <|
-        InternalData
-            (Dict.union newer.users older.users)
-            (Dict.union newer.spaces older.spaces)
-            (Dict.union newer.spaceUsers older.spaceUsers)
-            (Dict.union newer.groups older.groups)
-            (Dict.union newer.posts older.posts)
-            (Dict.union newer.replies older.replies)

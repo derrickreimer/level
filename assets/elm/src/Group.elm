@@ -1,4 +1,4 @@
-module Group exposing (Group, decoder, fragment, id, isBookmarked, isPrivate, membershipState, name, setIsBookmarked)
+module Group exposing (Group, decoder, fragment, id, isBookmarked, isPrivate, membershipState, name)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -93,12 +93,3 @@ stateDecoder =
         [ Decode.at [ "membership", "state" ] GroupMembership.stateDecoder
         , Decode.succeed NotSubscribed
         ]
-
-
-
--- API
-
-
-setIsBookmarked : Bool -> Group -> Group
-setIsBookmarked val (Group data) =
-    Group { data | isBookmarked = val }

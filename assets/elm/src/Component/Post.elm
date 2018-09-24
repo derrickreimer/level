@@ -1,4 +1,4 @@
-module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleMentionsDismissed, handleReplyCreated, init, setup, teardown, update, view)
+module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleReplyCreated, init, setup, teardown, update, view)
 
 import Autosize
 import Avatar exposing (personAvatar)
@@ -12,7 +12,6 @@ import Icons
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import ListHelpers
 import Markdown
-import Mention exposing (Mention)
 import Mutation.CreateReply as CreateReply
 import Post exposing (Post)
 import Query.Replies
@@ -315,11 +314,6 @@ handleReplyCreated reply model =
 
     else
         ( model, Cmd.none )
-
-
-handleMentionsDismissed : Model -> ( Model, Cmd Msg )
-handleMentionsDismissed model =
-    ( model, Cmd.none )
 
 
 
