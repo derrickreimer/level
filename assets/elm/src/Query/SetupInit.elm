@@ -3,9 +3,11 @@ module Query.SetupInit exposing (Response, request)
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import NewRepo exposing (NewRepo)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -13,6 +15,15 @@ import Task exposing (Task)
 
 
 type alias Response =
+    { viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , space : Space
+    , repo : NewRepo
+    }
+
+
+type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
@@ -51,17 +62,38 @@ variables spaceSlug =
             ]
 
 
-decoder : Decoder Response
+decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        (Decode.succeed Response
+        (Decode.succeed Data
             |> Pipeline.custom SpaceUser.decoder
             |> Pipeline.custom (Decode.field "space" Space.decoder)
             |> Pipeline.custom (Decode.field "bookmarks" (Decode.list Group.decoder))
         )
 
 
+buildResponse : ( Session, Data ) -> ( Session, Response )
+buildResponse ( session, data ) =
+    let
+        repo =
+            NewRepo.empty
+                |> NewRepo.setSpaceUser data.viewer
+                |> NewRepo.setSpace data.space
+                |> NewRepo.setGroups data.bookmarks
+
+        resp =
+            Response
+                (SpaceUser.id data.viewer)
+                (Space.id data.space)
+                (List.map Group.id data.bookmarks)
+                data.space
+                repo
+    in
+    ( session, resp )
+
+
 request : String -> Session -> Task Session.Error ( Session, Response )
 request spaceSlug session =
-    Session.request session <|
-        GraphQL.request document (variables spaceSlug) decoder
+    GraphQL.request document (variables spaceSlug) decoder
+        |> Session.request session
+        |> Task.map buildResponse

@@ -1,4 +1,4 @@
-module Space exposing (Record, SetupState(..), Space, avatar, avatarUrl, decoder, fragment, getCachedData, id, name, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
+module Space exposing (Record, SetupState(..), Space, avatar, avatarUrl, decoder, fragment, getCachedData, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -81,6 +81,11 @@ avatar size (Space data) =
     Avatar.thingAvatar size data
 
 
+openInvitationUrl : Space -> Maybe String
+openInvitationUrl (Space data) =
+    data.openInvitationUrl
+
+
 
 -- DECODERS
 
@@ -154,14 +159,14 @@ setSetupState state (Space record) =
 -- ROUTING
 
 
-setupRoute : Space -> SetupState -> Route
-setupRoute (Space data) state =
+setupRoute : String -> SetupState -> Route
+setupRoute spaceSlug state =
     case state of
         CreateGroups ->
-            Route.SetupCreateGroups data.slug
+            Route.SetupCreateGroups spaceSlug
 
         InviteUsers ->
-            Route.SetupInviteUsers data.slug
+            Route.SetupInviteUsers spaceSlug
 
         Complete ->
-            Route.Inbox (Route.Inbox.Root data.slug)
+            Route.Inbox (Route.Inbox.Root spaceSlug)

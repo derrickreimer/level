@@ -34,7 +34,8 @@ import View.PresenceList
 
 
 type alias Model =
-    { viewerId : Id
+    { spaceSlug : String
+    , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
     , postComp : Component.Post.Model
@@ -81,11 +82,11 @@ init spaceSlug postId globals =
     globals.session
         |> PostInit.request spaceSlug postId
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.map (buildModel globals)
+        |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
-buildModel globals ( ( newSession, resp ), now ) =
+buildModel : String -> Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel spaceSlug globals ( ( newSession, resp ), now ) =
     let
         ( postId, replyIds ) =
             resp.postWithRepliesId
@@ -99,6 +100,7 @@ buildModel globals ( ( newSession, resp ), now ) =
 
         model =
             Model
+                spaceSlug
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds

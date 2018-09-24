@@ -7,10 +7,11 @@ import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CreateGroup as CreateGroup
+import NewRepo exposing (NewRepo)
 import Query.SetupInit as SetupInit
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Session exposing (Session)
@@ -28,14 +29,30 @@ import View.Layout exposing (spaceLayout)
 
 
 type alias Model =
-    { viewer : SpaceUser
-    , space : Space
-    , bookmarks : List Group
+    { spaceSlug : String
+    , viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
     , name : String
     , isPrivate : Bool
     , isSubmitting : Bool
     , errors : List ValidationError
     }
+
+
+type alias Data =
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map3 Data
+        (NewRepo.getSpaceUser model.viewerId repo)
+        (NewRepo.getSpace model.spaceId repo)
+        (Just <| NewRepo.getGroups model.bookmarkIds repo)
 
 
 
@@ -55,23 +72,27 @@ init : String -> Globals -> Task Session.Error ( Globals, Model )
 init spaceSlug globals =
     globals.session
         |> SetupInit.request spaceSlug
-        |> Task.map (buildModel globals)
+        |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
-buildModel globals ( newSession, resp ) =
+buildModel : String -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel spaceSlug globals ( newSession, resp ) =
     let
         model =
             Model
-                resp.viewer
-                resp.space
-                resp.bookmarks
+                spaceSlug
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
                 ""
                 False
                 False
                 []
+
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
     in
-    ( { globals | session = newSession }, model )
+    ( { globals | session = newSession, newRepo = newNewRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -106,7 +127,7 @@ update msg globals navKey model =
             let
                 cmd =
                     globals.session
-                        |> CreateGroup.request (Space.id model.space) model.name model.isPrivate
+                        |> CreateGroup.request model.spaceId model.name model.isPrivate
                         |> Task.attempt Submitted
             in
             ( ( { model | isSubmitting = True }, cmd ), globals )
@@ -114,7 +135,7 @@ update msg globals navKey model =
         Submitted (Ok ( newSession, CreateGroup.Success group )) ->
             let
                 redirectTo =
-                    Route.Group (Route.Group.Root (Space.slug model.space) (Group.id group))
+                    Route.Group (Route.Group.Root model.spaceSlug (Group.id group))
             in
             ( ( model, Route.pushUrl navKey redirectTo ), { globals | session = newSession } )
 
@@ -154,10 +175,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -167,12 +188,22 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
+view : NewRepo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
+    case resolveData repo model of
+        Just data ->
+            resolvedView repo maybeCurrentRoute model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : NewRepo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute model data =
     spaceLayout
-        model.viewer
-        model.space
-        model.bookmarks
+        data.viewer
+        data.space
+        data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-sm leading-normal py-8" ]

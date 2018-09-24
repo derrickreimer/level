@@ -6,10 +6,11 @@ import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CompleteSetupStep as CompleteSetupStep
+import NewRepo exposing (NewRepo)
 import Query.SetupInit as SetupInit
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
@@ -23,11 +24,27 @@ import View.Layout exposing (spaceLayout)
 
 
 type alias Model =
+    { spaceSlug : String
+    , viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
+    , isSubmitting : Bool
+    }
+
+
+type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , isSubmitting : Bool
     }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map3 Data
+        (NewRepo.getSpaceUser model.viewerId repo)
+        (NewRepo.getSpace model.spaceId repo)
+        (Just <| NewRepo.getGroups model.bookmarkIds repo)
 
 
 
@@ -47,20 +64,24 @@ init : String -> Globals -> Task Session.Error ( Globals, Model )
 init spaceSlug globals =
     globals.session
         |> SetupInit.request spaceSlug
-        |> Task.map (buildModel globals)
+        |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
-buildModel globals ( newSession, { viewer, space, bookmarks } ) =
+buildModel : String -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel spaceSlug globals ( newSession, resp ) =
     let
         model =
             Model
-                viewer
-                space
-                bookmarks
+                spaceSlug
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
                 False
+
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
     in
-    ( { globals | session = newSession }, model )
+    ( { globals | session = newSession, newRepo = newNewRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -94,14 +115,17 @@ update msg globals model =
             let
                 cmd =
                     globals.session
-                        |> CompleteSetupStep.request (Space.id model.space) Space.InviteUsers False
+                        |> CompleteSetupStep.request model.spaceId Space.InviteUsers False
                         |> Task.attempt Advanced
             in
             ( ( { model | isSubmitting = True }, cmd ), globals, NoOp )
 
         Advanced (Ok ( newSession, CompleteSetupStep.Success nextState )) ->
             -- TODO: Re-instate navigation to next state
-            ( ( model, Cmd.none ), { globals | session = newSession }, SetupStateChanged nextState )
+            ( ( model, Cmd.none )
+            , { globals | session = newSession }
+            , SetupStateChanged nextState
+            )
 
         Advanced (Err Session.Expired) ->
             redirectToLogin globals model
@@ -123,10 +147,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -136,29 +160,36 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute { viewer, space, bookmarks, isSubmitting } =
-    let
-        spaceData =
-            Repo.getSpace repo space
-    in
+view : NewRepo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
+    case resolveData repo model of
+        Just data ->
+            resolvedView maybeCurrentRoute model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : Maybe Route -> Model -> Data -> Html Msg
+resolvedView maybeCurrentRoute model data =
     spaceLayout
-        viewer
-        space
-        bookmarks
+        data.viewer
+        data.space
+        data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
                 [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite your colleagues" ]
-                , body spaceData.openInvitationUrl
-                , button [ class "btn btn-blue", onClick Submit, disabled isSubmitting ] [ text "Next step" ]
+                , bodyView (Space.openInvitationUrl data.space)
+                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ]
+                    [ text "Next step" ]
                 ]
             ]
         ]
 
 
-body : Maybe String -> Html Msg
-body maybeUrl =
+bodyView : Maybe String -> Html Msg
+bodyView maybeUrl =
     case maybeUrl of
         Just url ->
             div []

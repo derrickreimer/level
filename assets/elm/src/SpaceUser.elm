@@ -1,4 +1,4 @@
-module SpaceUser exposing (Record, Role(..), SpaceUser, avatar, decoder, displayName, fragment, getCachedData, id, lastName, roleDecoder, userId)
+module SpaceUser exposing (Record, Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, getCachedData, id, lastName, roleDecoder, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -62,6 +62,11 @@ id (SpaceUser data) =
 userId : SpaceUser -> Id
 userId (SpaceUser data) =
     data.userId
+
+
+firstName : SpaceUser -> String
+firstName (SpaceUser data) =
+    data.firstName
 
 
 lastName : SpaceUser -> String

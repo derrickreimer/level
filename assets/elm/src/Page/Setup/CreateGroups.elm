@@ -6,11 +6,12 @@ import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CompleteSetupStep as CompleteSetupStep
+import NewRepo exposing (NewRepo)
 import Query.SetupInit as SetupInit
-import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
@@ -24,12 +25,28 @@ import View.Layout exposing (spaceLayout)
 
 
 type alias Model =
-    { viewer : SpaceUser
-    , space : Space
-    , bookmarks : List Group
+    { spaceSlug : String
+    , viewerId : Id
+    , spaceId : Id
+    , bookmarkIds : List Id
     , isSubmitting : Bool
     , selectedGroups : List String
     }
+
+
+type alias Data =
+    { viewer : SpaceUser
+    , space : Space
+    , bookmarks : List Group
+    }
+
+
+resolveData : NewRepo -> Model -> Maybe Data
+resolveData repo model =
+    Maybe.map3 Data
+        (NewRepo.getSpaceUser model.viewerId repo)
+        (NewRepo.getSpace model.spaceId repo)
+        (Just <| NewRepo.getGroups model.bookmarkIds repo)
 
 
 defaultGroups : List String
@@ -54,21 +71,25 @@ init : String -> Globals -> Task Session.Error ( Globals, Model )
 init spaceSlug globals =
     globals.session
         |> SetupInit.request spaceSlug
-        |> Task.map (buildModel globals)
+        |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
-buildModel globals ( newSession, { viewer, space, bookmarks } ) =
+buildModel : String -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel spaceSlug globals ( newSession, resp ) =
     let
         model =
             Model
-                viewer
-                space
-                bookmarks
+                spaceSlug
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
                 False
                 [ "All Teams" ]
+
+        newNewRepo =
+            NewRepo.union resp.repo globals.newRepo
     in
-    ( { globals | session = newSession }, model )
+    ( { globals | session = newSession, newRepo = newNewRepo }, model )
 
 
 setup : Model -> Cmd Msg
@@ -115,7 +136,7 @@ update msg globals model =
             let
                 cmd =
                     globals.session
-                        |> BulkCreateGroups.request (Space.id model.space) groups
+                        |> BulkCreateGroups.request model.spaceId groups
                         |> Task.attempt Submitted
             in
             ( ( { model | isSubmitting = True }, cmd ), globals, NoOp )
@@ -124,7 +145,7 @@ update msg globals model =
             let
                 cmd =
                     newSession
-                        |> CompleteSetupStep.request (Space.id model.space) Space.CreateGroups False
+                        |> CompleteSetupStep.request model.spaceId Space.CreateGroups False
                         |> Task.attempt Advanced
             in
             ( ( model, cmd ), { globals | session = newSession }, NoOp )
@@ -164,10 +185,10 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
     case event of
         Event.GroupBookmarked group ->
-            ( { model | bookmarks = insertUniqueBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         Event.GroupUnbookmarked group ->
-            ( { model | bookmarks = removeBy Group.id group model.bookmarks }, Cmd.none )
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -177,20 +198,26 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute ({ viewer, space, bookmarks } as model) =
-    let
-        viewerData =
-            Repo.getSpaceUser repo model.viewer
-    in
+view : NewRepo -> Maybe Route -> Model -> Html Msg
+view repo maybeCurrentRoute model =
+    case resolveData repo model of
+        Just data ->
+            resolvedView maybeCurrentRoute model data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedView : Maybe Route -> Model -> Data -> Html Msg
+resolvedView maybeCurrentRoute model data =
     spaceLayout
-        viewer
-        space
-        bookmarks
+        data.viewer
+        data.space
+        data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
-                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text ("Welcome to Level, " ++ viewerData.firstName ++ "!") ]
+                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text ("Welcome to Level, " ++ SpaceUser.firstName data.viewer ++ "!") ]
                 , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
                 , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
                 , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)

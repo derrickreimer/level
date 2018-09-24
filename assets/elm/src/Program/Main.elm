@@ -256,7 +256,7 @@ update msg model =
                     case externalMsg of
                         Page.Setup.CreateGroups.SetupStateChanged newState ->
                             ( model
-                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.space newState)
+                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.spaceSlug newState)
                             )
 
                         Page.Setup.CreateGroups.NoOp ->
@@ -282,7 +282,7 @@ update msg model =
                     case externalMsg of
                         Page.Setup.InviteUsers.SetupStateChanged newState ->
                             ( model
-                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.space newState)
+                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.spaceSlug newState)
                             )
 
                         Page.Setup.InviteUsers.NoOp ->
@@ -788,11 +788,11 @@ routeFor page =
         Inbox { params } ->
             Just <| Route.Inbox params
 
-        SetupCreateGroups { space } ->
-            Just <| Route.SetupCreateGroups (Space.slug space)
+        SetupCreateGroups { spaceSlug } ->
+            Just <| Route.SetupCreateGroups spaceSlug
 
-        SetupInviteUsers { space } ->
-            Just <| Route.SetupInviteUsers (Space.slug space)
+        SetupInviteUsers { spaceSlug } ->
+            Just <| Route.SetupInviteUsers spaceSlug
 
         SpaceUsers { params } ->
             Just <| Route.SpaceUsers params
@@ -803,18 +803,17 @@ routeFor page =
         Group { params } ->
             Just <| Route.Group params
 
-        NewGroup { space } ->
-            Just <| Route.NewGroup (Space.slug space)
+        NewGroup { spaceSlug } ->
+            Just <| Route.NewGroup spaceSlug
 
-        Post { spaceId, postComp } ->
-            -- TODO: store params on the page and use the slug
-            Just <| Route.Post spaceId postComp.id
+        Post { spaceSlug, postComp } ->
+            Just <| Route.Post spaceSlug postComp.id
 
         UserSettings _ ->
             Just <| Route.UserSettings
 
-        SpaceSettings { space } ->
-            Just <| Route.SpaceSettings (Space.slug space)
+        SpaceSettings { spaceSlug } ->
+            Just <| Route.SpaceSettings spaceSlug
 
         Blank ->
             Nothing
@@ -838,12 +837,12 @@ pageView repo newRepo page hasPushSubscription =
 
         SetupCreateGroups pageModel ->
             pageModel
-                |> Page.Setup.CreateGroups.view repo (routeFor page)
+                |> Page.Setup.CreateGroups.view newRepo (routeFor page)
                 |> Html.map SetupCreateGroupsMsg
 
         SetupInviteUsers pageModel ->
             pageModel
-                |> Page.Setup.InviteUsers.view repo (routeFor page)
+                |> Page.Setup.InviteUsers.view newRepo (routeFor page)
                 |> Html.map SetupInviteUsersMsg
 
         Posts pageModel ->
@@ -873,7 +872,7 @@ pageView repo newRepo page hasPushSubscription =
 
         NewGroup pageModel ->
             pageModel
-                |> Page.NewGroup.view repo (routeFor page)
+                |> Page.NewGroup.view newRepo (routeFor page)
                 |> Html.map NewGroupMsg
 
         Post pageModel ->
@@ -888,7 +887,7 @@ pageView repo newRepo page hasPushSubscription =
 
         SpaceSettings pageModel ->
             pageModel
-                |> Page.SpaceSettings.view repo (routeFor page)
+                |> Page.SpaceSettings.view newRepo (routeFor page)
                 |> Html.map SpaceSettingsMsg
 
         Blank ->
