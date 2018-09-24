@@ -1,4 +1,4 @@
-module Reply exposing (Record, Reply, author, body, bodyHtml, decoder, fragment, getCachedData, hasViewed, id, postId, postedAt)
+module Reply exposing (Record, Reply, author, body, bodyHtml, decoder, fragment, hasViewed, id, postId, postedAt)
 
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
@@ -106,12 +106,3 @@ decoder =
             |> Pipeline.required "postedAt" dateDecoder
             |> Pipeline.required "fetchedAt" int
         )
-
-
-
--- API
-
-
-getCachedData : Reply -> Record
-getCachedData (Reply data) =
-    data

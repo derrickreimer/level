@@ -1,4 +1,4 @@
-module Space exposing (Record, SetupState(..), Space, avatar, avatarUrl, decoder, fragment, getCachedData, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
+module Space exposing (Record, SetupState(..), Space, avatar, avatarUrl, decoder, fragment, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -143,11 +143,6 @@ setupStateEncoder raw =
 
 
 -- API
-
-
-getCachedData : Space -> Record
-getCachedData (Space record) =
-    record
 
 
 setSetupState : SetupState -> Space -> Space

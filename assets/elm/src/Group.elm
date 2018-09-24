@@ -1,4 +1,4 @@
-module Group exposing (Group, Record, decoder, fragment, getCachedData, id, isBookmarked, isPrivate, membershipState, name, setIsBookmarked)
+module Group exposing (Group, Record, decoder, fragment, id, isBookmarked, isPrivate, membershipState, name, setIsBookmarked)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -97,11 +97,6 @@ stateDecoder =
 
 
 -- API
-
-
-getCachedData : Group -> Record
-getCachedData (Group data) =
-    data
 
 
 setIsBookmarked : Bool -> Group -> Group

@@ -1,4 +1,4 @@
-module SpaceUser exposing (Record, Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, getCachedData, id, lastName, roleDecoder, userId)
+module SpaceUser exposing (Record, Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, id, lastName, roleDecoder, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -118,12 +118,3 @@ decoder =
             (field "role" roleDecoder)
             (field "avatarUrl" (maybe string))
             (field "fetchedAt" int)
-
-
-
--- API
-
-
-getCachedData : SpaceUser -> Record
-getCachedData (SpaceUser data) =
-    data

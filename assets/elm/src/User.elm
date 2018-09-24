@@ -1,4 +1,4 @@
-module User exposing (Record, User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, getCachedData, handle, id, lastName)
+module User exposing (Record, User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, handle, id, lastName)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -102,12 +102,3 @@ decoder =
             (field "handle" string)
             (field "avatarUrl" (maybe string))
             (field "fetchedAt" int)
-
-
-
--- API
-
-
-getCachedData : User -> Record
-getCachedData (User record) =
-    record

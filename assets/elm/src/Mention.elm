@@ -1,4 +1,4 @@
-module Mention exposing (Mention, Record, decoder, fragment, getCachedData)
+module Mention exposing (Mention, Record, decoder, fragment)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, maybe)
@@ -53,12 +53,3 @@ decoder =
             (field "mentioner" SpaceUser.decoder)
             (field "reply" (maybe Reply.decoder))
             (field "occurredAt" dateDecoder)
-
-
-
--- API
-
-
-getCachedData : Mention -> Record
-getCachedData (Mention data) =
-    data

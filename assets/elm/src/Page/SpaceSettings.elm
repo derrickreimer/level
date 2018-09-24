@@ -174,11 +174,7 @@ update msg globals model =
             ( ( { model | newAvatar = Just file }, cmd ), globals )
 
         AvatarSubmitted (Ok ( newSession, UpdateSpaceAvatar.Success space )) ->
-            let
-                data =
-                    Space.getCachedData space
-            in
-            noCmd { globals | session = newSession } { model | avatarUrl = data.avatarUrl }
+            noCmd { globals | session = newSession } { model | avatarUrl = Space.avatarUrl space }
 
         AvatarSubmitted (Ok ( newSession, UpdateSpaceAvatar.Invalid errors )) ->
             noCmd { globals | session = newSession } { model | errors = errors }
