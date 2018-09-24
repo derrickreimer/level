@@ -857,7 +857,7 @@ pageView repo newRepo page hasPushSubscription =
 
         SpaceUsers pageModel ->
             pageModel
-                |> Page.SpaceUsers.view repo (routeFor page)
+                |> Page.SpaceUsers.view newRepo (routeFor page)
                 |> Html.map SpaceUsersMsg
 
         Groups pageModel ->
