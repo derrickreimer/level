@@ -464,25 +464,27 @@ fullPageRepliesView repo post now replyIds =
 
 replyView : Repo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
 replyView repo (( zone, posix ) as now) mode post reply =
-    let
-        author =
-            Reply.author reply
-    in
-    div
-        [ id (replyNodeId (Reply.id reply))
-        , classList [ ( "flex mt-3", True ) ]
-        ]
-        [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
-        , div [ class "flex-grow leading-semi-loose" ]
-            [ div []
-                [ span [ class "font-bold" ] [ text <| SpaceUser.displayName author ]
-                , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue" ]
+    case Repo.getSpaceUser (Reply.authorId reply) repo of
+        Just author ->
+            div
+                [ id (replyNodeId (Reply.id reply))
+                , classList [ ( "flex mt-3", True ) ]
                 ]
-            , div [ class "markdown mb-2" ]
-                [ RenderedHtml.node (Reply.bodyHtml reply)
+                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
+                , div [ class "flex-grow leading-semi-loose" ]
+                    [ div []
+                        [ span [ class "font-bold" ] [ text <| SpaceUser.displayName author ]
+                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue" ]
+                        ]
+                    , div [ class "markdown mb-2" ]
+                        [ RenderedHtml.node (Reply.bodyHtml reply)
+                        ]
+                    ]
                 ]
-            ]
-        ]
+
+        Nothing ->
+            -- The author was not in the repo as expected, so we can't display the reply
+            text ""
 
 
 replyComposerView : SpaceUser -> Post -> Model -> Html Msg

@@ -1,9 +1,9 @@
-module Reply exposing (Reply, author, body, bodyHtml, decoder, fragment, hasViewed, id, postId, postedAt)
+module Reply exposing (Reply, authorId, body, bodyHtml, decoder, fragment, hasViewed, id, postId, postedAt)
 
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
-import Json.Decode as Decode exposing (Decoder, bool, int, string)
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
+import Json.Decode.Pipeline as Pipeline exposing (required)
 import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
@@ -22,7 +22,7 @@ type alias Data =
     , postId : String
     , body : String
     , bodyHtml : String
-    , author : SpaceUser
+    , authorId : Id
     , hasViewed : Bool
     , postedAt : Posix
     , fetchedAt : Int
@@ -74,9 +74,9 @@ bodyHtml (Reply data) =
     data.bodyHtml
 
 
-author : Reply -> SpaceUser
-author (Reply data) =
-    data.author
+authorId : Reply -> Id
+authorId (Reply data) =
+    data.authorId
 
 
 hasViewed : Reply -> Bool
@@ -97,12 +97,12 @@ decoder : Decoder Reply
 decoder =
     Decode.map Reply <|
         (Decode.succeed Data
-            |> Pipeline.required "id" Id.decoder
-            |> Pipeline.required "postId" Id.decoder
-            |> Pipeline.required "body" string
-            |> Pipeline.required "bodyHtml" string
-            |> Pipeline.required "author" SpaceUser.decoder
-            |> Pipeline.required "hasViewed" bool
-            |> Pipeline.required "postedAt" dateDecoder
-            |> Pipeline.required "fetchedAt" int
+            |> required "id" Id.decoder
+            |> required "postId" Id.decoder
+            |> required "body" string
+            |> required "bodyHtml" string
+            |> required "author" (field "id" Id.decoder)
+            |> required "hasViewed" bool
+            |> required "postedAt" dateDecoder
+            |> required "fetchedAt" int
         )
