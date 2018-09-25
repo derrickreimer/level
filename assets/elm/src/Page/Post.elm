@@ -119,7 +119,7 @@ setup globals ({ postComp } as model) =
     Cmd.batch
         [ Cmd.map PostComponentMsg (Component.Post.setup postComp)
         , recordView globals.session model
-        , recordReplyViews globals.session model
+        , recordReplyViews globals model
         , Presence.join (viewingTopic model)
         ]
 
@@ -151,11 +151,22 @@ recordView session model =
         |> Task.attempt ViewRecorded
 
 
-recordReplyViews : Session -> Model -> Cmd Msg
-recordReplyViews session model =
-    session
-        |> RecordReplyViews.request model.spaceId (Connection.toList model.postComp.replyIds)
-        |> Task.attempt ReplyViewsRecorded
+recordReplyViews : Globals -> Model -> Cmd Msg
+recordReplyViews globals model =
+    let
+        unviewedReplyIds =
+            globals.repo
+                |> Repo.getReplies (Connection.toList model.postComp.replyIds)
+                |> List.filter (\reply -> not (Reply.hasViewed reply))
+                |> List.map Reply.id
+    in
+    if List.length unviewedReplyIds > 0 then
+        globals.session
+            |> RecordReplyViews.request model.spaceId unviewedReplyIds
+            |> Task.attempt ReplyViewsRecorded
+
+    else
+        Cmd.none
 
 
 
