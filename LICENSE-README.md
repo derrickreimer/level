@@ -15,7 +15,7 @@ There are several common licensing schemes (and accompanying business models) fo
 
 A majority choose to adopt the closed-source, proprietary model. The calculus is pretty straightforward: the company funds the development of the product and retains all intellectual property rights to monetize it.
 
-The open core and fully open source models open up more possibilities: people from the community can download and use it for free and can contribute their development efforts back to the project if they so choose. There are many officially "approved" open source licenses with varying properties that all adhere to [The Open Source Defintion](https://opensource.org/osd) defined by the Open Source Initiative. 
+The open core and fully open source models open up more possibilities: people from the community can download and use it for free and can contribute their development efforts back to the project if they so choose. There are many officially "approved" open source licenses with varying properties that all adhere to [The Open Source Definition](https://opensource.org/osd) defined by the Open Source Initiative.
 
 By and large, companies licensing their code as open source rely on selling hosting (or other managed services) to generate revenue. Additionally, most reserve their trademarks/copyrights to prevent a competing business from marketing their codebase under the same name (or something confusingly similar).
 

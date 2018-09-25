@@ -24,7 +24,7 @@
     <li>Notifications are only sent for time-sensitive things</li>
     <li>Going into synchronous mode requires deliberate action</li>
     <li>Presence indicators only exist in synchronous mode</li>
-    <li>The product is <a href="https://github.com/levelhq/level" class="text-blue" target="_blank">open source</a></li>
+    <li>The product is <a href="https://github.com/levelhq/level" class="text-blue" target="_blank">source-available</a></li>
   </ul>
 
   <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">Reserve your handle today</h2>
