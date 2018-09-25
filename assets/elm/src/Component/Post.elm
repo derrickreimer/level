@@ -13,6 +13,7 @@ import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import ListHelpers
 import Markdown
 import Mutation.CreateReply as CreateReply
+import Mutation.RecordReplyViews as RecordReplyViews
 import Post exposing (Post)
 import Query.Replies
 import RenderedHtml
@@ -145,6 +146,7 @@ type Msg
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
     | PreviousRepliesRequested
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
+    | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | SelectionToggled
     | NoOp
 
@@ -261,7 +263,18 @@ update msg spaceId globals model =
                         , repo = Repo.union resp.repo globals.repo
                     }
 
-                cmd =
+                unviewedReplyIds =
+                    newGlobals.repo
+                        |> Repo.getReplies (Connection.toList resp.replyIds)
+                        |> List.filter (\reply -> not (Reply.hasViewed reply))
+                        |> List.map Reply.id
+
+                viewCmd =
+                    newSession
+                        |> RecordReplyViews.request spaceId unviewedReplyIds
+                        |> Task.attempt ReplyViewsRecorded
+
+                scrollCmd =
                     case maybeFirstReplyId of
                         Just firstReplyId ->
                             Scroll.toAnchor Scroll.Document (replyNodeId firstReplyId) 200
@@ -269,12 +282,21 @@ update msg spaceId globals model =
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | replyIds = newReplyIds }, cmd ), newGlobals )
+            ( ( { model | replyIds = newReplyIds }, Cmd.batch [ scrollCmd, viewCmd ] ), newGlobals )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin globals model
 
         PreviousRepliesFetched (Err _) ->
+            noCmd globals model
+
+        ReplyViewsRecorded (Ok ( newSession, _ )) ->
+            noCmd { globals | session = newSession } model
+
+        ReplyViewsRecorded (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyViewsRecorded (Err _) ->
             noCmd globals model
 
         SelectionToggled ->
