@@ -343,7 +343,7 @@ update msg model =
                     consumeEvent event model
 
                 ( newModel2, cmd2 ) =
-                    sendEventToPage event newModel
+                    sendEventToPage globals event newModel
             in
             ( newModel2, Cmd.batch [ cmd, cmd2 ] )
 
@@ -992,8 +992,8 @@ consumeEvent event ({ page } as model) =
             ( model, Cmd.none )
 
 
-sendEventToPage : Event -> Model -> ( Model, Cmd Msg )
-sendEventToPage event model =
+sendEventToPage : Globals -> Event -> Model -> ( Model, Cmd Msg )
+sendEventToPage globals event model =
     case model.page of
         Spaces pageModel ->
             pageModel
@@ -1047,7 +1047,7 @@ sendEventToPage event model =
 
         Post pageModel ->
             pageModel
-                |> Page.Post.consumeEvent event
+                |> Page.Post.consumeEvent globals event
                 |> updatePage Post PostMsg model
 
         UserSettings pageModel ->

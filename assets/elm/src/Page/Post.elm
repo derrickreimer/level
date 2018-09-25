@@ -258,8 +258,8 @@ redirectToLogin globals model =
 -- INBOUND EVENTS
 
 
-consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event model =
+consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
+consumeEvent globals event model =
     case event of
         Event.GroupBookmarked group ->
             ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
@@ -271,9 +271,14 @@ consumeEvent event model =
             let
                 ( newPostComp, cmd ) =
                     Component.Post.handleReplyCreated reply model.postComp
+
+                viewCmd =
+                    globals.session
+                        |> RecordReplyViews.request model.spaceId [ Reply.id reply ]
+                        |> Task.attempt ReplyViewsRecorded
             in
             ( { model | postComp = newPostComp }
-            , Cmd.map PostComponentMsg cmd
+            , Cmd.batch [ Cmd.map PostComponentMsg cmd, viewCmd ]
             )
 
         _ ->
