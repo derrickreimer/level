@@ -438,7 +438,7 @@ feedRepliesView repo space post now replyIds =
                 , class "mb-2 text-dusty-blue no-underline"
                 ]
                 [ text "Show more..." ]
-        , div [] (List.map (replyView repo now Feed post) replies)
+        , div [] (List.map (replyView repo now post) replies)
         ]
 
 
@@ -458,19 +458,21 @@ fullPageRepliesView repo post now replyIds =
                 , onClick PreviousRepliesRequested
                 ]
                 [ text "Load more..." ]
-        , div [] (List.map (replyView repo now FullPage post) replies)
+        , div [] (List.map (replyView repo now post) replies)
         ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Mode -> Post -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) mode post reply =
+replyView : Repo -> ( Zone, Posix ) -> Post -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) post reply =
     case Repo.getSpaceUser (Reply.authorId reply) repo of
         Just author ->
             div
                 [ id (replyNodeId (Reply.id reply))
-                , classList [ ( "flex mt-3", True ) ]
+                , classList [ ( "flex mt-3 relative", True ) ]
                 ]
-                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
+                [ viewUnless (Reply.hasViewed reply) <|
+                    div [ class "mr-2 -ml-3 w-1 rounded pin-t pin-b bg-turquoise flex-no-shrink" ] []
+                , div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ div []
                         [ span [ class "font-bold" ] [ text <| SpaceUser.displayName author ]
