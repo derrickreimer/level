@@ -9,6 +9,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import ListHelpers
 import Markdown
@@ -151,7 +152,7 @@ type Msg
     | NoOp
 
 
-update : Msg -> String -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg spaceId globals model =
     case msg of
         ExpandReplyComposer ->
@@ -263,16 +264,11 @@ update msg spaceId globals model =
                         , repo = Repo.union resp.repo globals.repo
                     }
 
-                unviewedReplyIds =
-                    newGlobals.repo
-                        |> Repo.getReplies (Connection.toList resp.replyIds)
-                        |> List.filter (\reply -> not (Reply.hasViewed reply))
-                        |> List.map Reply.id
+                newModel =
+                    { model | replyIds = newReplyIds }
 
                 viewCmd =
-                    newSession
-                        |> RecordReplyViews.request spaceId unviewedReplyIds
-                        |> Task.attempt ReplyViewsRecorded
+                    markVisibleRepliesAsViewed newGlobals spaceId newModel
 
                 scrollCmd =
                     case maybeFirstReplyId of
@@ -282,7 +278,7 @@ update msg spaceId globals model =
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | replyIds = newReplyIds }, Cmd.batch [ scrollCmd, viewCmd ] ), newGlobals )
+            ( ( newModel, Cmd.batch [ scrollCmd, viewCmd ] ), newGlobals )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin globals model
@@ -314,6 +310,26 @@ noCmd globals model =
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 redirectToLogin globals model =
     ( ( model, Route.toLogin ), globals )
+
+
+markVisibleRepliesAsViewed : Globals -> Id -> Model -> Cmd Msg
+markVisibleRepliesAsViewed globals spaceId model =
+    let
+        ( replies, _ ) =
+            visibleReplies globals.repo model.mode model.replyIds
+
+        unviewedReplyIds =
+            replies
+                |> List.filter (\reply -> not (Reply.hasViewed reply))
+                |> List.map Reply.id
+    in
+    if List.length unviewedReplyIds > 0 then
+        globals.session
+            |> RecordReplyViews.request spaceId unviewedReplyIds
+            |> Task.attempt ReplyViewsRecorded
+
+    else
+        Cmd.none
 
 
 
@@ -433,55 +449,30 @@ groupsLabel space groups =
 repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
 repliesView repo space post now replyIds mode =
     let
-        listView =
+        ( replies, hasPreviousPage ) =
+            visibleReplies repo mode replyIds
+
+        actionButton =
             case mode of
                 Feed ->
-                    feedRepliesView repo space post now replyIds
+                    a
+                        [ Route.href (Route.Post (Space.slug space) (Post.id post))
+                        , class "mb-2 text-dusty-blue no-underline"
+                        ]
+                        [ text "Show more..." ]
 
                 FullPage ->
-                    fullPageRepliesView repo post now replyIds
+                    button
+                        [ class "mb-2 text-dusty-blue no-underline"
+                        , onClick PreviousRepliesRequested
+                        ]
+                        [ text "Load more..." ]
     in
-    viewUnless (Connection.isEmptyAndExpanded replyIds) listView
-
-
-feedRepliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
-feedRepliesView repo space post now replyIds =
-    let
-        { nodes, hasPreviousPage } =
-            Connection.last 5 replyIds
-
-        replies =
-            Repo.getReplies nodes repo
-    in
-    div []
-        [ viewIf hasPreviousPage <|
-            a
-                [ Route.href (Route.Post (Space.slug space) (Post.id post))
-                , class "mb-2 text-dusty-blue no-underline"
-                ]
-                [ text "Show more..." ]
-        , div [] (List.map (replyView repo now post) replies)
-        ]
-
-
-fullPageRepliesView : Repo -> Post -> ( Zone, Posix ) -> Connection String -> Html Msg
-fullPageRepliesView repo post now replyIds =
-    let
-        replies =
-            Repo.getReplies (Connection.toList replyIds) repo
-
-        hasPreviousPage =
-            Connection.hasPreviousPage replyIds
-    in
-    div []
-        [ viewIf hasPreviousPage <|
-            button
-                [ class "mb-2 text-dusty-blue no-underline"
-                , onClick PreviousRepliesRequested
-                ]
-                [ text "Load more..." ]
-        , div [] (List.map (replyView repo now post) replies)
-        ]
+    viewUnless (Connection.isEmptyAndExpanded replyIds) <|
+        div []
+            [ viewIf hasPreviousPage actionButton
+            , div [] (List.map (replyView repo now post) replies)
+            ]
 
 
 replyView : Repo -> ( Zone, Posix ) -> Post -> Reply -> Html Msg
@@ -590,3 +581,24 @@ replyNodeId replyId =
 replyComposerId : String -> String
 replyComposerId postId =
     "reply-composer-" ++ postId
+
+
+visibleReplies : Repo -> Mode -> Connection Id -> ( List Reply, Bool )
+visibleReplies repo mode replyIds =
+    case mode of
+        Feed ->
+            let
+                { nodes, hasPreviousPage } =
+                    Connection.last 5 replyIds
+            in
+            ( Repo.getReplies nodes repo, hasPreviousPage )
+
+        FullPage ->
+            let
+                replies =
+                    Repo.getReplies (Connection.toList replyIds) repo
+
+                hasPreviousPage =
+                    Connection.hasPreviousPage replyIds
+            in
+            ( replies, hasPreviousPage )
