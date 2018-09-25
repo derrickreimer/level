@@ -27,6 +27,7 @@ type Event
     | PostsMarkedAsUnread (List Post)
     | PostsMarkedAsRead (List Post)
     | PostsDismissed (List Post)
+    | RepliesViewed (List Reply)
     | MentionsDismissed Post
     | UserMentioned Post
     | GroupMembershipUpdated Group
@@ -60,6 +61,7 @@ eventDecoder =
         , Decode.map PostsDismissed SpaceUserSubscription.postsDismissedDecoder
         , Decode.map UserMentioned SpaceUserSubscription.userMentionedDecoder
         , Decode.map MentionsDismissed SpaceUserSubscription.mentionsDismissedDecoder
+        , Decode.map RepliesViewed SpaceUserSubscription.repliesViewedDecoder
 
         -- GROUP EVENTS
         , Decode.map GroupUpdated GroupSubscription.groupUpdatedDecoder

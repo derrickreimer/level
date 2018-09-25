@@ -1,4 +1,4 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, subscribe, unsubscribe, userMentionedDecoder)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, subscribe, unsubscribe, userMentionedDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -101,6 +101,14 @@ mentionsDismissedDecoder =
         Post.decoder
 
 
+repliesViewedDecoder : Decode.Decoder (List Reply)
+repliesViewedDecoder =
+    Subscription.decoder "spaceUser"
+        "RepliesViewed"
+        "replies"
+        (Decode.list Reply.decoder)
+
+
 
 -- INTERNAL
 
@@ -164,12 +172,17 @@ document =
                 ...PostFields
               }
             }
+            ... on RepliesViewedPayload {
+              replies {
+                ...ReplyFields
+              }
+            }
           }
         }
         """
         [ Group.fragment
         , Post.fragment
-        , Connection.fragment "ReplyConnection" Reply.fragment
+        , Reply.fragment
         ]
 
 

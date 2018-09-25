@@ -11,6 +11,7 @@ import Id exposing (Id)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
+import Mutation.RecordReplyViews as RecordReplyViews
 import Post
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
@@ -118,6 +119,7 @@ setup globals ({ postComp } as model) =
     Cmd.batch
         [ Cmd.map PostComponentMsg (Component.Post.setup postComp)
         , recordView globals.session model
+        , recordReplyViews globals.session model
         , Presence.join (viewingTopic model)
         ]
 
@@ -149,6 +151,13 @@ recordView session model =
         |> Task.attempt ViewRecorded
 
 
+recordReplyViews : Session -> Model -> Cmd Msg
+recordReplyViews session model =
+    session
+        |> RecordReplyViews.request model.spaceId (Connection.toList model.postComp.replyIds)
+        |> Task.attempt ReplyViewsRecorded
+
+
 
 -- UPDATE
 
@@ -156,6 +165,7 @@ recordView session model =
 type Msg
     = PostComponentMsg Component.Post.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
+    | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | Tick Posix
     | SetCurrentTime Posix Zone
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
@@ -183,6 +193,15 @@ update msg globals model =
             redirectToLogin globals model
 
         ViewRecorded (Err _) ->
+            noCmd globals model
+
+        ReplyViewsRecorded (Ok ( newSession, _ )) ->
+            noCmd { globals | session = newSession } model
+
+        ReplyViewsRecorded (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyViewsRecorded (Err _) ->
             noCmd globals model
 
         Tick posix ->

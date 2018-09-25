@@ -898,32 +898,17 @@ consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event ({ page } as model) =
     case event of
         Event.GroupBookmarked group ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setGroup group
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
             )
 
         Event.GroupUnbookmarked group ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setGroup group
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
             )
 
         Event.GroupMembershipUpdated group ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setGroup group
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
             )
 
@@ -939,122 +924,67 @@ consumeEvent event ({ page } as model) =
             )
 
         Event.PostUpdated post ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPost post
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPost post model.repo }
             , Cmd.none
             )
 
         Event.PostsSubscribed posts ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPosts posts
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPosts posts model.repo }
             , Cmd.none
             )
 
         Event.PostsUnsubscribed posts ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPosts posts
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPosts posts model.repo }
             , Cmd.none
             )
 
         Event.PostsMarkedAsUnread posts ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPosts posts
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPosts posts model.repo }
             , Cmd.none
             )
 
         Event.PostsMarkedAsRead posts ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPosts posts
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPosts posts model.repo }
             , Cmd.none
             )
 
         Event.PostsDismissed posts ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPosts posts
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPosts posts model.repo }
             , Cmd.none
             )
 
         Event.UserMentioned post ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPost post
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPost post model.repo }
             , Cmd.none
             )
 
         Event.GroupUpdated group ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setGroup group
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
             )
 
         Event.ReplyCreated reply ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setReply reply
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setReply reply model.repo }
             , Cmd.none
             )
 
         Event.MentionsDismissed post ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPost post
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setPost post model.repo }
+            , Cmd.none
+            )
+
+        Event.RepliesViewed replies ->
+            ( { model | repo = Repo.setReplies replies model.repo }
             , Cmd.none
             )
 
         Event.SpaceUpdated space ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setSpace space
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setSpace space model.repo }
             , Cmd.none
             )
 
         Event.SpaceUserUpdated spaceUser ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setSpaceUser spaceUser
-            in
-            ( { model | repo = repo }
+            ( { model | repo = Repo.setSpaceUser spaceUser model.repo }
             , Cmd.none
             )
 
