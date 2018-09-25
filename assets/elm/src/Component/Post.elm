@@ -164,6 +164,7 @@ update msg spaceId globals model =
                     Cmd.batch
                         [ setFocus nodeId NoOp
                         , Autosize.init nodeId
+                        , markVisibleRepliesAsViewed globals spaceId model
                         ]
 
                 newModel =
@@ -296,7 +297,11 @@ update msg spaceId globals model =
             noCmd globals model
 
         SelectionToggled ->
-            ( ( { model | isChecked = not model.isChecked }, Cmd.none ), globals )
+            ( ( { model | isChecked = not model.isChecked }
+              , markVisibleRepliesAsViewed globals spaceId model
+              )
+            , globals
+            )
 
         NoOp ->
             noCmd globals model
@@ -589,7 +594,7 @@ visibleReplies repo mode replyIds =
         Feed ->
             let
                 { nodes, hasPreviousPage } =
-                    Connection.last 5 replyIds
+                    Connection.last 3 replyIds
             in
             ( Repo.getReplies nodes repo, hasPreviousPage )
 
