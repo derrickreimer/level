@@ -27,21 +27,21 @@ When I made the decision to build Level out in the open, I had several goals:
 - Allow people and businesses the ability to download the software for free and manage their own hosting
 - Build a profitable little company to support the continued development of the product
 
-The approved open source licenses do to nothing stop a larger company from forking the codebase, changing the name, and competing with my business using an identical offering. If Level lives up to my expectations, then it would only make rational sense for someone to seize upon that opportunity eventually. I had to ask myself, "Is that what I desire to happen?"
+Open source licenses do not prevent a larger company from forking the codebase, changing the name, and competing with the creator using an identical offering. If Level lives up to my expectations, then it would only make rational sense for someone to seize upon that opportunity eventually. I had to ask myself, "Is that what I desire to happen?"
 
-I believe the answer for most companies who open source their core product is "no."
+I believe the answer for most companies is "no."
 
-There are some ways to disincentivize competition that I've observed:
+There are some ways to disincentivize people from doing this:
 
 - Dual-licensing the codebase and reserving the most valuable features for the proprietary version
 - Intentionally making it harder to deploy the codebase (or keep that kind of code private altogether)
 - Raising venture capital funding to level the playing field with other well-funded opportunists
 
-None of these options align with my values and my vision for Level. Rather than adopting a 100% permissive license and attempting to play defense against rational actors, it makes the most sense for Level's licensing to align with my original goals fully.
+None of these options align with my values and my vision for Level. Rather than adopting a 100% permissive license and attempting to play defense against rational actors, it makes the most sense for Level's licensing to align with my original goals.
 
 ## How the Commons Clause works
 
-Level is licensed using a combination of the Apache 2.0 license and the [Commons Clause](https://commonsclause.com/), a new license condition drafted by Heather Meeker. The clause can be added to an existing open source license to disallow one particular right: the right to sell a product "whose value derives, entirely or substantially, from the functionality of the Software."
+Level is licensed using a combination of the Apache 2.0 license and the [Commons Clause](https://commonsclause.com/), a license condition drafted by Heather Meeker. The clause can be added to an existing open source license to disallow one particular right: the right to sell a product "whose value derives, entirely or substantially, from the functionality of the Software."
 
 This means you can still:
 
