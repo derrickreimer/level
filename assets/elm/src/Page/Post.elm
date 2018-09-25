@@ -11,6 +11,7 @@ import Id exposing (Id)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
+import Mutation.RecordReplyViews as RecordReplyViews
 import Post
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
@@ -118,6 +119,7 @@ setup globals ({ postComp } as model) =
     Cmd.batch
         [ Cmd.map PostComponentMsg (Component.Post.setup postComp)
         , recordView globals.session model
+        , recordReplyViews globals model
         , Presence.join (viewingTopic model)
         ]
 
@@ -149,6 +151,24 @@ recordView session model =
         |> Task.attempt ViewRecorded
 
 
+recordReplyViews : Globals -> Model -> Cmd Msg
+recordReplyViews globals model =
+    let
+        unviewedReplyIds =
+            globals.repo
+                |> Repo.getReplies (Connection.toList model.postComp.replyIds)
+                |> List.filter (\reply -> not (Reply.hasViewed reply))
+                |> List.map Reply.id
+    in
+    if List.length unviewedReplyIds > 0 then
+        globals.session
+            |> RecordReplyViews.request model.spaceId unviewedReplyIds
+            |> Task.attempt ReplyViewsRecorded
+
+    else
+        Cmd.none
+
+
 
 -- UPDATE
 
@@ -156,6 +176,7 @@ recordView session model =
 type Msg
     = PostComponentMsg Component.Post.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
+    | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | Tick Posix
     | SetCurrentTime Posix Zone
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
@@ -183,6 +204,15 @@ update msg globals model =
             redirectToLogin globals model
 
         ViewRecorded (Err _) ->
+            noCmd globals model
+
+        ReplyViewsRecorded (Ok ( newSession, _ )) ->
+            noCmd { globals | session = newSession } model
+
+        ReplyViewsRecorded (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyViewsRecorded (Err _) ->
             noCmd globals model
 
         Tick posix ->
@@ -228,8 +258,8 @@ redirectToLogin globals model =
 -- INBOUND EVENTS
 
 
-consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event model =
+consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
+consumeEvent globals event model =
     case event of
         Event.GroupBookmarked group ->
             ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
@@ -241,9 +271,14 @@ consumeEvent event model =
             let
                 ( newPostComp, cmd ) =
                     Component.Post.handleReplyCreated reply model.postComp
+
+                viewCmd =
+                    globals.session
+                        |> RecordReplyViews.request model.spaceId [ Reply.id reply ]
+                        |> Task.attempt ReplyViewsRecorded
             in
             ( { model | postComp = newPostComp }
-            , Cmd.map PostComponentMsg cmd
+            , Cmd.batch [ Cmd.map PostComponentMsg cmd, viewCmd ]
             )
 
         _ ->

@@ -32,7 +32,7 @@ defmodule Level.Posts.CreateReply do
     |> do_insert(build_params(author, post, params))
     |> record_mentions(post)
     |> log_create(post, author)
-    |> record_view(post, author)
+    |> record_post_view(post, author)
     |> Repo.transaction()
     |> after_transaction(post, author, opts)
   end
@@ -69,7 +69,7 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  def record_view(multi, post, space_user) do
+  def record_post_view(multi, post, space_user) do
     Multi.run(multi, :post_view, fn %{reply: reply} ->
       Posts.record_view(post, space_user, reply)
     end)
@@ -78,6 +78,7 @@ defmodule Level.Posts.CreateReply do
   defp after_transaction({:ok, %{reply: reply} = result}, post, author, opts) do
     _ = subscribe_author(post, author)
     _ = subscribe_mentioned(post, result)
+    _ = record_reply_view(reply, author)
 
     {:ok, subscribers} = Posts.get_subscribers(post)
 
@@ -98,6 +99,10 @@ defmodule Level.Posts.CreateReply do
     Enum.each(mentioned_users, fn mentioned_user ->
       Posts.subscribe(mentioned_user, [post])
     end)
+  end
+
+  defp record_reply_view(reply, author) do
+    Posts.record_reply_views(author, [reply])
   end
 
   defp mark_unread_for_subscribers(post, _reply, subscribers, author) do

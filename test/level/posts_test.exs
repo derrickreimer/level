@@ -279,6 +279,11 @@ defmodule Level.PostsTest do
       assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
                changeset
     end
+
+    test "marks the reply as viewed by the author", %{space_user: space_user, post: post} do
+      {:ok, %{reply: reply}} = Posts.create_reply(space_user, post, valid_reply_params())
+      assert Posts.viewed_reply?(reply, space_user)
+    end
   end
 
   describe "record_view/3" do
