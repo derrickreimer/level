@@ -14,6 +14,7 @@ import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -100,7 +101,7 @@ buildModel spaceSlug globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    Scroll.toDocumentTop (\_ -> NoOp)
 
 
 teardown : Model -> Cmd Msg
@@ -120,6 +121,7 @@ type Msg
     | AvatarSubmitted (Result Session.Error ( Session, UpdateSpaceAvatar.Response ))
     | AvatarSelected
     | FileReceived File.Data
+    | NoOp
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -185,6 +187,9 @@ update msg globals model =
         AvatarSubmitted (Err _) ->
             -- TODO: handle unexpected exceptions
             noCmd globals { model | isSubmitting = False }
+
+        NoOp ->
+            noCmd globals model
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )

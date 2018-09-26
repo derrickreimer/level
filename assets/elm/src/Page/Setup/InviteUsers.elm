@@ -12,6 +12,7 @@ import Mutation.CompleteSetupStep as CompleteSetupStep
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -86,7 +87,7 @@ buildModel spaceSlug globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    Scroll.toDocumentTop (\_ -> InternalNoOp)
 
 
 teardown : Model -> Cmd Msg
@@ -101,6 +102,7 @@ teardown model =
 type Msg
     = Submit
     | Advanced (Result Session.Error ( Session, CompleteSetupStep.Response ))
+    | InternalNoOp
 
 
 type ExternalMsg
@@ -131,6 +133,9 @@ update msg globals model =
 
         Advanced (Err _) ->
             ( ( { model | isSubmitting = False }, Cmd.none ), globals, NoOp )
+
+        InternalNoOp ->
+            ( ( model, Cmd.none ), globals, NoOp )
 
 
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals, ExternalMsg )

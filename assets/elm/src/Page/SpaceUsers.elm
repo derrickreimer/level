@@ -15,6 +15,7 @@ import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.SpaceUsers exposing (Params(..))
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -90,7 +91,7 @@ buildModel params globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    Scroll.toDocumentTop (\_ -> NoOp)
 
 
 teardown : Model -> Cmd Msg

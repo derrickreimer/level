@@ -12,6 +12,7 @@ import Id exposing (Id)
 import Query.SpacesInit as SpacesInit
 import Repo exposing (Repo)
 import Route
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import Task exposing (Task)
@@ -75,7 +76,7 @@ buildModel globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    Scroll.toDocumentTop (\_ -> NoOp)
 
 
 teardown : Model -> Cmd Msg
@@ -89,6 +90,7 @@ teardown model =
 
 type Msg
     = QueryChanged String
+    | NoOp
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -96,6 +98,9 @@ update msg globals model =
     case msg of
         QueryChanged val ->
             ( ( { model | query = val }, Cmd.none ), globals )
+
+        NoOp ->
+            ( ( model, Cmd.none ), globals )
 
 
 

@@ -14,6 +14,7 @@ import Query.Viewer as Viewer
 import Regex exposing (Regex)
 import Repo exposing (Repo)
 import Route
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import Task exposing (Task)
@@ -86,7 +87,7 @@ buildModel globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    Scroll.toDocumentTop (\_ -> NoOp)
 
 
 teardown : Model -> Cmd Msg
@@ -103,6 +104,7 @@ type Msg
     | SlugChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
+    | NoOp
 
 
 update : Msg -> Globals -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -135,6 +137,9 @@ update msg globals navKey model =
 
         Submitted (Err _) ->
             ( ( { model | formState = Idle }, Cmd.none ), globals )
+
+        NoOp ->
+            ( ( model, Cmd.none ), globals )
 
 
 specialCharRegex : Regex

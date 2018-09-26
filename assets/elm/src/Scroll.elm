@@ -1,7 +1,9 @@
-module Scroll exposing (Container(..), toAnchor, toBottom)
+module Scroll exposing (Container(..), toAnchor, toBottom, toDocumentTop)
 
+import Browser.Dom as Dom
 import Ports
 import Scroll.Types exposing (AnchorParams, ContainerParams)
+import Task
 
 
 
@@ -29,6 +31,11 @@ toAnchor container anchorId offset =
 toBottom : Container -> Cmd msg
 toBottom container =
     Ports.scrollToBottom <| ContainerParams (containerId container)
+
+
+toDocumentTop : (() -> msg) -> Cmd msg
+toDocumentTop toMsg =
+    Task.perform toMsg (Dom.setViewport 0 0)
 
 
 

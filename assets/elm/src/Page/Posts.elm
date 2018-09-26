@@ -23,6 +23,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Posts exposing (Params(..))
 import Route.SpaceUsers
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -126,7 +127,10 @@ setup model =
                 |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
                 |> Cmd.batch
     in
-    postsCmd
+    Cmd.batch
+        [ postsCmd
+        , Scroll.toDocumentTop (\_ -> NoOp)
+        ]
 
 
 teardown : Model -> Cmd Msg

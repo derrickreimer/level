@@ -16,6 +16,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Route.Groups exposing (Params(..))
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -93,7 +94,10 @@ buildModel params globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    setFocus "search-input" NoOp
+    Cmd.batch
+        [ setFocus "search-input" NoOp
+        , Scroll.toDocumentTop (\_ -> NoOp)
+        ]
 
 
 teardown : Model -> Cmd Msg

@@ -14,6 +14,7 @@ import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -97,7 +98,10 @@ buildModel spaceSlug globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    setFocus "name" NoOp
+    Cmd.batch
+        [ setFocus "name" NoOp
+        , Scroll.toDocumentTop (\_ -> NoOp)
+        ]
 
 
 teardown : Model -> Cmd Msg
