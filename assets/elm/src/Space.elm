@@ -164,4 +164,4 @@ setupRoute spaceSlug state =
             Route.SetupInviteUsers spaceSlug
 
         Complete ->
-            Route.Inbox (Route.Inbox.Root spaceSlug)
+            Route.Inbox (Route.Inbox.init spaceSlug)

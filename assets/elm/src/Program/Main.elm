@@ -443,7 +443,7 @@ navigateTo maybeRoute model =
             ( { model | page = NotFound }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
-            navigateTo (Just <| Route.Inbox (Route.Inbox.Root spaceSlug)) model
+            navigateTo (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) model
 
         Just (Route.SetupCreateGroups spaceSlug) ->
             globals

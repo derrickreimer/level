@@ -89,27 +89,10 @@ document =
 
 variables : Params -> Maybe Encode.Value
 variables params =
-    let
-        values =
-            case params of
-                Root spaceSlug ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int 20 )
-                    ]
-
-                After spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int 20 )
-                    , ( "after", Encode.string cursor )
-                    ]
-
-                Before spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "last", Encode.int 20 )
-                    , ( "before", Encode.string cursor )
-                    ]
-    in
-    Just (Encode.object values)
+    [ ( "spaceSlug", Encode.string (Route.Inbox.getSpaceSlug params) ), ( "first", Encode.int 20 ) ]
+        |> encodeMaybeStrings [ ( "after", Route.Inbox.getAfter params ), ( "before", Route.Inbox.getBefore params ) ]
+        |> Encode.object
+        |> Just
 
 
 decoder : Decoder Data
@@ -161,3 +144,21 @@ request params session =
     GraphQL.request document (variables params) decoder
         |> Session.request session
         |> Task.map buildResponse
+
+
+
+-- INTERNAL
+
+
+encodeMaybeStrings : List ( String, Maybe String ) -> List ( String, Encode.Value ) -> List ( String, Encode.Value )
+encodeMaybeStrings maybePairs encodeValues =
+    let
+        reducer ( key, maybeValue ) accum =
+            case maybeValue of
+                Just value ->
+                    ( key, Encode.string value ) :: accum
+
+                Nothing ->
+                    accum
+    in
+    List.foldr reducer encodeValues maybePairs

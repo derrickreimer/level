@@ -313,10 +313,15 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
+                [ div [ class "sticky pin-t border-b mb-3 pt-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
                         , controlsView model data
+                        ]
+                    , div [ class "flex items-baseline" ]
+                        [ a [ href "#", class "block text-sm mr-4 py-2 border-b-3 border-blue text-blue no-underline" ] [ text "Unread & Read" ]
+                        , a [ href "#", class "block text-sm mr-4 py-2 border-b-3 border-transparent text-dusty-blue no-underline" ] [ text "Unread Only" ]
+                        , a [ href "#", class "block text-sm mr-4 py-2 border-b-3 border-transparent text-dusty-blue no-underline" ] [ text "Read Only" ]
                         ]
                     ]
                 , postsView repo model data
@@ -330,7 +335,7 @@ controlsView : Model -> Data -> Html Msg
 controlsView model data =
     div [ class "flex flex-grow justify-end" ]
         [ selectionControlsView model.postComps
-        , paginationView data.space model.postComps
+        , paginationView model.params model.postComps
         ]
 
 
@@ -350,11 +355,11 @@ selectionControlsView posts =
             ]
 
 
-paginationView : Space -> Connection a -> Html Msg
-paginationView space connection =
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
     Pagination.view connection
-        (Route.Inbox << Before (Space.slug space))
-        (Route.Inbox << After (Space.slug space))
+        (\beforeCursor -> Route.Inbox (Route.Inbox.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Inbox (Route.Inbox.setCursors Nothing (Just afterCursor) params))
 
 
 postsView : Repo -> Model -> Data -> Html Msg
