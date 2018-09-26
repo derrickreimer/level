@@ -118,7 +118,7 @@ castFilter filter =
             "DISMISSED"
 
         Route.Inbox.Undismissed ->
-            "UNREAD_OR_READ"
+            "UNDISMISSED"
 
 
 decoder : Decoder Data

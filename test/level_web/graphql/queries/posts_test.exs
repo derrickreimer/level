@@ -185,7 +185,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
            }
   end
 
-  test "filtering by unread or read", %{conn: conn, space_user: space_user} do
+  test "filtering by undismissed", %{conn: conn, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: unread_post}} = create_post(space_user, group, %{body: "I'm just opining..."})
     {:ok, %{post: read_post}} = create_post(space_user, group, %{body: "Hey peeps"})
@@ -197,7 +197,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      inbox: "UNREAD_OR_READ"
+      inbox: "UNDISMISSED"
     }
 
     conn =

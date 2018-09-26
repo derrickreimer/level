@@ -33,7 +33,7 @@ defmodule Level.Resolvers.PostConnection do
           filter: %{
             pings: :has_pings | :has_no_pings | :all,
             watching: :is_watching | :all,
-            inbox: :unread | :read | :dismissed | :unread_or_read | :all
+            inbox: :unread | :read | :dismissed | :undismissed | :all
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -137,7 +137,7 @@ defmodule Level.Resolvers.PostConnection do
       on: pu.space_user_id == su.id and pu.inbox_state == "READ"
   end
 
-  defp apply_inbox(base_query, %{filter: %{inbox: :unread_or_read}}) do
+  defp apply_inbox(base_query, %{filter: %{inbox: :undismissed}}) do
     from [p, su, g, gu] in base_query,
       join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id and (pu.inbox_state == "UNREAD" or pu.inbox_state == "READ")

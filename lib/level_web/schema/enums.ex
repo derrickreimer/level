@@ -109,7 +109,7 @@ defmodule LevelWeb.Schema.Enums do
     value :unread
     value :read
     value :dismissed
-    value :unread_or_read
+    value :undismissed
     value :all
   end
 end
