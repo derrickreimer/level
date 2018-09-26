@@ -8,9 +8,7 @@ Level is an alternative to real-time chat designed for the software development 
 
 ## Project Status
 
-Level is currently in the **pre-launch** phase and under active development by a small groups of people. Most tasks are being tracked offline as the foundations of the product come together, in the interest of rapid development and reaching an alpha stage for companies to start using it as quickly as possible.
-
-Interested in helping out? My goal is to (eventually) keep some tasks filed in the [issue tracker](https://github.com/levelhq/level/issues) marked as good candidates for community contribution.
+Level is currently in the **pre-launch** phase and under active development by a small team. Most tasks are being tracked offline as the foundations of the product come together, in the interest of rapid development and reaching an alpha stage for teams to start using it as quickly as possible. For that reason, I'm not actively pursuing community contributions at this point in time.
 
 ## Developer Setup
 
