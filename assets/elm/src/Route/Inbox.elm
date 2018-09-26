@@ -1,6 +1,6 @@
 module Route.Inbox exposing
     ( Params
-    , init, getSpaceSlug, getAfter, getBefore, setCursors
+    , init, getSpaceSlug, getAfter, getBefore, getState, setCursors, setState
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Inbox exposing
 
 # API
 
-@docs init, getSpaceSlug, getAfter, getBefore, setCursors
+@docs init, getSpaceSlug, getAfter, getBefore, getState, setCursors, setState
 
 
 # Parsing
@@ -42,6 +42,7 @@ type alias Internal =
     { spaceSlug : String
     , after : Maybe String
     , before : Maybe String
+    , state : Maybe String
     }
 
 
@@ -51,7 +52,7 @@ type alias Internal =
 
 init : String -> Params
 init spaceSlug =
-    Params (Internal spaceSlug Nothing Nothing)
+    Params (Internal spaceSlug Nothing Nothing Nothing)
 
 
 getSpaceSlug : Params -> String
@@ -69,9 +70,19 @@ getBefore (Params internal) =
     internal.before
 
 
+getState : Params -> Maybe String
+getState (Params internal) =
+    internal.state
+
+
 setCursors : Maybe String -> Maybe String -> Params -> Params
 setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
+
+
+setState : Maybe String -> Params -> Params
+setState state (Params internal) =
+    Params { internal | state = state }
 
 
 
@@ -81,7 +92,7 @@ setCursors before after (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "inbox" <?> Query.string "after" <?> Query.string "before")
+        map Internal (string </> s "inbox" <?> Query.string "after" <?> Query.string "before" <?> Query.string "state")
 
 
 
@@ -100,7 +111,10 @@ toString (Params internal) =
 buildQuery : Internal -> List QueryParameter
 buildQuery internal =
     buildStringParams
-        [ ( "after", internal.after ), ( "before", internal.before ) ]
+        [ ( "after", internal.after )
+        , ( "before", internal.before )
+        , ( "state", internal.state )
+        ]
 
 
 buildStringParams : List ( String, Maybe String ) -> List QueryParameter

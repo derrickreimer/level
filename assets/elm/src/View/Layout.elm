@@ -129,6 +129,9 @@ spaceSidebarLink space title maybeRoute maybeCurrentRoute =
                 ]
     in
     case ( maybeRoute, maybeCurrentRoute ) of
+        ( Just (Route.Inbox params), Just (Route.Inbox _) ) ->
+            currentItem (Route.Inbox params)
+
         ( Just (Route.Groups params), Just (Route.Groups _) ) ->
             currentItem (Route.Groups params)
 

@@ -319,9 +319,9 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
                         , controlsView model data
                         ]
                     , div [ class "flex items-baseline" ]
-                        [ a [ href "#", class "block text-sm mr-4 py-2 border-b-3 border-blue text-blue no-underline" ] [ text "Unread & Read" ]
-                        , a [ href "#", class "block text-sm mr-4 py-2 border-b-3 border-transparent text-dusty-blue no-underline" ] [ text "Unread Only" ]
-                        , a [ href "#", class "block text-sm mr-4 py-2 border-b-3 border-transparent text-dusty-blue no-underline" ] [ text "Read Only" ]
+                        [ filterTab "Unread & Read" Nothing (unreadAndReadParams model.params) model.params
+                        , filterTab "Unread Only" (Just "unread") (unreadParams model.params) model.params
+                        , filterTab "Dismissed" (Just "dismissed") (dismissedParams model.params) model.params
                         ]
                     ]
                 , postsView repo model data
@@ -329,6 +329,18 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
                 ]
             ]
         ]
+
+
+filterTab : String -> Maybe String -> Params -> Params -> Html Msg
+filterTab label state linkParams currentParams =
+    a
+        [ Route.href (Route.Inbox linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent text-dusty-blue no-underline", True )
+            , ( "border-blue text-blue", Route.Inbox.getState currentParams == state )
+            ]
+        ]
+        [ text label ]
 
 
 controlsView : Model -> Data -> Html Msg
@@ -418,6 +430,27 @@ userItemView user =
 
 
 -- INTERNAL
+
+
+unreadAndReadParams : Params -> Params
+unreadAndReadParams params =
+    params
+        |> Route.Inbox.setCursors Nothing Nothing
+        |> Route.Inbox.setState Nothing
+
+
+dismissedParams : Params -> Params
+dismissedParams params =
+    params
+        |> Route.Inbox.setCursors Nothing Nothing
+        |> Route.Inbox.setState (Just "dismissed")
+
+
+unreadParams : Params -> Params
+unreadParams params =
+    params
+        |> Route.Inbox.setCursors Nothing Nothing
+        |> Route.Inbox.setState (Just "unread")
 
 
 filterBySelected : Connection Component.Post.Model -> List Component.Post.Model
