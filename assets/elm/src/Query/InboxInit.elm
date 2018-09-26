@@ -46,7 +46,8 @@ document =
           $first: Int,
           $last: Int,
           $before: Cursor,
-          $after: Cursor
+          $after: Cursor,
+          $filter: InboxFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -63,7 +64,7 @@ document =
                 last: $last,
                 before: $before,
                 after: $after,
-                filter: { inbox: UNREAD_OR_READ },
+                filter: { inbox: $filter },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
@@ -89,10 +90,35 @@ document =
 
 variables : Params -> Maybe Encode.Value
 variables params =
-    [ ( "spaceSlug", Encode.string (Route.Inbox.getSpaceSlug params) ), ( "first", Encode.int 20 ) ]
+    let
+        spaceSlug =
+            Encode.string (Route.Inbox.getSpaceSlug params)
+
+        first =
+            Encode.int 20
+
+        filter =
+            Route.Inbox.getFilter params
+                |> castFilter
+                |> Encode.string
+    in
+    [ ( "spaceSlug", spaceSlug ), ( "first", first ), ( "filter", filter ) ]
         |> encodeMaybeStrings [ ( "after", Route.Inbox.getAfter params ), ( "before", Route.Inbox.getBefore params ) ]
         |> Encode.object
         |> Just
+
+
+castFilter : Route.Inbox.Filter -> String
+castFilter filter =
+    case filter of
+        Route.Inbox.Unread ->
+            "UNREAD"
+
+        Route.Inbox.Dismissed ->
+            "DISMISSED"
+
+        Route.Inbox.Undismissed ->
+            "UNREAD_OR_READ"
 
 
 decoder : Decoder Data
