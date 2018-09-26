@@ -96,7 +96,7 @@ setup : Model -> Cmd Msg
 setup model =
     Cmd.batch
         [ setFocus "search-input" NoOp
-        , Scroll.toDocumentTop (\_ -> NoOp)
+        , Scroll.toDocumentTop NoOp
         ]
 
 

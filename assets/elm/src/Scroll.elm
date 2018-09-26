@@ -33,9 +33,9 @@ toBottom container =
     Ports.scrollToBottom <| ContainerParams (containerId container)
 
 
-toDocumentTop : (() -> msg) -> Cmd msg
-toDocumentTop toMsg =
-    Task.perform toMsg (Dom.setViewport 0 0)
+toDocumentTop : msg -> Cmd msg
+toDocumentTop msg =
+    Task.perform (\_ -> msg) (Dom.setViewport 0 0)
 
 
 

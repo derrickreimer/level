@@ -171,7 +171,7 @@ setup model =
     Cmd.batch
         [ pageCmd
         , postsCmd
-        , Scroll.toDocumentTop (\_ -> NoOp)
+        , Scroll.toDocumentTop NoOp
         ]
 
 

@@ -96,7 +96,7 @@ buildModel globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Scroll.toDocumentTop (\_ -> NoOp)
+    Scroll.toDocumentTop NoOp
 
 
 teardown : Model -> Cmd Msg

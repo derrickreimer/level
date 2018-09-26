@@ -95,7 +95,7 @@ buildModel spaceSlug globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Scroll.toDocumentTop (\_ -> InternalNoOp)
+    Scroll.toDocumentTop InternalNoOp
 
 
 teardown : Model -> Cmd Msg

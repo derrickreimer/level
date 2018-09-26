@@ -100,7 +100,7 @@ setup : Model -> Cmd Msg
 setup model =
     Cmd.batch
         [ setFocus "name" NoOp
-        , Scroll.toDocumentTop (\_ -> NoOp)
+        , Scroll.toDocumentTop NoOp
         ]
 
 
