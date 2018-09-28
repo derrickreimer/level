@@ -2,13 +2,11 @@ defmodule LevelWeb.GraphQL.PostsTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
-  alias Level.Mentions
   alias Level.Posts
 
   @query """
     query Posts(
       $space_id: ID!,
-      $pings: PingFilter,
       $watching: WatchingFilter,
       $inbox: InboxFilter,
       $order_field: PostOrderField
@@ -17,7 +15,6 @@ defmodule LevelWeb.GraphQL.PostsTest do
         posts(
           first: 10,
           filter: {
-            pings: $pings,
             watching: $watching,
             inbox: $inbox
           },
@@ -43,78 +40,6 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     conn = authenticate_with_jwt(conn, user)
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
-  end
-
-  test "filtering posts by has pings", %{
-    conn: conn,
-    space: space,
-    space_user: space_user
-  } do
-    {:ok, %{group: group}} = create_group(space_user)
-    {:ok, %{space_user: another_user}} = create_space_member(space, %{handle: "derrick"})
-    {:ok, %{post: _post}} = create_post(another_user, group, %{body: "Hey @tiff"})
-
-    variables = %{
-      space_id: space_user.space_id,
-      pings: "HAS_PINGS",
-      order_field: "LAST_PINGED_AT"
-    }
-
-    conn =
-      conn
-      |> put_graphql_headers()
-      |> post("/graphql", %{query: @query, variables: variables})
-
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "body" => "Hey @tiff"
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
-  end
-
-  test "filtering by has no pings excludes dismissed posts", %{
-    conn: conn,
-    space: space,
-    space_user: space_user
-  } do
-    {:ok, %{group: group}} = create_group(space_user)
-    {:ok, %{space_user: another_user}} = create_space_member(space, %{handle: "derrick"})
-    {:ok, %{post: post}} = create_post(another_user, group, %{body: "Hey @tiff"})
-
-    Mentions.dismiss_all(space_user, [post.id])
-
-    variables = %{
-      space_id: space_user.space_id,
-      pings: "HAS_PINGS",
-      order_field: "LAST_PINGED_AT"
-    }
-
-    conn =
-      conn
-      |> put_graphql_headers()
-      |> post("/graphql", %{query: @query, variables: variables})
-
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [],
-                   "total_count" => 0
-                 }
-               }
-             }
-           }
   end
 
   test "filtering by 'is watching' excludes posts the user is not watching", %{

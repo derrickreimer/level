@@ -59,9 +59,6 @@ defmodule LevelWeb.Schema.InputObjects do
 
   @desc "Filtering criteria for post connections."
   input_object :post_filters do
-    @desc "Filter by whether the post has pings for the current user."
-    field :pings, :ping_filter, default_value: :all
-
     @desc """
     Filter by whether the post is being watched by the user. "Watched"
     posts include those posted a group the user is subscribed to, or
