@@ -94,18 +94,41 @@ variables params =
         spaceSlug =
             Encode.string (Route.Inbox.getSpaceSlug params)
 
-        first =
+        limit =
             Encode.int 20
 
         filter =
             Route.Inbox.getFilter params
                 |> castFilter
                 |> Encode.string
+
+        values =
+            case
+                ( Route.Inbox.getBefore params
+                , Route.Inbox.getAfter params
+                )
+            of
+                ( Just before, Nothing ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "last", limit )
+                    , ( "before", Encode.string before )
+                    , ( "filter", filter )
+                    ]
+
+                ( Nothing, Just after ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", limit )
+                    , ( "after", Encode.string after )
+                    , ( "filter", filter )
+                    ]
+
+                ( _, _ ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", limit )
+                    , ( "filter", filter )
+                    ]
     in
-    [ ( "spaceSlug", spaceSlug ), ( "first", first ), ( "filter", filter ) ]
-        |> encodeMaybeStrings [ ( "after", Route.Inbox.getAfter params ), ( "before", Route.Inbox.getBefore params ) ]
-        |> Encode.object
-        |> Just
+    Just (Encode.object values)
 
 
 castFilter : Route.Inbox.Filter -> String
