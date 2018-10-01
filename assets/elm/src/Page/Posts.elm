@@ -320,10 +320,15 @@ sidebarView space featuredUsers =
             ]
         , div [ class "pb-4" ] <| List.map userItemView featuredUsers
         , a
-            [ Route.href (Route.SpaceSettings (Space.slug space))
-            , class "text-sm text-blue no-underline"
+            [ Route.href (Route.InviteUsers (Space.slug space))
+            , class "block text-sm text-blue no-underline"
             ]
-            [ text "Space Settings" ]
+            [ text "Invite people" ]
+        , a
+            [ Route.href (Route.SpaceSettings (Space.slug space))
+            , class "block text-sm text-blue no-underline"
+            ]
+            [ text "Space settings" ]
         ]
 
 

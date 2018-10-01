@@ -451,8 +451,13 @@ sidebarView space featuredUsers hasPushSubscription =
                 ]
                 [ text "Enable notifications" ]
         , a
+            [ Route.href (Route.InviteUsers (Space.slug space))
+            , class "block text-sm text-blue no-underline"
+            ]
+            [ text "Invite people" ]
+        , a
             [ Route.href (Route.SpaceSettings (Space.slug space))
-            , class "text-sm text-blue no-underline"
+            , class "block text-sm text-blue no-underline"
             ]
             [ text "Space settings" ]
         ]
