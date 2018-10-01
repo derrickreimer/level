@@ -157,7 +157,11 @@ resolvedView repo maybeCurrentRoute model data =
                 [ div [ class "flex items-center pb-5" ]
                     [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Directory" ]
                     , div [ class "flex-0 flex-no-shrink" ]
-                        [ a [ Route.href (Route.InviteUsers "level"), class "btn btn-blue btn-md no-underline" ] [ text "Invite people" ]
+                        [ a
+                            [ Route.href (Route.InviteUsers (Route.SpaceUsers.getSpaceSlug model.params))
+                            , class "btn btn-blue btn-md no-underline"
+                            ]
+                            [ text "Invite people" ]
                         ]
                     ]
                 , div [ class "pb-8" ]
@@ -166,14 +170,14 @@ resolvedView repo maybeCurrentRoute model data =
                         , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
                         ]
                     ]
-                , usersView repo data.space model.spaceUserIds
+                , usersView repo model.params model.spaceUserIds
                 ]
             ]
         ]
 
 
-usersView : Repo -> Space -> Connection Id -> Html Msg
-usersView repo space spaceUserIds =
+usersView : Repo -> Params -> Connection Id -> Html Msg
+usersView repo params spaceUserIds =
     let
         spaceUsers =
             Repo.getSpaceUsers (Connection.toList spaceUserIds) repo
@@ -185,7 +189,7 @@ usersView repo space spaceUserIds =
     in
     div [ class "leading-semi-loose" ]
         [ div [] <| List.map userPartitionView partitions
-        , paginationView space spaceUserIds
+        , paginationView params spaceUserIds
         ]
 
 
@@ -208,12 +212,12 @@ userView ( index, spaceUser ) =
         ]
 
 
-paginationView : Space -> Connection a -> Html Msg
-paginationView space connection =
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
     div [ class "py-4" ]
         [ Pagination.view connection
-            (Route.SpaceUsers << Before (Space.slug space))
-            (Route.SpaceUsers << After (Space.slug space))
+            (\beforeCursor -> Route.SpaceUsers (Route.SpaceUsers.setCursors (Just beforeCursor) Nothing params))
+            (\afterCursor -> Route.SpaceUsers (Route.SpaceUsers.setCursors Nothing (Just afterCursor) params))
         ]
 
 

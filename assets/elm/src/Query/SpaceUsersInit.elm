@@ -72,23 +72,39 @@ document params =
 variables : Params -> Int -> Maybe Encode.Value
 variables params limit =
     let
+        spaceSlug =
+            Encode.string (Route.SpaceUsers.getSpaceSlug params)
+
+        encLimit =
+            Encode.int limit
+
+        query =
+            Encode.string (Route.SpaceUsers.getQuery params)
+
         values =
-            case params of
-                Root spaceSlug ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int limit )
+            case
+                ( Route.SpaceUsers.getBefore params
+                , Route.SpaceUsers.getAfter params
+                )
+            of
+                ( Just before, Nothing ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "last", encLimit )
+                    , ( "before", Encode.string before )
+                    , ( "query", query )
                     ]
 
-                After spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "after", Encode.string cursor )
-                    , ( "first", Encode.int limit )
+                ( Nothing, Just after ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", encLimit )
+                    , ( "after", Encode.string after )
+                    , ( "query", query )
                     ]
 
-                Before spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "before", Encode.string cursor )
-                    , ( "last", Encode.int limit )
+                ( _, _ ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", encLimit )
+                    , ( "query", query )
                     ]
     in
     Just (Encode.object values)
