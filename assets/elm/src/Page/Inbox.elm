@@ -113,11 +113,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
 
 buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent ( postId, replyIds ) =
-    Component.Post.init
-        Component.Post.Feed
-        True
-        postId
-        replyIds
+    Component.Post.init Component.Post.Feed True postId replyIds
 
 
 setup : Model -> Cmd Msg
@@ -126,8 +122,7 @@ setup model =
         postsCmd =
             model.postComps
                 |> Connection.toList
-                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
-                |> Cmd.batch
+                |> setupPostComps
     in
     Cmd.batch
         [ postsCmd
@@ -141,10 +136,23 @@ teardown model =
         postsCmd =
             model.postComps
                 |> Connection.toList
-                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
-                |> Cmd.batch
+                |> teardownPostComps
     in
     postsCmd
+
+
+setupPostComps : List Component.Post.Model -> Cmd Msg
+setupPostComps comps =
+    comps
+        |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
+        |> Cmd.batch
+
+
+teardownPostComps : List Component.Post.Model -> Cmd Msg
+teardownPostComps comps =
+    comps
+        |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
+        |> Cmd.batch
 
 
 
@@ -158,6 +166,7 @@ type Msg
     | DismissPostsClicked
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PushSubscribeClicked
+    | PostsRefreshed (Result Session.Error ( Session, InboxInit.Response ))
     | NoOp
 
 
@@ -211,6 +220,35 @@ update msg globals model =
         PushSubscribeClicked ->
             ( ( model, PushManager.subscribe ), globals )
 
+        PostsRefreshed (Ok ( newSession, resp )) ->
+            let
+                newPostComps =
+                    Connection.map buildPostComponent resp.postWithRepliesIds
+
+                newRepo =
+                    Repo.union resp.repo globals.repo
+
+                ( addedComps, removedComps ) =
+                    Connection.diff .id newPostComps model.postComps
+
+                setupCmds =
+                    setupPostComps addedComps
+
+                teardownCmds =
+                    teardownPostComps removedComps
+            in
+            ( ( { model | postComps = newPostComps }
+              , Cmd.batch [ setupCmds, teardownCmds ]
+              )
+            , { globals | session = newSession, repo = newRepo }
+            )
+
+        PostsRefreshed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostsRefreshed (Err _) ->
+            noCmd globals model
+
         NoOp ->
             noCmd globals model
 
@@ -220,12 +258,24 @@ noCmd globals model =
     ( ( model, Cmd.none ), globals )
 
 
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
+
+
+refreshPosts : Params -> Globals -> Cmd Msg
+refreshPosts params globals =
+    globals.session
+        |> InboxInit.request params
+        |> Task.attempt PostsRefreshed
+
+
 
 -- EVENTS
 
 
-consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event model =
+consumeEvent : Event -> Globals -> Model -> ( Model, Cmd Msg )
+consumeEvent event globals model =
     case event of
         Event.GroupBookmarked group ->
             ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
@@ -252,25 +302,7 @@ consumeEvent event model =
                     ( model, Cmd.none )
 
         Event.PostsDismissed posts ->
-            let
-                remove post ( components, cmds ) =
-                    let
-                        postId =
-                            Post.id post
-                    in
-                    case Connection.get .id postId components of
-                        Just component ->
-                            ( Connection.remove .id postId components
-                            , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component) :: cmds
-                            )
-
-                        Nothing ->
-                            ( components, cmds )
-
-                ( newPostComps, teardownCmds ) =
-                    List.foldr remove ( model.postComps, [] ) posts
-            in
-            ( { model | postComps = newPostComps }, Cmd.batch teardownCmds )
+            ( model, refreshPosts model.params globals )
 
         _ ->
             ( model, Cmd.none )
@@ -313,10 +345,16 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
-                    [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
-                        , controlsView model data
+                [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
+                    [ div [ class "border-b" ]
+                        [ div [ class "flex items-center" ]
+                            [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
+                            , controlsView model data
+                            ]
+                        , div [ class "flex items-baseline" ]
+                            [ filterTab "New Activity" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                            , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
+                            ]
                         ]
                     ]
                 , postsView repo model data
@@ -326,11 +364,28 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
         ]
 
 
+filterTab : String -> Route.Inbox.Filter -> Params -> Params -> Html Msg
+filterTab label filter linkParams currentParams =
+    let
+        isCurrent =
+            Route.Inbox.getFilter currentParams == filter
+    in
+    a
+        [ Route.href (Route.Inbox linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        ]
+        [ text label ]
+
+
 controlsView : Model -> Data -> Html Msg
 controlsView model data =
     div [ class "flex flex-grow justify-end" ]
         [ selectionControlsView model.postComps
-        , paginationView data.space model.postComps
+        , paginationView model.params model.postComps
         ]
 
 
@@ -350,11 +405,11 @@ selectionControlsView posts =
             ]
 
 
-paginationView : Space -> Connection a -> Html Msg
-paginationView space connection =
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
     Pagination.view connection
-        (Route.Inbox << Before (Space.slug space))
-        (Route.Inbox << After (Space.slug space))
+        (\beforeCursor -> Route.Inbox (Route.Inbox.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Inbox (Route.Inbox.setCursors Nothing (Just afterCursor) params))
 
 
 postsView : Repo -> Model -> Data -> Html Msg
@@ -413,6 +468,27 @@ userItemView user =
 
 
 -- INTERNAL
+
+
+undismissedParams : Params -> Params
+undismissedParams params =
+    params
+        |> Route.Inbox.setCursors Nothing Nothing
+        |> Route.Inbox.setFilter Route.Inbox.Undismissed
+
+
+dismissedParams : Params -> Params
+dismissedParams params =
+    params
+        |> Route.Inbox.setCursors Nothing Nothing
+        |> Route.Inbox.setFilter Route.Inbox.Dismissed
+
+
+unreadParams : Params -> Params
+unreadParams params =
+    params
+        |> Route.Inbox.setCursors Nothing Nothing
+        |> Route.Inbox.setFilter Route.Inbox.Unread
 
 
 filterBySelected : Connection Component.Post.Model -> List Component.Post.Model

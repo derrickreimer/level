@@ -46,7 +46,8 @@ document =
           $first: Int,
           $last: Int,
           $before: Cursor,
-          $after: Cursor
+          $after: Cursor,
+          $filter: InboxFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -63,7 +64,7 @@ document =
                 last: $last,
                 before: $before,
                 after: $after,
-                filter: { inbox: UNREAD_OR_READ },
+                filter: { inbox: $filter },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
@@ -90,26 +91,57 @@ document =
 variables : Params -> Maybe Encode.Value
 variables params =
     let
+        spaceSlug =
+            Encode.string (Route.Inbox.getSpaceSlug params)
+
+        limit =
+            Encode.int 20
+
+        filter =
+            Route.Inbox.getFilter params
+                |> castFilter
+                |> Encode.string
+
         values =
-            case params of
-                Root spaceSlug ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int 20 )
+            case
+                ( Route.Inbox.getBefore params
+                , Route.Inbox.getAfter params
+                )
+            of
+                ( Just before, Nothing ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "last", limit )
+                    , ( "before", Encode.string before )
+                    , ( "filter", filter )
                     ]
 
-                After spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int 20 )
-                    , ( "after", Encode.string cursor )
+                ( Nothing, Just after ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", limit )
+                    , ( "after", Encode.string after )
+                    , ( "filter", filter )
                     ]
 
-                Before spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "last", Encode.int 20 )
-                    , ( "before", Encode.string cursor )
+                ( _, _ ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", limit )
+                    , ( "filter", filter )
                     ]
     in
     Just (Encode.object values)
+
+
+castFilter : Route.Inbox.Filter -> String
+castFilter filter =
+    case filter of
+        Route.Inbox.Unread ->
+            "UNREAD"
+
+        Route.Inbox.Dismissed ->
+            "DISMISSED"
+
+        Route.Inbox.Undismissed ->
+            "UNDISMISSED"
 
 
 decoder : Decoder Data
@@ -161,3 +193,21 @@ request params session =
     GraphQL.request document (variables params) decoder
         |> Session.request session
         |> Task.map buildResponse
+
+
+
+-- INTERNAL
+
+
+encodeMaybeStrings : List ( String, Maybe String ) -> List ( String, Encode.Value ) -> List ( String, Encode.Value )
+encodeMaybeStrings maybePairs encodeValues =
+    let
+        reducer ( key, maybeValue ) accum =
+            case maybeValue of
+                Just value ->
+                    ( key, Encode.string value ) :: accum
+
+                Nothing ->
+                    accum
+    in
+    List.foldr reducer encodeValues maybePairs

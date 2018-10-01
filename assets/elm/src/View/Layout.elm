@@ -76,7 +76,7 @@ spaceSidebar viewer space bookmarks maybeCurrentRoute =
                 , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest" ] [ text (Space.name space) ]
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ spaceSidebarLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.Root (Space.slug space))) maybeCurrentRoute
+                [ spaceSidebarLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
                 , spaceSidebarLink space "Activity" (Just <| Route.Posts (Route.Posts.Root (Space.slug space))) maybeCurrentRoute
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]
@@ -129,6 +129,9 @@ spaceSidebarLink space title maybeRoute maybeCurrentRoute =
                 ]
     in
     case ( maybeRoute, maybeCurrentRoute ) of
+        ( Just (Route.Inbox params), Just (Route.Inbox _) ) ->
+            currentItem (Route.Inbox params)
+
         ( Just (Route.Groups params), Just (Route.Groups _) ) ->
             currentItem (Route.Groups params)
 

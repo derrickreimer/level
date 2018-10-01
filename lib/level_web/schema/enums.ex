@@ -94,12 +94,6 @@ defmodule LevelWeb.Schema.Enums do
     value :closed, as: "CLOSED"
   end
 
-  enum :ping_filter do
-    value :has_pings
-    value :has_no_pings
-    value :all
-  end
-
   enum :watching_filter do
     value :is_watching
     value :all
@@ -109,7 +103,7 @@ defmodule LevelWeb.Schema.Enums do
     value :unread
     value :read
     value :dismissed
-    value :unread_or_read
+    value :undismissed
     value :all
   end
 end

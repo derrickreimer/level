@@ -16,7 +16,6 @@ defmodule Level.Resolvers.PostConnection do
             before: nil,
             after: nil,
             filter: %{
-              pings: :all,
               watching: :all,
               inbox: :all
             },
@@ -31,9 +30,8 @@ defmodule Level.Resolvers.PostConnection do
           before: String.t() | nil,
           after: String.t() | nil,
           filter: %{
-            pings: :has_pings | :has_no_pings | :all,
             watching: :is_watching | :all,
-            inbox: :unread | :read | :dismissed | :unread_or_read | :all
+            inbox: :unread | :read | :dismissed | :undismissed | :all
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -50,7 +48,6 @@ defmodule Level.Resolvers.PostConnection do
     base_query =
       user
       |> build_base_query(parent)
-      |> apply_pings(args)
       |> apply_activity(args)
       |> apply_watching(args)
       |> apply_inbox(args)
@@ -79,32 +76,6 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp process_args(args), do: args
-
-  defp apply_pings(base_query, %{filter: %{pings: :all}, order_by: %{field: :last_pinged_at}}) do
-    from [p, su, g, gu] in base_query,
-      left_join: m in assoc(p, :user_mentions),
-      on: m.mentioned_id == su.id and is_nil(m.dismissed_at),
-      group_by: p.id,
-      select_merge: %{last_pinged_at: max(m.occurred_at)}
-  end
-
-  defp apply_pings(base_query, %{filter: %{pings: :has_pings}}) do
-    from [p, su, g, gu] in base_query,
-      join: m in assoc(p, :user_mentions),
-      on: m.mentioned_id == su.id and is_nil(m.dismissed_at),
-      group_by: p.id,
-      select_merge: %{last_pinged_at: max(m.occurred_at)}
-  end
-
-  defp apply_pings(base_query, %{filter: %{pings: :has_no_pings}}) do
-    from [p, su, g, gu] in base_query,
-      left_join: m in assoc(p, :user_mentions),
-      on: m.mentioned_id == su.id and is_nil(m.dismissed_at),
-      where: is_nil(m.id),
-      select_merge: %{last_pinged_at: p.inserted_at}
-  end
-
-  defp apply_pings(base_query, _), do: base_query
 
   defp apply_activity(base_query, %{order_by: %{field: :last_activity_at}}) do
     from [p, su, g, gu] in base_query,
@@ -137,7 +108,7 @@ defmodule Level.Resolvers.PostConnection do
       on: pu.space_user_id == su.id and pu.inbox_state == "READ"
   end
 
-  defp apply_inbox(base_query, %{filter: %{inbox: :unread_or_read}}) do
+  defp apply_inbox(base_query, %{filter: %{inbox: :undismissed}}) do
     from [p, su, g, gu] in base_query,
       join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id and (pu.inbox_state == "UNREAD" or pu.inbox_state == "READ")

@@ -443,7 +443,7 @@ navigateTo maybeRoute model =
             ( { model | page = NotFound }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
-            navigateTo (Just <| Route.Inbox (Route.Inbox.Root spaceSlug)) model
+            navigateTo (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) model
 
         Just (Route.SetupCreateGroups spaceSlug) ->
             globals
@@ -1022,7 +1022,7 @@ sendEventToPage globals event model =
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.consumeEvent event
+                |> Page.Inbox.consumeEvent event globals
                 |> updatePage Inbox InboxMsg model
 
         SpaceUsers pageModel ->
