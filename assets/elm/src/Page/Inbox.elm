@@ -319,8 +319,7 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
                         , controlsView model data
                         ]
                     , div [ class "flex items-baseline" ]
-                        [ filterTab "Undismissed" Route.Inbox.Undismissed (undismissedParams model.params) model.params
-                        , filterTab "Unread Only" Route.Inbox.Unread (unreadParams model.params) model.params
+                        [ filterTab "New Activity" Route.Inbox.Undismissed (undismissedParams model.params) model.params
                         , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
                     ]
@@ -333,11 +332,16 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
 
 filterTab : String -> Route.Inbox.Filter -> Params -> Params -> Html Msg
 filterTab label filter linkParams currentParams =
+    let
+        isCurrent =
+            Route.Inbox.getFilter currentParams == filter
+    in
     a
         [ Route.href (Route.Inbox linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent text-dusty-blue no-underline", True )
-            , ( "border-blue text-blue", Route.Inbox.getFilter currentParams == filter )
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             ]
         ]
         [ text label ]
