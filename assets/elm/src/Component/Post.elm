@@ -221,15 +221,12 @@ update msg spaceId globals model =
             let
                 nodeId =
                     replyComposerId model.postId
-
-                replyBody =
-                    ReplyComposer.getBody model.replyComposer
             in
-            if replyBody == "" then
-                ( ( model, unsetFocus nodeId NoOp ), globals )
-
-            else
-                noCmd globals model
+            ( ( { model | replyComposer = ReplyComposer.escaped model.replyComposer }
+              , unsetFocus nodeId NoOp
+              )
+            , globals
+            )
 
         NewReplyBlurred ->
             let

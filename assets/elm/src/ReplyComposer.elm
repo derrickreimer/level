@@ -1,4 +1,4 @@
-module ReplyComposer exposing (Mode(..), ReplyComposer, blurred, expand, getBody, init, isExpanded, isSubmitting, notSubmitting, setBody, stayExpanded, submitting, unsubmittable)
+module ReplyComposer exposing (Mode(..), ReplyComposer, blurred, escaped, expand, getBody, init, isExpanded, isSubmitting, notSubmitting, setBody, stayExpanded, submitting, unsubmittable)
 
 -- TYPES
 
@@ -74,6 +74,15 @@ blurred (ReplyComposer data) =
     --     ReplyComposer { data | isExpanded = False }
     -- else
     ReplyComposer data
+
+
+escaped : ReplyComposer -> ReplyComposer
+escaped (ReplyComposer data) =
+    if data.body == "" && data.mode == Autocollapse then
+        ReplyComposer { data | isExpanded = False }
+
+    else
+        ReplyComposer data
 
 
 submitting : ReplyComposer -> ReplyComposer
