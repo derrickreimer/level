@@ -122,8 +122,7 @@ setup model =
         postsCmd =
             model.postComps
                 |> Connection.toList
-                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
-                |> Cmd.batch
+                |> setupPostComps
     in
     Cmd.batch
         [ postsCmd
@@ -137,10 +136,23 @@ teardown model =
         postsCmd =
             model.postComps
                 |> Connection.toList
-                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
-                |> Cmd.batch
+                |> teardownPostComps
     in
     postsCmd
+
+
+setupPostComps : List Component.Post.Model -> Cmd Msg
+setupPostComps comps =
+    comps
+        |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
+        |> Cmd.batch
+
+
+teardownPostComps : List Component.Post.Model -> Cmd Msg
+teardownPostComps comps =
+    comps
+        |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
+        |> Cmd.batch
 
 
 
@@ -154,6 +166,7 @@ type Msg
     | DismissPostsClicked
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PushSubscribeClicked
+    | PostsRefreshed (Result Session.Error ( Session, InboxInit.Response ))
     | NoOp
 
 
@@ -207,6 +220,35 @@ update msg globals model =
         PushSubscribeClicked ->
             ( ( model, PushManager.subscribe ), globals )
 
+        PostsRefreshed (Ok ( newSession, resp )) ->
+            let
+                newPostComps =
+                    Connection.map buildPostComponent resp.postWithRepliesIds
+
+                newRepo =
+                    Repo.union resp.repo globals.repo
+
+                ( addedComps, removedComps ) =
+                    Connection.diff .id newPostComps model.postComps
+
+                setupCmds =
+                    setupPostComps addedComps
+
+                teardownCmds =
+                    teardownPostComps removedComps
+            in
+            ( ( { model | postComps = newPostComps }
+              , Cmd.batch [ setupCmds, teardownCmds ]
+              )
+            , { globals | session = newSession, repo = newRepo }
+            )
+
+        PostsRefreshed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostsRefreshed (Err _) ->
+            noCmd globals model
+
         NoOp ->
             noCmd globals model
 
@@ -216,12 +258,24 @@ noCmd globals model =
     ( ( model, Cmd.none ), globals )
 
 
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
+
+
+refreshPosts : Params -> Globals -> Cmd Msg
+refreshPosts params globals =
+    globals.session
+        |> InboxInit.request params
+        |> Task.attempt PostsRefreshed
+
+
 
 -- EVENTS
 
 
-consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event model =
+consumeEvent : Event -> Globals -> Model -> ( Model, Cmd Msg )
+consumeEvent event globals model =
     case event of
         Event.GroupBookmarked group ->
             ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
@@ -248,30 +302,7 @@ consumeEvent event model =
                     ( model, Cmd.none )
 
         Event.PostsDismissed posts ->
-            case Route.Inbox.getFilter model.params of
-                Route.Inbox.Undismissed ->
-                    let
-                        reducer post ( components, cmds ) =
-                            let
-                                postId =
-                                    Post.id post
-                            in
-                            case Connection.get .id postId components of
-                                Just component ->
-                                    ( Connection.remove .id postId components
-                                    , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component) :: cmds
-                                    )
-
-                                Nothing ->
-                                    ( components, cmds )
-
-                        ( newPostComps, teardownCmds ) =
-                            List.foldr reducer ( model.postComps, [] ) posts
-                    in
-                    ( { model | postComps = newPostComps }, Cmd.batch teardownCmds )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, refreshPosts model.params globals )
 
         _ ->
             ( model, Cmd.none )

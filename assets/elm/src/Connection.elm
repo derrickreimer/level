@@ -1,8 +1,9 @@
-module Connection exposing (Connection, Subset, append, decoder, endCursor, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, startCursor, toList, update)
+module Connection exposing (Connection, Subset, append, decoder, diff, endCursor, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
 import ListHelpers exposing (getBy, memberBy, updateBy)
+import Set
 
 
 type alias PageInfo =
@@ -259,6 +260,49 @@ remove comparator comparable connection =
     toList connection
         |> List.filter (\node -> not (comparator node == comparable))
         |> flippedReplaceNodes connection
+
+
+diff : (a -> comparable) -> Connection a -> Connection a -> ( List a, List a )
+diff comparator newConn oldConn =
+    let
+        newNodes =
+            toList newConn
+
+        oldNodes =
+            toList oldConn
+
+        newComparables =
+            newNodes
+                |> List.map comparator
+                |> Set.fromList
+
+        oldComparables =
+            oldNodes
+                |> List.map comparator
+                |> Set.fromList
+
+        commonComparables =
+            Set.intersect newComparables oldComparables
+
+        addedComparables =
+            commonComparables
+                |> Set.diff newComparables
+                |> Set.toList
+
+        removedComparables =
+            commonComparables
+                |> Set.diff oldComparables
+                |> Set.toList
+
+        addedNodes =
+            newNodes
+                |> List.filter (\node -> List.member (comparator node) addedComparables)
+
+        removedNodes =
+            oldNodes
+                |> List.filter (\node -> List.member (comparator node) removedComparables)
+    in
+    ( addedNodes, removedNodes )
 
 
 

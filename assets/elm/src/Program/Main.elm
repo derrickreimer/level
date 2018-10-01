@@ -1022,7 +1022,7 @@ sendEventToPage globals event model =
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.consumeEvent event
+                |> Page.Inbox.consumeEvent event globals
                 |> updatePage Inbox InboxMsg model
 
         SpaceUsers pageModel ->
