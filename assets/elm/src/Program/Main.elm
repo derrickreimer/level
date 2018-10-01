@@ -15,6 +15,7 @@ import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Page.Group
 import Page.Groups
 import Page.Inbox
+import Page.InviteUsers
 import Page.NewGroup
 import Page.NewSpace
 import Page.Post
@@ -150,6 +151,7 @@ type Msg
     | PostsMsg Page.Posts.Msg
     | InboxMsg Page.Inbox.Msg
     | SpaceUsersMsg Page.SpaceUsers.Msg
+    | InviteUsersMsg Page.InviteUsers.Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
     | NewGroupMsg Page.NewGroup.Msg
@@ -298,6 +300,11 @@ update msg model =
                 |> Page.SpaceUsers.update pageMsg globals
                 |> updatePageWithGlobals SpaceUsers SpaceUsersMsg model
 
+        ( InviteUsersMsg pageMsg, InviteUsers pageModel ) ->
+            pageModel
+                |> Page.InviteUsers.update pageMsg globals
+                |> updatePageWithGlobals InviteUsers InviteUsersMsg model
+
         ( GroupsMsg pageMsg, Groups pageModel ) ->
             pageModel
                 |> Page.Groups.update pageMsg globals
@@ -398,6 +405,7 @@ type Page
     | Posts Page.Posts.Model
     | Inbox Page.Inbox.Model
     | SpaceUsers Page.SpaceUsers.Model
+    | InviteUsers Page.InviteUsers.Model
     | Groups Page.Groups.Model
     | Group Page.Group.Model
     | NewGroup Page.NewGroup.Model
@@ -412,6 +420,7 @@ type PageInit
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
     | InboxInit (Result Session.Error ( Globals, Page.Inbox.Model ))
     | SpaceUsersInit (Result Session.Error ( Globals, Page.SpaceUsers.Model ))
+    | InviteUsersInit (Result Session.Error ( Globals, Page.InviteUsers.Model ))
     | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
     | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
@@ -480,6 +489,11 @@ navigateTo maybeRoute model =
                 |> Page.SpaceUsers.init params
                 |> transition model SpaceUsersInit
 
+        Just (Route.InviteUsers slug) ->
+            globals
+                |> Page.InviteUsers.init slug
+                |> transition model InviteUsersInit
+
         Just (Route.Groups params) ->
             globals
                 |> Page.Groups.init params
@@ -543,6 +557,9 @@ pageTitle repo page =
 
         SpaceSettings _ ->
             Page.SpaceSettings.title
+
+        InviteUsers _ ->
+            Page.InviteUsers.title
 
         UserSettings _ ->
             Page.UserSettings.title
@@ -617,6 +634,15 @@ setupPage pageInit model =
             ( model, Route.toLogin )
 
         SpaceUsersInit (Err _) ->
+            ( model, Cmd.none )
+
+        InviteUsersInit (Ok result) ->
+            perform Page.InviteUsers.setup InviteUsers InviteUsersMsg model result
+
+        InviteUsersInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        InviteUsersInit (Err _) ->
             ( model, Cmd.none )
 
         GroupsInit (Ok result) ->
@@ -716,6 +742,9 @@ teardownPage page =
         SpaceUsers pageModel ->
             Cmd.map SpaceUsersMsg (Page.SpaceUsers.teardown pageModel)
 
+        InviteUsers pageModel ->
+            Cmd.map InviteUsersMsg (Page.InviteUsers.teardown pageModel)
+
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
 
@@ -790,6 +819,9 @@ routeFor page =
         SpaceUsers { params } ->
             Just <| Route.SpaceUsers params
 
+        InviteUsers { spaceSlug } ->
+            Just <| Route.InviteUsers spaceSlug
+
         Groups { params } ->
             Just <| Route.Groups params
 
@@ -852,6 +884,11 @@ pageView repo page hasPushSubscription =
             pageModel
                 |> Page.SpaceUsers.view repo (routeFor page)
                 |> Html.map SpaceUsersMsg
+
+        InviteUsers pageModel ->
+            pageModel
+                |> Page.InviteUsers.view repo (routeFor page)
+                |> Html.map InviteUsersMsg
 
         Groups pageModel ->
             pageModel
@@ -1029,6 +1066,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.SpaceUsers.consumeEvent event
                 |> updatePage SpaceUsers SpaceUsersMsg model
+
+        InviteUsers pageModel ->
+            pageModel
+                |> Page.InviteUsers.consumeEvent event
+                |> updatePage InviteUsers InviteUsersMsg model
 
         Groups pageModel ->
             pageModel

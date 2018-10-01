@@ -312,7 +312,7 @@ sidebarView space featuredUsers =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
-                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.Root (Space.slug space))
+                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
                 , class "flex items-center text-dusty-blue-darkest no-underline"
                 ]
                 [ text "Directory"
@@ -320,10 +320,15 @@ sidebarView space featuredUsers =
             ]
         , div [ class "pb-4" ] <| List.map userItemView featuredUsers
         , a
-            [ Route.href (Route.SpaceSettings (Space.slug space))
-            , class "text-sm text-blue no-underline"
+            [ Route.href (Route.InviteUsers (Space.slug space))
+            , class "block text-sm text-blue no-underline"
             ]
-            [ text "Space Settings" ]
+            [ text "Invite people" ]
+        , a
+            [ Route.href (Route.SpaceSettings (Space.slug space))
+            , class "block text-sm text-blue no-underline"
+            ]
+            [ text "Space settings" ]
         ]
 
 

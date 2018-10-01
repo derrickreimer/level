@@ -1,4 +1,4 @@
-module Page.Setup.InviteUsers exposing (ExternalMsg(..), Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
+module Page.InviteUsers exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Clipboard
 import Event exposing (Event)
@@ -9,7 +9,6 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.CompleteSetupStep as CompleteSetupStep
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -30,7 +29,6 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
-    , isSubmitting : Bool
     }
 
 
@@ -55,7 +53,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Invite your colleagues"
+    "Invite people"
 
 
 
@@ -78,17 +76,16 @@ buildModel spaceSlug globals ( newSession, resp ) =
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
-                False
 
-        repo =
+        newRepo =
             Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, repo = repo }, model )
+    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 setup : Model -> Cmd Msg
 setup model =
-    Scroll.toDocumentTop InternalNoOp
+    Scroll.toDocumentTop NoOp
 
 
 teardown : Model -> Cmd Msg
@@ -101,47 +98,19 @@ teardown model =
 
 
 type Msg
-    = Submit
-    | Advanced (Result Session.Error ( Session, CompleteSetupStep.Response ))
-    | InternalNoOp
+    = NoOp
 
 
-type ExternalMsg
-    = SetupStateChanged Space.SetupState
-    | NoOp
-
-
-update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals, ExternalMsg )
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
-        Submit ->
-            let
-                cmd =
-                    globals.session
-                        |> CompleteSetupStep.request model.spaceId Space.InviteUsers False
-                        |> Task.attempt Advanced
-            in
-            ( ( { model | isSubmitting = True }, cmd ), globals, NoOp )
-
-        Advanced (Ok ( newSession, CompleteSetupStep.Success nextState )) ->
-            ( ( model, Cmd.none )
-            , { globals | session = newSession }
-            , SetupStateChanged nextState
-            )
-
-        Advanced (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        Advanced (Err _) ->
-            ( ( { model | isSubmitting = False }, Cmd.none ), globals, NoOp )
-
-        InternalNoOp ->
-            ( ( model, Cmd.none ), globals, NoOp )
+        NoOp ->
+            ( ( model, Cmd.none ), globals )
 
 
-redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals, ExternalMsg )
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 redirectToLogin globals model =
-    ( ( model, Route.toLogin ), globals, NoOp )
+    ( ( model, Route.toLogin ), globals )
 
 
 
@@ -184,28 +153,22 @@ resolvedView maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
-                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite your colleagues" ]
-                , bodyView (Space.openInvitationUrl data.space) model
+                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite people to join" ]
+                , bodyView (Space.openInvitationUrl data.space)
                 ]
             ]
         ]
 
 
-bodyView : Maybe String -> Model -> Html Msg
-bodyView maybeUrl model =
+bodyView : Maybe String -> Html Msg
+bodyView maybeUrl =
     case maybeUrl of
         Just url ->
             div []
-                [ p [ class "mb-6" ] [ text "The best way to try out Level is with other people! Anyone with this link can join the space:" ]
-                , div [ class "mb-4 flex items-center input-field py-2" ]
-                    [ span [ class "mr-4 flex-shrink font-mono text-sm overflow-auto" ] [ text url ]
-                    , Clipboard.button "Copy" url [ class "btn btn-blue btn-xs flex items-center" ]
-                    ]
-                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]
+                [ p [ class "mb-6" ] [ text "Anyone with this link can join the space with member-level permissions. You can change their role to an admin later if needed." ]
+                , input [ class "mb-4 input-field font-mono text-sm", value url ] []
+                , Clipboard.button "Copy link" url [ class "btn btn-blue" ]
                 ]
 
         Nothing ->
-            div []
-                [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
-                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]
-                ]
+            p [ class "mb-6" ] [ text "Open invitations are disabled." ]
