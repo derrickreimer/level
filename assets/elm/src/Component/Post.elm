@@ -435,7 +435,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
 checkableView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
 checkableView repo space viewer now model =
     div [ class "flex" ]
-        [ div [ class "mr-1 py-2 flex-0" ]
+        [ div [ class "mr-1 py-3 flex-0" ]
             [ label [ class "control checkbox" ]
                 [ input
                     [ type_ "checkbox"
@@ -535,7 +535,7 @@ replyComposerView currentUser post model =
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
             [ div [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
-                    div [ class "rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
+                    div [ class "rounded-t-lg bg-turquoise border-b border-white px-3 py-1" ]
                         [ span [ class "mr-3 text-sm text-white font-bold" ] [ text "This post is in your inbox." ]
                         , button [ class "btn btn-xs btn-turquoise-inverse", onClick DismissClicked ] [ text "Dismiss" ]
                         ]

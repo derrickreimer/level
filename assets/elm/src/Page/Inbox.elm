@@ -314,14 +314,16 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
         maybeCurrentRoute
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "sticky pin-t border-b mb-3 pt-4 bg-white z-50" ]
-                    [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
-                        , controlsView model data
-                        ]
-                    , div [ class "flex items-baseline" ]
-                        [ filterTab "New Activity" Route.Inbox.Undismissed (undismissedParams model.params) model.params
-                        , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
+                [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
+                    [ div [ class "border-b" ]
+                        [ div [ class "flex items-center" ]
+                            [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
+                            , controlsView model data
+                            ]
+                        , div [ class "flex items-baseline" ]
+                            [ filterTab "New Activity" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                            , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
+                            ]
                         ]
                     ]
                 , postsView repo model data
