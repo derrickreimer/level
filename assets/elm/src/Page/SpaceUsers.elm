@@ -157,7 +157,7 @@ resolvedView repo maybeCurrentRoute model data =
                 [ div [ class "flex items-center pb-5" ]
                     [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Directory" ]
                     , div [ class "flex-0 flex-no-shrink" ]
-                        [ a [ href "#", class "btn btn-blue btn-md no-underline" ] [ text "Invite people" ]
+                        [ a [ Route.href (Route.InviteUsers "level"), class "btn btn-blue btn-md no-underline" ] [ text "Invite people" ]
                         ]
                     ]
                 , div [ class "pb-8" ]
