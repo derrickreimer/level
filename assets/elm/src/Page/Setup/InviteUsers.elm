@@ -1,5 +1,6 @@
 module Page.Setup.InviteUsers exposing (ExternalMsg(..), Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Clipboard
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -184,22 +185,27 @@ resolvedView maybeCurrentRoute model data =
         [ div [ class "mx-56" ]
             [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
                 [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite your colleagues" ]
-                , bodyView (Space.openInvitationUrl data.space)
-                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ]
-                    [ text "Next step" ]
+                , bodyView (Space.openInvitationUrl data.space) model
                 ]
             ]
         ]
 
 
-bodyView : Maybe String -> Html Msg
-bodyView maybeUrl =
+bodyView : Maybe String -> Model -> Html Msg
+bodyView maybeUrl model =
     case maybeUrl of
         Just url ->
             div []
                 [ p [ class "mb-6" ] [ text "The best way to try out Level is with other people! Anyone with this link can join the space:" ]
-                , input [ class "mb-6 input-field font-mono text-sm", value url ] []
+                , div [ class "mb-4 flex items-center input-field py-2" ]
+                    [ span [ class "mr-4 flex-shrink font-mono text-sm overflow-auto" ] [ text url ]
+                    , Clipboard.button "Copy" url [ class "btn btn-blue btn-xs flex items-center" ]
+                    ]
+                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]
                 ]
 
         Nothing ->
-            p [ class "mb-6" ] [ text "Open invitations are disabled." ]
+            div []
+                [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
+                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]
+                ]

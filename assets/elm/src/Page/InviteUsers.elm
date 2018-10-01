@@ -1,5 +1,6 @@
 module Page.InviteUsers exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Clipboard
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -166,7 +167,7 @@ bodyView maybeUrl =
             div []
                 [ p [ class "mb-6" ] [ text "Anyone with this link can join the space with member-level permissions. You can change their role to an admin later if needed." ]
                 , input [ class "mb-4 input-field font-mono text-sm", value url ] []
-                , button [ class "btn btn-blue" ] [ text "Copy link" ]
+                , Clipboard.button "Copy link" url [ class "btn btn-blue" ]
                 ]
 
         Nothing ->

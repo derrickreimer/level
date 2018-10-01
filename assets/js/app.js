@@ -21,6 +21,7 @@ import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
 import * as Background from "./background";
 import "./custom_elements/rendered_html";
+import "./custom_elements/clipboard_button";
 
 // Initialize service worker
 Background.registerWorker();
