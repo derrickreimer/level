@@ -14,6 +14,7 @@ import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import ListHelpers
 import Markdown
 import Mutation.CreateReply as CreateReply
+import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
 import Post exposing (Post)
 import Query.Replies
@@ -149,6 +150,8 @@ type Msg
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | SelectionToggled
+    | DismissClicked
+    | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | NoOp
 
 
@@ -302,6 +305,28 @@ update msg spaceId globals model =
               )
             , globals
             )
+
+        DismissClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> DismissPosts.request spaceId [ model.postId ]
+                        |> Task.attempt Dismissed
+            in
+            ( ( model, cmd ), globals )
+
+        Dismissed (Ok ( newSession, _ )) ->
+            let
+                nodeId =
+                    replyComposerId model.postId
+            in
+            ( ( model, setFocus nodeId NoOp ), { globals | session = newSession } )
+
+        Dismissed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Dismissed (Err _) ->
+            noCmd globals model
 
         NoOp ->
             noCmd globals model
@@ -511,8 +536,13 @@ replyComposerView : SpaceUser -> Post -> Model -> Html Msg
 replyComposerView currentUser post model =
     if ReplyComposer.isExpanded model.replyComposer then
         div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-            [ div [ class "composer p-3" ]
-                [ div [ class "flex" ]
+            [ div [ class "composer p-0" ]
+                [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
+                    div [ class "rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
+                        [ span [ class "mr-3 text-sm text-white font-bold" ] [ text "This post is in your inbox." ]
+                        , button [ class "btn btn-xs btn-turquoise-inverse", onClick DismissClicked ] [ text "Dismiss" ]
+                        ]
+                , div [ class "flex p-3" ]
                     [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea

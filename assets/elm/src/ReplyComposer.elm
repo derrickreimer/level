@@ -70,11 +70,10 @@ stayExpanded (ReplyComposer data) =
 
 blurred : ReplyComposer -> ReplyComposer
 blurred (ReplyComposer data) =
-    if data.body == "" && data.mode == Autocollapse then
-        ReplyComposer { data | isExpanded = False }
-
-    else
-        ReplyComposer data
+    -- if data.body == "" && data.mode == Autocollapse then
+    --     ReplyComposer { data | isExpanded = False }
+    -- else
+    ReplyComposer data
 
 
 submitting : ReplyComposer -> ReplyComposer

@@ -142,6 +142,10 @@ body {
   @apply .bg-transparent .text-dusty-blue-dark;
 }
 
+.btn-turquoise-inverse {
+  @apply .bg-white .border-white .text-turquoise-dark;
+}
+
 .btn-checked {
   @apply .pl-8 .bg-no-repeat .select-none;
   background-position: 0.5rem center;
