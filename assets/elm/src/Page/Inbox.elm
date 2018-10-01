@@ -113,11 +113,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
 
 buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent ( postId, replyIds ) =
-    Component.Post.init
-        Component.Post.Feed
-        True
-        postId
-        replyIds
+    Component.Post.init Component.Post.Feed True postId replyIds
 
 
 setup : Model -> Cmd Msg
@@ -252,25 +248,30 @@ consumeEvent event model =
                     ( model, Cmd.none )
 
         Event.PostsDismissed posts ->
-            let
-                remove post ( components, cmds ) =
+            case Route.Inbox.getFilter model.params of
+                Route.Inbox.Undismissed ->
                     let
-                        postId =
-                            Post.id post
+                        reducer post ( components, cmds ) =
+                            let
+                                postId =
+                                    Post.id post
+                            in
+                            case Connection.get .id postId components of
+                                Just component ->
+                                    ( Connection.remove .id postId components
+                                    , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component) :: cmds
+                                    )
+
+                                Nothing ->
+                                    ( components, cmds )
+
+                        ( newPostComps, teardownCmds ) =
+                            List.foldr reducer ( model.postComps, [] ) posts
                     in
-                    case Connection.get .id postId components of
-                        Just component ->
-                            ( Connection.remove .id postId components
-                            , Cmd.map (PostComponentMsg postId) (Component.Post.teardown component) :: cmds
-                            )
+                    ( { model | postComps = newPostComps }, Cmd.batch teardownCmds )
 
-                        Nothing ->
-                            ( components, cmds )
-
-                ( newPostComps, teardownCmds ) =
-                    List.foldr remove ( model.postComps, [] ) posts
-            in
-            ( { model | postComps = newPostComps }, Cmd.batch teardownCmds )
+                _ ->
+                    ( model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
