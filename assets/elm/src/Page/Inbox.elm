@@ -446,7 +446,7 @@ sidebarView space featuredUsers hasPushSubscription =
         , div [ class "pb-4" ] <| List.map userItemView featuredUsers
         , viewUnless hasPushSubscription <|
             button
-                [ class "block text-sm text-blue"
+                [ class "block mb-4 text-sm text-blue font-bold"
                 , onClick PushSubscribeClicked
                 ]
                 [ text "Enable notifications" ]
