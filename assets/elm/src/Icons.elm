@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, comment, heart, lock, logo, open, search, square, sync, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, comment, heart, inboxWhite, lock, logo, open, search, square, sync, undismissed, unlock)
 
 import Html exposing (Html)
 import Html.Attributes
@@ -80,6 +80,12 @@ checkSquare : Html msg
 checkSquare =
     iconView <|
         svg [ width "21px", height "20px", viewBox "0 0 21 20", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "check-square", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "6 8 9 11 19 1" ] [], Svg.path [ d "M18,9 L18,16 C18,17.1045695 17.1045695,18 16,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L13,0", id "Shape" ] [] ] ] ]
+
+
+inboxWhite : Html msg
+inboxWhite =
+    iconView <|
+        svg [ width "17px", height "14px", viewBox "0 0 17 14", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(1.000000, 1.000000)", stroke "#FFFFFF", strokeWidth "2" ] [ polyline [ id "Shape", points "15 6 10.5 6 9 8.25 6 8.25 4.5 6 0 6" ] [], Svg.path [ d "M2.5875,0.8325 L0,6 L0,10.5 C0,11.3284271 0.671572875,12 1.5,12 L13.5,12 C14.3284271,12 15,11.3284271 15,10.5 L15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 Z", id "Shape" ] [] ] ] ]
 
 
 {-| Using the `circle` feather icon.
