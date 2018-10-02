@@ -1,6 +1,6 @@
 module Route.Group exposing
     ( Params
-    , init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors
+    , init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Group exposing
 
 # API
 
-@docs init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors
+@docs init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath
 
 
 # Parsing
@@ -79,6 +79,11 @@ getBefore (Params internal) =
 setCursors : Maybe String -> Maybe String -> Params -> Params
 setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
+
+
+hasSamePath : Params -> Params -> Bool
+hasSamePath p1 p2 =
+    getSpaceSlug p1 == getSpaceSlug p2 && getGroupId p1 == getGroupId p2
 
 
 

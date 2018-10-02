@@ -139,7 +139,7 @@ spaceSidebarLink space title maybeRoute maybeCurrentRoute =
             currentItem (Route.Posts params)
 
         ( Just (Route.Group params), Just (Route.Group currentParams) ) ->
-            if Route.Group.getGroupId params == Route.Group.getGroupId currentParams then
+            if Route.Group.hasSamePath params currentParams then
                 currentItem (Route.Group params)
 
             else
