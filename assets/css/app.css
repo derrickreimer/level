@@ -357,3 +357,8 @@ body {
 .scrolled-top .scrolled-top-no-border {
   @apply .border-transparent;
 }
+
+.link-reset {
+  color: inherit;
+  text-decoration: inherit;
+}

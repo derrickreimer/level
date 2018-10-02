@@ -152,6 +152,7 @@ type Msg
     | SelectionToggled
     | DismissClicked
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
+    | ClickedInFeed
     | NoOp
 
 
@@ -325,6 +326,10 @@ update msg spaceId globals model =
         Dismissed (Err _) ->
             noCmd globals model
 
+        ClickedInFeed ->
+            -- TODO: load the post page
+            noCmd globals model
+
         NoOp ->
             noCmd globals model
 
@@ -417,7 +422,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     , title "Expand post"
                     ]
                     [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
-                , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml data.post) ]
+                , bodyView space model.mode data.post
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -471,6 +476,34 @@ groupsLabel space groups =
 
         _ ->
             text ""
+
+
+bodyView : Space -> Mode -> Post -> Html Msg
+bodyView space mode post =
+    let
+        clickDecoder =
+            let
+                convert nodeName =
+                    case nodeName of
+                        "A" ->
+                            Decode.fail "link was clicked"
+
+                        _ ->
+                            Decode.succeed ClickedInFeed
+            in
+            Decode.at [ "target", "nodeName" ] Decode.string
+                |> Decode.andThen convert
+    in
+    case mode of
+        Feed ->
+            div
+                [ class "markdown mb-2 cursor-pointer"
+                , on "click" clickDecoder
+                ]
+                [ RenderedHtml.node (Post.bodyHtml post) ]
+
+        FullPage ->
+            div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
 
 
 repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
