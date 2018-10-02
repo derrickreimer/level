@@ -81,7 +81,7 @@ spaceSidebar viewer space bookmarks maybeCurrentRoute =
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]
             , groupLinks space bookmarks maybeCurrentRoute
-            , spaceSidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.Root (Space.slug space))) maybeCurrentRoute
+            , spaceSidebarLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
             ]
         , div [ class "absolute pin-b w-full" ]
             [ a [ Route.href Route.UserSettings, class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]

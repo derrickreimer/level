@@ -172,14 +172,14 @@ resolvedView repo maybeCurrentRoute model data =
                         , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
                         ]
                     ]
-                , groupsView repo data.space model.groupIds
+                , groupsView repo model.params data.space model.groupIds
                 ]
             ]
         ]
 
 
-groupsView : Repo -> Space -> Connection Id -> Html Msg
-groupsView repo space groupIds =
+groupsView : Repo -> Params -> Space -> Connection Id -> Html Msg
+groupsView repo params space groupIds =
     let
         groups =
             Repo.getGroups (Connection.toList groupIds) repo
@@ -196,7 +196,7 @@ groupsView repo space groupIds =
     else
         div [ class "leading-semi-loose" ]
             [ div [] <| List.map (groupPartitionView space) partitions
-            , paginationView space groupIds
+            , div [ class "py-4" ] [ paginationView params groupIds ]
             ]
 
 
@@ -226,13 +226,11 @@ groupView space ( index, group ) =
         ]
 
 
-paginationView : Space -> Connection Id -> Html Msg
-paginationView space connection =
-    div [ class "py-4" ]
-        [ Pagination.view connection
-            (Route.Groups << Before (Space.slug space))
-            (Route.Groups << After (Space.slug space))
-        ]
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
+    Pagination.view connection
+        (\beforeCursor -> Route.Groups (Route.Groups.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Groups (Route.Groups.setCursors Nothing (Just afterCursor) params))
 
 
 
