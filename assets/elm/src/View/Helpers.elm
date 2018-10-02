@@ -1,8 +1,10 @@
-module View.Helpers exposing (formatTime, formatTimeOfDay, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
+module View.Helpers exposing (formatTime, formatTimeOfDay, onNonAnchorClick, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
 
 import Browser.Dom exposing (blur, focus)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (on)
+import Json.Decode as Decode
 import Json.Encode as Encode
 import Ports
 import Task
@@ -60,6 +62,28 @@ unsetFocus id msg =
 selectValue : String -> Cmd msg
 selectValue id =
     Ports.select id
+
+
+
+-- EVENTS
+
+
+onNonAnchorClick : msg -> Attribute msg
+onNonAnchorClick msg =
+    let
+        convert nodeName =
+            case nodeName of
+                "A" ->
+                    Decode.fail "link was clicked"
+
+                _ ->
+                    Decode.succeed msg
+
+        decoder =
+            Decode.at [ "target", "nodeName" ] Decode.string
+                |> Decode.andThen convert
+    in
+    on "click" decoder
 
 
 

@@ -32,7 +32,7 @@ import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
+import View.Helpers exposing (onNonAnchorClick, setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
 
 
 
@@ -480,25 +480,11 @@ groupsLabel space groups =
 
 bodyView : Space -> Mode -> Post -> Html Msg
 bodyView space mode post =
-    let
-        clickDecoder =
-            let
-                convert nodeName =
-                    case nodeName of
-                        "A" ->
-                            Decode.fail "link was clicked"
-
-                        _ ->
-                            Decode.succeed ClickedInFeed
-            in
-            Decode.at [ "target", "nodeName" ] Decode.string
-                |> Decode.andThen convert
-    in
     case mode of
         Feed ->
             div
                 [ class "markdown mb-2 cursor-pointer select-none"
-                , onClickInFeed ClickedInFeed
+                , onNonAnchorClick ClickedInFeed
                 ]
                 [ RenderedHtml.node (Post.bodyHtml post) ]
 
@@ -672,22 +658,3 @@ visibleReplies repo mode replyIds =
                     Connection.hasPreviousPage replyIds
             in
             ( replies, hasPreviousPage )
-
-
-onClickInFeed : Msg -> Attribute Msg
-onClickInFeed msg =
-    let
-        decoder =
-            let
-                convert nodeName =
-                    case nodeName of
-                        "A" ->
-                            Decode.fail "link was clicked"
-
-                        _ ->
-                            Decode.succeed msg
-            in
-            Decode.at [ "target", "nodeName" ] Decode.string
-                |> Decode.andThen convert
-    in
-    on "click" decoder
