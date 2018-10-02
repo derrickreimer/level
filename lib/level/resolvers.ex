@@ -290,6 +290,30 @@ defmodule Level.Resolvers do
     {:error, dgettext("errors", "User not found")}
   end
 
+  @doc """
+  Determines whether the current user can edit the post.
+  """
+  def can_edit_post(%Post{} = post, _, %{context: %{loader: loader, current_user: user}}) do
+    batch_key = SpaceUser
+    item_key = post.space_user_id
+
+    loader
+    |> Dataloader.load(:db, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(:db, batch_key, item_key)
+      |> check_edit_permissions(user)
+    end)
+  end
+
+  defp check_edit_permissions(%SpaceUser{} = space_user, current_user) do
+    {:ok, space_user.user_id == current_user.id}
+  end
+
+  defp check_edit_permissions(_, _current_user) do
+    {:ok, false}
+  end
+
   # Dataloader helpers
 
   defp dataloader_one(loader, source_name, batch_key, item_key) do

@@ -314,6 +314,11 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.mentions/3
     end
 
+    @desc "Determines if the viewer is eligible to edit the post."
+    field :can_edit, non_null(:boolean) do
+      resolve &Resolvers.can_edit_post/3
+    end
+
     interface :fetch_timeable
 
     @desc "The timestamp representing when the object was fetched."

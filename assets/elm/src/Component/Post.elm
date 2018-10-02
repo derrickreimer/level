@@ -475,7 +475,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     , title "Expand post"
                     ]
                     [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
-                , viewUnless (PostEditor.isExpanded model.postEditor) <|
+                , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
                     button
                         [ class "ml-4 text-sm text-dusty-blue"
                         , onClick ExpandPostEditor

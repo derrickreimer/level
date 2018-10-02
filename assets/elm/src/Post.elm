@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState
+    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState, canEdit
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState
+@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState, canEdit
 
 
 # GraphQL
@@ -33,7 +33,7 @@ import Connection exposing (Connection)
 import GraphQL exposing (Fragment)
 import Group exposing (Group)
 import Id exposing (Id)
-import Json.Decode as Decode exposing (Decoder, fail, field, int, list, string, succeed)
+import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (required)
 import List
 import Reply exposing (Reply)
@@ -78,6 +78,7 @@ type alias Data =
     , postedAt : Posix
     , subscriptionState : SubscriptionState
     , inboxState : InboxState
+    , canEdit : Bool
     , fetchedAt : Int
     }
 
@@ -143,6 +144,11 @@ inboxState (Post data) =
     data.inboxState
 
 
+canEdit : Post -> Bool
+canEdit (Post data) =
+    data.canEdit
+
+
 
 -- GRAPHQL
 
@@ -166,6 +172,7 @@ fragment =
               groups {
                 ...GroupFields
               }
+              canEdit
               fetchedAt
             }
             """
@@ -193,6 +200,7 @@ decoder =
             |> required "postedAt" dateDecoder
             |> required "subscriptionState" subscriptionStateDecoder
             |> required "inboxState" inboxStateDecoder
+            |> required "canEdit" bool
             |> required "fetchedAt" int
         )
 
