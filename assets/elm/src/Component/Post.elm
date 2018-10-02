@@ -48,6 +48,8 @@ type alias Model =
     , replyIds : Connection Id
     , replyComposer : ReplyComposer
     , isChecked : Bool
+    , isEditing : Bool
+    , newBody : String
     }
 
 
@@ -93,7 +95,17 @@ init mode showGroups spaceSlug postId replyIds =
                 FullPage ->
                     AlwaysExpanded
     in
-    Model postId mode showGroups spaceSlug postId replyIds (ReplyComposer.init replyMode) False
+    Model
+        postId
+        mode
+        showGroups
+        spaceSlug
+        postId
+        replyIds
+        (ReplyComposer.init replyMode)
+        False
+        False
+        ""
 
 
 setup : Model -> Cmd Msg
@@ -154,6 +166,8 @@ type Msg
     | DismissClicked
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | ClickedInFeed
+    | EditClicked
+    | NewBodyChanged String
     | NoOp
 
 
@@ -330,6 +344,27 @@ update msg spaceId globals model =
         ClickedInFeed ->
             ( ( model, Route.pushUrl globals.navKey (Route.Post model.spaceSlug model.postId) ), globals )
 
+        EditClicked ->
+            case resolveData globals.repo model of
+                Just data ->
+                    let
+                        nodeId =
+                            bodyComposerId model.postId
+
+                        cmd =
+                            Cmd.batch
+                                [ setFocus nodeId NoOp
+                                , Autosize.init nodeId
+                                ]
+                    in
+                    ( ( { model | isEditing = True, newBody = Post.body data.post }, cmd ), globals )
+
+                Nothing ->
+                    noCmd globals model
+
+        NewBodyChanged val ->
+            noCmd globals { model | newBody = val }
+
         NoOp ->
             noCmd globals model
 
@@ -417,12 +452,20 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
                 , a
                     [ Route.href <| Route.Post (Space.slug space) model.postId
-                    , class "no-underline text-dusty-blue-darkest"
+                    , class "no-underline"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
                     [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
-                , bodyView space model.mode data.post
+                , button
+                    [ class "ml-4 text-sm text-dusty-blue"
+                    , onClick EditClicked
+                    ]
+                    [ text "Edit" ]
+                , viewUnless model.isEditing <|
+                    bodyView space model.mode data.post
+                , viewIf model.isEditing <|
+                    bodyEditorView model
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -490,6 +533,26 @@ bodyView space mode post =
 
         FullPage ->
             div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+
+
+bodyEditorView : Model -> Html Msg
+bodyEditorView model =
+    label [ class "composer my-2 p-4" ]
+        [ textarea
+            [ id (bodyComposerId model.postId)
+            , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+            , placeholder "Edit post..."
+            , onInput NewBodyChanged
+            , value model.newBody
+            ]
+            []
+        , div [ class "flex justify-end" ]
+            [ button
+                [ class "btn btn-blue btn-sm"
+                ]
+                [ text "Update post" ]
+            ]
+        ]
 
 
 repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
@@ -652,6 +715,11 @@ replyNodeId replyId =
 replyComposerId : String -> String
 replyComposerId postId =
     "reply-composer-" ++ postId
+
+
+bodyComposerId : String -> String
+bodyComposerId postId =
+    "body-composer-" ++ postId
 
 
 visibleReplies : Repo -> Mode -> Connection Id -> ( List Reply, Bool )
