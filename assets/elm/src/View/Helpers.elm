@@ -74,7 +74,10 @@ onNonAnchorClick msg =
         convert nodeName =
             case nodeName of
                 "A" ->
-                    Decode.fail "link was clicked"
+                    Decode.fail "a link was clicked"
+
+                "BUTTON" ->
+                    Decode.fail "a button was clicked"
 
                 _ ->
                     Decode.succeed msg

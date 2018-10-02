@@ -513,9 +513,17 @@ repliesView repo space post now replyIds mode =
                         , onClick PreviousRepliesRequested
                         ]
                         [ text "Load more..." ]
+
+        attributes =
+            case mode of
+                Feed ->
+                    [ class "cursor-pointer select-none", onNonAnchorClick ClickedInFeed ]
+
+                FullPage ->
+                    []
     in
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
-        div []
+        div attributes
             [ viewIf hasPreviousPage actionButton
             , div [] (List.map (replyView repo now post) replies)
             ]
