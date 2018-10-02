@@ -100,26 +100,36 @@ document =
 variables : Params -> Int -> Maybe Encode.Value
 variables params limit =
     let
+        spaceSlug =
+            Encode.string (Route.Group.getSpaceSlug params)
+
+        groupId =
+            Id.encoder (Route.Group.getGroupId params)
+
         values =
-            case params of
-                Root spaceSlug id ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "groupId", Id.encoder id )
-                    , ( "first", Encode.int limit )
-                    ]
-
-                After spaceSlug id cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "groupId", Id.encoder id )
-                    , ( "first", Encode.int limit )
-                    , ( "after", Encode.string cursor )
-                    ]
-
-                Before spaceSlug id cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "groupId", Id.encoder id )
+            case
+                ( Route.Group.getBefore params
+                , Route.Group.getAfter params
+                )
+            of
+                ( Just before, Nothing ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "groupId", groupId )
                     , ( "last", Encode.int limit )
-                    , ( "before", Encode.string cursor )
+                    , ( "before", Encode.string before )
+                    ]
+
+                ( Nothing, Just after ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "groupId", groupId )
+                    , ( "first", Encode.int limit )
+                    , ( "after", Encode.string after )
+                    ]
+
+                ( _, _ ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "groupId", groupId )
+                    , ( "first", Encode.int limit )
                     ]
     in
     Just (Encode.object values)

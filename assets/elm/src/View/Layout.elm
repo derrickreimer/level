@@ -102,7 +102,7 @@ groupLinks space groups maybeCurrentRoute =
             Space.slug space
 
         linkify group =
-            spaceSidebarLink space (Group.name group) (Just <| Route.Group (Route.Group.Root slug (Group.id group))) maybeCurrentRoute
+            spaceSidebarLink space (Group.name group) (Just <| Route.Group (Route.Group.init slug (Group.id group))) maybeCurrentRoute
 
         links =
             groups
@@ -127,10 +127,20 @@ spaceSidebarLink space title maybeRoute maybeCurrentRoute =
                 [ div [ class "flex-no-shrink -ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
                 , link (Route.href route)
                 ]
+
+        nonCurrentItem route =
+            li [ class "flex" ] [ link (Route.href route) ]
     in
     case ( maybeRoute, maybeCurrentRoute ) of
         ( Just (Route.Inbox params), Just (Route.Inbox _) ) ->
             currentItem (Route.Inbox params)
+
+        ( Just (Route.Group params), Just (Route.Group currentParams) ) ->
+            if Route.Group.getGroupId params == Route.Group.getGroupId currentParams then
+                currentItem (Route.Group params)
+
+            else
+                nonCurrentItem (Route.Group params)
 
         ( Just (Route.Groups params), Just (Route.Groups _) ) ->
             currentItem (Route.Groups params)
@@ -140,7 +150,7 @@ spaceSidebarLink space title maybeRoute maybeCurrentRoute =
                 currentItem route
 
             else
-                li [ class "flex" ] [ link (Route.href route) ]
+                nonCurrentItem route
 
         ( _, _ ) ->
             li [ class "flex" ] [ link (href "#") ]

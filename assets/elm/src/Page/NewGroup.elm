@@ -139,7 +139,7 @@ update msg globals navKey model =
         Submitted (Ok ( newSession, CreateGroup.Success group )) ->
             let
                 redirectTo =
-                    Route.Group (Route.Group.Root model.spaceSlug (Group.id group))
+                    Route.Group (Route.Group.init model.spaceSlug (Group.id group))
             in
             ( ( model, Route.pushUrl navKey redirectTo ), { globals | session = newSession } )
 

@@ -667,8 +667,8 @@ controlsView model =
 paginationView : Params -> Connection a -> Html Msg
 paginationView params connection =
     Pagination.view connection
-        (Route.Group << Route.Group.before params)
-        (Route.Group << Route.Group.after params)
+        (\beforeCursor -> Route.Group (Route.Group.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Group (Route.Group.setCursors Nothing (Just afterCursor) params))
 
 
 bookmarkButtonView : Bool -> Html Msg

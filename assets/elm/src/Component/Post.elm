@@ -468,7 +468,7 @@ groupsLabel space groups =
         [ group ] ->
             span [ class "ml-3 text-sm text-dusty-blue" ]
                 [ a
-                    [ Route.href (Route.Group (Route.Group.Root (Space.slug space) (Group.id group)))
+                    [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
                     , class "no-underline text-dusty-blue font-bold"
                     ]
                     [ text (Group.name group) ]
