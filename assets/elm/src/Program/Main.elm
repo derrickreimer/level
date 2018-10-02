@@ -29,6 +29,7 @@ import Page.UserSettings
 import Post
 import Presence exposing (PresenceList)
 import PushManager
+import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -72,8 +73,7 @@ type alias Model =
     , repo : Repo
     , page : Page
     , isTransitioning : Bool
-    , supportsNotifications : Bool
-    , hasPushSubscription : Bool
+    , pushStatus : PushStatus
     }
 
 
@@ -116,8 +116,7 @@ buildModel flags navKey =
         Repo.empty
         Blank
         True
-        flags.supportsNotifications
-        False
+        (PushStatus.init flags.supportsNotifications)
 
 
 setup : MainInit.Response -> Model -> Cmd Msg
@@ -372,10 +371,10 @@ update msg model =
                                 |> RegisterPushSubscription.request data
                                 |> Task.attempt PushSubscriptionRegistered
                     in
-                    ( { model | hasPushSubscription = True }, cmd )
+                    ( { model | pushStatus = PushStatus.setIsSubscribed model.pushStatus }, cmd )
 
                 PushManager.Subscription Nothing ->
-                    ( { model | hasPushSubscription = False }, Cmd.none )
+                    ( { model | pushStatus = PushStatus.setNotSubscribed model.pushStatus }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -847,8 +846,8 @@ routeFor page =
             Nothing
 
 
-pageView : Repo -> Page -> Bool -> Html Msg
-pageView repo page hasPushSubscription =
+pageView : Repo -> Page -> PushStatus -> Html Msg
+pageView repo page pushStatus =
     case page of
         Spaces pageModel ->
             pageModel
@@ -877,7 +876,7 @@ pageView repo page hasPushSubscription =
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view repo (routeFor page) hasPushSubscription
+                |> Page.Inbox.view repo (routeFor page) pushStatus
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
@@ -1142,5 +1141,5 @@ subscriptions model =
 view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
-        [ pageView model.repo model.page model.hasPushSubscription
+        [ pageView model.repo model.page model.pushStatus
         ]

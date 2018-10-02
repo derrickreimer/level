@@ -19,6 +19,7 @@ import Mutation.DismissPosts as DismissPosts
 import Pagination
 import Post exposing (Post)
 import PushManager
+import PushStatus exposing (PushStatus)
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -326,18 +327,18 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Bool -> Model -> Html Msg
-view repo maybeCurrentRoute hasPushSubscription model =
+view : Repo -> Maybe Route -> PushStatus -> Model -> Html Msg
+view repo maybeCurrentRoute pushStatus model =
     case resolveData repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute hasPushSubscription model data
+            resolvedView repo maybeCurrentRoute pushStatus model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Bool -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute hasPushSubscription model data =
+resolvedView : Repo -> Maybe Route -> PushStatus -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute pushStatus model data =
     spaceLayout
         data.viewer
         data.space
@@ -358,7 +359,7 @@ resolvedView repo maybeCurrentRoute hasPushSubscription model data =
                         ]
                     ]
                 , postsView repo model data
-                , sidebarView data.space data.featuredUsers hasPushSubscription
+                , sidebarView data.space data.featuredUsers pushStatus
                 ]
             ]
         ]
@@ -432,8 +433,8 @@ postView repo model data component =
         ]
 
 
-sidebarView : Space -> List SpaceUser -> Bool -> Html Msg
-sidebarView space featuredUsers hasPushSubscription =
+sidebarView : Space -> List SpaceUser -> PushStatus -> Html Msg
+sidebarView space featuredUsers pushStatus =
     div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
@@ -444,7 +445,7 @@ sidebarView space featuredUsers hasPushSubscription =
                 ]
             ]
         , div [ class "pb-4" ] <| List.map userItemView featuredUsers
-        , viewUnless hasPushSubscription <|
+        , viewUnless (PushStatus.getIsSubscribed pushStatus |> Maybe.withDefault True) <|
             button
                 [ class "block mb-4 text-sm text-blue font-bold"
                 , onClick PushSubscribeClicked
