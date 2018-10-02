@@ -1,4 +1,4 @@
-module PostEditor exposing (PostEditor, expand, getBody, getId, init, isExpanded, setBody)
+module PostEditor exposing (PostEditor, collapse, expand, getBody, getId, init, isExpanded, setBody)
 
 import Id exposing (Id)
 
@@ -32,6 +32,11 @@ getId (PostEditor internal) =
 expand : PostEditor -> PostEditor
 expand (PostEditor internal) =
     PostEditor { internal | isExpanded = True }
+
+
+collapse : PostEditor -> PostEditor
+collapse (PostEditor internal) =
+    PostEditor { internal | isExpanded = False }
 
 
 isExpanded : PostEditor -> Bool

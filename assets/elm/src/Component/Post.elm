@@ -165,7 +165,8 @@ type Msg
     | DismissClicked
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | ClickedInFeed
-    | EditPostClicked
+    | ExpandPostEditor
+    | CollapsePostEditor
     | NewBodyChanged String
     | NoOp
 
@@ -343,7 +344,7 @@ update msg spaceId globals model =
         ClickedInFeed ->
             ( ( model, Route.pushUrl globals.navKey (Route.Post model.spaceSlug model.postId) ), globals )
 
-        EditPostClicked ->
+        ExpandPostEditor ->
             case resolveData globals.repo model of
                 Just data ->
                     let
@@ -365,6 +366,14 @@ update msg spaceId globals model =
 
                 Nothing ->
                     noCmd globals model
+
+        CollapsePostEditor ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.collapse
+            in
+            ( ( { model | postEditor = newPostEditor }, Cmd.none ), globals )
 
         NewBodyChanged val ->
             let
@@ -469,7 +478,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                 , viewUnless (PostEditor.isExpanded model.postEditor) <|
                     button
                         [ class "ml-4 text-sm text-dusty-blue"
-                        , onClick EditPostClicked
+                        , onClick ExpandPostEditor
                         ]
                         [ text "Edit" ]
                 , viewUnless (PostEditor.isExpanded model.postEditor) <|
@@ -558,6 +567,11 @@ bodyEditorView editor =
             []
         , div [ class "flex justify-end" ]
             [ button
+                [ class "mr-2 btn btn-grey-outline btn-sm"
+                , onClick CollapsePostEditor
+                ]
+                [ text "Cancel" ]
+            , button
                 [ class "btn btn-blue btn-sm"
                 ]
                 [ text "Update post" ]
