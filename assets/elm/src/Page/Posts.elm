@@ -113,7 +113,7 @@ buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent ( postId, replyIds ) =
     Component.Post.init
         Component.Post.Feed
-        False
+        True
         postId
         replyIds
 

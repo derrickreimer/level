@@ -532,46 +532,51 @@ replyView repo (( zone, posix ) as now) post reply =
 replyComposerView : SpaceUser -> Post -> Model -> Html Msg
 replyComposerView currentUser post model =
     if ReplyComposer.isExpanded model.replyComposer then
-        div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-            [ div [ class "composer p-0" ]
-                [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
-                    div [ class "rounded-t-lg bg-turquoise border-b border-white px-3 py-1" ]
-                        [ span [ class "mr-3 text-sm text-white font-bold" ] [ text "This post is in your inbox." ]
-                        , button [ class "btn btn-xs btn-turquoise-inverse", onClick DismissClicked ] [ text "Dismiss" ]
-                        ]
-                , div [ class "flex p-3" ]
-                    [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
-                    , div [ class "flex-grow" ]
-                        [ textarea
-                            [ id (replyComposerId <| Post.id post)
-                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                            , placeholder "Write a reply..."
-                            , onInput NewReplyBodyChanged
-                            , onKeydown preventDefault
-                                [ ( [ Meta ], enter, \event -> NewReplySubmit )
-                                , ( [], esc, \event -> NewReplyEscaped )
-                                ]
-                            , onBlur NewReplyBlurred
-                            , value (ReplyComposer.getBody model.replyComposer)
-                            , readonly (ReplyComposer.isSubmitting model.replyComposer)
-                            ]
-                            []
-                        , div [ class "flex justify-end" ]
-                            [ button
-                                [ class "btn btn-blue btn-sm"
-                                , onClick NewReplySubmit
-                                , disabled (ReplyComposer.unsubmittable model.replyComposer)
-                                ]
-                                [ text "Send" ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
+        expandedReplyComposerView currentUser post model
 
     else
         viewUnless (Connection.isEmpty model.replyIds) <|
             replyPromptView currentUser
+
+
+expandedReplyComposerView : SpaceUser -> Post -> Model -> Html Msg
+expandedReplyComposerView currentUser post model =
+    div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
+        [ div [ class "composer p-0" ]
+            [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
+                div [ class "rounded-t-lg bg-turquoise border-b border-white px-3 py-1" ]
+                    [ span [ class "mr-3 text-sm text-white font-bold" ] [ text "This post is in your inbox." ]
+                    , button [ class "btn btn-xs btn-turquoise-inverse", onClick DismissClicked ] [ text "Dismiss" ]
+                    ]
+            , div [ class "flex p-3" ]
+                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
+                , div [ class "flex-grow" ]
+                    [ textarea
+                        [ id (replyComposerId <| Post.id post)
+                        , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , placeholder "Write a reply..."
+                        , onInput NewReplyBodyChanged
+                        , onKeydown preventDefault
+                            [ ( [ Meta ], enter, \event -> NewReplySubmit )
+                            , ( [], esc, \event -> NewReplyEscaped )
+                            ]
+                        , onBlur NewReplyBlurred
+                        , value (ReplyComposer.getBody model.replyComposer)
+                        , readonly (ReplyComposer.isSubmitting model.replyComposer)
+                        ]
+                        []
+                    , div [ class "flex justify-end" ]
+                        [ button
+                            [ class "btn btn-blue btn-sm"
+                            , onClick NewReplySubmit
+                            , disabled (ReplyComposer.unsubmittable model.replyComposer)
+                            ]
+                            [ text "Send" ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
 
 replyPromptView : SpaceUser -> Html Msg
