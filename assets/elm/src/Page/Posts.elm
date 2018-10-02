@@ -264,7 +264,7 @@ resolvedView repo maybeCurrentRoute model data =
                 [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]
-                        , controlsView model data
+                        , controlsView model
                         ]
                     ]
                 , postsView repo model data
@@ -274,18 +274,18 @@ resolvedView repo maybeCurrentRoute model data =
         ]
 
 
-controlsView : Model -> Data -> Html Msg
-controlsView model data =
+controlsView : Model -> Html Msg
+controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ paginationView data.space model.postComps
+        [ paginationView model.params model.postComps
         ]
 
 
-paginationView : Space -> Connection a -> Html Msg
-paginationView space connection =
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
     Pagination.view connection
-        (Route.Posts << Before (Space.slug space))
-        (Route.Posts << After (Space.slug space))
+        (\beforeCursor -> Route.Posts (Route.Posts.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Posts (Route.Posts.setCursors Nothing (Just afterCursor) params))
 
 
 postsView : Repo -> Model -> Data -> Html Msg

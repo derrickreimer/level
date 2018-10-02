@@ -77,7 +77,7 @@ spaceSidebar viewer space bookmarks maybeCurrentRoute =
                 ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ spaceSidebarLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
-                , spaceSidebarLink space "Activity" (Just <| Route.Posts (Route.Posts.Root (Space.slug space))) maybeCurrentRoute
+                , spaceSidebarLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
                 , spaceSidebarLink space "Drafts" Nothing maybeCurrentRoute
                 ]
             , groupLinks space bookmarks maybeCurrentRoute
@@ -134,6 +134,9 @@ spaceSidebarLink space title maybeRoute maybeCurrentRoute =
     case ( maybeRoute, maybeCurrentRoute ) of
         ( Just (Route.Inbox params), Just (Route.Inbox _) ) ->
             currentItem (Route.Inbox params)
+
+        ( Just (Route.Posts params), Just (Route.Posts _) ) ->
+            currentItem (Route.Posts params)
 
         ( Just (Route.Group params), Just (Route.Group currentParams) ) ->
             if Route.Group.getGroupId params == Route.Group.getGroupId currentParams then

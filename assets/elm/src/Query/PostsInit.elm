@@ -90,23 +90,30 @@ document =
 variables : Params -> Maybe Encode.Value
 variables params =
     let
+        spaceSlug =
+            Encode.string (Route.Posts.getSpaceSlug params)
+
         values =
-            case params of
-                Root spaceSlug ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int 20 )
-                    ]
-
-                After spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
-                    , ( "first", Encode.int 20 )
-                    , ( "after", Encode.string cursor )
-                    ]
-
-                Before spaceSlug cursor ->
-                    [ ( "spaceSlug", Encode.string spaceSlug )
+            case
+                ( Route.Posts.getBefore params
+                , Route.Posts.getAfter params
+                )
+            of
+                ( Just before, Nothing ) ->
+                    [ ( "spaceSlug", spaceSlug )
                     , ( "last", Encode.int 20 )
-                    , ( "before", Encode.string cursor )
+                    , ( "before", Encode.string before )
+                    ]
+
+                ( Nothing, Just after ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", Encode.int 20 )
+                    , ( "after", Encode.string after )
+                    ]
+
+                ( _, _ ) ->
+                    [ ( "spaceSlug", spaceSlug )
+                    , ( "first", Encode.int 20 )
                     ]
     in
     Just (Encode.object values)
