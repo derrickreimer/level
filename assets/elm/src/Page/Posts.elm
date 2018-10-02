@@ -91,7 +91,7 @@ buildModel : Params -> Globals -> ( ( Session, PostsInit.Response ), ( Zone, Pos
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
-            Connection.map buildPostComponent resp.postWithRepliesIds
+            Connection.map (buildPostComponent params) resp.postWithRepliesIds
 
         model =
             Model
@@ -109,11 +109,12 @@ buildModel params globals ( ( newSession, resp ), now ) =
     ( { globals | session = newSession, repo = newRepo }, model )
 
 
-buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
-buildPostComponent ( postId, replyIds ) =
+buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
+buildPostComponent params ( postId, replyIds ) =
     Component.Post.init
         Component.Post.Feed
         True
+        (Route.Posts.getSpaceSlug params)
         postId
         replyIds
 

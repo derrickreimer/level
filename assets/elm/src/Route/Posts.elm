@@ -1,4 +1,4 @@
-module Route.Posts exposing (Params(..), parser, toString)
+module Route.Posts exposing (Params(..), getSpaceSlug, parser, toString)
 
 import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, map, oneOf, s, string)
@@ -8,6 +8,27 @@ type Params
     = Root String
     | After String String
     | Before String String
+
+
+
+-- API
+
+
+getSpaceSlug : Params -> String
+getSpaceSlug params =
+    case params of
+        Root slug ->
+            slug
+
+        After slug _ ->
+            slug
+
+        Before slug _ ->
+            slug
+
+
+
+-- PARSING
 
 
 parser : Parser (Params -> a) a

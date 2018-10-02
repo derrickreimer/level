@@ -1,4 +1,4 @@
-module Route.Group exposing (Params(..), after, before, parser, toString)
+module Route.Group exposing (Params(..), after, before, getSpaceSlug, parser, toString)
 
 import Id exposing (Id)
 import Url.Builder as Builder exposing (absolute)
@@ -9,6 +9,23 @@ type Params
     = Root String Id
     | After String Id String
     | Before String Id String
+
+
+
+-- API
+
+
+getSpaceSlug : Params -> String
+getSpaceSlug params =
+    let
+        ( slug, _ ) =
+            staticParts params
+    in
+    slug
+
+
+
+-- PARSING
 
 
 parser : Parser (Params -> a) a

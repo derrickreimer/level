@@ -127,7 +127,7 @@ buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), ( Zone, Pos
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
-            Connection.map buildPostComponent resp.postWithRepliesIds
+            Connection.map (buildPostComponent params) resp.postWithRepliesIds
 
         model =
             Model
@@ -148,9 +148,9 @@ buildModel params globals ( ( newSession, resp ), now ) =
     ( { globals | session = newSession, repo = newRepo }, model )
 
 
-buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
-buildPostComponent ( postId, replyIds ) =
-    Component.Post.init Component.Post.Feed False postId replyIds
+buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
+buildPostComponent params ( postId, replyIds ) =
+    Component.Post.init Component.Post.Feed False (Route.Group.getSpaceSlug params) postId replyIds
 
 
 setup : Model -> Cmd Msg
@@ -512,6 +512,7 @@ consumeEvent event session model =
                     Component.Post.init
                         Component.Post.Feed
                         False
+                        (Route.Group.getSpaceSlug model.params)
                         (Post.id post)
                         (Connection.map Reply.id replies)
             in

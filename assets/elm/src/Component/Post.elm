@@ -43,8 +43,9 @@ type alias Model =
     { id : String
     , mode : Mode
     , showGroups : Bool
-    , postId : String
-    , replyIds : Connection String
+    , spaceSlug : String
+    , postId : Id
+    , replyIds : Connection Id
     , replyComposer : ReplyComposer
     , isChecked : Bool
     }
@@ -81,8 +82,8 @@ resolveData repo model =
 -- LIFECYCLE
 
 
-init : Mode -> Bool -> String -> Connection String -> Model
-init mode showGroups postId replyIds =
+init : Mode -> Bool -> String -> Id -> Connection Id -> Model
+init mode showGroups spaceSlug postId replyIds =
     let
         replyMode =
             case mode of
@@ -92,7 +93,7 @@ init mode showGroups postId replyIds =
                 FullPage ->
                     AlwaysExpanded
     in
-    Model postId mode showGroups postId replyIds (ReplyComposer.init replyMode) False
+    Model postId mode showGroups spaceSlug postId replyIds (ReplyComposer.init replyMode) False
 
 
 setup : Model -> Cmd Msg
@@ -327,8 +328,7 @@ update msg spaceId globals model =
             noCmd globals model
 
         ClickedInFeed ->
-            -- TODO: load the post page
-            noCmd globals model
+            ( ( model, Route.pushUrl globals.navKey (Route.Post model.spaceSlug model.postId) ), globals )
 
         NoOp ->
             noCmd globals model
@@ -497,8 +497,8 @@ bodyView space mode post =
     case mode of
         Feed ->
             div
-                [ class "markdown mb-2 cursor-pointer"
-                , on "click" clickDecoder
+                [ class "markdown mb-2 cursor-pointer select-none"
+                , onClickInFeed ClickedInFeed
                 ]
                 [ RenderedHtml.node (Post.bodyHtml post) ]
 
@@ -672,3 +672,22 @@ visibleReplies repo mode replyIds =
                     Connection.hasPreviousPage replyIds
             in
             ( replies, hasPreviousPage )
+
+
+onClickInFeed : Msg -> Attribute Msg
+onClickInFeed msg =
+    let
+        decoder =
+            let
+                convert nodeName =
+                    case nodeName of
+                        "A" ->
+                            Decode.fail "link was clicked"
+
+                        _ ->
+                            Decode.succeed msg
+            in
+            Decode.at [ "target", "nodeName" ] Decode.string
+                |> Decode.andThen convert
+    in
+    on "click" decoder

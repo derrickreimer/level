@@ -188,7 +188,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         globals =
-            Globals model.session model.repo
+            Globals model.session model.repo model.navKey
     in
     case ( msg, model.page ) of
         ( UrlChange url, _ ) ->
@@ -444,7 +444,7 @@ navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
         globals =
-            Globals model.session model.repo
+            Globals model.session model.repo model.navKey
     in
     case maybeRoute of
         Nothing ->
@@ -1113,7 +1113,7 @@ sendPresenceToPage event model =
     case model.page of
         Post pageModel ->
             pageModel
-                |> Page.Post.receivePresence event (Globals model.session model.repo)
+                |> Page.Post.receivePresence event (Globals model.session model.repo model.navKey)
                 |> updatePage Post PostMsg model
 
         _ ->

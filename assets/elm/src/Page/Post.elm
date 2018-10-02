@@ -95,6 +95,7 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
             Component.Post.init
                 Component.Post.FullPage
                 True
+                spaceSlug
                 postId
                 replyIds
 

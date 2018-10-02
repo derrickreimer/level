@@ -94,7 +94,7 @@ buildModel : Params -> Globals -> ( ( Session, InboxInit.Response ), ( Zone, Pos
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
-            Connection.map buildPostComponent resp.postWithRepliesIds
+            Connection.map (buildPostComponent params) resp.postWithRepliesIds
 
         model =
             Model
@@ -112,9 +112,9 @@ buildModel params globals ( ( newSession, resp ), now ) =
     ( { globals | session = newSession, repo = newRepo }, model )
 
 
-buildPostComponent : ( Id, Connection Id ) -> Component.Post.Model
-buildPostComponent ( postId, replyIds ) =
-    Component.Post.init Component.Post.Feed True postId replyIds
+buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
+buildPostComponent params ( postId, replyIds ) =
+    Component.Post.init Component.Post.Feed True (Route.Inbox.getSpaceSlug params) postId replyIds
 
 
 setup : Model -> Cmd Msg
@@ -224,7 +224,7 @@ update msg globals model =
         PostsRefreshed (Ok ( newSession, resp )) ->
             let
                 newPostComps =
-                    Connection.map buildPostComponent resp.postWithRepliesIds
+                    Connection.map (buildPostComponent model.params) resp.postWithRepliesIds
 
                 newRepo =
                     Repo.union resp.repo globals.repo
