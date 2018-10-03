@@ -19,6 +19,8 @@ defmodule Level.Posts do
   alias Level.Posts.PostView
   alias Level.Posts.Reply
   alias Level.Posts.ReplyView
+  alias Level.Posts.UpdatePost
+  alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -404,6 +406,30 @@ defmodule Level.Posts do
     else
       "user-mention"
     end
+  end
+
+  @doc """
+  Determines if a user is allowed to edit a post.
+  """
+  @spec can_edit?(User.t(), SpaceUser.t()) :: boolean()
+  def can_edit?(%User{} = current_user, %SpaceUser{} = post_author) do
+    current_user.id == post_author.user_id
+  end
+
+  @spec can_edit?(SpaceUser.t(), Post.t()) :: boolean()
+  def can_edit?(%SpaceUser{} = current_space_user, %Post{} = post) do
+    current_space_user.id == post.space_user_id
+  end
+
+  @doc """
+  Updates a post.
+  """
+  @spec update_post(SpaceUser.t(), Post.t(), map()) ::
+          {:ok, %{original_post: Post.t(), updated_post: Post.t(), version: PostVersion.t()}}
+          | {:error, :unauthorized}
+          | {:error, atom(), any(), map()}
+  def update_post(%SpaceUser{} = space_user, %Post{} = post, params) do
+    UpdatePost.perform(space_user, post, params)
   end
 
   # Internal

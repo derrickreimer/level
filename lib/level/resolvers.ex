@@ -13,6 +13,7 @@ defmodule Level.Resolvers do
   alias Level.Groups.GroupUser
   alias Level.Mentions.UserMention
   alias Level.Pagination
+  alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostUser
   alias Level.Posts.Reply
@@ -288,6 +289,30 @@ defmodule Level.Resolvers do
 
   defp handle_space_user_by_user_id(nil) do
     {:error, dgettext("errors", "User not found")}
+  end
+
+  @doc """
+  Determines whether the current user can edit the post.
+  """
+  def can_edit_post(%Post{} = post, _, %{context: %{loader: loader, current_user: user}}) do
+    batch_key = SpaceUser
+    item_key = post.space_user_id
+
+    loader
+    |> Dataloader.load(:db, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(:db, batch_key, item_key)
+      |> check_edit_post_permissions(user)
+    end)
+  end
+
+  defp check_edit_post_permissions(%SpaceUser{} = post_author, current_user) do
+    {:ok, Posts.can_edit?(current_user, post_author)}
+  end
+
+  defp check_edit_post_permissions(_, _current_user) do
+    {:ok, false}
   end
 
   # Dataloader helpers

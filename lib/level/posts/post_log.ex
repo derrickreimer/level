@@ -28,13 +28,12 @@ defmodule Level.Posts.PostLog do
     timestamps(inserted_at: :occurred_at, updated_at: false)
   end
 
-  @spec insert(
-          :post_created,
+  @spec post_created(
           Level.Posts.Post.t(),
           Level.Groups.Group.t(),
           Level.Spaces.SpaceUser.t()
         ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def insert(:post_created, %Post{} = post, %Group{} = group, %SpaceUser{} = space_user) do
+  def post_created(%Post{} = post, %Group{} = group, %SpaceUser{} = space_user) do
     params = %{
       event: "POST_CREATED",
       space_id: post.space_id,
@@ -48,13 +47,29 @@ defmodule Level.Posts.PostLog do
     |> Repo.insert()
   end
 
-  @spec insert(
-          :reply_created,
+  @spec post_edited(
+          Level.Posts.Post.t(),
+          Level.Spaces.SpaceUser.t()
+        ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  def post_edited(%Post{} = post, %SpaceUser{} = space_user) do
+    params = %{
+      event: "POST_EDITED",
+      space_id: post.space_id,
+      post_id: post.id,
+      actor_id: space_user.id
+    }
+
+    %__MODULE__{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert()
+  end
+
+  @spec reply_created(
           Level.Posts.Post.t(),
           Level.Posts.Reply.t(),
           Level.Spaces.SpaceUser.t()
         ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def insert(:reply_created, %Post{} = post, %Reply{} = reply, %SpaceUser{} = space_user) do
+  def reply_created(%Post{} = post, %Reply{} = reply, %SpaceUser{} = space_user) do
     groups =
       post
       |> Ecto.assoc(:groups)

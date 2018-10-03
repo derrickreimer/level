@@ -25,7 +25,7 @@ defmodule Level.Posts.CreatePost do
     |> do_insert(build_params(author, params))
     |> associate_with_group(group)
     |> record_mentions()
-    |> log_create(group, author)
+    |> log(group, author)
     |> Repo.transaction()
     |> after_transaction(author, group)
   end
@@ -62,9 +62,9 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp log_create(multi, group, author) do
+  defp log(multi, group, author) do
     Multi.run(multi, :log, fn %{post: post} ->
-      PostLog.insert(:post_created, post, group, author)
+      PostLog.post_created(post, group, author)
     end)
   end
 

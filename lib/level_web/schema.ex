@@ -175,6 +175,15 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.create_post/2
     end
 
+    @desc "Updates a post."
+    field :update_post, type: :update_post_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+      arg :body, :string
+
+      resolve &Level.Mutations.update_post/2
+    end
+
     @desc "Replies to a post."
     field :create_reply, type: :create_reply_payload do
       arg :space_id, non_null(:id)

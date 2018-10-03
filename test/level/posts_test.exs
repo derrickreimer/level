@@ -1,12 +1,16 @@
 defmodule Level.PostsTest do
   use Level.DataCase, async: true
 
+  import Ecto.Query
+
   alias Level.Groups
   alias Level.Groups.Group
   alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostView
   alias Level.Posts.Reply
+  alias Level.PostVersion
+  alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
@@ -173,6 +177,44 @@ defmodule Level.PostsTest do
 
       assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
                changeset
+    end
+  end
+
+  describe "update_post/3" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group, %{body: "Old body"})
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "does not allow a non-author to edit", %{space: space, post: post} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      assert {:error, :unauthorized} =
+               Posts.update_post(another_user, post, %{body: "Hijacking this post!"})
+    end
+
+    test "allows the original author to edit", %{space_user: space_user, post: post} do
+      {:ok, result} = Posts.update_post(space_user, post, %{body: "New body"})
+      assert result.updated_post.body == "New body"
+    end
+
+    test "stores a version entry for the previous version", %{space_user: space_user, post: post} do
+      {:ok, _} = Posts.update_post(space_user, post, %{body: "New body"})
+
+      query =
+        from pv in PostVersion,
+          where: pv.post_id == ^post.id
+
+      assert [%PostVersion{body: "Old body"}] = Repo.all(query)
+    end
+
+    test "logs the event", %{space_user: space_user, post: post} do
+      {:ok, %{log: log}} = Posts.update_post(space_user, post, %{body: "New body"})
+      assert log.event == "POST_EDITED"
+      assert log.actor_id == space_user.id
+      assert log.post_id == post.id
     end
   end
 

@@ -125,4 +125,85 @@ defmodule LevelWeb.GraphQL.PostTest do
              }
            }
   end
+
+  test "users can edit their own posts", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
+    {:ok, %{post: post}} = create_post(space_user, group, %{body: "Hello"})
+
+    query = """
+      query GetPost(
+        $space_id: ID!
+        $post_id: ID!
+      ) {
+        space(id: $space_id) {
+          post(id: $post_id) {
+            canEdit
+          }
+        }
+      }
+    """
+
+    variables = %{
+      space_id: space_user.space_id,
+      post_id: post.id
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "post" => %{
+                   "canEdit" => true
+                 }
+               }
+             }
+           }
+  end
+
+  test "users cannot edit other people's posts", %{
+    conn: conn,
+    space: space,
+    space_user: space_user
+  } do
+    {:ok, %{space_user: another_user}} = create_space_member(space)
+    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
+    {:ok, %{post: post}} = create_post(another_user, group, %{body: "Hello"})
+
+    query = """
+      query GetPost(
+        $space_id: ID!
+        $post_id: ID!
+      ) {
+        space(id: $space_id) {
+          post(id: $post_id) {
+            canEdit
+          }
+        }
+      }
+    """
+
+    variables = %{
+      space_id: space_user.space_id,
+      post_id: post.id
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "post" => %{
+                   "canEdit" => false
+                 }
+               }
+             }
+           }
+  end
 end

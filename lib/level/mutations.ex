@@ -309,6 +309,27 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Updates a post.
+  """
+  @spec update_post(map(), info()) :: post_mutation_result()
+  def update_post(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, post} <- Posts.get_post(user, args.post_id),
+         {:ok, %{updated_post: updated_post}} <- Posts.update_post(space_user, post, args) do
+      {:ok, %{success: true, post: updated_post, errors: []}}
+    else
+      {:error, :original_post, _, _} ->
+        {:ok, %{success: false, post: nil, errors: []}}
+
+      {:error, :updated_post, changeset, _} ->
+        {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
   Marks a space setup step complete.
   """
   @spec complete_setup_step(map(), info()) :: setup_step_mutation_result()

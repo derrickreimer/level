@@ -45,4 +45,11 @@ defmodule Level.Posts.Post do
     |> cast(attrs, [:space_id, :space_user_id, :body])
     |> validate_required([:body])
   end
+
+  @doc false
+  def update_changeset(struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [:body])
+    |> validate_required([:body])
+  end
 end
