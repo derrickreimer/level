@@ -522,11 +522,14 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     ]
                     [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
                 , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
-                    button
-                        [ class "ml-4 text-sm text-dusty-blue"
-                        , onClick ExpandPostEditor
+                    div [ class "inline-block" ]
+                        [ span [ class "mx-2 text-sm text-dusty-blue" ] [ text "·" ]
+                        , button
+                            [ class "text-sm text-dusty-blue"
+                            , onClick ExpandPostEditor
+                            ]
+                            [ text "Edit" ]
                         ]
-                        [ text "Edit" ]
                 , viewUnless (PostEditor.isExpanded model.postEditor) <|
                     bodyView space model.mode data.post
                 , viewIf (PostEditor.isExpanded model.postEditor) <|
@@ -608,6 +611,7 @@ postEditorView editor =
             , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
             , placeholder "Edit post..."
             , onInput PostEditorBodyChanged
+            , readonly (PostEditor.isSubmitting editor)
             , value (PostEditor.getBody editor)
             ]
             []
@@ -621,6 +625,7 @@ postEditorView editor =
             , button
                 [ class "btn btn-blue btn-sm"
                 , onClick PostEditorSubmitted
+                , disabled (PostEditor.isSubmitting editor)
                 ]
                 [ text "Update post" ]
             ]
