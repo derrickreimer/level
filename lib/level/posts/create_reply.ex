@@ -65,7 +65,7 @@ defmodule Level.Posts.CreateReply do
 
   defp log_create(multi, post, space_user) do
     Multi.run(multi, :log, fn %{reply: reply} ->
-      PostLog.insert(:reply_created, post, reply, space_user)
+      PostLog.reply_created(post, reply, space_user)
     end)
   end
 

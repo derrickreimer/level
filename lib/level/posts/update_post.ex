@@ -6,6 +6,7 @@ defmodule Level.Posts.UpdatePost do
   alias Ecto.Multi
   alias Level.Posts
   alias Level.Posts.Post
+  alias Level.Posts.PostLog
   alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
@@ -14,21 +15,22 @@ defmodule Level.Posts.UpdatePost do
           {:ok, %{original_post: Post.t(), updated_post: Post.t(), version: PostVersion.t()}}
           | {:error, :unauthorized}
           | {:error, atom(), any(), map()}
-  def perform(%SpaceUser{} = space_user, %Post{} = post, params) do
-    space_user
+  def perform(%SpaceUser{} = author, %Post{} = post, params) do
+    author
     |> Posts.can_edit?(post)
-    |> after_authorization(post, params)
+    |> after_authorization(author, post, params)
   end
 
-  defp after_authorization(true, %Post{id: post_id}, params) do
+  defp after_authorization(true, author, post, params) do
     Multi.new()
-    |> fetch_post_with_lock(post_id)
+    |> fetch_post_with_lock(post.id)
     |> store_version()
     |> update_post(params)
+    |> log(author)
     |> Repo.transaction()
   end
 
-  defp after_authorization(false, _, _) do
+  defp after_authorization(false, _, _, _) do
     {:error, :unauthorized}
   end
 
@@ -68,6 +70,12 @@ defmodule Level.Posts.UpdatePost do
       %PostVersion{}
       |> PostVersion.create_changeset(params)
       |> Repo.insert()
+    end)
+  end
+
+  defp log(multi, author) do
+    Multi.run(multi, :log, fn %{updated_post: post} ->
+      PostLog.post_edited(post, author)
     end)
   end
 end

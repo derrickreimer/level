@@ -64,7 +64,7 @@ defmodule Level.Posts.CreatePost do
 
   defp log_create(multi, group, author) do
     Multi.run(multi, :log, fn %{post: post} ->
-      PostLog.insert(:post_created, post, group, author)
+      PostLog.post_created(post, group, author)
     end)
   end
 

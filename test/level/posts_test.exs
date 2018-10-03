@@ -209,6 +209,13 @@ defmodule Level.PostsTest do
 
       assert [%PostVersion{body: "Old body"}] = Repo.all(query)
     end
+
+    test "logs the event", %{space_user: space_user, post: post} do
+      {:ok, %{log: log}} = Posts.update_post(space_user, post, %{body: "New body"})
+      assert log.event == "POST_EDITED"
+      assert log.actor_id == space_user.id
+      assert log.post_id == post.id
+    end
   end
 
   describe "subscribe/2" do
