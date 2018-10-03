@@ -503,7 +503,7 @@ resolvedView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data ->
 resolvedView repo space currentUser (( zone, posix ) as now) model data =
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
-        , div [ class "flex-grow leading-semi-loose" ]
+        , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ a
                     [ Route.href <| Route.Post (Space.slug space) model.postId

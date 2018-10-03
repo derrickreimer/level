@@ -244,7 +244,7 @@ body {
 }
 
 .markdown pre {
-  @apply .mb-4 .p-3 .bg-grey-lighter .rounded;
+  @apply .mb-4 .p-3 .bg-grey-lighter .rounded .overflow-auto;
 }
 
 .markdown code {
@@ -253,6 +253,8 @@ body {
 
 .markdown pre code {
   @apply .m-0 .p-0 .bg-transparent .rounded-none;
+  word-wrap: normal;
+  overflow: visible;
 }
 
 .user-mention.is-viewer {
