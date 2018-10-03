@@ -20,6 +20,7 @@ defmodule Level.Posts do
   alias Level.Posts.Reply
   alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
+  alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -424,9 +425,9 @@ defmodule Level.Posts do
   Updates a post.
   """
   @spec update_post(SpaceUser.t(), Post.t(), map()) ::
-          {:ok, %{original_post: Post.t(), updated_post: Post.t()}}
+          {:ok, %{original_post: Post.t(), updated_post: Post.t(), version: PostVersion.t()}}
           | {:error, :unauthorized}
-          | {:error, :original_post | :updated_post, any(), map()}
+          | {:error, atom(), any(), map()}
   def update_post(%SpaceUser{} = space_user, %Post{} = post, params) do
     UpdatePost.perform(space_user, post, params)
   end

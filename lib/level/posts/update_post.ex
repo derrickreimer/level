@@ -6,13 +6,14 @@ defmodule Level.Posts.UpdatePost do
   alias Ecto.Multi
   alias Level.Posts
   alias Level.Posts.Post
+  alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
 
   @spec perform(SpaceUser.t(), Post.t(), map()) ::
-          {:ok, %{original_post: Post.t(), updated_post: Post.t()}}
+          {:ok, %{original_post: Post.t(), updated_post: Post.t(), version: PostVersion.t()}}
           | {:error, :unauthorized}
-          | {:error, :original_post | :updated_post, any(), map()}
+          | {:error, atom(), any(), map()}
   def perform(%SpaceUser{} = space_user, %Post{} = post, params) do
     space_user
     |> Posts.can_edit?(post)
@@ -22,6 +23,7 @@ defmodule Level.Posts.UpdatePost do
   defp after_authorization(true, %Post{id: post_id}, params) do
     Multi.new()
     |> fetch_post_with_lock(post_id)
+    |> store_version()
     |> update_post(params)
     |> Repo.transaction()
   end
@@ -51,6 +53,21 @@ defmodule Level.Posts.UpdatePost do
       original_post
       |> Post.update_changeset(params)
       |> Repo.update()
+    end)
+  end
+
+  defp store_version(multi) do
+    Multi.run(multi, :previous_version, fn %{original_post: original_post} ->
+      params = %{
+        space_id: original_post.space_id,
+        author_id: original_post.space_user_id,
+        post_id: original_post.id,
+        body: original_post.body
+      }
+
+      %PostVersion{}
+      |> PostVersion.create_changeset(params)
+      |> Repo.insert()
     end)
   end
 end
