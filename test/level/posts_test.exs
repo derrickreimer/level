@@ -176,6 +176,27 @@ defmodule Level.PostsTest do
     end
   end
 
+  describe "update_post/3" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group, %{body: "The old body"})
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "does not allow a non-author to edit", %{space: space, post: post} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      assert {:error, :unauthorized} =
+               Posts.update_post(another_user, post, %{body: "Hijacking this post!"})
+    end
+
+    test "allows the original author to edit", %{space_user: space_user, post: post} do
+      {:ok, result} = Posts.update_post(space_user, post, %{body: "New body"})
+      assert result.updated_post.body == "New body"
+    end
+  end
+
   describe "subscribe/2" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()

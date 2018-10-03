@@ -13,6 +13,7 @@ defmodule Level.Resolvers do
   alias Level.Groups.GroupUser
   alias Level.Mentions.UserMention
   alias Level.Pagination
+  alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostUser
   alias Level.Posts.Reply
@@ -302,15 +303,15 @@ defmodule Level.Resolvers do
     |> on_load(fn loader ->
       loader
       |> Dataloader.get(:db, batch_key, item_key)
-      |> check_edit_permissions(user)
+      |> check_edit_post_permissions(user)
     end)
   end
 
-  defp check_edit_permissions(%SpaceUser{} = space_user, current_user) do
-    {:ok, space_user.user_id == current_user.id}
+  defp check_edit_post_permissions(%SpaceUser{} = post_author, current_user) do
+    {:ok, Posts.can_edit?(current_user, post_author)}
   end
 
-  defp check_edit_permissions(_, _current_user) do
+  defp check_edit_post_permissions(_, _current_user) do
     {:ok, false}
   end
 

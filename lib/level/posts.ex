@@ -6,6 +6,7 @@ defmodule Level.Posts do
   import Ecto.Query, warn: false
   import Level.Gettext
 
+  alias Ecto.Multi
   alias Level.Events
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
@@ -405,6 +406,62 @@ defmodule Level.Posts do
       "user-mention"
     end
   end
+
+  @doc """
+  Determines if a user is allowed to edit a post.
+  """
+  @spec can_edit?(User.t(), SpaceUser.t()) :: boolean()
+  def can_edit?(%User{} = current_user, %SpaceUser{} = post_author) do
+    current_user.id == post_author.user_id
+  end
+
+  @spec can_edit?(SpaceUser.t(), Post.t()) :: boolean()
+  def can_edit?(%SpaceUser{} = current_space_user, %Post{} = post) do
+    current_space_user.id == post.space_user_id
+  end
+
+  @doc """
+  Updates a post.
+  """
+  @spec update_post(SpaceUser.t(), Post.t(), map()) ::
+          {:ok, %{original_post: Post.t(), updated_post: Post.t()}}
+          | {:error, :unauthorized}
+          | {:error, :original_post | :updated_post, any(), map()}
+  def update_post(%SpaceUser{} = space_user, %Post{} = post, params) do
+    space_user
+    |> can_edit?(post)
+    |> update_post_with_auth(post, params)
+  end
+
+  defp update_post_with_auth(true, %Post{id: post_id}, params) do
+    Multi.new()
+    |> Multi.run(:original_post, fn _ ->
+      # Obtain a row-level lock on the post in question, so
+      # that we can safely insert a version record and update
+      # the value in place without race conditions
+      query =
+        from p in Post,
+          where: p.id == ^post_id,
+          lock: "FOR UPDATE"
+
+      query
+      |> Repo.one()
+      |> handle_post_lookup()
+    end)
+    |> Multi.run(:updated_post, fn %{original_post: original_post} ->
+      original_post
+      |> Post.update_changeset(params)
+      |> Repo.update()
+    end)
+    |> Repo.transaction()
+  end
+
+  defp update_post_with_auth(false, _, _) do
+    {:error, :unauthorized}
+  end
+
+  defp handle_post_lookup(%Post{} = post), do: {:ok, post}
+  defp handle_post_lookup(_), do: {:error, :post_load_error}
 
   # Internal
 
