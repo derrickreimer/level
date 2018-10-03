@@ -16,6 +16,7 @@ import Markdown
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
+import Mutation.UpdatePost as UpdatePost
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
 import Query.Replies
@@ -32,6 +33,7 @@ import SpaceUser exposing (SpaceUser)
 import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
+import ValidationError
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (onNonAnchorClick, setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
 
@@ -167,7 +169,9 @@ type Msg
     | ClickedInFeed
     | ExpandPostEditor
     | CollapsePostEditor
-    | NewBodyChanged String
+    | PostEditorBodyChanged String
+    | PostEditorSubmitted
+    | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | NoOp
 
 
@@ -355,6 +359,7 @@ update msg spaceId globals model =
                             model.postEditor
                                 |> PostEditor.expand
                                 |> PostEditor.setBody (Post.body data.post)
+                                |> PostEditor.clearErrors
 
                         cmd =
                             Cmd.batch
@@ -375,13 +380,54 @@ update msg spaceId globals model =
             in
             ( ( { model | postEditor = newPostEditor }, Cmd.none ), globals )
 
-        NewBodyChanged val ->
+        PostEditorBodyChanged val ->
             let
                 newPostEditor =
                     model.postEditor
                         |> PostEditor.setBody val
             in
             noCmd globals { model | postEditor = newPostEditor }
+
+        PostEditorSubmitted ->
+            let
+                cmd =
+                    globals.session
+                        |> UpdatePost.request spaceId model.postId (PostEditor.getBody model.postEditor)
+                        |> Task.attempt PostUpdated
+
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setToSubmitting
+                        |> PostEditor.clearErrors
+            in
+            ( ( { model | postEditor = newPostEditor }, cmd ), globals )
+
+        PostUpdated (Ok ( newSession, UpdatePost.Success post )) ->
+            let
+                newGlobals =
+                    { globals | session = newSession, repo = Repo.setPost post globals.repo }
+
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.collapse
+            in
+            ( ( { model | postEditor = newPostEditor }, Cmd.none ), newGlobals )
+
+        PostUpdated (Ok ( newSession, UpdatePost.Invalid errors )) ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.setErrors errors
+            in
+            ( ( { model | postEditor = newPostEditor }, Cmd.none ), globals )
+
+        PostUpdated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostUpdated (Err _) ->
+            noCmd globals model
 
         NoOp ->
             noCmd globals model
@@ -484,7 +530,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                 , viewUnless (PostEditor.isExpanded model.postEditor) <|
                     bodyView space model.mode data.post
                 , viewIf (PostEditor.isExpanded model.postEditor) <|
-                    bodyEditorView model.postEditor
+                    postEditorView model.postEditor
                 , div [ class "flex items-center" ]
                     [ div [ class "flex-grow" ]
                         [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -554,17 +600,18 @@ bodyView space mode post =
             div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
 
 
-bodyEditorView : PostEditor -> Html Msg
-bodyEditorView editor =
+postEditorView : PostEditor -> Html Msg
+postEditorView editor =
     label [ class "composer my-2 p-4" ]
         [ textarea
             [ id (PostEditor.getId editor)
             , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
             , placeholder "Edit post..."
-            , onInput NewBodyChanged
+            , onInput PostEditorBodyChanged
             , value (PostEditor.getBody editor)
             ]
             []
+        , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
         , div [ class "flex justify-end" ]
             [ button
                 [ class "mr-2 btn btn-grey-outline btn-sm"
@@ -573,6 +620,7 @@ bodyEditorView editor =
                 [ text "Cancel" ]
             , button
                 [ class "btn btn-blue btn-sm"
+                , onClick PostEditorSubmitted
                 ]
                 [ text "Update post" ]
             ]

@@ -1,4 +1,4 @@
-module ValidationError exposing (ValidationError, decoder, errorView, errorsFor, errorsNotFor, fragment, isInvalid)
+module ValidationError exposing (ValidationError, decoder, errorView, errorsFor, errorsNotFor, fragment, isInvalid, prefixedErrorView)
 
 import GraphQL exposing (Fragment)
 import Html exposing (..)
@@ -63,6 +63,16 @@ errorView attribute errors =
     case errorsFor attribute errors of
         error :: _ ->
             div [ class "form-errors" ] [ text error.message ]
+
+        [] ->
+            text ""
+
+
+prefixedErrorView : String -> String -> List ValidationError -> Html msg
+prefixedErrorView attribute prefix errors =
+    case errorsFor attribute errors of
+        error :: _ ->
+            div [ class "form-errors" ] [ text (prefix ++ " " ++ error.message) ]
 
         [] ->
             text ""
