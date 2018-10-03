@@ -78,6 +78,10 @@ defmodule Level.Events do
 
   # Post
 
+  def post_updated(%Post{} = post) do
+    publish_to_post(post.id, :post_updated, %{post: post})
+  end
+
   def reply_created(id, %Reply{} = reply) do
     publish_to_post(id, :reply_created, %{reply: reply})
   end

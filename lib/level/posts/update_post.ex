@@ -4,6 +4,7 @@ defmodule Level.Posts.UpdatePost do
   import Ecto.Query, warn: false
 
   alias Ecto.Multi
+  alias Level.Events
   alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostLog
@@ -28,6 +29,7 @@ defmodule Level.Posts.UpdatePost do
     |> update_post(params)
     |> log(author)
     |> Repo.transaction()
+    |> after_transaction()
   end
 
   defp after_authorization(false, _, _, _) do
@@ -78,4 +80,11 @@ defmodule Level.Posts.UpdatePost do
       PostLog.post_edited(post, author)
     end)
   end
+
+  defp after_transaction({:ok, result}) do
+    Events.post_updated(result.updated_post)
+    {:ok, result}
+  end
+
+  defp after_transaction(err), do: err
 end
