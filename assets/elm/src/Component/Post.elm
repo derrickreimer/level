@@ -613,6 +613,9 @@ postEditorView editor =
             , onInput PostEditorBodyChanged
             , readonly (PostEditor.isSubmitting editor)
             , value (PostEditor.getBody editor)
+            , onKeydown preventDefault
+                [ ( [ Meta ], enter, \event -> PostEditorSubmitted )
+                ]
             ]
             []
         , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
