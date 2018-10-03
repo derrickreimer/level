@@ -61,6 +61,11 @@ document =
         ) {
           postSubscription(postId: $postId) {
             __typename
+            ... on PostUpdatedPayload {
+              post {
+                ...PostFields
+              }
+            }
             ... on ReplyCreatedPayload {
               reply {
                 ...ReplyFields
@@ -69,7 +74,8 @@ document =
           }
         }
         """
-        [ Reply.fragment
+        [ Post.fragment
+        , Reply.fragment
         ]
 
 
