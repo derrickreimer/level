@@ -6,7 +6,6 @@ defmodule Level.Posts do
   import Ecto.Query, warn: false
   import Level.Gettext
 
-  alias Ecto.Multi
   alias Level.Events
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
@@ -20,6 +19,7 @@ defmodule Level.Posts do
   alias Level.Posts.PostView
   alias Level.Posts.Reply
   alias Level.Posts.ReplyView
+  alias Level.Posts.UpdatePost
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -428,40 +428,8 @@ defmodule Level.Posts do
           | {:error, :unauthorized}
           | {:error, :original_post | :updated_post, any(), map()}
   def update_post(%SpaceUser{} = space_user, %Post{} = post, params) do
-    space_user
-    |> can_edit?(post)
-    |> update_post_with_auth(post, params)
+    UpdatePost.perform(space_user, post, params)
   end
-
-  defp update_post_with_auth(true, %Post{id: post_id}, params) do
-    Multi.new()
-    |> Multi.run(:original_post, fn _ ->
-      # Obtain a row-level lock on the post in question, so
-      # that we can safely insert a version record and update
-      # the value in place without race conditions
-      query =
-        from p in Post,
-          where: p.id == ^post_id,
-          lock: "FOR UPDATE"
-
-      query
-      |> Repo.one()
-      |> handle_post_lookup()
-    end)
-    |> Multi.run(:updated_post, fn %{original_post: original_post} ->
-      original_post
-      |> Post.update_changeset(params)
-      |> Repo.update()
-    end)
-    |> Repo.transaction()
-  end
-
-  defp update_post_with_auth(false, _, _) do
-    {:error, :unauthorized}
-  end
-
-  defp handle_post_lookup(%Post{} = post), do: {:ok, post}
-  defp handle_post_lookup(_), do: {:error, :post_load_error}
 
   # Internal
 
