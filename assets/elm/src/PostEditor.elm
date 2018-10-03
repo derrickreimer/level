@@ -1,4 +1,27 @@
-module PostEditor exposing (PostEditor, clearErrors, collapse, expand, getBody, getErrors, getId, init, isExpanded, isSubmitting, setBody, setErrors, setNotSubmitting, setToSubmitting)
+module PostEditor exposing
+    ( PostEditor, init
+    , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors
+    , getId, getBody, getErrors, isExpanded, isSubmitting
+    )
+
+{-| Holds state for the post editor.
+
+
+# Types
+
+@docs PostEditor, init
+
+
+# Setters
+
+@docs setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors
+
+
+# Getters
+
+@docs getId, getBody, getErrors, isExpanded, isSubmitting
+
+-}
 
 import Id exposing (Id)
 import ValidationError exposing (ValidationError)
