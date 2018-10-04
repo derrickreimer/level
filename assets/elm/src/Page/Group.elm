@@ -578,7 +578,7 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "md:mr-48 lg:mr-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
+                [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-40" ]
                     [ div [ class "flex items-center" ]
                         [ nameView data.group model.nameEditor
                         , bookmarkButtonView (Group.isBookmarked data.group)

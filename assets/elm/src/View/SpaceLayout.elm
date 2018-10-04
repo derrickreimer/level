@@ -20,14 +20,17 @@ layout : SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> H
 layout viewer space bookmarks maybeCurrentRoute nodes =
     div [ class "font-sans font-antialised" ]
         [ fullSidebar viewer space bookmarks maybeCurrentRoute
-        , narrowSidebar viewer space bookmarks maybeCurrentRoute
-        , div [ class "ml-24 lg:ml-56" ] nodes
+        , div [ class "ml-48 lg:ml-56" ] nodes
         ]
 
 
 fullSidebar : SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
 fullSidebar viewer space bookmarks maybeCurrentRoute =
-    div [ class "fixed bg-grey-lighter border-r w-48 h-full min-h-screen hidden lg:block" ]
+    div
+        [ classList
+            [ ( "fixed bg-grey-lighter border-r w-48 h-full min-h-screen z-50", True )
+            ]
+        ]
         [ div [ class "p-4" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
@@ -48,17 +51,6 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
                     [ div [] [ text "Signed in as" ]
                     , div [ class "font-bold" ] [ text (SpaceUser.displayName viewer) ]
                     ]
-                ]
-            ]
-        ]
-
-
-narrowSidebar : SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
-narrowSidebar viewer space bookmarks maybeCurrentRoute =
-    div [ class "fixed w-24 h-full min-h-screen lg:hidden" ]
-        [ div [ class "p-4" ]
-            [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
-                [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
                 ]
             ]
         ]
