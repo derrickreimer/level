@@ -576,20 +576,18 @@ resolvedView repo maybeCurrentRoute model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "md:mr-48 lg:mr-56" ]
-            [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-40" ]
-                    [ div [ class "flex items-center" ]
-                        [ nameView data.group model.nameEditor
-                        , bookmarkButtonView (Group.isBookmarked data.group)
-                        , nameErrors model.nameEditor
-                        , controlsView model
-                        ]
+        [ div [ class "mx-auto max-w-90 leading-normal" ]
+            [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-40" ]
+                [ div [ class "flex items-center" ]
+                    [ nameView data.group model.nameEditor
+                    , bookmarkButtonView (Group.isBookmarked data.group)
+                    , nameErrors model.nameEditor
+                    , controlsView model
                     ]
-                , newPostView model.postComposer data.viewer
-                , postsView repo data.space data.viewer model.now model.postComps
-                , sidebarView data.group data.featuredMembers
                 ]
+            , newPostView model.postComposer data.viewer
+            , postsView repo data.space data.viewer model.now model.postComps
+            , sidebarView data.group data.featuredMembers
             ]
         ]
 
@@ -732,12 +730,7 @@ postView repo space currentUser now component =
 
 sidebarView : Group -> List SpaceUser -> Html Msg
 sidebarView group featuredMembers =
-    div
-        [ classList
-            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 border-l min-h-half", True )
-            , ( "hidden md:block md:w-48 lg:w-56", True )
-            ]
-        ]
+    View.SpaceLayout.rightSidebar
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
             [ text "Members"
             , privacyToggle (Group.isPrivate group)

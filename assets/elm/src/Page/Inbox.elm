@@ -344,23 +344,21 @@ resolvedView repo maybeCurrentRoute pushStatus model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "md:mr-48 lg:mr-56" ]
-            [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
-                    [ div [ class "border-b" ]
-                        [ div [ class "flex items-center" ]
-                            [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
-                            , controlsView model data
-                            ]
-                        , div [ class "flex items-baseline" ]
-                            [ filterTab "New Activity" Route.Inbox.Undismissed (undismissedParams model.params) model.params
-                            , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
-                            ]
+        [ div [ class "mx-auto max-w-90 leading-normal" ]
+            [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
+                [ div [ class "border-b" ]
+                    [ div [ class "flex items-center" ]
+                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
+                        , controlsView model data
+                        ]
+                    , div [ class "flex items-baseline" ]
+                        [ filterTab "New Activity" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                        , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
                     ]
-                , postsView repo model data
-                , sidebarView data.space data.featuredUsers pushStatus
                 ]
+            , postsView repo model data
+            , sidebarView data.space data.featuredUsers pushStatus
             ]
         ]
 
@@ -435,12 +433,7 @@ postView repo model data component =
 
 sidebarView : Space -> List SpaceUser -> PushStatus -> Html Msg
 sidebarView space featuredUsers pushStatus =
-    div
-        [ classList
-            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 border-l min-h-half", True )
-            , ( "hidden md:block md:w-48 lg:w-56", True )
-            ]
-        ]
+    View.SpaceLayout.rightSidebar
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
                 [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))

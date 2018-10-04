@@ -1,4 +1,4 @@
-module View.SpaceLayout exposing (layout)
+module View.SpaceLayout exposing (layout, rightSidebar)
 
 import Avatar exposing (personAvatar, thingAvatar)
 import Group exposing (Group)
@@ -16,12 +16,31 @@ import SpaceUser exposing (SpaceUser)
 import User exposing (User)
 
 
+
+-- API
+
+
 layout : SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> Html msg
-layout viewer space bookmarks maybeCurrentRoute nodes =
+layout viewer space bookmarks maybeCurrentRoute children =
     div [ class "font-sans font-antialised" ]
         [ fullSidebar viewer space bookmarks maybeCurrentRoute
-        , div [ class "ml-48 lg:ml-56" ] nodes
+        , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
         ]
+
+
+rightSidebar : List (Html msg) -> Html msg
+rightSidebar children =
+    div
+        [ classList
+            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 border-l min-h-half", True )
+            , ( "hidden md:block md:w-48 lg:w-56", True )
+            ]
+        ]
+        children
+
+
+
+-- PRIVATE
 
 
 fullSidebar : SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
