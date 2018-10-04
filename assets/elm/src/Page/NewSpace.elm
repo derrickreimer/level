@@ -21,7 +21,7 @@ import Task exposing (Task)
 import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.Layout exposing (userLayout)
+import View.UserLayout
 
 
 
@@ -207,7 +207,7 @@ view repo model =
 
 resolvedView : Model -> Data -> Html Msg
 resolvedView model data =
-    userLayout data.viewer <|
+    View.UserLayout.layout data.viewer <|
         div
             [ classList
                 [ ( "mx-auto max-w-sm leading-normal pb-8", True )

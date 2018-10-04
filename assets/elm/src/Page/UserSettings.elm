@@ -22,7 +22,7 @@ import Task exposing (Task)
 import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.Layout exposing (userLayout)
+import View.UserLayout
 
 
 
@@ -243,7 +243,7 @@ view repo model =
 
 resolvedView : Model -> Data -> Html Msg
 resolvedView model data =
-    userLayout data.viewer <|
+    View.UserLayout.layout data.viewer <|
         div [ class "mx-auto max-w-md leading-normal" ]
             [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]

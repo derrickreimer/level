@@ -17,7 +17,7 @@ import Session exposing (Session)
 import Space exposing (Space)
 import Task exposing (Task)
 import User exposing (User)
-import View.Layout exposing (userLayout)
+import View.UserLayout
 
 
 
@@ -139,7 +139,7 @@ view repo model =
 
 resolvedView : Repo -> Model -> Data -> Html Msg
 resolvedView repo model data =
-    userLayout data.viewer <|
+    View.UserLayout.layout data.viewer <|
         div [ class "mx-auto max-w-sm" ]
             [ div [ class "flex items-center pb-6" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "My Spaces" ]
