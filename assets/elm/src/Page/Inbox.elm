@@ -34,7 +34,7 @@ import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (smartFormatTime, viewIf, viewUnless)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -339,12 +339,12 @@ view repo maybeCurrentRoute pushStatus model =
 
 resolvedView : Repo -> Maybe Route -> PushStatus -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute pushStatus model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
+        [ div [ class "md:mr-48 lg:mr-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
                     [ div [ class "border-b" ]
@@ -435,7 +435,12 @@ postView repo model data component =
 
 sidebarView : Space -> List SpaceUser -> PushStatus -> Html Msg
 sidebarView space featuredUsers pushStatus =
-    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
+    div
+        [ classList
+            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 border-l min-h-half", True )
+            , ( "hidden md:block md:w-48 lg:w-56", True )
+            ]
+        ]
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
                 [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
