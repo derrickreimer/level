@@ -22,7 +22,7 @@ import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -204,51 +204,49 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
-            [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
-                [ div [ class "pb-6" ]
-                    [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Create a group" ]
-                    , p [] [ text "Groups are useful for organizing teams within your organization or specific projects that will have ongoing dialogue." ]
-                    ]
-                , div [ class "pb-6" ]
-                    [ label [ for "name", class "input-label" ] [ text "Name of this group" ]
-                    , input
-                        [ id "name"
-                        , type_ "text"
-                        , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
-                        , name "name"
-                        , placeholder "e.g. Engineering"
-                        , value model.name
-                        , onInput NameChanged
-                        , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
-                        , disabled model.isSubmitting
-                        ]
-                        []
-                    , errorView "name" model.errors
-                    ]
-                , label [ class "control checkbox pb-6" ]
-                    [ input
-                        [ type_ "checkbox"
-                        , class "checkbox"
-                        , onClick PrivacyToggled
-                        , checked model.isPrivate
-                        ]
-                        []
-                    , span [ class "control-indicator" ] []
-                    , span [ class "select-none" ] [ text "Make this group private (invite only)" ]
-                    ]
-                , button
-                    [ type_ "submit"
-                    , class "btn btn-blue"
-                    , onClick Submit
+        [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
+            [ div [ class "pb-6" ]
+                [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Create a group" ]
+                , p [] [ text "Groups are useful for organizing teams within your organization or specific projects that will have ongoing dialogue." ]
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "name", class "input-label" ] [ text "Name of this group" ]
+                , input
+                    [ id "name"
+                    , type_ "text"
+                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
+                    , name "name"
+                    , placeholder "e.g. Engineering"
+                    , value model.name
+                    , onInput NameChanged
+                    , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
                     , disabled model.isSubmitting
                     ]
-                    [ text "Create group" ]
+                    []
+                , errorView "name" model.errors
                 ]
+            , label [ class "control checkbox pb-6" ]
+                [ input
+                    [ type_ "checkbox"
+                    , class "checkbox"
+                    , onClick PrivacyToggled
+                    , checked model.isPrivate
+                    ]
+                    []
+                , span [ class "control-indicator" ] []
+                , span [ class "select-none" ] [ text "Make this group private (invite only)" ]
+                ]
+            , button
+                [ type_ "submit"
+                , class "btn btn-blue"
+                , onClick Submit
+                , disabled model.isSubmitting
+                ]
+                [ text "Create group" ]
             ]
         ]

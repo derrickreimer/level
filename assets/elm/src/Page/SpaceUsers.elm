@@ -22,7 +22,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
 import View.Helpers exposing (viewIf)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -147,31 +147,29 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
-            [ div [ class "mx-auto max-w-sm leading-normal py-8" ]
-                [ div [ class "flex items-center pb-5" ]
-                    [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Directory" ]
-                    , div [ class "flex-0 flex-no-shrink" ]
-                        [ a
-                            [ Route.href (Route.InviteUsers (Route.SpaceUsers.getSpaceSlug model.params))
-                            , class "btn btn-blue btn-md no-underline"
-                            ]
-                            [ text "Invite people" ]
+        [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
+            [ div [ class "flex items-center pb-5" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text "Directory" ]
+                , div [ class "flex-0 flex-no-shrink" ]
+                    [ a
+                        [ Route.href (Route.InviteUsers (Route.SpaceUsers.getSpaceSlug model.params))
+                        , class "btn btn-blue btn-md no-underline"
                         ]
+                        [ text "Invite people" ]
                     ]
-                , div [ class "pb-8" ]
-                    [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
-                        [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                        , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
-                        ]
-                    ]
-                , usersView repo model.params model.spaceUserIds
                 ]
+            , div [ class "pb-8" ]
+                [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
+                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
+                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                    ]
+                ]
+            , usersView repo model.params model.spaceUserIds
             ]
         ]
 

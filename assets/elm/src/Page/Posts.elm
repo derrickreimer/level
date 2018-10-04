@@ -31,7 +31,7 @@ import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (smartFormatTime, viewIf)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -254,22 +254,20 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
-            [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
-                    [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]
-                        , controlsView model
-                        ]
+        [ div [ class "mx-auto max-w-90 leading-normal" ]
+            [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
+                [ div [ class "flex items-center" ]
+                    [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]
+                    , controlsView model
                     ]
-                , postsView repo model data
-                , sidebarView data.space data.featuredUsers
                 ]
+            , postsView repo model data
+            , sidebarView data.space data.featuredUsers
             ]
         ]
 
@@ -310,7 +308,7 @@ postView repo model data component =
 
 sidebarView : Space -> List SpaceUser -> Html Msg
 sidebarView space featuredUsers =
-    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
+    View.SpaceLayout.rightSidebar
         [ h3 [ class "mb-2 text-base font-extrabold" ]
             [ a
                 [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))

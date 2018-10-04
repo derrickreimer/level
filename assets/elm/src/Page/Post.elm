@@ -25,8 +25,8 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Layout exposing (spaceLayout)
 import View.PresenceList
+import View.SpaceLayout
 
 
 
@@ -351,16 +351,14 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
-            [ div [ class "mx-auto max-w-90 leading-normal" ]
-                [ postView repo data.space data.viewer model.now model.postComp
-                , sidebarView repo model
-                ]
+        [ div [ class "mx-auto max-w-90 leading-normal" ]
+            [ postView repo data.space data.viewer model.now model.postComp
+            , sidebarView repo model
             ]
         ]
 
@@ -384,7 +382,7 @@ sidebarView repo model =
                 NotLoaded ->
                     div [ class "pb-4 text-sm" ] [ text "Loading..." ]
     in
-    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 px-6 border-l min-h-half" ]
+    View.SpaceLayout.rightSidebar
         [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Who’s Here" ]
         , listView
         ]

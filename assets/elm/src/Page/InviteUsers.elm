@@ -17,7 +17,7 @@ import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -146,16 +146,14 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Maybe Route -> Model -> Data -> Html Msg
 resolvedView maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
-            [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
-                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite people to join" ]
-                , bodyView (Space.openInvitationUrl data.space)
-                ]
+        [ div [ class "mx-auto px-8 py-24 max-w-sm leading-normal" ]
+            [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite people to join" ]
+            , bodyView (Space.openInvitationUrl data.space)
             ]
         ]
 

@@ -21,7 +21,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -244,73 +244,73 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Maybe Route -> Model -> Data -> Html Msg
 resolvedView maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "ml-56 mr-24" ]
-            [ div [ class "mx-auto max-w-md leading-normal py-8" ]
-                [ h1 [ class "pb-8 font-extrabold text-4xl" ] [ text "Space Settings" ]
-                , div [ class "flex" ]
-                    [ div [ class "flex-1 mr-8" ]
-                        [ div [ class "pb-6" ]
-                            [ label [ for "name", class "input-label" ] [ text "Space Name" ]
-                            , input
-                                [ id "name"
-                                , type_ "text"
-                                , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
-                                , name "name"
-                                , placeholder "Acme, Co."
-                                , value model.name
-                                , onInput NameChanged
-                                , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                                , disabled model.isSubmitting
-                                ]
-                                []
-                            , errorView "name" model.errors
-                            ]
-                        , div [ class "pb-6" ]
-                            [ label [ for "slug", class "input-label" ] [ text "URL" ]
-                            , div
-                                [ classList
-                                    [ ( "input-field inline-flex leading-none items-baseline", True )
-                                    , ( "input-field-error", isInvalid "slug" model.errors )
-                                    ]
-                                ]
-                                [ label
-                                    [ for "slug"
-                                    , class "flex-none text-dusty-blue-darker select-none"
-                                    ]
-                                    [ text "level.app/" ]
-                                , div [ class "flex-1" ]
-                                    [ input
-                                        [ id "slug"
-                                        , type_ "text"
-                                        , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
-                                        , name "slug"
-                                        , placeholder "smith-co"
-                                        , value model.slug
-                                        , onInput SlugChanged
-                                        , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                                        , disabled model.isSubmitting
-                                        ]
-                                        []
-                                    ]
-                                ]
-                            , errorView "slug" model.errors
-                            ]
-                        , button
-                            [ type_ "submit"
-                            , class "btn btn-blue"
-                            , onClick Submit
+        [ div [ class "mx-auto max-w-md leading-normal p-8" ]
+            [ div [ class "pb-6" ]
+                [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Space Settings" ]
+                ]
+            , div [ class "flex" ]
+                [ div [ class "flex-1 mr-8" ]
+                    [ div [ class "pb-6" ]
+                        [ label [ for "name", class "input-label" ] [ text "Space Name" ]
+                        , input
+                            [ id "name"
+                            , type_ "text"
+                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
+                            , name "name"
+                            , placeholder "Acme, Co."
+                            , value model.name
+                            , onInput NameChanged
+                            , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
                             , disabled model.isSubmitting
                             ]
-                            [ text "Save settings" ]
+                            []
+                        , errorView "name" model.errors
                         ]
-                    , div [ class "flex-0" ]
-                        [ File.avatarInput "avatar" model.avatarUrl AvatarSelected
+                    , div [ class "pb-6" ]
+                        [ label [ for "slug", class "input-label" ] [ text "URL" ]
+                        , div
+                            [ classList
+                                [ ( "input-field inline-flex leading-none items-baseline", True )
+                                , ( "input-field-error", isInvalid "slug" model.errors )
+                                ]
+                            ]
+                            [ label
+                                [ for "slug"
+                                , class "flex-none text-dusty-blue-darker select-none"
+                                ]
+                                [ text "level.app/" ]
+                            , div [ class "flex-1" ]
+                                [ input
+                                    [ id "slug"
+                                    , type_ "text"
+                                    , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                                    , name "slug"
+                                    , placeholder "smith-co"
+                                    , value model.slug
+                                    , onInput SlugChanged
+                                    , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                                    , disabled model.isSubmitting
+                                    ]
+                                    []
+                                ]
+                            ]
+                        , errorView "slug" model.errors
                         ]
+                    , button
+                        [ type_ "submit"
+                        , class "btn btn-blue"
+                        , onClick Submit
+                        , disabled model.isSubmitting
+                        ]
+                        [ text "Save settings" ]
+                    ]
+                , div [ class "flex-0" ]
+                    [ File.avatarInput "avatar" model.avatarUrl AvatarSelected
                     ]
                 ]
             ]

@@ -61,7 +61,10 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
                 , navLink space "Drafts" Nothing maybeCurrentRoute
                 ]
             , groupLinks space bookmarks maybeCurrentRoute
-            , navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
+            , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+                [ navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
+                , navLink space "Settings" (Just <| Route.SpaceSettings (Space.slug space)) maybeCurrentRoute
+                ]
             ]
         , div [ class "absolute pin-b w-full" ]
             [ a [ Route.href Route.UserSettings, class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]

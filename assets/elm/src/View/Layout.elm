@@ -1,4 +1,4 @@
-module View.Layout exposing (appLayout, spaceLayout, userLayout)
+module View.Layout exposing (appLayout, userLayout)
 
 import Avatar exposing (personAvatar, thingAvatar)
 import Group exposing (Group)
@@ -26,15 +26,6 @@ appLayout nodes =
         [ class "font-sans font-antialised"
         ]
         nodes
-
-
-spaceLayout : SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> Html msg
-spaceLayout viewer space bookmarks maybeCurrentRoute nodes =
-    let
-        sidebar =
-            spaceSidebar viewer space bookmarks maybeCurrentRoute
-    in
-    appLayout (sidebar :: nodes)
 
 
 userLayout : User -> Html msg -> Html msg

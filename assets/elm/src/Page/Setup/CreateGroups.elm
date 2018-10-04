@@ -18,7 +18,7 @@ import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -217,19 +217,17 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Maybe Route -> Model -> Data -> Html Msg
 resolvedView maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
-            [ div [ class "mx-auto py-24 max-w-400px leading-normal" ]
-                [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text ("Welcome to Level, " ++ SpaceUser.firstName data.viewer ++ "!") ]
-                , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
-                , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
-                , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
-                , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Create these groups" ]
-                ]
+        [ div [ class "mx-auto px-8 py-24 max-w-sm leading-normal" ]
+            [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text ("Welcome to Level, " ++ SpaceUser.firstName data.viewer ++ "!") ]
+            , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. We've assembled some common ones to choose from, but you can always create more later." ]
+            , p [ class "mb-6" ] [ text "Select the groups you'd like to create:" ]
+            , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
+            , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Create these groups" ]
             ]
         ]
 

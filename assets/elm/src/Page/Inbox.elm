@@ -454,11 +454,6 @@ sidebarView space featuredUsers pushStatus =
             , class "block text-sm text-blue no-underline"
             ]
             [ text "Invite people" ]
-        , a
-            [ Route.href (Route.SpaceSettings (Space.slug space))
-            , class "block text-sm text-blue no-underline"
-            ]
-            [ text "Space settings" ]
         ]
 
 
