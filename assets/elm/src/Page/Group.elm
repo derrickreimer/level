@@ -38,7 +38,7 @@ import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
-import View.Layout exposing (spaceLayout)
+import View.SpaceLayout
 
 
 
@@ -571,12 +571,12 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
-    spaceLayout
+    View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-56" ]
+        [ div [ class "md:mr-48 lg:mr-56" ]
             [ div [ class "mx-auto max-w-90 leading-normal" ]
                 [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-50" ]
                     [ div [ class "flex items-center" ]
@@ -732,7 +732,12 @@ postView repo space currentUser now component =
 
 sidebarView : Group -> List SpaceUser -> Html Msg
 sidebarView group featuredMembers =
-    div [ class "fixed pin-t pin-r w-56 mt-3 py-2 pl-6 border-l min-h-half" ]
+    div
+        [ classList
+            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 border-l min-h-half", True )
+            , ( "hidden md:block md:w-48 lg:w-56", True )
+            ]
+        ]
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
             [ text "Members"
             , privacyToggle (Group.isPrivate group)
