@@ -504,10 +504,10 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
-            [ div []
+            [ div [ class "pb-1 leading-normal" ]
                 [ a
                     [ Route.href <| Route.Post (Space.slug space) model.postId
-                    , class "no-underline text-dusty-blue-darkest"
+                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
@@ -516,7 +516,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
                 , a
                     [ Route.href <| Route.Post (Space.slug space) model.postId
-                    , class "no-underline"
+                    , class "no-underline whitespace-no-wrap"
                     , rel "tooltip"
                     , title "Expand post"
                     ]
@@ -530,14 +530,14 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                             ]
                             [ text "Edit" ]
                         ]
-                , viewUnless (PostEditor.isExpanded model.postEditor) <|
-                    bodyView space model.mode data.post
-                , viewIf (PostEditor.isExpanded model.postEditor) <|
-                    postEditorView model.postEditor
-                , div [ class "flex items-center" ]
-                    [ div [ class "flex-grow" ]
-                        [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
-                        ]
+                ]
+            , viewUnless (PostEditor.isExpanded model.postEditor) <|
+                bodyView space model.mode data.post
+            , viewIf (PostEditor.isExpanded model.postEditor) <|
+                postEditorView model.postEditor
+            , div [ class "flex items-center" ]
+                [ div [ class "flex-grow" ]
+                    [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
                     ]
                 ]
             , div [ class "relative" ]
@@ -580,7 +580,7 @@ groupsLabel space groups =
             span [ class "ml-3 text-sm text-dusty-blue" ]
                 [ a
                     [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
-                    , class "no-underline text-dusty-blue font-bold"
+                    , class "no-underline text-dusty-blue font-bold whitespace-no-wrap"
                     ]
                     [ text (Group.name group) ]
                 ]
@@ -646,13 +646,13 @@ repliesView repo space post now replyIds mode =
                 Feed ->
                     a
                         [ Route.href (Route.Post (Space.slug space) (Post.id post))
-                        , class "mb-2 text-dusty-blue no-underline"
+                        , class "mb-2 text-dusty-blue no-underline whitespace-no-wrap"
                         ]
                         [ text "Show more..." ]
 
                 FullPage ->
                     button
-                        [ class "mb-2 text-dusty-blue no-underline"
+                        [ class "mb-2 text-dusty-blue no-underline whitespace-no-wrap"
                         , onClick PreviousRepliesRequested
                         ]
                         [ text "Load more..." ]
@@ -685,8 +685,8 @@ replyView repo (( zone, posix ) as now) post reply =
                 , div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ div []
-                        [ span [ class "font-bold" ] [ text <| SpaceUser.displayName author ]
-                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue" ]
+                        [ span [ class "font-bold whitespace-no-wrap" ] [ text <| SpaceUser.displayName author ]
+                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         ]
                     , div [ class "markdown mb-2" ]
                         [ RenderedHtml.node (Reply.bodyHtml reply)
