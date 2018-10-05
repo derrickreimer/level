@@ -6,8 +6,8 @@ defmodule Level.Posts.UpdateReply do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Posts
-  alias Level.Posts.Reply
   alias Level.Posts.PostLog
+  alias Level.Posts.Reply
   alias Level.ReplyVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
