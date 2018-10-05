@@ -768,7 +768,7 @@ replyView repo (( zone, posix ) as now) post editors reply =
                     [ div []
                         [ span [ class "font-bold whitespace-no-wrap" ] [ text <| SpaceUser.displayName author ]
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
-                        , viewIf (not (PostEditor.isExpanded editor)) <|
+                        , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             div [ class "inline-block" ]
                                 [ span [ class "mx-2 text-sm text-dusty-blue" ] [ text "·" ]
                                 , button
