@@ -28,11 +28,8 @@ defmodule Level.Posts.PostLog do
     timestamps(inserted_at: :occurred_at, updated_at: false)
   end
 
-  @spec post_created(
-          Level.Posts.Post.t(),
-          Level.Groups.Group.t(),
-          Level.Spaces.SpaceUser.t()
-        ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  @spec post_created(Post.t(), Group.t(), SpaceUser.t()) ::
+          {:ok, t()} | {:error, Ecto.Changeset.t()}
   def post_created(%Post{} = post, %Group{} = group, %SpaceUser{} = space_user) do
     params = %{
       event: "POST_CREATED",
@@ -47,10 +44,7 @@ defmodule Level.Posts.PostLog do
     |> Repo.insert()
   end
 
-  @spec post_edited(
-          Level.Posts.Post.t(),
-          Level.Spaces.SpaceUser.t()
-        ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  @spec post_edited(Post.t(), SpaceUser.t()) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
   def post_edited(%Post{} = post, %SpaceUser{} = space_user) do
     params = %{
       event: "POST_EDITED",
@@ -64,11 +58,8 @@ defmodule Level.Posts.PostLog do
     |> Repo.insert()
   end
 
-  @spec reply_created(
-          Level.Posts.Post.t(),
-          Level.Posts.Reply.t(),
-          Level.Spaces.SpaceUser.t()
-        ) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  @spec reply_created(Post.t(), Reply.t(), SpaceUser.t()) ::
+          {:ok, t()} | {:error, Ecto.Changeset.t()}
   def reply_created(%Post{} = post, %Reply{} = reply, %SpaceUser{} = space_user) do
     groups =
       post
@@ -87,6 +78,21 @@ defmodule Level.Posts.PostLog do
       space_id: post.space_id,
       group_id: group_id,
       post_id: post.id,
+      reply_id: reply.id,
+      actor_id: space_user.id
+    }
+
+    %__MODULE__{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert()
+  end
+
+  @spec reply_edited(Reply.t(), SpaceUser.t()) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  def reply_edited(%Reply{} = reply, %SpaceUser{} = space_user) do
+    params = %{
+      event: "REPLY_EDITED",
+      space_id: reply.space_id,
+      post_id: reply.post_id,
       reply_id: reply.id,
       actor_id: space_user.id
     }

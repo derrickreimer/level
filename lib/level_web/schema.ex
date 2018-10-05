@@ -193,6 +193,15 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.create_reply/2
     end
 
+    @desc "Updates a reply."
+    field :update_reply, type: :update_reply_payload do
+      arg :space_id, non_null(:id)
+      arg :reply_id, non_null(:id)
+      arg :body, :string
+
+      resolve &Level.Mutations.update_reply/2
+    end
+
     @desc "Records when a user views a post (optionally with the last viewed reply)."
     field :record_post_view, type: :record_post_view_payload do
       arg :space_id, non_null(:id)

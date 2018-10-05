@@ -364,11 +364,31 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Updates a reply.
+  """
+  @spec update_reply(map(), info()) :: reply_mutation_result()
+  def update_reply(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, reply} <- Posts.get_reply(user, args.reply_id),
+         {:ok, %{updated_reply: updated_reply}} <- Posts.update_reply(space_user, reply, args) do
+      {:ok, %{success: true, reply: updated_reply, errors: []}}
+    else
+      {:error, :original_reply, _, _} ->
+        {:ok, %{success: false, reply: nil, errors: []}}
+
+      {:error, :updated_reply, changeset, _} ->
+        {:ok, %{success: false, reply: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
   Records a post view.
   """
   @spec record_post_view(map(), info()) ::
           {:ok, %{success: boolean(), errors: validation_errors()}} | {:error, String.t()}
-
   def record_post_view(
         %{space_id: space_id, post_id: post_id},
         %{context: %{current_user: user}}

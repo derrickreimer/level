@@ -86,6 +86,10 @@ defmodule Level.Events do
     publish_to_post(id, :reply_created, %{reply: reply})
   end
 
+  def reply_updated(id, %Reply{} = reply) do
+    publish_to_post(id, :reply_updated, %{reply: reply})
+  end
+
   # Internal
 
   defp publish_to_space(id, type, data) do

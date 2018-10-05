@@ -20,6 +20,7 @@ defmodule Level.Posts do
   alias Level.Posts.Reply
   alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
+  alias Level.Posts.UpdateReply
   alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
@@ -130,6 +131,14 @@ defmodule Level.Posts do
   def get_reply(%Post{} = post, id) do
     post
     |> Ecto.assoc(:replies)
+    |> Repo.get_by(id: id)
+    |> handle_reply_query()
+  end
+
+  @spec get_reply(User.t(), String.t()) :: {:ok, Reply.t()} | {:error, String.t()}
+  def get_reply(%User{} = user, id) do
+    user
+    |> replies_base_query()
     |> Repo.get_by(id: id)
     |> handle_reply_query()
   end
@@ -421,6 +430,11 @@ defmodule Level.Posts do
     current_space_user.id == post.space_user_id
   end
 
+  @spec can_edit?(SpaceUser.t(), Reply.t()) :: boolean()
+  def can_edit?(%SpaceUser{} = current_space_user, %Reply{} = reply) do
+    current_space_user.id == reply.space_user_id
+  end
+
   @doc """
   Updates a post.
   """
@@ -430,6 +444,17 @@ defmodule Level.Posts do
           | {:error, atom(), any(), map()}
   def update_post(%SpaceUser{} = space_user, %Post{} = post, params) do
     UpdatePost.perform(space_user, post, params)
+  end
+
+  @doc """
+  Updates a reply.
+  """
+  @spec update_reply(SpaceUser.t(), Reply.t(), map()) ::
+          {:ok, %{original_reply: Reply.t(), updated_reply: Reply.t(), version: ReplyVersion.t()}}
+          | {:error, :unauthorized}
+          | {:error, atom(), any(), map()}
+  def update_reply(%SpaceUser{} = space_user, %Reply{} = reply, params) do
+    UpdateReply.perform(space_user, reply, params)
   end
 
   # Internal
