@@ -1,4 +1,4 @@
-module View.Helpers exposing (formatTime, formatTimeOfDay, onNonAnchorClick, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
+module View.Helpers exposing (formatTime, formatTimeOfDay, onPassiveClick, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
 
 import Browser.Dom exposing (blur, focus)
 import Html exposing (..)
@@ -68,8 +68,8 @@ selectValue id =
 -- EVENTS
 
 
-onNonAnchorClick : msg -> Attribute msg
-onNonAnchorClick msg =
+onPassiveClick : msg -> Attribute msg
+onPassiveClick msg =
     let
         convert nodeName =
             case nodeName of
@@ -78,6 +78,15 @@ onNonAnchorClick msg =
 
                 "BUTTON" ->
                     Decode.fail "a button was clicked"
+
+                "LABEL" ->
+                    Decode.fail "a label was clicked"
+
+                "TEXTAREA" ->
+                    Decode.fail "a textarea was clicked"
+
+                "INPUT" ->
+                    Decode.fail "an input was clicked"
 
                 _ ->
                     Decode.succeed msg

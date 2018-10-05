@@ -294,6 +294,7 @@ defmodule Level.Resolvers do
   @doc """
   Determines whether the current user can edit the post.
   """
+  @spec can_edit_post(Post.t(), map(), info()) :: dataloader_result()
   def can_edit_post(%Post{} = post, _, %{context: %{loader: loader, current_user: user}}) do
     batch_key = SpaceUser
     item_key = post.space_user_id
@@ -312,6 +313,31 @@ defmodule Level.Resolvers do
   end
 
   defp check_edit_post_permissions(_, _current_user) do
+    {:ok, false}
+  end
+
+  @doc """
+  Determines whether the current user can edit the reply.
+  """
+  @spec can_edit_reply(Reply.t(), map(), info()) :: dataloader_result()
+  def can_edit_reply(%Reply{} = reply, _, %{context: %{loader: loader, current_user: user}}) do
+    batch_key = SpaceUser
+    item_key = reply.space_user_id
+
+    loader
+    |> Dataloader.load(:db, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(:db, batch_key, item_key)
+      |> check_edit_reply_permissions(user)
+    end)
+  end
+
+  defp check_edit_reply_permissions(%SpaceUser{} = post_author, current_user) do
+    {:ok, Posts.can_edit?(current_user, post_author)}
+  end
+
+  defp check_edit_reply_permissions(_, _current_user) do
     {:ok, false}
   end
 

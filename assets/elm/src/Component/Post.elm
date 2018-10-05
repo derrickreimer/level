@@ -3,6 +3,7 @@ module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleR
 import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
+import Dict exposing (Dict)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -17,6 +18,7 @@ import Mutation.CreateReply as CreateReply
 import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.UpdatePost as UpdatePost
+import Mutation.UpdateReply as UpdateReply
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
 import Query.Replies
@@ -35,7 +37,7 @@ import Task exposing (Task)
 import Time exposing (Posix, Zone)
 import ValidationError
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (onNonAnchorClick, setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
+import View.Helpers exposing (onPassiveClick, setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
 
 
 
@@ -51,6 +53,7 @@ type alias Model =
     , replyIds : Connection Id
     , replyComposer : ReplyComposer
     , postEditor : PostEditor
+    , replyEditors : ReplyEditors
     , isChecked : Bool
     }
 
@@ -64,6 +67,10 @@ type alias Data =
     { post : Post
     , author : SpaceUser
     }
+
+
+type alias ReplyEditors =
+    Dict Id PostEditor
 
 
 resolveData : Repo -> Model -> Maybe Data
@@ -106,6 +113,7 @@ init mode showGroups spaceSlug postId replyIds =
         replyIds
         (ReplyComposer.init replyMode)
         (PostEditor.init postId)
+        Dict.empty
         False
 
 
@@ -166,12 +174,17 @@ type Msg
     | SelectionToggled
     | DismissClicked
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
-    | ClickedInFeed
+    | ClickedToExpand
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
+    | ExpandReplyEditor Id
+    | CollapseReplyEditor Id
+    | ReplyEditorBodyChanged Id String
+    | ReplyEditorSubmitted Id
+    | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | NoOp
 
 
@@ -345,7 +358,7 @@ update msg spaceId globals model =
         Dismissed (Err _) ->
             noCmd globals model
 
-        ClickedInFeed ->
+        ClickedToExpand ->
             ( ( model, Route.pushUrl globals.navKey (Route.Post model.spaceSlug model.postId) ), globals )
 
         ExpandPostEditor ->
@@ -427,7 +440,136 @@ update msg spaceId globals model =
             redirectToLogin globals model
 
         PostUpdated (Err _) ->
-            noCmd globals model
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setNotSubmitting
+            in
+            ( ( { model | postEditor = newPostEditor }, Cmd.none ), globals )
+
+        ExpandReplyEditor replyId ->
+            case Repo.getReply replyId globals.repo of
+                Just reply ->
+                    let
+                        newReplyEditor =
+                            model.replyEditors
+                                |> getReplyEditor replyId
+                                |> PostEditor.expand
+                                |> PostEditor.setBody (Reply.body reply)
+                                |> PostEditor.clearErrors
+
+                        nodeId =
+                            PostEditor.getId newReplyEditor
+
+                        cmd =
+                            Cmd.batch
+                                [ setFocus nodeId NoOp
+                                , Autosize.init nodeId
+                                ]
+
+                        newReplyEditors =
+                            model.replyEditors
+                                |> Dict.insert replyId newReplyEditor
+                    in
+                    ( ( { model | replyEditors = newReplyEditors }, cmd ), globals )
+
+                Nothing ->
+                    noCmd globals model
+
+        CollapseReplyEditor replyId ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.collapse
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorBodyChanged replyId val ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setBody val
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorSubmitted replyId ->
+            let
+                replyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+
+                cmd =
+                    globals.session
+                        |> UpdateReply.request spaceId replyId (PostEditor.getBody replyEditor)
+                        |> Task.attempt (ReplyUpdated replyId)
+
+                newReplyEditor =
+                    replyEditor
+                        |> PostEditor.setToSubmitting
+                        |> PostEditor.clearErrors
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, cmd ), globals )
+
+        ReplyUpdated replyId (Ok ( newSession, UpdateReply.Success reply )) ->
+            let
+                newGlobals =
+                    { globals | session = newSession, repo = Repo.setReply reply globals.repo }
+
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.collapse
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), newGlobals )
+
+        ReplyUpdated replyId (Ok ( newSession, UpdateReply.Invalid errors )) ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.setErrors errors
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyUpdated replyId (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyUpdated replyId (Err _) ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setNotSubmitting
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
 
         NoOp ->
             noCmd globals model
@@ -504,7 +646,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
-            [ div [ class "pb-1 leading-normal" ]
+            [ div []
                 [ a
                     [ Route.href <| Route.Post (Space.slug space) model.postId
                     , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
@@ -541,7 +683,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     ]
                 ]
             , div [ class "relative" ]
-                [ repliesView repo space data.post now model.replyIds model.mode
+                [ repliesView repo space data.post now model.replyIds model.mode model.replyEditors
                 , replyComposerView currentUser data.post model
                 ]
             ]
@@ -570,7 +712,7 @@ checkableView repo space viewer now model =
 
 
 
--- PRIVATE VIEW FUNCTIONS
+-- PRIVATE POST VIEW FUNCTIONS
 
 
 groupsLabel : Space -> List Group -> Html Msg
@@ -591,21 +733,14 @@ groupsLabel space groups =
 
 bodyView : Space -> Mode -> Post -> Html Msg
 bodyView space mode post =
-    case mode of
-        Feed ->
-            div
-                [ class "markdown mb-2 cursor-pointer select-none"
-                , onNonAnchorClick ClickedInFeed
-                ]
-                [ RenderedHtml.node (Post.bodyHtml post) ]
-
-        FullPage ->
-            div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+    clickToExpandIf (mode == Feed)
+        [ div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        ]
 
 
 postEditorView : PostEditor -> Html Msg
 postEditorView editor =
-    label [ class "composer my-2 p-4" ]
+    label [ class "composer my-2 p-3" ]
         [ textarea
             [ id (PostEditor.getId editor)
             , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
@@ -635,8 +770,12 @@ postEditorView editor =
         ]
 
 
-repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> Html Msg
-repliesView repo space post now replyIds mode =
+
+-- PRIVATE REPLY VIEW FUNCTIONS
+
+
+repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> ReplyEditors -> Html Msg
+repliesView repo space post now replyIds mode editors =
     let
         ( replies, hasPreviousPage ) =
             visibleReplies repo mode replyIds
@@ -656,47 +795,92 @@ repliesView repo space post now replyIds mode =
                         , onClick PreviousRepliesRequested
                         ]
                         [ text "Load more..." ]
-
-        attributes =
-            case mode of
-                Feed ->
-                    [ class "cursor-pointer select-none", onNonAnchorClick ClickedInFeed ]
-
-                FullPage ->
-                    []
     in
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
-        div attributes
+        div []
             [ viewIf hasPreviousPage actionButton
-            , div [] (List.map (replyView repo now post) replies)
+            , div [] (List.map (replyView repo now post mode editors) replies)
             ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Post -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) post reply =
+replyView : Repo -> ( Zone, Posix ) -> Post -> Mode -> ReplyEditors -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) post mode editors reply =
+    let
+        replyId =
+            Reply.id reply
+
+        editor =
+            getReplyEditor replyId editors
+    in
     case Repo.getSpaceUser (Reply.authorId reply) repo of
         Just author ->
             div
-                [ id (replyNodeId (Reply.id reply))
+                [ id (replyNodeId replyId)
                 , classList [ ( "flex mt-3 relative", True ) ]
                 ]
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 rounded pin-t pin-b bg-turquoise flex-no-shrink" ] []
                 , div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
-                    [ div []
+                    [ clickToExpandIf (mode == Feed)
                         [ span [ class "font-bold whitespace-no-wrap" ] [ text <| SpaceUser.displayName author ]
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                        , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
+                            div [ class "inline-block" ]
+                                [ span [ class "mx-2 text-sm text-dusty-blue" ] [ text "·" ]
+                                , button
+                                    [ class "text-sm text-dusty-blue"
+                                    , onClick (ExpandReplyEditor replyId)
+                                    ]
+                                    [ text "Edit" ]
+                                ]
                         ]
-                    , div [ class "markdown mb-2" ]
-                        [ RenderedHtml.node (Reply.bodyHtml reply)
-                        ]
+                    , viewUnless (PostEditor.isExpanded editor) <|
+                        clickToExpandIf (mode == Feed)
+                            [ div [ class "markdown mb-2" ]
+                                [ RenderedHtml.node (Reply.bodyHtml reply)
+                                ]
+                            ]
+                    , viewIf (PostEditor.isExpanded editor) <|
+                        replyEditorView replyId editor
                     ]
                 ]
 
         Nothing ->
             -- The author was not in the repo as expected, so we can't display the reply
             text ""
+
+
+replyEditorView : Id -> PostEditor -> Html Msg
+replyEditorView replyId editor =
+    label [ class "composer my-2 p-3" ]
+        [ textarea
+            [ id (PostEditor.getId editor)
+            , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+            , placeholder "Edit reply..."
+            , onInput (ReplyEditorBodyChanged replyId)
+            , readonly (PostEditor.isSubmitting editor)
+            , value (PostEditor.getBody editor)
+            , onKeydown preventDefault
+                [ ( [ Meta ], enter, \event -> ReplyEditorSubmitted replyId )
+                ]
+            ]
+            []
+        , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
+        , div [ class "flex justify-end" ]
+            [ button
+                [ class "mr-2 btn btn-grey-outline btn-sm"
+                , onClick (CollapseReplyEditor replyId)
+                ]
+                [ text "Cancel" ]
+            , button
+                [ class "btn btn-blue btn-sm"
+                , onClick (ReplyEditorSubmitted replyId)
+                , disabled (PostEditor.isSubmitting editor)
+                ]
+                [ text "Update reply" ]
+            ]
+        ]
 
 
 replyComposerView : SpaceUser -> Post -> Model -> Html Msg
@@ -816,3 +1000,18 @@ visibleReplies repo mode replyIds =
                     Connection.hasPreviousPage replyIds
             in
             ( replies, hasPreviousPage )
+
+
+getReplyEditor : Id -> ReplyEditors -> PostEditor
+getReplyEditor replyId editors =
+    Dict.get replyId editors
+        |> Maybe.withDefault (PostEditor.init replyId)
+
+
+clickToExpandIf : Bool -> List (Html Msg) -> Html Msg
+clickToExpandIf truth children =
+    if truth then
+        div [ class "cursor-pointer select-none", onPassiveClick ClickedToExpand ] children
+
+    else
+        div [] children

@@ -372,6 +372,20 @@ CREATE TABLE public.replies (
 
 
 --
+-- Name: reply_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.reply_versions (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    reply_id uuid NOT NULL,
+    author_id uuid NOT NULL,
+    body text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: reply_views; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -599,6 +613,14 @@ ALTER TABLE ONLY public.replies
 
 
 --
+-- Name: reply_versions reply_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_versions
+    ADD CONSTRAINT reply_versions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: reply_views reply_views_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -751,6 +773,13 @@ CREATE INDEX posts_id_index ON public.posts USING btree (id);
 --
 
 CREATE UNIQUE INDEX push_subscriptions_user_id_digest_index ON public.push_subscriptions USING btree (user_id, digest);
+
+
+--
+-- Name: reply_versions_reply_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX reply_versions_reply_id_index ON public.reply_versions USING btree (reply_id);
 
 
 --
@@ -1119,6 +1148,30 @@ ALTER TABLE ONLY public.replies
 
 
 --
+-- Name: reply_versions reply_versions_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_versions
+    ADD CONSTRAINT reply_versions_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.space_users(id);
+
+
+--
+-- Name: reply_versions reply_versions_reply_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_versions
+    ADD CONSTRAINT reply_versions_reply_id_fkey FOREIGN KEY (reply_id) REFERENCES public.replies(id);
+
+
+--
+-- Name: reply_versions reply_versions_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_versions
+    ADD CONSTRAINT reply_versions_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: reply_views reply_views_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1226,5 +1279,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158);
 

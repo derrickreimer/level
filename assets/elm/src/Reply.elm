@@ -1,4 +1,4 @@
-module Reply exposing (Reply, authorId, body, bodyHtml, decoder, fragment, hasViewed, id, postId, postedAt)
+module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, fragment, hasViewed, id, postId, postedAt)
 
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
@@ -24,6 +24,7 @@ type alias Data =
     , bodyHtml : String
     , authorId : Id
     , hasViewed : Bool
+    , canEdit : Bool
     , postedAt : Posix
     , fetchedAt : Int
     }
@@ -42,6 +43,7 @@ fragment =
             ...SpaceUserFields
           }
           hasViewed
+          canEdit
           postedAt
           fetchedAt
         }
@@ -84,6 +86,11 @@ hasViewed (Reply data) =
     data.hasViewed
 
 
+canEdit : Reply -> Bool
+canEdit (Reply data) =
+    data.canEdit
+
+
 postedAt : Reply -> Posix
 postedAt (Reply data) =
     data.postedAt
@@ -103,6 +110,7 @@ decoder =
             |> required "bodyHtml" string
             |> required "author" (field "id" Id.decoder)
             |> required "hasViewed" bool
+            |> required "canEdit" bool
             |> required "postedAt" dateDecoder
             |> required "fetchedAt" int
         )
