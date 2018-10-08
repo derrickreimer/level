@@ -21,16 +21,25 @@ customElements.define(
       this.teardownAutosize();
     }
 
+    /**
+     * Initialize the autosize functionality on the textarea.
+     */
     setupAutosize() {
       let textarea = this.querySelector("textarea");
       if (textarea) { autosize(textarea) };
     }
 
+    /**
+     * Teardown the autosize binding when the node is disconnected.
+     */
     teardownAutosize() {
       let textarea = this.querySelector("textarea");
       if (textarea) { autosize.destroy(textarea) };
     }
 
+    /**
+     * Set up listeners for drag events.
+     */
     setupDragDrop() {
       // We need to prevent the default dragover event to make this a valid drop zone:
       // "Calling the preventDefault() method during both a dragenter and dragover 
