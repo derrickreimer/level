@@ -128,9 +128,11 @@ isSubmitting : PostEditor -> Bool
 isSubmitting (PostEditor internal) =
     internal.isSubmitting
 
+
 isSubmittable : PostEditor -> Bool
 isSubmittable editor =
     not (isUnsubmittable editor)
+
 
 isUnsubmittable : PostEditor -> Bool
 isUnsubmittable (PostEditor internal) =
