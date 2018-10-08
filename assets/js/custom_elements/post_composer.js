@@ -91,6 +91,11 @@ customElements.define(
         this.stoppedDraggingOver();
         console.log('dragend', e);
       });
+
+      this.addEventListener('dragexit', (e) => {
+        this.stoppedDraggingOver();
+        console.log('dragexit', e);
+      });
     }
 
     startedDraggingOver() {
