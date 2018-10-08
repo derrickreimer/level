@@ -2,11 +2,13 @@ import "@webcomponents/custom-elements";
 import autosize from "autosize";
 
 const isOutside = (rect, clientX, clientY) => {
-  return clientX >= rect.right ||
+  return (
+    clientX >= rect.right ||
     clientX < rect.left ||
     clientY >= rect.bottom ||
-    clientY < rect.top;
-}
+    clientY < rect.top
+  );
+};
 
 customElements.define(
   "post-composer",
@@ -15,7 +17,8 @@ customElements.define(
       this.setupAutosize();
       this.setupDragDrop();
       this._dragging_over = false;
-    };
+      this.files = [];
+    }
 
     disconnectedCallback() {
       this.teardownAutosize();
@@ -26,7 +29,9 @@ customElements.define(
      */
     setupAutosize() {
       let textarea = this.querySelector("textarea");
-      if (textarea) { autosize(textarea) };
+      if (textarea) {
+        autosize(textarea);
+      }
     }
 
     /**
@@ -34,7 +39,9 @@ customElements.define(
      */
     teardownAutosize() {
       let textarea = this.querySelector("textarea");
-      if (textarea) { autosize.destroy(textarea) };
+      if (textarea) {
+        autosize.destroy(textarea);
+      }
     }
 
     /**
@@ -42,26 +49,26 @@ customElements.define(
      */
     setupDragDrop() {
       // We need to prevent the default dragover event to make this a valid drop zone:
-      // "Calling the preventDefault() method during both a dragenter and dragover 
+      // "Calling the preventDefault() method during both a dragenter and dragover
       // event will indicate that a drop is allowed at that location."
       // https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#droptargets#droptargets
-      this.addEventListener('dragover', (e) => {
+      this.addEventListener("dragover", e => {
         e.stopPropagation();
         e.preventDefault();
       });
 
-      this.addEventListener('dragenter', (e) => {
+      this.addEventListener("dragenter", e => {
         e.stopPropagation();
         e.preventDefault();
 
         if (!this._dragging_over) {
           this._dragging_over = true;
-          console.log('enter', e);
-          this.classList.add('dragging-over');
+          console.log("enter", e);
+          this.classList.add("dragging-over");
         }
       });
 
-      this.addEventListener('dragleave', (e) => {
+      this.addEventListener("dragleave", e => {
         e.stopPropagation();
         e.preventDefault();
 
@@ -69,52 +76,86 @@ customElements.define(
 
         if (isOutside(rect, e.clientX, e.clientY)) {
           this.stoppedDraggingOver();
-          console.log('leave', e);
+          console.log("leave", e);
         }
       });
 
-      this.addEventListener('dragenter', (e) => {
+      this.addEventListener("dragenter", e => {
         e.stopPropagation();
         e.preventDefault();
 
         if (!this._dragging_over) {
           this.startedDraggingOver();
-          console.log('enter', e);
+          console.log("enter", e);
         }
       });
 
-      this.addEventListener('drop', (e) => {
+      this.addEventListener("drop", e => {
         e.stopPropagation();
         e.preventDefault();
 
         this.stoppedDraggingOver();
 
-        console.log('drop', e);
+        console.log("drop", e);
 
         let dt = e.dataTransfer;
         let files = dt.files;
-        console.log(files);
+
+        [].forEach.call(files, file => {
+          console.log(file);
+          this.addFile(file);
+        });
       });
 
-      this.addEventListener('dragend', (e) => {
+      this.addEventListener("dragend", e => {
         this.stoppedDraggingOver();
-        console.log('dragend', e);
+        console.log("dragend", e);
       });
 
-      this.addEventListener('dragexit', (e) => {
+      this.addEventListener("dragexit", e => {
         this.stoppedDraggingOver();
-        console.log('dragexit', e);
+        console.log("dragexit", e);
       });
     }
 
+    /**
+     * Updates state to reflect that the user is dragging a file over the composer.
+     */
     startedDraggingOver() {
       this._dragging_over = true;
-      this.classList.add('dragging-over');
+      this.classList.add("dragging-over");
     }
 
+    /**
+     * Updates state to reflect that the user is not dragging over the composer.
+     */
     stoppedDraggingOver() {
       this._dragging_over = false;
-      this.classList.remove('dragging-over');
+      this.classList.remove("dragging-over");
+    }
+
+    /**
+     * Adds a file to the file queue.
+     */
+    addFile(file) {
+      let reader = new FileReader();
+
+      reader.onload = event => {
+        let data = {
+          file: file,
+          id: file.name,
+          name: file.name,
+          type_: file.type,
+          size: file.size,
+          contents: event.target.result
+        };
+
+        this.files.push(data);
+        console.log(data);
+        this.dispatchEvent(new CustomEvent("fileAdded"));
+      };
+
+      reader.readAsDataURL(file);
     }
   }
 );

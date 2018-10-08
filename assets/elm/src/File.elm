@@ -1,10 +1,10 @@
-module File exposing (Data, File, avatarInput, getContents, init, input, receive, request)
+module File exposing (Data, File, avatarInput, decoder, getContents, init, input, receive, request)
 
 import File.Types exposing (Data)
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
 import Html.Events exposing (on)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder, field, int, string)
 import Ports
 
 
@@ -32,6 +32,22 @@ init data =
 getContents : File -> String
 getContents (File { contents }) =
     contents
+
+
+
+-- DECODING
+
+
+decoder : Decoder File
+decoder =
+    Decode.map File
+        (Decode.map5 Data
+            (field "id" string)
+            (field "name" string)
+            (field "type_" string)
+            (field "size" int)
+            (field "contents" string)
+        )
 
 
 

@@ -1,4 +1,8 @@
-module ReplyComposer exposing (Mode(..), ReplyComposer, blurred, escaped, expand, getBody, init, isExpanded, isSubmitting, notSubmitting, setBody, stayExpanded, submitting, unsubmittable)
+module ReplyComposer exposing (Mode(..), ReplyComposer, blurred, escaped, expand, getBody, init, isExpanded, isSubmitting, notSubmitting, setBody, setFiles, stayExpanded, submitting, unsubmittable)
+
+import File exposing (File)
+
+
 
 -- TYPES
 
@@ -12,6 +16,7 @@ type alias Data =
     , isExpanded : Bool
     , isSubmitting : Bool
     , mode : Mode
+    , files : List File
     }
 
 
@@ -35,7 +40,7 @@ init mode =
                 AlwaysExpanded ->
                     True
     in
-    ReplyComposer (Data "" expanded False mode)
+    ReplyComposer (Data "" expanded False mode [])
 
 
 getBody : ReplyComposer -> String
@@ -98,3 +103,8 @@ notSubmitting (ReplyComposer data) =
 unsubmittable : ReplyComposer -> Bool
 unsubmittable (ReplyComposer data) =
     (data.body == "") || data.isSubmitting
+
+
+setFiles : List File -> ReplyComposer -> ReplyComposer
+setFiles newFiles (ReplyComposer data) =
+    ReplyComposer { data | files = newFiles }

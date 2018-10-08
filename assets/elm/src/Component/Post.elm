@@ -3,6 +3,7 @@ module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleR
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Dict exposing (Dict)
+import File exposing (File)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -166,6 +167,7 @@ type Msg
     | NewReplySubmit
     | NewReplyEscaped
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
+    | NewReplyFilesUpdated (List File)
     | PreviousRepliesRequested
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
@@ -267,6 +269,9 @@ update msg spaceId globals model =
                     { model | replyComposer = ReplyComposer.blurred model.replyComposer }
             in
             noCmd globals newModel
+
+        NewReplyFilesUpdated files ->
+            noCmd globals { model | replyComposer = ReplyComposer.setFiles files model.replyComposer }
 
         PreviousRepliesRequested ->
             case Connection.startCursor model.replyIds of
@@ -898,7 +903,7 @@ expandedReplyComposerView : SpaceUser -> Post -> Model -> Html Msg
 expandedReplyComposerView currentUser post model =
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
         [ Html.node "post-composer"
-            []
+            [ on "fileAdded" (Decode.map NewReplyFilesUpdated (Decode.at [ "target", "files" ] (Decode.list File.decoder))) ]
             [ label [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]

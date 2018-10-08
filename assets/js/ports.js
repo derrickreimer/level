@@ -24,7 +24,7 @@ export const attachPorts = app => {
     let presence = new Presence(channel);
 
     presence.onJoin((userId, current, presence) => {
-      const callback = 'onJoin';
+      const callback = "onJoin";
       const data = { userId, current, presence };
       const payload = { callback, topic, data };
 
@@ -33,7 +33,7 @@ export const attachPorts = app => {
     });
 
     presence.onLeave((userId, current, presence) => {
-      const callback = 'onLeave';
+      const callback = "onLeave";
       const data = { userId, current, presence };
       const payload = { callback, topic, data };
 
@@ -42,7 +42,7 @@ export const attachPorts = app => {
     });
 
     presence.onSync(() => {
-      const callback = 'onSync';
+      const callback = "onSync";
 
       const data = presence.list((userId, presence) => {
         return { userId, presence };
@@ -111,11 +111,11 @@ export const attachPorts = app => {
     const { method, topic } = arg;
 
     switch (method) {
-      case 'join':
+      case "join":
         joinChannel(topic);
         break;
 
-      case 'leave':
+      case "leave":
         leaveChannel(topic);
         break;
     }
