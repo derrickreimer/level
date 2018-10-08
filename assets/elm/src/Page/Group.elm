@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
+import File exposing (File)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembership, GroupMembershipState(..))
@@ -20,6 +21,7 @@ import Mutation.UpdateGroup as UpdateGroup
 import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Pagination
 import Post exposing (Post)
+import PostEditor exposing (PostEditor)
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
@@ -57,12 +59,6 @@ type alias FieldEditor =
     }
 
 
-type alias PostComposer =
-    { body : String
-    , isSubmitting : Bool
-    }
-
-
 type alias Model =
     { params : Params
     , viewerId : Id
@@ -73,7 +69,7 @@ type alias Model =
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
     , nameEditor : FieldEditor
-    , postComposer : PostComposer
+    , postComposer : PostEditor
     }
 
 
@@ -139,7 +135,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 postComps
                 now
                 (FieldEditor NotEditing "" [])
-                (PostComposer "" False)
+                (PostEditor.init "post-composer")
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -206,6 +202,7 @@ type Msg
     | Tick Posix
     | SetCurrentTime Posix Zone
     | NewPostBodyChanged String
+    | NewPostFilesUpdated (List File)
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | MembershipStateToggled GroupMembershipState
@@ -235,39 +232,35 @@ update msg globals model =
             ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
         SetCurrentTime posix zone ->
-            { model | now = ( zone, posix ) }
-                |> noCmd globals
+            noCmd globals { model | now = ( zone, posix ) }
 
         NewPostBodyChanged value ->
-            let
-                postComposer =
-                    model.postComposer
-            in
-            { model | postComposer = { postComposer | body = value } }
-                |> noCmd globals
+            noCmd globals { model | postComposer = PostEditor.setBody value model.postComposer }
+
+        NewPostFilesUpdated files ->
+            noCmd globals { model | postComposer = PostEditor.setFiles files model.postComposer }
 
         NewPostSubmit ->
-            if newPostSubmittable model.postComposer then
+            if PostEditor.isSubmittable model.postComposer then
                 let
-                    postComposer =
-                        model.postComposer
-
                     cmd =
                         globals.session
-                            |> CreatePost.request model.spaceId model.groupId postComposer.body
+                            |> CreatePost.request model.spaceId model.groupId (PostEditor.getBody model.postComposer)
                             |> Task.attempt NewPostSubmitted
                 in
-                ( ( { model | postComposer = { postComposer | isSubmitting = True } }, cmd ), globals )
+                ( ( { model | postComposer = PostEditor.setToSubmitting model.postComposer }, cmd ), globals )
 
             else
                 noCmd globals model
 
         NewPostSubmitted (Ok ( newSession, response )) ->
             let
-                postComposer =
+                newPostComposer =
                     model.postComposer
+                        |> PostEditor.setBody ""
+                        |> PostEditor.setNotSubmitting
             in
-            ( ( { model | postComposer = { postComposer | body = "", isSubmitting = False } }
+            ( ( { model | postComposer = newPostComposer }
               , Cmd.none
               )
             , { globals | session = newSession }
@@ -277,12 +270,7 @@ update msg globals model =
             redirectToLogin globals model
 
         NewPostSubmitted (Err _) ->
-            -- TODO: display error message
-            let
-                postComposer =
-                    model.postComposer
-            in
-            { model | postComposer = { postComposer | isSubmitting = False } }
+            { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
                 |> noCmd globals
 
         MembershipStateToggled state ->
@@ -678,9 +666,9 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-newPostView : PostComposer -> SpaceUser -> Html Msg
-newPostView ({ body, isSubmitting } as postComposer) currentUser =
-    Html.node "post-composer" []
+newPostView : PostEditor -> SpaceUser -> Html Msg
+newPostView postComposer currentUser =
+    PostEditor.wrapper NewPostFilesUpdated
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
@@ -691,15 +679,15 @@ newPostView ({ body, isSubmitting } as postComposer) currentUser =
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault [ ( [ Meta ], enter, \event -> NewPostSubmit ) ]
-                        , readonly isSubmitting
-                        , value body
+                        , readonly (PostEditor.isSubmitting postComposer)
+                        , value (PostEditor.getBody postComposer)
                         ]
                         []
                     , div [ class "flex justify-end" ]
                         [ button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
-                            , disabled (not (newPostSubmittable postComposer))
+                            , disabled (PostEditor.isUnsubmittable postComposer)
                             ]
                             [ text "Post message" ]
                         ]
@@ -773,12 +761,3 @@ subscribeButtonView state =
                 , onClick (MembershipStateToggled NotSubscribed)
                 ]
                 [ text "Leave this group" ]
-
-
-
--- UTILS
-
-
-newPostSubmittable : PostComposer -> Bool
-newPostSubmittable { body, isSubmitting } =
-    not (body == "") && not isSubmitting

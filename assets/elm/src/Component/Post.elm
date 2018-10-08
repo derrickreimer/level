@@ -24,7 +24,6 @@ import PostEditor exposing (PostEditor)
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
-import ReplyComposer exposing (Mode(..), ReplyComposer)
 import Repo exposing (Repo)
 import Route
 import Route.Group
@@ -51,7 +50,7 @@ type alias Model =
     , spaceSlug : String
     , postId : Id
     , replyIds : Connection Id
-    , replyComposer : ReplyComposer
+    , replyComposer : PostEditor
     , postEditor : PostEditor
     , replyEditors : ReplyEditors
     , isChecked : Bool
@@ -96,13 +95,17 @@ resolveData repo model =
 init : Mode -> Bool -> String -> Id -> Connection Id -> Model
 init mode showGroups spaceSlug postId replyIds =
     let
-        replyMode =
+        replyComposer =
             case mode of
                 Feed ->
-                    Autocollapse
+                    postId
+                        |> PostEditor.init
+                        |> PostEditor.collapse
 
                 FullPage ->
-                    AlwaysExpanded
+                    postId
+                        |> PostEditor.init
+                        |> PostEditor.expand
     in
     Model
         postId
@@ -111,7 +114,7 @@ init mode showGroups spaceSlug postId replyIds =
         spaceSlug
         postId
         replyIds
-        (ReplyComposer.init replyMode)
+        replyComposer
         (PostEditor.init postId)
         Dict.empty
         False
@@ -131,9 +134,9 @@ teardown model =
     PostSubscription.unsubscribe model.postId
 
 
-setupReplyComposer : String -> ReplyComposer -> Cmd Msg
+setupReplyComposer : String -> PostEditor -> Cmd Msg
 setupReplyComposer postId replyComposer =
-    if ReplyComposer.isExpanded replyComposer then
+    if PostEditor.isExpanded replyComposer then
         let
             composerId =
                 replyComposerId postId
@@ -178,11 +181,13 @@ type Msg
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
+    | PostEditorFilesUpdated (List File)
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | ExpandReplyEditor Id
     | CollapseReplyEditor Id
     | ReplyEditorBodyChanged Id String
+    | ReplyEditorFilesUpdated Id (List File)
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | NoOp
@@ -193,55 +198,52 @@ update msg spaceId globals model =
     case msg of
         ExpandReplyComposer ->
             let
-                nodeId =
-                    replyComposerId model.postId
-
                 cmd =
                     Cmd.batch
-                        [ setFocus nodeId NoOp
+                        [ setFocus (PostEditor.getId model.replyComposer) NoOp
                         , markVisibleRepliesAsViewed globals spaceId model
                         ]
 
                 newModel =
-                    { model | replyComposer = ReplyComposer.expand model.replyComposer }
+                    { model | replyComposer = PostEditor.expand model.replyComposer }
             in
             ( ( newModel, cmd ), globals )
 
         NewReplyBodyChanged val ->
             let
                 newModel =
-                    { model | replyComposer = ReplyComposer.setBody val model.replyComposer }
+                    { model | replyComposer = PostEditor.setBody val model.replyComposer }
             in
             noCmd globals newModel
 
         NewReplySubmit ->
             let
                 newModel =
-                    { model | replyComposer = ReplyComposer.submitting model.replyComposer }
+                    { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }
 
                 body =
-                    ReplyComposer.getBody model.replyComposer
+                    PostEditor.getBody model.replyComposer
 
                 cmd =
-                    CreateReply.request spaceId model.postId body globals.session
+                    globals.session
+                        |> CreateReply.request spaceId model.postId body
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newModel, cmd ), globals )
 
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
-                nodeId =
-                    replyComposerId model.postId
-
                 newReplyComposer =
                     model.replyComposer
-                        |> ReplyComposer.notSubmitting
-                        |> ReplyComposer.setBody ""
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.setBody ""
 
                 newModel =
                     { model | replyComposer = newReplyComposer }
             in
-            ( ( newModel, setFocus nodeId NoOp ), { globals | session = newSession } )
+            ( ( newModel, setFocus (PostEditor.getId model.replyComposer) NoOp )
+            , { globals | session = newSession }
+            )
 
         NewReplySubmitted (Err Session.Expired) ->
             redirectToLogin globals model
@@ -250,35 +252,29 @@ update msg spaceId globals model =
             noCmd globals model
 
         NewReplyEscaped ->
-            let
-                nodeId =
-                    replyComposerId model.postId
-            in
-            ( ( { model | replyComposer = ReplyComposer.escaped model.replyComposer }
-              , unsetFocus nodeId NoOp
-              )
-            , globals
-            )
+            if PostEditor.getBody model.replyComposer == "" && model.mode == Feed then
+                ( ( { model | replyComposer = PostEditor.collapse model.replyComposer }
+                  , unsetFocus (PostEditor.getId model.replyComposer) NoOp
+                  )
+                , globals
+                )
+
+            else
+                noCmd globals model
 
         NewReplyBlurred ->
-            let
-                nodeId =
-                    replyComposerId model.postId
-
-                newModel =
-                    { model | replyComposer = ReplyComposer.blurred model.replyComposer }
-            in
-            noCmd globals newModel
+            noCmd globals model
 
         NewReplyFilesUpdated files ->
-            noCmd globals { model | replyComposer = ReplyComposer.setFiles files model.replyComposer }
+            noCmd globals { model | replyComposer = PostEditor.setFiles files model.replyComposer }
 
         PreviousRepliesRequested ->
             case Connection.startCursor model.replyIds of
                 Just cursor ->
                     let
                         cmd =
-                            Query.Replies.request spaceId model.postId cursor 10 globals.session
+                            globals.session
+                                |> Query.Replies.request spaceId model.postId cursor 10
                                 |> Task.attempt PreviousRepliesFetched
                     in
                     ( ( model, cmd ), globals )
@@ -402,6 +398,14 @@ update msg spaceId globals model =
             in
             noCmd globals { model | postEditor = newPostEditor }
 
+        PostEditorFilesUpdated files ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setFiles files
+            in
+            noCmd globals { model | postEditor = newPostEditor }
+
         PostEditorSubmitted ->
             let
                 cmd =
@@ -495,6 +499,19 @@ update msg spaceId globals model =
                     model.replyEditors
                         |> getReplyEditor replyId
                         |> PostEditor.setBody val
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorFilesUpdated replyId files ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setFiles files
 
                 newReplyEditors =
                     model.replyEditors
@@ -740,8 +757,7 @@ bodyView space mode post =
 
 postEditorView : PostEditor -> Html Msg
 postEditorView editor =
-    Html.node "post-composer"
-        []
+    PostEditor.wrapper PostEditorFilesUpdated
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -856,8 +872,7 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
 
 replyEditorView : Id -> PostEditor -> Html Msg
 replyEditorView replyId editor =
-    Html.node "post-composer"
-        []
+    PostEditor.wrapper (ReplyEditorFilesUpdated replyId)
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -891,7 +906,7 @@ replyEditorView replyId editor =
 
 replyComposerView : SpaceUser -> Post -> Model -> Html Msg
 replyComposerView currentUser post model =
-    if ReplyComposer.isExpanded model.replyComposer then
+    if PostEditor.isExpanded model.replyComposer then
         expandedReplyComposerView currentUser post model
 
     else
@@ -902,8 +917,7 @@ replyComposerView currentUser post model =
 expandedReplyComposerView : SpaceUser -> Post -> Model -> Html Msg
 expandedReplyComposerView currentUser post model =
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-        [ Html.node "post-composer"
-            [ on "fileAdded" (Decode.map NewReplyFilesUpdated (Decode.at [ "target", "files" ] (Decode.list File.decoder))) ]
+        [ PostEditor.wrapper NewReplyFilesUpdated
             [ label [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
@@ -930,15 +944,15 @@ expandedReplyComposerView currentUser post model =
                                 , ( [], esc, \event -> NewReplyEscaped )
                                 ]
                             , onBlur NewReplyBlurred
-                            , value (ReplyComposer.getBody model.replyComposer)
-                            , readonly (ReplyComposer.isSubmitting model.replyComposer)
+                            , value (PostEditor.getBody model.replyComposer)
+                            , readonly (PostEditor.isSubmitting model.replyComposer)
                             ]
                             []
                         , div [ class "flex justify-end" ]
                             [ button
                                 [ class "btn btn-blue btn-sm"
                                 , onClick NewReplySubmit
-                                , disabled (ReplyComposer.unsubmittable model.replyComposer)
+                                , disabled (PostEditor.isUnsubmittable model.replyComposer)
                                 ]
                                 [ text "Send" ]
                             ]

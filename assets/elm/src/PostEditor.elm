@@ -1,7 +1,8 @@
 module PostEditor exposing
     ( PostEditor, init
-    , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors
-    , getId, getBody, getErrors, isExpanded, isSubmitting
+    , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, setFiles
+    , getId, getBody, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
+    , wrapper
     )
 
 {-| Holds state for the post editor.
@@ -14,16 +15,25 @@ module PostEditor exposing
 
 # Setters
 
-@docs setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors
+@docs setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, setFiles
 
 
 # Getters
 
-@docs getId, getBody, getErrors, isExpanded, isSubmitting
+@docs getId, getBody, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
+
+
+# Views
+
+@docs wrapper
 
 -}
 
+import File exposing (File)
+import Html exposing (Html)
+import Html.Events exposing (on)
 import Id exposing (Id)
+import Json.Decode as Decode exposing (Decoder)
 import ValidationError exposing (ValidationError)
 
 
@@ -34,6 +44,7 @@ type PostEditor
 type alias Internal =
     { id : Id
     , body : String
+    , files : List File
     , isExpanded : Bool
     , isSubmitting : Bool
     , errors : List ValidationError
@@ -42,7 +53,7 @@ type alias Internal =
 
 init : Id -> PostEditor
 init id =
-    PostEditor (Internal id "" False False [])
+    PostEditor (Internal id "" [] False False [])
 
 
 
@@ -84,6 +95,11 @@ clearErrors (PostEditor internal) =
     PostEditor { internal | errors = [] }
 
 
+setFiles : List File -> PostEditor -> PostEditor
+setFiles newFiles (PostEditor internal) =
+    PostEditor { internal | files = newFiles }
+
+
 
 -- GETTERS
 
@@ -111,3 +127,27 @@ isExpanded (PostEditor internal) =
 isSubmitting : PostEditor -> Bool
 isSubmitting (PostEditor internal) =
     internal.isSubmitting
+
+isSubmittable : PostEditor -> Bool
+isSubmittable editor =
+    not (isUnsubmittable editor)
+
+isUnsubmittable : PostEditor -> Bool
+isUnsubmittable (PostEditor internal) =
+    (internal.body == "") || internal.isSubmitting
+
+
+
+-- VIEW
+
+
+wrapper : (List File -> msg) -> List (Html msg) -> Html msg
+wrapper toFileAddedMsg children =
+    Html.node "post-composer"
+        [ on "fileAdded" (Decode.map toFileAddedMsg filesDecoder) ]
+        children
+
+
+filesDecoder : Decoder (List File)
+filesDecoder =
+    Decode.at [ "target", "files" ] (Decode.list File.decoder)
