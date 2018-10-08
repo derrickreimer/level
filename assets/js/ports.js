@@ -163,19 +163,6 @@ export const attachPorts = app => {
     });
   });
 
-  app.ports.autosize.subscribe(arg => {
-    const { method, id } = arg;
-
-    requestAnimationFrame(() => {
-      let node = document.getElementById(id);
-      autosize(node);
-      if (method === "update") autosize.update(node);
-      if (method === "destroy") autosize.destroy(node);
-
-      logEvent("autosize")(arg);
-    });
-  });
-
   app.ports.select.subscribe(id => {
     requestAnimationFrame(() => {
       let node = document.getElementById(id);

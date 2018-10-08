@@ -1,6 +1,5 @@
 module Page.Group exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
-import Autosize
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
@@ -159,7 +158,6 @@ setup model =
         pageCmd =
             Cmd.batch
                 [ setFocus "post-composer" NoOp
-                , Autosize.init "post-composer"
                 , setupSockets model.groupId
                 ]
 
@@ -270,7 +268,7 @@ update msg globals model =
                     model.postComposer
             in
             ( ( { model | postComposer = { postComposer | body = "", isSubmitting = False } }
-              , Autosize.update "post-composer"
+              , Cmd.none
               )
             , { globals | session = newSession }
             )
@@ -682,27 +680,29 @@ bookmarkButtonView isBookmarked =
 
 newPostView : PostComposer -> SpaceUser -> Html Msg
 newPostView ({ body, isSubmitting } as postComposer) currentUser =
-    label [ class "composer mb-4" ]
-        [ div [ class "flex" ]
-            [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
-            , div [ class "flex-grow" ]
-                [ textarea
-                    [ id "post-composer"
-                    , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                    , placeholder "Compose a new post..."
-                    , onInput NewPostBodyChanged
-                    , onKeydown preventDefault [ ( [ Meta ], enter, \event -> NewPostSubmit ) ]
-                    , readonly isSubmitting
-                    , value body
-                    ]
-                    []
-                , div [ class "flex justify-end" ]
-                    [ button
-                        [ class "btn btn-blue btn-md"
-                        , onClick NewPostSubmit
-                        , disabled (not (newPostSubmittable postComposer))
+    Html.node "post-composer" []
+        [ label [ class "composer mb-4" ]
+            [ div [ class "flex" ]
+                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
+                , div [ class "flex-grow" ]
+                    [ textarea
+                        [ id "post-composer"
+                        , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , placeholder "Compose a new post..."
+                        , onInput NewPostBodyChanged
+                        , onKeydown preventDefault [ ( [ Meta ], enter, \event -> NewPostSubmit ) ]
+                        , readonly isSubmitting
+                        , value body
                         ]
-                        [ text "Post message" ]
+                        []
+                    , div [ class "flex justify-end" ]
+                        [ button
+                            [ class "btn btn-blue btn-md"
+                            , onClick NewPostSubmit
+                            , disabled (not (newPostSubmittable postComposer))
+                            ]
+                            [ text "Post message" ]
+                        ]
                     ]
                 ]
             ]

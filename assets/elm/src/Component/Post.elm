@@ -1,6 +1,5 @@
 module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleReplyCreated, init, setup, teardown, update, view)
 
-import Autosize
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Dict exposing (Dict)
@@ -139,8 +138,7 @@ setupReplyComposer postId replyComposer =
                 replyComposerId postId
         in
         Cmd.batch
-            [ Autosize.init composerId
-            , setFocus composerId NoOp
+            [ setFocus composerId NoOp
             ]
 
     else
@@ -199,7 +197,6 @@ update msg spaceId globals model =
                 cmd =
                     Cmd.batch
                         [ setFocus nodeId NoOp
-                        , Autosize.init nodeId
                         , markVisibleRepliesAsViewed globals spaceId model
                         ]
 
@@ -377,7 +374,6 @@ update msg spaceId globals model =
                         cmd =
                             Cmd.batch
                                 [ setFocus nodeId NoOp
-                                , Autosize.init nodeId
                                 ]
                     in
                     ( ( { model | postEditor = newPostEditor }, cmd ), globals )
@@ -464,7 +460,6 @@ update msg spaceId globals model =
                         cmd =
                             Cmd.batch
                                 [ setFocus nodeId NoOp
-                                , Autosize.init nodeId
                                 ]
 
                         newReplyEditors =
@@ -740,32 +735,34 @@ bodyView space mode post =
 
 postEditorView : PostEditor -> Html Msg
 postEditorView editor =
-    label [ class "composer my-2 p-3" ]
-        [ textarea
-            [ id (PostEditor.getId editor)
-            , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
-            , placeholder "Edit post..."
-            , onInput PostEditorBodyChanged
-            , readonly (PostEditor.isSubmitting editor)
-            , value (PostEditor.getBody editor)
-            , onKeydown preventDefault
-                [ ( [ Meta ], enter, \event -> PostEditorSubmitted )
+    postComposer
+        [ label [ class "composer my-2 p-3" ]
+            [ textarea
+                [ id (PostEditor.getId editor)
+                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+                , placeholder "Edit post..."
+                , onInput PostEditorBodyChanged
+                , readonly (PostEditor.isSubmitting editor)
+                , value (PostEditor.getBody editor)
+                , onKeydown preventDefault
+                    [ ( [ Meta ], enter, \event -> PostEditorSubmitted )
+                    ]
                 ]
-            ]
-            []
-        , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
-        , div [ class "flex justify-end" ]
-            [ button
-                [ class "mr-2 btn btn-grey-outline btn-sm"
-                , onClick CollapsePostEditor
+                []
+            , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
+            , div [ class "flex justify-end" ]
+                [ button
+                    [ class "mr-2 btn btn-grey-outline btn-sm"
+                    , onClick CollapsePostEditor
+                    ]
+                    [ text "Cancel" ]
+                , button
+                    [ class "btn btn-blue btn-sm"
+                    , onClick PostEditorSubmitted
+                    , disabled (PostEditor.isSubmitting editor)
+                    ]
+                    [ text "Update post" ]
                 ]
-                [ text "Cancel" ]
-            , button
-                [ class "btn btn-blue btn-sm"
-                , onClick PostEditorSubmitted
-                , disabled (PostEditor.isSubmitting editor)
-                ]
-                [ text "Update post" ]
             ]
         ]
 
@@ -853,32 +850,34 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
 
 replyEditorView : Id -> PostEditor -> Html Msg
 replyEditorView replyId editor =
-    label [ class "composer my-2 p-3" ]
-        [ textarea
-            [ id (PostEditor.getId editor)
-            , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
-            , placeholder "Edit reply..."
-            , onInput (ReplyEditorBodyChanged replyId)
-            , readonly (PostEditor.isSubmitting editor)
-            , value (PostEditor.getBody editor)
-            , onKeydown preventDefault
-                [ ( [ Meta ], enter, \event -> ReplyEditorSubmitted replyId )
+    postComposer
+        [ label [ class "composer my-2 p-3" ]
+            [ textarea
+                [ id (PostEditor.getId editor)
+                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+                , placeholder "Edit reply..."
+                , onInput (ReplyEditorBodyChanged replyId)
+                , readonly (PostEditor.isSubmitting editor)
+                , value (PostEditor.getBody editor)
+                , onKeydown preventDefault
+                    [ ( [ Meta ], enter, \event -> ReplyEditorSubmitted replyId )
+                    ]
                 ]
-            ]
-            []
-        , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
-        , div [ class "flex justify-end" ]
-            [ button
-                [ class "mr-2 btn btn-grey-outline btn-sm"
-                , onClick (CollapseReplyEditor replyId)
+                []
+            , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
+            , div [ class "flex justify-end" ]
+                [ button
+                    [ class "mr-2 btn btn-grey-outline btn-sm"
+                    , onClick (CollapseReplyEditor replyId)
+                    ]
+                    [ text "Cancel" ]
+                , button
+                    [ class "btn btn-blue btn-sm"
+                    , onClick (ReplyEditorSubmitted replyId)
+                    , disabled (PostEditor.isSubmitting editor)
+                    ]
+                    [ text "Update reply" ]
                 ]
-                [ text "Cancel" ]
-            , button
-                [ class "btn btn-blue btn-sm"
-                , onClick (ReplyEditorSubmitted replyId)
-                , disabled (PostEditor.isSubmitting editor)
-                ]
-                [ text "Update reply" ]
             ]
         ]
 
@@ -895,44 +894,46 @@ replyComposerView currentUser post model =
 
 expandedReplyComposerView : SpaceUser -> Post -> Model -> Html Msg
 expandedReplyComposerView currentUser post model =
-    div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-        [ div [ class "composer p-0" ]
-            [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
-                div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
-                    [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
-                        [ span [ class "mr-2 inline-block" ] [ Icons.inboxWhite ]
-                        , text "This post is currently in your inbox."
-                        ]
-                    , button
-                        [ class "flex-no-shrink btn btn-xs btn-turquoise-inverse"
-                        , onClick DismissClicked
-                        ]
-                        [ text "Dismiss from my inbox" ]
-                    ]
-            , div [ class "flex p-3" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
-                , div [ class "flex-grow" ]
-                    [ textarea
-                        [ id (replyComposerId <| Post.id post)
-                        , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Write a reply..."
-                        , onInput NewReplyBodyChanged
-                        , onKeydown preventDefault
-                            [ ( [ Meta ], enter, \event -> NewReplySubmit )
-                            , ( [], esc, \event -> NewReplyEscaped )
+    postComposer
+        [ div [ class "-ml-3 py-3 sticky pin-b bg-white", attribute "data-drop-zone" "reply-composer" ]
+            [ div [ class "composer p-0" ]
+                [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
+                    div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
+                        [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
+                            [ span [ class "mr-2 inline-block" ] [ Icons.inboxWhite ]
+                            , text "This post is currently in your inbox."
                             ]
-                        , onBlur NewReplyBlurred
-                        , value (ReplyComposer.getBody model.replyComposer)
-                        , readonly (ReplyComposer.isSubmitting model.replyComposer)
-                        ]
-                        []
-                    , div [ class "flex justify-end" ]
-                        [ button
-                            [ class "btn btn-blue btn-sm"
-                            , onClick NewReplySubmit
-                            , disabled (ReplyComposer.unsubmittable model.replyComposer)
+                        , button
+                            [ class "flex-no-shrink btn btn-xs btn-turquoise-inverse"
+                            , onClick DismissClicked
                             ]
-                            [ text "Send" ]
+                            [ text "Dismiss from my inbox" ]
+                        ]
+                , div [ class "flex p-3" ]
+                    [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
+                    , div [ class "flex-grow" ]
+                        [ textarea
+                            [ id (replyComposerId <| Post.id post)
+                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                            , placeholder "Write a reply..."
+                            , onInput NewReplyBodyChanged
+                            , onKeydown preventDefault
+                                [ ( [ Meta ], enter, \event -> NewReplySubmit )
+                                , ( [], esc, \event -> NewReplyEscaped )
+                                ]
+                            , onBlur NewReplyBlurred
+                            , value (ReplyComposer.getBody model.replyComposer)
+                            , readonly (ReplyComposer.isSubmitting model.replyComposer)
+                            ]
+                            []
+                        , div [ class "flex justify-end" ]
+                            [ button
+                                [ class "btn btn-blue btn-sm"
+                                , onClick NewReplySubmit
+                                , disabled (ReplyComposer.unsubmittable model.replyComposer)
+                                ]
+                                [ text "Send" ]
+                            ]
                         ]
                     ]
                 ]
@@ -1015,3 +1016,8 @@ clickToExpandIf truth children =
 
     else
         div [] children
+
+
+postComposer : List (Html msg) -> Html msg
+postComposer children =
+    Html.node "post-composer" [] children

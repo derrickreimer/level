@@ -22,6 +22,7 @@ import * as SvgToElm from "./modules/svg_to_elm";
 import * as Background from "./background";
 import "./custom_elements/rendered_html";
 import "./custom_elements/clipboard_button";
+import "./custom_elements/post_composer";
 
 // Initialize service worker
 Background.registerWorker();
