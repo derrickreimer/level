@@ -735,7 +735,8 @@ bodyView space mode post =
 
 postEditorView : PostEditor -> Html Msg
 postEditorView editor =
-    postComposer
+    Html.node "post-composer"
+        []
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -850,7 +851,8 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
 
 replyEditorView : Id -> PostEditor -> Html Msg
 replyEditorView replyId editor =
-    postComposer
+    Html.node "post-composer"
+        []
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -894,9 +896,10 @@ replyComposerView currentUser post model =
 
 expandedReplyComposerView : SpaceUser -> Post -> Model -> Html Msg
 expandedReplyComposerView currentUser post model =
-    postComposer
-        [ div [ class "-ml-3 py-3 sticky pin-b bg-white", attribute "data-drop-zone" "reply-composer" ]
-            [ div [ class "composer p-0" ]
+    div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
+        [ Html.node "post-composer"
+            []
+            [ label [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
                         [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
@@ -1016,8 +1019,3 @@ clickToExpandIf truth children =
 
     else
         div [] children
-
-
-postComposer : List (Html msg) -> Html msg
-postComposer children =
-    Html.node "post-composer" [] children

@@ -257,8 +257,18 @@ body {
   overflow: visible;
 }
 
-.user-mention.is-viewer {
-  /* @apply .bg-yellow-lighter .text-orange .p-1 .rounded; */
+post-composer {
+  @apply .block;
+}
+
+post-composer > * {
+  /* @apply .border .border-transparent; */
+  margin-top: 2px;
+}
+
+post-composer.dragging-over > * {
+  /* @apply .border-blue; */
+  box-shadow: 0 0 0 2px #4b73e1;
 }
 
 /**
