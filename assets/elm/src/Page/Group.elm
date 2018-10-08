@@ -667,27 +667,27 @@ bookmarkButtonView isBookmarked =
 
 
 newPostView : PostEditor -> SpaceUser -> Html Msg
-newPostView postComposer currentUser =
+newPostView editor currentUser =
     PostEditor.wrapper NewPostFilesUpdated
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
                 , div [ class "flex-grow" ]
                     [ textarea
-                        [ id "post-composer"
+                        [ id (PostEditor.getId editor)
                         , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault [ ( [ Meta ], enter, \event -> NewPostSubmit ) ]
-                        , readonly (PostEditor.isSubmitting postComposer)
-                        , value (PostEditor.getBody postComposer)
+                        , readonly (PostEditor.isSubmitting editor)
+                        , value (PostEditor.getBody editor)
                         ]
                         []
                     , div [ class "flex justify-end" ]
                         [ button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
-                            , disabled (PostEditor.isUnsubmittable postComposer)
+                            , disabled (PostEditor.isUnsubmittable editor)
                             ]
                             [ text "Post message" ]
                         ]

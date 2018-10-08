@@ -781,7 +781,7 @@ postEditorView editor =
                 , button
                     [ class "btn btn-blue btn-sm"
                     , onClick PostEditorSubmitted
-                    , disabled (PostEditor.isSubmitting editor)
+                    , disabled (PostEditor.isUnsubmittable editor)
                     ]
                     [ text "Update post" ]
                 ]
@@ -896,7 +896,7 @@ replyEditorView replyId editor =
                 , button
                     [ class "btn btn-blue btn-sm"
                     , onClick (ReplyEditorSubmitted replyId)
-                    , disabled (PostEditor.isSubmitting editor)
+                    , disabled (PostEditor.isUnsubmittable editor)
                     ]
                     [ text "Update reply" ]
                 ]
@@ -907,15 +907,15 @@ replyEditorView replyId editor =
 replyComposerView : SpaceUser -> Post -> Model -> Html Msg
 replyComposerView currentUser post model =
     if PostEditor.isExpanded model.replyComposer then
-        expandedReplyComposerView currentUser post model
+        expandedReplyComposerView currentUser post model.replyComposer
 
     else
         viewUnless (Connection.isEmpty model.replyIds) <|
             replyPromptView currentUser
 
 
-expandedReplyComposerView : SpaceUser -> Post -> Model -> Html Msg
-expandedReplyComposerView currentUser post model =
+expandedReplyComposerView : SpaceUser -> Post -> PostEditor -> Html Msg
+expandedReplyComposerView currentUser post editor =
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
         [ PostEditor.wrapper NewReplyFilesUpdated
             [ label [ class "composer p-0" ]
@@ -935,7 +935,7 @@ expandedReplyComposerView currentUser post model =
                     [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea
-                            [ id (replyComposerId <| Post.id post)
+                            [ id (PostEditor.getId editor)
                             , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                             , placeholder "Write a reply..."
                             , onInput NewReplyBodyChanged
@@ -944,15 +944,15 @@ expandedReplyComposerView currentUser post model =
                                 , ( [], esc, \event -> NewReplyEscaped )
                                 ]
                             , onBlur NewReplyBlurred
-                            , value (PostEditor.getBody model.replyComposer)
-                            , readonly (PostEditor.isSubmitting model.replyComposer)
+                            , value (PostEditor.getBody editor)
+                            , readonly (PostEditor.isSubmitting editor)
                             ]
                             []
                         , div [ class "flex justify-end" ]
                             [ button
                                 [ class "btn btn-blue btn-sm"
                                 , onClick NewReplySubmit
-                                , disabled (PostEditor.isUnsubmittable model.replyComposer)
+                                , disabled (PostEditor.isUnsubmittable editor)
                                 ]
                                 [ text "Send" ]
                             ]
