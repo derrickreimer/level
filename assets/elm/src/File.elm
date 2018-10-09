@@ -28,6 +28,7 @@ type alias Internal =
 
 type State
     = Staged
+    | Uploading
     | Uploaded
     | Unknown
 
@@ -67,6 +68,9 @@ stateDecoder =
             case raw of
                 "STAGED" ->
                     succeed Staged
+
+                "UPLOADING" ->
+                    succeed Uploading
 
                 "UPLOADED" ->
                     succeed Uploaded
