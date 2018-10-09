@@ -183,6 +183,7 @@ export const attachPorts = app => {
     reader.onload = event => {
       let payload = {
         clientId: id,
+        state: "STAGED",
         name: file.name,
         type: file.type,
         size: file.size,

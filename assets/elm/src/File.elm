@@ -3,7 +3,7 @@ module File exposing (File, decoder, getContents, input, receive, request)
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
 import Html.Events exposing (on)
-import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
+import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 import Ports
 
 
@@ -17,11 +17,19 @@ type File
 
 type alias Internal =
     { clientId : String
+    , state : State
     , name : String
     , type_ : String
     , size : Int
     , contents : Maybe String
+    , uploadProgress : Int
     }
+
+
+type State
+    = Staged
+    | Uploaded
+    | Unknown
 
 
 
@@ -40,13 +48,33 @@ getContents (File { contents }) =
 decoder : Decoder File
 decoder =
     Decode.map File
-        (Decode.map5 Internal
+        (Decode.map7 Internal
             (field "clientId" string)
+            (field "state" stateDecoder)
             (field "name" string)
             (field "type" string)
             (field "size" int)
             (field "contents" (maybe string))
+            (Decode.succeed 0)
         )
+
+
+stateDecoder : Decoder State
+stateDecoder =
+    let
+        convert : String -> Decoder State
+        convert raw =
+            case raw of
+                "STAGED" ->
+                    succeed Staged
+
+                "UPLOADED" ->
+                    succeed Uploaded
+
+                _ ->
+                    succeed Unknown
+    in
+    Decode.andThen convert string
 
 
 
