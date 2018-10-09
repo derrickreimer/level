@@ -192,8 +192,14 @@ customElements.define(
           xhr.addEventListener("readystatechange", () => {
             if (xhr.readyState == 4) {
               switch (xhr.status) {
-                case 200:
-                  this.sendEvent("fileUploaded", { clientId });
+                case 201:
+                  let response = JSON.parse(xhr.response);
+
+                  this.sendEvent("fileUploaded", {
+                    clientId: clientId,
+                    url: response.upload.url
+                  });
+
                   break;
 
                 default:
