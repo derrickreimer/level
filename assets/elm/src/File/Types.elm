@@ -4,9 +4,9 @@ module File.Types exposing (Data)
 
 
 type alias Data =
-    { id : String
+    { clientId : String
     , name : String
     , type_ : String
     , size : Int
-    , contents : String
+    , contents : Maybe String
     }

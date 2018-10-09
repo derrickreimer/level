@@ -182,7 +182,7 @@ export const attachPorts = app => {
 
     reader.onload = event => {
       let payload = {
-        id: id,
+        clientId: id,
         name: file.name,
         type_: file.type,
         size: file.size,

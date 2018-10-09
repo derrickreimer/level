@@ -1,6 +1,6 @@
 module PostEditor exposing
     ( PostEditor, init
-    , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, setFiles
+    , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, addFile, setFiles
     , getId, getBody, getFiles, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
     , wrapper
     )
@@ -15,7 +15,7 @@ module PostEditor exposing
 
 # Setters
 
-@docs setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, setFiles
+@docs setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, addFile, setFiles
 
 
 # Getters
@@ -95,6 +95,11 @@ clearErrors (PostEditor internal) =
     PostEditor { internal | errors = [] }
 
 
+addFile : File -> PostEditor -> PostEditor
+addFile newFile (PostEditor internal) =
+    PostEditor { internal | files = newFile :: internal.files }
+
+
 setFiles : List File -> PostEditor -> PostEditor
 setFiles newFiles (PostEditor internal) =
     PostEditor { internal | files = newFiles }
@@ -148,13 +153,13 @@ isUnsubmittable (PostEditor internal) =
 -- VIEW
 
 
-wrapper : (List File -> msg) -> List (Html msg) -> Html msg
+wrapper : (File -> msg) -> List (Html msg) -> Html msg
 wrapper toFileAddedMsg children =
     Html.node "post-composer"
-        [ on "fileAdded" (Decode.map toFileAddedMsg filesDecoder) ]
+        [ on "fileDropped" (Decode.map toFileAddedMsg fileDroppedDecoder) ]
         children
 
 
-filesDecoder : Decoder (List File)
-filesDecoder =
-    Decode.at [ "target", "files" ] (Decode.list File.decoder)
+fileDroppedDecoder : Decoder File
+fileDroppedDecoder =
+    Decode.at [ "detail" ] File.decoder

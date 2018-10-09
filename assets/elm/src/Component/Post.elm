@@ -170,7 +170,7 @@ type Msg
     | NewReplySubmit
     | NewReplyEscaped
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
-    | NewReplyFilesUpdated (List File)
+    | NewReplyFileAdded File
     | PreviousRepliesRequested
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
@@ -181,13 +181,13 @@ type Msg
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
-    | PostEditorFilesUpdated (List File)
+    | PostEditorFileAdded File
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | ExpandReplyEditor Id
     | CollapseReplyEditor Id
     | ReplyEditorBodyChanged Id String
-    | ReplyEditorFilesUpdated Id (List File)
+    | ReplyEditorFileAdded Id File
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | NoOp
@@ -265,8 +265,8 @@ update msg spaceId globals model =
         NewReplyBlurred ->
             noCmd globals model
 
-        NewReplyFilesUpdated files ->
-            noCmd globals { model | replyComposer = PostEditor.setFiles files model.replyComposer }
+        NewReplyFileAdded file ->
+            noCmd globals { model | replyComposer = PostEditor.addFile file model.replyComposer }
 
         PreviousRepliesRequested ->
             case Connection.startCursor model.replyIds of
@@ -398,11 +398,11 @@ update msg spaceId globals model =
             in
             noCmd globals { model | postEditor = newPostEditor }
 
-        PostEditorFilesUpdated files ->
+        PostEditorFileAdded file ->
             let
                 newPostEditor =
                     model.postEditor
-                        |> PostEditor.setFiles files
+                        |> PostEditor.addFile file
             in
             noCmd globals { model | postEditor = newPostEditor }
 
@@ -506,12 +506,12 @@ update msg spaceId globals model =
             in
             ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
 
-        ReplyEditorFilesUpdated replyId files ->
+        ReplyEditorFileAdded replyId file ->
             let
                 newReplyEditor =
                     model.replyEditors
                         |> getReplyEditor replyId
-                        |> PostEditor.setFiles files
+                        |> PostEditor.addFile file
 
                 newReplyEditors =
                     model.replyEditors
@@ -757,7 +757,7 @@ bodyView space mode post =
 
 postEditorView : PostEditor -> Html Msg
 postEditorView editor =
-    PostEditor.wrapper PostEditorFilesUpdated
+    PostEditor.wrapper PostEditorFileAdded
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -872,7 +872,7 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
 
 replyEditorView : Id -> PostEditor -> Html Msg
 replyEditorView replyId editor =
-    PostEditor.wrapper (ReplyEditorFilesUpdated replyId)
+    PostEditor.wrapper (ReplyEditorFileAdded replyId)
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -917,7 +917,7 @@ replyComposerView currentUser post model =
 expandedReplyComposerView : SpaceUser -> Post -> PostEditor -> Html Msg
 expandedReplyComposerView currentUser post editor =
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-        [ PostEditor.wrapper NewReplyFilesUpdated
+        [ PostEditor.wrapper NewReplyFileAdded
             [ label [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]

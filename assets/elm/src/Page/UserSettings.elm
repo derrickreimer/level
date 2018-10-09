@@ -1,5 +1,6 @@
 module Page.UserSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
+import Avatar
 import Event exposing (Event)
 import File exposing (File)
 import Globals exposing (Globals)
@@ -174,9 +175,14 @@ update msg globals model =
                     File.init data
 
                 cmd =
-                    globals.session
-                        |> UpdateUserAvatar.request (File.getContents file)
-                        |> Task.attempt AvatarSubmitted
+                    case File.getContents file of
+                        Just contents ->
+                            globals.session
+                                |> UpdateUserAvatar.request contents
+                                |> Task.attempt AvatarSubmitted
+
+                        Nothing ->
+                            Cmd.none
             in
             ( ( { model | newAvatar = Just file }, cmd ), globals )
 
@@ -339,7 +345,7 @@ resolvedView model data =
                         [ text "Save settings" ]
                     ]
                 , div [ class "flex-0" ]
-                    [ File.avatarInput "avatar" model.avatarUrl AvatarSelected
+                    [ Avatar.uploader "avatar" model.avatarUrl AvatarSelected
                     ]
                 ]
             ]

@@ -202,7 +202,7 @@ type Msg
     | Tick Posix
     | SetCurrentTime Posix Zone
     | NewPostBodyChanged String
-    | NewPostFilesUpdated (List File)
+    | NewPostFileAdded File
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | MembershipStateToggled GroupMembershipState
@@ -237,8 +237,8 @@ update msg globals model =
         NewPostBodyChanged value ->
             noCmd globals { model | postComposer = PostEditor.setBody value model.postComposer }
 
-        NewPostFilesUpdated files ->
-            noCmd globals { model | postComposer = PostEditor.setFiles files model.postComposer }
+        NewPostFileAdded file ->
+            noCmd globals { model | postComposer = PostEditor.addFile file model.postComposer }
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -668,7 +668,7 @@ bookmarkButtonView isBookmarked =
 
 newPostView : PostEditor -> SpaceUser -> Html Msg
 newPostView editor currentUser =
-    PostEditor.wrapper NewPostFilesUpdated
+    PostEditor.wrapper NewPostFileAdded
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]

@@ -10,9 +10,16 @@ const isOutside = (rect, clientX, clientY) => {
   );
 };
 
+const generateRandomToken = () => {
+  return [...Array(32)].map(_ => (~~(Math.random() * 36)).toString(36)).join('');
+}
+
 customElements.define(
   "post-composer",
   class PostComposer extends HTMLElement {
+    /**
+     * Callback function called when the element is connected to the DOM.
+     */
     connectedCallback() {
       this.setupAutosize();
       this.setupDragDrop();
@@ -20,6 +27,9 @@ customElements.define(
       this.files = [];
     }
 
+    /**
+     * Callback function called when the element is disconnected from the DOM.
+     */
     disconnectedCallback() {
       this.teardownAutosize();
     }
@@ -103,7 +113,7 @@ customElements.define(
 
         [].forEach.call(files, file => {
           console.log(file);
-          this.addFile(file);
+          this.handleFileDropped(file);
         });
       });
 
@@ -135,27 +145,43 @@ customElements.define(
     }
 
     /**
-     * Adds a file to the file queue.
+     * Handles a file after it's been dropped on the composer.
      */
-    addFile(file) {
-      let reader = new FileReader();
+    handleFileDropped(file) {
+      const clientId = generateRandomToken();
 
-      reader.onload = event => {
-        let data = {
-          file: file,
-          id: file.name,
-          name: file.name,
-          type_: file.type,
-          size: file.size,
-          contents: event.target.result
-        };
+      const metadata = {
+        clientId: clientId,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        contents: null
+      }
 
-        this.files.push(data);
-        console.log(data);
-        this.dispatchEvent(new CustomEvent("fileAdded"));
-      };
+      this.dispatchEvent(new CustomEvent("fileDropped", { detail: metadata }));
+      this.uploadFile(clientId, file);
+    }
 
-      reader.readAsDataURL(file);
+    /**
+     * Uploads the given file to the server.
+     */
+    uploadFile(clientId, file) {
+      fetch("/api/tokens", { method: "POST" })
+        .then(tokenResponse => {
+          return tokenResponse.json().then(tokenData => {
+            let uploadData = new FormData();
+            uploadData.append('upload[client_id]', clientId);
+            uploadData.append('upload[data]', file);
+
+            return fetch("/api/uploads", {
+              method: "POST",
+              headers: {
+                'x-api-token': tokenData.token
+              },
+              body: uploadData
+            });
+          });
+        });
     }
   }
 );

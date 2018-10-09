@@ -71,6 +71,7 @@ defmodule LevelWeb.Router do
     pipe_through :browser_api_without_csrf
     resources "/tokens", UserTokenController, only: [:create]
     resources "/reservations", ReservationController, only: [:create]
+    resources "/uploads", UploadController, only: [:create]
   end
 
   # Preview sent emails in development mode
