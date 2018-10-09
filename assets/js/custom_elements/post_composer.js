@@ -74,7 +74,6 @@ customElements.define(
 
         if (!this._dragging_over) {
           this._dragging_over = true;
-          console.log("enter", e);
           this.classList.add("dragging-over");
         }
       });
@@ -87,7 +86,6 @@ customElements.define(
 
         if (isOutside(rect, e.clientX, e.clientY)) {
           this.stoppedDraggingOver();
-          console.log("leave", e);
         }
       });
 
@@ -97,7 +95,6 @@ customElements.define(
 
         if (!this._dragging_over) {
           this.startedDraggingOver();
-          console.log("enter", e);
         }
       });
 
@@ -107,25 +104,20 @@ customElements.define(
 
         this.stoppedDraggingOver();
 
-        console.log("drop", e);
-
         let dt = e.dataTransfer;
         let files = dt.files;
 
         [].forEach.call(files, file => {
-          console.log(file);
           this.handleFileDropped(file);
         });
       });
 
-      this.addEventListener("dragend", e => {
+      this.addEventListener("dragend", () => {
         this.stoppedDraggingOver();
-        console.log("dragend", e);
       });
 
-      this.addEventListener("dragexit", e => {
+      this.addEventListener("dragexit", () => {
         this.stoppedDraggingOver();
-        console.log("dragexit", e);
       });
     }
 
@@ -160,8 +152,16 @@ customElements.define(
         contents: null
       }
 
-      this.dispatchEvent(new CustomEvent("fileDropped", { detail: metadata }));
+      this.sendEvent("fileDropped", metadata);
       this.uploadFile(clientId, file);
+    }
+
+    /**
+     * Dispatch an event.
+     */
+    sendEvent(name, detail) {
+      this.dispatchEvent(new CustomEvent(name, { detail }));
+      console.log("[post-composer]", name, detail);
     }
 
     /**
@@ -170,20 +170,47 @@ customElements.define(
     uploadFile(clientId, file) {
       fetchApiToken()
         .then(token => {
-          let uploadData = new FormData();
-          uploadData.append('upload[client_id]', clientId);
-          uploadData.append('upload[data]', file);
+          let xhr = new XMLHttpRequest();
+          let formData = new FormData();
 
-          return fetch("/api/uploads", {
-            method: "POST",
-            headers: {
-              'x-api-token': token
-            },
-            body: uploadData
+          formData.append('upload[client_id]', clientId);
+          formData.append('upload[data]', file);
+
+          xhr.open('POST', '/api/uploads', true);
+
+          xhr.setRequestHeader('x-api-token', token);
+
+          xhr.upload.addEventListener("progress", e => {
+            if (e.lengthComputable) {
+              let percentage = Math.round((e.loaded * 100) / e.total);
+              this.sendEvent("fileProgress", { clientId, percentage });
+            }
           });
+
+          xhr.timeout = 60000; // 60 second timeout
+
+          xhr.addEventListener("readystatechange", () => {
+            if (xhr.readyState == 4) {
+              switch (xhr.status) {
+                case 200:
+                  this.sendEvent("fileUploaded", { clientId });
+                  break;
+
+                default:
+                  this.sendEvent("fileUploadError", { clientId: clientId, status: xhr.status });
+                  break;
+              }
+            }
+          });
+
+          xhr.addEventListener("timeout", () => {
+            this.sendEvent("fileTimeout", { clientId });
+          });
+
+          xhr.send(formData);
         })
         .catch(reason => {
-          console.log("Upload failed", reason);
+          console.log("[post-composer]", "Upload failed", reason);
         });
     }
   }

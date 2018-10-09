@@ -30,6 +30,7 @@ type State
     = Staged
     | Uploading
     | Uploaded
+    | UploadFailed
     | Unknown
 
 
@@ -74,6 +75,9 @@ stateDecoder =
 
                 "UPLOADED" ->
                     succeed Uploaded
+
+                "UPLOAD_FAILED" ->
+                    succeed UploadFailed
 
                 _ ->
                     succeed Unknown
