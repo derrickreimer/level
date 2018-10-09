@@ -1,7 +1,7 @@
 module PostEditor exposing
     ( PostEditor, init
     , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, setFiles
-    , getId, getBody, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
+    , getId, getBody, getFiles, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
     , wrapper
     )
 
@@ -20,7 +20,7 @@ module PostEditor exposing
 
 # Getters
 
-@docs getId, getBody, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
+@docs getId, getBody, getFiles, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
 
 
 # Views
@@ -112,6 +112,11 @@ getId (PostEditor internal) =
 getBody : PostEditor -> String
 getBody (PostEditor internal) =
     internal.body
+
+
+getFiles : PostEditor -> List File
+getFiles (PostEditor internal) =
+    internal.files
 
 
 getErrors : PostEditor -> List ValidationError
