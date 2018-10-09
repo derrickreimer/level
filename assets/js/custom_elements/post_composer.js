@@ -181,6 +181,9 @@ customElements.define(
             },
             body: uploadData
           });
+        })
+        .catch(reason => {
+          console.log("Upload failed", reason);
         });
     }
   }

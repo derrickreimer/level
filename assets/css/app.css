@@ -261,12 +261,8 @@ post-composer {
   @apply .block;
 }
 
-post-composer > * {
-  margin-top: 2px;
-}
-
 post-composer.dragging-over > * {
-  box-shadow: 0 0 0 2px config('colors.blue');
+  box-shadow: inset 0 0 0 2px config('colors.blue');
 }
 
 /**
