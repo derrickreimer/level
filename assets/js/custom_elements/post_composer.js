@@ -1,5 +1,6 @@
 import "@webcomponents/custom-elements";
 import autosize from "autosize";
+import { fetchApiToken } from "../token";
 
 const isOutside = (rect, clientX, clientY) => {
   return (
@@ -167,20 +168,18 @@ customElements.define(
      * Uploads the given file to the server.
      */
     uploadFile(clientId, file) {
-      fetch("/api/tokens", { method: "POST" })
-        .then(tokenResponse => {
-          return tokenResponse.json().then(tokenData => {
-            let uploadData = new FormData();
-            uploadData.append('upload[client_id]', clientId);
-            uploadData.append('upload[data]', file);
+      fetchApiToken()
+        .then(token => {
+          let uploadData = new FormData();
+          uploadData.append('upload[client_id]', clientId);
+          uploadData.append('upload[data]', file);
 
-            return fetch("/api/uploads", {
-              method: "POST",
-              headers: {
-                'x-api-token': tokenData.token
-              },
-              body: uploadData
-            });
+          return fetch("/api/uploads", {
+            method: "POST",
+            headers: {
+              'x-api-token': token
+            },
+            body: uploadData
           });
         });
     }
