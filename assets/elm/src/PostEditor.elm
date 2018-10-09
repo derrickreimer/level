@@ -156,7 +156,7 @@ isUnsubmittable (PostEditor internal) =
 
 wrapper : Id -> (File -> msg) -> List (Html msg) -> Html msg
 wrapper spaceId toFileAddedMsg children =
-    Html.node "post-composer"
+    Html.node "post-editor"
         [ property "spaceId" (Id.encoder spaceId)
         , on "fileDropped" (Decode.map toFileAddedMsg fileDroppedDecoder)
         ]

@@ -16,8 +16,8 @@ const generateRandomToken = () => {
 }
 
 customElements.define(
-  "post-composer",
-  class PostComposer extends HTMLElement {
+  "post-editor",
+  class PostEditor extends HTMLElement {
     /**
      * Callback function called when the element is connected to the DOM.
      */
