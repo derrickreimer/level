@@ -9,6 +9,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
+import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
 import Mutation.UpdateUser as UpdateUser
 import Mutation.UpdateUserAvatar as UpdateUserAvatar
@@ -118,7 +119,7 @@ type Msg
     | Submitted (Result Session.Error ( Session, UpdateUser.Response ))
     | AvatarSubmitted (Result Session.Error ( Session, UpdateUserAvatar.Response ))
     | AvatarSelected
-    | FileReceived File.Data
+    | FileReceived Decode.Value
     | NoOp
 
 
@@ -169,22 +170,24 @@ update msg globals model =
         AvatarSelected ->
             ( ( model, File.request "avatar" ), globals )
 
-        FileReceived data ->
-            let
-                file =
-                    File.init data
+        FileReceived value ->
+            case Decode.decodeValue File.decoder value of
+                Ok file ->
+                    let
+                        cmd =
+                            case File.getContents file of
+                                Just contents ->
+                                    globals.session
+                                        |> UpdateUserAvatar.request contents
+                                        |> Task.attempt AvatarSubmitted
 
-                cmd =
-                    case File.getContents file of
-                        Just contents ->
-                            globals.session
-                                |> UpdateUserAvatar.request contents
-                                |> Task.attempt AvatarSubmitted
+                                Nothing ->
+                                    Cmd.none
+                    in
+                    ( ( { model | newAvatar = Just file }, cmd ), globals )
 
-                        Nothing ->
-                            Cmd.none
-            in
-            ( ( { model | newAvatar = Just file }, cmd ), globals )
+                _ ->
+                    noCmd globals model
 
         AvatarSubmitted (Ok ( newSession, UpdateUserAvatar.Success user )) ->
             noCmd { globals | session = newSession } { model | avatarUrl = User.avatarUrl user }

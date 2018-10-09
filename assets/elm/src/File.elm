@@ -1,6 +1,5 @@
-module File exposing (Data, File, decoder, getContents, init, input, receive, request)
+module File exposing (File, decoder, getContents, input, receive, request)
 
-import File.Types exposing (Data)
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
 import Html.Events exposing (on)
@@ -13,20 +12,20 @@ import Ports
 
 
 type File
-    = File Data
+    = File Internal
 
 
-type alias Data =
-    File.Types.Data
+type alias Internal =
+    { clientId : String
+    , name : String
+    , type_ : String
+    , size : Int
+    , contents : Maybe String
+    }
 
 
 
 -- API
-
-
-init : Data -> File
-init data =
-    File data
 
 
 getContents : File -> Maybe String
@@ -41,7 +40,7 @@ getContents (File { contents }) =
 decoder : Decoder File
 decoder =
     Decode.map File
-        (Decode.map5 Data
+        (Decode.map5 Internal
             (field "clientId" string)
             (field "name" string)
             (field "type" string)
@@ -59,7 +58,7 @@ request nodeId =
     Ports.requestFile nodeId
 
 
-receive : (Data -> msg) -> Sub msg
+receive : (Decode.Value -> msg) -> Sub msg
 receive toMsg =
     Ports.receiveFile toMsg
 

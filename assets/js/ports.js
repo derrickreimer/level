@@ -184,7 +184,7 @@ export const attachPorts = app => {
       let payload = {
         clientId: id,
         name: file.name,
-        type_: file.type,
+        type: file.type,
         size: file.size,
         contents: event.target.result
       };
