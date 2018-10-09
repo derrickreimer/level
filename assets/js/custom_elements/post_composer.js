@@ -25,7 +25,6 @@ customElements.define(
       this.setupAutosize();
       this.setupDragDrop();
       this._dragging_over = false;
-      this.files = [];
     }
 
     /**

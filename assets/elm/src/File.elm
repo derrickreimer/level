@@ -1,4 +1,4 @@
-module File exposing (File, decoder, getContents, input, receive, request)
+module File exposing (File, decoder, getContents, getName, input, isImage, receive, request)
 
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
@@ -38,9 +38,19 @@ type State
 -- API
 
 
+getName : File -> String
+getName (File internal) =
+    internal.name
+
+
 getContents : File -> Maybe String
 getContents (File { contents }) =
     contents
+
+
+isImage : File -> Bool
+isImage (File internal) =
+    String.startsWith "image" internal.type_
 
 
 
