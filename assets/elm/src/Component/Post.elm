@@ -693,7 +693,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView space model.mode data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
-                postEditorView model.postEditor
+                postEditorView (Space.id space) model.postEditor
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
                     [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -701,7 +701,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode model.replyEditors
-                , replyComposerView currentUser data.post model
+                , replyComposerView (Space.id space) currentUser data.post model
                 ]
             ]
         ]
@@ -755,9 +755,10 @@ bodyView space mode post =
         ]
 
 
-postEditorView : PostEditor -> Html Msg
-postEditorView editor =
-    PostEditor.wrapper PostEditorFileAdded
+postEditorView : Id -> PostEditor -> Html Msg
+postEditorView spaceId editor =
+    PostEditor.wrapper spaceId
+        PostEditorFileAdded
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -818,12 +819,12 @@ repliesView repo space post now replyIds mode editors =
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
         div []
             [ viewIf hasPreviousPage actionButton
-            , div [] (List.map (replyView repo now post mode editors) replies)
+            , div [] (List.map (replyView repo now (Space.id space) post mode editors) replies)
             ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Post -> Mode -> ReplyEditors -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) post mode editors reply =
+replyView : Repo -> ( Zone, Posix ) -> Id -> Post -> Mode -> ReplyEditors -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
     let
         replyId =
             Reply.id reply
@@ -861,7 +862,7 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
                                 ]
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
-                        replyEditorView replyId editor
+                        replyEditorView spaceId replyId editor
                     ]
                 ]
 
@@ -870,9 +871,10 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
             text ""
 
 
-replyEditorView : Id -> PostEditor -> Html Msg
-replyEditorView replyId editor =
-    PostEditor.wrapper (ReplyEditorFileAdded replyId)
+replyEditorView : Id -> Id -> PostEditor -> Html Msg
+replyEditorView spaceId replyId editor =
+    PostEditor.wrapper spaceId
+        (ReplyEditorFileAdded replyId)
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -904,20 +906,21 @@ replyEditorView replyId editor =
         ]
 
 
-replyComposerView : SpaceUser -> Post -> Model -> Html Msg
-replyComposerView currentUser post model =
+replyComposerView : Id -> SpaceUser -> Post -> Model -> Html Msg
+replyComposerView spaceId currentUser post model =
     if PostEditor.isExpanded model.replyComposer then
-        expandedReplyComposerView currentUser post model.replyComposer
+        expandedReplyComposerView spaceId currentUser post model.replyComposer
 
     else
         viewUnless (Connection.isEmpty model.replyIds) <|
             replyPromptView currentUser
 
 
-expandedReplyComposerView : SpaceUser -> Post -> PostEditor -> Html Msg
-expandedReplyComposerView currentUser post editor =
+expandedReplyComposerView : Id -> SpaceUser -> Post -> PostEditor -> Html Msg
+expandedReplyComposerView spaceId currentUser post editor =
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-        [ PostEditor.wrapper NewReplyFileAdded
+        [ PostEditor.wrapper spaceId
+            NewReplyFileAdded
             [ label [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]

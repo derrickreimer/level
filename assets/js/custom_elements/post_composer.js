@@ -172,12 +172,13 @@ customElements.define(
           let xhr = new XMLHttpRequest();
           let formData = new FormData();
 
+          formData.append('upload[space_id]', this.spaceId);
           formData.append('upload[client_id]', clientId);
           formData.append('upload[data]', file);
 
           xhr.open('POST', '/api/uploads', true);
 
-          xhr.setRequestHeader('x-api-token', token);
+          xhr.setRequestHeader('authorization', 'Bearer ' + token);
 
           xhr.upload.addEventListener("progress", e => {
             if (e.lengthComputable) {

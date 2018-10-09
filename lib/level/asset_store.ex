@@ -34,6 +34,32 @@ defmodule Level.AssetStore do
     "https://s3.amazonaws.com/" <> bucket() <> "/" <> filename
   end
 
+  @doc """
+  Uploads a file.
+  """
+  @spec upload_file(String.t(), String.t(), binary()) :: {:ok, String.t()} | {:error, any()}
+  def upload_file(unique_id, filename, contents) do
+    unique_id
+    |> build_upload_path(filename)
+    |> S3.persist(bucket(), contents)
+  end
+
+  @doc """
+  Builds the path for a file upload.
+  """
+  @spec build_upload_path(String.t(), String.t()) :: String.t()
+  def build_upload_path(unique_id, filename) do
+    "uploads/" <> unique_id <> "/" <> filename
+  end
+
+  @doc """
+  Generates the URL for a file upload.
+  """
+  @spec upload_url(String.t(), String.t()) :: String.t()
+  def upload_url(unique_id, filename) do
+    "https://s3.amazonaws.com/" <> bucket() <> "/" <> build_upload_path(unique_id, filename)
+  end
+
   defp bucket do
     Application.get_env(:level, :asset_store)[:bucket]
   end

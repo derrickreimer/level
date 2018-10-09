@@ -571,7 +571,7 @@ resolvedView repo maybeCurrentRoute model data =
                     , controlsView model
                     ]
                 ]
-            , newPostView model.postComposer data.viewer
+            , newPostView model.spaceId model.postComposer data.viewer
             , postsView repo data.space data.viewer model.now model.postComps
             , sidebarView data.group data.featuredMembers
             ]
@@ -666,13 +666,14 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-newPostView : PostEditor -> SpaceUser -> Html Msg
-newPostView editor currentUser =
+newPostView : Id -> PostEditor -> SpaceUser -> Html Msg
+newPostView spaceId editor currentUser =
     let
         files =
             PostEditor.getFiles editor
     in
-    PostEditor.wrapper NewPostFileAdded
+    PostEditor.wrapper spaceId
+        NewPostFileAdded
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]

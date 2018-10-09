@@ -31,6 +31,7 @@ module PostEditor exposing
 
 import File exposing (File)
 import Html exposing (Html)
+import Html.Attributes exposing (property)
 import Html.Events exposing (on)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
@@ -153,10 +154,12 @@ isUnsubmittable (PostEditor internal) =
 -- VIEW
 
 
-wrapper : (File -> msg) -> List (Html msg) -> Html msg
-wrapper toFileAddedMsg children =
+wrapper : Id -> (File -> msg) -> List (Html msg) -> Html msg
+wrapper spaceId toFileAddedMsg children =
     Html.node "post-composer"
-        [ on "fileDropped" (Decode.map toFileAddedMsg fileDroppedDecoder) ]
+        [ property "spaceId" (Id.encoder spaceId)
+        , on "fileDropped" (Decode.map toFileAddedMsg fileDroppedDecoder)
+        ]
         children
 
 
