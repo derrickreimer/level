@@ -12,7 +12,6 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
-import ListHelpers
 import Markdown
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissPosts as DismissPosts
