@@ -676,9 +676,6 @@ bookmarkButtonView isBookmarked =
 newPostView : Id -> PostEditor -> SpaceUser -> Html Msg
 newPostView spaceId editor currentUser =
     let
-        files =
-            PostEditor.getFiles editor
-
         config =
             { spaceId = spaceId
             , onFileAdded = NewPostFileAdded
@@ -701,8 +698,7 @@ newPostView spaceId editor currentUser =
                         , value (PostEditor.getBody editor)
                         ]
                         []
-                    , viewUnless (List.isEmpty files) <|
-                        filesView files
+                    , PostEditor.filesView editor
                     , div [ class "flex justify-end" ]
                         [ button
                             [ class "btn btn-blue btn-md"

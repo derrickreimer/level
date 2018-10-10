@@ -833,6 +833,7 @@ postEditorView spaceId editor =
                 ]
                 []
             , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
+            , PostEditor.filesView editor
             , div [ class "flex justify-end" ]
                 [ button
                     [ class "mr-2 btn btn-grey-outline btn-sm"
@@ -956,6 +957,7 @@ replyEditorView spaceId replyId editor =
                 ]
                 []
             , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
+            , PostEditor.filesView editor
             , div [ class "flex justify-end" ]
                 [ button
                     [ class "mr-2 btn btn-grey-outline btn-sm"
@@ -1025,6 +1027,7 @@ expandedReplyComposerView spaceId currentUser post editor =
                             , readonly (PostEditor.isSubmitting editor)
                             ]
                             []
+                        , PostEditor.filesView editor
                         , div [ class "flex justify-end" ]
                             [ button
                                 [ class "btn btn-blue btn-sm"

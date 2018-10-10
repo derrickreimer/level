@@ -3,7 +3,7 @@ module PostEditor exposing
     , getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
     , getFiles, getUploadIds, addFile, setFiles, setFileUploadPercentage, setFileState
-    , ViewConfig, wrapper
+    , ViewConfig, wrapper, filesView
     )
 
 {-| Represents an editor instance for creating/editing posts and replies.
@@ -31,18 +31,20 @@ module PostEditor exposing
 
 # Views
 
-@docs ViewConfig, wrapper
+@docs ViewConfig, wrapper, filesView
 
 -}
 
 import File exposing (File)
-import Html exposing (Html)
-import Html.Attributes exposing (property)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (on)
+import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import ListHelpers
 import ValidationError exposing (ValidationError)
+import View.Helpers exposing (viewUnless)
 
 
 type PostEditor
@@ -237,3 +239,26 @@ wrapper config children =
                 (Decode.at [ "detail", "url" ] Decode.string)
         ]
         children
+
+
+filesView : PostEditor -> Html msg
+filesView (PostEditor { files }) =
+    viewUnless (List.isEmpty files) <|
+        div [ class "p-2 flex" ] <|
+            List.map fileView files
+
+
+fileView : File -> Html msg
+fileView file =
+    let
+        icon =
+            if File.isImage file then
+                Icons.image
+
+            else
+                Icons.file
+    in
+    div [ class "flex items-center mr-2 p-2 border-2 rounded" ]
+        [ div [ class "mr-2" ] [ icon ]
+        , div [ class "text-sm font-bold text-dusty-blue-dark" ] [ text (File.getName file) ]
+        ]
