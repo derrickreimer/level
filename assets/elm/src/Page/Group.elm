@@ -203,6 +203,7 @@ type Msg
     | SetCurrentTime Posix Zone
     | NewPostBodyChanged String
     | NewPostFileAdded File
+    | NewPostFileUploadProgress Id Int
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | MembershipStateToggled GroupMembershipState
@@ -239,6 +240,9 @@ update msg globals model =
 
         NewPostFileAdded file ->
             noCmd globals { model | postComposer = PostEditor.addFile file model.postComposer }
+
+        NewPostFileUploadProgress clientId percentage ->
+            noCmd globals { model | postComposer = PostEditor.setFileUploadPercentage clientId percentage model.postComposer }
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -671,9 +675,14 @@ newPostView spaceId editor currentUser =
     let
         files =
             PostEditor.getFiles editor
+
+        config =
+            { spaceId = spaceId
+            , onFileAdded = NewPostFileAdded
+            , onFileUploadProgress = NewPostFileUploadProgress
+            }
     in
-    PostEditor.wrapper spaceId
-        NewPostFileAdded
+    PostEditor.wrapper config
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]

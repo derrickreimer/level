@@ -166,11 +166,12 @@ setupScrollPosition mode =
 type Msg
     = ExpandReplyComposer
     | NewReplyBodyChanged String
+    | NewReplyFileAdded File
+    | NewReplyFileUploadProgress Id Int
     | NewReplyBlurred
     | NewReplySubmit
     | NewReplyEscaped
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
-    | NewReplyFileAdded File
     | PreviousRepliesRequested
     | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
@@ -182,12 +183,14 @@ type Msg
     | CollapsePostEditor
     | PostEditorBodyChanged String
     | PostEditorFileAdded File
+    | PostEditorFileUploadProgress Id Int
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | ExpandReplyEditor Id
     | CollapseReplyEditor Id
     | ReplyEditorBodyChanged Id String
     | ReplyEditorFileAdded Id File
+    | ReplyEditorFileUploadProgress Id Id Int
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | NoOp
@@ -215,6 +218,12 @@ update msg spaceId globals model =
                     { model | replyComposer = PostEditor.setBody val model.replyComposer }
             in
             noCmd globals newModel
+
+        NewReplyFileAdded file ->
+            noCmd globals { model | replyComposer = PostEditor.addFile file model.replyComposer }
+
+        NewReplyFileUploadProgress clientId percentage ->
+            noCmd globals { model | replyComposer = PostEditor.setFileUploadPercentage clientId percentage model.replyComposer }
 
         NewReplySubmit ->
             let
@@ -264,9 +273,6 @@ update msg spaceId globals model =
 
         NewReplyBlurred ->
             noCmd globals model
-
-        NewReplyFileAdded file ->
-            noCmd globals { model | replyComposer = PostEditor.addFile file model.replyComposer }
 
         PreviousRepliesRequested ->
             case Connection.startCursor model.replyIds of
@@ -406,6 +412,14 @@ update msg spaceId globals model =
             in
             noCmd globals { model | postEditor = newPostEditor }
 
+        PostEditorFileUploadProgress clientId percentage ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setFileUploadPercentage clientId percentage
+            in
+            noCmd globals { model | postEditor = newPostEditor }
+
         PostEditorSubmitted ->
             let
                 cmd =
@@ -512,6 +526,19 @@ update msg spaceId globals model =
                     model.replyEditors
                         |> getReplyEditor replyId
                         |> PostEditor.addFile file
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorFileUploadProgress replyId clientId percentage ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setFileUploadPercentage clientId percentage
 
                 newReplyEditors =
                     model.replyEditors
@@ -757,8 +784,14 @@ bodyView space mode post =
 
 postEditorView : Id -> PostEditor -> Html Msg
 postEditorView spaceId editor =
-    PostEditor.wrapper spaceId
-        PostEditorFileAdded
+    let
+        config =
+            { spaceId = spaceId
+            , onFileAdded = PostEditorFileAdded
+            , onFileUploadProgress = PostEditorFileUploadProgress
+            }
+    in
+    PostEditor.wrapper config
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -873,8 +906,14 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
 
 replyEditorView : Id -> Id -> PostEditor -> Html Msg
 replyEditorView spaceId replyId editor =
-    PostEditor.wrapper spaceId
-        (ReplyEditorFileAdded replyId)
+    let
+        config =
+            { spaceId = spaceId
+            , onFileAdded = ReplyEditorFileAdded replyId
+            , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
+            }
+    in
+    PostEditor.wrapper config
         [ label [ class "composer my-2 p-3" ]
             [ textarea
                 [ id (PostEditor.getId editor)
@@ -918,9 +957,15 @@ replyComposerView spaceId currentUser post model =
 
 expandedReplyComposerView : Id -> SpaceUser -> Post -> PostEditor -> Html Msg
 expandedReplyComposerView spaceId currentUser post editor =
+    let
+        config =
+            { spaceId = spaceId
+            , onFileAdded = NewReplyFileAdded
+            , onFileUploadProgress = NewReplyFileUploadProgress
+            }
+    in
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-        [ PostEditor.wrapper spaceId
-            NewReplyFileAdded
+        [ PostEditor.wrapper config
             [ label [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]

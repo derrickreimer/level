@@ -151,7 +151,7 @@ customElements.define(
         contents: null
       }
 
-      this.sendEvent("fileDropped", metadata);
+      this.sendEvent("fileAdded", metadata);
       this.uploadFile(clientId, file);
     }
 
@@ -183,7 +183,7 @@ customElements.define(
           xhr.upload.addEventListener("progress", e => {
             if (e.lengthComputable) {
               let percentage = Math.round((e.loaded * 100) / e.total);
-              this.sendEvent("fileProgress", { clientId, percentage });
+              this.sendEvent("fileUploadProgress", { clientId, percentage });
             }
           });
 

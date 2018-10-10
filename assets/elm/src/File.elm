@@ -1,4 +1,4 @@
-module File exposing (File, decoder, getContents, getName, input, isImage, receive, request)
+module File exposing (File, decoder, getClientId, getContents, getName, input, isImage, receive, request, setUploadPercentage)
 
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
@@ -22,7 +22,7 @@ type alias Internal =
     , type_ : String
     , size : Int
     , contents : Maybe String
-    , uploadProgress : Int
+    , uploadPercentage : Int
     }
 
 
@@ -38,6 +38,11 @@ type State
 -- API
 
 
+getClientId : File -> String
+getClientId (File internal) =
+    internal.clientId
+
+
 getName : File -> String
 getName (File internal) =
     internal.name
@@ -51,6 +56,11 @@ getContents (File { contents }) =
 isImage : File -> Bool
 isImage (File internal) =
     String.startsWith "image" internal.type_
+
+
+setUploadPercentage : Int -> File -> File
+setUploadPercentage percentage (File internal) =
+    File { internal | uploadPercentage = percentage }
 
 
 

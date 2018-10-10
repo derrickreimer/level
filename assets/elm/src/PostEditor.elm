@@ -1,11 +1,12 @@
 module PostEditor exposing
     ( PostEditor, init
-    , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, addFile, setFiles
-    , getId, getBody, getFiles, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
-    , wrapper
+    , getId, getBody, getErrors, setBody, setErrors, clearErrors
+    , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
+    , getFiles, addFile, setFiles, setFileUploadPercentage
+    , ViewConfig, wrapper
     )
 
-{-| Holds state for the post editor.
+{-| Represents an editor instance for creating/editing posts and replies.
 
 
 # Types
@@ -13,19 +14,24 @@ module PostEditor exposing
 @docs PostEditor, init
 
 
-# Setters
+# General
 
-@docs setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors, addFile, setFiles
+@docs getId, getBody, getErrors, setBody, setErrors, clearErrors
 
 
-# Getters
+# Visual Settings
 
-@docs getId, getBody, getFiles, getErrors, isExpanded, isSubmitting, isSubmittable, isUnsubmittable
+@docs isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
+
+
+# Files
+
+@docs getFiles, addFile, setFiles, setFileUploadPercentage
 
 
 # Views
 
-@docs wrapper
+@docs ViewConfig, wrapper
 
 -}
 
@@ -35,6 +41,7 @@ import Html.Attributes exposing (property)
 import Html.Events exposing (on)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
+import ListHelpers
 import ValidationError exposing (ValidationError)
 
 
@@ -58,56 +65,7 @@ init id =
 
 
 
--- SETTERS
-
-
-setBody : String -> PostEditor -> PostEditor
-setBody newBody (PostEditor internal) =
-    PostEditor { internal | body = newBody }
-
-
-expand : PostEditor -> PostEditor
-expand (PostEditor internal) =
-    PostEditor { internal | isExpanded = True }
-
-
-collapse : PostEditor -> PostEditor
-collapse (PostEditor internal) =
-    PostEditor { internal | isExpanded = False }
-
-
-setToSubmitting : PostEditor -> PostEditor
-setToSubmitting (PostEditor internal) =
-    PostEditor { internal | isSubmitting = True }
-
-
-setNotSubmitting : PostEditor -> PostEditor
-setNotSubmitting (PostEditor internal) =
-    PostEditor { internal | isSubmitting = False }
-
-
-setErrors : List ValidationError -> PostEditor -> PostEditor
-setErrors errors (PostEditor internal) =
-    PostEditor { internal | errors = errors }
-
-
-clearErrors : PostEditor -> PostEditor
-clearErrors (PostEditor internal) =
-    PostEditor { internal | errors = [] }
-
-
-addFile : File -> PostEditor -> PostEditor
-addFile newFile (PostEditor internal) =
-    PostEditor { internal | files = newFile :: internal.files }
-
-
-setFiles : List File -> PostEditor -> PostEditor
-setFiles newFiles (PostEditor internal) =
-    PostEditor { internal | files = newFiles }
-
-
-
--- GETTERS
+-- GENERAL
 
 
 getId : PostEditor -> Id
@@ -120,14 +78,28 @@ getBody (PostEditor internal) =
     internal.body
 
 
-getFiles : PostEditor -> List File
-getFiles (PostEditor internal) =
-    internal.files
-
-
 getErrors : PostEditor -> List ValidationError
 getErrors (PostEditor internal) =
     internal.errors
+
+
+setBody : String -> PostEditor -> PostEditor
+setBody newBody (PostEditor internal) =
+    PostEditor { internal | body = newBody }
+
+
+setErrors : List ValidationError -> PostEditor -> PostEditor
+setErrors errors (PostEditor internal) =
+    PostEditor { internal | errors = errors }
+
+
+clearErrors : PostEditor -> PostEditor
+clearErrors (PostEditor internal) =
+    PostEditor { internal | errors = [] }
+
+
+
+-- VISUAL SETTINGS
 
 
 isExpanded : PostEditor -> Bool
@@ -150,19 +122,82 @@ isUnsubmittable (PostEditor internal) =
     (internal.body == "") || internal.isSubmitting
 
 
+expand : PostEditor -> PostEditor
+expand (PostEditor internal) =
+    PostEditor { internal | isExpanded = True }
+
+
+collapse : PostEditor -> PostEditor
+collapse (PostEditor internal) =
+    PostEditor { internal | isExpanded = False }
+
+
+setToSubmitting : PostEditor -> PostEditor
+setToSubmitting (PostEditor internal) =
+    PostEditor { internal | isSubmitting = True }
+
+
+setNotSubmitting : PostEditor -> PostEditor
+setNotSubmitting (PostEditor internal) =
+    PostEditor { internal | isSubmitting = False }
+
+
+
+-- FILES
+
+
+getFiles : PostEditor -> List File
+getFiles (PostEditor internal) =
+    internal.files
+
+
+addFile : File -> PostEditor -> PostEditor
+addFile newFile (PostEditor internal) =
+    PostEditor { internal | files = newFile :: internal.files }
+
+
+setFiles : List File -> PostEditor -> PostEditor
+setFiles newFiles (PostEditor internal) =
+    PostEditor { internal | files = newFiles }
+
+
+setFileUploadPercentage : Id -> Int -> PostEditor -> PostEditor
+setFileUploadPercentage clientId percentage (PostEditor internal) =
+    let
+        updater file =
+            if File.getClientId file == clientId then
+                File.setUploadPercentage percentage file
+
+            else
+                file
+
+        newFiles =
+            List.map updater internal.files
+    in
+    PostEditor { internal | files = newFiles }
+
+
 
 -- VIEW
 
 
-wrapper : Id -> (File -> msg) -> List (Html msg) -> Html msg
-wrapper spaceId toFileAddedMsg children =
+type alias ViewConfig msg =
+    { spaceId : Id
+    , onFileAdded : File -> msg
+    , onFileUploadProgress : Id -> Int -> msg
+    }
+
+
+wrapper : ViewConfig msg -> List (Html msg) -> Html msg
+wrapper config children =
     Html.node "post-editor"
-        [ property "spaceId" (Id.encoder spaceId)
-        , on "fileDropped" (Decode.map toFileAddedMsg fileDroppedDecoder)
+        [ property "spaceId" (Id.encoder config.spaceId)
+        , on "fileAdded" <|
+            Decode.map config.onFileAdded
+                (Decode.at [ "detail" ] File.decoder)
+        , on "fileUploadProgress" <|
+            Decode.map2 config.onFileUploadProgress
+                (Decode.at [ "detail", "clientId" ] Id.decoder)
+                (Decode.at [ "detail", "percentage" ] Decode.int)
         ]
         children
-
-
-fileDroppedDecoder : Decoder File
-fileDroppedDecoder =
-    Decode.at [ "detail" ] File.decoder
