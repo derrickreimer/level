@@ -713,28 +713,6 @@ newPostView spaceId editor currentUser =
         ]
 
 
-filesView : List File -> Html msg
-filesView files =
-    div [ class "p-2 flex" ] <|
-        List.map fileView files
-
-
-fileView : File -> Html msg
-fileView file =
-    let
-        icon =
-            if File.isImage file then
-                Icons.image
-
-            else
-                Icons.file
-    in
-    div [ class "flex items-center mr-2 p-2 border-2 rounded" ]
-        [ div [ class "mr-2" ] [ icon ]
-        , div [ class "text-sm font-bold text-dusty-blue-dark" ] [ text (File.getName file) ]
-        ]
-
-
 postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
 postsView repo space currentUser now connection =
     if Connection.isEmptyAndExpanded connection then
