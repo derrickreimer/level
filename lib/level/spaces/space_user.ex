@@ -10,9 +10,9 @@ defmodule Level.Spaces.SpaceUser do
 
   alias Level.Posts.PostUser
   alias Level.Spaces.Space
+  alias Level.Upload
   alias Level.Users
   alias Level.Users.User
-  alias Level.Upload
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

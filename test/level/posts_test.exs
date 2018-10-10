@@ -12,8 +12,8 @@ defmodule Level.PostsTest do
   alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
-  alias Level.Users.User
   alias Level.Upload
+  alias Level.Users.User
 
   describe "posts_base_query/1 with users" do
     setup do

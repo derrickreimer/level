@@ -7,8 +7,8 @@ defmodule Level.TestHelpers do
   alias Level.Posts
   alias Level.Repo
   alias Level.Spaces
-  alias Level.Users
   alias Level.Upload
+  alias Level.Users
 
   def valid_user_params do
     salt = random_string()
