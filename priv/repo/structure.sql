@@ -181,6 +181,22 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.files (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    filename text NOT NULL,
+    content_type text,
+    size integer NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: group_bookmarks; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -240,6 +256,19 @@ CREATE TABLE public.open_invitations (
 
 
 --
+-- Name: post_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_files (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    file_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: post_groups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -266,19 +295,6 @@ CREATE TABLE public.post_log (
     group_id uuid,
     actor_id uuid,
     reply_id uuid
-);
-
-
---
--- Name: post_uploads; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.post_uploads (
-    id uuid NOT NULL,
-    space_id uuid NOT NULL,
-    post_id uuid NOT NULL,
-    upload_id uuid NOT NULL,
-    inserted_at timestamp without time zone NOT NULL
 );
 
 
@@ -485,22 +501,6 @@ CREATE TABLE public.spaces (
 
 
 --
--- Name: uploads; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.uploads (
-    id uuid NOT NULL,
-    space_id uuid NOT NULL,
-    space_user_id uuid NOT NULL,
-    filename text NOT NULL,
-    content_type text,
-    size integer NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
 -- Name: user_mentions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -538,6 +538,14 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: files files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: group_bookmarks group_bookmarks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -570,6 +578,14 @@ ALTER TABLE ONLY public.open_invitations
 
 
 --
+-- Name: post_files post_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: post_groups post_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -583,14 +599,6 @@ ALTER TABLE ONLY public.post_groups
 
 ALTER TABLE ONLY public.post_log
     ADD CONSTRAINT post_log_pkey PRIMARY KEY (id);
-
-
---
--- Name: post_uploads post_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_uploads
-    ADD CONSTRAINT post_uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -706,14 +714,6 @@ ALTER TABLE ONLY public.spaces
 
 
 --
--- Name: uploads uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.uploads
-    ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
-
-
---
 -- Name: user_mentions user_mentions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -786,17 +786,17 @@ CREATE UNIQUE INDEX open_invitations_unique_active ON public.open_invitations US
 
 
 --
+-- Name: post_files_file_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX post_files_file_id_index ON public.post_files USING btree (file_id);
+
+
+--
 -- Name: post_groups_post_id_group_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX post_groups_post_id_group_id_index ON public.post_groups USING btree (post_id, group_id);
-
-
---
--- Name: post_uploads_post_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX post_uploads_post_id_index ON public.post_uploads USING btree (post_id);
 
 
 --
@@ -912,6 +912,22 @@ CREATE UNIQUE INDEX users_lower_handle_index ON public.users USING btree (lower(
 
 
 --
+-- Name: files files_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: files files_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: group_bookmarks group_bookmarks_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -984,6 +1000,30 @@ ALTER TABLE ONLY public.open_invitations
 
 
 --
+-- Name: post_files post_files_file_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.files(id) ON DELETE CASCADE;
+
+
+--
+-- Name: post_files post_files_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_files post_files_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: post_groups post_groups_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1045,30 +1085,6 @@ ALTER TABLE ONLY public.post_log
 
 ALTER TABLE ONLY public.post_log
     ADD CONSTRAINT post_log_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
--- Name: post_uploads post_uploads_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_uploads
-    ADD CONSTRAINT post_uploads_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
-
-
---
--- Name: post_uploads post_uploads_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_uploads
-    ADD CONSTRAINT post_uploads_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
--- Name: post_uploads post_uploads_upload_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_uploads
-    ADD CONSTRAINT post_uploads_upload_id_fkey FOREIGN KEY (upload_id) REFERENCES public.uploads(id) ON DELETE CASCADE;
 
 
 --
@@ -1309,22 +1325,6 @@ ALTER TABLE ONLY public.space_users
 
 ALTER TABLE ONLY public.space_users
     ADD CONSTRAINT space_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: uploads uploads_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.uploads
-    ADD CONSTRAINT uploads_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
-
-
---
--- Name: uploads uploads_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.uploads
-    ADD CONSTRAINT uploads_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
 
 
 --

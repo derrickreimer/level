@@ -172,11 +172,11 @@ customElements.define(
           let xhr = new XMLHttpRequest();
           let formData = new FormData();
 
-          formData.append('upload[space_id]', this.spaceId);
-          formData.append('upload[client_id]', clientId);
-          formData.append('upload[data]', file);
+          formData.append('file[space_id]', this.spaceId);
+          formData.append('file[client_id]', clientId);
+          formData.append('file[data]', file);
 
-          xhr.open('POST', '/api/uploads', true);
+          xhr.open('POST', '/api/files', true);
 
           xhr.setRequestHeader('authorization', 'Bearer ' + token);
 
@@ -197,8 +197,8 @@ customElements.define(
 
                   this.sendEvent("fileUploaded", {
                     clientId: clientId,
-                    id: response.upload.id,
-                    url: response.upload.url
+                    id: response.file.id,
+                    url: response.file.url
                   });
 
                   break;

@@ -3,6 +3,7 @@ defmodule Level.PostsTest do
 
   import Ecto.Query
 
+  alias Level.File
   alias Level.Groups
   alias Level.Groups.Group
   alias Level.Posts
@@ -12,7 +13,6 @@ defmodule Level.PostsTest do
   alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
-  alias Level.Upload
   alias Level.Users.User
 
   describe "posts_base_query/1 with users" do
@@ -173,13 +173,13 @@ defmodule Level.PostsTest do
     end
 
     test "attaches file uploads", %{space_user: space_user, group: group} do
-      {:ok, %Upload{id: upload_id}} = create_upload(space_user)
-      params = valid_post_params() |> Map.merge(%{upload_ids: [upload_id]})
+      {:ok, %File{id: file_id}} = create_file(space_user)
+      params = valid_post_params() |> Map.merge(%{file_ids: [file_id]})
       {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
 
-      assert [%Upload{id: ^upload_id}] =
+      assert [%File{id: ^file_id}] =
                post
-               |> Ecto.assoc(:uploads)
+               |> Ecto.assoc(:files)
                |> Repo.all()
     end
 
@@ -423,7 +423,7 @@ defmodule Level.PostsTest do
     end
   end
 
-  describe "attach_uploads/2" do
+  describe "attach_files/2" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
@@ -432,12 +432,12 @@ defmodule Level.PostsTest do
     end
 
     test "attaches the given uploads to the post", %{space_user: space_user, post: post} do
-      {:ok, %Upload{id: upload_id} = upload} = create_upload(space_user)
-      {:ok, [%Upload{id: ^upload_id}]} = Posts.attach_uploads(post, [upload])
+      {:ok, %File{id: file_id} = upload} = create_file(space_user)
+      {:ok, [%File{id: ^file_id}]} = Posts.attach_files(post, [upload])
 
-      assert [%Upload{id: ^upload_id}] =
+      assert [%File{id: ^file_id}] =
                post
-               |> Ecto.assoc(:uploads)
+               |> Ecto.assoc(:files)
                |> Repo.all()
     end
   end

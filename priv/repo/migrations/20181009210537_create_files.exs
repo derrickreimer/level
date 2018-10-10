@@ -1,8 +1,8 @@
-defmodule Level.Repo.Migrations.CreateUploads do
+defmodule Level.Repo.Migrations.CreateFiles do
   use Ecto.Migration
 
   def change do
-    create table(:uploads, primary_key: false) do
+    create table(:files, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :space_id, references(:spaces, on_delete: :nothing, type: :binary_id), null: false
 

@@ -7,10 +7,12 @@ defmodule Level.Posts do
   import Level.Gettext
 
   alias Level.Events
+  alias Level.File
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Markdown
   alias Level.Mentions
+  alias Level.PostFile
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
   alias Level.Posts.Post
@@ -21,7 +23,6 @@ defmodule Level.Posts do
   alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
-  alias Level.PostUpload
   alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
@@ -459,29 +460,29 @@ defmodule Level.Posts do
   end
 
   @doc """
-  Attaches uploads to a post.
+  Attaches files to a post.
   """
-  @spec attach_uploads(Post.t(), [Upload.t()]) :: {:ok, [Upload.t()]} | no_return()
-  def attach_uploads(%Post{} = post, uploads) do
+  @spec attach_files(Post.t(), [File.t()]) :: {:ok, [File.t()]} | no_return()
+  def attach_files(%Post{} = post, files) do
     results =
-      Enum.map(uploads, fn upload ->
+      Enum.map(files, fn file ->
         params = %{
           space_id: post.space_id,
           post_id: post.id,
-          upload_id: upload.id
+          file_id: file.id
         }
 
-        %PostUpload{}
-        |> PostUpload.create_changeset(params)
+        %PostFile{}
+        |> PostFile.create_changeset(params)
         |> Repo.insert()
-        |> handle_upload_attached(upload)
+        |> handle_file_attached(file)
       end)
 
     {:ok, Enum.reject(results, &is_nil/1)}
   end
 
-  def handle_upload_attached({:ok, _}, upload), do: upload
-  def handle_upload_attached(_, _), do: nil
+  def handle_file_attached({:ok, _}, file), do: file
+  def handle_file_attached(_, _), do: nil
 
   # Internal
 

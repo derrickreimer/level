@@ -3,11 +3,11 @@ defmodule Level.TestHelpers do
   Miscellaneous helper functions for tests.
   """
 
+  alias Level.File
   alias Level.Groups
   alias Level.Posts
   alias Level.Repo
   alias Level.Spaces
-  alias Level.Upload
   alias Level.Users
 
   def valid_user_params do
@@ -57,7 +57,7 @@ defmodule Level.TestHelpers do
     }
   end
 
-  def valid_upload_params do
+  def valid_file_params do
     %{
       content_type: "image/png",
       filename: "test.png",
@@ -137,14 +137,14 @@ defmodule Level.TestHelpers do
     Posts.create_reply(space_user, post, params)
   end
 
-  def create_upload(space_user, params \\ %{}) do
+  def create_file(space_user, params \\ %{}) do
     params =
-      valid_upload_params()
+      valid_file_params()
       |> Map.merge(params)
       |> Map.merge(%{space_id: space_user.space_id, space_user_id: space_user.id})
 
-    %Upload{}
-    |> Upload.create_changeset(params)
+    %File{}
+    |> File.create_changeset(params)
     |> Repo.insert()
   end
 

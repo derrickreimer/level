@@ -1,4 +1,4 @@
-defmodule Level.Uploads do
+defmodule Level.Files do
   @moduledoc """
   Functions for interacting with user file uploads.
   """
@@ -7,36 +7,36 @@ defmodule Level.Uploads do
 
   alias Ecto.Multi
   alias Level.AssetStore
+  alias Level.File
   alias Level.Repo
   alias Level.Spaces.SpaceUser
-  alias Level.Upload
 
   @doc """
   Fetches uploads from a list of ids.
   """
-  @spec get_uploads(SpaceUser.t(), [String.t()]) :: [Upload.t()] | no_return()
-  def get_uploads(%SpaceUser{} = space_user, upload_ids) do
+  @spec get_files(SpaceUser.t(), [String.t()]) :: [File.t()] | no_return()
+  def get_files(%SpaceUser{} = space_user, file_ids) do
     space_user
-    |> Ecto.assoc(:uploads)
-    |> where([u], u.id in ^upload_ids)
+    |> Ecto.assoc(:files)
+    |> where([f], f.id in ^file_ids)
     |> Repo.all()
   end
 
   @doc """
   Creates a new upload.
   """
-  @spec create_upload(SpaceUser.t(), Plug.Upload.t()) ::
-          {:ok, %{upload: Upload.t(), store: any()}}
+  @spec upload_file(SpaceUser.t(), Plug.Upload.t()) ::
+          {:ok, %{file: File.t(), store: any()}}
           | {:error, :upload | :store, any(), any()}
           | {:error, atom()}
-  def create_upload(%SpaceUser{} = space_user, %Plug.Upload{} = upload) do
+  def upload_file(%SpaceUser{} = space_user, %Plug.Upload{} = upload) do
     upload
     |> get_file_contents()
     |> store_file(space_user, upload)
   end
 
   defp get_file_contents(%Plug.Upload{path: path_on_disk}) do
-    File.read(path_on_disk)
+    Elixir.File.read(path_on_disk)
   end
 
   defp store_file({:ok, binary_data}, space_user, upload) do
@@ -49,9 +49,9 @@ defmodule Level.Uploads do
     }
 
     Multi.new()
-    |> Multi.insert(:upload, Upload.create_changeset(%Upload{}, params))
-    |> Multi.run(:store, fn %{upload: %Upload{id: id, filename: filename}} ->
-      AssetStore.persist_upload(id, filename, binary_data)
+    |> Multi.insert(:file, File.create_changeset(%File{}, params))
+    |> Multi.run(:store, fn %{file: %File{id: id, filename: filename}} ->
+      AssetStore.persist_file(id, filename, binary_data)
     end)
     |> Repo.transaction()
   end
@@ -61,8 +61,8 @@ defmodule Level.Uploads do
   @doc """
   Builds the fully-qualified URL for an upload.
   """
-  @spec upload_url(Upload.t()) :: String.t()
-  def upload_url(%Upload{} = upload) do
-    AssetStore.upload_url(upload.id, upload.filename)
+  @spec file_url(File.t()) :: String.t()
+  def file_url(%File{} = file) do
+    AssetStore.file_url(file.id, file.filename)
   end
 end

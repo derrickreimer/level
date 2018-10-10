@@ -1,14 +1,13 @@
-defmodule Level.Upload do
+defmodule Level.File do
   @moduledoc """
-  The Upload schema.
+  The File schema.
   """
 
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Level.Posts.Post
-  alias Level.PostUpload
+  alias Level.PostFile
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -16,15 +15,15 @@ defmodule Level.Upload do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "uploads" do
+  schema "files" do
     field :filename, :string
     field :content_type, :string
     field :size, :integer
 
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
-    has_many :post_uploads, PostUpload
-    has_many :posts, through: [:post_uploads, :post]
+    has_many :post_files, PostFile
+    has_many :posts, through: [:post_files, :post]
 
     timestamps()
   end

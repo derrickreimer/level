@@ -36,29 +36,25 @@ defmodule Level.AssetStore do
   @doc """
   Uploads a file.
   """
-  @spec persist_upload(String.t(), String.t(), binary()) :: {:ok, String.t()} | {:error, any()}
-  def persist_upload(unique_id, filename, binary_data) do
+  @spec persist_file(String.t(), String.t(), binary()) :: {:ok, String.t()} | {:error, any()}
+  def persist_file(unique_id, filename, binary_data) do
     unique_id
-    |> build_upload_path(filename)
+    |> build_file_path(filename)
     |> @adapter.persist(@bucket, binary_data)
-  end
-
-  @doc """
-  Builds the path for a file upload.
-  """
-  @spec build_upload_path(String.t(), String.t()) :: String.t()
-  def build_upload_path(unique_id, filename) do
-    "uploads/" <> unique_id <> "/" <> filename
   end
 
   @doc """
   Generates the URL for a file upload.
   """
-  @spec upload_url(String.t(), String.t()) :: String.t()
-  def upload_url(unique_id, filename) do
+  @spec file_url(String.t(), String.t()) :: String.t()
+  def file_url(unique_id, filename) do
     unique_id
-    |> build_upload_path(filename)
+    |> build_file_path(filename)
     |> @adapter.public_url(@bucket)
+  end
+
+  defp build_file_path(unique_id, filename) do
+    "uploads/" <> unique_id <> "/" <> filename
   end
 
   defp decode_base64_data_url(raw_data) do

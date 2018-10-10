@@ -26,13 +26,13 @@ document =
           $spaceId: ID!,
           $groupId: ID!,
           $body: String!,
-          $uploadIds: [ID]
+          $fileIds: [ID]
         ) {
           createPost(
             spaceId: $spaceId,
             groupId: $groupId,
             body: $body,
-            uploadIds: $uploadIds
+            fileIds: $fileIds
           ) {
             ...ValidationFields
             post {
@@ -51,13 +51,13 @@ document =
 
 
 variables : Id -> Id -> String -> List Id -> Maybe Encode.Value
-variables spaceId groupId body uploadIds =
+variables spaceId groupId body fileIds =
     Just <|
         Encode.object
             [ ( "spaceId", Id.encoder spaceId )
             , ( "groupId", Id.encoder groupId )
             , ( "body", Encode.string body )
-            , ( "uploadIds", Encode.list Id.encoder uploadIds )
+            , ( "fileIds", Encode.list Id.encoder fileIds )
             ]
 
 
@@ -80,6 +80,6 @@ decoder =
 
 
 request : Id -> Id -> String -> List Id -> Session -> Task Session.Error ( Session, Response )
-request spaceId groupId body uploadIds session =
+request spaceId groupId body fileIds session =
     Session.request session <|
-        GraphQL.request document (variables spaceId groupId body uploadIds) decoder
+        GraphQL.request document (variables spaceId groupId body fileIds) decoder

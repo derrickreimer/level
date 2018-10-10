@@ -4,6 +4,7 @@ defmodule Level.Posts.CreatePost do
   alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.Events
+  alias Level.Files
   alias Level.Groups.Group
   alias Level.Mentions
   alias Level.Posts
@@ -12,7 +13,6 @@ defmodule Level.Posts.CreatePost do
   alias Level.Posts.PostLog
   alias Level.Repo
   alias Level.Spaces.SpaceUser
-  alias Level.Uploads
 
   # TODO: make this more specific
   @type result :: {:ok, map()} | {:error, any(), any(), map()}
@@ -26,7 +26,7 @@ defmodule Level.Posts.CreatePost do
     |> do_insert(build_params(author, params))
     |> associate_with_group(group)
     |> record_mentions()
-    |> attach_uploads(author, params)
+    |> attach_files(author, params)
     |> log(group, author)
     |> Repo.transaction()
     |> after_transaction(author, group)
@@ -64,15 +64,15 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp attach_uploads(multi, author, %{upload_ids: upload_ids}) do
-    Multi.run(multi, :uploads, fn %{post: post} ->
-      uploads = Uploads.get_uploads(author, upload_ids)
-      Posts.attach_uploads(post, uploads)
+  defp attach_files(multi, author, %{file_ids: file_ids}) do
+    Multi.run(multi, :files, fn %{post: post} ->
+      files = Files.get_files(author, file_ids)
+      Posts.attach_files(post, files)
     end)
   end
 
-  defp attach_uploads(multi, _, _) do
-    Multi.run(multi, :uploads, fn _ -> {:ok, []} end)
+  defp attach_files(multi, _, _) do
+    Multi.run(multi, :files, fn _ -> {:ok, []} end)
   end
 
   defp log(multi, group, author) do
