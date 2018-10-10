@@ -168,6 +168,7 @@ type Msg
     | NewReplyBodyChanged String
     | NewReplyFileAdded File
     | NewReplyFileUploadProgress Id Int
+    | NewReplyFileUploaded Id Id String
     | NewReplyBlurred
     | NewReplySubmit
     | NewReplyEscaped
@@ -184,6 +185,7 @@ type Msg
     | PostEditorBodyChanged String
     | PostEditorFileAdded File
     | PostEditorFileUploadProgress Id Int
+    | PostEditorFileUploaded Id Id String
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | ExpandReplyEditor Id
@@ -191,6 +193,7 @@ type Msg
     | ReplyEditorBodyChanged Id String
     | ReplyEditorFileAdded Id File
     | ReplyEditorFileUploadProgress Id Id Int
+    | ReplyEditorFileUploaded Id Id Id String
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | NoOp
@@ -224,6 +227,9 @@ update msg spaceId globals model =
 
         NewReplyFileUploadProgress clientId percentage ->
             noCmd globals { model | replyComposer = PostEditor.setFileUploadPercentage clientId percentage model.replyComposer }
+
+        NewReplyFileUploaded clientId uploadId url ->
+            noCmd globals { model | replyComposer = PostEditor.setFileState clientId (File.Uploaded uploadId url) model.replyComposer }
 
         NewReplySubmit ->
             let
@@ -420,6 +426,14 @@ update msg spaceId globals model =
             in
             noCmd globals { model | postEditor = newPostEditor }
 
+        PostEditorFileUploaded clientId uploadId url ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setFileState clientId (File.Uploaded uploadId url)
+            in
+            noCmd globals { model | postEditor = newPostEditor }
+
         PostEditorSubmitted ->
             let
                 cmd =
@@ -539,6 +553,19 @@ update msg spaceId globals model =
                     model.replyEditors
                         |> getReplyEditor replyId
                         |> PostEditor.setFileUploadPercentage clientId percentage
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorFileUploaded replyId clientId uploadId url ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setFileState clientId (File.Uploaded uploadId url)
 
                 newReplyEditors =
                     model.replyEditors
@@ -789,6 +816,7 @@ postEditorView spaceId editor =
             { spaceId = spaceId
             , onFileAdded = PostEditorFileAdded
             , onFileUploadProgress = PostEditorFileUploadProgress
+            , onFileUploaded = PostEditorFileUploaded
             }
     in
     PostEditor.wrapper config
@@ -911,6 +939,7 @@ replyEditorView spaceId replyId editor =
             { spaceId = spaceId
             , onFileAdded = ReplyEditorFileAdded replyId
             , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
+            , onFileUploaded = ReplyEditorFileUploaded replyId
             }
     in
     PostEditor.wrapper config
@@ -962,6 +991,7 @@ expandedReplyComposerView spaceId currentUser post editor =
             { spaceId = spaceId
             , onFileAdded = NewReplyFileAdded
             , onFileUploadProgress = NewReplyFileUploadProgress
+            , onFileUploaded = NewReplyFileUploaded
             }
     in
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]

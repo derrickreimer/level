@@ -2,7 +2,7 @@ module PostEditor exposing
     ( PostEditor, init
     , getId, getBody, getErrors, setBody, setErrors, clearErrors
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
-    , getFiles, addFile, setFiles, setFileUploadPercentage
+    , getFiles, addFile, setFiles, setFileUploadPercentage, setFileState
     , ViewConfig, wrapper
     )
 
@@ -26,7 +26,7 @@ module PostEditor exposing
 
 # Files
 
-@docs getFiles, addFile, setFiles, setFileUploadPercentage
+@docs getFiles, addFile, setFiles, setFileUploadPercentage, setFileState
 
 
 # Views
@@ -177,6 +177,22 @@ setFileUploadPercentage clientId percentage (PostEditor internal) =
     PostEditor { internal | files = newFiles }
 
 
+setFileState : Id -> File.State -> PostEditor -> PostEditor
+setFileState clientId newState (PostEditor internal) =
+    let
+        updater file =
+            if File.getClientId file == clientId then
+                File.setState newState file
+
+            else
+                file
+
+        newFiles =
+            List.map updater internal.files
+    in
+    PostEditor { internal | files = newFiles }
+
+
 
 -- VIEW
 
@@ -185,6 +201,7 @@ type alias ViewConfig msg =
     { spaceId : Id
     , onFileAdded : File -> msg
     , onFileUploadProgress : Id -> Int -> msg
+    , onFileUploaded : Id -> Id -> String -> msg
     }
 
 
@@ -199,5 +216,10 @@ wrapper config children =
             Decode.map2 config.onFileUploadProgress
                 (Decode.at [ "detail", "clientId" ] Id.decoder)
                 (Decode.at [ "detail", "percentage" ] Decode.int)
+        , on "fileUploaded" <|
+            Decode.map3 config.onFileUploaded
+                (Decode.at [ "detail", "clientId" ] Id.decoder)
+                (Decode.at [ "detail", "id" ] Id.decoder)
+                (Decode.at [ "detail", "url" ] Decode.string)
         ]
         children

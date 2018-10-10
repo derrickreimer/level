@@ -1,8 +1,9 @@
-module File exposing (File, decoder, getClientId, getContents, getName, input, isImage, receive, request, setUploadPercentage)
+module File exposing (File, State(..), decoder, getClientId, getContents, getName, input, isImage, receive, request, setState, setUploadPercentage)
 
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
 import Html.Events exposing (on)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 import Ports
 
@@ -16,7 +17,7 @@ type File
 
 
 type alias Internal =
-    { clientId : String
+    { clientId : Id
     , state : State
     , name : String
     , type_ : String
@@ -29,7 +30,7 @@ type alias Internal =
 type State
     = Staged
     | Uploading
-    | Uploaded
+    | Uploaded Id String
     | UploadFailed
     | Unknown
 
@@ -38,7 +39,7 @@ type State
 -- API
 
 
-getClientId : File -> String
+getClientId : File -> Id
 getClientId (File internal) =
     internal.clientId
 
@@ -63,6 +64,11 @@ setUploadPercentage percentage (File internal) =
     File { internal | uploadPercentage = percentage }
 
 
+setState : State -> File -> File
+setState newState (File internal) =
+    File { internal | state = newState }
+
+
 
 -- DECODING
 
@@ -71,38 +77,14 @@ decoder : Decoder File
 decoder =
     Decode.map File
         (Decode.map7 Internal
-            (field "clientId" string)
-            (field "state" stateDecoder)
+            (field "clientId" Id.decoder)
+            (Decode.succeed Staged)
             (field "name" string)
             (field "type" string)
             (field "size" int)
             (field "contents" (maybe string))
             (Decode.succeed 0)
         )
-
-
-stateDecoder : Decoder State
-stateDecoder =
-    let
-        convert : String -> Decoder State
-        convert raw =
-            case raw of
-                "STAGED" ->
-                    succeed Staged
-
-                "UPLOADING" ->
-                    succeed Uploading
-
-                "UPLOADED" ->
-                    succeed Uploaded
-
-                "UPLOAD_FAILED" ->
-                    succeed UploadFailed
-
-                _ ->
-                    succeed Unknown
-    in
-    Decode.andThen convert string
 
 
 

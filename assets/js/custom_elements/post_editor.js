@@ -197,6 +197,7 @@ customElements.define(
 
                   this.sendEvent("fileUploaded", {
                     clientId: clientId,
+                    id: response.upload.id,
                     url: response.upload.url
                   });
 
