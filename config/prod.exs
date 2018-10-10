@@ -39,7 +39,9 @@ config :level, Level.Mailer,
   retries: 1
 
 # Configure asset storage
-config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
+config :level, :asset_store,
+  bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET"),
+  adapter: Level.AssetStore.S3Adapter
 
 # Web push
 config :level, Level.WebPush,

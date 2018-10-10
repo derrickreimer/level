@@ -116,7 +116,7 @@ defmodule Level.Spaces do
           {:ok, Space.t()} | {:error, Ecto.Changeset.t() | String.t()}
   def update_avatar(space, raw_data) do
     raw_data
-    |> AssetStore.upload_avatar()
+    |> AssetStore.persist_avatar()
     |> set_space_avatar(space)
   end
 

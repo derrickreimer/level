@@ -34,7 +34,9 @@ config :comeonin, :pbkdf2_rounds, 1
 config :level, Level.Mailer, adapter: Bamboo.TestAdapter
 
 # Configure asset storage
-config :level, :asset_store, bucket: System.get_env("LEVEL_ASSET_STORE_BUCKET")
+config :level, :asset_store,
+  bucket: "test",
+  adapter: Level.AssetStore.TestAdapter
 
 # Web push
 config :level, Level.WebPush,

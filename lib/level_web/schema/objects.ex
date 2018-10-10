@@ -59,7 +59,11 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn user, _, _ ->
-        {:ok, AssetStore.avatar_url(user)}
+        if user.avatar do
+          {:ok, AssetStore.avatar_url(user.avatar)}
+        else
+          {:ok, nil}
+        end
       end
     end
 
@@ -95,7 +99,11 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn space_user, _, _ ->
-        {:ok, AssetStore.avatar_url(space_user)}
+        if space_user.avatar do
+          {:ok, AssetStore.avatar_url(space_user.avatar)}
+        else
+          {:ok, nil}
+        end
       end
     end
 
@@ -118,7 +126,11 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn space, _, _ ->
-        {:ok, AssetStore.avatar_url(space)}
+        if space.avatar do
+          {:ok, AssetStore.avatar_url(space.avatar)}
+        else
+          {:ok, nil}
+        end
       end
     end
 

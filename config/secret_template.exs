@@ -6,7 +6,9 @@ use Mix.Config
 #
 #    LEVEL_ASSET_STORE_BUCKET
 #
-config :level, :asset_store, bucket: "REPLACE ME"
+config :level, :asset_store,
+  bucket: "REPLACE ME",
+  adapter: Level.AssetStore.S3Adapter
 
 # Configuration for web push notifications.
 # The keys should be URL-safe, Base64 encoded.

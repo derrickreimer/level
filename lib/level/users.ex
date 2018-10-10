@@ -115,7 +115,7 @@ defmodule Level.Users do
           {:ok, User.t()} | {:error, Ecto.Changeset.t() | String.t()}
   def update_avatar(user, raw_data) do
     raw_data
-    |> AssetStore.upload_avatar()
+    |> AssetStore.persist_avatar()
     |> set_user_avatar(user)
   end
 
@@ -126,13 +126,6 @@ defmodule Level.Users do
   defp set_user_avatar(:error, _user) do
     {:error, dgettext("errors", "An error occurred updating your avatar")}
   end
-
-  @doc """
-  Generates the avatar URL for a given filename.
-  """
-  @spec avatar_url(String.t() | nil) :: String.t() | nil
-  def avatar_url(nil), do: nil
-  def avatar_url(filename), do: AssetStore.avatar_url(filename)
 
   @doc """
   Count the number of reservations.

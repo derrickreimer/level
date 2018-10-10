@@ -26,20 +26,20 @@ defmodule Level.Uploads do
     File.read(path_on_disk)
   end
 
-  defp store_file({:ok, contents}, space_user, upload) do
+  defp store_file({:ok, binary_data}, space_user, upload) do
     # TODO: measure the size of the file
     params = %{
       space_id: space_user.space_id,
       space_user_id: space_user.id,
       filename: upload.filename,
       content_type: upload.content_type,
-      size: 0
+      size: byte_size(binary_data)
     }
 
     Multi.new()
     |> Multi.insert(:upload, Upload.create_changeset(%Upload{}, params))
-    |> Multi.run(:store, fn %{upload: %Upload{id: upload_id, filename: filename}} ->
-      AssetStore.upload_file(upload_id, filename, contents)
+    |> Multi.run(:store, fn %{upload: %Upload{id: id, filename: filename}} ->
+      AssetStore.persist_upload(id, filename, binary_data)
     end)
     |> Repo.transaction()
   end
