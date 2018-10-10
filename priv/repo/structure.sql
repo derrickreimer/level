@@ -270,6 +270,19 @@ CREATE TABLE public.post_log (
 
 
 --
+-- Name: post_uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_uploads (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    upload_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: post_user_log; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -472,6 +485,22 @@ CREATE TABLE public.spaces (
 
 
 --
+-- Name: uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.uploads (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    filename text NOT NULL,
+    content_type text,
+    size integer NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: user_mentions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -554,6 +583,14 @@ ALTER TABLE ONLY public.post_groups
 
 ALTER TABLE ONLY public.post_log
     ADD CONSTRAINT post_log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_uploads post_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_uploads
+    ADD CONSTRAINT post_uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -669,6 +706,14 @@ ALTER TABLE ONLY public.spaces
 
 
 --
+-- Name: uploads uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uploads
+    ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_mentions user_mentions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -745,6 +790,13 @@ CREATE UNIQUE INDEX open_invitations_unique_active ON public.open_invitations US
 --
 
 CREATE UNIQUE INDEX post_groups_post_id_group_id_index ON public.post_groups USING btree (post_id, group_id);
+
+
+--
+-- Name: post_uploads_post_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX post_uploads_post_id_index ON public.post_uploads USING btree (post_id);
 
 
 --
@@ -996,6 +1048,30 @@ ALTER TABLE ONLY public.post_log
 
 
 --
+-- Name: post_uploads post_uploads_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_uploads
+    ADD CONSTRAINT post_uploads_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_uploads post_uploads_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_uploads
+    ADD CONSTRAINT post_uploads_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: post_uploads post_uploads_upload_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_uploads
+    ADD CONSTRAINT post_uploads_upload_id_fkey FOREIGN KEY (upload_id) REFERENCES public.uploads(id) ON DELETE CASCADE;
+
+
+--
 -- Name: post_user_log post_user_log_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1236,6 +1312,22 @@ ALTER TABLE ONLY public.space_users
 
 
 --
+-- Name: uploads uploads_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uploads
+    ADD CONSTRAINT uploads_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: uploads uploads_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uploads
+    ADD CONSTRAINT uploads_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: user_mentions user_mentions_mentioned_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1279,5 +1371,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443);
 
