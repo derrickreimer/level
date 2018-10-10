@@ -1,8 +1,8 @@
 module PostEditor exposing
     ( PostEditor, init
-    , getId, getBody, getErrors, setBody, setErrors, clearErrors
+    , getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
-    , getFiles, addFile, setFiles, setFileUploadPercentage, setFileState
+    , getFiles, getUploadIds, addFile, setFiles, setFileUploadPercentage, setFileState
     , ViewConfig, wrapper
     )
 
@@ -16,7 +16,7 @@ module PostEditor exposing
 
 # General
 
-@docs getId, getBody, getErrors, setBody, setErrors, clearErrors
+@docs getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
 
 
 # Visual Settings
@@ -26,7 +26,7 @@ module PostEditor exposing
 
 # Files
 
-@docs getFiles, addFile, setFiles, setFileUploadPercentage, setFileState
+@docs getFiles, getUploadIds, addFile, setFiles, setFileUploadPercentage, setFileState
 
 
 # Views
@@ -98,6 +98,15 @@ clearErrors (PostEditor internal) =
     PostEditor { internal | errors = [] }
 
 
+reset : PostEditor -> PostEditor
+reset editor =
+    editor
+        |> setBody ""
+        |> setNotSubmitting
+        |> setFiles []
+        |> clearErrors
+
+
 
 -- VISUAL SETTINGS
 
@@ -149,6 +158,11 @@ setNotSubmitting (PostEditor internal) =
 getFiles : PostEditor -> List File
 getFiles (PostEditor internal) =
     internal.files
+
+
+getUploadIds : PostEditor -> List Id
+getUploadIds (PostEditor internal) =
+    List.filterMap File.getUploadId internal.files
 
 
 addFile : File -> PostEditor -> PostEditor

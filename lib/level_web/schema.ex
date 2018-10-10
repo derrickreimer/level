@@ -171,6 +171,7 @@ defmodule LevelWeb.Schema do
       arg :space_id, non_null(:id)
       arg :group_id, non_null(:id)
       arg :body, non_null(:string)
+      arg :upload_ids, list_of(:id)
 
       resolve &Level.Mutations.create_post/2
     end

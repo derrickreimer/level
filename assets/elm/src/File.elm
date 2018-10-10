@@ -1,4 +1,4 @@
-module File exposing (File, State(..), decoder, getClientId, getContents, getName, input, isImage, receive, request, setState, setUploadPercentage)
+module File exposing (File, State(..), decoder, getClientId, getContents, getName, getUploadId, input, isImage, receive, request, setState, setUploadPercentage)
 
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
@@ -52,6 +52,16 @@ getName (File internal) =
 getContents : File -> Maybe String
 getContents (File { contents }) =
     contents
+
+
+getUploadId : File -> Maybe Id
+getUploadId (File internal) =
+    case internal.state of
+        Uploaded id url ->
+            Just id
+
+        _ ->
+            Nothing
 
 
 isImage : File -> Bool

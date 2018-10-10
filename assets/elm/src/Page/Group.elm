@@ -253,7 +253,7 @@ update msg globals model =
                 let
                     cmd =
                         globals.session
-                            |> CreatePost.request model.spaceId model.groupId (PostEditor.getBody model.postComposer)
+                            |> CreatePost.request model.spaceId model.groupId (PostEditor.getBody model.postComposer) (PostEditor.getUploadIds model.postComposer)
                             |> Task.attempt NewPostSubmitted
                 in
                 ( ( { model | postComposer = PostEditor.setToSubmitting model.postComposer }, cmd ), globals )
@@ -265,8 +265,7 @@ update msg globals model =
             let
                 newPostComposer =
                     model.postComposer
-                        |> PostEditor.setBody ""
-                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.reset
             in
             ( ( { model | postComposer = newPostComposer }
               , Cmd.none
