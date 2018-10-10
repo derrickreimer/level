@@ -5,8 +5,10 @@ defmodule Level.TestHelpers do
 
   alias Level.Groups
   alias Level.Posts
+  alias Level.Repo
   alias Level.Spaces
   alias Level.Users
+  alias Level.Upload
 
   def valid_user_params do
     salt = random_string()
@@ -52,6 +54,14 @@ defmodule Level.TestHelpers do
   def valid_reply_params do
     %{
       body: "Hello world"
+    }
+  end
+
+  def valid_upload_params do
+    %{
+      content_type: "image/png",
+      filename: "test.png",
+      size: 200
     }
   end
 
@@ -125,6 +135,17 @@ defmodule Level.TestHelpers do
       |> Map.merge(params)
 
     Posts.create_reply(space_user, post, params)
+  end
+
+  def create_upload(space_user, params \\ %{}) do
+    params =
+      valid_upload_params()
+      |> Map.merge(params)
+      |> Map.merge(%{space_id: space_user.space_id, space_user_id: space_user.id})
+
+    %Upload{}
+    |> Upload.create_changeset(params)
+    |> Repo.insert()
   end
 
   defp random_string do

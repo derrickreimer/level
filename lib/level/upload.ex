@@ -7,6 +7,8 @@ defmodule Level.Upload do
 
   import Ecto.Changeset
 
+  alias Level.Posts.Post
+  alias Level.PostUpload
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -15,13 +17,14 @@ defmodule Level.Upload do
   @foreign_key_type :binary_id
 
   schema "uploads" do
-    field :bucket, :string
     field :filename, :string
     field :content_type, :string
     field :size, :integer
 
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
+    has_many :post_uploads, PostUpload
+    has_many :posts, through: [:post_uploads, :post]
 
     timestamps()
   end
@@ -29,6 +32,6 @@ defmodule Level.Upload do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_user_id, :bucket, :filename, :content_type, :size])
+    |> cast(attrs, [:space_id, :space_user_id, :filename, :content_type, :size])
   end
 end

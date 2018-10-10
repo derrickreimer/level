@@ -13,6 +13,7 @@ defmodule Level.PostsTest do
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
+  alias Level.Upload
 
   describe "posts_base_query/1 with users" do
     setup do
@@ -169,6 +170,17 @@ defmodule Level.PostsTest do
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
+    end
+
+    test "attaches file uploads", %{space_user: space_user, group: group} do
+      {:ok, %Upload{id: upload_id}} = create_upload(space_user)
+      params = valid_post_params() |> Map.merge(%{upload_ids: [upload_id]})
+      {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
+
+      assert [%Upload{id: ^upload_id}] =
+               post
+               |> Ecto.assoc(:uploads)
+               |> Repo.all()
     end
 
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
@@ -408,6 +420,25 @@ defmodule Level.PostsTest do
     test "applies a special class for viewer mentions", %{viewer: viewer} do
       assert Posts.render_body("@derrick Hey", viewer) ==
                {:ok, "<p><strong class=\"user-mention is-viewer\">@derrick</strong> Hey</p>\n"}
+    end
+  end
+
+  describe "attach_uploads/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "attaches the given uploads to the post", %{space_user: space_user, post: post} do
+      {:ok, %Upload{id: upload_id} = upload} = create_upload(space_user)
+      {:ok, [%Upload{id: ^upload_id}]} = Posts.attach_uploads(post, [upload])
+
+      assert [%Upload{id: ^upload_id}] =
+               post
+               |> Ecto.assoc(:uploads)
+               |> Repo.all()
     end
   end
 end

@@ -3,11 +3,24 @@ defmodule Level.Uploads do
   Functions for interacting with user file uploads.
   """
 
+  import Ecto.Query
+
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Upload
+
+  @doc """
+  Fetches uploads from a list of ids.
+  """
+  @spec get_uploads(SpaceUser.t(), [String.t()]) :: [Upload.t()] | no_return()
+  def get_uploads(%SpaceUser{} = space_user, upload_ids) do
+    space_user
+    |> Ecto.assoc(:uploads)
+    |> where([u], u.id in ^upload_ids)
+    |> Repo.all()
+  end
 
   @doc """
   Creates a new upload.
@@ -27,7 +40,6 @@ defmodule Level.Uploads do
   end
 
   defp store_file({:ok, binary_data}, space_user, upload) do
-    # TODO: measure the size of the file
     params = %{
       space_id: space_user.space_id,
       space_user_id: space_user.id,

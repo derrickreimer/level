@@ -21,6 +21,7 @@ defmodule Level.Posts do
   alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
+  alias Level.PostUpload
   alias Level.PostVersion
   alias Level.Repo
   alias Level.Spaces.SpaceUser
@@ -456,6 +457,31 @@ defmodule Level.Posts do
   def update_reply(%SpaceUser{} = space_user, %Reply{} = reply, params) do
     UpdateReply.perform(space_user, reply, params)
   end
+
+  @doc """
+  Attaches uploads to a post.
+  """
+  @spec attach_uploads(Post.t(), [Upload.t()]) :: {:ok, [Upload.t()]} | no_return()
+  def attach_uploads(%Post{} = post, uploads) do
+    results =
+      Enum.map(uploads, fn upload ->
+        params = %{
+          space_id: post.space_id,
+          post_id: post.id,
+          upload_id: upload.id
+        }
+
+        %PostUpload{}
+        |> PostUpload.create_changeset(params)
+        |> Repo.insert()
+        |> handle_upload_attached(upload)
+      end)
+
+    {:ok, Enum.reject(results, &is_nil/1)}
+  end
+
+  def handle_upload_attached({:ok, _}, upload), do: upload
+  def handle_upload_attached(_, _), do: nil
 
   # Internal
 

@@ -13,6 +13,7 @@ defmodule Level.Posts.Post do
   alias Level.Posts.PostLog
   alias Level.Posts.PostUser
   alias Level.Posts.Reply
+  alias Level.PostUpload
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -31,6 +32,8 @@ defmodule Level.Posts.Post do
     has_many :user_mentions, UserMention
     has_many :post_logs, PostLog
     has_many :post_users, PostUser
+    has_many :post_uploads, PostUpload
+    has_many :uploads, through: [:post_uploads, :upload]
 
     # Used for paginating
     field :last_pinged_at, :naive_datetime, virtual: true
