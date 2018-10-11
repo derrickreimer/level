@@ -1,7 +1,5 @@
-port module Ports exposing (autosize, cancelSocket, presenceIn, presenceOut, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
+port module Ports exposing (cancelSocket, presenceIn, presenceOut, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
 
-import Autosize.Types
-import File.Types
 import Json.Decode as Decode
 import Scroll.Types
 import Socket.Types
@@ -29,13 +27,16 @@ port socketTokenUpdated : (Decode.Value -> msg) -> Sub msg
 port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
 
 
-port receiveFile : (File.Types.Data -> msg) -> Sub msg
+port receiveFile : (Decode.Value -> msg) -> Sub msg
 
 
 port pushManagerIn : (Decode.Value -> msg) -> Sub msg
 
 
 port presenceIn : (Decode.Value -> msg) -> Sub msg
+
+
+port dragIn : (Decode.Value -> msg) -> Sub msg
 
 
 
@@ -55,9 +56,6 @@ port scrollTo : Scroll.Types.AnchorParams -> Cmd msg
 
 
 port scrollToBottom : Scroll.Types.ContainerParams -> Cmd msg
-
-
-port autosize : Autosize.Types.Args -> Cmd msg
 
 
 port select : String -> Cmd msg

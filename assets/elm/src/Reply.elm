@@ -1,5 +1,6 @@
-module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, fragment, hasViewed, id, postId, postedAt)
+module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, files, fragment, hasViewed, id, postId, postedAt)
 
+import File exposing (File)
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
@@ -23,6 +24,7 @@ type alias Data =
     , body : String
     , bodyHtml : String
     , authorId : Id
+    , files : List File
     , hasViewed : Bool
     , canEdit : Bool
     , postedAt : Posix
@@ -42,6 +44,9 @@ fragment =
           author {
             ...SpaceUserFields
           }
+          files {
+            ...FileFields
+          }
           hasViewed
           canEdit
           postedAt
@@ -49,6 +54,7 @@ fragment =
         }
         """
         [ SpaceUser.fragment
+        , File.fragment
         ]
 
 
@@ -81,6 +87,11 @@ authorId (Reply data) =
     data.authorId
 
 
+files : Reply -> List File
+files (Reply data) =
+    data.files
+
+
 hasViewed : Reply -> Bool
 hasViewed (Reply data) =
     data.hasViewed
@@ -109,6 +120,7 @@ decoder =
             |> required "body" string
             |> required "bodyHtml" string
             |> required "author" (field "id" Id.decoder)
+            |> required "files" (Decode.list File.decoder)
             |> required "hasViewed" bool
             |> required "canEdit" bool
             |> required "postedAt" dateDecoder

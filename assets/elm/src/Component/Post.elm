@@ -1,9 +1,10 @@
 module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleReplyCreated, init, setup, teardown, update, view)
 
-import Autosize
 import Avatar exposing (personAvatar)
+import Color exposing (Color)
 import Connection exposing (Connection)
 import Dict exposing (Dict)
+import File exposing (File)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -12,7 +13,6 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
-import ListHelpers
 import Markdown
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissPosts as DismissPosts
@@ -24,7 +24,6 @@ import PostEditor exposing (PostEditor)
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
-import ReplyComposer exposing (Mode(..), ReplyComposer)
 import Repo exposing (Repo)
 import Route
 import Route.Group
@@ -51,7 +50,7 @@ type alias Model =
     , spaceSlug : String
     , postId : Id
     , replyIds : Connection Id
-    , replyComposer : ReplyComposer
+    , replyComposer : PostEditor
     , postEditor : PostEditor
     , replyEditors : ReplyEditors
     , isChecked : Bool
@@ -96,13 +95,17 @@ resolveData repo model =
 init : Mode -> Bool -> String -> Id -> Connection Id -> Model
 init mode showGroups spaceSlug postId replyIds =
     let
-        replyMode =
+        replyComposer =
             case mode of
                 Feed ->
-                    Autocollapse
+                    postId
+                        |> PostEditor.init
+                        |> PostEditor.collapse
 
                 FullPage ->
-                    AlwaysExpanded
+                    postId
+                        |> PostEditor.init
+                        |> PostEditor.expand
     in
     Model
         postId
@@ -111,7 +114,7 @@ init mode showGroups spaceSlug postId replyIds =
         spaceSlug
         postId
         replyIds
-        (ReplyComposer.init replyMode)
+        replyComposer
         (PostEditor.init postId)
         Dict.empty
         False
@@ -131,16 +134,15 @@ teardown model =
     PostSubscription.unsubscribe model.postId
 
 
-setupReplyComposer : String -> ReplyComposer -> Cmd Msg
+setupReplyComposer : String -> PostEditor -> Cmd Msg
 setupReplyComposer postId replyComposer =
-    if ReplyComposer.isExpanded replyComposer then
+    if PostEditor.isExpanded replyComposer then
         let
             composerId =
                 replyComposerId postId
         in
         Cmd.batch
-            [ Autosize.init composerId
-            , setFocus composerId NoOp
+            [ setFocus composerId NoOp
             ]
 
     else
@@ -164,6 +166,9 @@ setupScrollPosition mode =
 type Msg
     = ExpandReplyComposer
     | NewReplyBodyChanged String
+    | NewReplyFileAdded File
+    | NewReplyFileUploadProgress Id Int
+    | NewReplyFileUploaded Id Id String
     | NewReplyBlurred
     | NewReplySubmit
     | NewReplyEscaped
@@ -178,11 +183,17 @@ type Msg
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
+    | PostEditorFileAdded File
+    | PostEditorFileUploadProgress Id Int
+    | PostEditorFileUploaded Id Id String
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | ExpandReplyEditor Id
     | CollapseReplyEditor Id
     | ReplyEditorBodyChanged Id String
+    | ReplyEditorFileAdded Id File
+    | ReplyEditorFileUploadProgress Id Id Int
+    | ReplyEditorFileUploaded Id Id Id String
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | NoOp
@@ -193,56 +204,60 @@ update msg spaceId globals model =
     case msg of
         ExpandReplyComposer ->
             let
-                nodeId =
-                    replyComposerId model.postId
-
                 cmd =
                     Cmd.batch
-                        [ setFocus nodeId NoOp
-                        , Autosize.init nodeId
+                        [ setFocus (PostEditor.getId model.replyComposer) NoOp
                         , markVisibleRepliesAsViewed globals spaceId model
                         ]
 
                 newModel =
-                    { model | replyComposer = ReplyComposer.expand model.replyComposer }
+                    { model | replyComposer = PostEditor.expand model.replyComposer }
             in
             ( ( newModel, cmd ), globals )
 
         NewReplyBodyChanged val ->
             let
                 newModel =
-                    { model | replyComposer = ReplyComposer.setBody val model.replyComposer }
+                    { model | replyComposer = PostEditor.setBody val model.replyComposer }
             in
             noCmd globals newModel
+
+        NewReplyFileAdded file ->
+            noCmd globals { model | replyComposer = PostEditor.addFile file model.replyComposer }
+
+        NewReplyFileUploadProgress clientId percentage ->
+            noCmd globals { model | replyComposer = PostEditor.setFileUploadPercentage clientId percentage model.replyComposer }
+
+        NewReplyFileUploaded clientId uploadId url ->
+            noCmd globals { model | replyComposer = PostEditor.setFileState clientId (File.Uploaded uploadId url) model.replyComposer }
 
         NewReplySubmit ->
             let
                 newModel =
-                    { model | replyComposer = ReplyComposer.submitting model.replyComposer }
+                    { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }
 
                 body =
-                    ReplyComposer.getBody model.replyComposer
+                    PostEditor.getBody model.replyComposer
 
                 cmd =
-                    CreateReply.request spaceId model.postId body globals.session
+                    globals.session
+                        |> CreateReply.request spaceId model.postId body (PostEditor.getUploadIds model.replyComposer)
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newModel, cmd ), globals )
 
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
-                nodeId =
-                    replyComposerId model.postId
-
                 newReplyComposer =
                     model.replyComposer
-                        |> ReplyComposer.notSubmitting
-                        |> ReplyComposer.setBody ""
+                        |> PostEditor.reset
 
                 newModel =
                     { model | replyComposer = newReplyComposer }
             in
-            ( ( newModel, setFocus nodeId NoOp ), { globals | session = newSession } )
+            ( ( newModel, setFocus (PostEditor.getId model.replyComposer) NoOp )
+            , { globals | session = newSession }
+            )
 
         NewReplySubmitted (Err Session.Expired) ->
             redirectToLogin globals model
@@ -251,32 +266,26 @@ update msg spaceId globals model =
             noCmd globals model
 
         NewReplyEscaped ->
-            let
-                nodeId =
-                    replyComposerId model.postId
-            in
-            ( ( { model | replyComposer = ReplyComposer.escaped model.replyComposer }
-              , unsetFocus nodeId NoOp
-              )
-            , globals
-            )
+            if PostEditor.getBody model.replyComposer == "" && model.mode == Feed then
+                ( ( { model | replyComposer = PostEditor.collapse model.replyComposer }
+                  , unsetFocus (PostEditor.getId model.replyComposer) NoOp
+                  )
+                , globals
+                )
+
+            else
+                noCmd globals model
 
         NewReplyBlurred ->
-            let
-                nodeId =
-                    replyComposerId model.postId
-
-                newModel =
-                    { model | replyComposer = ReplyComposer.blurred model.replyComposer }
-            in
-            noCmd globals newModel
+            noCmd globals model
 
         PreviousRepliesRequested ->
             case Connection.startCursor model.replyIds of
                 Just cursor ->
                     let
                         cmd =
-                            Query.Replies.request spaceId model.postId cursor 10 globals.session
+                            globals.session
+                                |> Query.Replies.request spaceId model.postId cursor 10
                                 |> Task.attempt PreviousRepliesFetched
                     in
                     ( ( model, cmd ), globals )
@@ -372,12 +381,12 @@ update msg spaceId globals model =
                             model.postEditor
                                 |> PostEditor.expand
                                 |> PostEditor.setBody (Post.body data.post)
+                                |> PostEditor.setFiles (Post.files data.post)
                                 |> PostEditor.clearErrors
 
                         cmd =
                             Cmd.batch
                                 [ setFocus nodeId NoOp
-                                , Autosize.init nodeId
                                 ]
                     in
                     ( ( { model | postEditor = newPostEditor }, cmd ), globals )
@@ -398,6 +407,30 @@ update msg spaceId globals model =
                 newPostEditor =
                     model.postEditor
                         |> PostEditor.setBody val
+            in
+            noCmd globals { model | postEditor = newPostEditor }
+
+        PostEditorFileAdded file ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.addFile file
+            in
+            noCmd globals { model | postEditor = newPostEditor }
+
+        PostEditorFileUploadProgress clientId percentage ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setFileUploadPercentage clientId percentage
+            in
+            noCmd globals { model | postEditor = newPostEditor }
+
+        PostEditorFileUploaded clientId uploadId url ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setFileState clientId (File.Uploaded uploadId url)
             in
             noCmd globals { model | postEditor = newPostEditor }
 
@@ -456,6 +489,7 @@ update msg spaceId globals model =
                                 |> getReplyEditor replyId
                                 |> PostEditor.expand
                                 |> PostEditor.setBody (Reply.body reply)
+                                |> PostEditor.setFiles (Reply.files reply)
                                 |> PostEditor.clearErrors
 
                         nodeId =
@@ -464,7 +498,6 @@ update msg spaceId globals model =
                         cmd =
                             Cmd.batch
                                 [ setFocus nodeId NoOp
-                                , Autosize.init nodeId
                                 ]
 
                         newReplyEditors =
@@ -495,6 +528,45 @@ update msg spaceId globals model =
                     model.replyEditors
                         |> getReplyEditor replyId
                         |> PostEditor.setBody val
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorFileAdded replyId file ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.addFile file
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorFileUploadProgress replyId clientId percentage ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setFileUploadPercentage clientId percentage
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorFileUploaded replyId clientId uploadId url ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setFileState clientId (File.Uploaded uploadId url)
 
                 newReplyEditors =
                     model.replyEditors
@@ -676,7 +748,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView space model.mode data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
-                postEditorView model.postEditor
+                postEditorView (Space.id space) model.postEditor
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
                     [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
@@ -684,7 +756,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode model.replyEditors
-                , replyComposerView currentUser data.post model
+                , replyComposerView (Space.id space) currentUser data.post model
                 ]
             ]
         ]
@@ -735,37 +807,49 @@ bodyView : Space -> Mode -> Post -> Html Msg
 bodyView space mode post =
     clickToExpandIf (mode == Feed)
         [ div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        , staticFilesView (Post.files post)
         ]
 
 
-postEditorView : PostEditor -> Html Msg
-postEditorView editor =
-    label [ class "composer my-2 p-3" ]
-        [ textarea
-            [ id (PostEditor.getId editor)
-            , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
-            , placeholder "Edit post..."
-            , onInput PostEditorBodyChanged
-            , readonly (PostEditor.isSubmitting editor)
-            , value (PostEditor.getBody editor)
-            , onKeydown preventDefault
-                [ ( [ Meta ], enter, \event -> PostEditorSubmitted )
+postEditorView : Id -> PostEditor -> Html Msg
+postEditorView spaceId editor =
+    let
+        config =
+            { spaceId = spaceId
+            , onFileAdded = PostEditorFileAdded
+            , onFileUploadProgress = PostEditorFileUploadProgress
+            , onFileUploaded = PostEditorFileUploaded
+            }
+    in
+    PostEditor.wrapper config
+        [ label [ class "composer my-2 p-3" ]
+            [ textarea
+                [ id (PostEditor.getId editor)
+                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+                , placeholder "Edit post..."
+                , onInput PostEditorBodyChanged
+                , readonly (PostEditor.isSubmitting editor)
+                , value (PostEditor.getBody editor)
+                , onKeydown preventDefault
+                    [ ( [ Meta ], enter, \event -> PostEditorSubmitted )
+                    ]
                 ]
-            ]
-            []
-        , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
-        , div [ class "flex justify-end" ]
-            [ button
-                [ class "mr-2 btn btn-grey-outline btn-sm"
-                , onClick CollapsePostEditor
+                []
+            , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
+            , PostEditor.filesView editor
+            , div [ class "flex justify-end" ]
+                [ button
+                    [ class "mr-2 btn btn-grey-outline btn-sm"
+                    , onClick CollapsePostEditor
+                    ]
+                    [ text "Cancel" ]
+                , button
+                    [ class "btn btn-blue btn-sm"
+                    , onClick PostEditorSubmitted
+                    , disabled (PostEditor.isUnsubmittable editor)
+                    ]
+                    [ text "Update post" ]
                 ]
-                [ text "Cancel" ]
-            , button
-                [ class "btn btn-blue btn-sm"
-                , onClick PostEditorSubmitted
-                , disabled (PostEditor.isSubmitting editor)
-                ]
-                [ text "Update post" ]
             ]
         ]
 
@@ -799,12 +883,12 @@ repliesView repo space post now replyIds mode editors =
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
         div []
             [ viewIf hasPreviousPage actionButton
-            , div [] (List.map (replyView repo now post mode editors) replies)
+            , div [] (List.map (replyView repo now (Space.id space) post mode editors) replies)
             ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Post -> Mode -> ReplyEditors -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) post mode editors reply =
+replyView : Repo -> ( Zone, Posix ) -> Id -> Post -> Mode -> ReplyEditors -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
     let
         replyId =
             Reply.id reply
@@ -840,9 +924,10 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
                             [ div [ class "markdown mb-2" ]
                                 [ RenderedHtml.node (Reply.bodyHtml reply)
                                 ]
+                            , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
-                        replyEditorView replyId editor
+                        replyEditorView spaceId replyId editor
                     ]
                 ]
 
@@ -851,88 +936,110 @@ replyView repo (( zone, posix ) as now) post mode editors reply =
             text ""
 
 
-replyEditorView : Id -> PostEditor -> Html Msg
-replyEditorView replyId editor =
-    label [ class "composer my-2 p-3" ]
-        [ textarea
-            [ id (PostEditor.getId editor)
-            , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
-            , placeholder "Edit reply..."
-            , onInput (ReplyEditorBodyChanged replyId)
-            , readonly (PostEditor.isSubmitting editor)
-            , value (PostEditor.getBody editor)
-            , onKeydown preventDefault
-                [ ( [ Meta ], enter, \event -> ReplyEditorSubmitted replyId )
+replyEditorView : Id -> Id -> PostEditor -> Html Msg
+replyEditorView spaceId replyId editor =
+    let
+        config =
+            { spaceId = spaceId
+            , onFileAdded = ReplyEditorFileAdded replyId
+            , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
+            , onFileUploaded = ReplyEditorFileUploaded replyId
+            }
+    in
+    PostEditor.wrapper config
+        [ label [ class "composer my-2 p-3" ]
+            [ textarea
+                [ id (PostEditor.getId editor)
+                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+                , placeholder "Edit reply..."
+                , onInput (ReplyEditorBodyChanged replyId)
+                , readonly (PostEditor.isSubmitting editor)
+                , value (PostEditor.getBody editor)
+                , onKeydown preventDefault
+                    [ ( [ Meta ], enter, \event -> ReplyEditorSubmitted replyId )
+                    ]
                 ]
-            ]
-            []
-        , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
-        , div [ class "flex justify-end" ]
-            [ button
-                [ class "mr-2 btn btn-grey-outline btn-sm"
-                , onClick (CollapseReplyEditor replyId)
+                []
+            , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
+            , PostEditor.filesView editor
+            , div [ class "flex justify-end" ]
+                [ button
+                    [ class "mr-2 btn btn-grey-outline btn-sm"
+                    , onClick (CollapseReplyEditor replyId)
+                    ]
+                    [ text "Cancel" ]
+                , button
+                    [ class "btn btn-blue btn-sm"
+                    , onClick (ReplyEditorSubmitted replyId)
+                    , disabled (PostEditor.isUnsubmittable editor)
+                    ]
+                    [ text "Update reply" ]
                 ]
-                [ text "Cancel" ]
-            , button
-                [ class "btn btn-blue btn-sm"
-                , onClick (ReplyEditorSubmitted replyId)
-                , disabled (PostEditor.isSubmitting editor)
-                ]
-                [ text "Update reply" ]
             ]
         ]
 
 
-replyComposerView : SpaceUser -> Post -> Model -> Html Msg
-replyComposerView currentUser post model =
-    if ReplyComposer.isExpanded model.replyComposer then
-        expandedReplyComposerView currentUser post model
+replyComposerView : Id -> SpaceUser -> Post -> Model -> Html Msg
+replyComposerView spaceId currentUser post model =
+    if PostEditor.isExpanded model.replyComposer then
+        expandedReplyComposerView spaceId currentUser post model.replyComposer
 
     else
         viewUnless (Connection.isEmpty model.replyIds) <|
             replyPromptView currentUser
 
 
-expandedReplyComposerView : SpaceUser -> Post -> Model -> Html Msg
-expandedReplyComposerView currentUser post model =
+expandedReplyComposerView : Id -> SpaceUser -> Post -> PostEditor -> Html Msg
+expandedReplyComposerView spaceId currentUser post editor =
+    let
+        config =
+            { spaceId = spaceId
+            , onFileAdded = NewReplyFileAdded
+            , onFileUploadProgress = NewReplyFileUploadProgress
+            , onFileUploaded = NewReplyFileUploaded
+            }
+    in
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
-        [ div [ class "composer p-0" ]
-            [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
-                div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
-                    [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
-                        [ span [ class "mr-2 inline-block" ] [ Icons.inboxWhite ]
-                        , text "This post is currently in your inbox."
-                        ]
-                    , button
-                        [ class "flex-no-shrink btn btn-xs btn-turquoise-inverse"
-                        , onClick DismissClicked
-                        ]
-                        [ text "Dismiss from my inbox" ]
-                    ]
-            , div [ class "flex p-3" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
-                , div [ class "flex-grow" ]
-                    [ textarea
-                        [ id (replyComposerId <| Post.id post)
-                        , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Write a reply..."
-                        , onInput NewReplyBodyChanged
-                        , onKeydown preventDefault
-                            [ ( [ Meta ], enter, \event -> NewReplySubmit )
-                            , ( [], esc, \event -> NewReplyEscaped )
+        [ PostEditor.wrapper config
+            [ label [ class "composer p-0" ]
+                [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
+                    div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
+                        [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
+                            [ span [ class "mr-2 inline-block" ] [ Icons.inboxWhite ]
+                            , text "This post is currently in your inbox."
                             ]
-                        , onBlur NewReplyBlurred
-                        , value (ReplyComposer.getBody model.replyComposer)
-                        , readonly (ReplyComposer.isSubmitting model.replyComposer)
-                        ]
-                        []
-                    , div [ class "flex justify-end" ]
-                        [ button
-                            [ class "btn btn-blue btn-sm"
-                            , onClick NewReplySubmit
-                            , disabled (ReplyComposer.unsubmittable model.replyComposer)
+                        , button
+                            [ class "flex-no-shrink btn btn-xs btn-turquoise-inverse"
+                            , onClick DismissClicked
                             ]
-                            [ text "Send" ]
+                            [ text "Dismiss from my inbox" ]
+                        ]
+                , div [ class "flex p-3" ]
+                    [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
+                    , div [ class "flex-grow" ]
+                        [ textarea
+                            [ id (PostEditor.getId editor)
+                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                            , placeholder "Write a reply..."
+                            , onInput NewReplyBodyChanged
+                            , onKeydown preventDefault
+                                [ ( [ Meta ], enter, \event -> NewReplySubmit )
+                                , ( [], esc, \event -> NewReplyEscaped )
+                                ]
+                            , onBlur NewReplyBlurred
+                            , value (PostEditor.getBody editor)
+                            , readonly (PostEditor.isSubmitting editor)
+                            ]
+                            []
+                        , PostEditor.filesView editor
+                        , div [ class "flex justify-end" ]
+                            [ button
+                                [ class "btn btn-blue btn-sm"
+                                , onClick NewReplySubmit
+                                , disabled (PostEditor.isUnsubmittable editor)
+                                ]
+                                [ text "Send" ]
+                            ]
                         ]
                     ]
                 ]
@@ -965,6 +1072,32 @@ statusView state =
 
         Post.Closed ->
             buildView Icons.closed "Closed"
+
+
+staticFilesView : List File -> Html msg
+staticFilesView files =
+    viewUnless (List.isEmpty files) <|
+        div [ class "flex flex-wrap pb-2" ] <|
+            List.map staticFileView files
+
+
+staticFileView : File -> Html msg
+staticFileView file =
+    case File.getState file of
+        File.Uploaded id url ->
+            a
+                [ href url
+                , target "_blank"
+                , class "flex flex-none items-center mr-4 pb-1 no-underline text-dusty-blue hover:text-blue"
+                , rel "tooltip"
+                , title "Download file"
+                ]
+                [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
+                , div [ class "text-sm font-bold truncate" ] [ text (File.getName file) ]
+                ]
+
+        _ ->
+            text ""
 
 
 

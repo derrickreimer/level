@@ -257,8 +257,12 @@ body {
   overflow: visible;
 }
 
-.user-mention.is-viewer {
-  /* @apply .bg-yellow-lighter .text-orange .p-1 .rounded; */
+post-editor {
+  @apply .block;
+}
+
+post-editor.dragging-over > * {
+  box-shadow: inset 0 0 0 2px config('colors.blue');
 }
 
 /**
@@ -363,4 +367,8 @@ body {
 .link-reset {
   color: inherit;
   text-decoration: inherit;
+}
+
+.transition-w {
+  transition: width 0.3s;
 }

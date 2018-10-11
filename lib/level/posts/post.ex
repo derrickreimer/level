@@ -9,6 +9,7 @@ defmodule Level.Posts.Post do
 
   alias Level.Groups.Group
   alias Level.Mentions.UserMention
+  alias Level.PostFile
   alias Level.Posts.PostGroup
   alias Level.Posts.PostLog
   alias Level.Posts.PostUser
@@ -31,6 +32,8 @@ defmodule Level.Posts.Post do
     has_many :user_mentions, UserMention
     has_many :post_logs, PostLog
     has_many :post_users, PostUser
+    has_many :post_files, PostFile
+    has_many :files, through: [:post_files, :file]
 
     # Used for paginating
     field :last_pinged_at, :naive_datetime, virtual: true

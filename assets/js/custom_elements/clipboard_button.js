@@ -11,7 +11,7 @@ customElements.define(
 
     connectedCallback() {
       this._clipboard = new Clipboard(this);
-    };
+    }
 
     disconnectedCallback() {
       this._clipboard.destroy();

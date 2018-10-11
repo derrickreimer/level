@@ -1,5 +1,6 @@
-module Avatar exposing (Size(..), avatar, personAvatar, texitar, thingAvatar)
+module Avatar exposing (Size(..), avatar, personAvatar, texitar, thingAvatar, uploader)
 
+import File
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
@@ -20,7 +21,7 @@ type alias Thing a =
 
 
 
--- API
+-- DISPLAY
 
 
 {-| A text-based avatar (to be used a placeholder when there does not exist
@@ -73,6 +74,26 @@ thingAvatar size ({ name } as thing) =
 
         Nothing ->
             texitar size (initial name)
+
+
+
+-- FORM INPUT
+
+
+uploader : String -> Maybe String -> msg -> Html msg
+uploader nodeId maybeSrc changeMsg =
+    case maybeSrc of
+        Just avatarUrl ->
+            label [ class "flex w-24 h-24 rounded-full cursor-pointer bg-grey-light" ]
+                [ img [ src avatarUrl, class "w-full h-full rounded-full" ] []
+                , File.input nodeId changeMsg [ class "invisible-file" ]
+                ]
+
+        Nothing ->
+            label [ class "flex w-24 h-24 items-center text-center text-base leading-tight text-dusty-blue border-2 rounded-full border-dashed cursor-pointer no-select" ]
+                [ text "Upload an avatar..."
+                , File.input nodeId changeMsg [ class "invisible-file" ]
+                ]
 
 
 

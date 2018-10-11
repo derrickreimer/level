@@ -1,10 +1,12 @@
 module PostEditor exposing
     ( PostEditor, init
-    , setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors
-    , getId, getBody, getErrors, isExpanded, isSubmitting
+    , getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
+    , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
+    , getFiles, getUploadIds, addFile, setFiles, setFileUploadPercentage, setFileState
+    , ViewConfig, wrapper, filesView
     )
 
-{-| Holds state for the post editor.
+{-| Represents an editor instance for creating/editing posts and replies.
 
 
 # Types
@@ -12,19 +14,38 @@ module PostEditor exposing
 @docs PostEditor, init
 
 
-# Setters
+# General
 
-@docs setBody, expand, collapse, setToSubmitting, setNotSubmitting, setErrors, clearErrors
+@docs getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
 
 
-# Getters
+# Visual Settings
 
-@docs getId, getBody, getErrors, isExpanded, isSubmitting
+@docs isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
+
+
+# Files
+
+@docs getFiles, getUploadIds, addFile, setFiles, setFileUploadPercentage, setFileState
+
+
+# Views
+
+@docs ViewConfig, wrapper, filesView
 
 -}
 
+import Color exposing (Color)
+import File exposing (File)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (on)
+import Icons
 import Id exposing (Id)
+import Json.Decode as Decode exposing (Decoder)
+import ListHelpers
 import ValidationError exposing (ValidationError)
+import View.Helpers exposing (viewUnless)
 
 
 type PostEditor
@@ -34,6 +55,7 @@ type PostEditor
 type alias Internal =
     { id : Id
     , body : String
+    , files : List File
     , isExpanded : Bool
     , isSubmitting : Bool
     , errors : List ValidationError
@@ -42,16 +64,74 @@ type alias Internal =
 
 init : Id -> PostEditor
 init id =
-    PostEditor (Internal id "" False False [])
+    PostEditor (Internal id "" [] False False [])
 
 
 
--- SETTERS
+-- GENERAL
+
+
+getId : PostEditor -> Id
+getId (PostEditor internal) =
+    internal.id
+
+
+getBody : PostEditor -> String
+getBody (PostEditor internal) =
+    internal.body
+
+
+getErrors : PostEditor -> List ValidationError
+getErrors (PostEditor internal) =
+    internal.errors
 
 
 setBody : String -> PostEditor -> PostEditor
 setBody newBody (PostEditor internal) =
     PostEditor { internal | body = newBody }
+
+
+setErrors : List ValidationError -> PostEditor -> PostEditor
+setErrors errors (PostEditor internal) =
+    PostEditor { internal | errors = errors }
+
+
+clearErrors : PostEditor -> PostEditor
+clearErrors (PostEditor internal) =
+    PostEditor { internal | errors = [] }
+
+
+reset : PostEditor -> PostEditor
+reset editor =
+    editor
+        |> setBody ""
+        |> setNotSubmitting
+        |> setFiles []
+        |> clearErrors
+
+
+
+-- VISUAL SETTINGS
+
+
+isExpanded : PostEditor -> Bool
+isExpanded (PostEditor internal) =
+    internal.isExpanded
+
+
+isSubmitting : PostEditor -> Bool
+isSubmitting (PostEditor internal) =
+    internal.isSubmitting
+
+
+isSubmittable : PostEditor -> Bool
+isSubmittable editor =
+    not (isUnsubmittable editor)
+
+
+isUnsubmittable : PostEditor -> Bool
+isUnsubmittable (PostEditor internal) =
+    (internal.body == "") || internal.isSubmitting
 
 
 expand : PostEditor -> PostEditor
@@ -74,40 +154,141 @@ setNotSubmitting (PostEditor internal) =
     PostEditor { internal | isSubmitting = False }
 
 
-setErrors : List ValidationError -> PostEditor -> PostEditor
-setErrors errors (PostEditor internal) =
-    PostEditor { internal | errors = errors }
+
+-- FILES
 
 
-clearErrors : PostEditor -> PostEditor
-clearErrors (PostEditor internal) =
-    PostEditor { internal | errors = [] }
+getFiles : PostEditor -> List File
+getFiles (PostEditor internal) =
+    internal.files
+
+
+getUploadIds : PostEditor -> List Id
+getUploadIds (PostEditor internal) =
+    List.filterMap File.getUploadId internal.files
+
+
+addFile : File -> PostEditor -> PostEditor
+addFile newFile (PostEditor internal) =
+    PostEditor { internal | files = newFile :: internal.files }
+
+
+setFiles : List File -> PostEditor -> PostEditor
+setFiles newFiles (PostEditor internal) =
+    PostEditor { internal | files = newFiles }
+
+
+setFileUploadPercentage : Id -> Int -> PostEditor -> PostEditor
+setFileUploadPercentage clientId percentage (PostEditor internal) =
+    let
+        updater file =
+            if File.getClientId file == Just clientId then
+                File.setUploadPercentage percentage file
+
+            else
+                file
+
+        newFiles =
+            List.map updater internal.files
+    in
+    PostEditor { internal | files = newFiles }
+
+
+setFileState : Id -> File.State -> PostEditor -> PostEditor
+setFileState clientId newState (PostEditor internal) =
+    let
+        updater file =
+            if File.getClientId file == Just clientId then
+                File.setState newState file
+
+            else
+                file
+
+        newFiles =
+            List.map updater internal.files
+    in
+    PostEditor { internal | files = newFiles }
 
 
 
--- GETTERS
+-- VIEW
 
 
-getId : PostEditor -> Id
-getId (PostEditor internal) =
-    internal.id
+type alias ViewConfig msg =
+    { spaceId : Id
+    , onFileAdded : File -> msg
+    , onFileUploadProgress : Id -> Int -> msg
+    , onFileUploaded : Id -> Id -> String -> msg
+    }
 
 
-getBody : PostEditor -> String
-getBody (PostEditor internal) =
-    internal.body
+wrapper : ViewConfig msg -> List (Html msg) -> Html msg
+wrapper config children =
+    Html.node "post-editor"
+        [ property "spaceId" (Id.encoder config.spaceId)
+        , on "fileAdded" <|
+            Decode.map config.onFileAdded
+                (Decode.at [ "detail" ] File.decoder)
+        , on "fileUploadProgress" <|
+            Decode.map2 config.onFileUploadProgress
+                (Decode.at [ "detail", "clientId" ] Id.decoder)
+                (Decode.at [ "detail", "percentage" ] Decode.int)
+        , on "fileUploaded" <|
+            Decode.map3 config.onFileUploaded
+                (Decode.at [ "detail", "clientId" ] Id.decoder)
+                (Decode.at [ "detail", "id" ] Id.decoder)
+                (Decode.at [ "detail", "url" ] Decode.string)
+        ]
+        children
 
 
-getErrors : PostEditor -> List ValidationError
-getErrors (PostEditor internal) =
-    internal.errors
+filesView : PostEditor -> Html msg
+filesView (PostEditor { files }) =
+    viewUnless (List.isEmpty files) <|
+        div [ class "flex flex-wrap pb-2" ] <|
+            List.map fileView files
 
 
-isExpanded : PostEditor -> Bool
-isExpanded (PostEditor internal) =
-    internal.isExpanded
+fileView : File -> Html msg
+fileView file =
+    let
+        wrapperClass =
+            "flex relative flex-none items-center mr-2 px-2 py-2 bg-grey rounded no-underline"
+
+        icon =
+            div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
+    in
+    case File.getState file of
+        File.Staged ->
+            div [ class wrapperClass ]
+                [ icon
+                , div [ class "text-sm font-italic text-dusty-blue" ] [ text "Pending..." ]
+                ]
+
+        File.Uploading percentage ->
+            div [ class wrapperClass ]
+                [ icon
+                , div [ class "text-sm font-italic text-dusty-blue" ] [ text "Uploading..." ]
+                , div
+                    [ class "absolute pin-l pin-b h-1 rounded-full w-full bg-blue transition-w"
+                    , style "width" (percentageToWidth percentage)
+                    ]
+                    []
+                ]
+
+        File.Uploaded id url ->
+            a
+                [ href url
+                , target "_blank"
+                , class wrapperClass
+                , rel "tooltip"
+                , title "Download file"
+                ]
+                [ icon
+                , div [ class "text-sm font-bold text-dusty-blue truncate" ] [ text (File.getName file) ]
+                ]
 
 
-isSubmitting : PostEditor -> Bool
-isSubmitting (PostEditor internal) =
-    internal.isSubmitting
+percentageToWidth : Int -> String
+percentageToWidth percentage =
+    String.fromInt percentage ++ "%"

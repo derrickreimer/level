@@ -181,6 +181,22 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.files (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    filename text NOT NULL,
+    content_type text,
+    size integer NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: group_bookmarks; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -236,6 +252,19 @@ CREATE TABLE public.open_invitations (
     token text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: post_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_files (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    file_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL
 );
 
 
@@ -368,6 +397,19 @@ CREATE TABLE public.replies (
     body text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: reply_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.reply_files (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    reply_id uuid NOT NULL,
+    file_id uuid NOT NULL,
+    inserted_at timestamp without time zone NOT NULL
 );
 
 
@@ -509,6 +551,14 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: files files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: group_bookmarks group_bookmarks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -538,6 +588,14 @@ ALTER TABLE ONLY public.groups
 
 ALTER TABLE ONLY public.open_invitations
     ADD CONSTRAINT open_invitations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_files post_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_pkey PRIMARY KEY (id);
 
 
 --
@@ -610,6 +668,14 @@ ALTER TABLE ONLY public.push_subscriptions
 
 ALTER TABLE ONLY public.replies
     ADD CONSTRAINT replies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reply_files reply_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_files
+    ADD CONSTRAINT reply_files_pkey PRIMARY KEY (id);
 
 
 --
@@ -741,6 +807,13 @@ CREATE UNIQUE INDEX open_invitations_unique_active ON public.open_invitations US
 
 
 --
+-- Name: post_files_post_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX post_files_post_id_index ON public.post_files USING btree (post_id);
+
+
+--
 -- Name: post_groups_post_id_group_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -773,6 +846,13 @@ CREATE INDEX posts_id_index ON public.posts USING btree (id);
 --
 
 CREATE UNIQUE INDEX push_subscriptions_user_id_digest_index ON public.push_subscriptions USING btree (user_id, digest);
+
+
+--
+-- Name: reply_files_reply_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX reply_files_reply_id_index ON public.reply_files USING btree (reply_id);
 
 
 --
@@ -860,6 +940,22 @@ CREATE UNIQUE INDEX users_lower_handle_index ON public.users USING btree (lower(
 
 
 --
+-- Name: files files_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: files files_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: group_bookmarks group_bookmarks_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -929,6 +1025,30 @@ ALTER TABLE ONLY public.groups
 
 ALTER TABLE ONLY public.open_invitations
     ADD CONSTRAINT open_invitations_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: post_files post_files_file_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.files(id) ON DELETE CASCADE;
+
+
+--
+-- Name: post_files post_files_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_files post_files_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_files
+    ADD CONSTRAINT post_files_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
 
 
 --
@@ -1148,6 +1268,30 @@ ALTER TABLE ONLY public.replies
 
 
 --
+-- Name: reply_files reply_files_file_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_files
+    ADD CONSTRAINT reply_files_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.files(id) ON DELETE CASCADE;
+
+
+--
+-- Name: reply_files reply_files_reply_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_files
+    ADD CONSTRAINT reply_files_reply_id_fkey FOREIGN KEY (reply_id) REFERENCES public.replies(id);
+
+
+--
+-- Name: reply_files reply_files_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_files
+    ADD CONSTRAINT reply_files_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: reply_versions reply_versions_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1279,5 +1423,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259);
 

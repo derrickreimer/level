@@ -4,6 +4,7 @@ defmodule Level.Posts.CreateReply do
   """
 
   alias Ecto.Multi
+  alias Level.Files
   alias Level.Mentions
   alias Level.Posts
   alias Level.Posts.Post
@@ -31,7 +32,8 @@ defmodule Level.Posts.CreateReply do
     Multi.new()
     |> do_insert(build_params(author, post, params))
     |> record_mentions(post)
-    |> log_create(post, author)
+    |> attach_files(author, params)
+    |> log(post, author)
     |> record_post_view(post, author)
     |> Repo.transaction()
     |> after_transaction(post, author, opts)
@@ -63,7 +65,18 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp log_create(multi, post, space_user) do
+  defp attach_files(multi, author, %{file_ids: file_ids}) do
+    Multi.run(multi, :files, fn %{reply: reply} ->
+      files = Files.get_files(author, file_ids)
+      Posts.attach_files(reply, files)
+    end)
+  end
+
+  defp attach_files(multi, _, _) do
+    Multi.run(multi, :files, fn _ -> {:ok, []} end)
+  end
+
+  defp log(multi, post, space_user) do
     Multi.run(multi, :log, fn %{reply: reply} ->
       PostLog.reply_created(post, reply, space_user)
     end)

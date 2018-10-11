@@ -1,10 +1,13 @@
-module File exposing (Data, File, avatarInput, getContents, init, input, receive, request)
+module File exposing (File, State(..), decoder, fragment, getClientId, getContents, getName, getState, getUploadId, icon, input, isImage, receive, request, setState, setUploadPercentage)
 
-import File.Types exposing (Data)
+import Color exposing (Color)
+import GraphQL exposing (Fragment)
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
 import Html.Events exposing (on)
-import Json.Decode as Decode
+import Icons
+import Id exposing (Id)
+import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 import Ports
 
 
@@ -13,25 +16,132 @@ import Ports
 
 
 type File
-    = File Data
+    = File Internal
 
 
-type alias Data =
-    File.Types.Data
+type alias Internal =
+    { state : State
+    , filename : String
+    , contentType : String
+    , size : Int
+    , clientId : Maybe Id
+    , contents : Maybe String
+    }
+
+
+type State
+    = Staged
+    | Uploading Int
+    | Uploaded Id String
 
 
 
 -- API
 
 
-init : Data -> File
-init data =
-    File data
+getClientId : File -> Maybe Id
+getClientId (File internal) =
+    internal.clientId
 
 
-getContents : File -> String
+getName : File -> String
+getName (File internal) =
+    internal.filename
+
+
+getContents : File -> Maybe String
 getContents (File { contents }) =
     contents
+
+
+getUploadId : File -> Maybe Id
+getUploadId (File internal) =
+    case internal.state of
+        Uploaded id url ->
+            Just id
+
+        _ ->
+            Nothing
+
+
+getState : File -> State
+getState (File internal) =
+    internal.state
+
+
+isImage : File -> Bool
+isImage (File internal) =
+    String.startsWith "image" internal.contentType
+
+
+setUploadPercentage : Int -> File -> File
+setUploadPercentage percentage (File internal) =
+    File { internal | state = Uploading percentage }
+
+
+setState : State -> File -> File
+setState newState (File internal) =
+    File { internal | state = newState }
+
+
+
+-- GRAPHQL
+
+
+fragment : Fragment
+fragment =
+    let
+        queryBody =
+            """
+            fragment FileFields on File {
+              id
+              contentType
+              filename
+              size
+              url
+              fetchedAt
+            }
+            """
+    in
+    GraphQL.toFragment queryBody []
+
+
+
+-- DECODING
+
+
+decoder : Decoder File
+decoder =
+    Decode.oneOf [ stagedDecoder, uploadedDecoder ]
+
+
+stagedDecoder : Decoder File
+stagedDecoder =
+    Decode.map File
+        (Decode.map6 Internal
+            (Decode.succeed Staged)
+            (field "filename" string)
+            (field "contentType" string)
+            (field "size" int)
+            (field "clientId" (maybe Id.decoder))
+            (field "contents" (maybe string))
+        )
+
+
+uploadedDecoder : Decoder File
+uploadedDecoder =
+    Decode.map File
+        (Decode.map6 Internal
+            (Decode.map2 Uploaded
+                (field "id" Id.decoder)
+                (field "url" string)
+            )
+            (field "filename" string)
+            (field "contentType" string)
+            (field "size" int)
+            (Decode.succeed Nothing)
+            (Decode.succeed Nothing)
+        )
 
 
 
@@ -43,7 +153,7 @@ request nodeId =
     Ports.requestFile nodeId
 
 
-receive : (Data -> msg) -> Sub msg
+receive : (Decode.Value -> msg) -> Sub msg
 receive toMsg =
     Ports.receiveFile toMsg
 
@@ -65,17 +175,10 @@ input name onChange attrs =
     Html.input (defaultAttrs ++ attrs) []
 
 
-avatarInput : String -> Maybe String -> msg -> Html msg
-avatarInput nodeId maybeSrc changeMsg =
-    case maybeSrc of
-        Just avatarUrl ->
-            label [ class "flex w-24 h-24 rounded-full cursor-pointer bg-grey-light" ]
-                [ img [ src avatarUrl, class "w-full h-full rounded-full" ] []
-                , input nodeId changeMsg [ class "invisible-file" ]
-                ]
+icon : Color -> File -> Html msg
+icon color file =
+    if isImage file then
+        Icons.image color
 
-        Nothing ->
-            label [ class "flex w-24 h-24 items-center text-center text-base leading-tight text-dusty-blue border-2 rounded-full border-dashed cursor-pointer no-select" ]
-                [ text "Upload an avatar..."
-                , input nodeId changeMsg [ class "invisible-file" ]
-                ]
+    else
+        Icons.file color

@@ -3,18 +3,22 @@ defmodule Level.AssetStore do
   Responsible for taking file uploads and storing them.
   """
 
-  alias Level.AssetStore.S3
+  @adapter Application.get_env(:level, :asset_store)[:adapter]
+  @bucket Application.get_env(:level, :asset_store)[:bucket]
+
+  @typedoc "A Base-64 encoded data url"
+  @type base64_data_url :: String.t()
 
   @doc """
   Uploads an avatar with a randomly-generated file name.
   """
-  @spec upload_avatar(String.t()) :: {:ok, filename :: String.t()} | :error
-  def upload_avatar(raw_data) do
-    case decode(raw_data) do
+  @spec persist_avatar(base64_data_url()) :: {:ok, filename :: String.t()} | :error
+  def persist_avatar(data) do
+    case decode_base64_data_url(data) do
       {:ok, binary_data} ->
         binary_data
-        |> generate_avatar_filename()
-        |> persist(bucket(), binary_data)
+        |> build_avatar_path()
+        |> @adapter.persist(@bucket, binary_data)
 
       :error ->
         :error
@@ -25,43 +29,54 @@ defmodule Level.AssetStore do
   Generates the URL for a given avatar filename.
   """
   @spec avatar_url(String.t()) :: String.t()
-  @spec avatar_url(%{:__struct__ => any(), :avatar => String.t() | nil}) :: String.t()
-
-  def avatar_url(%_{avatar: nil}), do: nil
-  def avatar_url(%_{avatar: filename}), do: avatar_url(filename)
-
-  def avatar_url(filename) do
-    "https://s3.amazonaws.com/" <> bucket() <> "/" <> filename
+  def avatar_url(pathname) do
+    @adapter.public_url(pathname, @bucket)
   end
 
-  defp bucket do
-    Application.get_env(:level, :asset_store)[:bucket]
+  @doc """
+  Uploads a file.
+  """
+  @spec persist_file(String.t(), String.t(), binary()) :: {:ok, String.t()} | {:error, any()}
+  def persist_file(unique_id, filename, binary_data) do
+    unique_id
+    |> build_file_path(filename)
+    |> @adapter.persist(@bucket, binary_data)
   end
 
-  defp persist(filename, bucket, data) do
-    S3.persist(filename, bucket, data)
+  @doc """
+  Generates the URL for a file upload.
+  """
+  @spec file_url(String.t(), String.t()) :: String.t()
+  def file_url(unique_id, filename) do
+    unique_id
+    |> build_file_path(filename)
+    |> @adapter.public_url(@bucket)
   end
 
-  defp decode(raw_data) do
+  defp build_file_path(unique_id, filename) do
+    "uploads/" <> unique_id <> "/" <> filename
+  end
+
+  defp decode_base64_data_url(raw_data) do
     raw_data
     |> extract_data()
-    |> decode_data()
+    |> decode_base64_data()
   end
 
   defp extract_data(raw_data) do
     Regex.run(~r/data:.*;base64,(.*)$/, raw_data)
   end
 
-  defp decode_data([_, base64_part]) do
+  defp decode_base64_data([_, base64_part]) do
     Base.decode64(base64_part)
   end
 
-  defp decode_data(_) do
+  defp decode_base64_data(_) do
     :error
   end
 
-  defp generate_avatar_filename(data) do
-    data
+  defp build_avatar_path(binary_data) do
+    binary_data
     |> image_extension()
     |> unique_filename("avatars")
   end

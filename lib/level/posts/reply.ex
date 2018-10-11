@@ -8,6 +8,7 @@ defmodule Level.Posts.Reply do
   import Ecto.Changeset
 
   alias Level.Posts.Post
+  alias Level.ReplyFile
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -21,6 +22,9 @@ defmodule Level.Posts.Reply do
     belongs_to :space, Space
     belongs_to :post, Post
     belongs_to :author, SpaceUser, foreign_key: :space_user_id
+
+    has_many :reply_files, ReplyFile
+    has_many :files, through: [:reply_files, :file]
 
     timestamps()
   end

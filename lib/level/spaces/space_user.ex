@@ -8,6 +8,7 @@ defmodule Level.Spaces.SpaceUser do
   import Ecto.Changeset
   import Level.Gettext
 
+  alias Level.File
   alias Level.Posts.PostUser
   alias Level.Spaces.Space
   alias Level.Users
@@ -27,6 +28,7 @@ defmodule Level.Spaces.SpaceUser do
     belongs_to :space, Space
     belongs_to :user, User
     has_many :post_users, PostUser
+    has_many :files, File
 
     # Fields from the joined space record
     field :space_name, :string, virtual: true

@@ -1,6 +1,7 @@
 module Mutation.CreateReply exposing (Response(..), request)
 
 import GraphQL exposing (Document)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Reply exposing (Reply)
@@ -22,12 +23,14 @@ document =
         mutation CreateReply(
           $spaceId: ID!,
           $postId: ID!,
-          $body: String!
+          $body: String!,
+          $fileIds: [ID]
         ) {
           createReply(
             spaceId: $spaceId,
             postId: $postId,
-            body: $body
+            body: $body,
+            fileIds: $fileIds
           ) {
             ...ValidationFields
             reply {
@@ -41,13 +44,14 @@ document =
         ]
 
 
-variables : String -> String -> String -> Maybe Encode.Value
-variables spaceId postId body =
+variables : Id -> Id -> String -> List Id -> Maybe Encode.Value
+variables spaceId postId body fileIds =
     Just <|
         Encode.object
-            [ ( "spaceId", Encode.string spaceId )
-            , ( "postId", Encode.string postId )
+            [ ( "spaceId", Id.encoder spaceId )
+            , ( "postId", Id.encoder postId )
             , ( "body", Encode.string body )
+            , ( "fileIds", Encode.list Id.encoder fileIds )
             ]
 
 
@@ -69,7 +73,7 @@ decoder =
         |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> String -> Session -> Task Session.Error ( Session, Response )
-request spaceId postId body session =
+request : Id -> Id -> String -> List Id -> Session -> Task Session.Error ( Session, Response )
+request spaceId postId body fileIds session =
     Session.request session <|
-        GraphQL.request document (variables spaceId postId body) decoder
+        GraphQL.request document (variables spaceId postId body fileIds) decoder

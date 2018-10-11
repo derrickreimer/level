@@ -3,6 +3,7 @@ defmodule Level.PostsTest do
 
   import Ecto.Query
 
+  alias Level.File
   alias Level.Groups
   alias Level.Groups.Group
   alias Level.Posts
@@ -171,6 +172,17 @@ defmodule Level.PostsTest do
                Posts.get_user_state(post, mentioned)
     end
 
+    test "attaches file uploads", %{space_user: space_user, group: group} do
+      {:ok, %File{id: file_id}} = create_file(space_user)
+      params = valid_post_params() |> Map.merge(%{file_ids: [file_id]})
+      {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
+
+      assert [%File{id: ^file_id}] =
+               post
+               |> Ecto.assoc(:files)
+               |> Repo.all()
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
       {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)
@@ -314,6 +326,17 @@ defmodule Level.PostsTest do
       assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_subscriber)
     end
 
+    test "attaches file uploads", %{space_user: space_user, post: post} do
+      {:ok, %File{id: file_id}} = create_file(space_user)
+      params = valid_reply_params() |> Map.merge(%{file_ids: [file_id]})
+      {:ok, %{reply: reply}} = Posts.create_reply(space_user, post, params)
+
+      assert [%File{id: ^file_id}] =
+               reply
+               |> Ecto.assoc(:files)
+               |> Repo.all()
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, post: post} do
       params = valid_reply_params() |> Map.merge(%{body: nil})
       {:error, :reply, changeset, _} = Posts.create_reply(space_user, post, params)
@@ -408,6 +431,25 @@ defmodule Level.PostsTest do
     test "applies a special class for viewer mentions", %{viewer: viewer} do
       assert Posts.render_body("@derrick Hey", viewer) ==
                {:ok, "<p><strong class=\"user-mention is-viewer\">@derrick</strong> Hey</p>\n"}
+    end
+  end
+
+  describe "attach_files/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "attaches the given uploads to the post", %{space_user: space_user, post: post} do
+      {:ok, %File{id: file_id} = upload} = create_file(space_user)
+      {:ok, [%File{id: ^file_id}]} = Posts.attach_files(post, [upload])
+
+      assert [%File{id: ^file_id}] =
+               post
+               |> Ecto.assoc(:files)
+               |> Repo.all()
     end
   end
 end

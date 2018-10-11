@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState, canEdit
+    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, subscriptionState, inboxState, canEdit
+@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit
 
 
 # GraphQL
@@ -30,6 +30,7 @@ module Post exposing
 -}
 
 import Connection exposing (Connection)
+import File exposing (File)
 import GraphQL exposing (Fragment)
 import Group exposing (Group)
 import Id exposing (Id)
@@ -75,6 +76,7 @@ type alias Data =
     , bodyHtml : String
     , authorId : String
     , groupIds : List String
+    , files : List File
     , postedAt : Posix
     , subscriptionState : SubscriptionState
     , inboxState : InboxState
@@ -134,6 +136,11 @@ bodyHtml (Post data) =
     data.bodyHtml
 
 
+files : Post -> List File
+files (Post data) =
+    data.files
+
+
 subscriptionState : Post -> SubscriptionState
 subscriptionState (Post data) =
     data.subscriptionState
@@ -172,6 +179,9 @@ fragment =
               groups {
                 ...GroupFields
               }
+              files {
+                ...FileFields
+              }
               canEdit
               fetchedAt
             }
@@ -180,6 +190,7 @@ fragment =
     GraphQL.toFragment queryBody
         [ SpaceUser.fragment
         , Group.fragment
+        , File.fragment
         ]
 
 
@@ -197,6 +208,7 @@ decoder =
             |> required "bodyHtml" string
             |> required "author" (field "id" Id.decoder)
             |> required "groups" (list (field "id" Id.decoder))
+            |> required "files" (list File.decoder)
             |> required "postedAt" dateDecoder
             |> required "subscriptionState" subscriptionStateDecoder
             |> required "inboxState" inboxStateDecoder

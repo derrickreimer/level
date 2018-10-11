@@ -5,6 +5,7 @@ defmodule LevelWeb.Schema.Objects do
   import Absinthe.Resolution.Helpers
 
   alias Level.AssetStore
+  alias Level.Files
   alias Level.Groups
   alias Level.Posts
   alias Level.Resolvers
@@ -59,7 +60,11 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn user, _, _ ->
-        {:ok, AssetStore.avatar_url(user)}
+        if user.avatar do
+          {:ok, AssetStore.avatar_url(user.avatar)}
+        else
+          {:ok, nil}
+        end
       end
     end
 
@@ -95,7 +100,11 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn space_user, _, _ ->
-        {:ok, AssetStore.avatar_url(space_user)}
+        if space_user.avatar do
+          {:ok, AssetStore.avatar_url(space_user.avatar)}
+        else
+          {:ok, nil}
+        end
       end
     end
 
@@ -118,7 +127,11 @@ defmodule LevelWeb.Schema.Objects do
 
     field :avatar_url, :string do
       resolve fn space, _, _ ->
-        {:ok, AssetStore.avatar_url(space)}
+        if space.avatar do
+          {:ok, AssetStore.avatar_url(space.avatar)}
+        else
+          {:ok, nil}
+        end
       end
     end
 
@@ -298,6 +311,8 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.replies/3
     end
 
+    field :files, list_of(:file), resolve: dataloader(:db)
+
     # Viewer-contextual fields
     @desc "The viewer's subscription to the post."
     field :subscription_state, non_null(:post_subscription_state) do
@@ -347,6 +362,8 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    field :files, list_of(:file), resolve: dataloader(:db)
+
     # Viewer-contextual fields
 
     @desc "Determines whether the current viewer has viewed the reply."
@@ -372,6 +389,29 @@ defmodule LevelWeb.Schema.Objects do
     field :mentioner, non_null(:space_user), resolve: dataloader(:db)
     field :reply, :reply, resolve: dataloader(:db)
     field :occurred_at, non_null(:timestamp)
+  end
+
+  @desc "A file upload."
+  object :file do
+    field :id, non_null(:id)
+    field :content_type, :string
+    field :filename, non_null(:string)
+    field :size, non_null(:integer)
+
+    field :url, non_null(:string) do
+      resolve fn file, _, _ ->
+        {:ok, Files.file_url(file)}
+      end
+    end
+
+    field :inserted_at, non_null(:timestamp)
+
+    interface :fetch_timeable
+
+    @desc "The timestamp representing when the object was fetched."
+    field :fetched_at, non_null(:timestamp) do
+      resolve &fetched_at_resolver/2
+    end
   end
 
   def fetched_at_resolver(_, _) do

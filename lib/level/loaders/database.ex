@@ -3,6 +3,7 @@ defmodule Level.Loaders.Database do
 
   import Ecto.Query, warn: false
 
+  alias Level.File
   alias Level.Groups
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
@@ -75,6 +76,10 @@ defmodule Level.Loaders.Database do
   # Mentions
 
   def query(UserMention, %{current_user: user}), do: Mentions.base_query(user)
+
+  # Files
+
+  def query(File, %{current_user: _user}), do: File
 
   # Fallback
 

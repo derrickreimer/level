@@ -1,5 +1,6 @@
 module Page.SpaceSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
+import Avatar
 import Event exposing (Event)
 import File exposing (File)
 import Globals exposing (Globals)
@@ -8,6 +9,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
+import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
@@ -120,7 +122,7 @@ type Msg
     | Submitted (Result Session.Error ( Session, UpdateSpace.Response ))
     | AvatarSubmitted (Result Session.Error ( Session, UpdateSpaceAvatar.Response ))
     | AvatarSelected
-    | FileReceived File.Data
+    | FileReceived Decode.Value
     | NoOp
 
 
@@ -163,17 +165,24 @@ update msg globals model =
         AvatarSelected ->
             ( ( model, File.request "avatar" ), globals )
 
-        FileReceived data ->
-            let
-                file =
-                    File.init data
+        FileReceived value ->
+            case Decode.decodeValue File.decoder value of
+                Ok file ->
+                    let
+                        cmd =
+                            case File.getContents file of
+                                Just contents ->
+                                    globals.session
+                                        |> UpdateSpaceAvatar.request model.spaceId contents
+                                        |> Task.attempt AvatarSubmitted
 
-                cmd =
-                    globals.session
-                        |> UpdateSpaceAvatar.request model.spaceId (File.getContents file)
-                        |> Task.attempt AvatarSubmitted
-            in
-            ( ( { model | newAvatar = Just file }, cmd ), globals )
+                                Nothing ->
+                                    Cmd.none
+                    in
+                    ( ( { model | newAvatar = Just file }, cmd ), globals )
+
+                _ ->
+                    noCmd globals model
 
         AvatarSubmitted (Ok ( newSession, UpdateSpaceAvatar.Success space )) ->
             noCmd { globals | session = newSession } { model | avatarUrl = Space.avatarUrl space }
@@ -310,7 +319,7 @@ resolvedView maybeCurrentRoute model data =
                         [ text "Save settings" ]
                     ]
                 , div [ class "flex-0" ]
-                    [ File.avatarInput "avatar" model.avatarUrl AvatarSelected
+                    [ Avatar.uploader "avatar" model.avatarUrl AvatarSelected
                     ]
                 ]
             ]
