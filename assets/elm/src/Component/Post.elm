@@ -1083,10 +1083,21 @@ staticFilesView files =
 
 staticFileView : File -> Html msg
 staticFileView file =
-    div [ class "flex flex-none items-center mr-4 pb-1 border-dusty-blue rounded-full" ]
-        [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
-        , div [ class "text-sm font-bold text-dusty-blue truncate" ] [ text (File.getName file) ]
-        ]
+    case File.getState file of
+        File.Uploaded id url ->
+            a
+                [ href url
+                , target "_blank"
+                , class "flex flex-none items-center mr-4 pb-1 no-underline text-dusty-blue hover:text-blue"
+                , rel "tooltip"
+                , title "Download file"
+                ]
+                [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
+                , div [ class "text-sm font-bold truncate" ] [ text (File.getName file) ]
+                ]
+
+        _ ->
+            text ""
 
 
 

@@ -106,6 +106,8 @@ customElements.define(
         let dt = e.dataTransfer;
         let files = dt.files;
 
+        console.log("[post-composer]", "drop", e);
+
         [].forEach.call(files, file => {
           this.handleFileDropped(file);
         });

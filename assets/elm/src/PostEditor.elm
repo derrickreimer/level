@@ -253,7 +253,7 @@ fileView : File -> Html msg
 fileView file =
     let
         wrapperClass =
-            "flex relative flex-none items-center mr-2 px-2 py-2 bg-grey rounded"
+            "flex relative flex-none items-center mr-2 px-2 py-2 bg-grey rounded no-underline"
 
         icon =
             div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
@@ -277,7 +277,13 @@ fileView file =
                 ]
 
         File.Uploaded id url ->
-            div [ class wrapperClass ]
+            a
+                [ href url
+                , target "_blank"
+                , class wrapperClass
+                , rel "tooltip"
+                , title "Download file"
+                ]
                 [ icon
                 , div [ class "text-sm font-bold text-dusty-blue truncate" ] [ text (File.getName file) ]
                 ]
