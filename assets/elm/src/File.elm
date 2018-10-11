@@ -1,4 +1,4 @@
-module File exposing (File, State(..), decoder, fragment, getClientId, getContents, getName, getUploadId, icon, input, isImage, receive, request, setState, setUploadPercentage)
+module File exposing (File, State(..), decoder, fragment, getClientId, getContents, getName, getState, getUploadId, icon, input, isImage, receive, request, setState, setUploadPercentage)
 
 import Color exposing (Color)
 import GraphQL exposing (Fragment)
@@ -62,6 +62,11 @@ getUploadId (File internal) =
 
         _ ->
             Nothing
+
+
+getState : File -> State
+getState (File internal) =
+    internal.state
 
 
 isImage : File -> Bool

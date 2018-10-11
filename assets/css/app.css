@@ -368,3 +368,7 @@ post-editor.dragging-over > * {
   color: inherit;
   text-decoration: inherit;
 }
+
+.transition-w {
+  transition: width 0.3s;
+}

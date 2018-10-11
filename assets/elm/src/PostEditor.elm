@@ -251,7 +251,38 @@ filesView (PostEditor { files }) =
 
 fileView : File -> Html msg
 fileView file =
-    div [ class "flex flex-none items-center mr-4 pb-1 border-dusty-blue rounded-full" ]
-        [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
-        , div [ class "text-sm font-bold text-dusty-blue truncate" ] [ text (File.getName file) ]
-        ]
+    let
+        wrapperClass =
+            "flex relative flex-none items-center mr-2 px-2 py-2 bg-grey rounded"
+
+        icon =
+            div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
+    in
+    case File.getState file of
+        File.Staged ->
+            div [ class wrapperClass ]
+                [ icon
+                , div [ class "text-sm font-italic text-dusty-blue" ] [ text "Pending..." ]
+                ]
+
+        File.Uploading percentage ->
+            div [ class wrapperClass ]
+                [ icon
+                , div [ class "text-sm font-italic text-dusty-blue" ] [ text "Uploading..." ]
+                , div
+                    [ class "absolute pin-l pin-b h-1 rounded-full w-full bg-blue transition-w"
+                    , style "width" (percentageToWidth percentage)
+                    ]
+                    []
+                ]
+
+        File.Uploaded id url ->
+            div [ class wrapperClass ]
+                [ icon
+                , div [ class "text-sm font-bold text-dusty-blue truncate" ] [ text (File.getName file) ]
+                ]
+
+
+percentageToWidth : Int -> String
+percentageToWidth percentage =
+    String.fromInt percentage ++ "%"
