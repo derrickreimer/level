@@ -144,9 +144,8 @@ customElements.define(
 
       const metadata = {
         clientId: clientId,
-        state: "STAGED",
-        name: file.name,
-        type: file.type,
+        filename: file.name,
+        contentType: file.type,
         size: file.size,
         contents: null
       }

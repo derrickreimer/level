@@ -1,6 +1,7 @@
 module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleReplyCreated, init, setup, teardown, update, view)
 
 import Avatar exposing (personAvatar)
+import Color exposing (Color)
 import Connection exposing (Connection)
 import Dict exposing (Dict)
 import File exposing (File)
@@ -805,6 +806,22 @@ bodyView : Space -> Mode -> Post -> Html Msg
 bodyView space mode post =
     clickToExpandIf (mode == Feed)
         [ div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        , staticFilesView (Post.files post)
+        ]
+
+
+staticFilesView : List File -> Html msg
+staticFilesView files =
+    viewUnless (List.isEmpty files) <|
+        div [ class "flex flex-wrap pb-2" ] <|
+            List.map staticFileView files
+
+
+staticFileView : File -> Html msg
+staticFileView file =
+    div [ class "flex flex-none items-center mr-4 pb-1 border-dusty-blue rounded-full" ]
+        [ div [ class "mr-2" ] [ File.icon Color.Turquoise file ]
+        , div [ class "text-sm font-bold text-turquoise-dark truncate" ] [ text (File.getName file) ]
         ]
 
 

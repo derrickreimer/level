@@ -1,8 +1,11 @@
-module File exposing (File, State(..), decoder, getClientId, getContents, getName, getUploadId, input, isImage, receive, request, setState, setUploadPercentage)
+module File exposing (File, State(..), decoder, fragment, getClientId, getContents, getName, getUploadId, icon, input, isImage, receive, request, setState, setUploadPercentage)
 
+import Color exposing (Color)
+import GraphQL exposing (Fragment)
 import Html exposing (Attribute, Html, button, img, label, text)
 import Html.Attributes as Attributes exposing (class, id, src, type_)
 import Html.Events exposing (on)
+import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 import Ports
@@ -17,36 +20,33 @@ type File
 
 
 type alias Internal =
-    { clientId : Id
-    , state : State
-    , name : String
-    , type_ : String
+    { state : State
+    , filename : String
+    , contentType : String
     , size : Int
+    , clientId : Maybe Id
     , contents : Maybe String
-    , uploadPercentage : Int
     }
 
 
 type State
     = Staged
-    | Uploading
+    | Uploading Int
     | Uploaded Id String
-    | UploadFailed
-    | Unknown
 
 
 
 -- API
 
 
-getClientId : File -> Id
+getClientId : File -> Maybe Id
 getClientId (File internal) =
     internal.clientId
 
 
 getName : File -> String
 getName (File internal) =
-    internal.name
+    internal.filename
 
 
 getContents : File -> Maybe String
@@ -66,12 +66,12 @@ getUploadId (File internal) =
 
 isImage : File -> Bool
 isImage (File internal) =
-    String.startsWith "image" internal.type_
+    String.startsWith "image" internal.contentType
 
 
 setUploadPercentage : Int -> File -> File
 setUploadPercentage percentage (File internal) =
-    File { internal | uploadPercentage = percentage }
+    File { internal | state = Uploading percentage }
 
 
 setState : State -> File -> File
@@ -80,20 +80,62 @@ setState newState (File internal) =
 
 
 
+-- GRAPHQL
+
+
+fragment : Fragment
+fragment =
+    let
+        queryBody =
+            """
+            fragment FileFields on File {
+              id
+              contentType
+              filename
+              size
+              url
+              fetchedAt
+            }
+            """
+    in
+    GraphQL.toFragment queryBody []
+
+
+
 -- DECODING
 
 
 decoder : Decoder File
 decoder =
+    Decode.oneOf [ stagedDecoder, uploadedDecoder ]
+
+
+stagedDecoder : Decoder File
+stagedDecoder =
     Decode.map File
-        (Decode.map7 Internal
-            (field "clientId" Id.decoder)
+        (Decode.map6 Internal
             (Decode.succeed Staged)
-            (field "name" string)
-            (field "type" string)
+            (field "filename" string)
+            (field "contentType" string)
             (field "size" int)
+            (field "clientId" (maybe Id.decoder))
             (field "contents" (maybe string))
-            (Decode.succeed 0)
+        )
+
+
+uploadedDecoder : Decoder File
+uploadedDecoder =
+    Decode.map File
+        (Decode.map6 Internal
+            (Decode.map2 Uploaded
+                (field "id" Id.decoder)
+                (field "url" string)
+            )
+            (field "filename" string)
+            (field "contentType" string)
+            (field "size" int)
+            (Decode.succeed Nothing)
+            (Decode.succeed Nothing)
         )
 
 
@@ -126,3 +168,12 @@ input name onChange attrs =
             ]
     in
     Html.input (defaultAttrs ++ attrs) []
+
+
+icon : Color -> File -> Html msg
+icon color file =
+    if isImage file then
+        Icons.image color
+
+    else
+        Icons.file color

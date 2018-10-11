@@ -35,6 +35,7 @@ module PostEditor exposing
 
 -}
 
+import Color exposing (Color)
 import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -181,7 +182,7 @@ setFileUploadPercentage : Id -> Int -> PostEditor -> PostEditor
 setFileUploadPercentage clientId percentage (PostEditor internal) =
     let
         updater file =
-            if File.getClientId file == clientId then
+            if File.getClientId file == Just clientId then
                 File.setUploadPercentage percentage file
 
             else
@@ -197,7 +198,7 @@ setFileState : Id -> File.State -> PostEditor -> PostEditor
 setFileState clientId newState (PostEditor internal) =
     let
         updater file =
-            if File.getClientId file == clientId then
+            if File.getClientId file == Just clientId then
                 File.setState newState file
 
             else
@@ -250,15 +251,7 @@ filesView (PostEditor { files }) =
 
 fileView : File -> Html msg
 fileView file =
-    let
-        icon =
-            if File.isImage file then
-                Icons.image
-
-            else
-                Icons.file
-    in
     div [ class "flex items-center mr-2 p-2 border-2 rounded" ]
-        [ div [ class "mr-2" ] [ icon ]
+        [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
         , div [ class "text-sm font-bold text-dusty-blue-dark" ] [ text (File.getName file) ]
         ]
