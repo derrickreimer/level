@@ -362,6 +362,8 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    field :files, list_of(:file), resolve: dataloader(:db)
+
     # Viewer-contextual fields
 
     @desc "Determines whether the current viewer has viewed the reply."

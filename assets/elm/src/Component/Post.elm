@@ -489,6 +489,7 @@ update msg spaceId globals model =
                                 |> getReplyEditor replyId
                                 |> PostEditor.expand
                                 |> PostEditor.setBody (Reply.body reply)
+                                |> PostEditor.setFiles (Reply.files reply)
                                 |> PostEditor.clearErrors
 
                         nodeId =
@@ -810,21 +811,6 @@ bodyView space mode post =
         ]
 
 
-staticFilesView : List File -> Html msg
-staticFilesView files =
-    viewUnless (List.isEmpty files) <|
-        div [ class "flex flex-wrap pb-2" ] <|
-            List.map staticFileView files
-
-
-staticFileView : File -> Html msg
-staticFileView file =
-    div [ class "flex flex-none items-center mr-4 pb-1 border-dusty-blue rounded-full" ]
-        [ div [ class "mr-2" ] [ File.icon Color.Turquoise file ]
-        , div [ class "text-sm font-bold text-turquoise-dark truncate" ] [ text (File.getName file) ]
-        ]
-
-
 postEditorView : Id -> PostEditor -> Html Msg
 postEditorView spaceId editor =
     let
@@ -938,6 +924,7 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
                             [ div [ class "markdown mb-2" ]
                                 [ RenderedHtml.node (Reply.bodyHtml reply)
                                 ]
+                            , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
                         replyEditorView spaceId replyId editor
@@ -1085,6 +1072,21 @@ statusView state =
 
         Post.Closed ->
             buildView Icons.closed "Closed"
+
+
+staticFilesView : List File -> Html msg
+staticFilesView files =
+    viewUnless (List.isEmpty files) <|
+        div [ class "flex flex-wrap pb-2" ] <|
+            List.map staticFileView files
+
+
+staticFileView : File -> Html msg
+staticFileView file =
+    div [ class "flex flex-none items-center mr-4 pb-1 border-dusty-blue rounded-full" ]
+        [ div [ class "mr-2" ] [ File.icon Color.Turquoise file ]
+        , div [ class "text-sm font-bold text-turquoise-dark truncate" ] [ text (File.getName file) ]
+        ]
 
 
 
