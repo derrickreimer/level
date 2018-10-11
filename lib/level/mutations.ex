@@ -355,7 +355,7 @@ defmodule Level.Mutations do
          {:ok, %{reply: reply}} <- Posts.create_reply(space_user, post, args) do
       {:ok, %{success: true, reply: reply, errors: []}}
     else
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, :reply, %Ecto.Changeset{} = changeset, _} ->
         {:ok, %{success: false, reply: nil, errors: format_errors(changeset)}}
 
       err ->
