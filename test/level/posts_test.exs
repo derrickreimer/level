@@ -326,6 +326,17 @@ defmodule Level.PostsTest do
       assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_subscriber)
     end
 
+    test "attaches file uploads", %{space_user: space_user, post: post} do
+      {:ok, %File{id: file_id}} = create_file(space_user)
+      params = valid_reply_params() |> Map.merge(%{file_ids: [file_id]})
+      {:ok, %{reply: reply}} = Posts.create_reply(space_user, post, params)
+
+      assert [%File{id: ^file_id}] =
+               reply
+               |> Ecto.assoc(:files)
+               |> Repo.all()
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, post: post} do
       params = valid_reply_params() |> Map.merge(%{body: nil})
       {:error, :reply, changeset, _} = Posts.create_reply(space_user, post, params)

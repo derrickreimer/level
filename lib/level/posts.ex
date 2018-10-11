@@ -24,6 +24,7 @@ defmodule Level.Posts do
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
   alias Level.PostVersion
+  alias Level.ReplyFile
   alias Level.Repo
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
@@ -474,6 +475,25 @@ defmodule Level.Posts do
 
         %PostFile{}
         |> PostFile.create_changeset(params)
+        |> Repo.insert()
+        |> handle_file_attached(file)
+      end)
+
+    {:ok, Enum.reject(results, &is_nil/1)}
+  end
+
+  @spec attach_files(Reply.t(), [File.t()]) :: {:ok, [File.t()]} | no_return()
+  def attach_files(%Reply{} = reply, files) do
+    results =
+      Enum.map(files, fn file ->
+        params = %{
+          space_id: reply.space_id,
+          reply_id: reply.id,
+          file_id: file.id
+        }
+
+        %ReplyFile{}
+        |> ReplyFile.create_changeset(params)
         |> Repo.insert()
         |> handle_file_attached(file)
       end)
