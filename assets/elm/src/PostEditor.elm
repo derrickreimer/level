@@ -245,13 +245,13 @@ wrapper config children =
 filesView : PostEditor -> Html msg
 filesView (PostEditor { files }) =
     viewUnless (List.isEmpty files) <|
-        div [ class "p-2 flex" ] <|
+        div [ class "flex flex-wrap pb-2" ] <|
             List.map fileView files
 
 
 fileView : File -> Html msg
 fileView file =
-    div [ class "flex items-center mr-2 p-2 border-2 rounded" ]
-        [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
-        , div [ class "text-sm font-bold text-dusty-blue-dark" ] [ text (File.getName file) ]
+    div [ class "flex flex-none items-center mr-4 pb-1 border-dusty-blue rounded-full" ]
+        [ div [ class "mr-2" ] [ File.icon Color.Turquoise file ]
+        , div [ class "text-sm font-bold text-turquoise-dark truncate" ] [ text (File.getName file) ]
         ]

@@ -687,10 +687,10 @@ newPostView spaceId editor currentUser =
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
-                , div [ class "flex-grow" ]
+                , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
                         [ id (PostEditor.getId editor)
-                        , class "p-2 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , class "w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault [ ( [ Meta ], enter, \event -> NewPostSubmit ) ]

@@ -382,6 +382,7 @@ update msg spaceId globals model =
                             model.postEditor
                                 |> PostEditor.expand
                                 |> PostEditor.setBody (Post.body data.post)
+                                |> PostEditor.setFiles (Post.files data.post)
                                 |> PostEditor.clearErrors
 
                         cmd =
