@@ -241,7 +241,7 @@ update msg spaceId globals model =
 
                 cmd =
                     globals.session
-                        |> CreateReply.request spaceId model.postId body
+                        |> CreateReply.request spaceId model.postId body (PostEditor.getUploadIds model.replyComposer)
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newModel, cmd ), globals )
@@ -250,8 +250,7 @@ update msg spaceId globals model =
             let
                 newReplyComposer =
                     model.replyComposer
-                        |> PostEditor.setNotSubmitting
-                        |> PostEditor.setBody ""
+                        |> PostEditor.reset
 
                 newModel =
                     { model | replyComposer = newReplyComposer }

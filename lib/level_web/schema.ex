@@ -190,6 +190,7 @@ defmodule LevelWeb.Schema do
       arg :space_id, non_null(:id)
       arg :post_id, non_null(:id)
       arg :body, non_null(:string)
+      arg :file_ids, list_of(:id)
 
       resolve &Level.Mutations.create_reply/2
     end
