@@ -1084,8 +1084,8 @@ staticFilesView files =
 staticFileView : File -> Html msg
 staticFileView file =
     div [ class "flex flex-none items-center mr-4 pb-1 border-dusty-blue rounded-full" ]
-        [ div [ class "mr-2" ] [ File.icon Color.Turquoise file ]
-        , div [ class "text-sm font-bold text-turquoise-dark truncate" ] [ text (File.getName file) ]
+        [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
+        , div [ class "text-sm font-bold text-dusty-blue truncate" ] [ text (File.getName file) ]
         ]
 
 
