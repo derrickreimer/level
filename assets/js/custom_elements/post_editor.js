@@ -101,16 +101,10 @@ customElements.define(
         e.stopPropagation();
         e.preventDefault();
 
-        this.stoppedDraggingOver();
-
-        let dt = e.dataTransfer;
-        let files = dt.files;
-
         console.log("[post-composer]", "drop", e);
 
-        [].forEach.call(files, file => {
-          this.handleFileDropped(file);
-        });
+        this.stoppedDraggingOver();
+        this.handleDataTransfer(e.dataTransfer);
       });
 
       this.addEventListener("dragend", () => {
@@ -119,6 +113,18 @@ customElements.define(
 
       this.addEventListener("dragexit", () => {
         this.stoppedDraggingOver();
+      });
+
+      this.addEventListener("paste", e => {
+        let dt = e.clipboardData || window.clipboardData;
+
+        if (dt.files.length > 0) {
+          e.stopPropagation();
+          e.preventDefault();
+
+          console.log("[post-composer]", "paste", e);
+          this.handleDataTransfer(dt);
+        }
       });
     }
 
@@ -136,6 +142,17 @@ customElements.define(
     stoppedDraggingOver() {
       this._dragging_over = false;
       this.classList.remove("dragging-over");
+    }
+
+    /**
+     * Handle data transfer.
+     */
+    handleDataTransfer(dt) {
+      let files = dt.files;
+
+      [].forEach.call(files, file => {
+        this.handleFileDropped(file);
+      });
     }
 
     /**
