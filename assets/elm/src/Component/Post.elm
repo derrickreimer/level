@@ -1079,8 +1079,10 @@ expandedReplyComposerView spaceId currentUser post editor =
                             ]
                             []
                         , PostEditor.filesView editor
-                        , div [ class "flex justify-end" ]
-                            [ button
+                        , div [ class "flex items-baseline justify-end" ]
+                            [ div [ class "mr-2 text-sm text-dusty-blue" ]
+                                [ text "Press ⌘↩ or" ]
+                            , button
                                 [ class "btn btn-blue btn-sm"
                                 , onClick NewReplySubmit
                                 , disabled (PostEditor.isUnsubmittable editor)
