@@ -169,6 +169,7 @@ type Msg
     | NewReplyFileAdded File
     | NewReplyFileUploadProgress Id Int
     | NewReplyFileUploaded Id Id String
+    | NewReplyFileUploadError Id
     | NewReplyBlurred
     | NewReplySubmit
     | NewReplyEscaped
@@ -186,6 +187,7 @@ type Msg
     | PostEditorFileAdded File
     | PostEditorFileUploadProgress Id Int
     | PostEditorFileUploaded Id Id String
+    | PostEditorFileUploadError Id
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | ExpandReplyEditor Id
@@ -194,6 +196,7 @@ type Msg
     | ReplyEditorFileAdded Id File
     | ReplyEditorFileUploadProgress Id Id Int
     | ReplyEditorFileUploaded Id Id Id String
+    | ReplyEditorFileUploadError Id Id
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | NoOp
@@ -230,6 +233,9 @@ update msg spaceId globals model =
 
         NewReplyFileUploaded clientId uploadId url ->
             noCmd globals { model | replyComposer = PostEditor.setFileState clientId (File.Uploaded uploadId url) model.replyComposer }
+
+        NewReplyFileUploadError clientId ->
+            noCmd globals { model | replyComposer = PostEditor.setFileState clientId File.UploadError model.replyComposer }
 
         NewReplySubmit ->
             let
@@ -434,6 +440,14 @@ update msg spaceId globals model =
             in
             noCmd globals { model | postEditor = newPostEditor }
 
+        PostEditorFileUploadError clientId ->
+            let
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setFileState clientId File.UploadError
+            in
+            noCmd globals { model | postEditor = newPostEditor }
+
         PostEditorSubmitted ->
             let
                 cmd =
@@ -567,6 +581,19 @@ update msg spaceId globals model =
                     model.replyEditors
                         |> getReplyEditor replyId
                         |> PostEditor.setFileState clientId (File.Uploaded uploadId url)
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+
+        ReplyEditorFileUploadError replyId clientId ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setFileState clientId File.UploadError
 
                 newReplyEditors =
                     model.replyEditors
@@ -819,6 +846,7 @@ postEditorView spaceId editor =
             , onFileAdded = PostEditorFileAdded
             , onFileUploadProgress = PostEditorFileUploadProgress
             , onFileUploaded = PostEditorFileUploaded
+            , onFileUploadError = PostEditorFileUploadError
             }
     in
     PostEditor.wrapper config
@@ -944,6 +972,7 @@ replyEditorView spaceId replyId editor =
             , onFileAdded = ReplyEditorFileAdded replyId
             , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
             , onFileUploaded = ReplyEditorFileUploaded replyId
+            , onFileUploadError = ReplyEditorFileUploadError replyId
             }
     in
     PostEditor.wrapper config
@@ -997,6 +1026,7 @@ expandedReplyComposerView spaceId currentUser post editor =
             , onFileAdded = NewReplyFileAdded
             , onFileUploadProgress = NewReplyFileUploadProgress
             , onFileUploaded = NewReplyFileUploaded
+            , onFileUploadError = NewReplyFileUploadError
             }
     in
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]

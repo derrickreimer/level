@@ -33,6 +33,7 @@ type State
     = Staged
     | Uploading Int
     | Uploaded Id String
+    | UploadError
 
 
 

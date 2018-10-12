@@ -219,6 +219,7 @@ type alias ViewConfig msg =
     , onFileAdded : File -> msg
     , onFileUploadProgress : Id -> Int -> msg
     , onFileUploaded : Id -> Id -> String -> msg
+    , onFileUploadError : Id -> msg
     }
 
 
@@ -238,6 +239,9 @@ wrapper config children =
                 (Decode.at [ "detail", "clientId" ] Id.decoder)
                 (Decode.at [ "detail", "id" ] Id.decoder)
                 (Decode.at [ "detail", "url" ] Decode.string)
+        , on "fileUploadError" <|
+            Decode.map config.onFileUploadError
+                (Decode.at [ "detail", "clientId" ] Id.decoder)
         ]
         children
 
@@ -286,6 +290,11 @@ fileView file =
                 ]
                 [ icon
                 , div [ class "text-sm font-bold text-dusty-blue truncate" ] [ text (File.getName file) ]
+                ]
+
+        File.UploadError ->
+            div [ class wrapperClass ]
+                [ div [ class "text-sm font-bold text-red" ] [ text "Upload error" ]
                 ]
 
 

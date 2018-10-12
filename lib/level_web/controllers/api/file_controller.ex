@@ -18,15 +18,18 @@ defmodule LevelWeb.API.FileController do
       |> put_status(:created)
       |> render("create.json", %{client_id: client_id, file: file})
     else
-      # TODO: handle all the error scenarios
-      _err ->
-        conn
-        |> put_status(:unprocessable_entity)
+      _ ->
+        respond_with_error(conn)
     end
   end
 
   def create(conn, _params) do
+    respond_with_error(conn)
+  end
+
+  defp respond_with_error(conn) do
     conn
     |> put_status(:unprocessable_entity)
+    |> render("error.json")
   end
 end

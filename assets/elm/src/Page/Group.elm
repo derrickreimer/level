@@ -205,6 +205,7 @@ type Msg
     | NewPostFileAdded File
     | NewPostFileUploadProgress Id Int
     | NewPostFileUploaded Id Id String
+    | NewPostFileUploadError Id
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | MembershipStateToggled GroupMembershipState
@@ -247,6 +248,9 @@ update msg globals model =
 
         NewPostFileUploaded clientId uploadId url ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId (File.Uploaded uploadId url) model.postComposer }
+
+        NewPostFileUploadError clientId ->
+            noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -681,6 +685,7 @@ newPostView spaceId editor currentUser =
             , onFileAdded = NewPostFileAdded
             , onFileUploadProgress = NewPostFileUploadProgress
             , onFileUploaded = NewPostFileUploaded
+            , onFileUploadError = NewPostFileUploadError
             }
     in
     PostEditor.wrapper config

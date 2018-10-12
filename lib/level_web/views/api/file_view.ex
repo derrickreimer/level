@@ -16,4 +16,8 @@ defmodule LevelWeb.API.FileView do
       }
     }
   end
+
+  def render("error.json", _) do
+    %{}
+  end
 end
