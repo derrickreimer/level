@@ -24,6 +24,7 @@ defmodule Level.Posts.Post do
   schema "posts" do
     field :state, :string, read_after_writes: true
     field :body, :string
+    field :language, :string
 
     belongs_to :space, Space
     belongs_to :author, SpaceUser, foreign_key: :space_user_id
