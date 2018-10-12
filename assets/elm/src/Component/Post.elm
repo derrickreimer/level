@@ -1031,7 +1031,7 @@ expandedReplyComposerView spaceId currentUser post editor =
     in
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
         [ PostEditor.wrapper config
-            [ label [ class "composer p-0" ]
+            [ div [ class "composer p-0" ]
                 [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
                         [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
@@ -1044,7 +1044,7 @@ expandedReplyComposerView spaceId currentUser post editor =
                             ]
                             [ text "Dismiss from my inbox" ]
                         ]
-                , div [ class "flex p-3" ]
+                , label [ class "flex p-3" ]
                     [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea
