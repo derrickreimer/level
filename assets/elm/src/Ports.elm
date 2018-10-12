@@ -1,6 +1,7 @@
-port module Ports exposing (cancelSocket, presenceIn, presenceOut, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
+port module Ports exposing (cancelSocket, postEditorOut, presenceIn, presenceOut, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
 
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Scroll.Types
 import Socket.Types
 
@@ -68,3 +69,6 @@ port pushManagerOut : String -> Cmd msg
 
 
 port presenceOut : { method : String, topic : String } -> Cmd msg
+
+
+port postEditorOut : Encode.Value -> Cmd msg

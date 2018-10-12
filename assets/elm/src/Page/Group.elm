@@ -246,8 +246,26 @@ update msg globals model =
         NewPostFileUploadProgress clientId percentage ->
             noCmd globals { model | postComposer = PostEditor.setFileUploadPercentage clientId percentage model.postComposer }
 
-        NewPostFileUploaded clientId uploadId url ->
-            noCmd globals { model | postComposer = PostEditor.setFileState clientId (File.Uploaded uploadId url) model.postComposer }
+        NewPostFileUploaded clientId fileId url ->
+            let
+                newPostComposer =
+                    model.postComposer
+                        |> PostEditor.setFileState clientId (File.Uploaded fileId url)
+
+                cmd =
+                    case PostEditor.getFileById fileId newPostComposer of
+                        Just file ->
+                            case File.markdownLink file of
+                                Just link ->
+                                    PostEditor.insertAtCursor link newPostComposer
+
+                                Nothing ->
+                                    Cmd.none
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( { model | postComposer = newPostComposer }, cmd ), globals )
 
         NewPostFileUploadError clientId ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }

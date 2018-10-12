@@ -2,7 +2,8 @@ module PostEditor exposing
     ( PostEditor, init
     , getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
-    , getFiles, getUploadIds, addFile, setFiles, setFileUploadPercentage, setFileState
+    , getFiles, getUploadIds, getFileById, addFile, setFiles, setFileUploadPercentage, setFileState
+    , insertAtCursor
     , ViewConfig, wrapper, filesView
     )
 
@@ -26,7 +27,12 @@ module PostEditor exposing
 
 # Files
 
-@docs getFiles, getUploadIds, addFile, setFiles, setFileUploadPercentage, setFileState
+@docs getFiles, getUploadIds, getFileById, addFile, setFiles, setFileUploadPercentage, setFileState
+
+
+# Commands
+
+@docs insertAtCursor
 
 
 # Views
@@ -43,7 +49,9 @@ import Html.Events exposing (on)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import ListHelpers
+import Ports
 import ValidationError exposing (ValidationError)
 import View.Helpers exposing (viewUnless)
 
@@ -168,6 +176,23 @@ getUploadIds (PostEditor internal) =
     List.filterMap File.getUploadId internal.files
 
 
+getFileById : Id -> PostEditor -> Maybe File
+getFileById id editor =
+    let
+        filterFn file =
+            case File.getState file of
+                File.Uploaded fileId _ ->
+                    fileId == id
+
+                _ ->
+                    False
+    in
+    editor
+        |> getFiles
+        |> List.filter filterFn
+        |> List.head
+
+
 addFile : File -> PostEditor -> PostEditor
 addFile newFile (PostEditor internal) =
     PostEditor { internal | files = newFile :: internal.files }
@@ -208,6 +233,20 @@ setFileState clientId newState (PostEditor internal) =
             List.map updater internal.files
     in
     PostEditor { internal | files = newFiles }
+
+
+
+-- COMMANDS
+
+
+insertAtCursor : String -> PostEditor -> Cmd msg
+insertAtCursor text editor =
+    Ports.postEditorOut <|
+        Encode.object
+            [ ( "id", Id.encoder (getId editor) )
+            , ( "command", Encode.string "insertAtCursor" )
+            , ( "text", Encode.string text )
+            ]
 
 
 

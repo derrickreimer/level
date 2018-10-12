@@ -5,6 +5,7 @@ import {
 } from "./socket";
 import { Presence } from "phoenix";
 import { getApiToken } from "./token";
+import { insertTextAtCursor } from "./utils";
 import * as AbsintheSocket from "@absinthe/socket";
 import autosize from "autosize";
 import * as Background from "./background";
@@ -235,4 +236,15 @@ export const attachPorts = app => {
       logEvent("pushManagerOut")(method);
     });
   }
+
+  app.ports.postEditorOut.subscribe(args => {
+    let node = document.getElementById(args.id);
+    if (!node) return;
+
+    switch (args.command) {
+      case "insertAtCursor":
+        insertTextAtCursor(node, args.text);
+        break;
+    }
+  })
 };

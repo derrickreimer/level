@@ -1,4 +1,4 @@
-module File exposing (File, State(..), decoder, fragment, getClientId, getContents, getName, getState, getUploadId, icon, input, isImage, receive, request, setState, setUploadPercentage)
+module File exposing (File, State(..), decoder, fragment, getClientId, getContents, getName, getState, getUploadId, icon, input, isImage, markdownLink, receive, request, setState, setUploadPercentage)
 
 import Color exposing (Color)
 import GraphQL exposing (Fragment)
@@ -83,6 +83,19 @@ setUploadPercentage percentage (File internal) =
 setState : State -> File -> File
 setState newState (File internal) =
     File { internal | state = newState }
+
+
+markdownLink : File -> Maybe String
+markdownLink file =
+    case ( getState file, isImage file ) of
+        ( Uploaded _ url, True ) ->
+            Just <| "[![" ++ getName file ++ "](" ++ url ++ ")](" ++ url ++ ")"
+
+        ( Uploaded _ url, False ) ->
+            Just <| "[" ++ getName file ++ "](" ++ url ++ ")"
+
+        ( _, _ ) ->
+            Nothing
 
 
 
