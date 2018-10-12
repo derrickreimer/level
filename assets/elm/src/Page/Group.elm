@@ -253,17 +253,8 @@ update msg globals model =
                         |> PostEditor.setFileState clientId (File.Uploaded fileId url)
 
                 cmd =
-                    case PostEditor.getFileById fileId newPostComposer of
-                        Just file ->
-                            case File.markdownLink file of
-                                Just link ->
-                                    PostEditor.insertAtCursor link newPostComposer
-
-                                Nothing ->
-                                    Cmd.none
-
-                        Nothing ->
-                            Cmd.none
+                    newPostComposer
+                        |> PostEditor.insertFileLink fileId
             in
             ( ( { model | postComposer = newPostComposer }, cmd ), globals )
 

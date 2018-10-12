@@ -231,8 +231,17 @@ update msg spaceId globals model =
         NewReplyFileUploadProgress clientId percentage ->
             noCmd globals { model | replyComposer = PostEditor.setFileUploadPercentage clientId percentage model.replyComposer }
 
-        NewReplyFileUploaded clientId uploadId url ->
-            noCmd globals { model | replyComposer = PostEditor.setFileState clientId (File.Uploaded uploadId url) model.replyComposer }
+        NewReplyFileUploaded clientId fileId url ->
+            let
+                newReplyComposer =
+                    model.replyComposer
+                        |> PostEditor.setFileState clientId (File.Uploaded fileId url)
+
+                cmd =
+                    newReplyComposer
+                        |> PostEditor.insertFileLink fileId
+            in
+            ( ( { model | replyComposer = newReplyComposer }, cmd ), globals )
 
         NewReplyFileUploadError clientId ->
             noCmd globals { model | replyComposer = PostEditor.setFileState clientId File.UploadError model.replyComposer }
@@ -432,13 +441,17 @@ update msg spaceId globals model =
             in
             noCmd globals { model | postEditor = newPostEditor }
 
-        PostEditorFileUploaded clientId uploadId url ->
+        PostEditorFileUploaded clientId fileId url ->
             let
                 newPostEditor =
                     model.postEditor
-                        |> PostEditor.setFileState clientId (File.Uploaded uploadId url)
+                        |> PostEditor.setFileState clientId (File.Uploaded fileId url)
+
+                cmd =
+                    newPostEditor
+                        |> PostEditor.insertFileLink fileId
             in
-            noCmd globals { model | postEditor = newPostEditor }
+            ( ( { model | postEditor = newPostEditor }, cmd ), globals )
 
         PostEditorFileUploadError clientId ->
             let
@@ -575,18 +588,22 @@ update msg spaceId globals model =
             in
             ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
 
-        ReplyEditorFileUploaded replyId clientId uploadId url ->
+        ReplyEditorFileUploaded replyId clientId fileId url ->
             let
                 newReplyEditor =
                     model.replyEditors
                         |> getReplyEditor replyId
-                        |> PostEditor.setFileState clientId (File.Uploaded uploadId url)
+                        |> PostEditor.setFileState clientId (File.Uploaded fileId url)
+
+                cmd =
+                    newReplyEditor
+                        |> PostEditor.insertFileLink fileId
 
                 newReplyEditors =
                     model.replyEditors
                         |> Dict.insert replyId newReplyEditor
             in
-            ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
+            ( ( { model | replyEditors = newReplyEditors }, cmd ), globals )
 
         ReplyEditorFileUploadError replyId clientId ->
             let

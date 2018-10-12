@@ -257,6 +257,11 @@ body {
   overflow: visible;
 }
 
+.markdown img,
+.markdown img:last-child {
+  @apply my-2;
+}
+
 post-editor {
   @apply .block;
 }

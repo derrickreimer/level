@@ -3,7 +3,7 @@ module PostEditor exposing
     , getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
     , getFiles, getUploadIds, getFileById, addFile, setFiles, setFileUploadPercentage, setFileState
-    , insertAtCursor
+    , insertAtCursor, insertFileLink
     , ViewConfig, wrapper, filesView
     )
 
@@ -32,7 +32,7 @@ module PostEditor exposing
 
 # Commands
 
-@docs insertAtCursor
+@docs insertAtCursor, insertFileLink
 
 
 # Views
@@ -247,6 +247,21 @@ insertAtCursor text editor =
             , ( "command", Encode.string "insertAtCursor" )
             , ( "text", Encode.string text )
             ]
+
+
+insertFileLink : Id -> PostEditor -> Cmd msg
+insertFileLink fileId editor =
+    case getFileById fileId editor of
+        Just file ->
+            case File.markdownLink file of
+                Just link ->
+                    insertAtCursor link editor
+
+                Nothing ->
+                    Cmd.none
+
+        Nothing ->
+            Cmd.none
 
 
 
