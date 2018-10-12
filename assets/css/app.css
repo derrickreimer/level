@@ -262,6 +262,10 @@ body {
   @apply my-2;
 }
 
+.markdown a {
+  @apply text-blue;
+}
+
 post-editor {
   @apply .block;
 }
