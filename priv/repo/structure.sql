@@ -329,6 +329,62 @@ CREATE TABLE public.post_log (
 
 
 --
+-- Name: posts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.posts (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    state public.post_state DEFAULT 'OPEN'::public.post_state NOT NULL,
+    body text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    language text DEFAULT 'english'::text NOT NULL,
+    search_vector tsvector
+);
+
+
+--
+-- Name: replies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.replies (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    body text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    language text DEFAULT 'english'::text NOT NULL,
+    search_vector tsvector
+);
+
+
+--
+-- Name: post_searches; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.post_searches AS
+ SELECT posts.space_id,
+    posts.id AS searchable_id,
+    'Post'::text AS searchable_type,
+    posts.id AS post_id,
+    posts.search_vector,
+    (posts.language)::regconfig AS language
+   FROM public.posts
+UNION
+ SELECT replies.space_id,
+    replies.id AS searchable_id,
+    'Reply'::text AS searchable_type,
+    replies.post_id,
+    replies.search_vector,
+    (replies.language)::regconfig AS language
+   FROM public.replies;
+
+
+--
 -- Name: post_user_log; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -387,23 +443,6 @@ CREATE TABLE public.post_views (
 
 
 --
--- Name: posts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.posts (
-    id uuid NOT NULL,
-    space_id uuid NOT NULL,
-    space_user_id uuid NOT NULL,
-    state public.post_state DEFAULT 'OPEN'::public.post_state NOT NULL,
-    body text NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    language text DEFAULT 'english'::text NOT NULL,
-    search_vector tsvector
-);
-
-
---
 -- Name: push_subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -414,23 +453,6 @@ CREATE TABLE public.push_subscriptions (
     data text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: replies; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.replies (
-    id uuid NOT NULL,
-    space_id uuid NOT NULL,
-    space_user_id uuid NOT NULL,
-    post_id uuid NOT NULL,
-    body text NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    language text DEFAULT 'english'::text NOT NULL,
-    search_vector tsvector
 );
 
 
@@ -1485,5 +1507,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651);
 

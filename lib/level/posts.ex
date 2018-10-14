@@ -5,6 +5,7 @@ defmodule Level.Posts do
 
   import Ecto.Query, warn: false
   import Level.Gettext
+  import Level.SearchConditions
 
   alias Level.Events
   alias Level.File
@@ -23,6 +24,7 @@ defmodule Level.Posts do
   alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
+  alias Level.PostSearch
   alias Level.PostVersion
   alias Level.ReplyFile
   alias Level.Repo
@@ -58,6 +60,25 @@ defmodule Level.Posts do
       left_join: gu in GroupUser,
       on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
       where: g.is_private == false or not is_nil(gu.id)
+  end
+
+  @doc """
+  Builds a base query for searching posts.
+  """
+  @spec search_query(SpaceUser.t(), String.t()) :: Ecto.Query.t()
+  def search_query(%SpaceUser{id: space_user_id}, query) do
+    from ps in PostSearch,
+      join: p in assoc(ps, :post),
+      join: g in assoc(p, :groups),
+      left_join: gu in GroupUser,
+      on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
+      where: g.is_private == false or not is_nil(gu.id),
+      where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^query)),
+      select: %{
+        ps
+        | rank: ts_rank(ps.search_vector, plainto_tsquery(ps.language, ^query)),
+          preview: ts_headline(ps.language, ps.document, plainto_tsquery(ps.language, ^query))
+      }
   end
 
   @doc """
