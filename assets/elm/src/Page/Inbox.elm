@@ -365,6 +365,7 @@ subscriptions =
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
             [ ( "y", DismissPostsClicked )
+            , ( "/", ExpandSearchEditor )
             ]
         ]
 
