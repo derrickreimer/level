@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
+import FieldEditor exposing (FieldEditor)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -33,7 +34,8 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (smartFormatTime, viewIf, viewUnless)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
+import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SpaceLayout
 
 
@@ -49,6 +51,7 @@ type alias Model =
     , featuredUserIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
+    , searchEditor : FieldEditor String
     }
 
 
@@ -105,6 +108,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 resp.featuredUserIds
                 postComps
                 now
+                (FieldEditor.init "search-editor" "")
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -168,6 +172,10 @@ type Msg
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PushSubscribeClicked
     | PostsRefreshed (Result Session.Error ( Session, InboxInit.Response ))
+    | ExpandSearchEditor
+    | CollapseSearchEditor
+    | SearchEditorChanged String
+    | SearchSubmitted
     | NoOp
 
 
@@ -249,6 +257,35 @@ update msg globals model =
 
         PostsRefreshed (Err _) ->
             noCmd globals model
+
+        ExpandSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.expand model.searchEditor }
+              , setFocus (FieldEditor.getNodeId model.searchEditor) NoOp
+              )
+            , globals
+            )
+
+        CollapseSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.collapse model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchEditorChanged newValue ->
+            ( ( { model | searchEditor = FieldEditor.setValue newValue model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchSubmitted ->
+            let
+                newSearchEditor =
+                    model.searchEditor
+                        |> FieldEditor.setIsSubmitting True
+            in
+            noCmd globals { model | searchEditor = newSearchEditor }
 
         NoOp ->
             noCmd globals model
@@ -382,8 +419,9 @@ filterTab label filter linkParams currentParams =
 
 controlsView : Model -> Data -> Html Msg
 controlsView model data =
-    div [ class "flex flex-grow justify-end" ]
+    div [ class "flex items-center flex-grow justify-end" ]
         [ selectionControlsView model.postComps
+        , searchEditorView model.searchEditor
         , paginationView model.params model.postComps
         ]
 
@@ -402,6 +440,43 @@ selectionControlsView posts =
             [ selectedLabel selectedPosts
             , button [ class "mr-4 btn btn-xs btn-blue", onClick DismissPostsClicked ] [ text "Dismiss" ]
             ]
+
+
+searchEditorView : FieldEditor String -> Html Msg
+searchEditorView editor =
+    case FieldEditor.isExpanded editor of
+        True ->
+            label [ class "flex items-center mr-6 py-2 px-3 rounded bg-grey-light" ]
+                [ div [ class "mr-2" ] [ Icons.search ]
+                , input
+                    [ id (FieldEditor.getNodeId editor)
+                    , type_ "text"
+                    , class "bg-transparent text-sm text-dusty-blue-dark no-outline"
+                    , value (FieldEditor.getValue editor)
+                    , readonly (FieldEditor.isSubmitting editor)
+                    , onInput SearchEditorChanged
+                    , onKeydown preventDefault
+                        [ ( [], esc, \event -> CollapseSearchEditor )
+                        , ( [], enter, \event -> SearchSubmitted )
+                        ]
+                    ]
+                    []
+                , button
+                    [ class "btn btn-xs btn-blue"
+                    , onClick SearchSubmitted
+                    , disabled (FieldEditor.isSubmitting editor)
+                    ]
+                    [ text "Search" ]
+                ]
+
+        False ->
+            button
+                [ class "mr-3 p-3"
+                , rel "tooltip"
+                , Html.Attributes.title "Search"
+                , onClick ExpandSearchEditor
+                ]
+                [ Icons.search ]
 
 
 paginationView : Params -> Connection a -> Html Msg
