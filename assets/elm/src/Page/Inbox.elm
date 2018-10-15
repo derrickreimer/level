@@ -26,6 +26,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Inbox exposing (Params(..))
+import Route.Search
 import Route.SpaceUsers
 import Scroll
 import Session exposing (Session)
@@ -284,8 +285,16 @@ update msg globals model =
                 newSearchEditor =
                     model.searchEditor
                         |> FieldEditor.setIsSubmitting True
+
+                searchParams =
+                    Route.Search.init
+                        (Route.Inbox.getSpaceSlug model.params)
+                        (FieldEditor.getValue newSearchEditor)
+
+                cmd =
+                    Route.pushUrl globals.navKey (Route.Search searchParams)
             in
-            noCmd globals { model | searchEditor = newSearchEditor }
+            ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
         NoOp ->
             noCmd globals model

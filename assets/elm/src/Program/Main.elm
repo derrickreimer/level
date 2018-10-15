@@ -4,11 +4,13 @@ import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Connection
+import Debug
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Http
 import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
@@ -20,6 +22,7 @@ import Page.NewGroup
 import Page.NewSpace
 import Page.Post
 import Page.Posts
+import Page.Search
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceSettings
@@ -156,6 +159,7 @@ type Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.SpaceSettings.Msg
+    | SearchMsg Page.Search.Msg
     | SocketAbort Decode.Value
     | SocketStart Decode.Value
     | SocketResult Decode.Value
@@ -333,6 +337,11 @@ update msg model =
                 |> Page.SpaceSettings.update pageMsg globals
                 |> updatePageWithGlobals SpaceSettings SpaceSettingsMsg model
 
+        ( SearchMsg pageMsg, Search pageModel ) ->
+            pageModel
+                |> Page.Search.update pageMsg globals
+                |> updatePageWithGlobals Search SearchMsg model
+
         ( SocketAbort value, _ ) ->
             ( model, Cmd.none )
 
@@ -410,6 +419,7 @@ type Page
     | Post Page.Post.Model
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.SpaceSettings.Model
+    | Search Page.Search.Model
 
 
 type PageInit
@@ -427,6 +437,7 @@ type PageInit
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.SpaceSettings.Model ))
     | SetupCreateGroupsInit (Result Session.Error ( Globals, Page.Setup.CreateGroups.Model ))
     | SetupInviteUsersInit (Result Session.Error ( Globals, Page.Setup.InviteUsers.Model ))
+    | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -522,6 +533,11 @@ navigateTo maybeRoute model =
                 |> Page.UserSettings.init
                 |> transition model UserSettingsInit
 
+        Just (Route.Search params) ->
+            globals
+                |> Page.Search.init params
+                |> transition model SearchInit
+
 
 pageTitle : Repo -> Page -> String
 pageTitle repo page =
@@ -567,6 +583,9 @@ pageTitle repo page =
 
         SetupInviteUsers _ ->
             Page.Setup.InviteUsers.title
+
+        Search pageModel ->
+            Page.Search.title pageModel
 
         NotFound ->
             "404"
@@ -727,6 +746,24 @@ setupPage pageInit model =
         SetupInviteUsersInit (Err _) ->
             ( model, Cmd.none )
 
+        SearchInit (Ok result) ->
+            perform Page.Search.setup Search SearchMsg model result
+
+        SearchInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        SearchInit (Err err) ->
+            case err of
+                Session.HttpError (Http.BadPayload msg _) ->
+                    let
+                        newModel =
+                            Debug.log msg model
+                    in
+                    ( newModel, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 teardownPage : Page -> Cmd Msg
 teardownPage page =
@@ -757,6 +794,9 @@ teardownPage page =
 
         Post pageModel ->
             Cmd.map PostMsg (Page.Post.teardown pageModel)
+
+        Search pageModel ->
+            Cmd.map SearchMsg (Page.Search.teardown pageModel)
 
         _ ->
             Cmd.none
@@ -838,6 +878,9 @@ routeFor page =
         SpaceSettings { spaceSlug } ->
             Just <| Route.SpaceSettings spaceSlug
 
+        Search { params } ->
+            Just <| Route.Search params
+
         Blank ->
             Nothing
 
@@ -917,6 +960,11 @@ pageView repo page pushStatus =
             pageModel
                 |> Page.SpaceSettings.view repo (routeFor page)
                 |> Html.map SpaceSettingsMsg
+
+        Search pageModel ->
+            pageModel
+                |> Page.Search.view repo (routeFor page)
+                |> Html.map SearchMsg
 
         Blank ->
             text ""
@@ -1104,6 +1152,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.SpaceSettings.consumeEvent event
                 |> updatePage SpaceSettings SpaceSettingsMsg model
+
+        Search pageModel ->
+            pageModel
+                |> Page.Search.consumeEvent event
+                |> updatePage Search SearchMsg model
 
         Blank ->
             ( model, Cmd.none )
