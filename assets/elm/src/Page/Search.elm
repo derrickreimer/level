@@ -193,14 +193,14 @@ view : Repo -> Maybe Route -> Model -> Html Msg
 view repo maybeCurrentRoute model =
     case resolveData repo model of
         Just data ->
-            resolvedView maybeCurrentRoute model data
+            resolvedView repo maybeCurrentRoute model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Maybe Route -> Model -> Data -> Html Msg
-resolvedView maybeCurrentRoute model data =
+resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute model data =
     View.SpaceLayout.layout
         data.viewer
         data.space
@@ -215,6 +215,7 @@ resolvedView maybeCurrentRoute model data =
                         ]
                     ]
                 ]
+            , resultsView repo model.searchResults
             ]
         ]
 
@@ -257,3 +258,14 @@ queryEditorView editor =
             ]
             [ text "Search" ]
         ]
+
+
+resultsView : Repo -> Connection SearchResult -> Html Msg
+resultsView repo searchResults =
+    if Connection.isEmptyAndExpanded searchResults then
+        div [ class "pt-8 pb-8 text-center text-lg" ]
+            [ text "This search turned up no results!" ]
+
+    else
+        -- TODO: show list of results
+        text ""
