@@ -8,6 +8,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Files
   alias Level.Groups
   alias Level.Posts
+  alias Level.Posts.Reply
   alias Level.Resolvers
   alias Level.Spaces
   alias LevelWeb.Endpoint
@@ -198,6 +199,17 @@ defmodule LevelWeb.Schema.Objects do
       arg :filter, :post_filters
 
       resolve &Resolvers.posts/3
+    end
+
+    @desc "A paginated list of search results."
+    field :search, non_null(:search_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :query, non_null(:string)
+
+      resolve &Resolvers.search/3
     end
 
     interface :fetch_timeable
@@ -411,6 +423,28 @@ defmodule LevelWeb.Schema.Objects do
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp) do
       resolve &fetched_at_resolver/2
+    end
+  end
+
+  @desc "A search result."
+  object :search_result do
+    field :preview, non_null(:string)
+    field :post, non_null(:post), resolve: dataloader(:db)
+
+    field :reply, :reply do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        case parent.searchable_type do
+          "Reply" ->
+            loader
+            |> Dataloader.load(:db, Reply, parent.searchable_id)
+            |> on_load(fn loader ->
+              {:ok, Dataloader.get(loader, :db, Reply, parent.searchable_id)}
+            end)
+
+          _ ->
+            {:ok, nil}
+        end
+      end
     end
   end
 

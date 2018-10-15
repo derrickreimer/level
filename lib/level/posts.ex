@@ -76,7 +76,8 @@ defmodule Level.Posts do
       where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^query)),
       select: %{
         ps
-        | rank: ts_rank(ps.search_vector, plainto_tsquery(ps.language, ^query)),
+        | id: fragment("? || ?", ps.searchable_type, ps.searchable_id),
+          rank: ts_rank(ps.search_vector, plainto_tsquery(ps.language, ^query)),
           preview: ts_headline(ps.language, ps.document, plainto_tsquery(ps.language, ^query))
       }
   end
