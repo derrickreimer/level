@@ -26,6 +26,7 @@ import ResolvedPostSearchResult exposing (ResolvedPostSearchResult)
 import ResolvedReplySearchResult exposing (ResolvedReplySearchResult)
 import ResolvedSearchResult exposing (ResolvedSearchResult)
 import Route exposing (Route)
+import Route.Group
 import Route.Search exposing (Params)
 import Scroll
 import SearchResult exposing (SearchResult)
@@ -280,14 +281,14 @@ queryEditorView editor =
 
 
 resultsView : Repo -> Params -> ( Zone, Posix ) -> Connection ResolvedSearchResult -> Html Msg
-resultsView repo params now results =
-    if Connection.isEmptyAndExpanded results then
+resultsView repo params now taggedResults =
+    if Connection.isEmptyAndExpanded taggedResults then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "This search turned up no results!" ]
 
     else
         div [] <|
-            Connection.mapList (resultView repo params now) results
+            Connection.mapList (resultView repo params now) taggedResults
 
 
 resultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedSearchResult -> Html Msg
@@ -301,7 +302,7 @@ resultView repo params now taggedResult =
 
 
 postResultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedPostSearchResult -> Html Msg
-postResultView repo params (( zone, _ ) as now) resolvedResult =
+postResultView repo params now resolvedResult =
     let
         postRoute =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
@@ -310,25 +311,11 @@ postResultView repo params (( zone, _ ) as now) resolvedResult =
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
-                [ a
-                    [ Route.href postRoute
-                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
-                    , rel "tooltip"
-                    , Html.Attributes.title "Expand post"
-                    ]
-                    [ text <| SpaceUser.displayName resolvedResult.resolvedPost.author ]
-                , a
-                    [ Route.href postRoute
-                    , class "no-underline whitespace-no-wrap"
-                    , rel "tooltip"
-                    , Html.Attributes.title "Expand post"
-                    ]
-                    [ View.Helpers.time now
-                        ( zone, Post.postedAt resolvedResult.resolvedPost.post )
-                        [ class "ml-3 text-sm text-dusty-blue" ]
-                    ]
+                [ authorLabel postRoute resolvedResult.resolvedPost.author
+                , groupsLabel params resolvedResult.resolvedPost.groups
+                , timestampLabel postRoute now (Post.postedAt resolvedResult.resolvedPost.post)
                 ]
-            , div [ class "cursor-pointer select-none", onPassiveClick (ClickedToExpand postRoute) ]
+            , clickToExpand postRoute
                 [ div [ class "markdown mb-2" ]
                     [ RenderedHtml.node (Post.bodyHtml resolvedResult.resolvedPost.post) ]
                 ]
@@ -337,7 +324,7 @@ postResultView repo params (( zone, _ ) as now) resolvedResult =
 
 
 replyResultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedReplySearchResult -> Html Msg
-replyResultView repo params (( zone, _ ) as now) resolvedResult =
+replyResultView repo params now resolvedResult =
     let
         replyRoute =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
@@ -347,27 +334,59 @@ replyResultView repo params (( zone, _ ) as now) resolvedResult =
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
-                , a
-                    [ Route.href replyRoute
-                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
-                    , rel "tooltip"
-                    , Html.Attributes.title "Expand post"
-                    ]
-                    [ text <| SpaceUser.displayName resolvedResult.resolvedReply.author ]
-                , a
-                    [ Route.href replyRoute
-                    , class "no-underline whitespace-no-wrap"
-                    , rel "tooltip"
-                    , Html.Attributes.title "Expand post"
-                    ]
-                    [ View.Helpers.time now
-                        ( zone, Reply.postedAt resolvedResult.resolvedReply.reply )
-                        [ class "ml-3 text-sm text-dusty-blue" ]
-                    ]
+                , authorLabel replyRoute resolvedResult.resolvedReply.author
+                , groupsLabel params resolvedResult.resolvedPost.groups
+                , timestampLabel replyRoute now (Reply.postedAt resolvedResult.resolvedReply.reply)
                 ]
-            , div [ class "cursor-pointer select-none", onPassiveClick (ClickedToExpand replyRoute) ]
+            , clickToExpand replyRoute
                 [ div [ class "markdown mb-2" ]
                     [ RenderedHtml.node (Reply.bodyHtml resolvedResult.resolvedReply.reply) ]
                 ]
             ]
         ]
+
+
+authorLabel : Route -> SpaceUser -> Html Msg
+authorLabel route author =
+    a
+        [ Route.href route
+        , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
+        , rel "tooltip"
+        , Html.Attributes.title "Expand post"
+        ]
+        [ text <| SpaceUser.displayName author ]
+
+
+timestampLabel : Route -> ( Zone, Posix ) -> Posix -> Html Msg
+timestampLabel route (( zone, _ ) as now) time =
+    a
+        [ Route.href route
+        , class "no-underline whitespace-no-wrap"
+        , rel "tooltip"
+        , Html.Attributes.title "Expand post"
+        ]
+        [ View.Helpers.time now
+            ( zone, time )
+            [ class "ml-3 text-sm text-dusty-blue" ]
+        ]
+
+
+groupsLabel : Params -> List Group -> Html Msg
+groupsLabel params groups =
+    case groups of
+        [ group ] ->
+            span [ class "ml-3 text-sm text-dusty-blue" ]
+                [ a
+                    [ Route.href (Route.Group (Route.Group.init (Route.Search.getSpaceSlug params) (Group.id group)))
+                    , class "no-underline text-dusty-blue font-bold whitespace-no-wrap"
+                    ]
+                    [ text (Group.name group) ]
+                ]
+
+        _ ->
+            text ""
+
+
+clickToExpand : Route -> List (Html Msg) -> Html Msg
+clickToExpand route children =
+    div [ class "cursor-pointer select-none", onPassiveClick (ClickedToExpand route) ] children
