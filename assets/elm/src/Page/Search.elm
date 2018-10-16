@@ -33,6 +33,8 @@ import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import TaskHelpers
+import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers
@@ -50,6 +52,7 @@ type alias Model =
     , bookmarkIds : List Id
     , searchResults : Connection SearchResult
     , queryEditor : FieldEditor String
+    , now : ( Zone, Posix )
     }
 
 
@@ -87,11 +90,12 @@ init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
         |> SearchInit.request params
+        |> TaskHelpers.andThenGetCurrentTime
         |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> Globals -> ( Session, SearchInit.Response ) -> ( Globals, Model )
-buildModel params globals ( newSession, resp ) =
+buildModel : Params -> Globals -> ( ( Session, SearchInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel params globals ( ( newSession, resp ), now ) =
     let
         model =
             Model
@@ -101,6 +105,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.bookmarkIds
                 resp.searchResults
                 (FieldEditor.init "search-editor" (Route.Search.getQuery params |> Maybe.withDefault ""))
+                now
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -128,12 +133,20 @@ teardown model =
 type Msg
     = SearchEditorChanged String
     | SearchSubmitted
+    | Tick Posix
+    | SetCurrentTime Posix Zone
     | NoOp
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
+        Tick posix ->
+            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
+
+        SetCurrentTime posix zone ->
+            noCmd globals { model | now = ( zone, posix ) }
+
         SearchEditorChanged newValue ->
             ( ( { model | queryEditor = FieldEditor.setValue newValue model.queryEditor }, Cmd.none ), globals )
 
@@ -190,7 +203,7 @@ consumeEvent event model =
 
 subscriptions : Sub Msg
 subscriptions =
-    Sub.none
+    every 1000 Tick
 
 
 
@@ -223,7 +236,7 @@ resolvedView repo maybeCurrentRoute model data =
                         ]
                     ]
                 ]
-            , resultsView repo model.params data.resolvedSearchResults
+            , resultsView repo model.params model.now data.resolvedSearchResults
             ]
         ]
 
@@ -268,60 +281,88 @@ queryEditorView editor =
         ]
 
 
-resultsView : Repo -> Params -> Connection ResolvedSearchResult -> Html Msg
-resultsView repo params results =
+resultsView : Repo -> Params -> ( Zone, Posix ) -> Connection ResolvedSearchResult -> Html Msg
+resultsView repo params now results =
     if Connection.isEmptyAndExpanded results then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "This search turned up no results!" ]
 
     else
         div [] <|
-            Connection.mapList (resultView repo params) results
+            Connection.mapList (resultView repo params now) results
 
 
-resultView : Repo -> Params -> ResolvedSearchResult -> Html Msg
-resultView repo params taggedResult =
+resultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedSearchResult -> Html Msg
+resultView repo params now taggedResult =
     case taggedResult of
         ResolvedSearchResult.Post result ->
-            postResultView repo params result
+            postResultView repo params now result
 
         ResolvedSearchResult.Reply result ->
-            replyResultView repo params result
+            replyResultView repo params now result
 
 
-postResultView : Repo -> Params -> ResolvedPostSearchResult -> Html Msg
-postResultView repo params resolvedResult =
+postResultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedPostSearchResult -> Html Msg
+postResultView repo params (( zone, _ ) as now) resolvedResult =
+    let
+        postRoute =
+            Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
+    in
     div [ class "flex py-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ a
-                    [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
+                    [ Route.href postRoute
                     , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
                     , rel "tooltip"
                     , Html.Attributes.title "Expand post"
                     ]
                     [ text <| SpaceUser.displayName resolvedResult.resolvedPost.author ]
+                , a
+                    [ Route.href postRoute
+                    , class "no-underline whitespace-no-wrap"
+                    , rel "tooltip"
+                    , Html.Attributes.title "Expand post"
+                    ]
+                    [ View.Helpers.time now
+                        ( zone, Post.postedAt resolvedResult.resolvedPost.post )
+                        [ class "ml-3 text-sm text-dusty-blue" ]
+                    ]
                 ]
             , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml resolvedResult.resolvedPost.post) ]
             ]
         ]
 
 
-replyResultView : Repo -> Params -> ResolvedReplySearchResult -> Html Msg
-replyResultView repo params resolvedResult =
+replyResultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedReplySearchResult -> Html Msg
+replyResultView repo params (( zone, _ ) as now) resolvedResult =
+    let
+        replyRoute =
+            Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
+    in
     div [ class "flex py-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
                 , a
-                    [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
+                    [ Route.href replyRoute
                     , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
                     , rel "tooltip"
                     , Html.Attributes.title "Expand post"
                     ]
                     [ text <| SpaceUser.displayName resolvedResult.resolvedReply.author ]
+                , a
+                    [ Route.href replyRoute
+                    , class "no-underline whitespace-no-wrap"
+                    , rel "tooltip"
+                    , Html.Attributes.title "Expand post"
+                    ]
+                    [ View.Helpers.time now
+                        ( zone, Reply.postedAt resolvedResult.resolvedReply.reply )
+                        [ class "ml-3 text-sm text-dusty-blue" ]
+                    ]
                 ]
             , div [ class "markdown mb-2" ] [ RenderedHtml.node (Reply.bodyHtml resolvedResult.resolvedReply.reply) ]
             ]

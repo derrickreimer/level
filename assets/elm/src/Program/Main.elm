@@ -818,6 +818,9 @@ pageSubscription page =
         SpaceSettings _ ->
             Sub.map SpaceSettingsMsg Page.SpaceSettings.subscriptions
 
+        Search _ ->
+            Sub.map SearchMsg Page.Search.subscriptions
+
         _ ->
             Sub.none
 
