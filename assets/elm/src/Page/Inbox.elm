@@ -471,17 +471,11 @@ searchEditorView editor =
                         ]
                     ]
                     []
-                , button
-                    [ class "btn btn-xs btn-blue"
-                    , onClick SearchSubmitted
-                    , disabled (FieldEditor.isSubmitting editor)
-                    ]
-                    [ text "Search" ]
                 ]
 
         False ->
             button
-                [ class "mr-3 p-3"
+                [ class "mr-3 p-2"
                 , rel "tooltip"
                 , Html.Attributes.title "Search"
                 , onClick ExpandSearchEditor

@@ -37,7 +37,7 @@ import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.Helpers
+import View.Helpers exposing (onPassiveClick)
 import View.SpaceLayout
 
 
@@ -135,6 +135,7 @@ type Msg
     | SearchSubmitted
     | Tick Posix
     | SetCurrentTime Posix Zone
+    | ClickedToExpand Route
     | NoOp
 
 
@@ -165,6 +166,9 @@ update msg globals model =
                     Route.pushUrl globals.navKey (Route.Search searchParams)
             in
             ( ( { model | queryEditor = newQueryEditor }, cmd ), globals )
+
+        ClickedToExpand route ->
+            ( ( model, Route.pushUrl globals.navKey route ), globals )
 
         NoOp ->
             noCmd globals model
@@ -263,7 +267,7 @@ queryEditorView editor =
         , input
             [ id (FieldEditor.getNodeId editor)
             , type_ "text"
-            , class "bg-transparent text-sm text-dusty-blue-dark no-outline"
+            , class "bg-transparent text-sm text-dusty-blue-darker no-outline"
             , value (FieldEditor.getValue editor)
             , readonly (FieldEditor.isSubmitting editor)
             , onInput SearchEditorChanged
@@ -272,12 +276,6 @@ queryEditorView editor =
                 ]
             ]
             []
-        , button
-            [ class "btn btn-xs btn-blue"
-            , onClick SearchSubmitted
-            , disabled (FieldEditor.isSubmitting editor)
-            ]
-            [ text "Search" ]
         ]
 
 
@@ -330,7 +328,10 @@ postResultView repo params (( zone, _ ) as now) resolvedResult =
                         [ class "ml-3 text-sm text-dusty-blue" ]
                     ]
                 ]
-            , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml resolvedResult.resolvedPost.post) ]
+            , div [ class "cursor-pointer select-none", onPassiveClick (ClickedToExpand postRoute) ]
+                [ div [ class "markdown mb-2" ]
+                    [ RenderedHtml.node (Post.bodyHtml resolvedResult.resolvedPost.post) ]
+                ]
             ]
         ]
 
@@ -364,6 +365,9 @@ replyResultView repo params (( zone, _ ) as now) resolvedResult =
                         [ class "ml-3 text-sm text-dusty-blue" ]
                     ]
                 ]
-            , div [ class "markdown mb-2" ] [ RenderedHtml.node (Reply.bodyHtml resolvedResult.resolvedReply.reply) ]
+            , div [ class "cursor-pointer select-none", onPassiveClick (ClickedToExpand replyRoute) ]
+                [ div [ class "markdown mb-2" ]
+                    [ RenderedHtml.node (Reply.bodyHtml resolvedResult.resolvedReply.reply) ]
+                ]
             ]
         ]
