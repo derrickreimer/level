@@ -4,13 +4,11 @@ import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Connection
-import Debug
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Http
 import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
@@ -753,16 +751,7 @@ setupPage pageInit model =
             ( model, Route.toLogin )
 
         SearchInit (Err err) ->
-            case err of
-                Session.HttpError (Http.BadPayload msg _) ->
-                    let
-                        newModel =
-                            Debug.log msg model
-                    in
-                    ( newModel, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, Cmd.none )
 
 
 teardownPage : Page -> Cmd Msg
