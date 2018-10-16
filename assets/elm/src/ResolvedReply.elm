@@ -1,4 +1,4 @@
-module ResolvedReply exposing (ResolvedReply, addManyToRepo, addToRepo, decoder, unresolve)
+module ResolvedReply exposing (ResolvedReply, addManyToRepo, addToRepo, decoder, resolve, unresolve)
 
 import Connection exposing (Connection)
 import Id exposing (Id)
@@ -31,6 +31,18 @@ addToRepo resolvedReply repo =
 addManyToRepo : List ResolvedReply -> Repo -> Repo
 addManyToRepo resolvedReplies repo =
     List.foldr addToRepo repo resolvedReplies
+
+
+resolve : Repo -> Id -> Maybe ResolvedReply
+resolve repo id =
+    case Repo.getReply id repo of
+        Just reply ->
+            Maybe.map2 ResolvedReply
+                (Just <| reply)
+                (Repo.getSpaceUser (Reply.authorId reply) repo)
+
+        Nothing ->
+            Nothing
 
 
 unresolve : ResolvedReply -> Id

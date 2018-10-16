@@ -10,7 +10,7 @@ import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import ResolvedPost exposing (ResolvedPost)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route.Inbox exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
@@ -33,7 +33,7 @@ type alias Data =
     , space : Space
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
-    , resolvedPosts : Connection ResolvedPost
+    , resolvedPosts : Connection ResolvedPostWithReplies
     }
 
 
@@ -152,17 +152,7 @@ decoder =
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
-            (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPost.decoder)
-
-
-addPostsToRepo : Connection ResolvedPost -> Repo -> Repo
-addPostsToRepo resolvedPosts repo =
-    List.foldr ResolvedPost.addToRepo repo (Connection.toList resolvedPosts)
-
-
-unresolvePosts : Connection ResolvedPost -> Connection ( String, Connection String )
-unresolvePosts resolvedPosts =
-    Connection.map ResolvedPost.unresolve resolvedPosts
+            (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -174,7 +164,7 @@ buildResponse ( session, data ) =
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setGroups data.bookmarks
                 |> Repo.setSpaceUsers data.featuredUsers
-                |> addPostsToRepo data.resolvedPosts
+                |> ResolvedPostWithReplies.addManyToRepo (Connection.toList data.resolvedPosts)
 
         resp =
             Response
@@ -182,7 +172,7 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
                 (List.map SpaceUser.id data.featuredUsers)
-                (unresolvePosts data.resolvedPosts)
+                (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)
                 repo
     in
     ( session, resp )

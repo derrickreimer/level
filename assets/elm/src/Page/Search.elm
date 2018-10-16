@@ -17,8 +17,11 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Pagination
+import Post
 import Query.SearchInit as SearchInit
+import RenderedHtml
 import Repo exposing (Repo)
+import ResolvedSearchResult exposing (ResolvedSearchResult)
 import Route exposing (Route)
 import Route.Search exposing (Params)
 import Scroll
@@ -51,15 +54,17 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
+    , resolvedSearchResults : Connection ResolvedSearchResult
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map3 Data
+    Maybe.map4 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
+        (Just <| Connection.filterMap (ResolvedSearchResult.resolve repo) model.searchResults)
 
 
 
@@ -215,7 +220,7 @@ resolvedView repo maybeCurrentRoute model data =
                         ]
                     ]
                 ]
-            , resultsView repo model.searchResults
+            , resultsView repo model.params data.resolvedSearchResults
             ]
         ]
 
@@ -260,12 +265,31 @@ queryEditorView editor =
         ]
 
 
-resultsView : Repo -> Connection SearchResult -> Html Msg
-resultsView repo searchResults =
-    if Connection.isEmptyAndExpanded searchResults then
+resultsView : Repo -> Params -> Connection ResolvedSearchResult -> Html Msg
+resultsView repo params results =
+    if Connection.isEmptyAndExpanded results then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "This search turned up no results!" ]
 
     else
-        -- TODO: show list of results
-        text ""
+        div [] <|
+            Connection.mapList (resultView repo params) results
+
+
+resultView : Repo -> Params -> ResolvedSearchResult -> Html Msg
+resultView repo params result =
+    div [ class "flex py-4" ]
+        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium result.resolvedPost.author ]
+        , div [ class "flex-grow min-w-0 leading-semi-loose" ]
+            [ div []
+                [ a
+                    [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id result.resolvedPost.post)
+                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
+                    , rel "tooltip"
+                    , Html.Attributes.title "Expand post"
+                    ]
+                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName result.resolvedPost.author ] ]
+                ]
+            , div [ class "markdown mb-2" ] [ RenderedHtml.node (SearchResult.preview result.searchResult) ]
+            ]
+        ]
