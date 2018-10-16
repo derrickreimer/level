@@ -24,10 +24,10 @@ defmodule Level.Posts do
   alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
-  alias Level.PostSearch
   alias Level.PostVersion
   alias Level.ReplyFile
   alias Level.Repo
+  alias Level.SearchResult
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 
@@ -67,7 +67,7 @@ defmodule Level.Posts do
   """
   @spec search_query(SpaceUser.t(), String.t()) :: Ecto.Query.t()
   def search_query(%SpaceUser{id: space_user_id}, query) do
-    from ps in PostSearch,
+    from ps in SearchResult,
       join: p in assoc(ps, :post),
       join: g in assoc(p, :groups),
       left_join: gu in GroupUser,

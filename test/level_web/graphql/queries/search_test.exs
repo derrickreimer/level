@@ -21,12 +21,22 @@ defmodule LevelWeb.GraphQL.SearchTest do
         ) {
           edges {
             node {
-              preview
-              post {
-                id
+              __typename
+              ... on PostSearchResult {
+                preview
+                post {
+                  id
+                }
               }
-              reply {
-                id
+
+              ... on ReplySearchResult {
+                preview
+                post {
+                  id
+                }
+                reply {
+                  id
+                }
               }
             }
           }
@@ -66,11 +76,11 @@ defmodule LevelWeb.GraphQL.SearchTest do
                    "edges" => [
                      %{
                        "node" => %{
+                         "__typename" => "PostSearchResult",
                          "preview" => "<b>Quick</b> brown fox jumps over the lazy dog",
                          "post" => %{
                            "id" => post.id
-                         },
-                         "reply" => nil
+                         }
                        }
                      }
                    ],
@@ -105,6 +115,7 @@ defmodule LevelWeb.GraphQL.SearchTest do
                    "edges" => [
                      %{
                        "node" => %{
+                         "__typename" => "ReplySearchResult",
                          "preview" => "<b>Fighting</b> uphill battles",
                          "post" => %{
                            "id" => post.id

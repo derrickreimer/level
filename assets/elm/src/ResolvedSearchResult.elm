@@ -1,67 +1,65 @@
-module ResolvedSearchResult exposing (ResolvedSearchResult, addToRepo, decoder, resolve, unresolve)
+module ResolvedSearchResult exposing (ResolvedSearchResult(..), addToRepo, decoder, resolve, unresolve)
 
-import Json.Decode as Decode exposing (Decoder, field, list, maybe)
+import Json.Decode as Decode exposing (Decoder, field, string)
 import Repo exposing (Repo)
-import ResolvedPost exposing (ResolvedPost)
-import ResolvedReply exposing (ResolvedReply)
+import ResolvedPostSearchResult exposing (ResolvedPostSearchResult)
+import ResolvedReplySearchResult exposing (ResolvedReplySearchResult)
 import SearchResult exposing (SearchResult)
 
 
-type alias ResolvedSearchResult =
-    { searchResult : SearchResult
-    , resolvedPost : ResolvedPost
-    , resolvedReply : Maybe ResolvedReply
-    }
+type ResolvedSearchResult
+    = Post ResolvedPostSearchResult
+    | Reply ResolvedReplySearchResult
+
+
+addToRepo : ResolvedSearchResult -> Repo -> Repo
+addToRepo resolvedResult repo =
+    case resolvedResult of
+        Post result ->
+            ResolvedPostSearchResult.addToRepo result repo
+
+        Reply result ->
+            ResolvedReplySearchResult.addToRepo result repo
 
 
 decoder : Decoder ResolvedSearchResult
 decoder =
-    Decode.map3 ResolvedSearchResult
-        SearchResult.decoder
-        (field "post" ResolvedPost.decoder)
-        (field "reply" (maybe ResolvedReply.decoder))
+    field "__typename" string
+        |> Decode.andThen resultDecoder
 
 
-addToRepo : ResolvedSearchResult -> Repo -> Repo
-addToRepo result repo =
-    repo
-        |> ResolvedPost.addToRepo result.resolvedPost
-        |> addMaybeReplyToRepo result.resolvedReply
+resultDecoder : String -> Decoder ResolvedSearchResult
+resultDecoder typename =
+    case typename of
+        "PostSearchResult" ->
+            Decode.map Post ResolvedPostSearchResult.decoder
+
+        "ReplySearchResult" ->
+            Decode.map Reply ResolvedReplySearchResult.decoder
+
+        _ ->
+            Decode.fail "result type not recognized"
 
 
 resolve : Repo -> SearchResult -> Maybe ResolvedSearchResult
 resolve repo result =
-    case ResolvedPost.resolve repo (SearchResult.postId result) of
-        Just post ->
-            let
-                reply =
-                    case SearchResult.replyId result of
-                        Just replyId ->
-                            ResolvedReply.resolve repo replyId
+    case result of
+        SearchResult.Post data ->
+            Maybe.map Post
+                (ResolvedPostSearchResult.resolve repo data)
 
-                        Nothing ->
-                            Nothing
-            in
-            Just (ResolvedSearchResult result post reply)
-
-        Nothing ->
-            Nothing
+        SearchResult.Reply data ->
+            Maybe.map Reply
+                (ResolvedReplySearchResult.resolve repo data)
 
 
 unresolve : ResolvedSearchResult -> SearchResult
-unresolve result =
-    result.searchResult
+unresolve resolvedResult =
+    case resolvedResult of
+        Post result ->
+            SearchResult.Post <|
+                ResolvedPostSearchResult.unresolve result
 
-
-
--- INTERNAL
-
-
-addMaybeReplyToRepo : Maybe ResolvedReply -> Repo -> Repo
-addMaybeReplyToRepo maybeReply repo =
-    case maybeReply of
-        Just reply ->
-            ResolvedReply.addToRepo reply repo
-
-        Nothing ->
-            repo
+        Reply result ->
+            SearchResult.Reply <|
+                ResolvedReplySearchResult.unresolve result

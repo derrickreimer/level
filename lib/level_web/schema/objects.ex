@@ -10,6 +10,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Posts
   alias Level.Posts.Reply
   alias Level.Resolvers
+  alias Level.SearchResult
   alias Level.Spaces
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
@@ -427,23 +428,33 @@ defmodule LevelWeb.Schema.Objects do
   end
 
   @desc "A search result."
-  object :search_result do
+  union :search_result do
+    types [:post_search_result, :reply_search_result]
+
+    resolve_type fn
+      %SearchResult{searchable_type: "Post"}, _ -> :post_search_result
+      %SearchResult{searchable_type: "Reply"}, _ -> :reply_search_result
+    end
+  end
+
+  @desc "A post search result."
+  object :post_search_result do
+    field :preview, non_null(:string)
+    field :post, non_null(:post), resolve: dataloader(:db)
+  end
+
+  @desc "A reply search result."
+  object :reply_search_result do
     field :preview, non_null(:string)
     field :post, non_null(:post), resolve: dataloader(:db)
 
-    field :reply, :reply do
+    field :reply, non_null(:reply) do
       resolve fn parent, _, %{context: %{loader: loader}} ->
-        case parent.searchable_type do
-          "Reply" ->
-            loader
-            |> Dataloader.load(:db, Reply, parent.searchable_id)
-            |> on_load(fn loader ->
-              {:ok, Dataloader.get(loader, :db, Reply, parent.searchable_id)}
-            end)
-
-          _ ->
-            {:ok, nil}
-        end
+        loader
+        |> Dataloader.load(:db, Reply, parent.searchable_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, Reply, parent.searchable_id)}
+        end)
       end
     end
   end

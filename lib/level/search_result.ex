@@ -1,12 +1,11 @@
-defmodule Level.PostSearch do
+defmodule Level.SearchResult do
   @moduledoc """
-  The PostSearch schema.
+  The SearchResult schema.
   """
 
   use Ecto.Schema
 
   alias Level.Posts.Post
-  alias Level.Posts.Reply
   alias Level.Spaces.Space
 
   @type t :: %__MODULE__{}

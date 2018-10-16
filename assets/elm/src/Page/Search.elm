@@ -18,9 +18,13 @@ import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Pagination
 import Post
+import PostSearchResult
 import Query.SearchInit as SearchInit
 import RenderedHtml
+import ReplySearchResult
 import Repo exposing (Repo)
+import ResolvedPostSearchResult exposing (ResolvedPostSearchResult)
+import ResolvedReplySearchResult exposing (ResolvedReplySearchResult)
 import ResolvedSearchResult exposing (ResolvedSearchResult)
 import Route exposing (Route)
 import Route.Search exposing (Params)
@@ -277,19 +281,48 @@ resultsView repo params results =
 
 
 resultView : Repo -> Params -> ResolvedSearchResult -> Html Msg
-resultView repo params result =
+resultView repo params taggedResult =
+    case taggedResult of
+        ResolvedSearchResult.Post result ->
+            postResultView repo params result
+
+        ResolvedSearchResult.Reply result ->
+            replyResultView repo params result
+
+
+postResultView : Repo -> Params -> ResolvedPostSearchResult -> Html Msg
+postResultView repo params resolvedResult =
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium result.resolvedPost.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ a
-                    [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id result.resolvedPost.post)
+                    [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
                     , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
                     , rel "tooltip"
                     , Html.Attributes.title "Expand post"
                     ]
-                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName result.resolvedPost.author ] ]
+                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName resolvedResult.resolvedPost.author ] ]
                 ]
-            , div [ class "markdown mb-2" ] [ RenderedHtml.node (SearchResult.preview result.searchResult) ]
+            , div [ class "markdown mb-2" ] [ RenderedHtml.node (PostSearchResult.preview resolvedResult.result) ]
+            ]
+        ]
+
+
+replyResultView : Repo -> Params -> ResolvedReplySearchResult -> Html Msg
+replyResultView repo params resolvedResult =
+    div [ class "flex py-4" ]
+        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
+        , div [ class "flex-grow min-w-0 leading-semi-loose" ]
+            [ div []
+                [ a
+                    [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
+                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
+                    , rel "tooltip"
+                    , Html.Attributes.title "Expand post"
+                    ]
+                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName resolvedResult.resolvedPost.author ] ]
+                ]
+            , div [ class "markdown mb-2" ] [ RenderedHtml.node (ReplySearchResult.preview resolvedResult.result) ]
             ]
         ]

@@ -1,6 +1,5 @@
 module SearchResult exposing
-    ( SearchResult
-    , preview, postId, replyId
+    ( SearchResult(..)
     , fragment
     , decoder
     )
@@ -11,11 +10,6 @@ module SearchResult exposing
 # Types
 
 @docs SearchResult
-
-
-# Properties
-
-@docs preview, postId, replyId
 
 
 # GraphQL
@@ -34,7 +28,9 @@ import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Post exposing (Post)
+import PostSearchResult exposing (PostSearchResult)
 import Reply exposing (Reply)
+import ReplySearchResult exposing (ReplySearchResult)
 
 
 
@@ -42,33 +38,8 @@ import Reply exposing (Reply)
 
 
 type SearchResult
-    = SearchResult Data
-
-
-type alias Data =
-    { preview : String
-    , postId : Id
-    , replyId : Maybe Id
-    }
-
-
-
--- PROPERTIES
-
-
-preview : SearchResult -> String
-preview (SearchResult data) =
-    data.preview
-
-
-postId : SearchResult -> Id
-postId (SearchResult data) =
-    data.postId
-
-
-replyId : SearchResult -> Maybe Id
-replyId (SearchResult data) =
-    data.replyId
+    = Post PostSearchResult
+    | Reply ReplySearchResult
 
 
 
@@ -81,23 +52,21 @@ fragment =
         queryBody =
             """
             fragment SearchResultFields on SearchResult {
-              preview
-              post {
-                ...PostFields
-                replies(first: 5) {
-                  ...ReplyConnectionFields
-                }
+              __typename
+
+              ... on PostSearchResult {
+                ...PostSearchResultFields
               }
-              reply {
-                ...ReplyFields
+
+              ... on ReplySearchResult {
+                ...ReplySearchResultFields
               }
             }
             """
     in
     GraphQL.toFragment queryBody
-        [ Post.fragment
-        , Reply.fragment
-        , Connection.fragment "ReplyConnection" Reply.fragment
+        [ PostSearchResult.fragment
+        , ReplySearchResult.fragment
         ]
 
 
@@ -107,8 +76,18 @@ fragment =
 
 decoder : Decoder SearchResult
 decoder =
-    Decode.map SearchResult <|
-        Decode.map3 Data
-            (field "preview" string)
-            (Decode.at [ "post", "id" ] Id.decoder)
-            (Decode.at [ "reply" ] (maybe (field "id" Id.decoder)))
+    field "__typename" string
+        |> Decode.andThen resultDecoder
+
+
+resultDecoder : String -> Decoder SearchResult
+resultDecoder typename =
+    case typename of
+        "PostSearchResult" ->
+            Decode.map Post PostSearchResult.decoder
+
+        "ReplySearchResult" ->
+            Decode.map Reply ReplySearchResult.decoder
+
+        _ ->
+            Decode.fail "result type not recognized"
