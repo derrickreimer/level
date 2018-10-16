@@ -263,7 +263,7 @@ paginationView params connection =
 
 queryEditorView : FieldEditor String -> Html Msg
 queryEditorView editor =
-    label [ class "flex items-center mr-6 py-2 px-3 rounded bg-grey-light" ]
+    label [ class "flex items-center mr-6 py-2 px-3 rounded-full bg-grey-light focus-within-outline-1" ]
         [ div [ class "mr-2" ] [ Icons.search ]
         , input
             [ id (FieldEditor.getNodeId editor)
