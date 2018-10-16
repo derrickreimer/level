@@ -14,8 +14,6 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.UpdateSpace as UpdateSpace
-import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Pagination
 import Post
 import PostSearchResult
