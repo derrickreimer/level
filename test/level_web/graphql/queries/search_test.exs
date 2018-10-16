@@ -6,41 +6,38 @@ defmodule LevelWeb.GraphQL.SearchTest do
     query Search(
       $space_id: ID!,
       $query: String!,
-      $first: Int,
-      $last: Int,
-      $before: Cursor,
-      $after: Cursor
+      $page: Int,
+      $count: Int
     ) {
       space(id: $space_id) {
         search(
           query: $query,
-          first: $first,
-          last: $last,
-          before: $before,
-          after: $after
+          page: $page,
+          count: $count
         ) {
-          edges {
-            node {
-              __typename
-              ... on PostSearchResult {
-                preview
-                post {
-                  id
-                }
+          pageInfo {
+            hasPreviousPage
+            hasNextPage
+          }
+          nodes {
+            __typename
+            ... on PostSearchResult {
+              preview
+              post {
+                id
               }
+            }
 
-              ... on ReplySearchResult {
-                preview
-                post {
-                  id
-                }
-                reply {
-                  id
-                }
+            ... on ReplySearchResult {
+              preview
+              post {
+                id
+              }
+              reply {
+                id
               }
             }
           }
-          total_count
         }
       }
     }
@@ -61,7 +58,8 @@ defmodule LevelWeb.GraphQL.SearchTest do
     variables = %{
       space_id: space.id,
       query: "quick",
-      first: 10
+      page: 1,
+      count: 20
     }
 
     conn =
@@ -73,18 +71,19 @@ defmodule LevelWeb.GraphQL.SearchTest do
              "data" => %{
                "space" => %{
                  "search" => %{
-                   "edges" => [
+                   "pageInfo" => %{
+                     "hasPreviousPage" => false,
+                     "hasNextPage" => false
+                   },
+                   "nodes" => [
                      %{
-                       "node" => %{
-                         "__typename" => "PostSearchResult",
-                         "preview" => "<b>Quick</b> brown fox jumps over the lazy dog",
-                         "post" => %{
-                           "id" => post.id
-                         }
+                       "__typename" => "PostSearchResult",
+                       "preview" => "<b>Quick</b> brown fox jumps over the lazy dog",
+                       "post" => %{
+                         "id" => post.id
                        }
                      }
-                   ],
-                   "total_count" => 1
+                   ]
                  }
                }
              }
@@ -100,7 +99,8 @@ defmodule LevelWeb.GraphQL.SearchTest do
     variables = %{
       space_id: space.id,
       query: "fight",
-      first: 10
+      page: 1,
+      count: 20
     }
 
     conn =
@@ -112,21 +112,22 @@ defmodule LevelWeb.GraphQL.SearchTest do
              "data" => %{
                "space" => %{
                  "search" => %{
-                   "edges" => [
+                   "pageInfo" => %{
+                     "hasPreviousPage" => false,
+                     "hasNextPage" => false
+                   },
+                   "nodes" => [
                      %{
-                       "node" => %{
-                         "__typename" => "ReplySearchResult",
-                         "preview" => "<b>Fighting</b> uphill battles",
-                         "post" => %{
-                           "id" => post.id
-                         },
-                         "reply" => %{
-                           "id" => reply.id
-                         }
+                       "__typename" => "ReplySearchResult",
+                       "preview" => "<b>Fighting</b> uphill battles",
+                       "post" => %{
+                         "id" => post.id
+                       },
+                       "reply" => %{
+                         "id" => reply.id
                        }
                      }
-                   ],
-                   "total_count" => 1
+                   ]
                  }
                }
              }

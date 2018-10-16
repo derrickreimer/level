@@ -205,10 +205,8 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "A paginated list of search results."
     field :search, non_null(:search_connection) do
-      arg :first, :integer
-      arg :last, :integer
-      arg :before, :cursor
-      arg :after, :cursor
+      arg :page, :integer, default_value: 1
+      arg :count, :integer, default_value: 20
       arg :query, non_null(:string)
 
       resolve &Resolvers.search/3

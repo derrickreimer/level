@@ -1,12 +1,12 @@
 module Query.SearchInit exposing (Response, request)
 
-import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import OffsetConnection exposing (OffsetConnection)
 import Repo exposing (Repo)
 import ResolvedSearchResult exposing (ResolvedSearchResult)
 import Route.Search exposing (Params)
@@ -21,7 +21,7 @@ type alias Response =
     { viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
-    , searchResults : Connection SearchResult
+    , searchResults : OffsetConnection SearchResult
     , repo : Repo
     }
 
@@ -30,7 +30,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , resolvedSearchResults : Connection ResolvedSearchResult
+    , resolvedSearchResults : OffsetConnection ResolvedSearchResult
     }
 
 
@@ -41,8 +41,7 @@ document =
         query SearchInit(
           $spaceSlug: String!,
           $query: String!,
-          $first: Int,
-          $after: Cursor
+          $page: Int
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -50,10 +49,15 @@ document =
               ...SpaceFields
               search(
                 query: $query,
-                first: $first,
-                after: $after
+                page: $page
               ) {
-                ...SearchConnectionFields
+                pageInfo {
+                  hasPreviousPage
+                  hasNextPage
+                }
+                nodes {
+                  ...SearchResultFields
+                }
               }
             }
             bookmarks {
@@ -65,7 +69,7 @@ document =
         [ Group.fragment
         , SpaceUser.fragment
         , Space.fragment
-        , Connection.fragment "SearchConnection" SearchResult.fragment
+        , SearchResult.fragment
         ]
 
 
@@ -75,7 +79,7 @@ variables params =
         Encode.object
             [ ( "spaceSlug", Encode.string (Route.Search.getSpaceSlug params) )
             , ( "query", Encode.string (Route.Search.getQuery params |> Maybe.withDefault "") )
-            , ( "first", Encode.int 20 )
+            , ( "page", Encode.int (Route.Search.getPage params |> Maybe.withDefault 1) )
             ]
 
 
@@ -86,13 +90,13 @@ decoder =
             |> Pipeline.custom SpaceUser.decoder
             |> Pipeline.custom (Decode.field "space" Space.decoder)
             |> Pipeline.custom (Decode.field "bookmarks" (Decode.list Group.decoder))
-            |> Pipeline.custom (Decode.at [ "space", "search" ] (Connection.decoder ResolvedSearchResult.decoder))
+            |> Pipeline.custom (Decode.at [ "space", "search" ] (OffsetConnection.decoder ResolvedSearchResult.decoder))
         )
 
 
-addSearchResultsToRepo : Connection ResolvedSearchResult -> Repo -> Repo
+addSearchResultsToRepo : OffsetConnection ResolvedSearchResult -> Repo -> Repo
 addSearchResultsToRepo resolvedSearchResults repo =
-    List.foldr ResolvedSearchResult.addToRepo repo (Connection.toList resolvedSearchResults)
+    List.foldr ResolvedSearchResult.addToRepo repo (OffsetConnection.toList resolvedSearchResults)
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -110,7 +114,7 @@ buildResponse ( session, data ) =
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
-                (Connection.map ResolvedSearchResult.unresolve data.resolvedSearchResults)
+                (OffsetConnection.map ResolvedSearchResult.unresolve data.resolvedSearchResults)
                 repo
     in
     ( session, resp )

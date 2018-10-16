@@ -1,7 +1,6 @@
 module Page.Search exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
-import Connection exposing (Connection)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
 import File exposing (File)
@@ -14,7 +13,8 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Pagination
+import OffsetConnection exposing (OffsetConnection)
+import OffsetPagination
 import Post
 import PostSearchResult
 import Query.SearchInit as SearchInit
@@ -51,7 +51,7 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
-    , searchResults : Connection SearchResult
+    , searchResults : OffsetConnection SearchResult
     , queryEditor : FieldEditor String
     , now : ( Zone, Posix )
     }
@@ -61,7 +61,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , resolvedSearchResults : Connection ResolvedSearchResult
+    , resolvedSearchResults : OffsetConnection ResolvedSearchResult
     }
 
 
@@ -71,7 +71,7 @@ resolveData repo model =
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
-        (Just <| Connection.filterMap (ResolvedSearchResult.resolve repo) model.searchResults)
+        (Just <| OffsetConnection.filterMap (ResolvedSearchResult.resolve repo) model.searchResults)
 
 
 
@@ -254,11 +254,11 @@ controlsView model data =
         ]
 
 
-paginationView : Params -> Connection a -> Html Msg
+paginationView : Params -> OffsetConnection a -> Html Msg
 paginationView params connection =
-    Pagination.view connection
-        (\beforeCursor -> Route.Search (Route.Search.setCursors (Just beforeCursor) Nothing params))
-        (\afterCursor -> Route.Search (Route.Search.setCursors Nothing (Just afterCursor) params))
+    OffsetPagination.view connection
+        (Route.Search (Route.Search.decrementPage params))
+        (Route.Search (Route.Search.incrementPage params))
 
 
 queryEditorView : FieldEditor String -> Html Msg
@@ -280,15 +280,17 @@ queryEditorView editor =
         ]
 
 
-resultsView : Repo -> Params -> ( Zone, Posix ) -> Connection ResolvedSearchResult -> Html Msg
+resultsView : Repo -> Params -> ( Zone, Posix ) -> OffsetConnection ResolvedSearchResult -> Html Msg
 resultsView repo params now taggedResults =
-    if Connection.isEmptyAndExpanded taggedResults then
+    if OffsetConnection.isEmptyAndExpanded taggedResults then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "This search turned up no results!" ]
 
     else
-        div [] <|
-            Connection.mapList (resultView repo params now) taggedResults
+        taggedResults
+            |> OffsetConnection.toList
+            |> List.map (resultView repo params now)
+            |> div []
 
 
 resultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedSearchResult -> Html Msg

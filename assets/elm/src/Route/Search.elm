@@ -1,6 +1,6 @@
 module Route.Search exposing
     ( Params
-    , init, getSpaceSlug, getQuery, getAfter, getBefore, setCursors
+    , init, getSpaceSlug, getQuery, getPage, setPage, incrementPage, decrementPage
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Search exposing
 
 # API
 
-@docs init, getSpaceSlug, getQuery, getAfter, getBefore, setCursors
+@docs init, getSpaceSlug, getQuery, getPage, setPage, incrementPage, decrementPage
 
 
 # Parsing
@@ -41,8 +41,7 @@ type Params
 type alias Internal =
     { spaceSlug : String
     , query : Maybe String
-    , after : Maybe String
-    , before : Maybe String
+    , page : Maybe Int
     }
 
 
@@ -52,7 +51,7 @@ type alias Internal =
 
 init : String -> String -> Params
 init spaceSlug query =
-    Params (Internal spaceSlug (Just query) Nothing Nothing)
+    Params (Internal spaceSlug (Just query) Nothing)
 
 
 getSpaceSlug : Params -> String
@@ -65,14 +64,9 @@ getQuery (Params internal) =
     internal.query
 
 
-getAfter : Params -> Maybe String
-getAfter (Params internal) =
-    internal.after
-
-
-getBefore : Params -> Maybe String
-getBefore (Params internal) =
-    internal.before
+getPage : Params -> Maybe Int
+getPage (Params internal) =
+    internal.page
 
 
 setQuery : String -> Params -> Params
@@ -80,9 +74,33 @@ setQuery newQuery (Params internal) =
     Params { internal | query = Just newQuery }
 
 
-setCursors : Maybe String -> Maybe String -> Params -> Params
-setCursors before after (Params internal) =
-    Params { internal | before = before, after = after }
+setPage : Maybe Int -> Params -> Params
+setPage maybePage (Params internal) =
+    Params { internal | page = maybePage }
+
+
+incrementPage : Params -> Params
+incrementPage (Params internal) =
+    case internal.page of
+        Just val ->
+            Params { internal | page = Just (val + 1) }
+
+        Nothing ->
+            Params { internal | page = Just 2 }
+
+
+decrementPage : Params -> Params
+decrementPage (Params internal) =
+    case internal.page of
+        Just val ->
+            if val > 2 then
+                Params { internal | page = Just (val - 1) }
+
+            else
+                Params { internal | page = Nothing }
+
+        Nothing ->
+            Params { internal | page = Nothing }
 
 
 
@@ -92,7 +110,7 @@ setCursors before after (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "search" <?> Query.string "q" <?> Query.string "after" <?> Query.string "before")
+        map Internal (string </> s "search" <?> Query.string "q" <?> Query.int "page")
 
 
 
@@ -110,22 +128,21 @@ toString (Params internal) =
 
 buildQuery : Internal -> List QueryParameter
 buildQuery internal =
-    buildStringParams
-        [ ( "q", internal.query )
-        , ( "after", internal.after )
-        , ( "before", internal.before )
-        ]
-
-
-buildStringParams : List ( String, Maybe String ) -> List QueryParameter
-buildStringParams list =
     let
-        reducer ( key, maybeValue ) queryParams =
-            case maybeValue of
+        qs1 =
+            case internal.query of
                 Just value ->
-                    Builder.string key value :: queryParams
+                    [ Builder.string "q" value ]
 
                 Nothing ->
-                    queryParams
+                    []
+
+        qs2 =
+            case internal.page of
+                Just value ->
+                    Builder.int "page" value :: qs1
+
+                Nothing ->
+                    qs1
     in
-    List.foldr reducer [] list
+    qs2
