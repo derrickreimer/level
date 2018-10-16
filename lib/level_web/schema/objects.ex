@@ -8,6 +8,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Files
   alias Level.Groups
   alias Level.Posts
+  alias Level.Posts.Post
   alias Level.Posts.Reply
   alias Level.Resolvers
   alias Level.SearchResult
@@ -440,13 +441,39 @@ defmodule LevelWeb.Schema.Objects do
   @desc "A post search result."
   object :post_search_result do
     field :preview, non_null(:string)
-    field :post, non_null(:post), resolve: dataloader(:db)
+
+    # For some strange reason, dataloader(:db) helper is producing
+    # flat out incorrect results.
+    #
+    # field :post, non_null(:post), resolve: dataloader(:db)
+    field :post, non_null(:post) do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Post, parent.post_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, Post, parent.post_id)}
+        end)
+      end
+    end
   end
 
   @desc "A reply search result."
   object :reply_search_result do
     field :preview, non_null(:string)
-    field :post, non_null(:post), resolve: dataloader(:db)
+
+    # For some strange reason, dataloader(:db) helper is producing
+    # flat out incorrect results.
+    #
+    # field :post, non_null(:post), resolve: dataloader(:db)
+    field :post, non_null(:post) do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Post, parent.post_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, Post, parent.post_id)}
+        end)
+      end
+    end
 
     field :reply, non_null(:reply) do
       resolve fn parent, _, %{context: %{loader: loader}} ->

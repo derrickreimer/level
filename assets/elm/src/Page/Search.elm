@@ -19,6 +19,7 @@ import Post
 import PostSearchResult
 import Query.SearchInit as SearchInit
 import RenderedHtml
+import Reply
 import ReplySearchResult
 import Repo exposing (Repo)
 import ResolvedPostSearchResult exposing (ResolvedPostSearchResult)
@@ -296,13 +297,13 @@ postResultView repo params resolvedResult =
             [ div []
                 [ a
                     [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
-                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
+                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
                     , rel "tooltip"
                     , Html.Attributes.title "Expand post"
                     ]
-                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName resolvedResult.resolvedPost.author ] ]
+                    [ text <| SpaceUser.displayName resolvedResult.resolvedPost.author ]
                 ]
-            , div [ class "markdown mb-2" ] [ RenderedHtml.node (PostSearchResult.preview resolvedResult.result) ]
+            , div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml resolvedResult.resolvedPost.post) ]
             ]
         ]
 
@@ -310,17 +311,18 @@ postResultView repo params resolvedResult =
 replyResultView : Repo -> Params -> ResolvedReplySearchResult -> Html Msg
 replyResultView repo params resolvedResult =
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
-                [ a
+                [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
+                , a
                     [ Route.href <| Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
-                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
+                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
                     , rel "tooltip"
                     , Html.Attributes.title "Expand post"
                     ]
-                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName resolvedResult.resolvedPost.author ] ]
+                    [ text <| SpaceUser.displayName resolvedResult.resolvedReply.author ]
                 ]
-            , div [ class "markdown mb-2" ] [ RenderedHtml.node (ReplySearchResult.preview resolvedResult.result) ]
+            , div [ class "markdown mb-2" ] [ RenderedHtml.node (Reply.bodyHtml resolvedResult.resolvedReply.reply) ]
             ]
         ]
