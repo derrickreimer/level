@@ -66,12 +66,13 @@ defmodule Level.Posts do
   Builds a base query for searching posts.
   """
   @spec search_query(SpaceUser.t(), String.t()) :: Ecto.Query.t()
-  def search_query(%SpaceUser{id: space_user_id}, query) do
+  def search_query(%SpaceUser{id: space_user_id, space_id: space_id}, query) do
     from ps in SearchResult,
       join: p in assoc(ps, :post),
       join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
+      where: ps.space_id == ^space_id,
       where: g.is_private == false or not is_nil(gu.id),
       where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^query)),
       select: %{
