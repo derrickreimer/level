@@ -1,4 +1,4 @@
-module ResolvedPost exposing (ResolvedPost, addToRepo, decoder, unresolve)
+module ResolvedPost exposing (ResolvedPost, addManyToRepo, addToRepo, decoder, resolve, unresolve)
 
 import Connection exposing (Connection)
 import Group exposing (Group)
@@ -7,13 +7,11 @@ import Json.Decode as Decode exposing (Decoder, field, list)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import ResolvedReply exposing (ResolvedReply)
 import SpaceUser exposing (SpaceUser)
 
 
 type alias ResolvedPost =
     { post : Post
-    , resolvedReplies : Connection ResolvedReply
     , author : SpaceUser
     , groups : List Group
     }
@@ -21,9 +19,8 @@ type alias ResolvedPost =
 
 decoder : Decoder ResolvedPost
 decoder =
-    Decode.map4 ResolvedPost
+    Decode.map3 ResolvedPost
         Post.decoder
-        (field "replies" (Connection.decoder ResolvedReply.decoder))
         (field "author" SpaceUser.decoder)
         (field "groups" (list Group.decoder))
 
@@ -32,13 +29,28 @@ addToRepo : ResolvedPost -> Repo -> Repo
 addToRepo post repo =
     repo
         |> Repo.setPost post.post
-        |> ResolvedReply.addManyToRepo (Connection.toList post.resolvedReplies)
         |> Repo.setSpaceUser post.author
         |> Repo.setGroups post.groups
 
 
-unresolve : ResolvedPost -> ( Id, Connection Id )
+addManyToRepo : List ResolvedPost -> Repo -> Repo
+addManyToRepo posts repo =
+    List.foldr addToRepo repo posts
+
+
+resolve : Repo -> Id -> Maybe ResolvedPost
+resolve repo postId =
+    case Repo.getPost postId repo of
+        Just post ->
+            Maybe.map3 ResolvedPost
+                (Just post)
+                (Repo.getSpaceUser (Post.authorId post) repo)
+                (Just <| List.filterMap (\groupId -> Repo.getGroup groupId repo) (Post.groupIds post))
+
+        Nothing ->
+            Nothing
+
+
+unresolve : ResolvedPost -> Id
 unresolve post =
-    ( Post.id post.post
-    , Connection.map ResolvedReply.unresolve post.resolvedReplies
-    )
+    Post.id post.post

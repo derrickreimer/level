@@ -18,6 +18,7 @@ defmodule Level.Posts.Reply do
 
   schema "replies" do
     field :body, :string
+    field :language, :string
 
     belongs_to :space, Space
     belongs_to :post, Post

@@ -262,6 +262,10 @@ body {
   @apply my-2;
 }
 
+.markdown a {
+  @apply text-blue;
+}
+
 post-editor {
   @apply .block;
 }
@@ -376,4 +380,8 @@ post-editor.dragging-over > * {
 
 .transition-w {
   transition: width 0.3s;
+}
+
+.focus-within-outline-1:focus-within {
+  box-shadow: inset 0 0 0 1px config('colors.blue');
 }

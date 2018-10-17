@@ -10,7 +10,7 @@ import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import ResolvedPost exposing (ResolvedPost)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -30,7 +30,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
-    , resolvedPost : ResolvedPost
+    , resolvedPost : ResolvedPostWithReplies
     }
 
 
@@ -83,7 +83,7 @@ decoder =
             SpaceUser.decoder
             (field "space" Space.decoder)
             (field "bookmarks" (list Group.decoder))
-            (Decode.at [ "space", "post" ] ResolvedPost.decoder)
+            (Decode.at [ "space", "post" ] ResolvedPostWithReplies.decoder)
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -94,14 +94,14 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setGroups data.bookmarks
-                |> ResolvedPost.addToRepo data.resolvedPost
+                |> ResolvedPostWithReplies.addToRepo data.resolvedPost
 
         resp =
             Response
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
-                (ResolvedPost.unresolve data.resolvedPost)
+                (ResolvedPostWithReplies.unresolve data.resolvedPost)
                 repo
     in
     ( session, resp )

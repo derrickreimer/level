@@ -12,7 +12,7 @@ import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
-import ResolvedPost exposing (ResolvedPost)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route.Group exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
@@ -25,8 +25,8 @@ type alias Response =
     , spaceId : Id
     , bookmarkIds : List Id
     , groupId : Id
-    , postWithRepliesIds : Connection ( Id, Connection Id )
     , featuredMemberIds : List Id
+    , postWithRepliesIds : Connection ( Id, Connection Id )
     , repo : Repo
     }
 
@@ -36,7 +36,7 @@ type alias Data =
     , space : Space
     , bookmarks : List Group
     , group : Group
-    , resolvedPosts : Connection ResolvedPost
+    , resolvedPosts : Connection ResolvedPostWithReplies
     , featuredMembers : List SpaceUser
     }
 
@@ -143,19 +143,9 @@ decoder =
             |> custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
             |> custom (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
             |> custom (Decode.at [ "group" ] Group.decoder)
-            |> custom (Decode.at [ "group", "posts" ] (Connection.decoder ResolvedPost.decoder))
+            |> custom (Decode.at [ "group", "posts" ] (Connection.decoder ResolvedPostWithReplies.decoder))
             |> custom (Decode.at [ "group", "featuredMemberships" ] (list (field "spaceUser" SpaceUser.decoder)))
         )
-
-
-addPostsToRepo : Connection ResolvedPost -> Repo -> Repo
-addPostsToRepo resolvedPosts repo =
-    List.foldr ResolvedPost.addToRepo repo (Connection.toList resolvedPosts)
-
-
-unresolvePosts : Connection ResolvedPost -> Connection ( String, Connection String )
-unresolvePosts resolvedPosts =
-    Connection.map ResolvedPost.unresolve resolvedPosts
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -167,8 +157,8 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.bookmarks
                 |> Repo.setGroup data.group
-                |> addPostsToRepo data.resolvedPosts
                 |> Repo.setSpaceUsers data.featuredMembers
+                |> ResolvedPostWithReplies.addManyToRepo (Connection.toList data.resolvedPosts)
 
         resp =
             Response
@@ -176,8 +166,8 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
                 (Group.id data.group)
-                (unresolvePosts data.resolvedPosts)
                 (List.map SpaceUser.id data.featuredMembers)
+                (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)
                 repo
     in
     ( session, resp )

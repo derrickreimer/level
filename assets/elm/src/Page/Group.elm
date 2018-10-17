@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
+import FieldEditor exposing (FieldEditor)
 import File exposing (File)
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -13,6 +14,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CreatePost as CreatePost
@@ -28,6 +30,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
+import Route.Search
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -39,24 +42,12 @@ import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
+import View.SearchBox
 import View.SpaceLayout
 
 
 
 -- MODEL
-
-
-type EditorState
-    = NotEditing
-    | Editing
-    | Submitting
-
-
-type alias FieldEditor =
-    { state : EditorState
-    , value : String
-    , errors : List ValidationError
-    }
 
 
 type alias Model =
@@ -68,8 +59,9 @@ type alias Model =
     , featuredMemberIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
-    , nameEditor : FieldEditor
+    , nameEditor : FieldEditor String
     , postComposer : PostEditor
+    , searchEditor : FieldEditor String
     }
 
 
@@ -134,8 +126,9 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 resp.featuredMemberIds
                 postComps
                 now
-                (FieldEditor NotEditing "" [])
+                (FieldEditor.init "name-editor" "")
                 (PostEditor.init "post-composer")
+                (FieldEditor.init "search-editor" "")
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -223,6 +216,10 @@ type Msg
     | Unbookmarked (Result Session.Error ( Session, UnbookmarkGroup.Response ))
     | PrivacyToggle Bool
     | PrivacyToggled (Result Session.Error ( Session, UpdateGroup.Response ))
+    | ExpandSearchEditor
+    | CollapseSearchEditor
+    | SearchEditorChanged String
+    | SearchSubmitted
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -310,56 +307,63 @@ update msg globals model =
             case resolveData globals.repo model of
                 Just data ->
                     let
-                        nameEditor =
-                            model.nameEditor
+                        nodeId =
+                            FieldEditor.getNodeId model.nameEditor
 
-                        newEditor =
-                            { nameEditor | state = Editing, value = Group.name data.group, errors = [] }
+                        newNameEditor =
+                            model.nameEditor
+                                |> FieldEditor.expand
+                                |> FieldEditor.setValue (Group.name data.group)
+                                |> FieldEditor.setErrors []
 
                         cmd =
                             Cmd.batch
-                                [ setFocus "name-editor-value" NoOp
-                                , selectValue "name-editor-value"
+                                [ setFocus nodeId NoOp
+                                , selectValue nodeId
                                 ]
                     in
-                    ( ( { model | nameEditor = newEditor }, cmd ), globals )
+                    ( ( { model | nameEditor = newNameEditor }, cmd ), globals )
 
                 Nothing ->
                     noCmd globals model
 
         NameEditorChanged val ->
             let
-                nameEditor =
+                newNameEditor =
                     model.nameEditor
+                        |> FieldEditor.setValue val
             in
-            noCmd globals { model | nameEditor = { nameEditor | value = val } }
+            noCmd globals { model | nameEditor = newNameEditor }
 
         NameEditorDismissed ->
             let
-                nameEditor =
+                newNameEditor =
                     model.nameEditor
+                        |> FieldEditor.collapse
             in
-            noCmd globals { model | nameEditor = { nameEditor | state = NotEditing } }
+            noCmd globals { model | nameEditor = newNameEditor }
 
         NameEditorSubmit ->
             let
-                nameEditor =
+                newNameEditor =
                     model.nameEditor
+                        |> FieldEditor.setIsSubmitting True
 
                 cmd =
                     globals.session
-                        |> UpdateGroup.request model.spaceId model.groupId (Just nameEditor.value) Nothing
+                        |> UpdateGroup.request model.spaceId model.groupId (Just (FieldEditor.getValue newNameEditor)) Nothing
                         |> Task.attempt NameEditorSubmitted
             in
-            ( ( { model | nameEditor = { nameEditor | state = Submitting } }, cmd ), globals )
+            ( ( { model | nameEditor = newNameEditor }, cmd ), globals )
 
         NameEditorSubmitted (Ok ( newSession, UpdateGroup.Success newGroup )) ->
             let
-                nameEditor =
+                newNameEditor =
                     model.nameEditor
+                        |> FieldEditor.collapse
 
                 newModel =
-                    { model | nameEditor = { nameEditor | state = NotEditing } }
+                    { model | nameEditor = newNameEditor }
 
                 repo =
                     globals.repo
@@ -369,11 +373,13 @@ update msg globals model =
 
         NameEditorSubmitted (Ok ( newSession, UpdateGroup.Invalid errors )) ->
             let
-                nameEditor =
+                newNameEditor =
                     model.nameEditor
+                        |> FieldEditor.setErrors errors
+                        |> FieldEditor.setIsSubmitting False
             in
-            ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }
-              , selectValue "name-editor-value"
+            ( ( { model | nameEditor = newNameEditor }
+              , selectValue (FieldEditor.getNodeId newNameEditor)
               )
             , { globals | session = newSession }
             )
@@ -383,13 +389,12 @@ update msg globals model =
 
         NameEditorSubmitted (Err _) ->
             let
-                nameEditor =
+                newNameEditor =
                     model.nameEditor
-
-                errors =
-                    [ ValidationError "name" "Hmm, something went wrong." ]
+                        |> FieldEditor.setIsSubmitting False
+                        |> FieldEditor.setErrors [ ValidationError "name" "Hmm, something went wrong." ]
             in
-            ( ( { model | nameEditor = { nameEditor | state = Editing, errors = errors } }, Cmd.none )
+            ( ( { model | nameEditor = newNameEditor }, Cmd.none )
             , globals
             )
 
@@ -478,6 +483,43 @@ update msg globals model =
         PrivacyToggled (Err _) ->
             noCmd globals model
 
+        ExpandSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.expand model.searchEditor }
+              , setFocus (FieldEditor.getNodeId model.searchEditor) NoOp
+              )
+            , globals
+            )
+
+        CollapseSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.collapse model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchEditorChanged newValue ->
+            ( ( { model | searchEditor = FieldEditor.setValue newValue model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchSubmitted ->
+            let
+                newSearchEditor =
+                    model.searchEditor
+                        |> FieldEditor.setIsSubmitting True
+
+                searchParams =
+                    Route.Search.init
+                        (Route.Group.getSpaceSlug model.params)
+                        (FieldEditor.getValue newSearchEditor)
+
+                cmd =
+                    Route.pushUrl globals.navKey (Route.Search searchParams)
+            in
+            ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -558,7 +600,12 @@ consumeEvent event session model =
 
 subscriptions : Sub Msg
 subscriptions =
-    every 1000 Tick
+    Sub.batch
+        [ every 1000 Tick
+        , KeyboardShortcuts.subscribe
+            [ ( "/", ExpandSearchEditor )
+            ]
+        ]
 
 
 
@@ -598,10 +645,10 @@ resolvedView repo maybeCurrentRoute model data =
         ]
 
 
-nameView : Group -> FieldEditor -> Html Msg
+nameView : Group -> FieldEditor String -> Html Msg
 nameView group editor =
-    case editor.state of
-        NotEditing ->
+    case ( FieldEditor.isExpanded editor, FieldEditor.isSubmitting editor ) of
+        ( False, _ ) ->
             h2 [ class "flex-no-shrink" ]
                 [ span
                     [ onClick NameClicked
@@ -610,16 +657,16 @@ nameView group editor =
                     [ text (Group.name group) ]
                 ]
 
-        Editing ->
+        ( True, False ) ->
             h2 [ class "flex-no-shrink" ]
                 [ input
                     [ type_ "text"
-                    , id "name-editor-value"
+                    , id (FieldEditor.getNodeId editor)
                     , classList
                         [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
-                        , ( "shake", not <| List.isEmpty editor.errors )
+                        , ( "shake", not <| List.isEmpty (FieldEditor.getErrors editor) )
                         ]
-                    , value editor.value
+                    , value (FieldEditor.getValue editor)
                     , onInput NameEditorChanged
                     , onKeydown preventDefault
                         [ ( [], enter, \event -> NameEditorSubmit )
@@ -630,12 +677,12 @@ nameView group editor =
                     []
                 ]
 
-        Submitting ->
+        ( _, True ) ->
             h2 [ class "flex-no-shrink" ]
                 [ input
                     [ type_ "text"
                     , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline"
-                    , value editor.value
+                    , value (FieldEditor.getValue editor)
                     , disabled True
                     ]
                     []
@@ -651,10 +698,10 @@ privacyToggle isPrivate =
         button [ class "mx-2", onClick (PrivacyToggle True) ] [ Icons.unlock ]
 
 
-nameErrors : FieldEditor -> Html Msg
+nameErrors : FieldEditor String -> Html Msg
 nameErrors editor =
-    case ( editor.state, List.head editor.errors ) of
-        ( Editing, Just error ) ->
+    case ( FieldEditor.isExpanded editor, List.head (FieldEditor.getErrors editor) ) of
+        ( True, Just error ) ->
             span [ class "ml-2 flex-grow text-sm text-red font-bold" ] [ text error.message ]
 
         ( _, _ ) ->
@@ -664,8 +711,20 @@ nameErrors editor =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ paginationView model.params model.postComps
+        [ searchEditorView model.searchEditor
+        , paginationView model.params model.postComps
         ]
+
+
+searchEditorView : FieldEditor String -> Html Msg
+searchEditorView editor =
+    View.SearchBox.view
+        { editor = editor
+        , changeMsg = SearchEditorChanged
+        , expandMsg = ExpandSearchEditor
+        , collapseMsg = CollapseSearchEditor
+        , submitMsg = SearchSubmitted
+        }
 
 
 paginationView : Params -> Connection a -> Html Msg

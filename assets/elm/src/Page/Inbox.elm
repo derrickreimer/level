@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
+import FieldEditor exposing (FieldEditor)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -25,6 +26,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Inbox exposing (Params(..))
+import Route.Search
 import Route.SpaceUsers
 import Scroll
 import Session exposing (Session)
@@ -33,7 +35,9 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (smartFormatTime, viewIf, viewUnless)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
+import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
+import View.SearchBox
 import View.SpaceLayout
 
 
@@ -49,6 +53,7 @@ type alias Model =
     , featuredUserIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
+    , searchEditor : FieldEditor String
     }
 
 
@@ -105,6 +110,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 resp.featuredUserIds
                 postComps
                 now
+                (FieldEditor.init "search-editor" "")
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -168,6 +174,10 @@ type Msg
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PushSubscribeClicked
     | PostsRefreshed (Result Session.Error ( Session, InboxInit.Response ))
+    | ExpandSearchEditor
+    | CollapseSearchEditor
+    | SearchEditorChanged String
+    | SearchSubmitted
     | NoOp
 
 
@@ -250,6 +260,43 @@ update msg globals model =
         PostsRefreshed (Err _) ->
             noCmd globals model
 
+        ExpandSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.expand model.searchEditor }
+              , setFocus (FieldEditor.getNodeId model.searchEditor) NoOp
+              )
+            , globals
+            )
+
+        CollapseSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.collapse model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchEditorChanged newValue ->
+            ( ( { model | searchEditor = FieldEditor.setValue newValue model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchSubmitted ->
+            let
+                newSearchEditor =
+                    model.searchEditor
+                        |> FieldEditor.setIsSubmitting True
+
+                searchParams =
+                    Route.Search.init
+                        (Route.Inbox.getSpaceSlug model.params)
+                        (FieldEditor.getValue newSearchEditor)
+
+                cmd =
+                    Route.pushUrl globals.navKey (Route.Search searchParams)
+            in
+            ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
+
         NoOp ->
             noCmd globals model
 
@@ -319,6 +366,7 @@ subscriptions =
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
             [ ( "y", DismissPostsClicked )
+            , ( "/", ExpandSearchEditor )
             ]
         ]
 
@@ -382,8 +430,9 @@ filterTab label filter linkParams currentParams =
 
 controlsView : Model -> Data -> Html Msg
 controlsView model data =
-    div [ class "flex flex-grow justify-end" ]
+    div [ class "flex items-center flex-grow justify-end" ]
         [ selectionControlsView model.postComps
+        , searchEditorView model.searchEditor
         , paginationView model.params model.postComps
         ]
 
@@ -402,6 +451,17 @@ selectionControlsView posts =
             [ selectedLabel selectedPosts
             , button [ class "mr-4 btn btn-xs btn-blue", onClick DismissPostsClicked ] [ text "Dismiss" ]
             ]
+
+
+searchEditorView : FieldEditor String -> Html Msg
+searchEditorView editor =
+    View.SearchBox.view
+        { editor = editor
+        , changeMsg = SearchEditorChanged
+        , expandMsg = ExpandSearchEditor
+        , collapseMsg = CollapseSearchEditor
+        , submitMsg = SearchSubmitted
+        }
 
 
 paginationView : Params -> Connection a -> Html Msg

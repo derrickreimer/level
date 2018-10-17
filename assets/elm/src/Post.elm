@@ -74,8 +74,8 @@ type alias Data =
     , state : State
     , body : String
     , bodyHtml : String
-    , authorId : String
-    , groupIds : List String
+    , authorId : Id
+    , groupIds : List Id
     , files : List File
     , postedAt : Posix
     , subscriptionState : SubscriptionState
@@ -104,12 +104,12 @@ postedAt (Post data) =
     data.postedAt
 
 
-authorId : Post -> String
+authorId : Post -> Id
 authorId (Post data) =
     data.authorId
 
 
-groupIds : Post -> List String
+groupIds : Post -> List Id
 groupIds (Post data) =
     data.groupIds
 

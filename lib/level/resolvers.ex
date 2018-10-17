@@ -23,6 +23,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.GroupMembershipConnection
   alias Level.Resolvers.PostConnection
   alias Level.Resolvers.ReplyConnection
+  alias Level.Resolvers.SearchConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
   alias Level.Spaces
@@ -339,6 +340,14 @@ defmodule Level.Resolvers do
 
   defp check_edit_reply_permissions(_, _current_user) do
     {:ok, false}
+  end
+
+  @doc """
+  Fetches search results.
+  """
+  @spec search(Space.t(), map(), info()) :: paginated_result()
+  def search(%Space{} = space, args, info) do
+    SearchConnection.get(space, struct(SearchConnection, args), info)
   end
 
   # Dataloader helpers

@@ -8,7 +8,10 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Files
   alias Level.Groups
   alias Level.Posts
+  alias Level.Posts.Post
+  alias Level.Posts.Reply
   alias Level.Resolvers
+  alias Level.SearchResult
   alias Level.Spaces
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
@@ -198,6 +201,15 @@ defmodule LevelWeb.Schema.Objects do
       arg :filter, :post_filters
 
       resolve &Resolvers.posts/3
+    end
+
+    @desc "A paginated list of search results."
+    field :search, non_null(:search_connection) do
+      arg :page, :integer, default_value: 1
+      arg :count, :integer, default_value: 20
+      arg :query, non_null(:string)
+
+      resolve &Resolvers.search/3
     end
 
     interface :fetch_timeable
@@ -411,6 +423,64 @@ defmodule LevelWeb.Schema.Objects do
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp) do
       resolve &fetched_at_resolver/2
+    end
+  end
+
+  @desc "A search result."
+  union :search_result do
+    types [:post_search_result, :reply_search_result]
+
+    resolve_type fn
+      %SearchResult{searchable_type: "Post"}, _ -> :post_search_result
+      %SearchResult{searchable_type: "Reply"}, _ -> :reply_search_result
+    end
+  end
+
+  @desc "A post search result."
+  object :post_search_result do
+    field :preview, non_null(:string)
+
+    # For some strange reason, dataloader(:db) helper is producing
+    # flat out incorrect results.
+    #
+    # field :post, non_null(:post), resolve: dataloader(:db)
+    field :post, non_null(:post) do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Post, parent.post_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, Post, parent.post_id)}
+        end)
+      end
+    end
+  end
+
+  @desc "A reply search result."
+  object :reply_search_result do
+    field :preview, non_null(:string)
+
+    # For some strange reason, dataloader(:db) helper is producing
+    # flat out incorrect results.
+    #
+    # field :post, non_null(:post), resolve: dataloader(:db)
+    field :post, non_null(:post) do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Post, parent.post_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, Post, parent.post_id)}
+        end)
+      end
+    end
+
+    field :reply, non_null(:reply) do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Reply, parent.searchable_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, Reply, parent.searchable_id)}
+        end)
+      end
     end
   end
 

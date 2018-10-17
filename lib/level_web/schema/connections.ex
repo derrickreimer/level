@@ -18,6 +18,15 @@ defmodule LevelWeb.Schema.Connections do
     field :has_previous_page, non_null(:boolean)
   end
 
+  @desc "Data for offset-based pagination in a connection."
+  object :offset_page_info do
+    @desc "A boolean indicating whether there are more items going forward."
+    field :has_next_page, non_null(:boolean)
+
+    @desc "A boolean indicating whether there are more items going backward."
+    field :has_previous_page, non_null(:boolean)
+  end
+
   @desc "An edge in the space membership connection."
   object :space_user_edge do
     @desc "The item at the edge of the node."
@@ -121,5 +130,14 @@ defmodule LevelWeb.Schema.Connections do
 
     @desc "The total count of items in the connection."
     field :total_count, non_null(:integer)
+  end
+
+  @desc "A list of search results."
+  object :search_connection do
+    @desc "A list of nodes."
+    field :nodes, list_of(:search_result)
+
+    @desc "Pagination data for the connection."
+    field :page_info, non_null(:offset_page_info)
   end
 end
