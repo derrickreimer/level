@@ -53,9 +53,11 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
         [ div [ class "p-4" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
-                , div [ class "mb-6 font-extrabold text-lg text-dusty-blue-darkest" ] [ text (Space.name space) ]
+                , div [ class "mb-2 font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
                 ]
-            , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+            ]
+        , div [ class "absolute px-4 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
+            [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Drafts" Nothing maybeCurrentRoute
@@ -68,10 +70,10 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
             ]
         , div [ class "absolute pin-b w-full" ]
             [ a [ Route.href Route.UserSettings, class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
-                [ div [] [ SpaceUser.avatar Avatar.Small viewer ]
-                , div [ class "ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal" ]
+                [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small viewer ]
+                , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
                     [ div [] [ text "Signed in as" ]
-                    , div [ class "font-bold" ] [ text (SpaceUser.displayName viewer) ]
+                    , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName viewer) ]
                     ]
                 ]
             ]
