@@ -1,4 +1,4 @@
-module FieldEditor exposing (FieldEditor, collapse, expand, getNodeId, getValue, init, isExpanded, isSubmitting, setIsSubmitting, setValue)
+module FieldEditor exposing (FieldEditor, collapse, expand, getErrors, getNodeId, getValue, init, isExpanded, isSubmitting, setErrors, setIsSubmitting, setValue)
 
 import ValidationError exposing (ValidationError)
 
@@ -35,6 +35,11 @@ getValue (FieldEditor internal) =
     internal.value
 
 
+getErrors : FieldEditor a -> List ValidationError
+getErrors (FieldEditor internal) =
+    internal.errors
+
+
 isExpanded : FieldEditor a -> Bool
 isExpanded (FieldEditor internal) =
     internal.isExpanded
@@ -48,6 +53,11 @@ isSubmitting (FieldEditor internal) =
 setValue : a -> FieldEditor a -> FieldEditor a
 setValue newValue (FieldEditor internal) =
     FieldEditor { internal | value = newValue }
+
+
+setErrors : List ValidationError -> FieldEditor a -> FieldEditor a
+setErrors newErrors (FieldEditor internal) =
+    FieldEditor { internal | errors = newErrors }
 
 
 expand : FieldEditor a -> FieldEditor a
