@@ -365,8 +365,11 @@ resolvedView repo maybeCurrentRoute model data =
 
 postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
 postView repo space currentUser now component =
-    div [ class "pt-6" ]
-        [ Component.Post.view repo space currentUser now component
+    div []
+        [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
+            [ button [ class "py-2 px-4 text-dusty-blue font-bold rounded-full" ] [ text "Mark as closed" ]
+            ]
+        , Component.Post.view repo space currentUser now component
             |> Html.map PostComponentMsg
         ]
 
