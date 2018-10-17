@@ -37,6 +37,7 @@ import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
+import View.SearchBox
 import View.SpaceLayout
 
 
@@ -454,33 +455,13 @@ selectionControlsView posts =
 
 searchEditorView : FieldEditor String -> Html Msg
 searchEditorView editor =
-    case FieldEditor.isExpanded editor of
-        True ->
-            label [ class "flex items-center mr-6 py-2 px-3 rounded-full bg-grey-light focus-within-outline-1" ]
-                [ div [ class "mr-2" ] [ Icons.search ]
-                , input
-                    [ id (FieldEditor.getNodeId editor)
-                    , type_ "text"
-                    , class "bg-transparent text-sm text-dusty-blue-dark no-outline"
-                    , value (FieldEditor.getValue editor)
-                    , readonly (FieldEditor.isSubmitting editor)
-                    , onInput SearchEditorChanged
-                    , onKeydown preventDefault
-                        [ ( [], esc, \event -> CollapseSearchEditor )
-                        , ( [], enter, \event -> SearchSubmitted )
-                        ]
-                    ]
-                    []
-                ]
-
-        False ->
-            button
-                [ class "mr-3 p-2"
-                , rel "tooltip"
-                , Html.Attributes.title "Search"
-                , onClick ExpandSearchEditor
-                ]
-                [ Icons.search ]
+    View.SearchBox.view
+        { editor = editor
+        , changeMsg = SearchEditorChanged
+        , expandMsg = ExpandSearchEditor
+        , collapseMsg = CollapseSearchEditor
+        , submitMsg = SearchSubmitted
+        }
 
 
 paginationView : Params -> Connection a -> Html Msg

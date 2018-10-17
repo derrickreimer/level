@@ -29,6 +29,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
+import Route.Search
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -40,6 +41,7 @@ import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
+import View.SearchBox
 import View.SpaceLayout
 
 
@@ -213,6 +215,10 @@ type Msg
     | Unbookmarked (Result Session.Error ( Session, UnbookmarkGroup.Response ))
     | PrivacyToggle Bool
     | PrivacyToggled (Result Session.Error ( Session, UpdateGroup.Response ))
+    | ExpandSearchEditor
+    | CollapseSearchEditor
+    | SearchEditorChanged String
+    | SearchSubmitted
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -476,6 +482,43 @@ update msg globals model =
         PrivacyToggled (Err _) ->
             noCmd globals model
 
+        ExpandSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.expand model.searchEditor }
+              , setFocus (FieldEditor.getNodeId model.searchEditor) NoOp
+              )
+            , globals
+            )
+
+        CollapseSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.collapse model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchEditorChanged newValue ->
+            ( ( { model | searchEditor = FieldEditor.setValue newValue model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchSubmitted ->
+            let
+                newSearchEditor =
+                    model.searchEditor
+                        |> FieldEditor.setIsSubmitting True
+
+                searchParams =
+                    Route.Search.init
+                        (Route.Group.getSpaceSlug model.params)
+                        (FieldEditor.getValue newSearchEditor)
+
+                cmd =
+                    Route.pushUrl globals.navKey (Route.Search searchParams)
+            in
+            ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -662,8 +705,20 @@ nameErrors editor =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ paginationView model.params model.postComps
+        [ searchEditorView model.searchEditor
+        , paginationView model.params model.postComps
         ]
+
+
+searchEditorView : FieldEditor String -> Html Msg
+searchEditorView editor =
+    View.SearchBox.view
+        { editor = editor
+        , changeMsg = SearchEditorChanged
+        , expandMsg = ExpandSearchEditor
+        , collapseMsg = CollapseSearchEditor
+        , submitMsg = SearchSubmitted
+        }
 
 
 paginationView : Params -> Connection a -> Html Msg
