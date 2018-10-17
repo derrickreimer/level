@@ -382,6 +382,7 @@ post-editor.dragging-over > * {
   transition: width 0.3s;
 }
 
-.focus-within-outline-1:focus-within {
-  box-shadow: inset 0 0 0 1px config('colors.blue');
+.focus-within-outline:focus-within {
+  @apply bg-white;
+  box-shadow: inset 0 0 0 2px config('colors.grey');
 }

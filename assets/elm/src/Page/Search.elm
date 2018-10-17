@@ -39,6 +39,7 @@ import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (onPassiveClick)
+import View.SearchBox
 import View.SpaceLayout
 
 
@@ -98,6 +99,12 @@ init params globals =
 buildModel : Params -> Globals -> ( ( Session, SearchInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
 buildModel params globals ( ( newSession, resp ), now ) =
     let
+        editor =
+            Route.Search.getQuery params
+                |> Maybe.withDefault ""
+                |> FieldEditor.init "search-editor"
+                |> FieldEditor.expand
+
         model =
             Model
                 params
@@ -105,7 +112,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 resp.spaceId
                 resp.bookmarkIds
                 resp.searchResults
-                (FieldEditor.init "search-editor" (Route.Search.getQuery params |> Maybe.withDefault ""))
+                editor
                 now
 
         newRepo =
@@ -263,21 +270,13 @@ paginationView params connection =
 
 queryEditorView : FieldEditor String -> Html Msg
 queryEditorView editor =
-    label [ class "flex items-center mr-6 py-2 px-3 rounded-full bg-grey-light focus-within-outline-1" ]
-        [ div [ class "mr-2" ] [ Icons.search ]
-        , input
-            [ id (FieldEditor.getNodeId editor)
-            , type_ "text"
-            , class "bg-transparent text-sm text-dusty-blue-darker no-outline"
-            , value (FieldEditor.getValue editor)
-            , readonly (FieldEditor.isSubmitting editor)
-            , onInput SearchEditorChanged
-            , onKeydown preventDefault
-                [ ( [], enter, \event -> SearchSubmitted )
-                ]
-            ]
-            []
-        ]
+    View.SearchBox.view
+        { editor = editor
+        , changeMsg = SearchEditorChanged
+        , expandMsg = NoOp
+        , collapseMsg = NoOp
+        , submitMsg = SearchSubmitted
+        }
 
 
 resultsView : Repo -> Params -> ( Zone, Posix ) -> OffsetConnection ResolvedSearchResult -> Html Msg
