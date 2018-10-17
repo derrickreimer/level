@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
+import FieldEditor exposing (FieldEditor)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -22,6 +23,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Posts exposing (Params(..))
+import Route.Search
 import Route.SpaceUsers
 import Scroll
 import Session exposing (Session)
@@ -30,7 +32,8 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (smartFormatTime, viewIf)
+import View.Helpers exposing (setFocus, smartFormatTime, viewIf)
+import View.SearchBox
 import View.SpaceLayout
 
 
@@ -46,6 +49,7 @@ type alias Model =
     , featuredUserIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
+    , searchEditor : FieldEditor String
     }
 
 
@@ -102,6 +106,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 resp.featuredUserIds
                 postComps
                 now
+                (FieldEditor.init "search-editor" "")
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -154,6 +159,10 @@ type Msg
     = Tick Posix
     | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
+    | ExpandSearchEditor
+    | CollapseSearchEditor
+    | SearchEditorChanged String
+    | SearchSubmitted
     | NoOp
 
 
@@ -182,6 +191,43 @@ update msg globals model =
 
                 Nothing ->
                     noCmd globals model
+
+        ExpandSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.expand model.searchEditor }
+              , setFocus (FieldEditor.getNodeId model.searchEditor) NoOp
+              )
+            , globals
+            )
+
+        CollapseSearchEditor ->
+            ( ( { model | searchEditor = FieldEditor.collapse model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchEditorChanged newValue ->
+            ( ( { model | searchEditor = FieldEditor.setValue newValue model.searchEditor }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SearchSubmitted ->
+            let
+                newSearchEditor =
+                    model.searchEditor
+                        |> FieldEditor.setIsSubmitting True
+
+                searchParams =
+                    Route.Search.init
+                        (Route.Posts.getSpaceSlug model.params)
+                        (FieldEditor.getValue newSearchEditor)
+
+                cmd =
+                    Route.pushUrl globals.navKey (Route.Search searchParams)
+            in
+            ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
         NoOp ->
             noCmd globals model
@@ -235,6 +281,9 @@ subscriptions : Sub Msg
 subscriptions =
     Sub.batch
         [ every 1000 Tick
+        , KeyboardShortcuts.subscribe
+            [ ( "/", ExpandSearchEditor )
+            ]
         ]
 
 
@@ -275,8 +324,20 @@ resolvedView repo maybeCurrentRoute model data =
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
-        [ paginationView model.params model.postComps
+        [ searchEditorView model.searchEditor
+        , paginationView model.params model.postComps
         ]
+
+
+searchEditorView : FieldEditor String -> Html Msg
+searchEditorView editor =
+    View.SearchBox.view
+        { editor = editor
+        , changeMsg = SearchEditorChanged
+        , expandMsg = ExpandSearchEditor
+        , collapseMsg = CollapseSearchEditor
+        , submitMsg = SearchSubmitted
+        }
 
 
 paginationView : Params -> Connection a -> Html Msg

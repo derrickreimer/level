@@ -14,6 +14,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CreatePost as CreatePost
@@ -599,7 +600,12 @@ consumeEvent event session model =
 
 subscriptions : Sub Msg
 subscriptions =
-    every 1000 Tick
+    Sub.batch
+        [ every 1000 Tick
+        , KeyboardShortcuts.subscribe
+            [ ( "/", ExpandSearchEditor )
+            ]
+        ]
 
 
 
