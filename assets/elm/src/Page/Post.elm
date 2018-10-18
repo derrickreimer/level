@@ -7,12 +7,13 @@ import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Id exposing (Id)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RecordPostView as RecordPostView
 import Mutation.RecordReplyViews as RecordReplyViews
-import Post
+import Post exposing (Post)
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
@@ -35,12 +36,14 @@ import View.SpaceLayout
 
 type alias Model =
     { spaceSlug : String
+    , postId : Id
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
     , postComp : Component.Post.Model
     , now : ( Zone, Posix )
     , currentViewers : Lazy PresenceList
+    , isChangingState : Bool
     }
 
 
@@ -48,15 +51,17 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
+    , post : Post
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map3 Data
+    Maybe.map4 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
+        (Repo.getPost model.postId repo)
 
 
 
@@ -102,12 +107,14 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
         model =
             Model
                 spaceSlug
+                postId
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
                 postComp
                 now
                 NotLoaded
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -175,18 +182,23 @@ recordReplyViews globals model =
 
 
 type Msg
-    = PostComponentMsg Component.Post.Msg
+    = NoOp
+    | PostComponentMsg Component.Post.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | Tick Posix
     | SetCurrentTime Posix Zone
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
-    | NoOp
+    | ClosePostClicked
+    | ReopenPostClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
+        NoOp ->
+            noCmd globals model
+
         PostComponentMsg componentMsg ->
             let
                 ( ( newPostComp, cmd ), newGlobals ) =
@@ -241,8 +253,11 @@ update msg globals model =
         SpaceUserFetched (Err _) ->
             noCmd globals model
 
-        NoOp ->
-            noCmd globals model
+        ClosePostClicked ->
+            noCmd globals { model | isChangingState = True }
+
+        ReopenPostClicked ->
+            noCmd globals { model | isChangingState = True }
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -357,21 +372,41 @@ resolvedView repo maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ postView repo data.space data.viewer model.now model.postComp
+            [ postView repo model data
             , sidebarView repo model
             ]
         ]
 
 
-postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView repo space currentUser now component =
+postView : Repo -> Model -> Data -> Html Msg
+postView repo model data =
     div []
         [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
-            [ button [ class "py-2 px-4 text-dusty-blue font-bold rounded-full" ] [ text "Mark as closed" ]
+            [ transitionButton model.isChangingState data
             ]
-        , Component.Post.view repo space currentUser now component
+        , Component.Post.view repo data.space data.viewer model.now model.postComp
             |> Html.map PostComponentMsg
         ]
+
+
+transitionButton : Bool -> Data -> Html Msg
+transitionButton isChangingState data =
+    case Post.state data.post of
+        Post.Open ->
+            button
+                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , onClick ClosePostClicked
+                , disabled isChangingState
+                ]
+                [ text "Mark as closed" ]
+
+        Post.Closed ->
+            button
+                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , onClick ReopenPostClicked
+                , disabled isChangingState
+                ]
+                [ text "Mark as open" ]
 
 
 sidebarView : Repo -> Model -> Html Msg
