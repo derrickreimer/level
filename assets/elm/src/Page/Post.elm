@@ -1,5 +1,6 @@
 module Page.Post exposing (Model, Msg(..), consumeEvent, init, receivePresence, setup, subscriptions, teardown, title, update, view)
 
+import Browser.Navigation as Nav
 import Component.Post
 import Connection
 import Event exposing (Event)
@@ -203,6 +204,7 @@ type Msg
     | PostDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | MoveToInboxClicked
     | PostMovedToInbox (Result Session.Error ( Session, MarkAsUnread.Response ))
+    | BackClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -361,6 +363,9 @@ update msg globals model =
         PostMovedToInbox (Err _) ->
             noCmd globals { model | isChangingInboxState = True }
 
+        BackClicked ->
+            ( ( model, Nav.back globals.navKey 1 ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -484,7 +489,12 @@ postView : Repo -> Model -> Data -> Html Msg
 postView repo model data =
     div []
         [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
-            [ inboxStateButton model.isChangingInboxState data.post
+            [ button
+                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , onClick BackClicked
+                ]
+                [ text "Back" ]
+            , inboxStateButton model.isChangingInboxState data.post
             , postStateButton model.isChangingState data.post
             ]
         , Component.Post.view repo data.space data.viewer model.now model.postComp
