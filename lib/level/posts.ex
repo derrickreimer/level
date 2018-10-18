@@ -548,7 +548,7 @@ defmodule Level.Posts do
   end
 
   defp after_post_closed({:ok, %{post: post}} = result) do
-    # TODO: send a pubsub event
+    _ = Events.post_closed(post.id, post)
     result
   end
 
@@ -571,7 +571,7 @@ defmodule Level.Posts do
   end
 
   defp after_post_reopened({:ok, %{post: post}} = result) do
-    # TODO: send a pubsub event
+    _ = Events.post_reopened(post.id, post)
     result
   end
 

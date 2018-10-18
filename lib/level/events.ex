@@ -90,6 +90,14 @@ defmodule Level.Events do
     publish_to_post(id, :reply_updated, %{reply: reply})
   end
 
+  def post_closed(id, %Post{} = post) do
+    publish_to_post(id, :post_closed, %{post: post})
+  end
+
+  def post_reopened(id, %Post{} = post) do
+    publish_to_post(id, :post_reopened, %{post: post})
+  end
+
   # Internal
 
   defp publish_to_space(id, type, data) do
