@@ -11,8 +11,10 @@ import Html.Events exposing (..)
 import Id exposing (Id)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.ClosePost as ClosePost
 import Mutation.RecordPostView as RecordPostView
 import Mutation.RecordReplyViews as RecordReplyViews
+import Mutation.ReopenPost as ReopenPost
 import Post exposing (Post)
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
@@ -191,6 +193,8 @@ type Msg
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | ClosePostClicked
     | ReopenPostClicked
+    | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
+    | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -254,10 +258,64 @@ update msg globals model =
             noCmd globals model
 
         ClosePostClicked ->
-            noCmd globals { model | isChangingState = True }
+            let
+                cmd =
+                    globals.session
+                        |> ClosePost.request model.spaceId model.postId
+                        |> Task.attempt PostClosed
+            in
+            ( ( { model | isChangingState = True }, cmd ), globals )
 
         ReopenPostClicked ->
-            noCmd globals { model | isChangingState = True }
+            let
+                cmd =
+                    globals.session
+                        |> ReopenPost.request model.spaceId model.postId
+                        |> Task.attempt PostReopened
+            in
+            ( ( { model | isChangingState = True }, cmd ), globals )
+
+        PostClosed (Ok ( newSession, ClosePost.Success post )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setPost post
+            in
+            ( ( { model | isChangingState = False }, Cmd.none )
+            , { globals | repo = newRepo, session = newSession }
+            )
+
+        PostClosed (Ok ( newSession, ClosePost.Invalid errors )) ->
+            ( ( { model | isChangingState = False }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        PostClosed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostClosed (Err _) ->
+            noCmd globals model
+
+        PostReopened (Ok ( newSession, ReopenPost.Success post )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setPost post
+            in
+            ( ( { model | isChangingState = False }, Cmd.none )
+            , { globals | repo = newRepo, session = newSession }
+            )
+
+        PostReopened (Ok ( newSession, ReopenPost.Invalid errors )) ->
+            ( ( { model | isChangingState = False }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        PostReopened (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostReopened (Err _) ->
+            noCmd globals model
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
