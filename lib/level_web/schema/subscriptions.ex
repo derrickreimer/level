@@ -37,7 +37,14 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for messages propagated to a post topic."
   union :post_subscription_payload do
-    types [:post_updated_payload, :reply_created_payload, :reply_updated_payload]
+    types [
+      :post_updated_payload,
+      :reply_created_payload,
+      :reply_updated_payload,
+      :post_closed_payload,
+      :post_reopened_payload
+    ]
+
     resolve_type &type_resolver/2
   end
 
@@ -81,6 +88,18 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for the post updated event."
   object :post_updated_payload do
+    @desc "The updated post."
+    field :post, :post
+  end
+
+  @desc "The payload for the post closed event."
+  object :post_closed_payload do
+    @desc "The updated post."
+    field :post, :post
+  end
+
+  @desc "The payload for the post reopened event."
+  object :post_reopened_payload do
     @desc "The updated post."
     field :post, :post
   end

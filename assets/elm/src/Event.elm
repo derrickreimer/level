@@ -22,6 +22,8 @@ type Event
     | GroupUnbookmarked Group
     | PostCreated ( Post, Connection Reply )
     | PostUpdated Post
+    | PostClosed Post
+    | PostReopened Post
     | PostsSubscribed (List Post)
     | PostsUnsubscribed (List Post)
     | PostsMarkedAsUnread (List Post)
@@ -73,6 +75,8 @@ eventDecoder =
         , Decode.map PostUpdated PostSubscription.postUpdatedDecoder
         , Decode.map ReplyCreated PostSubscription.replyCreatedDecoder
         , Decode.map ReplyUpdated PostSubscription.replyUpdatedDecoder
+        , Decode.map PostClosed PostSubscription.postClosedDecoder
+        , Decode.map PostReopened PostSubscription.postReopenedDecoder
 
         -- SPACE EVENTS
         , Decode.map SpaceUpdated SpaceSubscription.spaceUpdatedDecoder

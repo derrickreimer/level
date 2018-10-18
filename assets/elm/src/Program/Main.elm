@@ -1068,6 +1068,16 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.PostClosed post ->
+            ( { model | repo = Repo.setPost post model.repo }
+            , Cmd.none
+            )
+
+        Event.PostReopened post ->
+            ( { model | repo = Repo.setPost post model.repo }
+            , Cmd.none
+            )
+
         Event.Unknown payload ->
             ( model, Cmd.none )
 

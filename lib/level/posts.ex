@@ -7,6 +7,7 @@ defmodule Level.Posts do
   import Level.Gettext
   import Level.SearchConditions
 
+  alias Ecto.Multi
   alias Level.Events
   alias Level.File
   alias Level.Groups.Group
@@ -17,6 +18,7 @@ defmodule Level.Posts do
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
   alias Level.Posts.Post
+  alias Level.Posts.PostLog
   alias Level.Posts.PostUser
   alias Level.Posts.PostUserLog
   alias Level.Posts.PostView
@@ -526,6 +528,52 @@ defmodule Level.Posts do
 
   def handle_file_attached({:ok, _}, file), do: file
   def handle_file_attached(_, _), do: nil
+
+  @doc """
+  Closes a post.
+  """
+  @spec close_post(SpaceUser.t(), Post.t()) :: {:ok, Post.t()}
+  def close_post(%SpaceUser{} = space_user, %Post{} = post) do
+    Multi.new()
+    |> Multi.update(:post, Ecto.Changeset.change(post, %{state: "CLOSED"}))
+    |> log_post_closed(space_user)
+    |> Repo.transaction()
+    |> after_post_closed()
+  end
+
+  defp log_post_closed(multi, space_user) do
+    Multi.run(multi, :log, fn %{post: post} ->
+      PostLog.post_closed(post, space_user)
+    end)
+  end
+
+  defp after_post_closed({:ok, %{post: post}} = result) do
+    _ = Events.post_closed(post.id, post)
+    result
+  end
+
+  @doc """
+  Reopens a post.
+  """
+  @spec reopen_post(SpaceUser.t(), Post.t()) :: {:ok, Post.t()}
+  def reopen_post(%SpaceUser{} = space_user, %Post{} = post) do
+    Multi.new()
+    |> Multi.update(:post, Ecto.Changeset.change(post, %{state: "OPEN"}))
+    |> log_post_reopened(space_user)
+    |> Repo.transaction()
+    |> after_post_reopened()
+  end
+
+  defp log_post_reopened(multi, space_user) do
+    Multi.run(multi, :log, fn %{post: post} ->
+      PostLog.post_reopened(post, space_user)
+    end)
+  end
+
+  defp after_post_reopened({:ok, %{post: post}} = result) do
+    _ = Events.post_reopened(post.id, post)
+    result
+  end
 
   # Internal
 

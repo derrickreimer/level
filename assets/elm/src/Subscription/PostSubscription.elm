@@ -1,4 +1,4 @@
-module Subscription.PostSubscription exposing (postUpdatedDecoder, replyCreatedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
+module Subscription.PostSubscription exposing (postClosedDecoder, postReopenedDecoder, postUpdatedDecoder, replyCreatedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
 
 import GraphQL exposing (Document)
 import Json.Decode as Decode
@@ -51,6 +51,22 @@ replyUpdatedDecoder =
         Reply.decoder
 
 
+postClosedDecoder : Decode.Decoder Post
+postClosedDecoder =
+    Subscription.decoder "post"
+        "PostClosed"
+        "post"
+        Post.decoder
+
+
+postReopenedDecoder : Decode.Decoder Post
+postReopenedDecoder =
+    Subscription.decoder "post"
+        "PostReopened"
+        "post"
+        Post.decoder
+
+
 
 -- INTERNAL
 
@@ -82,6 +98,16 @@ document =
             ... on ReplyUpdatedPayload {
               reply {
                 ...ReplyFields
+              }
+            }
+            ... on PostClosedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on PostReopenedPayload {
+              post {
+                ...PostFields
               }
             }
           }

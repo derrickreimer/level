@@ -482,7 +482,8 @@ defmodule Level.Mutations do
   Records reply views.
   """
   @spec record_reply_views(map(), info()) ::
-          {:ok, %{success: boolean(), errors: validation_errors, replies: [Reply.t()]}}
+          {:ok, %{success: boolean(), errors: validation_errors(), replies: [Reply.t()]}}
+          | {:error, String.t()}
   def record_reply_views(%{space_id: space_id, reply_ids: reply_ids}, %{
         context: %{current_user: user}
       }) do
@@ -493,6 +494,40 @@ defmodule Level.Mutations do
     else
       _ ->
         {:ok, %{success: false, errors: []}}
+    end
+  end
+
+  @doc """
+  Closes a post.
+  """
+  @spec close_post(map, info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors(), post: Post.t()}}
+          | {:error, String.t()}
+  def close_post(%{space_id: space_id, post_id: post_id}, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, post} <- Posts.get_post(user, post_id),
+         {:ok, %{post: closed_post}} <- Posts.close_post(space_user, post) do
+      {:ok, %{success: true, errors: [], post: closed_post}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Reopens a post.
+  """
+  @spec reopen_post(map, info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors(), post: Post.t()}}
+          | {:error, String.t()}
+  def reopen_post(%{space_id: space_id, post_id: post_id}, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, post} <- Posts.get_post(user, post_id),
+         {:ok, %{post: reopened_post}} <- Posts.reopen_post(space_user, post) do
+      {:ok, %{success: true, errors: [], post: reopened_post}}
+    else
+      err ->
+        err
     end
   end
 

@@ -101,4 +101,32 @@ defmodule Level.Posts.PostLog do
     |> Ecto.Changeset.change(params)
     |> Repo.insert()
   end
+
+  @spec post_closed(Post.t(), SpaceUser.t()) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  def post_closed(%Post{} = post, %SpaceUser{} = space_user) do
+    params = %{
+      event: "POST_CLOSED",
+      space_id: post.space_id,
+      post_id: post.id,
+      actor_id: space_user.id
+    }
+
+    %__MODULE__{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert()
+  end
+
+  @spec post_reopened(Post.t(), SpaceUser.t()) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  def post_reopened(%Post{} = post, %SpaceUser{} = space_user) do
+    params = %{
+      event: "POST_REOPENED",
+      space_id: post.space_id,
+      post_id: post.id,
+      actor_id: space_user.id
+    }
+
+    %__MODULE__{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert()
+  end
 end

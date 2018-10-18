@@ -237,6 +237,22 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.record_reply_views/2
     end
+
+    @desc "Marks a post as closed."
+    field :close_post, :close_post_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+
+      resolve &Level.Mutations.close_post/2
+    end
+
+    @desc "Marks a post as open."
+    field :reopen_post, :reopen_post_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+
+      resolve &Level.Mutations.reopen_post/2
+    end
   end
 
   subscription do

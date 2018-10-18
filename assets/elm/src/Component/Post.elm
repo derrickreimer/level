@@ -795,7 +795,8 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                 postEditorView (Space.id space) model.postEditor
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
-                    [ button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
+                    [ viewIf (Post.state data.post == Post.Open) <|
+                        button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
                     ]
                 ]
             , div [ class "relative" ]
@@ -1027,7 +1028,17 @@ replyEditorView spaceId replyId editor =
 
 replyComposerView : Id -> SpaceUser -> Post -> Model -> Html Msg
 replyComposerView spaceId currentUser post model =
-    if PostEditor.isExpanded model.replyComposer then
+    if Post.state post == Post.Closed then
+        clickToExpandIf (model.mode == Feed)
+            [ div [ class "flex items-center my-3" ]
+                [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
+                , div [ class "flex-grow leading-semi-loose" ]
+                    [ span [ class "text-dusty-blue-dark" ] [ text "This post is closed" ]
+                    ]
+                ]
+            ]
+
+    else if PostEditor.isExpanded model.replyComposer then
         expandedReplyComposerView spaceId currentUser post model.replyComposer
 
     else
@@ -1104,23 +1115,6 @@ replyPromptView currentUser =
             [ text "Write a reply..."
             ]
         ]
-
-
-statusView : Post.State -> Html Msg
-statusView state =
-    let
-        buildView icon title =
-            div [ class "flex items-center text-sm text-dusty-blue-darker" ]
-                [ span [ class "mr-2" ] [ icon ]
-                , text title
-                ]
-    in
-    case state of
-        Post.Open ->
-            buildView Icons.open "Open"
-
-        Post.Closed ->
-            buildView Icons.closed "Closed"
 
 
 staticFilesView : List File -> Html msg
