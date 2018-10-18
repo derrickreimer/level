@@ -12,6 +12,7 @@ import Id exposing (Id)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
+import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordPostView as RecordPostView
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
@@ -46,6 +47,7 @@ type alias Model =
     , now : ( Zone, Posix )
     , currentViewers : Lazy PresenceList
     , isChangingState : Bool
+    , isChangingInboxState : Bool
     }
 
 
@@ -116,6 +118,7 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
                 postComp
                 now
                 NotLoaded
+                False
                 False
 
         newRepo =
@@ -195,6 +198,8 @@ type Msg
     | ReopenPostClicked
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
     | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
+    | DismissPostClicked
+    | PostDismissed (Result Session.Error ( Session, DismissPosts.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -316,6 +321,24 @@ update msg globals model =
 
         PostReopened (Err _) ->
             noCmd globals model
+
+        DismissPostClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> DismissPosts.request model.spaceId [ model.postId ]
+                        |> Task.attempt PostDismissed
+            in
+            ( ( { model | isChangingInboxState = True }, cmd ), globals )
+
+        PostDismissed (Ok ( newSession, _ )) ->
+            ( ( { model | isChangingInboxState = False }, Cmd.none ), { globals | session = newSession } )
+
+        PostDismissed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostDismissed (Err _) ->
+            noCmd globals { model | isChangingInboxState = True }
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -440,16 +463,51 @@ postView : Repo -> Model -> Data -> Html Msg
 postView repo model data =
     div []
         [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
-            [ transitionButton model.isChangingState data
+            [ inboxStateButton model.isChangingInboxState data.post
+            , postStateButton model.isChangingState data.post
             ]
         , Component.Post.view repo data.space data.viewer model.now model.postComp
             |> Html.map PostComponentMsg
         ]
 
 
-transitionButton : Bool -> Data -> Html Msg
-transitionButton isChangingState data =
-    case Post.state data.post of
+inboxStateButton : Bool -> Post -> Html Msg
+inboxStateButton isChangingInboxState post =
+    case Post.inboxState post of
+        Post.Excluded ->
+            button
+                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , disabled isChangingInboxState
+                ]
+                [ text "Add to my inbox" ]
+
+        Post.Unread ->
+            button
+                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , onClick DismissPostClicked
+                , disabled isChangingInboxState
+                ]
+                [ text "Dismiss from my inbox" ]
+
+        Post.Read ->
+            button
+                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , onClick DismissPostClicked
+                , disabled isChangingInboxState
+                ]
+                [ text "Dismiss from my inbox" ]
+
+        Post.Dismissed ->
+            button
+                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , disabled isChangingInboxState
+                ]
+                [ text "Add to my inbox" ]
+
+
+postStateButton : Bool -> Post -> Html Msg
+postStateButton isChangingState post =
+    case Post.state post of
         Post.Open ->
             button
                 [ class "btn btn-md btn-dusty-blue-inverse text-base"
