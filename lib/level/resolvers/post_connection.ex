@@ -17,7 +17,8 @@ defmodule Level.Resolvers.PostConnection do
             after: nil,
             filter: %{
               watching: :all,
-              inbox: :all
+              inbox_state: :all,
+              state: :all
             },
             order_by: %{
               field: :posted_at,
@@ -31,7 +32,8 @@ defmodule Level.Resolvers.PostConnection do
           after: String.t() | nil,
           filter: %{
             watching: :is_watching | :all,
-            inbox: :unread | :read | :dismissed | :undismissed | :all
+            inbox_state: :unread | :read | :dismissed | :undismissed | :all,
+            state: :open | :closed | :all
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -50,7 +52,8 @@ defmodule Level.Resolvers.PostConnection do
       |> build_base_query(parent)
       |> apply_activity(args)
       |> apply_watching(args)
-      |> apply_inbox(args)
+      |> apply_inbox_state(args)
+      |> apply_state(args)
 
     pagination_args =
       args
@@ -96,29 +99,39 @@ defmodule Level.Resolvers.PostConnection do
 
   defp apply_watching(base_query, _), do: base_query
 
-  defp apply_inbox(base_query, %{filter: %{inbox: :unread}}) do
+  defp apply_inbox_state(base_query, %{filter: %{inbox_state: :unread}}) do
     from [p, su, g, gu] in base_query,
       join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id and pu.inbox_state == "UNREAD"
   end
 
-  defp apply_inbox(base_query, %{filter: %{inbox: :read}}) do
+  defp apply_inbox_state(base_query, %{filter: %{inbox_state: :read}}) do
     from [p, su, g, gu] in base_query,
       join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id and pu.inbox_state == "READ"
   end
 
-  defp apply_inbox(base_query, %{filter: %{inbox: :undismissed}}) do
+  defp apply_inbox_state(base_query, %{filter: %{inbox_state: :undismissed}}) do
     from [p, su, g, gu] in base_query,
       join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id and (pu.inbox_state == "UNREAD" or pu.inbox_state == "READ")
   end
 
-  defp apply_inbox(base_query, %{filter: %{inbox: :dismissed}}) do
+  defp apply_inbox_state(base_query, %{filter: %{inbox_state: :dismissed}}) do
     from [p, su, g, gu] in base_query,
       join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id and pu.inbox_state == "DISMISSED"
   end
 
-  defp apply_inbox(base_query, _), do: base_query
+  defp apply_inbox_state(base_query, _), do: base_query
+
+  defp apply_state(base_query, %{filter: %{state: :open}}) do
+    from [p, su, g, gu] in base_query, where: p.state == "OPEN"
+  end
+
+  defp apply_state(base_query, %{filter: %{state: :closed}}) do
+    from [p, su, g, gu] in base_query, where: p.state == "CLOSED"
+  end
+
+  defp apply_state(base_query, _), do: base_query
 end

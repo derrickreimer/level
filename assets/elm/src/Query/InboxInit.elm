@@ -47,7 +47,8 @@ document =
           $last: Int,
           $before: Cursor,
           $after: Cursor,
-          $filter: InboxFilter!
+          $inboxStateFilter: InboxStateFilter!,
+          $stateFilter: PostStateFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -64,7 +65,10 @@ document =
                 last: $last,
                 before: $before,
                 after: $after,
-                filter: { inbox: $filter },
+                filter: {
+                  inboxState: $inboxStateFilter,
+                  state: $stateFilter
+                },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
@@ -97,10 +101,8 @@ variables params =
         limit =
             Encode.int 20
 
-        filter =
-            Route.Inbox.getFilter params
-                |> castFilter
-                |> Encode.string
+        ( inboxStateFilter, stateFilter ) =
+            castFilters (Route.Inbox.getFilter params)
 
         values =
             case
@@ -112,36 +114,39 @@ variables params =
                     [ ( "spaceSlug", spaceSlug )
                     , ( "last", limit )
                     , ( "before", Encode.string before )
-                    , ( "filter", filter )
+                    , ( "inboxStateFilter", Encode.string inboxStateFilter )
+                    , ( "stateFilter", Encode.string stateFilter )
                     ]
 
                 ( Nothing, Just after ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", limit )
                     , ( "after", Encode.string after )
-                    , ( "filter", filter )
+                    , ( "inboxStateFilter", Encode.string inboxStateFilter )
+                    , ( "stateFilter", Encode.string stateFilter )
                     ]
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", limit )
-                    , ( "filter", filter )
+                    , ( "inboxStateFilter", Encode.string inboxStateFilter )
+                    , ( "stateFilter", Encode.string stateFilter )
                     ]
     in
     Just (Encode.object values)
 
 
-castFilter : Route.Inbox.Filter -> String
-castFilter filter =
+castFilters : Route.Inbox.Filter -> ( String, String )
+castFilters filter =
     case filter of
-        Route.Inbox.Unread ->
-            "UNREAD"
+        Route.Inbox.Open ->
+            ( "UNDISMISSED", "OPEN" )
+
+        Route.Inbox.Closed ->
+            ( "UNDISMISSED", "CLOSED" )
 
         Route.Inbox.Dismissed ->
-            "DISMISSED"
-
-        Route.Inbox.Undismissed ->
-            "UNDISMISSED"
+            ( "DISMISSED", "ALL" )
 
 
 decoder : Decoder Data

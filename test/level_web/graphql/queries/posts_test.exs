@@ -8,7 +8,8 @@ defmodule LevelWeb.GraphQL.PostsTest do
     query Posts(
       $space_id: ID!,
       $watching: WatchingFilter,
-      $inbox: InboxFilter,
+      $inbox_state: InboxStateFilter,
+      $state: PostStateFilter,
       $order_field: PostOrderField
     ) {
       space(id: $space_id) {
@@ -16,7 +17,8 @@ defmodule LevelWeb.GraphQL.PostsTest do
           first: 10,
           filter: {
             watching: $watching,
-            inbox: $inbox
+            inboxState: $inbox_state,
+            state: $state
           },
           orderBy: {
             field: $order_field,
@@ -84,7 +86,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      inbox: "UNREAD"
+      inbox_state: "UNREAD"
     }
 
     conn =
@@ -122,7 +124,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      inbox: "UNDISMISSED"
+      inbox_state: "UNDISMISSED"
     }
 
     conn =
@@ -165,7 +167,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      inbox: "DISMISSED"
+      inbox_state: "DISMISSED"
     }
 
     conn =
@@ -181,6 +183,76 @@ defmodule LevelWeb.GraphQL.PostsTest do
                      %{
                        "node" => %{
                          "body" => "I'm dismissed"
+                       }
+                     }
+                   ],
+                   "total_count" => 1
+                 }
+               }
+             }
+           }
+  end
+
+  test "filtering by open", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: _open_post}} = create_post(space_user, group, %{body: "I'm open"})
+    {:ok, %{post: closed_post}} = create_post(space_user, group, %{body: "I'm closed"})
+
+    Posts.close_post(space_user, closed_post)
+
+    variables = %{
+      space_id: space_user.space_id,
+      state: "OPEN"
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "posts" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "body" => "I'm open"
+                       }
+                     }
+                   ],
+                   "total_count" => 1
+                 }
+               }
+             }
+           }
+  end
+
+  test "filtering by closed", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: _open_post}} = create_post(space_user, group, %{body: "I'm open"})
+    {:ok, %{post: closed_post}} = create_post(space_user, group, %{body: "I'm closed"})
+
+    Posts.close_post(space_user, closed_post)
+
+    variables = %{
+      space_id: space_user.space_id,
+      state: "CLOSED"
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "space" => %{
+                 "posts" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "body" => "I'm closed"
                        }
                      }
                    ],

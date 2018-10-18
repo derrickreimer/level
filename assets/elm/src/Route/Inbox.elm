@@ -47,8 +47,8 @@ type alias Internal =
 
 
 type Filter
-    = Undismissed
-    | Unread
+    = Open
+    | Closed
     | Dismissed
 
 
@@ -58,7 +58,7 @@ type Filter
 
 init : String -> Params
 init spaceSlug =
-    Params (Internal spaceSlug Nothing Nothing Undismissed)
+    Params (Internal spaceSlug Nothing Nothing Open)
 
 
 getSpaceSlug : Params -> String
@@ -117,27 +117,27 @@ toString (Params internal) =
 parseFilter : Maybe String -> Filter
 parseFilter value =
     case value of
-        Just "unread" ->
-            Unread
+        Just "closed" ->
+            Closed
 
         Just "dismissed" ->
             Dismissed
 
         Nothing ->
-            Undismissed
+            Open
 
         _ ->
-            Undismissed
+            Open
 
 
 castFilter : Filter -> Maybe String
 castFilter filter =
     case filter of
-        Undismissed ->
+        Open ->
             Nothing
 
-        Unread ->
-            Just "unread"
+        Closed ->
+            Just "closed"
 
         Dismissed ->
             Just "dismissed"

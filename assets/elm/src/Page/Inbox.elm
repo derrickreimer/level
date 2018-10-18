@@ -400,7 +400,8 @@ resolvedView repo maybeCurrentRoute pushStatus model data =
                         , controlsView model data
                         ]
                     , div [ class "flex items-baseline" ]
-                        [ filterTab "New Activity" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                        [ filterTab "Open" Route.Inbox.Open (openParams model.params) model.params
+                        , filterTab "Closed" Route.Inbox.Closed (closedParams model.params) model.params
                         , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
                     ]
@@ -529,11 +530,18 @@ userItemView user =
 -- INTERNAL
 
 
-undismissedParams : Params -> Params
-undismissedParams params =
+openParams : Params -> Params
+openParams params =
     params
         |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Undismissed
+        |> Route.Inbox.setFilter Route.Inbox.Open
+
+
+closedParams : Params -> Params
+closedParams params =
+    params
+        |> Route.Inbox.setCursors Nothing Nothing
+        |> Route.Inbox.setFilter Route.Inbox.Closed
 
 
 dismissedParams : Params -> Params
@@ -541,13 +549,6 @@ dismissedParams params =
     params
         |> Route.Inbox.setCursors Nothing Nothing
         |> Route.Inbox.setFilter Route.Inbox.Dismissed
-
-
-unreadParams : Params -> Params
-unreadParams params =
-    params
-        |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Unread
 
 
 filterBySelected : Connection Component.Post.Model -> List Component.Post.Model

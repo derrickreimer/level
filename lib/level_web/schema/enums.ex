@@ -99,11 +99,17 @@ defmodule LevelWeb.Schema.Enums do
     value :all
   end
 
-  enum :inbox_filter do
+  enum :inbox_state_filter do
     value :unread
     value :read
     value :dismissed
     value :undismissed
+    value :all
+  end
+
+  enum :post_state_filter do
+    value :open
+    value :closed
     value :all
   end
 end

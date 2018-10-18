@@ -69,6 +69,11 @@ defmodule LevelWeb.Schema.InputObjects do
     @desc """
     Filter by the different inbox states.
     """
-    field :inbox, :inbox_filter, default_value: :all
+    field :inbox_state, :inbox_state_filter, default_value: :all
+
+    @desc """
+    Filter by the different post states.
+    """
+    field :state, :post_state_filter, default_value: :all
   end
 end
