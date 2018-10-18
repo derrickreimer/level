@@ -444,7 +444,7 @@ defmodule Level.Mutations do
   end
 
   @doc """
-  Dismisses all mentions for a particular post.
+  Dismisses posts from the inbox.
   """
   @spec dismiss_posts(map(), info()) ::
           {:ok, %{success: boolean(), posts: [Posts.Post.t()] | nil, errors: validation_errors()}}
@@ -457,6 +457,26 @@ defmodule Level.Mutations do
          {:ok, posts} <- Posts.get_posts(user, post_ids),
          {:ok, dismissed_posts} <- Posts.dismiss(space_user, posts) do
       {:ok, %{success: true, posts: dismissed_posts, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Marks posts as unread.
+  """
+  @spec mark_as_unread(map(), info()) ::
+          {:ok, %{success: boolean(), posts: [Posts.Post.t()] | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+  def mark_as_unread(
+        %{space_id: space_id, post_ids: post_ids},
+        %{context: %{current_user: user}}
+      ) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, posts} <- Posts.get_posts(user, post_ids),
+         {:ok, unread_posts} <- Posts.mark_as_unread(space_user, posts) do
+      {:ok, %{success: true, posts: unread_posts, errors: []}}
     else
       err ->
         err

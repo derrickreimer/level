@@ -223,6 +223,14 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.dismiss_posts/2
     end
 
+    @desc "Marks posts as unread in a user's inbox."
+    field :mark_as_unread, type: :mark_as_unread_payload do
+      arg :space_id, non_null(:id)
+      arg :post_ids, non_null(list_of(:id))
+
+      resolve &Level.Mutations.mark_as_unread/2
+    end
+
     @desc "Registers a push subscription."
     field :register_push_subscription, type: :register_push_subscription_payload do
       arg :data, non_null(:string)
