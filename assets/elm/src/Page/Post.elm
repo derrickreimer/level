@@ -13,6 +13,7 @@ import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
 import Mutation.DismissPosts as DismissPosts
+import Mutation.MarkAsUnread as MarkAsUnread
 import Mutation.RecordPostView as RecordPostView
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
@@ -200,6 +201,8 @@ type Msg
     | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
     | DismissPostClicked
     | PostDismissed (Result Session.Error ( Session, DismissPosts.Response ))
+    | MoveToInboxClicked
+    | PostMovedToInbox (Result Session.Error ( Session, MarkAsUnread.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -340,6 +343,24 @@ update msg globals model =
         PostDismissed (Err _) ->
             noCmd globals { model | isChangingInboxState = True }
 
+        MoveToInboxClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> MarkAsUnread.request model.spaceId [ model.postId ]
+                        |> Task.attempt PostMovedToInbox
+            in
+            ( ( { model | isChangingInboxState = True }, cmd ), globals )
+
+        PostMovedToInbox (Ok ( newSession, _ )) ->
+            ( ( { model | isChangingInboxState = False }, Cmd.none ), { globals | session = newSession } )
+
+        PostMovedToInbox (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostMovedToInbox (Err _) ->
+            noCmd globals { model | isChangingInboxState = True }
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -477,6 +498,7 @@ inboxStateButton isChangingInboxState post =
         Post.Excluded ->
             button
                 [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , onClick MoveToInboxClicked
                 , disabled isChangingInboxState
                 ]
                 [ text "Add to my inbox" ]
@@ -500,6 +522,7 @@ inboxStateButton isChangingInboxState post =
         Post.Dismissed ->
             button
                 [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                , onClick MoveToInboxClicked
                 , disabled isChangingInboxState
                 ]
                 [ text "Add to my inbox" ]
