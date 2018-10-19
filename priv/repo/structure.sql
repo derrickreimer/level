@@ -1538,7 +1538,7 @@ ALTER TABLE ONLY public.reply_views
 --
 
 ALTER TABLE ONLY public.space_bots
-    ADD CONSTRAINT space_bots_bot_id_fkey FOREIGN KEY (bot_id) REFERENCES public.spaces(id);
+    ADD CONSTRAINT space_bots_bot_id_fkey FOREIGN KEY (bot_id) REFERENCES public.bots(id);
 
 
 --

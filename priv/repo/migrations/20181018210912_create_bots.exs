@@ -18,7 +18,7 @@ defmodule Level.Repo.Migrations.CreateBots do
     create table(:space_bots, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :space_id, references(:spaces, on_delete: :nothing, type: :binary_id), null: false
-      add :bot_id, references(:spaces, on_delete: :nothing, type: :binary_id), null: false
+      add :bot_id, references(:bots, on_delete: :nothing, type: :binary_id), null: false
       add :state, :space_bot_state, null: false, default: "ACTIVE"
       add :handle, :citext, null: false
       add :display_name, :text, null: false
