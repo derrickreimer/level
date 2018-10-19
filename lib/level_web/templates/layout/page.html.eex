@@ -68,15 +68,9 @@
 
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
 
-    <!-- Twitter universal website tag code -->
-    <script>
-    !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
-    },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='//static.ads-twitter.com/uwt.js',
-    a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
-    // Insert Twitter Pixel ID and Standard Event data below
-    twq('init','nzmus');
-    twq('track','PageView');
+    <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+    <script type="text/javascript">
+      window.Beacon('init', '35093bad-ec79-47de-b0af-4b9bc01136ac');
     </script>
-    <!-- End Twitter universal website tag code -->
   </body>
 </html>
