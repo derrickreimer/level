@@ -174,7 +174,10 @@ fragment =
               subscriptionState
               inboxState
               author {
-                ...SpaceUserFields
+                __typename
+                ... on SpaceUser {
+                  ...SpaceUserFields
+                }
               }
               groups {
                 ...GroupFields

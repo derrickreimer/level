@@ -20,7 +20,9 @@ defmodule LevelWeb.GraphQL.CreatePostTest do
             id
           }
           author {
-            firstName
+            ... on SpaceUser {
+              firstName
+            }
           }
         }
         errors {

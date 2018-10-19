@@ -28,7 +28,7 @@ defmodule Level.Posts.Post do
     field :language, :string
 
     belongs_to :space, Space
-    belongs_to :author, SpaceUser, foreign_key: :space_user_id
+    belongs_to :space_user, SpaceUser
     belongs_to :space_bot, SpaceBot
 
     many_to_many :groups, Group, join_through: PostGroup

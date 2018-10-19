@@ -26,6 +26,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.SearchConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
+  alias Level.SpaceBot
   alias Level.Spaces
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
@@ -348,6 +349,34 @@ defmodule Level.Resolvers do
   @spec search(Space.t(), map(), info()) :: paginated_result()
   def search(%Space{} = space, args, info) do
     SearchConnection.get(space, struct(SearchConnection, args), info)
+  end
+
+  @doc """
+  Fetches the author of a post.
+  """
+  @spec post_author(Post.t(), map(), info()) :: dataloader_result()
+  def post_author(%Post{space_user_id: space_user_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_user_id) do
+    dataloader_one(loader, :db, SpaceUser, space_user_id)
+  end
+
+  def post_author(%Post{space_bot_id: space_bot_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_bot_id) do
+    dataloader_one(loader, :db, SpaceBot, space_bot_id)
+  end
+
+  @doc """
+  Fetches the author of a reply.
+  """
+  @spec reply_author(Reply.t(), map(), info()) :: dataloader_result()
+  def reply_author(%Reply{space_user_id: space_user_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_user_id) do
+    dataloader_one(loader, :db, SpaceUser, space_user_id)
+  end
+
+  def reply_author(%Reply{space_bot_id: space_bot_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_bot_id) do
+    dataloader_one(loader, :db, SpaceBot, space_bot_id)
   end
 
   # Dataloader helpers

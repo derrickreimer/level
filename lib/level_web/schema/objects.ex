@@ -12,7 +12,9 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Posts.Reply
   alias Level.Resolvers
   alias Level.SearchResult
+  alias Level.SpaceBot
   alias Level.Spaces
+  alias Level.Spaces.SpaceUser
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
 
@@ -117,6 +119,13 @@ defmodule LevelWeb.Schema.Objects do
     field :fetched_at, non_null(:timestamp) do
       resolve &fetched_at_resolver/2
     end
+  end
+
+  @desc "A space bot represents a bot that has been installed in a particular space."
+  object :space_bot do
+    field :id, non_null(:id)
+    field :display_name, non_null(:string)
+    field :handle, non_null(:string)
   end
 
   @desc "A space represents a company or organization."
@@ -299,8 +308,11 @@ defmodule LevelWeb.Schema.Objects do
     field :state, non_null(:post_state)
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(:db)
-    field :author, non_null(:space_user), resolve: dataloader(:db)
     field :groups, list_of(:group), resolve: dataloader(:db)
+
+    field :author, non_null(:actor) do
+      resolve &Resolvers.post_author/3
+    end
 
     field :body_html, non_null(:string) do
       resolve fn post, _, %{context: %{current_user: user}} ->
@@ -360,7 +372,10 @@ defmodule LevelWeb.Schema.Objects do
     field :post_id, non_null(:id)
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(:db)
-    field :author, non_null(:space_user), resolve: dataloader(:db)
+
+    field :author, non_null(:actor) do
+      resolve &Resolvers.reply_author/3
+    end
 
     field :body_html, non_null(:string) do
       resolve fn reply, _, %{context: %{current_user: user}} ->
@@ -423,6 +438,16 @@ defmodule LevelWeb.Schema.Objects do
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp) do
       resolve &fetched_at_resolver/2
+    end
+  end
+
+  @desc "An actor."
+  union :actor do
+    types [:space_user, :space_bot]
+
+    resolve_type fn
+      %SpaceUser{}, _ -> :space_user
+      %SpaceBot{}, _ -> :space_bot
     end
   end
 

@@ -23,7 +23,8 @@ defmodule Level.Posts.Reply do
 
     belongs_to :space, Space
     belongs_to :post, Post
-    belongs_to :author, SpaceUser, foreign_key: :space_user_id
+
+    belongs_to :space_user, SpaceUser
     belongs_to :space_bot, SpaceBot
 
     has_many :reply_files, ReplyFile

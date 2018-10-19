@@ -21,7 +21,9 @@ defmodule LevelWeb.GraphQL.CreateReplyTest do
         reply {
           body
           author {
-            firstName
+            ... on SpaceUser {
+              firstName
+            }
           }
           files {
             id

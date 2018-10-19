@@ -42,7 +42,10 @@ fragment =
           body
           bodyHtml
           author {
-            ...SpaceUserFields
+            __typename
+            ... on SpaceUser {
+              ...SpaceUserFields
+            }
           }
           files {
             ...FileFields
