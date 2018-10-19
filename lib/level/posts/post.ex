@@ -14,6 +14,7 @@ defmodule Level.Posts.Post do
   alias Level.Posts.PostLog
   alias Level.Posts.PostUser
   alias Level.Posts.Reply
+  alias Level.SpaceBot
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -28,6 +29,8 @@ defmodule Level.Posts.Post do
 
     belongs_to :space, Space
     belongs_to :author, SpaceUser, foreign_key: :space_user_id
+    belongs_to :space_bot, SpaceBot
+
     many_to_many :groups, Group, join_through: PostGroup
     has_many :replies, Reply
     has_many :user_mentions, UserMention

@@ -9,6 +9,7 @@ defmodule Level.Posts.Reply do
 
   alias Level.Posts.Post
   alias Level.ReplyFile
+  alias Level.SpaceBot
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -23,6 +24,7 @@ defmodule Level.Posts.Reply do
     belongs_to :space, Space
     belongs_to :post, Post
     belongs_to :author, SpaceUser, foreign_key: :space_user_id
+    belongs_to :space_bot, SpaceBot
 
     has_many :reply_files, ReplyFile
     has_many :files, through: [:reply_files, :file]
