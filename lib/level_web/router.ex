@@ -2,6 +2,7 @@ defmodule LevelWeb.Router do
   @moduledoc false
 
   use LevelWeb, :router
+  use Honeybadger.Plug
 
   pipeline :anonymous_browser do
     plug :accepts, ["html"]

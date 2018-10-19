@@ -69,6 +69,10 @@
     "LEVEL_SMTP_PASSWORD": {
       "description": "The password for your SMTP provider.",
       "value": ""
+    },
+    "HONEYBADGER_API_KEY": {
+      "description": "The API key for Honeybadger.io (exception monitoring).",
+      "value": ""
     }
   }
 }

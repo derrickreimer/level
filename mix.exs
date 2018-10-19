@@ -72,6 +72,7 @@ defmodule Level.Mixfile do
       {:floki, "~> 0.20.3"},
       {:web_push_encryption, "~> 0.2.1"},
       {:mox, "~> 0.4.0", only: :test},
+      {:honeybadger, "~> 0.1"},
 
       # Amazon S3 dependencies
       {:ex_aws, "~> 2.0"},

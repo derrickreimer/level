@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
-Level is an alternative to real-time chat designed for the software development workflow. 
+Level is an alternative to real-time chat designed for the software development workflow.
 
 **Sign up at [level.app](https://level.app)** to reserve your handle and get on the updates list.
 
@@ -150,6 +150,15 @@ The following environment variables must be set in production:
       <td>A VAPID private key.</td>
     </tr>
   </tbody>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Monitoring</strong></td>
+    </tr>
+    <tr>
+      <td><code>HONEYBADGER_API_KEY</code></td>
+      <td>The API key for Honeybadger.io (exception monitoring).</td>
+    </tr>
+  </tbody>
 </table>
 
 ## Documentation
@@ -160,7 +169,7 @@ Run the `script/docs` to generate and view the project ExDocs locally.
 
 One of our goals is to make self-installation as painless as possible for those who are interested in hosting their own instance.
 
-The relevant configuration files for Heroku live here: 
+The relevant configuration files for Heroku live here:
 
 - [app.json](https://github.com/levelhq/level/blob/master/app.json)
 - [elixir_buildpack.config](https://github.com/levelhq/level/blob/master/elixir_buildpack.config)
