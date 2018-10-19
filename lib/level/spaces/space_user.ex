@@ -9,9 +9,9 @@ defmodule Level.Spaces.SpaceUser do
   import Level.Gettext
 
   alias Level.File
+  alias Level.Handles
   alias Level.Posts.PostUser
   alias Level.Spaces.Space
-  alias Level.Users
   alias Level.Users.User
 
   @type t :: %__MODULE__{}
@@ -41,11 +41,7 @@ defmodule Level.Spaces.SpaceUser do
     struct
     |> cast(attrs, [:user_id, :space_id, :role, :first_name, :last_name, :handle, :avatar])
     |> validate_required([:role, :first_name, :last_name, :handle])
-    |> validate_format(
-      :handle,
-      Users.handle_format(),
-      message: dgettext("errors", "must contain letters, numbers, and dashes only")
-    )
+    |> Handles.validate_format(:handle)
     |> unique_constraint(:handle,
       name: :space_users_space_id_lower_handle_index,
       message: dgettext("errors", "is already taken")
@@ -57,11 +53,7 @@ defmodule Level.Spaces.SpaceUser do
     struct
     |> cast(attrs, [:role, :first_name, :last_name, :handle, :avatar])
     |> validate_required([:role, :first_name, :last_name, :handle])
-    |> validate_format(
-      :handle,
-      Users.handle_format(),
-      message: dgettext("errors", "must contain letters, numbers, and dashes only")
-    )
+    |> Handles.validate_format(:handle)
     |> unique_constraint(:handle,
       name: :space_users_space_id_lower_handle_index,
       message: dgettext("errors", "is already taken")

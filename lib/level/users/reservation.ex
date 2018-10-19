@@ -7,7 +7,7 @@ defmodule Level.Users.Reservation do
   import Ecto.Changeset
   import Level.Gettext
 
-  alias Level.Users
+  alias Level.Handles
   alias Level.Users.User
 
   @type t :: %__MODULE__{}
@@ -32,11 +32,7 @@ defmodule Level.Users.Reservation do
       User.email_format(),
       message: dgettext("errors", "is not valid")
     )
-    |> validate_format(
-      :handle,
-      Users.handle_format(),
-      message: dgettext("errors", "must contain letters, numbers, and dashes only")
-    )
+    |> Handles.validate_format(:handle)
     |> unique_constraint(
       :email,
       name: :reservations_lower_email_index,

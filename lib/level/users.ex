@@ -15,13 +15,6 @@ defmodule Level.Users do
   alias Level.WebPush
 
   @doc """
-  Regex for validating handle format.
-  """
-  def handle_format do
-    ~r/^(?>[A-Za-z][A-Za-z0-9-\.]*[A-Za-z0-9])$/
-  end
-
-  @doc """
   Fetches a user by id.
   """
   @spec get_user_by_id(String.t()) :: {:ok, User.t()} | {:error, String.t()}

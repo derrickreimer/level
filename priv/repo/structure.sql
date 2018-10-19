@@ -44,6 +44,16 @@ COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings
 
 
 --
+-- Name: bot_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.bot_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
+);
+
+
+--
 -- Name: group_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -121,6 +131,16 @@ CREATE TYPE public.post_user_log_event AS ENUM (
     'DISMISSED',
     'SUBSCRIBED',
     'UNSUBSCRIBED'
+);
+
+
+--
+-- Name: space_bot_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.space_bot_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
 );
 
 
@@ -209,6 +229,21 @@ $$;
 SET default_tablespace = '';
 
 SET default_with_oids = false;
+
+--
+-- Name: bots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bots (
+    id uuid NOT NULL,
+    state public.bot_state DEFAULT 'ACTIVE'::public.bot_state NOT NULL,
+    handle public.citext NOT NULL,
+    display_name text NOT NULL,
+    avatar text,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
 
 --
 -- Name: files; Type: TABLE; Schema: public; Owner: -
@@ -371,6 +406,7 @@ CREATE VIEW public.post_searches AS
     posts.id AS searchable_id,
     'Post'::text AS searchable_type,
     posts.id AS post_id,
+    posts.body AS document,
     posts.search_vector,
     (posts.language)::regconfig AS language
    FROM public.posts
@@ -379,6 +415,7 @@ UNION
     replies.id AS searchable_id,
     'Reply'::text AS searchable_type,
     replies.post_id,
+    replies.body AS document,
     replies.search_vector,
     (replies.language)::regconfig AS language
    FROM public.replies;
@@ -521,6 +558,23 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: space_bots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.space_bots (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    bot_id uuid NOT NULL,
+    state public.space_bot_state DEFAULT 'ACTIVE'::public.space_bot_state NOT NULL,
+    handle public.citext NOT NULL,
+    display_name text NOT NULL,
+    avatar text,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: space_setup_steps; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -547,8 +601,8 @@ CREATE TABLE public.space_users (
     role public.space_user_role DEFAULT 'MEMBER'::public.space_user_role NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    first_name text NOT NULL,
-    last_name text NOT NULL,
+    first_name text,
+    last_name text,
     avatar text,
     handle public.citext NOT NULL
 );
@@ -593,9 +647,9 @@ CREATE TABLE public.user_mentions (
 CREATE TABLE public.users (
     id uuid NOT NULL,
     state public.user_state DEFAULT 'ACTIVE'::public.user_state NOT NULL,
-    email public.citext NOT NULL,
-    first_name text NOT NULL,
-    last_name text NOT NULL,
+    email public.citext,
+    first_name text,
+    last_name text,
     time_zone text NOT NULL,
     password_hash text,
     session_salt text DEFAULT 'salt'::text NOT NULL,
@@ -604,6 +658,14 @@ CREATE TABLE public.users (
     avatar text,
     handle public.citext NOT NULL
 );
+
+
+--
+-- Name: bots bots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bots
+    ADD CONSTRAINT bots_pkey PRIMARY KEY (id);
 
 
 --
@@ -767,6 +829,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: space_bots space_bots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_bots
+    ADD CONSTRAINT space_bots_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: space_setup_steps space_setup_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -804,6 +874,13 @@ ALTER TABLE ONLY public.user_mentions
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bots_lower_handle_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX bots_lower_handle_index ON public.bots USING btree (lower((handle)::text));
 
 
 --
@@ -944,6 +1021,13 @@ CREATE UNIQUE INDEX reservations_lower_email_index ON public.reservations USING 
 --
 
 CREATE UNIQUE INDEX reservations_lower_handle_index ON public.reservations USING btree (lower((handle)::text));
+
+
+--
+-- Name: space_bots_space_id_lower_handle_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX space_bots_space_id_lower_handle_index ON public.space_bots USING btree (space_id, lower((handle)::text));
 
 
 --
@@ -1432,6 +1516,22 @@ ALTER TABLE ONLY public.reply_views
 
 
 --
+-- Name: space_bots space_bots_bot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_bots
+    ADD CONSTRAINT space_bots_bot_id_fkey FOREIGN KEY (bot_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: space_bots space_bots_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_bots
+    ADD CONSTRAINT space_bots_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: space_setup_steps space_setup_steps_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1507,5 +1607,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912);
 

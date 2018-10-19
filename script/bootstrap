@@ -49,3 +49,7 @@ npm install -g elm-format
 # Setup the local database
 echo "==> Creating the development database"
 cd ../ && mix ecto.create && mix ecto.load
+
+# Seed the database
+echo "==> Seeding the database"
+mix run priv/repo/seeds.exs

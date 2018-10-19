@@ -9,8 +9,8 @@ defmodule Level.Users.User do
 
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
+  alias Level.Handles
   alias Level.Spaces.SpaceUser
-  alias Level.Users
   alias Level.Users.PushSubscription
 
   @type t :: %__MODULE__{}
@@ -75,11 +75,7 @@ defmodule Level.Users.User do
     |> validate_length(:last_name, min: 1, max: 255)
     |> validate_length(:password, min: 6)
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
-    |> validate_format(
-      :handle,
-      Users.handle_format(),
-      message: dgettext("errors", "must contain letters, numbers, and dashes only")
-    )
+    |> Handles.validate_format(:handle)
     |> unique_constraint(:email,
       name: :users_space_id_email_index,
       message: dgettext("errors", "is already taken")
