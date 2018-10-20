@@ -6,13 +6,13 @@ defmodule Level.Mentions do
   import Ecto.Query
 
   alias Level.Events
-  alias Level.Mentions.UserMention
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.Reply
   alias Level.Repo
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.Post
+  alias Level.Schemas.Reply
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
+  alias Level.Schemas.UserMention
 
   @doc """
   The pattern for matching handles in a body of text.

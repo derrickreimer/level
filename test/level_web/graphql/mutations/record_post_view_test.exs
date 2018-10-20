@@ -2,8 +2,8 @@ defmodule LevelWeb.GraphQL.RecordPostViewTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
-  alias Level.Posts.PostView
   alias Level.Repo
+  alias Level.Schemas.PostView
 
   @query """
     mutation RecordPostView(

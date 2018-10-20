@@ -4,16 +4,16 @@ defmodule Level.PostsTest do
   import Ecto.Query
 
   alias Level.Groups
-  alias Level.Groups.Group
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostView
-  alias Level.Posts.Reply
   alias Level.Repo
   alias Level.Schemas.File
+  alias Level.Schemas.Group
+  alias Level.Schemas.Post
   alias Level.Schemas.PostVersion
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.PostView
+  alias Level.Schemas.Reply
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   describe "posts_base_query/1 with users" do
     setup do

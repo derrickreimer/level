@@ -1,4 +1,4 @@
-defmodule Level.Users.User do
+defmodule Level.Schemas.User do
   @moduledoc """
   The User schema.
   """
@@ -10,8 +10,8 @@ defmodule Level.Users.User do
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
   alias Level.Handles
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.PushSubscription
+  alias Level.Schemas.PushSubscription
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

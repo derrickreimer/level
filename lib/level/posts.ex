@@ -9,29 +9,29 @@ defmodule Level.Posts do
 
   alias Ecto.Multi
   alias Level.Events
-  alias Level.Groups.Group
-  alias Level.Groups.GroupUser
   alias Level.Markdown
   alias Level.Mentions
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
-  alias Level.Posts.Post
-  alias Level.Posts.PostLog
-  alias Level.Posts.PostUser
-  alias Level.Posts.PostUserLog
-  alias Level.Posts.PostView
-  alias Level.Posts.Reply
-  alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
   alias Level.Repo
-  alias Level.Schemas.SearchResult
   alias Level.Schemas.File
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupUser
+  alias Level.Schemas.Post
   alias Level.Schemas.PostFile
+  alias Level.Schemas.PostLog
+  alias Level.Schemas.PostUser
+  alias Level.Schemas.PostUserLog
   alias Level.Schemas.PostVersion
+  alias Level.Schemas.PostView
+  alias Level.Schemas.Reply
   alias Level.Schemas.ReplyFile
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.ReplyView
+  alias Level.Schemas.SearchResult
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   # TODO: make these types more specific
 

@@ -4,10 +4,11 @@ defmodule Level.SpacesTest do
   import Ecto.Query
 
   alias Level.Repo
+  alias Level.Schemas.OpenInvitation
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceSetupStep
+  alias Level.Schemas.SpaceUser
   alias Level.Spaces
-  alias Level.Spaces.OpenInvitation
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
 
   describe "spaces_base_query/1" do
     setup do
@@ -176,7 +177,7 @@ defmodule Level.SpacesTest do
           is_skipped: false
         })
 
-      assert Repo.get_by(Spaces.SpaceSetupStep, %{
+      assert Repo.get_by(SpaceSetupStep, %{
                space_id: space.id,
                space_user_id: space_user.id,
                state: "CREATE_GROUPS"

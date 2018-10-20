@@ -1,14 +1,14 @@
-defmodule Level.Mentions.UserMention do
+defmodule Level.Schemas.UserMention do
   @moduledoc """
   The UserMention schema.
   """
 
   use Ecto.Schema
 
-  alias Level.Posts.Post
-  alias Level.Posts.Reply
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Post
+  alias Level.Schemas.Reply
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

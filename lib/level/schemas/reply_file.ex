@@ -7,9 +7,9 @@ defmodule Level.Schemas.ReplyFile do
 
   import Ecto.Changeset
 
-  alias Level.Posts.Reply
   alias Level.Schemas.File
-  alias Level.Spaces.Space
+  alias Level.Schemas.Reply
+  alias Level.Schemas.Space
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

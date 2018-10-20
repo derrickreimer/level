@@ -1,4 +1,4 @@
-defmodule Level.Users.Reservation do
+defmodule Level.Schemas.Reservation do
   @moduledoc """
   The Reservation schema.
   """
@@ -8,7 +8,7 @@ defmodule Level.Users.Reservation do
   import Level.Gettext
 
   alias Level.Handles
-  alias Level.Users.User
+  alias Level.Schemas.User
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

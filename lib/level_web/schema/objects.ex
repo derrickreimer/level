@@ -8,13 +8,13 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Files
   alias Level.Groups
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.Reply
   alias Level.Resolvers
+  alias Level.Schemas.Post
+  alias Level.Schemas.Reply
   alias Level.Schemas.SearchResult
   alias Level.Schemas.SpaceBot
+  alias Level.Schemas.SpaceUser
   alias Level.Spaces
-  alias Level.Spaces.SpaceUser
   alias LevelWeb.Endpoint
   alias LevelWeb.Router.Helpers
 

@@ -8,8 +8,8 @@ defmodule Level.Schemas.File do
   import Ecto.Changeset
 
   alias Level.Schemas.PostFile
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

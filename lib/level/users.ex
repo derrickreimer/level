@@ -9,9 +9,9 @@ defmodule Level.Users do
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Repo
+  alias Level.Schemas.Reservation
+  alias Level.Schemas.User
   alias Level.Spaces
-  alias Level.Users.Reservation
-  alias Level.Users.User
   alias Level.WebPush
 
   @doc """

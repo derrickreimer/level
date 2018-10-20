@@ -142,7 +142,7 @@ defmodule Level.Mixfile do
         Level.Spaces.SpaceSetupStep,
         Level.Spaces.SpaceUser,
         Level.Users.Reservation,
-        Level.Users.User
+        Level.Schemas.User
       ],
       Plugs: [
         LevelWeb.Absinthe,

@@ -4,7 +4,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
 
   import Ecto.Query
   alias Level.Groups
-  alias Level.Groups.GroupUser
+  alias Level.Schemas.GroupUser
 
   @query """
     query GetGroupMembership(

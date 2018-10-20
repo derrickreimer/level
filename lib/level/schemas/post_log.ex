@@ -1,16 +1,16 @@
-defmodule Level.Posts.PostLog do
+defmodule Level.Schemas.PostLog do
   @moduledoc """
   The PostLog schema.
   """
 
   use Ecto.Schema
 
-  alias Level.Groups.Group
-  alias Level.Posts.Post
-  alias Level.Posts.Reply
   alias Level.Repo
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Group
+  alias Level.Schemas.Post
+  alias Level.Schemas.Reply
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

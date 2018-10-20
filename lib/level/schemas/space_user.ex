@@ -1,4 +1,4 @@
-defmodule Level.Spaces.SpaceUser do
+defmodule Level.Schemas.SpaceUser do
   @moduledoc """
   The SpaceUser context.
   """
@@ -9,10 +9,10 @@ defmodule Level.Spaces.SpaceUser do
   import Level.Gettext
 
   alias Level.Handles
-  alias Level.Posts.PostUser
   alias Level.Schemas.File
-  alias Level.Spaces.Space
-  alias Level.Users.User
+  alias Level.Schemas.PostUser
+  alias Level.Schemas.Space
+  alias Level.Schemas.User
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

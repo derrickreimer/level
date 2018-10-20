@@ -5,8 +5,8 @@ defmodule LevelWeb.UserController do
 
   import Level.FeatureFlags
 
+  alias Level.Schemas.User
   alias Level.Users
-  alias Level.Users.User
 
   plug :check_feature_flag
 

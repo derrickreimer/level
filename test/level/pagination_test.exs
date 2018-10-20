@@ -6,7 +6,7 @@ defmodule Level.PaginationTest do
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Pagination.Result
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.SpaceUser
 
   describe "fetch_result/3" do
     setup do

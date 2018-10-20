@@ -1,5 +1,7 @@
 defmodule LevelWeb.AuthTest do
   use LevelWeb.ConnCase, async: true
+
+  alias Level.Schemas.User
   alias LevelWeb.Auth
 
   setup %{conn: conn} do
@@ -144,7 +146,7 @@ defmodule LevelWeb.AuthTest do
 
   describe "generate_signed_jwt/1" do
     setup do
-      user = %Level.Users.User{id: 999}
+      user = %User{id: 999}
       {:ok, %{user: user}}
     end
 
@@ -158,7 +160,7 @@ defmodule LevelWeb.AuthTest do
 
   describe "verify_signed_jwt/1" do
     setup do
-      user = %Level.Users.User{id: 999}
+      user = %User{id: 999}
       {:ok, %{user: user}}
     end
 

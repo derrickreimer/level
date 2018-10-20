@@ -6,11 +6,11 @@ defmodule Level.Posts.UpdatePost do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostLog
   alias Level.Repo
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostLog
   alias Level.Schemas.PostVersion
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.SpaceUser
 
   @spec perform(SpaceUser.t(), Post.t(), map()) ::
           {:ok, %{original_post: Post.t(), updated_post: Post.t(), version: PostVersion.t()}}

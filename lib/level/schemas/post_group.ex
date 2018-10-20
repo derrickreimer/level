@@ -1,21 +1,21 @@
-defmodule Level.Groups.GroupBookmark do
+defmodule Level.Schemas.PostGroup do
   @moduledoc """
-  The GroupBookmark schema.
+  The PostGroup schema.
   """
 
   use Ecto.Schema
 
-  alias Level.Groups.Group
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Group
+  alias Level.Schemas.Post
+  alias Level.Schemas.Space
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "group_bookmarks" do
+  schema "post_groups" do
     belongs_to :space, Space
-    belongs_to :space_user, SpaceUser
+    belongs_to :post, Post
     belongs_to :group, Group
 
     timestamps()

@@ -1,4 +1,4 @@
-defmodule Level.Groups.GroupUser do
+defmodule Level.Schemas.GroupUser do
   @moduledoc """
   The GroupUser schema.
   """
@@ -7,9 +7,9 @@ defmodule Level.Groups.GroupUser do
   import Ecto.Changeset
   import Level.Gettext
 
-  alias Level.Groups.Group
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Group
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

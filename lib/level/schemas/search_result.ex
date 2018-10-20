@@ -5,8 +5,8 @@ defmodule Level.Schemas.SearchResult do
 
   use Ecto.Schema
 
-  alias Level.Posts.Post
-  alias Level.Spaces.Space
+  alias Level.Schemas.Post
+  alias Level.Schemas.Space
 
   @type t :: %__MODULE__{}
   @primary_key false

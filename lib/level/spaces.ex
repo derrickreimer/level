@@ -12,12 +12,12 @@ defmodule Level.Spaces do
   alias Level.Bots
   alias Level.Events
   alias Level.Repo
+  alias Level.Schemas.OpenInvitation
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
-  alias Level.Spaces.OpenInvitation
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceSetupStep
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.SpaceSetupStep
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   @typedoc "The result of creating a space"
   @type create_space_result ::

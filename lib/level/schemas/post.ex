@@ -1,4 +1,4 @@
-defmodule Level.Posts.Post do
+defmodule Level.Schemas.Post do
   @moduledoc """
   The Post schema.
   """
@@ -7,16 +7,16 @@ defmodule Level.Posts.Post do
 
   import Ecto.Changeset
 
-  alias Level.Groups.Group
-  alias Level.Mentions.UserMention
-  alias Level.Posts.PostGroup
-  alias Level.Posts.PostLog
-  alias Level.Posts.PostUser
-  alias Level.Posts.Reply
+  alias Level.Schemas.Group
   alias Level.Schemas.PostFile
+  alias Level.Schemas.PostGroup
+  alias Level.Schemas.PostLog
+  alias Level.Schemas.PostUser
+  alias Level.Schemas.Reply
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.UserMention
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

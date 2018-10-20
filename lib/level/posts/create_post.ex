@@ -5,14 +5,14 @@ defmodule Level.Posts.CreatePost do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Files
-  alias Level.Groups.Group
   alias Level.Mentions
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostGroup
-  alias Level.Posts.PostLog
   alias Level.Repo
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Group
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostGroup
+  alias Level.Schemas.PostLog
+  alias Level.Schemas.SpaceUser
 
   # TODO: make this more specific
   @type result :: {:ok, map()} | {:error, any(), any(), map()}

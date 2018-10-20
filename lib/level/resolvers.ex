@@ -8,16 +8,8 @@ defmodule Level.Resolvers do
   import Ecto.Query, warn: false
   import Level.Gettext
 
-  alias Level.Groups.Group
-  alias Level.Groups.GroupBookmark
-  alias Level.Groups.GroupUser
-  alias Level.Mentions.UserMention
   alias Level.Pagination
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostUser
-  alias Level.Posts.Reply
-  alias Level.Posts.ReplyView
   alias Level.Repo
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
@@ -26,11 +18,19 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.SearchConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupUser
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostUser
+  alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyView
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
+  alias Level.Schemas.UserMention
   alias Level.Spaces
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
 
   @typedoc "A info map for Absinthe GraphQL"
   @type info :: %{context: %{current_user: User.t(), loader: Dataloader.t()}}

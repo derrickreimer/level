@@ -1,4 +1,4 @@
-defmodule Level.Spaces.SpaceSetupStep do
+defmodule Level.Schemas.SpaceSetupStep do
   @moduledoc """
   The SpaceSetupStep schema.
   """
@@ -7,8 +7,8 @@ defmodule Level.Spaces.SpaceSetupStep do
 
   import Ecto.Changeset
 
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

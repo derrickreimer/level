@@ -8,8 +8,8 @@ defmodule Level.Resolvers.SearchConnection do
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.SearchResult
+  alias Level.Schemas.Space
   alias Level.Spaces
-  alias Level.Spaces.Space
 
   defstruct page: 1,
             count: 20,

@@ -1,4 +1,4 @@
-defmodule Level.Users.PushSubscription do
+defmodule Level.Schemas.PushSubscription do
   @moduledoc """
   The PushSubscription schema.
   """
@@ -7,7 +7,7 @@ defmodule Level.Users.PushSubscription do
   import Ecto.Changeset
 
   alias Ecto.Changeset
-  alias Level.Users.User
+  alias Level.Schemas.User
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

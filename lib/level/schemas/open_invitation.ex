@@ -1,4 +1,4 @@
-defmodule Level.Spaces.OpenInvitation do
+defmodule Level.Schemas.OpenInvitation do
   @moduledoc """
   The OpenInvitation schema.
   """
@@ -7,7 +7,7 @@ defmodule Level.Spaces.OpenInvitation do
 
   import Ecto.Changeset
 
-  alias Level.Spaces.Space
+  alias Level.Schemas.Space
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -39,7 +39,7 @@ defmodule Level.Spaces.OpenInvitation do
   end
 end
 
-defimpl Phoenix.Param, for: Level.Spaces.OpenInvitation do
+defimpl Phoenix.Param, for: Level.Schemas.OpenInvitation do
   def to_param(%{token: token}) do
     token
   end

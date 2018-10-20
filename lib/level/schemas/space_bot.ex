@@ -9,7 +9,7 @@ defmodule Level.Schemas.SpaceBot do
 
   alias Level.Handles
   alias Level.Schemas.Bot
-  alias Level.Spaces.Space
+  alias Level.Schemas.Space
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

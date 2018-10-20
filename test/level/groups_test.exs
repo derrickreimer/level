@@ -4,9 +4,9 @@ defmodule Level.GroupsTest do
   import Ecto.Query
 
   alias Level.Groups
-  alias Level.Groups.Group
-  alias Level.Groups.GroupBookmark
-  alias Level.Groups.GroupUser
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupUser
 
   describe "groups_base_query/2" do
     setup do

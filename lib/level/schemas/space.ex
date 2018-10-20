@@ -1,4 +1,4 @@
-defmodule Level.Spaces.Space do
+defmodule Level.Schemas.Space do
   @moduledoc """
   The Space schema.
   """
@@ -7,7 +7,7 @@ defmodule Level.Spaces.Space do
   import Ecto.Changeset
   import Level.Gettext
 
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -57,7 +57,7 @@ defmodule Level.Spaces.Space do
   end
 end
 
-defimpl Phoenix.Param, for: Level.Spaces.Space do
+defimpl Phoenix.Param, for: Level.Schemas.Space do
   def to_param(%{slug: slug}) do
     slug
   end

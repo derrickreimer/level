@@ -2,7 +2,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipUpdatedTest do
   use LevelWeb.ChannelCase
 
   alias Level.Groups
-  alias Level.Groups.GroupUser
+  alias Level.Schemas.GroupUser
 
   @operation """
     subscription GroupSubscription(

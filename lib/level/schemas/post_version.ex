@@ -7,9 +7,9 @@ defmodule Level.Schemas.PostVersion do
 
   import Ecto.Changeset
 
-  alias Level.Posts.Post
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Post
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

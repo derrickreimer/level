@@ -4,7 +4,7 @@ defmodule LevelWeb.Absinthe do
   """
 
   alias Level.Loaders
-  alias Level.Users.User
+  alias Level.Schemas.User
 
   # Suppress dialyzer warnings about dataloader functions
   @dialyzer {:nowarn_function, build_loader: 1}

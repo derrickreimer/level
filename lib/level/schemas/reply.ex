@@ -1,4 +1,4 @@
-defmodule Level.Posts.Reply do
+defmodule Level.Schemas.Reply do
   @moduledoc """
   The Reply schema.
   """
@@ -7,11 +7,11 @@ defmodule Level.Posts.Reply do
 
   import Ecto.Changeset
 
-  alias Level.Posts.Post
+  alias Level.Schemas.Post
   alias Level.Schemas.ReplyFile
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}

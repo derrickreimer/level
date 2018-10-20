@@ -6,10 +6,10 @@ defmodule Level.Resolvers.UserGroupMembershipConnection do
   import Ecto.Query
   import Level.Gettext
 
-  alias Level.Groups.Group
-  alias Level.Groups.GroupUser
   alias Level.Pagination
   alias Level.Pagination.Args
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupUser
   alias Level.Spaces
 
   defstruct first: nil,

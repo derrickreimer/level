@@ -9,7 +9,7 @@ defmodule Level.Files do
   alias Level.AssetStore
   alias Level.Repo
   alias Level.Schemas.File
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.SpaceUser
 
   @doc """
   Fetches uploads from a list of ids.
