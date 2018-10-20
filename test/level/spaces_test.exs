@@ -90,6 +90,14 @@ defmodule Level.SpacesTest do
       {:ok, %{open_invitation: open_invitation}} = Spaces.create_space(user, params)
       assert open_invitation.state == "ACTIVE"
     end
+
+    test "installs levelbot", %{user: user} do
+      params = valid_space_params()
+      {:ok, %{space: space, levelbot: levelbot}} = Spaces.create_space(user, params)
+
+      assert levelbot.space_id == space.id
+      assert levelbot.handle == "levelbot"
+    end
   end
 
   describe "get_space_by_slug/2" do

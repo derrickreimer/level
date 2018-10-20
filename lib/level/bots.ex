@@ -13,6 +13,13 @@ defmodule Level.Bots do
   def create_level_bot!() do
     %Bot{}
     |> Changeset.change(%{state: "ACTIVE", display_name: "Level", handle: "levelbot"})
-    |> Repo.insert!()
+    |> Repo.insert!(on_conflict: :nothing)
+  end
+
+  @doc """
+  Fetches Level bot.
+  """
+  def get_level_bot!() do
+    Repo.get_by!(Bot, handle: "levelbot")
   end
 end
