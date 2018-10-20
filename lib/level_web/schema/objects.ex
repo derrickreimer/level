@@ -11,8 +11,8 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Posts.Post
   alias Level.Posts.Reply
   alias Level.Resolvers
-  alias Level.SearchResult
-  alias Level.SpaceBot
+  alias Level.Schemas.SearchResult
+  alias Level.Schemas.SpaceBot
   alias Level.Spaces
   alias Level.Spaces.SpaceUser
   alias LevelWeb.Endpoint

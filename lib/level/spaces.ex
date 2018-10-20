@@ -12,7 +12,7 @@ defmodule Level.Spaces do
   alias Level.Bots
   alias Level.Events
   alias Level.Repo
-  alias Level.SpaceBot
+  alias Level.Schemas.SpaceBot
   alias Level.Spaces.OpenInvitation
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceSetupStep

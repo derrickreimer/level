@@ -7,7 +7,7 @@ defmodule Level.Resolvers.SearchConnection do
 
   alias Level.Posts
   alias Level.Repo
-  alias Level.SearchResult
+  alias Level.Schemas.SearchResult
   alias Level.Spaces
   alias Level.Spaces.Space
 

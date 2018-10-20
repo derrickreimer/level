@@ -1,13 +1,13 @@
-defmodule Level.ReplyVersion do
+defmodule Level.Schemas.PostVersion do
   @moduledoc """
-  The ReplyVersion schema.
+  The PostVersion schema.
   """
 
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Level.Posts.Reply
+  alias Level.Posts.Post
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 
@@ -15,11 +15,11 @@ defmodule Level.ReplyVersion do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "reply_versions" do
+  schema "post_versions" do
     field :body, :string
 
     belongs_to :space, Space
-    belongs_to :reply, Reply
+    belongs_to :post, Post
     belongs_to :author, SpaceUser
 
     timestamps(updated_at: false)
@@ -28,7 +28,7 @@ defmodule Level.ReplyVersion do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :author_id, :reply_id, :body])
+    |> cast(attrs, [:space_id, :author_id, :post_id, :body])
     |> validate_required([:body])
   end
 end

@@ -26,7 +26,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.SearchConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
-  alias Level.SpaceBot
+  alias Level.Schemas.SpaceBot
   alias Level.Spaces
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser

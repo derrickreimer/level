@@ -9,12 +9,10 @@ defmodule Level.Posts do
 
   alias Ecto.Multi
   alias Level.Events
-  alias Level.File
   alias Level.Groups.Group
   alias Level.Groups.GroupUser
   alias Level.Markdown
   alias Level.Mentions
-  alias Level.PostFile
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
   alias Level.Posts.Post
@@ -26,10 +24,12 @@ defmodule Level.Posts do
   alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
-  alias Level.PostVersion
-  alias Level.ReplyFile
   alias Level.Repo
-  alias Level.SearchResult
+  alias Level.Schemas.SearchResult
+  alias Level.Schemas.File
+  alias Level.Schemas.PostFile
+  alias Level.Schemas.PostVersion
+  alias Level.Schemas.ReplyFile
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 

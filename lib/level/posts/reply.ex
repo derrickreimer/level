@@ -8,8 +8,8 @@ defmodule Level.Posts.Reply do
   import Ecto.Changeset
 
   alias Level.Posts.Post
-  alias Level.ReplyFile
-  alias Level.SpaceBot
+  alias Level.Schemas.ReplyFile
+  alias Level.Schemas.SpaceBot
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 

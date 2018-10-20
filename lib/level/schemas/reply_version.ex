@@ -1,24 +1,26 @@
-defmodule Level.PostFile do
+defmodule Level.Schemas.ReplyVersion do
   @moduledoc """
-  The PostFile schema.
+  The ReplyVersion schema.
   """
 
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Level.File
-  alias Level.Posts.Post
+  alias Level.Posts.Reply
   alias Level.Spaces.Space
+  alias Level.Spaces.SpaceUser
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "post_files" do
+  schema "reply_versions" do
+    field :body, :string
+
     belongs_to :space, Space
-    belongs_to :post, Post
-    belongs_to :file, File
+    belongs_to :reply, Reply
+    belongs_to :author, SpaceUser
 
     timestamps(updated_at: false)
   end
@@ -26,6 +28,7 @@ defmodule Level.PostFile do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :post_id, :file_id])
+    |> cast(attrs, [:space_id, :author_id, :reply_id, :body])
+    |> validate_required([:body])
   end
 end

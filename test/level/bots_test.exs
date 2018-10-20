@@ -1,8 +1,8 @@
 defmodule Level.BotsTtest do
   use Level.DataCase, async: true
 
-  alias Level.Bot
   alias Level.Bots
+  alias Level.Schemas.Bot
 
   describe "create_level_bot!/0" do
     test "creates the levelbot" do

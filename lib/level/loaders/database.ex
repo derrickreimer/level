@@ -3,7 +3,6 @@ defmodule Level.Loaders.Database do
 
   import Ecto.Query, warn: false
 
-  alias Level.File
   alias Level.Groups
   alias Level.Groups.Group
   alias Level.Groups.GroupBookmark
@@ -16,6 +15,7 @@ defmodule Level.Loaders.Database do
   alias Level.Posts.Reply
   alias Level.Posts.ReplyView
   alias Level.Repo
+  alias Level.Schemas.File
   alias Level.Spaces
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser

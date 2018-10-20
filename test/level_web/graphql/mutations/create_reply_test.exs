@@ -2,7 +2,7 @@ defmodule LevelWeb.GraphQL.CreateReplyTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
-  alias Level.File
+  alias Level.Schemas.File
 
   @query """
     mutation CreateReply(

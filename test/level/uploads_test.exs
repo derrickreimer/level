@@ -1,8 +1,8 @@
 defmodule Level.FilesTest do
   use Level.DataCase, async: true
 
-  alias Level.File
   alias Level.Files
+  alias Level.Schemas.File
 
   describe "get_files/2" do
     setup do

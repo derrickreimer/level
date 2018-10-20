@@ -7,8 +7,8 @@ defmodule Level.Files do
 
   alias Ecto.Multi
   alias Level.AssetStore
-  alias Level.File
   alias Level.Repo
+  alias Level.Schemas.File
   alias Level.Spaces.SpaceUser
 
   @doc """

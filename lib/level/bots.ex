@@ -4,8 +4,8 @@ defmodule Level.Bots do
   """
 
   alias Ecto.Changeset
-  alias Level.Bot
   alias Level.Repo
+  alias Level.Schemas.Bot
 
   @doc """
   Creates the special Level bot.

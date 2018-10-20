@@ -1,4 +1,4 @@
-defmodule Level.File do
+defmodule Level.Schemas.File do
   @moduledoc """
   The File schema.
   """
@@ -7,7 +7,7 @@ defmodule Level.File do
 
   import Ecto.Changeset
 
-  alias Level.PostFile
+  alias Level.Schemas.PostFile
   alias Level.Spaces.Space
   alias Level.Spaces.SpaceUser
 

@@ -3,15 +3,15 @@ defmodule Level.PostsTest do
 
   import Ecto.Query
 
-  alias Level.File
   alias Level.Groups
   alias Level.Groups.Group
   alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostView
   alias Level.Posts.Reply
-  alias Level.PostVersion
   alias Level.Repo
+  alias Level.Schemas.File
+  alias Level.Schemas.PostVersion
   alias Level.Spaces.SpaceUser
   alias Level.Users.User
 

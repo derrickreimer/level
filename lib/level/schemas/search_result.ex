@@ -1,4 +1,4 @@
-defmodule Level.SearchResult do
+defmodule Level.Schemas.SearchResult do
   @moduledoc """
   The SearchResult schema.
   """

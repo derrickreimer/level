@@ -8,8 +8,8 @@ defmodule Level.Posts.UpdatePost do
   alias Level.Posts
   alias Level.Posts.Post
   alias Level.Posts.PostLog
-  alias Level.PostVersion
   alias Level.Repo
+  alias Level.Schemas.PostVersion
   alias Level.Spaces.SpaceUser
 
   @spec perform(SpaceUser.t(), Post.t(), map()) ::

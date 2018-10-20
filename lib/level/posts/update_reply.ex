@@ -8,8 +8,8 @@ defmodule Level.Posts.UpdateReply do
   alias Level.Posts
   alias Level.Posts.PostLog
   alias Level.Posts.Reply
-  alias Level.ReplyVersion
   alias Level.Repo
+  alias Level.Schemas.ReplyVersion
   alias Level.Spaces.SpaceUser
 
   @spec perform(SpaceUser.t(), Reply.t(), map()) ::

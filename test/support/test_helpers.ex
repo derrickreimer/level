@@ -3,10 +3,10 @@ defmodule Level.TestHelpers do
   Miscellaneous helper functions for tests.
   """
 
-  alias Level.File
   alias Level.Groups
   alias Level.Posts
   alias Level.Repo
+  alias Level.Schemas.File
   alias Level.Spaces
   alias Level.Users
 

@@ -8,9 +8,9 @@ defmodule Level.Spaces.SpaceUser do
   import Ecto.Changeset
   import Level.Gettext
 
-  alias Level.File
   alias Level.Handles
   alias Level.Posts.PostUser
+  alias Level.Schemas.File
   alias Level.Spaces.Space
   alias Level.Users.User
 

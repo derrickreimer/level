@@ -1,6 +1,6 @@
-defmodule Level.Bot do
+defmodule Level.Schemas.SpaceBot do
   @moduledoc """
-  The Bot schema.
+  The SpaceBot schema.
   """
 
   use Ecto.Schema
@@ -8,16 +8,21 @@ defmodule Level.Bot do
   import Level.Gettext
 
   alias Level.Handles
+  alias Level.Schemas.Bot
+  alias Level.Spaces.Space
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  schema "bots" do
+  schema "space_bots" do
     field :state, :string, read_after_writes: true
     field :handle, :string
     field :display_name, :string
     field :avatar, :string
+
+    belongs_to :space, Space
+    belongs_to :bot, Bot
 
     timestamps()
   end

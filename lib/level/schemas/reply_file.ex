@@ -1,4 +1,4 @@
-defmodule Level.ReplyFile do
+defmodule Level.Schemas.ReplyFile do
   @moduledoc """
   The ReplyFile schema.
   """
@@ -7,8 +7,8 @@ defmodule Level.ReplyFile do
 
   import Ecto.Changeset
 
-  alias Level.File
   alias Level.Posts.Reply
+  alias Level.Schemas.File
   alias Level.Spaces.Space
 
   @type t :: %__MODULE__{}
