@@ -32,7 +32,7 @@ defmodule Level.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {Level, []}, extra_applications: [:logger, :runtime_tools]]
+    [mod: {Level, []}, extra_applications: [:logger, :runtime_tools, :honeybadger]]
   end
 
   # Specifies which paths to compile per environment.
