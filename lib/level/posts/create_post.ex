@@ -24,7 +24,7 @@ defmodule Level.Posts.CreatePost do
   @spec perform(Posts.author(), Posts.recipient(), map()) :: result()
   def perform(%SpaceUser{} = author, %Group{} = group, params) do
     Multi.new()
-    |> do_insert(build_params(author, params))
+    |> insert_post(build_params(author, params))
     |> associate_with_group(group)
     |> record_mentions()
     |> attach_files(author, params)
@@ -35,7 +35,7 @@ defmodule Level.Posts.CreatePost do
 
   def perform(%SpaceBot{} = author, %SpaceUser{} = recipient, params) do
     Multi.new()
-    |> do_insert(build_params(author, params))
+    |> insert_post(build_params(author, params))
     |> Repo.transaction()
     |> after_bot_post(author, recipient)
   end
@@ -62,7 +62,7 @@ defmodule Level.Posts.CreatePost do
     }
   end
 
-  defp do_insert(multi, params) do
+  defp insert_post(multi, params) do
     Multi.insert(multi, :post, Post.create_changeset(%Post{}, params))
   end
 
