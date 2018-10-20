@@ -30,6 +30,7 @@ defmodule Level.Posts do
   alias Level.Schemas.ReplyFile
   alias Level.Schemas.ReplyView
   alias Level.Schemas.SearchResult
+  alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
 
@@ -40,6 +41,12 @@ defmodule Level.Posts do
 
   @typedoc "The result of replying to a post"
   @type create_reply_result :: {:ok, map()} | {:error, any(), any(), map()}
+
+  @typedoc "An author (either a space user or space bot)"
+  @type author :: SpaceUser.t() | SpaceBot.t()
+
+  @typedoc "The recipient of a post (either a group or a space user)"
+  @type recipient :: Group.t() | SpaceUser.t()
 
   @doc """
   Builds a query for posts accessible to a particular user.
@@ -217,9 +224,9 @@ defmodule Level.Posts do
   @doc """
   Posts a message to a group.
   """
-  @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()
-  def create_post(author, group, params) do
-    CreatePost.perform(author, group, params)
+  @spec create_post(author(), recipient(), map()) :: create_post_result()
+  def create_post(author, recipient, params) do
+    CreatePost.perform(author, recipient, params)
   end
 
   @doc """

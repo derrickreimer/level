@@ -113,7 +113,7 @@ defmodule Level.PostsTest do
     end
   end
 
-  describe "create_post/2" do
+  describe "create_post/2 with space user + group" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
@@ -186,6 +186,37 @@ defmodule Level.PostsTest do
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
       {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)
+
+      assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
+               changeset
+    end
+  end
+
+  describe "create_post/2 with bot + direct recipient" do
+    setup do
+      {:ok, %{space: space} = result} = create_user_and_space()
+      {:ok, %{space_user: recipient}} = create_space_member(space)
+      {:ok, Map.put(result, :recipient, recipient)}
+    end
+
+    test "creates a new post given valid params", %{levelbot: space_bot, recipient: recipient} do
+      params = valid_post_params() |> Map.merge(%{body: "The body"})
+      {:ok, %{post: post}} = Posts.create_post(space_bot, recipient, params)
+      assert post.space_bot_id == space_bot.id
+      assert post.body == "The body"
+    end
+
+    test "subscribes the recipient to the post", %{levelbot: space_bot, recipient: recipient} do
+      params = valid_post_params()
+      {:ok, %{post: post}} = Posts.create_post(space_bot, recipient, params)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, recipient)
+    end
+
+    test "returns errors given invalid params", %{levelbot: space_bot, recipient: recipient} do
+      params = valid_post_params() |> Map.merge(%{body: nil})
+      {:error, :post, changeset, _} = Posts.create_post(space_bot, recipient, params)
 
       assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
                changeset

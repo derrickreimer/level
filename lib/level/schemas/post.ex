@@ -49,7 +49,7 @@ defmodule Level.Schemas.Post do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_user_id, :body])
+    |> cast(attrs, [:space_id, :space_user_id, :space_bot_id, :body])
     |> validate_required([:body])
   end
 

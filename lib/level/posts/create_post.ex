@@ -12,16 +12,17 @@ defmodule Level.Posts.CreatePost do
   alias Level.Schemas.Post
   alias Level.Schemas.PostGroup
   alias Level.Schemas.PostLog
+  alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
 
   # TODO: make this more specific
   @type result :: {:ok, map()} | {:error, any(), any(), map()}
 
   @doc """
-  Adds a post to group.
+  Creates a new post.
   """
-  @spec perform(SpaceUser.t(), Group.t(), map()) :: result()
-  def perform(author, group, params) do
+  @spec perform(Posts.author(), Posts.recipient(), map()) :: result()
+  def perform(%SpaceUser{} = author, %Group{} = group, params) do
     Multi.new()
     |> do_insert(build_params(author, params))
     |> associate_with_group(group)
@@ -29,13 +30,28 @@ defmodule Level.Posts.CreatePost do
     |> attach_files(author, params)
     |> log(group, author)
     |> Repo.transaction()
-    |> after_transaction(author, group)
+    |> after_user_post(author, group)
   end
 
-  defp build_params(author, params) do
+  def perform(%SpaceBot{} = author, %SpaceUser{} = recipient, params) do
+    Multi.new()
+    |> do_insert(build_params(author, params))
+    |> Repo.transaction()
+    |> after_bot_post(author, recipient)
+  end
+
+  # Internal
+
+  defp build_params(%SpaceUser{} = author, params) do
     params
     |> Map.put(:space_id, author.space_id)
     |> Map.put(:space_user_id, author.id)
+  end
+
+  defp build_params(%SpaceBot{} = author, params) do
+    params
+    |> Map.put(:space_id, author.space_id)
+    |> Map.put(:space_bot_id, author.id)
   end
 
   defp build_post_group_params(post, group) do
@@ -81,19 +97,15 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp after_transaction({:ok, %{post: post} = result}, author, group) do
-    _ = subscribe_author(post, author)
-    _ = subscribe_mentioned(post, result)
-    _ = send_events(post, group, result)
+  defp after_user_post({:ok, result}, author, group) do
+    _ = Posts.subscribe(author, [result.post])
+    _ = subscribe_mentioned(result.post, result)
+    _ = send_events(result.post, group, result)
 
     {:ok, result}
   end
 
-  defp after_transaction(err, _, _), do: err
-
-  defp subscribe_author(post, author) do
-    _ = Posts.subscribe(author, [post])
-  end
+  defp after_user_post(err, _, _), do: err
 
   defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
     Enum.each(mentioned_users, fn mentioned_user ->
@@ -109,4 +121,13 @@ defmodule Level.Posts.CreatePost do
       _ = Events.user_mentioned(id, post)
     end)
   end
+
+  defp after_bot_post({:ok, result}, author, recipient) do
+    _ = Posts.subscribe(recipient, [result.post])
+    _ = Posts.mark_as_unread(recipient, [result.post])
+
+    {:ok, result}
+  end
+
+  defp after_bot_post(err, _, _), do: err
 end
