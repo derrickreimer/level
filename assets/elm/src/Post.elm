@@ -29,6 +29,7 @@ module Post exposing
 
 -}
 
+import Actor exposing (ActorId)
 import Connection exposing (Connection)
 import File exposing (File)
 import GraphQL exposing (Fragment)
@@ -38,7 +39,6 @@ import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, st
 import Json.Decode.Pipeline as Pipeline exposing (required)
 import List
 import Reply exposing (Reply)
-import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 
@@ -74,7 +74,7 @@ type alias Data =
     , state : State
     , body : String
     , bodyHtml : String
-    , authorId : Id
+    , authorId : ActorId
     , groupIds : List Id
     , files : List File
     , postedAt : Posix
@@ -104,7 +104,7 @@ postedAt (Post data) =
     data.postedAt
 
 
-authorId : Post -> Id
+authorId : Post -> ActorId
 authorId (Post data) =
     data.authorId
 
@@ -174,10 +174,7 @@ fragment =
               subscriptionState
               inboxState
               author {
-                __typename
-                ... on SpaceUser {
-                  ...SpaceUserFields
-                }
+                ...ActorFields
               }
               groups {
                 ...GroupFields
@@ -191,7 +188,7 @@ fragment =
             """
     in
     GraphQL.toFragment queryBody
-        [ SpaceUser.fragment
+        [ Actor.fragment
         , Group.fragment
         , File.fragment
         ]
@@ -209,7 +206,7 @@ decoder =
             |> required "state" stateDecoder
             |> required "body" string
             |> required "bodyHtml" string
-            |> required "author" (field "id" Id.decoder)
+            |> required "author" authorIdDecoder
             |> required "groups" (list (field "id" Id.decoder))
             |> required "files" (list File.decoder)
             |> required "postedAt" dateDecoder
@@ -218,6 +215,24 @@ decoder =
             |> required "canEdit" bool
             |> required "fetchedAt" int
         )
+
+
+authorIdDecoder : Decoder ActorId
+authorIdDecoder =
+    let
+        convert typename =
+            case typename of
+                "SpaceUser" ->
+                    Decode.map Actor.UserId (field "id" Id.decoder)
+
+                "SpaceBot" ->
+                    Decode.map Actor.BotId (field "id" Id.decoder)
+
+                _ ->
+                    fail "author not valid"
+    in
+    field "__typename" string
+        |> Decode.andThen convert
 
 
 decoderWithReplies : Decoder ( Post, Connection Reply )

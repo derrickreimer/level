@@ -1,5 +1,6 @@
 module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleReplyCreated, init, setup, teardown, update, view)
 
+import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
 import Color exposing (Color)
 import Connection exposing (Connection)
@@ -64,7 +65,7 @@ type Mode
 
 type alias Data =
     { post : Post
-    , author : SpaceUser
+    , author : Actor
     }
 
 
@@ -82,7 +83,7 @@ resolveData repo model =
         Just post ->
             Maybe.map2 Data
                 (Just post)
-                (Repo.getSpaceUser (Post.authorId post) repo)
+                (Repo.getActor (Post.authorId post) repo)
 
         Nothing ->
             Nothing
@@ -760,7 +761,7 @@ view repo space currentUser now model =
 resolvedView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
 resolvedView repo space currentUser (( zone, posix ) as now) model data =
     div [ class "flex" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium data.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ a
@@ -769,7 +770,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ span [ class "font-bold" ] [ text <| SpaceUser.displayName data.author ] ]
+                    [ span [ class "font-bold" ] [ text <| Actor.displayName data.author ] ]
                 , viewIf model.showGroups <|
                     groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
                 , a

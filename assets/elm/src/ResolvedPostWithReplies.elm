@@ -1,5 +1,6 @@
 module ResolvedPostWithReplies exposing (ResolvedPostWithReplies, addManyToRepo, addToRepo, decoder, unresolve)
 
+import Actor exposing (Actor)
 import Connection exposing (Connection)
 import Group exposing (Group)
 import Id exposing (Id)
@@ -8,12 +9,11 @@ import Post exposing (Post)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedReply exposing (ResolvedReply)
-import SpaceUser exposing (SpaceUser)
 
 
 type alias ResolvedPostWithReplies =
     { post : Post
-    , author : SpaceUser
+    , author : Actor
     , groups : List Group
     , resolvedReplies : Connection ResolvedReply
     }
@@ -23,7 +23,7 @@ decoder : Decoder ResolvedPostWithReplies
 decoder =
     Decode.map4 ResolvedPostWithReplies
         Post.decoder
-        (field "author" SpaceUser.decoder)
+        (field "author" Actor.decoder)
         (field "groups" (list Group.decoder))
         (field "replies" (Connection.decoder ResolvedReply.decoder))
 
@@ -32,8 +32,8 @@ addToRepo : ResolvedPostWithReplies -> Repo -> Repo
 addToRepo post repo =
     repo
         |> Repo.setPost post.post
-        |> Repo.setSpaceUser post.author
         |> Repo.setGroups post.groups
+        |> Repo.setActor post.author
         |> ResolvedReply.addManyToRepo (Connection.toList post.resolvedReplies)
 
 
@@ -52,7 +52,7 @@ resolve repo ( postId, replyIds ) =
         Just post ->
             Maybe.map4 ResolvedPostWithReplies
                 (Just post)
-                (Repo.getSpaceUser (Post.authorId post) repo)
+                (Repo.getActor (Post.authorId post) repo)
                 (Just <| List.filterMap (\id -> Repo.getGroup id repo) (Post.groupIds post))
                 (Just <| Connection.filterMap (ResolvedReply.resolve repo) replyIds)
 

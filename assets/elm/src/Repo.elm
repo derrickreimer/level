@@ -4,6 +4,8 @@ module Repo exposing
     , getUser, setUser
     , getSpace, getSpaces, setSpace, setSpaces
     , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, setSpaceUser, setSpaceUsers
+    , getSpaceBot, setSpaceBot
+    , getActor, setActor
     , getGroup, getGroups, setGroup, setGroups
     , getPost, setPost, setPosts
     , getReply, getReplies, setReply, setReplies
@@ -37,6 +39,16 @@ module Repo exposing
 @docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, filterSpaceUsers, setSpaceUser, setSpaceUsers
 
 
+# Space Bots
+
+@docs getSpaceBot, setSpaceBot
+
+
+# Actors
+
+@docs getActor, setActor
+
+
 # Groups
 
 @docs getGroup, getGroups, setGroup, setGroups
@@ -53,12 +65,14 @@ module Repo exposing
 
 -}
 
+import Actor exposing (Actor, ActorId)
 import Dict exposing (Dict)
 import Group exposing (Group)
 import Id exposing (Id)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Space exposing (Space)
+import SpaceBot exposing (SpaceBot)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
 
@@ -71,6 +85,7 @@ type alias InternalData =
     { users : Dict Id User
     , spaces : Dict Id Space
     , spaceUsers : Dict Id SpaceUser
+    , spaceBots : Dict Id SpaceBot
     , groups : Dict Id Group
     , posts : Dict Id Post
     , replies : Dict Id Reply
@@ -83,7 +98,7 @@ type alias InternalData =
 
 empty : Repo
 empty =
-    Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
+    Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
 
 
 union : Repo -> Repo -> Repo
@@ -93,6 +108,7 @@ union (Repo newer) (Repo older) =
             (Dict.union newer.users older.users)
             (Dict.union newer.spaces older.spaces)
             (Dict.union newer.spaceUsers older.spaceUsers)
+            (Dict.union newer.spaceBots older.spaceBots)
             (Dict.union newer.groups older.groups)
             (Dict.union newer.posts older.posts)
             (Dict.union newer.replies older.replies)
@@ -173,6 +189,46 @@ setSpaceUser spaceUser (Repo data) =
 setSpaceUsers : List SpaceUser -> Repo -> Repo
 setSpaceUsers spaceUsers repo =
     List.foldr setSpaceUser repo spaceUsers
+
+
+
+-- SPACE BOTS
+
+
+getSpaceBot : String -> Repo -> Maybe SpaceBot
+getSpaceBot id (Repo data) =
+    Dict.get id data.spaceBots
+
+
+setSpaceBot : SpaceBot -> Repo -> Repo
+setSpaceBot spaceBot (Repo data) =
+    Repo { data | spaceBots = Dict.insert (SpaceBot.id spaceBot) spaceBot data.spaceBots }
+
+
+
+-- SPACE BOTS
+
+
+getActor : ActorId -> Repo -> Maybe Actor
+getActor actorId repo =
+    case actorId of
+        Actor.UserId id ->
+            Maybe.map Actor.User <|
+                getSpaceUser id repo
+
+        Actor.BotId id ->
+            Maybe.map Actor.Bot <|
+                getSpaceBot id repo
+
+
+setActor : Actor -> Repo -> Repo
+setActor actor repo =
+    case actor of
+        Actor.User user ->
+            setSpaceUser user repo
+
+        Actor.Bot bot ->
+            setSpaceBot bot repo
 
 
 
