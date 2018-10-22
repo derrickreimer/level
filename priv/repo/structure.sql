@@ -348,6 +348,22 @@ CREATE TABLE public.post_groups (
 
 
 --
+-- Name: post_locators; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_locators (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    scope text NOT NULL,
+    topic text NOT NULL,
+    key text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: post_log; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -727,6 +743,14 @@ ALTER TABLE ONLY public.post_groups
 
 
 --
+-- Name: post_locators post_locators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_locators
+    ADD CONSTRAINT post_locators_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: post_log post_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -953,6 +977,13 @@ CREATE INDEX post_files_post_id_index ON public.post_files USING btree (post_id)
 --
 
 CREATE UNIQUE INDEX post_groups_post_id_group_id_index ON public.post_groups USING btree (post_id, group_id);
+
+
+--
+-- Name: post_locators_space_id_scope_topic_key_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX post_locators_space_id_scope_topic_key_index ON public.post_locators USING btree (space_id, scope, topic, key);
 
 
 --
@@ -1243,6 +1274,22 @@ ALTER TABLE ONLY public.post_groups
 
 ALTER TABLE ONLY public.post_groups
     ADD CONSTRAINT post_groups_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: post_locators post_locators_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_locators
+    ADD CONSTRAINT post_locators_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_locators post_locators_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_locators
+    ADD CONSTRAINT post_locators_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
 
 
 --
@@ -1625,5 +1672,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255);
 
