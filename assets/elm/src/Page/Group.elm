@@ -640,7 +640,7 @@ resolvedView repo maybeCurrentRoute model data =
                 ]
             , newPostView model.spaceId model.postComposer data.viewer
             , postsView repo data.space data.viewer model.now model.postComps
-            , sidebarView data.group data.featuredMembers
+            , sidebarView model.params data.group data.featuredMembers
             ]
         ]
 
@@ -807,14 +807,21 @@ postView repo space currentUser now component =
         ]
 
 
-sidebarView : Group -> List SpaceUser -> Html Msg
-sidebarView group featuredMembers =
+sidebarView : Params -> Group -> List SpaceUser -> Html Msg
+sidebarView params group featuredMembers =
     View.SpaceLayout.rightSidebar
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
             [ text "Members"
             , privacyToggle (Group.isPrivate group)
             ]
         , memberListView featuredMembers
+        , div []
+            [ a
+                [ Route.href (Route.InviteToGroup (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
+                , class "text-sm text-blue no-underline"
+                ]
+                [ text "Invite members" ]
+            ]
         , subscribeButtonView (Group.membershipState group)
         ]
 
