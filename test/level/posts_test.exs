@@ -417,6 +417,26 @@ defmodule Level.PostsTest do
                Posts.get_user_state(post, mentioned)
     end
 
+    test "does not subscribe mentioned users who cannot access the post", %{
+      space: space,
+      space_user: space_user,
+      post: post,
+      group: group
+    } do
+      {:ok, %{space_user: %SpaceUser{id: mentioned_id} = mentioned}} =
+        create_space_member(space, %{handle: "tiff"})
+
+      {:ok, _} = Groups.update_group(group, %{is_private: true})
+
+      params = valid_post_params() |> Map.merge(%{body: "Hey @tiff"})
+
+      {:ok, %{mentions: [%SpaceUser{id: ^mentioned_id}]}} =
+        Posts.create_reply(space_user, post, params)
+
+      assert %{inbox: "EXCLUDED", subscription: "NOT_SUBSCRIBED"} =
+               Posts.get_user_state(post, mentioned)
+    end
+
     test "marks as unread for subscribers", %{space: space, space_user: space_user, post: post} do
       {:ok, %{space_user: another_subscriber}} = create_space_member(space)
       Posts.subscribe(another_subscriber, [post])

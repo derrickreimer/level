@@ -108,9 +108,18 @@ defmodule Level.Posts.CreateReply do
     Posts.subscribe(author, [post])
   end
 
+  # This is not very efficient, but assuming that posts will not have too
+  # many @-mentions, I'm not going to worry about the performance penalty
+  # of performing a post lookup query for every mention (for now).
   defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      Posts.subscribe(mentioned_user, [post])
+      case Posts.get_post(mentioned_user, post.id) do
+        {:ok, _} ->
+          _ = Posts.subscribe(mentioned_user, [post])
+
+        _ ->
+          false
+      end
     end)
   end
 
