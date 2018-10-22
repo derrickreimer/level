@@ -209,6 +209,17 @@ defmodule Level.PostsTest do
                |> Repo.all()
     end
 
+    test "stores the locator", %{space_user: space_user, group: group} do
+      locator_params = %{scope: "level", topic: "welcome_message", key: group.id}
+      params = valid_post_params() |> Map.merge(%{locator: locator_params})
+      {:ok, %{post: post, locator: locator}} = Posts.create_post(space_user, group, params)
+
+      assert locator.post_id == post.id
+      assert locator.scope == "level"
+      assert locator.topic == "welcome_message"
+      assert locator.key == group.id
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
       {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)
@@ -238,6 +249,17 @@ defmodule Level.PostsTest do
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, recipient)
+    end
+
+    test "stores the locator", %{levelbot: space_bot, recipient: recipient} do
+      locator_params = %{scope: "level", topic: "welcome_message", key: recipient.id}
+      params = valid_post_params() |> Map.merge(%{locator: locator_params})
+      {:ok, %{post: post, locator: locator}} = Posts.create_post(space_bot, recipient, params)
+
+      assert locator.post_id == post.id
+      assert locator.scope == "level"
+      assert locator.topic == "welcome_message"
+      assert locator.key == recipient.id
     end
 
     test "returns errors given invalid params", %{levelbot: space_bot, recipient: recipient} do

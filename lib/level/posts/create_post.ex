@@ -11,6 +11,7 @@ defmodule Level.Posts.CreatePost do
   alias Level.Schemas.Group
   alias Level.Schemas.Post
   alias Level.Schemas.PostGroup
+  alias Level.Schemas.PostLocator
   alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
@@ -25,6 +26,7 @@ defmodule Level.Posts.CreatePost do
   def perform(%SpaceUser{} = author, %Group{} = group, params) do
     Multi.new()
     |> insert_post(build_params(author, params))
+    |> save_locator(params)
     |> associate_with_group(group)
     |> record_mentions()
     |> attach_files(author, params)
@@ -36,6 +38,7 @@ defmodule Level.Posts.CreatePost do
   def perform(%SpaceBot{} = author, %SpaceUser{} = recipient, params) do
     Multi.new()
     |> insert_post(build_params(author, params))
+    |> save_locator(params)
     |> Repo.transaction()
     |> after_bot_post(recipient)
   end
@@ -65,6 +68,19 @@ defmodule Level.Posts.CreatePost do
   defp insert_post(multi, params) do
     Multi.insert(multi, :post, Post.create_changeset(%Post{}, params))
   end
+
+  defp save_locator(multi, %{locator: params}) do
+    # TODO: validate that the author is allowed to use the scope
+    Multi.run(multi, :locator, fn %{post: post} ->
+      params = Map.merge(params, %{space_id: post.space_id, post_id: post.id})
+
+      %PostLocator{}
+      |> PostLocator.create_changeset(params)
+      |> Repo.insert()
+    end)
+  end
+
+  defp save_locator(multi, _), do: multi
 
   defp associate_with_group(multi, group) do
     Multi.run(multi, :post_group, fn %{post: post} ->
