@@ -8,7 +8,7 @@ defmodule Level.Resolvers.GroupConnection do
   alias Level.Groups
   alias Level.Pagination
   alias Level.Pagination.Args
-  alias Level.Spaces.Space
+  alias Level.Schemas.Space
 
   defstruct first: nil,
             last: nil,

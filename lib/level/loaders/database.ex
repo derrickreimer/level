@@ -3,23 +3,24 @@ defmodule Level.Loaders.Database do
 
   import Ecto.Query, warn: false
 
-  alias Level.File
   alias Level.Groups
-  alias Level.Groups.Group
-  alias Level.Groups.GroupBookmark
-  alias Level.Groups.GroupUser
   alias Level.Mentions
-  alias Level.Mentions.UserMention
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostUser
-  alias Level.Posts.Reply
-  alias Level.Posts.ReplyView
   alias Level.Repo
+  alias Level.Schemas.File
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupUser
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostUser
+  alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyView
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceBot
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
+  alias Level.Schemas.UserMention
   alias Level.Spaces
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
 
   # Suppress dialyzer warnings about dataloader functions
   @dialyzer {:nowarn_function, source: 1}
@@ -34,6 +35,7 @@ defmodule Level.Loaders.Database do
 
   def query(Space, %{current_user: user}), do: Spaces.spaces_base_query(user)
   def query(SpaceUser, %{current_user: user}), do: Spaces.space_users_base_query(user)
+  def query(SpaceBot, %{current_user: user}), do: Spaces.space_bots_base_query(user)
 
   # Groups
 

@@ -13,7 +13,9 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
               body
               bodyHtml
               author {
-                firstName
+                ... on SpaceUser {
+                  firstName
+                }
               }
               groups {
                 id
@@ -23,7 +25,9 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                   node {
                     body
                     author {
-                      firstName
+                      ... on SpaceUser {
+                        firstName
+                      }
                     }
                   }
                 }

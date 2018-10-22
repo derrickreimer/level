@@ -3,17 +3,17 @@ defmodule Level.PostsTest do
 
   import Ecto.Query
 
-  alias Level.File
   alias Level.Groups
-  alias Level.Groups.Group
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostView
-  alias Level.Posts.Reply
-  alias Level.PostVersion
   alias Level.Repo
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.File
+  alias Level.Schemas.Group
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostVersion
+  alias Level.Schemas.PostView
+  alias Level.Schemas.Reply
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   describe "posts_base_query/1 with users" do
     setup do
@@ -37,7 +37,7 @@ defmodule Level.PostsTest do
       assert result == nil
     end
 
-    test "should not include posts not in private groups the user cannot access", %{
+    test "should not include posts in private groups the user cannot access", %{
       space: space,
       space_user: space_user,
       group: group
@@ -54,7 +54,7 @@ defmodule Level.PostsTest do
       assert result == nil
     end
 
-    test "should include posts not in private groups the user can access", %{
+    test "should include posts in private groups the user can access", %{
       space: space,
       space_user: space_user,
       group: group
@@ -70,7 +70,7 @@ defmodule Level.PostsTest do
                |> Repo.get_by(id: post_id)
     end
 
-    test "should include posts not in public groups", %{
+    test "should include posts in public groups", %{
       space: space,
       space_user: space_user,
       group: group
@@ -82,6 +82,32 @@ defmodule Level.PostsTest do
                another_user
                |> Posts.posts_base_query()
                |> Repo.get_by(id: post_id)
+    end
+
+    test "should include posts sent directly to the user", %{
+      levelbot: levelbot,
+      space_user: space_user,
+      user: user
+    } do
+      {:ok, %{post: %Post{id: post_id}}} = create_post(levelbot, space_user)
+
+      assert %Post{id: ^post_id} =
+               user
+               |> Posts.posts_base_query()
+               |> Repo.get_by(id: post_id)
+    end
+
+    test "should exclude posts sent directly to other users", %{
+      space: space,
+      levelbot: levelbot,
+      space_user: space_user
+    } do
+      {:ok, %{post: %Post{id: post_id}}} = create_post(levelbot, space_user)
+      {:ok, %{user: another_user}} = create_space_member(space)
+
+      refute another_user
+             |> Posts.posts_base_query()
+             |> Repo.get_by(id: post_id)
     end
   end
 
@@ -113,7 +139,7 @@ defmodule Level.PostsTest do
     end
   end
 
-  describe "create_post/2" do
+  describe "create_post/2 with space user + group" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
@@ -183,9 +209,62 @@ defmodule Level.PostsTest do
                |> Repo.all()
     end
 
+    test "stores the locator", %{space_user: space_user, group: group} do
+      locator_params = %{scope: "level", topic: "welcome_message", key: group.id}
+      params = valid_post_params() |> Map.merge(%{locator: locator_params})
+      {:ok, %{post: post, locator: locator}} = Posts.create_post(space_user, group, params)
+
+      assert locator.post_id == post.id
+      assert locator.scope == "level"
+      assert locator.topic == "welcome_message"
+      assert locator.key == group.id
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
       {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)
+
+      assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
+               changeset
+    end
+  end
+
+  describe "create_post/2 with bot + direct recipient" do
+    setup do
+      {:ok, %{space: space} = result} = create_user_and_space()
+      {:ok, %{space_user: recipient}} = create_space_member(space)
+      {:ok, Map.put(result, :recipient, recipient)}
+    end
+
+    test "creates a new post given valid params", %{levelbot: space_bot, recipient: recipient} do
+      params = valid_post_params() |> Map.merge(%{body: "The body"})
+      {:ok, %{post: post}} = Posts.create_post(space_bot, recipient, params)
+      assert post.space_bot_id == space_bot.id
+      assert post.body == "The body"
+    end
+
+    test "subscribes the recipient to the post", %{levelbot: space_bot, recipient: recipient} do
+      params = valid_post_params()
+      {:ok, %{post: post}} = Posts.create_post(space_bot, recipient, params)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, recipient)
+    end
+
+    test "stores the locator", %{levelbot: space_bot, recipient: recipient} do
+      locator_params = %{scope: "level", topic: "welcome_message", key: recipient.id}
+      params = valid_post_params() |> Map.merge(%{locator: locator_params})
+      {:ok, %{post: post, locator: locator}} = Posts.create_post(space_bot, recipient, params)
+
+      assert locator.post_id == post.id
+      assert locator.scope == "level"
+      assert locator.topic == "welcome_message"
+      assert locator.key == recipient.id
+    end
+
+    test "returns errors given invalid params", %{levelbot: space_bot, recipient: recipient} do
+      params = valid_post_params() |> Map.merge(%{body: nil})
+      {:error, :post, changeset, _} = Posts.create_post(space_bot, recipient, params)
 
       assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
                changeset

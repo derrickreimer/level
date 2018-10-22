@@ -3,7 +3,7 @@ defmodule LevelWeb.GraphQL.ClosePostTest do
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Posts
-  alias Level.Posts.Post
+  alias Level.Schemas.Post
 
   @query """
     mutation ClosePost(

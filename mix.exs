@@ -56,7 +56,7 @@ defmodule Level.Mixfile do
       {:credo, "~> 0.9", only: [:dev, :test]},
       {:comeonin, "~> 3.0"},
       {:timex, "~> 3.0"},
-      {:ex_doc, "~> 0.18.1"},
+      {:ex_doc, "~> 0.19"},
       {:absinthe, "~> 1.4.5"},
       {:absinthe_plug, "~> 1.4.0"},
       {:absinthe_phoenix, "~> 1.4.0"},
@@ -94,7 +94,7 @@ defmodule Level.Mixfile do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       "ecto.migrate": ["ecto.migrate"],
       "ecto.rollback": ["ecto.rollback"],
-      test: ["ecto.create --quiet", "ecto.migrate", "test"]
+      test: ["ecto.create --quiet", "ecto.migrate", "run priv/repo/seeds.exs", "test"]
     ]
   end
 
@@ -102,65 +102,7 @@ defmodule Level.Mixfile do
     [
       extras: ["README.md"],
       main: "readme",
-      groups_for_modules: groups_for_modules(),
       logo: "avatar.png"
-    ]
-  end
-
-  defp groups_for_modules do
-    [
-      Connections: [
-        Level.Resolvers,
-        Level.Resolvers.GroupPosts,
-        Level.Resolvers.Groups,
-        Level.Resolvers.GroupMemberships,
-        Level.Resolvers.Invitations,
-        Level.Resolvers.Replies,
-        Level.Resolvers.SpaceUsers,
-        Level.Resolvers.UserGroupMemberships,
-        Level.Resolvers.Users
-      ],
-      Mutations: [
-        Level.Mutations
-      ],
-      Pagination: [
-        Level.Pagination,
-        Level.Pagination.Args
-      ],
-      "Repo and Schemas": [
-        Level.Repo,
-        Level.Groups.Group,
-        Level.Groups.GroupBookmark,
-        Level.Groups.GroupMembership,
-        Level.Groups.GroupUser,
-        Level.Posts.Post,
-        Level.Posts.PostGroup,
-        Level.Posts.Reply,
-        Level.Spaces.Invitation,
-        Level.Spaces.OpenInvitation,
-        Level.Spaces.Space,
-        Level.Spaces.SpaceSetupStep,
-        Level.Spaces.SpaceUser,
-        Level.Users.Reservation,
-        Level.Users.User
-      ],
-      Plugs: [
-        LevelWeb.Absinthe,
-        LevelWeb.Auth
-      ],
-      "Transactional Email": [
-        Level.Mailer,
-        LevelWeb.Email
-      ],
-      I18n: [
-        Level.Gettext
-      ],
-      Helpers: [
-        LevelWeb.ErrorHelpers,
-        LevelWeb.FormHelpers,
-        LevelWeb.ResolverHelpers,
-        LevelWeb.Router.Helpers
-      ]
     ]
   end
 end

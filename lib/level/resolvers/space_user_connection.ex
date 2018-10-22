@@ -8,9 +8,9 @@ defmodule Level.Resolvers.SpaceUserConnection do
 
   alias Level.Pagination
   alias Level.Pagination.Args
+  alias Level.Schemas.Space
+  alias Level.Schemas.User
   alias Level.Spaces
-  alias Level.Spaces.Space
-  alias Level.Users.User
 
   defstruct first: nil,
             last: nil,

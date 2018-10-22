@@ -7,9 +7,9 @@ defmodule Level.Files do
 
   alias Ecto.Multi
   alias Level.AssetStore
-  alias Level.File
   alias Level.Repo
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.File
+  alias Level.Schemas.SpaceUser
 
   @doc """
   Fetches uploads from a list of ids.

@@ -1,9 +1,9 @@
 defmodule Level.UsersTest do
   use Level.DataCase, async: true
 
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
   alias Level.Users
-  alias Level.Users.User
   alias Level.WebPush.Subscription
 
   describe "create_user/1" do

@@ -6,11 +6,11 @@ defmodule Level.Posts.UpdateReply do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Posts
-  alias Level.Posts.PostLog
-  alias Level.Posts.Reply
-  alias Level.ReplyVersion
   alias Level.Repo
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.PostLog
+  alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyVersion
+  alias Level.Schemas.SpaceUser
 
   @spec perform(SpaceUser.t(), Reply.t(), map()) ::
           {:ok, %{original_reply: Reply.t(), updated_reply: Reply.t(), version: ReplyVersion.t()}}

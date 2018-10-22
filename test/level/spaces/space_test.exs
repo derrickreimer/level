@@ -1,7 +1,7 @@
 defmodule Level.Spaces.SpaceTest do
   use Level.DataCase, async: true
 
-  alias Level.Spaces.Space
+  alias Level.Schemas.Space
 
   describe "slug_format/0" do
     test "matches lowercase alphanumeric and dash chars" do

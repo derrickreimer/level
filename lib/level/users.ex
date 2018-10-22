@@ -9,17 +9,10 @@ defmodule Level.Users do
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Repo
+  alias Level.Schemas.Reservation
+  alias Level.Schemas.User
   alias Level.Spaces
-  alias Level.Users.Reservation
-  alias Level.Users.User
   alias Level.WebPush
-
-  @doc """
-  Regex for validating handle format.
-  """
-  def handle_format do
-    ~r/^(?>[A-Za-z][A-Za-z0-9-\.]*[A-Za-z0-9])$/
-  end
 
   @doc """
   Fetches a user by id.

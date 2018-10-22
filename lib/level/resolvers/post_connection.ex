@@ -5,11 +5,11 @@ defmodule Level.Resolvers.PostConnection do
 
   import Ecto.Query, warn: false
 
-  alias Level.Groups.Group
   alias Level.Pagination
   alias Level.Pagination.Args
   alias Level.Posts
-  alias Level.Spaces.Space
+  alias Level.Schemas.Group
+  alias Level.Schemas.Space
 
   defstruct first: nil,
             last: nil,

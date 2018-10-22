@@ -44,6 +44,16 @@ COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings
 
 
 --
+-- Name: bot_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.bot_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
+);
+
+
+--
 -- Name: group_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -121,6 +131,16 @@ CREATE TYPE public.post_user_log_event AS ENUM (
     'DISMISSED',
     'SUBSCRIBED',
     'UNSUBSCRIBED'
+);
+
+
+--
+-- Name: space_bot_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.space_bot_state AS ENUM (
+    'ACTIVE',
+    'DISABLED'
 );
 
 
@@ -209,6 +229,21 @@ $$;
 SET default_tablespace = '';
 
 SET default_with_oids = false;
+
+--
+-- Name: bots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bots (
+    id uuid NOT NULL,
+    state public.bot_state DEFAULT 'ACTIVE'::public.bot_state NOT NULL,
+    handle public.citext NOT NULL,
+    display_name text NOT NULL,
+    avatar text,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
 
 --
 -- Name: files; Type: TABLE; Schema: public; Owner: -
@@ -313,6 +348,22 @@ CREATE TABLE public.post_groups (
 
 
 --
+-- Name: post_locators; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_locators (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    scope text NOT NULL,
+    topic text NOT NULL,
+    key text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: post_log; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -335,13 +386,14 @@ CREATE TABLE public.post_log (
 CREATE TABLE public.posts (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
-    space_user_id uuid NOT NULL,
+    space_user_id uuid,
     state public.post_state DEFAULT 'OPEN'::public.post_state NOT NULL,
     body text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     language text DEFAULT 'english'::text NOT NULL,
-    search_vector tsvector
+    search_vector tsvector,
+    space_bot_id uuid
 );
 
 
@@ -352,13 +404,14 @@ CREATE TABLE public.posts (
 CREATE TABLE public.replies (
     id uuid NOT NULL,
     space_id uuid NOT NULL,
-    space_user_id uuid NOT NULL,
+    space_user_id uuid,
     post_id uuid NOT NULL,
     body text NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     language text DEFAULT 'english'::text NOT NULL,
-    search_vector tsvector
+    search_vector tsvector,
+    space_bot_id uuid
 );
 
 
@@ -371,6 +424,7 @@ CREATE VIEW public.post_searches AS
     posts.id AS searchable_id,
     'Post'::text AS searchable_type,
     posts.id AS post_id,
+    posts.body AS document,
     posts.search_vector,
     (posts.language)::regconfig AS language
    FROM public.posts
@@ -379,6 +433,7 @@ UNION
     replies.id AS searchable_id,
     'Reply'::text AS searchable_type,
     replies.post_id,
+    replies.body AS document,
     replies.search_vector,
     (replies.language)::regconfig AS language
    FROM public.replies;
@@ -521,6 +576,23 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: space_bots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.space_bots (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    bot_id uuid NOT NULL,
+    state public.space_bot_state DEFAULT 'ACTIVE'::public.space_bot_state NOT NULL,
+    handle public.citext NOT NULL,
+    display_name text NOT NULL,
+    avatar text,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: space_setup_steps; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -607,6 +679,14 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: bots bots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bots
+    ADD CONSTRAINT bots_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: files files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -660,6 +740,14 @@ ALTER TABLE ONLY public.post_files
 
 ALTER TABLE ONLY public.post_groups
     ADD CONSTRAINT post_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_locators post_locators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_locators
+    ADD CONSTRAINT post_locators_pkey PRIMARY KEY (id);
 
 
 --
@@ -767,6 +855,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: space_bots space_bots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_bots
+    ADD CONSTRAINT space_bots_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: space_setup_steps space_setup_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -804,6 +900,13 @@ ALTER TABLE ONLY public.user_mentions
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bots_lower_handle_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX bots_lower_handle_index ON public.bots USING btree (lower((handle)::text));
 
 
 --
@@ -877,6 +980,13 @@ CREATE UNIQUE INDEX post_groups_post_id_group_id_index ON public.post_groups USI
 
 
 --
+-- Name: post_locators_space_id_scope_topic_key_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX post_locators_space_id_scope_topic_key_index ON public.post_locators USING btree (space_id, scope, topic, key);
+
+
+--
 -- Name: post_users_post_id_space_user_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -944,6 +1054,13 @@ CREATE UNIQUE INDEX reservations_lower_email_index ON public.reservations USING 
 --
 
 CREATE UNIQUE INDEX reservations_lower_handle_index ON public.reservations USING btree (lower((handle)::text));
+
+
+--
+-- Name: space_bots_space_id_lower_handle_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX space_bots_space_id_lower_handle_index ON public.space_bots USING btree (space_id, lower((handle)::text));
 
 
 --
@@ -1160,6 +1277,22 @@ ALTER TABLE ONLY public.post_groups
 
 
 --
+-- Name: post_locators post_locators_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_locators
+    ADD CONSTRAINT post_locators_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: post_locators post_locators_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_locators
+    ADD CONSTRAINT post_locators_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: post_log post_log_actor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1304,6 +1437,14 @@ ALTER TABLE ONLY public.post_views
 
 
 --
+-- Name: posts posts_space_bot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.posts
+    ADD CONSTRAINT posts_space_bot_id_fkey FOREIGN KEY (space_bot_id) REFERENCES public.space_bots(id);
+
+
+--
 -- Name: posts posts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1333,6 +1474,14 @@ ALTER TABLE ONLY public.push_subscriptions
 
 ALTER TABLE ONLY public.replies
     ADD CONSTRAINT replies_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: replies replies_space_bot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.replies
+    ADD CONSTRAINT replies_space_bot_id_fkey FOREIGN KEY (space_bot_id) REFERENCES public.space_bots(id);
 
 
 --
@@ -1432,6 +1581,22 @@ ALTER TABLE ONLY public.reply_views
 
 
 --
+-- Name: space_bots space_bots_bot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_bots
+    ADD CONSTRAINT space_bots_bot_id_fkey FOREIGN KEY (bot_id) REFERENCES public.bots(id);
+
+
+--
+-- Name: space_bots space_bots_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.space_bots
+    ADD CONSTRAINT space_bots_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
 -- Name: space_setup_steps space_setup_steps_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1507,5 +1672,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255);
 

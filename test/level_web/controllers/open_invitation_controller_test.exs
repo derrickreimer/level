@@ -1,8 +1,8 @@
 defmodule LevelWeb.OpenInvitationControllerTest do
   use LevelWeb.ConnCase, async: true
 
+  alias Level.Schemas.User
   alias Level.Spaces
-  alias Level.Users.User
 
   describe "GET /invites/:id" do
     setup %{conn: conn} do

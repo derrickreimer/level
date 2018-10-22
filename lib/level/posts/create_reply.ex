@@ -7,11 +7,11 @@ defmodule Level.Posts.CreateReply do
   alias Level.Files
   alias Level.Mentions
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostLog
-  alias Level.Posts.Reply
   alias Level.Repo
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostLog
+  alias Level.Schemas.Reply
+  alias Level.Schemas.SpaceUser
   alias Level.WebPush
 
   @typedoc "Dependencies injected in the perform function"

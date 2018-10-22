@@ -1,11 +1,11 @@
 module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, files, fragment, hasViewed, id, postId, postedAt)
 
+import Actor exposing (ActorId)
 import File exposing (File)
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
 import Json.Decode.Pipeline as Pipeline exposing (required)
-import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 
@@ -23,7 +23,7 @@ type alias Data =
     , postId : String
     , body : String
     , bodyHtml : String
-    , authorId : Id
+    , authorId : ActorId
     , files : List File
     , hasViewed : Bool
     , canEdit : Bool
@@ -42,7 +42,7 @@ fragment =
           body
           bodyHtml
           author {
-            ...SpaceUserFields
+            ...ActorFields
           }
           files {
             ...FileFields
@@ -53,7 +53,7 @@ fragment =
           fetchedAt
         }
         """
-        [ SpaceUser.fragment
+        [ Actor.fragment
         , File.fragment
         ]
 
@@ -82,7 +82,7 @@ bodyHtml (Reply data) =
     data.bodyHtml
 
 
-authorId : Reply -> Id
+authorId : Reply -> ActorId
 authorId (Reply data) =
     data.authorId
 
@@ -119,7 +119,7 @@ decoder =
             |> required "postId" Id.decoder
             |> required "body" string
             |> required "bodyHtml" string
-            |> required "author" (field "id" Id.decoder)
+            |> required "author" Actor.idDecoder
             |> required "files" (Decode.list File.decoder)
             |> required "hasViewed" bool
             |> required "canEdit" bool

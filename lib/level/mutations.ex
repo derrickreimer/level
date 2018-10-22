@@ -4,13 +4,13 @@ defmodule Level.Mutations do
   """
 
   alias Level.Groups
-  alias Level.Groups.GroupUser
   alias Level.Mentions
   alias Level.Posts
+  alias Level.Schemas.GroupUser
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
   alias Level.Spaces
-  alias Level.Spaces.SpaceUser
   alias Level.Users
-  alias Level.Users.User
 
   @typedoc "A context map containing the current user"
   @type info :: %{context: %{current_user: User.t()}}

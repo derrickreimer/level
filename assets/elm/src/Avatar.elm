@@ -1,4 +1,4 @@
-module Avatar exposing (Size(..), avatar, personAvatar, texitar, thingAvatar, uploader)
+module Avatar exposing (Size(..), avatar, botAvatar, personAvatar, texitar, thingAvatar, uploader)
 
 import File
 import Html exposing (..)
@@ -18,6 +18,10 @@ type alias Person a =
 
 type alias Thing a =
     { a | name : String, avatarUrl : Maybe String }
+
+
+type alias Bot a =
+    { a | displayName : String, avatarUrl : Maybe String }
 
 
 
@@ -74,6 +78,18 @@ thingAvatar size ({ name } as thing) =
 
         Nothing ->
             texitar size (initial name)
+
+
+{-| The avatar to display for a thing with a `name` (like a space).
+-}
+botAvatar : Size -> Bot a -> Html msg
+botAvatar size ({ displayName } as bot) =
+    case bot.avatarUrl of
+        Just url ->
+            avatar size url
+
+        Nothing ->
+            texitar size (initial displayName)
 
 
 

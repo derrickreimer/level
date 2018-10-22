@@ -4,10 +4,10 @@ defmodule LevelWeb.OpenInvitationController do
   use LevelWeb, :controller
 
   alias Level.Repo
+  alias Level.Schemas.Space
+  alias Level.Schemas.User
   alias Level.Spaces
-  alias Level.Spaces.Space
   alias Level.Users
-  alias Level.Users.User
   alias LevelWeb.ErrorView
 
   plug :fetch_invitation

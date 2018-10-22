@@ -2,8 +2,8 @@ defmodule LevelWeb.GraphQL.RegisterPushSubscriptionTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Schemas.User
   alias Level.Users
-  alias Level.Users.User
   alias Level.WebPush.Subscription
 
   @query """

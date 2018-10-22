@@ -1,5 +1,6 @@
 module Page.Search exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
+import Actor exposing (Actor)
 import Avatar
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
@@ -309,7 +310,7 @@ postResultView repo params now resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ authorLabel postRoute resolvedResult.resolvedPost.author
@@ -331,7 +332,7 @@ replyResultView repo params now resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
@@ -347,7 +348,7 @@ replyResultView repo params now resolvedResult =
         ]
 
 
-authorLabel : Route -> SpaceUser -> Html Msg
+authorLabel : Route -> Actor -> Html Msg
 authorLabel route author =
     a
         [ Route.href route
@@ -355,7 +356,7 @@ authorLabel route author =
         , rel "tooltip"
         , Html.Attributes.title "Expand post"
         ]
-        [ text <| SpaceUser.displayName author ]
+        [ text <| Actor.displayName author ]
 
 
 timestampLabel : Route -> ( Zone, Posix ) -> Posix -> Html Msg

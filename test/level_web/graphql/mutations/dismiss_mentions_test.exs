@@ -3,8 +3,8 @@ defmodule LevelWeb.GraphQL.DismissMentionsTest do
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Mentions
-  alias Level.Mentions.UserMention
   alias Level.Repo
+  alias Level.Schemas.UserMention
 
   @query """
     mutation DismissMentions(

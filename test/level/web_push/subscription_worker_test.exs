@@ -5,7 +5,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias Level.Repo
-  alias Level.Users.User
+  alias Level.Schemas.User
   alias Level.WebPush
   alias Level.WebPush.Payload
   alias Level.WebPush.SubscriptionWorker

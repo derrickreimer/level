@@ -9,29 +9,30 @@ defmodule Level.Posts do
 
   alias Ecto.Multi
   alias Level.Events
-  alias Level.File
-  alias Level.Groups.Group
-  alias Level.Groups.GroupUser
   alias Level.Markdown
   alias Level.Mentions
-  alias Level.PostFile
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
-  alias Level.Posts.Post
-  alias Level.Posts.PostLog
-  alias Level.Posts.PostUser
-  alias Level.Posts.PostUserLog
-  alias Level.Posts.PostView
-  alias Level.Posts.Reply
-  alias Level.Posts.ReplyView
   alias Level.Posts.UpdatePost
   alias Level.Posts.UpdateReply
-  alias Level.PostVersion
-  alias Level.ReplyFile
   alias Level.Repo
-  alias Level.SearchResult
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.File
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupUser
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostFile
+  alias Level.Schemas.PostLog
+  alias Level.Schemas.PostUser
+  alias Level.Schemas.PostUserLog
+  alias Level.Schemas.PostVersion
+  alias Level.Schemas.PostView
+  alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyFile
+  alias Level.Schemas.ReplyView
+  alias Level.Schemas.SearchResult
+  alias Level.Schemas.SpaceBot
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   # TODO: make these types more specific
 
@@ -41,6 +42,12 @@ defmodule Level.Posts do
   @typedoc "The result of replying to a post"
   @type create_reply_result :: {:ok, map()} | {:error, any(), any(), map()}
 
+  @typedoc "An author (either a space user or space bot)"
+  @type author :: SpaceUser.t() | SpaceBot.t()
+
+  @typedoc "The recipient of a post (either a group or a space user)"
+  @type recipient :: Group.t() | SpaceUser.t()
+
   @doc """
   Builds a query for posts accessible to a particular user.
   """
@@ -49,19 +56,25 @@ defmodule Level.Posts do
     from p in Post,
       join: su in SpaceUser,
       on: su.space_id == p.space_id and su.user_id == ^user_id,
-      join: g in assoc(p, :groups),
+      left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == su.id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      left_join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == su.id,
+      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      distinct: p.id
   end
 
   @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
   def posts_base_query(%SpaceUser{id: space_user_id} = _space_user) do
     from p in Post,
-      join: g in assoc(p, :groups),
+      left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      left_join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == ^space_user_id,
+      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      distinct: p.id
   end
 
   @doc """
@@ -94,10 +107,13 @@ defmodule Level.Posts do
       join: su in SpaceUser,
       on: su.space_id == r.space_id and su.user_id == ^user_id,
       join: p in assoc(r, :post),
-      join: g in assoc(p, :groups),
+      left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == su.id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      left_join: pu in PostUser,
+      on: pu.post_id == p.id and pu.space_user_id == su.id,
+      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      distinct: r.id
   end
 
   @doc """
@@ -217,9 +233,9 @@ defmodule Level.Posts do
   @doc """
   Posts a message to a group.
   """
-  @spec create_post(SpaceUser.t(), Group.t(), map()) :: create_post_result()
-  def create_post(author, group, params) do
-    CreatePost.perform(author, group, params)
+  @spec create_post(author(), recipient(), map()) :: create_post_result()
+  def create_post(author, recipient, params) do
+    CreatePost.perform(author, recipient, params)
   end
 
   @doc """

@@ -8,16 +8,8 @@ defmodule Level.Resolvers do
   import Ecto.Query, warn: false
   import Level.Gettext
 
-  alias Level.Groups.Group
-  alias Level.Groups.GroupBookmark
-  alias Level.Groups.GroupUser
-  alias Level.Mentions.UserMention
   alias Level.Pagination
   alias Level.Posts
-  alias Level.Posts.Post
-  alias Level.Posts.PostUser
-  alias Level.Posts.Reply
-  alias Level.Posts.ReplyView
   alias Level.Repo
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
@@ -26,10 +18,19 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.SearchConnection
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupUser
+  alias Level.Schemas.Post
+  alias Level.Schemas.PostUser
+  alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyView
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceBot
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
+  alias Level.Schemas.UserMention
   alias Level.Spaces
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
 
   @typedoc "A info map for Absinthe GraphQL"
   @type info :: %{context: %{current_user: User.t(), loader: Dataloader.t()}}
@@ -348,6 +349,34 @@ defmodule Level.Resolvers do
   @spec search(Space.t(), map(), info()) :: paginated_result()
   def search(%Space{} = space, args, info) do
     SearchConnection.get(space, struct(SearchConnection, args), info)
+  end
+
+  @doc """
+  Fetches the author of a post.
+  """
+  @spec post_author(Post.t(), map(), info()) :: dataloader_result()
+  def post_author(%Post{space_user_id: space_user_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_user_id) do
+    dataloader_one(loader, :db, SpaceUser, space_user_id)
+  end
+
+  def post_author(%Post{space_bot_id: space_bot_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_bot_id) do
+    dataloader_one(loader, :db, SpaceBot, space_bot_id)
+  end
+
+  @doc """
+  Fetches the author of a reply.
+  """
+  @spec reply_author(Reply.t(), map(), info()) :: dataloader_result()
+  def reply_author(%Reply{space_user_id: space_user_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_user_id) do
+    dataloader_one(loader, :db, SpaceUser, space_user_id)
+  end
+
+  def reply_author(%Reply{space_bot_id: space_bot_id}, _, %{context: %{loader: loader}})
+      when is_binary(space_bot_id) do
+    dataloader_one(loader, :db, SpaceBot, space_bot_id)
   end
 
   # Dataloader helpers

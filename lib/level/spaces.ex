@@ -6,22 +6,30 @@ defmodule Level.Spaces do
   import Ecto.Query
   import Level.Gettext
 
+  alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.AssetStore
+  alias Level.Bots
   alias Level.Events
   alias Level.Repo
-  alias Level.Spaces.OpenInvitation
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceSetupStep
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.OpenInvitation
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceBot
+  alias Level.Schemas.SpaceSetupStep
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   @typedoc "The result of creating a space"
   @type create_space_result ::
           {:ok,
-           %{space: Space.t(), space_user: SpaceUser.t(), open_invitation: OpenInvitation.t()}}
-          | {:error, :space | :space_user | :open_invitation, any(),
-             %{optional(:space | :space_user | :open_invitation) => any()}}
+           %{
+             space: Space.t(),
+             space_user: SpaceUser.t(),
+             open_invitation: OpenInvitation.t(),
+             levelbot: SpaceBot.t()
+           }}
+          | {:error, :space | :space_user | :open_invitation | :levelbot, any(),
+             %{optional(:space | :space_user | :open_invitation | :levelbot) => any()}}
 
   @typedoc "The result of getting a space"
   @type get_space_result ::
@@ -88,7 +96,24 @@ defmodule Level.Spaces do
     |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
     |> Multi.run(:space_user, fn %{space: space} -> create_owner(user, space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
+    |> Multi.run(:levelbot, fn %{space: space} -> install_levelbot(space) end)
     |> Repo.transaction()
+  end
+
+  defp install_levelbot(space) do
+    bot = Bots.get_level_bot!()
+
+    params = %{
+      space_id: space.id,
+      bot_id: bot.id,
+      handle: bot.handle,
+      display_name: bot.display_name,
+      avatar: bot.avatar
+    }
+
+    %SpaceBot{}
+    |> Changeset.change(params)
+    |> Repo.insert()
   end
 
   @doc """
@@ -148,6 +173,17 @@ defmodule Level.Spaces do
       join: s in assoc(su, :space),
       where: su.space_id == ^space.id,
       select: %{su | space_name: s.name}
+  end
+
+  @doc """
+  Builds a query for listing space bots visible to the given resource.
+  """
+  @spec space_bots_base_query(User.t()) :: Ecto.Query.t()
+  def space_bots_base_query(%User{id: user_id}) do
+    from sb in SpaceBot,
+      join: su in SpaceUser,
+      on: su.space_id == sb.space_id,
+      where: su.user_id == ^user_id
   end
 
   @doc """

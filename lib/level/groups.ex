@@ -9,12 +9,12 @@ defmodule Level.Groups do
 
   alias Ecto.Multi
   alias Level.Events
-  alias Level.Groups.Group
-  alias Level.Groups.GroupBookmark
-  alias Level.Groups.GroupUser
   alias Level.Repo
-  alias Level.Spaces.SpaceUser
-  alias Level.Users.User
+  alias Level.Schemas.Group
+  alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupUser
+  alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   @doc """
   Generate the query for listing all accessible groups.

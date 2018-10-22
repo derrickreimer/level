@@ -1,7 +1,7 @@
 defmodule Level.Groups.GroupUserTest do
   use Level.DataCase, async: true
 
-  alias Level.Groups.GroupUser
+  alias Level.Schemas.GroupUser
 
   test "has a default state of subscribed" do
     struct = %GroupUser{}

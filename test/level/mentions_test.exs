@@ -2,9 +2,9 @@ defmodule Level.MentionsTest do
   use Level.DataCase, async: true
 
   alias Level.Mentions
-  alias Level.Mentions.UserMention
-  alias Level.Posts.Post
   alias Level.Repo
+  alias Level.Schemas.Post
+  alias Level.Schemas.UserMention
 
   describe "dismiss_all/2" do
     setup do

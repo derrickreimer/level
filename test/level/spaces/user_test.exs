@@ -1,7 +1,7 @@
 defmodule Level.Users.UserTest do
   use Level.DataCase, async: true
 
-  alias Level.Users.User
+  alias Level.Schemas.User
 
   describe "create_changeset/2" do
     test "validates with valid data" do

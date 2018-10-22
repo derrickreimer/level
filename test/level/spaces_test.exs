@@ -4,10 +4,12 @@ defmodule Level.SpacesTest do
   import Ecto.Query
 
   alias Level.Repo
+  alias Level.Schemas.OpenInvitation
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceBot
+  alias Level.Schemas.SpaceSetupStep
+  alias Level.Schemas.SpaceUser
   alias Level.Spaces
-  alias Level.Spaces.OpenInvitation
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
 
   describe "spaces_base_query/1" do
     setup do
@@ -70,6 +72,28 @@ defmodule Level.SpacesTest do
     end
   end
 
+  describe "space_bots_base_query/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "includes space bots for spaces the user belongs to", %{
+      user: user,
+      levelbot: %SpaceBot{id: levelbot_id}
+    } do
+      query = Spaces.space_bots_base_query(user)
+      assert Enum.any?(Repo.all(query), fn sb -> sb.id == levelbot_id end)
+    end
+
+    test "excludes space users in spaces of which the user is not a member", %{
+      user: user
+    } do
+      {:ok, %{levelbot: %SpaceBot{id: other_levelbot_id}}} = create_user_and_space()
+      query = Spaces.space_bots_base_query(user)
+      refute Enum.any?(Repo.all(query), fn sb -> sb.id == other_levelbot_id end)
+    end
+  end
+
   describe "create_space/2" do
     setup do
       {:ok, user} = create_user()
@@ -89,6 +113,14 @@ defmodule Level.SpacesTest do
       params = valid_space_params()
       {:ok, %{open_invitation: open_invitation}} = Spaces.create_space(user, params)
       assert open_invitation.state == "ACTIVE"
+    end
+
+    test "installs levelbot", %{user: user} do
+      params = valid_space_params()
+      {:ok, %{space: space, levelbot: levelbot}} = Spaces.create_space(user, params)
+
+      assert levelbot.space_id == space.id
+      assert levelbot.handle == "levelbot"
     end
   end
 
@@ -168,7 +200,7 @@ defmodule Level.SpacesTest do
           is_skipped: false
         })
 
-      assert Repo.get_by(Spaces.SpaceSetupStep, %{
+      assert Repo.get_by(SpaceSetupStep, %{
                space_id: space.id,
                space_user_id: space_user.id,
                state: "CREATE_GROUPS"

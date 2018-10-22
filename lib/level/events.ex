@@ -4,11 +4,11 @@ defmodule Level.Events do
   (such as Absinthe GraphQL subscriptions).
   """
 
-  alias Level.Groups.Group
-  alias Level.Posts.Post
-  alias Level.Posts.Reply
-  alias Level.Spaces.Space
-  alias Level.Spaces.SpaceUser
+  alias Level.Schemas.Group
+  alias Level.Schemas.Post
+  alias Level.Schemas.Reply
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   # Space
 
