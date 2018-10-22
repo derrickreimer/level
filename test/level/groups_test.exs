@@ -6,6 +6,7 @@ defmodule Level.GroupsTest do
   alias Level.Groups
   alias Level.Schemas.Group
   alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupInvitation
   alias Level.Schemas.GroupUser
 
   describe "groups_base_query/2" do
@@ -359,6 +360,26 @@ defmodule Level.GroupsTest do
       {:ok, %{group: group}} = create_group(space_user)
       Groups.bookmark_group(group, space_user)
       assert Groups.is_bookmarked(user, group)
+    end
+  end
+
+  describe "create_invitations/3" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, Map.merge(result, %{group: group})}
+    end
+
+    test "creates group invitations", %{space: space, space_user: invitor, group: group} do
+      {:ok, %{space_user: invitee}} = create_space_member(space)
+
+      {:ok, [%GroupInvitation{} = invitation]} =
+        Groups.create_invitations(invitor, group, [invitee])
+
+      assert invitation.invitor_id == invitor.id
+      assert invitation.invitee_id == invitee.id
+      assert invitation.group_id == group.id
+      assert invitation.state == "PENDING"
     end
   end
 end
