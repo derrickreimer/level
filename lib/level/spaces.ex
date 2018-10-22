@@ -227,6 +227,17 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Fetches a list of space users by id.
+  """
+  @spec get_space_users(Space.t(), [String.t()]) :: [SpaceUser.t()] | no_return()
+  def get_space_users(%Space{} = space, ids) do
+    space
+    |> space_users_base_query()
+    |> where([su, s], su.id in ^ids)
+    |> Repo.all()
+  end
+
+  @doc """
   Establishes a user as an owner of space.
   """
   @spec create_owner(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}

@@ -551,6 +551,27 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Creates group invitations.
+  """
+  @spec create_group_invitations(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors(), invitees: [SpaceUser.t()]}}
+          | {:error, String.t()}
+  def create_group_invitations(
+        %{space_id: space_id, group_id: group_id, invitee_ids: invitee_ids},
+        %{context: %{current_user: user}}
+      ) do
+    with {:ok, %{space: space, space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, group} <- Groups.get_group(user, group_id),
+         invitees <- Spaces.get_space_users(space, invitee_ids),
+         {:ok, _} <- Groups.create_invitations(space_user, group, invitees) do
+      {:ok, %{success: true, errors: [], invitees: invitees}}
+    else
+      err ->
+        err
+    end
+  end
+
   defp format_errors(%Ecto.Changeset{errors: errors}) do
     Enum.map(errors, fn {attr, {msg, props}} ->
       message =
