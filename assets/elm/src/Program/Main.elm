@@ -15,6 +15,7 @@ import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Page.Group
 import Page.Groups
 import Page.Inbox
+import Page.InviteToGroup
 import Page.InviteUsers
 import Page.NewGroup
 import Page.NewSpace
@@ -154,6 +155,7 @@ type Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
     | NewGroupMsg Page.NewGroup.Msg
+    | InviteToGroupMsg Page.InviteToGroup.Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.SpaceSettings.Msg
@@ -320,6 +322,11 @@ update msg model =
                 |> Page.NewGroup.update pageMsg globals model.navKey
                 |> updatePageWithGlobals NewGroup NewGroupMsg model
 
+        ( InviteToGroupMsg pageMsg, InviteToGroup pageModel ) ->
+            pageModel
+                |> Page.InviteToGroup.update pageMsg globals
+                |> updatePageWithGlobals InviteToGroup InviteToGroupMsg model
+
         ( PostMsg pageMsg, Post pageModel ) ->
             pageModel
                 |> Page.Post.update pageMsg globals
@@ -414,6 +421,7 @@ type Page
     | Groups Page.Groups.Model
     | Group Page.Group.Model
     | NewGroup Page.NewGroup.Model
+    | InviteToGroup Page.InviteToGroup.Model
     | Post Page.Post.Model
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.SpaceSettings.Model
@@ -430,6 +438,7 @@ type PageInit
     | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
     | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
+    | InviteToGroupInit (Result Session.Error ( Globals, Page.InviteToGroup.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.SpaceSettings.Model ))
@@ -516,6 +525,11 @@ navigateTo maybeRoute model =
                 |> Page.NewGroup.init spaceSlug
                 |> transition model NewGroupInit
 
+        Just (Route.InviteToGroup spaceSlug groupId) ->
+            globals
+                |> Page.InviteToGroup.init spaceSlug groupId
+                |> transition model InviteToGroupInit
+
         Just (Route.Post spaceSlug postId) ->
             globals
                 |> Page.Post.init spaceSlug postId
@@ -563,6 +577,9 @@ pageTitle repo page =
 
         NewGroup _ ->
             Page.NewGroup.title
+
+        InviteToGroup _ ->
+            Page.InviteToGroup.title
 
         Post pageModel ->
             Page.Post.title pageModel
@@ -687,6 +704,15 @@ setupPage pageInit model =
         NewGroupInit (Err _) ->
             ( model, Cmd.none )
 
+        InviteToGroupInit (Ok result) ->
+            perform Page.InviteToGroup.setup InviteToGroup InviteToGroupMsg model result
+
+        InviteToGroupInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        InviteToGroupInit (Err _) ->
+            ( model, Cmd.none )
+
         PostInit _ (Ok result) ->
             let
                 ( newGlobals, pageModel ) =
@@ -771,6 +797,9 @@ teardownPage page =
 
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
+
+        InviteToGroup pageModel ->
+            Cmd.map InviteToGroupMsg (Page.InviteToGroup.teardown pageModel)
 
         UserSettings pageModel ->
             Cmd.map UserSettingsMsg (Page.UserSettings.teardown pageModel)
@@ -861,6 +890,9 @@ routeFor page =
         NewGroup { spaceSlug } ->
             Just <| Route.NewGroup spaceSlug
 
+        InviteToGroup { spaceSlug } ->
+            Just <| Route.NewGroup spaceSlug
+
         Post { spaceSlug, postComp } ->
             Just <| Route.Post spaceSlug postComp.id
 
@@ -937,6 +969,11 @@ pageView repo page pushStatus =
             pageModel
                 |> Page.NewGroup.view repo (routeFor page)
                 |> Html.map NewGroupMsg
+
+        InviteToGroup pageModel ->
+            pageModel
+                |> Page.InviteToGroup.view repo (routeFor page)
+                |> Html.map InviteToGroupMsg
 
         Post pageModel ->
             pageModel
@@ -1141,6 +1178,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.NewGroup.consumeEvent event
                 |> updatePage NewGroup NewGroupMsg model
+
+        InviteToGroup pageModel ->
+            pageModel
+                |> Page.InviteToGroup.consumeEvent event
+                |> updatePage InviteToGroup InviteToGroupMsg model
 
         Post pageModel ->
             pageModel

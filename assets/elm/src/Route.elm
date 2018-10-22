@@ -34,6 +34,7 @@ type Route
     | Groups Route.Groups.Params
     | Group Route.Group.Params
     | NewGroup String
+    | InviteToGroup String String
     | Post String String
     | UserSettings
     | SpaceSettings String
@@ -54,6 +55,7 @@ parser =
         , Parser.map InviteUsers (Parser.string </> s "invites")
         , Parser.map Groups Route.Groups.parser
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
+        , Parser.map InviteToGroup (Parser.string </> s "groups" </> Parser.string </> s "invites")
         , Parser.map Group Route.Group.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
@@ -138,6 +140,9 @@ toString page =
 
         NewGroup slug ->
             absolute [ slug, "groups", "new" ] []
+
+        InviteToGroup slug groupId ->
+            absolute [ slug, "groups", groupId, "invites" ] []
 
         Post slug id ->
             absolute [ slug, "posts", id ] []
