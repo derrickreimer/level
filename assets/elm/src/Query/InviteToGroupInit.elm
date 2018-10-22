@@ -7,7 +7,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Repo exposing (Repo)
-import Route.SpaceUsers exposing (Params(..))
+import Route.InviteToGroup exposing (Params)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -62,11 +62,11 @@ document =
         ]
 
 
-variables : String -> Id -> Maybe Encode.Value
-variables spaceSlug groupId =
+variables : Params -> Maybe Encode.Value
+variables params =
     Just
         (Encode.object
-            [ ( "spaceSlug", Encode.string spaceSlug )
+            [ ( "spaceSlug", Encode.string <| Route.InviteToGroup.getSpaceSlug params )
             ]
         )
 
@@ -102,8 +102,8 @@ buildResponse ( session, data ) =
     ( session, resp )
 
 
-request : String -> Id -> Session -> Task Session.Error ( Session, Response )
-request spaceSlug groupId session =
-    GraphQL.request document (variables spaceSlug groupId) decoder
+request : Params -> Session -> Task Session.Error ( Session, Response )
+request params session =
+    GraphQL.request document (variables params) decoder
         |> Session.request session
         |> Task.map buildResponse

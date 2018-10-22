@@ -525,9 +525,9 @@ navigateTo maybeRoute model =
                 |> Page.NewGroup.init spaceSlug
                 |> transition model NewGroupInit
 
-        Just (Route.InviteToGroup spaceSlug groupId) ->
+        Just (Route.InviteToGroup params) ->
             globals
-                |> Page.InviteToGroup.init spaceSlug groupId
+                |> Page.InviteToGroup.init params
                 |> transition model InviteToGroupInit
 
         Just (Route.Post spaceSlug postId) ->
@@ -890,8 +890,8 @@ routeFor page =
         NewGroup { spaceSlug } ->
             Just <| Route.NewGroup spaceSlug
 
-        InviteToGroup { spaceSlug } ->
-            Just <| Route.NewGroup spaceSlug
+        InviteToGroup { params } ->
+            Just <| Route.InviteToGroup params
 
         Post { spaceSlug, postComp } ->
             Just <| Route.Post spaceSlug postComp.id

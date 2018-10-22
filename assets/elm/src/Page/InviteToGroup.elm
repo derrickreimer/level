@@ -14,7 +14,7 @@ import Pagination
 import Query.InviteToGroupInit as InviteToGroupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.SpaceUsers exposing (Params(..))
+import Route.InviteToGroup exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -30,8 +30,7 @@ import View.SpaceLayout
 
 
 type alias Model =
-    { spaceSlug : String
-    , groupId : Id
+    { params : Params
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
@@ -53,7 +52,7 @@ resolveData repo model =
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
-        (Repo.getGroup model.groupId repo)
+        (Repo.getGroup (Route.InviteToGroup.getGroupId model.params) repo)
 
 
 
@@ -69,18 +68,18 @@ title =
 -- LIFECYCLE
 
 
-init : String -> Id -> Globals -> Task Session.Error ( Globals, Model )
-init spaceSlug groupId globals =
+init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init params globals =
     globals.session
-        |> InviteToGroupInit.request spaceSlug groupId
-        |> Task.map (buildModel spaceSlug groupId globals)
+        |> InviteToGroupInit.request params
+        |> Task.map (buildModel params globals)
 
 
-buildModel : String -> Id -> Globals -> ( Session, InviteToGroupInit.Response ) -> ( Globals, Model )
-buildModel spaceSlug groupId globals ( newSession, resp ) =
+buildModel : Params -> Globals -> ( Session, InviteToGroupInit.Response ) -> ( Globals, Model )
+buildModel params globals ( newSession, resp ) =
     let
         model =
-            Model spaceSlug groupId resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserIds
+            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserIds
 
         newRepo =
             Repo.union resp.repo globals.repo

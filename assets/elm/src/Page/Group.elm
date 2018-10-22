@@ -30,6 +30,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
+import Route.InviteToGroup
 import Route.Search
 import Scroll
 import Session exposing (Session)
@@ -817,7 +818,7 @@ sidebarView params group featuredMembers =
         , memberListView featuredMembers
         , div []
             [ a
-                [ Route.href (Route.InviteToGroup (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
+                [ Route.href (Route.InviteToGroup <| Route.InviteToGroup.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
                 , class "text-sm text-blue no-underline"
                 ]
                 [ text "Invite members" ]
