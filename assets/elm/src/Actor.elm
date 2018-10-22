@@ -1,4 +1,4 @@
-module Actor exposing (Actor(..), ActorId(..), avatar, decoder, displayName, fragment)
+module Actor exposing (Actor(..), ActorId(..), avatar, decoder, displayName, fragment, idDecoder)
 
 {-| An actor represents either a "space user" or "space bot".
 -}
@@ -78,6 +78,24 @@ fragment =
 
 
 -- DECODERS
+
+
+idDecoder : Decoder ActorId
+idDecoder =
+    let
+        convert typename =
+            case typename of
+                "SpaceUser" ->
+                    Decode.map UserId (field "id" Id.decoder)
+
+                "SpaceBot" ->
+                    Decode.map BotId (field "id" Id.decoder)
+
+                _ ->
+                    Decode.fail "author not valid"
+    in
+    field "__typename" string
+        |> Decode.andThen convert
 
 
 decoder : Decoder Actor

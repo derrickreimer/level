@@ -313,7 +313,7 @@ postResultView repo params now resolvedResult =
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
-                [ actorLabel postRoute resolvedResult.resolvedPost.author
+                [ authorLabel postRoute resolvedResult.resolvedPost.author
                 , groupsLabel params resolvedResult.resolvedPost.groups
                 , timestampLabel postRoute now (Post.postedAt resolvedResult.resolvedPost.post)
                 ]
@@ -332,11 +332,11 @@ replyResultView repo params now resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
-                , spaceUserLabel replyRoute resolvedResult.resolvedReply.author
+                , authorLabel replyRoute resolvedResult.resolvedReply.author
                 , groupsLabel params resolvedResult.resolvedPost.groups
                 , timestampLabel replyRoute now (Reply.postedAt resolvedResult.resolvedReply.reply)
                 ]
@@ -348,8 +348,8 @@ replyResultView repo params now resolvedResult =
         ]
 
 
-actorLabel : Route -> Actor -> Html Msg
-actorLabel route author =
+authorLabel : Route -> Actor -> Html Msg
+authorLabel route author =
     a
         [ Route.href route
         , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
@@ -357,17 +357,6 @@ actorLabel route author =
         , Html.Attributes.title "Expand post"
         ]
         [ text <| Actor.displayName author ]
-
-
-spaceUserLabel : Route -> SpaceUser -> Html Msg
-spaceUserLabel route author =
-    a
-        [ Route.href route
-        , class "no-underline text-dusty-blue-darkest whitespace-no-wrap font-bold"
-        , rel "tooltip"
-        , Html.Attributes.title "Expand post"
-        ]
-        [ text <| SpaceUser.displayName author ]
 
 
 timestampLabel : Route -> ( Zone, Posix ) -> Posix -> Html Msg

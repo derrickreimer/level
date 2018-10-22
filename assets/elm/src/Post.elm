@@ -206,7 +206,7 @@ decoder =
             |> required "state" stateDecoder
             |> required "body" string
             |> required "bodyHtml" string
-            |> required "author" authorIdDecoder
+            |> required "author" Actor.idDecoder
             |> required "groups" (list (field "id" Id.decoder))
             |> required "files" (list File.decoder)
             |> required "postedAt" dateDecoder
@@ -215,24 +215,6 @@ decoder =
             |> required "canEdit" bool
             |> required "fetchedAt" int
         )
-
-
-authorIdDecoder : Decoder ActorId
-authorIdDecoder =
-    let
-        convert typename =
-            case typename of
-                "SpaceUser" ->
-                    Decode.map Actor.UserId (field "id" Id.decoder)
-
-                "SpaceBot" ->
-                    Decode.map Actor.BotId (field "id" Id.decoder)
-
-                _ ->
-                    fail "author not valid"
-    in
-    field "__typename" string
-        |> Decode.andThen convert
 
 
 decoderWithReplies : Decoder ( Post, Connection Reply )

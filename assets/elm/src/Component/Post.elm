@@ -943,7 +943,7 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
         editor =
             getReplyEditor replyId editors
     in
-    case Repo.getSpaceUser (Reply.authorId reply) repo of
+    case Repo.getActor (Reply.authorId reply) repo of
         Just author ->
             div
                 [ id (replyNodeId replyId)
@@ -951,10 +951,10 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
                 ]
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 rounded pin-t pin-b bg-turquoise flex-no-shrink" ] []
-                , div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small author ]
+                , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ clickToExpandIf (mode == Feed)
-                        [ span [ class "font-bold whitespace-no-wrap" ] [ text <| SpaceUser.displayName author ]
+                        [ span [ class "font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             div [ class "inline-block" ]
