@@ -176,6 +176,17 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Builds a query for listing space bots visible to the given resource.
+  """
+  @spec space_bots_base_query(User.t()) :: Ecto.Query.t()
+  def space_bots_base_query(%User{id: user_id}) do
+    from sb in SpaceBot,
+      join: su in SpaceUser,
+      on: su.space_id == sb.space_id,
+      where: su.user_id == ^user_id
+  end
+
+  @doc """
   Fetches all the featured users (for display in the inbox sidebar).
   """
   @spec list_featured_users(Space.t()) :: {:ok, [SpaceUser.t()]} | no_return()

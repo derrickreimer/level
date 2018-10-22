@@ -37,7 +37,7 @@ defmodule Level.Posts.CreatePost do
     Multi.new()
     |> insert_post(build_params(author, params))
     |> Repo.transaction()
-    |> after_bot_post(author, recipient)
+    |> after_bot_post(recipient)
   end
 
   # Internal
@@ -122,12 +122,12 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp after_bot_post({:ok, result}, author, recipient) do
+  defp after_bot_post({:ok, result}, recipient) do
     _ = Posts.subscribe(recipient, [result.post])
     _ = Posts.mark_as_unread(recipient, [result.post])
 
     {:ok, result}
   end
 
-  defp after_bot_post(err, _, _), do: err
+  defp after_bot_post(err, _), do: err
 end

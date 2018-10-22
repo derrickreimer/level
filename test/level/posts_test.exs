@@ -37,7 +37,7 @@ defmodule Level.PostsTest do
       assert result == nil
     end
 
-    test "should not include posts not in private groups the user cannot access", %{
+    test "should not include posts in private groups the user cannot access", %{
       space: space,
       space_user: space_user,
       group: group
@@ -54,7 +54,7 @@ defmodule Level.PostsTest do
       assert result == nil
     end
 
-    test "should include posts not in private groups the user can access", %{
+    test "should include posts in private groups the user can access", %{
       space: space,
       space_user: space_user,
       group: group
@@ -70,7 +70,7 @@ defmodule Level.PostsTest do
                |> Repo.get_by(id: post_id)
     end
 
-    test "should include posts not in public groups", %{
+    test "should include posts in public groups", %{
       space: space,
       space_user: space_user,
       group: group
@@ -82,6 +82,32 @@ defmodule Level.PostsTest do
                another_user
                |> Posts.posts_base_query()
                |> Repo.get_by(id: post_id)
+    end
+
+    test "should include posts sent directly to the user", %{
+      levelbot: levelbot,
+      space_user: space_user,
+      user: user
+    } do
+      {:ok, %{post: %Post{id: post_id}}} = create_post(levelbot, space_user)
+
+      assert %Post{id: ^post_id} =
+               user
+               |> Posts.posts_base_query()
+               |> Repo.get_by(id: post_id)
+    end
+
+    test "should exclude posts sent directly to other users", %{
+      space: space,
+      levelbot: levelbot,
+      space_user: space_user
+    } do
+      {:ok, %{post: %Post{id: post_id}}} = create_post(levelbot, space_user)
+      {:ok, %{user: another_user}} = create_space_member(space)
+
+      refute another_user
+             |> Posts.posts_base_query()
+             |> Repo.get_by(id: post_id)
     end
   end
 

@@ -121,12 +121,12 @@ defmodule Level.TestHelpers do
     Groups.create_group(member, params)
   end
 
-  def create_post(space_user, group, params \\ %{}) do
+  def create_post(sender, recipient, params \\ %{}) do
     params =
       valid_post_params()
       |> Map.merge(params)
 
-    Posts.create_post(space_user, group, params)
+    Posts.create_post(sender, recipient, params)
   end
 
   def create_reply(space_user, post, params \\ %{}) do

@@ -56,19 +56,25 @@ defmodule Level.Posts do
     from p in Post,
       join: su in SpaceUser,
       on: su.space_id == p.space_id and su.user_id == ^user_id,
-      join: g in assoc(p, :groups),
+      left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == su.id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      left_join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == su.id,
+      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      distinct: p.id
   end
 
   @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
   def posts_base_query(%SpaceUser{id: space_user_id} = _space_user) do
     from p in Post,
-      join: g in assoc(p, :groups),
+      left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      left_join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == ^space_user_id,
+      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      distinct: p.id
   end
 
   @doc """
@@ -101,10 +107,13 @@ defmodule Level.Posts do
       join: su in SpaceUser,
       on: su.space_id == r.space_id and su.user_id == ^user_id,
       join: p in assoc(r, :post),
-      join: g in assoc(p, :groups),
+      left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == su.id and gu.group_id == g.id,
-      where: g.is_private == false or not is_nil(gu.id)
+      left_join: pu in PostUser,
+      on: pu.post_id == p.id and pu.space_user_id == su.id,
+      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      distinct: r.id
   end
 
   @doc """

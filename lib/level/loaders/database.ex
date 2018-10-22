@@ -16,6 +16,7 @@ defmodule Level.Loaders.Database do
   alias Level.Schemas.Reply
   alias Level.Schemas.ReplyView
   alias Level.Schemas.Space
+  alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
   alias Level.Schemas.UserMention
@@ -34,6 +35,7 @@ defmodule Level.Loaders.Database do
 
   def query(Space, %{current_user: user}), do: Spaces.spaces_base_query(user)
   def query(SpaceUser, %{current_user: user}), do: Spaces.space_users_base_query(user)
+  def query(SpaceBot, %{current_user: user}), do: Spaces.space_bots_base_query(user)
 
   # Groups
 
