@@ -198,6 +198,25 @@ defmodule Level.PostsTest do
                Posts.get_user_state(post, mentioned)
     end
 
+    test "does not subscribe mentioned users who cannot access the post", %{
+      space: space,
+      space_user: space_user,
+      group: group
+    } do
+      {:ok, %{space_user: %SpaceUser{id: mentioned_id} = mentioned}} =
+        create_space_member(space, %{handle: "tiff"})
+
+      {:ok, group} = Groups.update_group(group, %{is_private: true})
+
+      params = valid_post_params() |> Map.merge(%{body: "Hey @tiff"})
+
+      {:ok, %{post: post, mentions: [%SpaceUser{id: ^mentioned_id}]}} =
+        Posts.create_post(space_user, group, params)
+
+      assert %{inbox: "EXCLUDED", subscription: "NOT_SUBSCRIBED"} =
+               Posts.get_user_state(post, mentioned)
+    end
+
     test "attaches file uploads", %{space_user: space_user, group: group} do
       {:ok, %File{id: file_id}} = create_file(space_user)
       params = valid_post_params() |> Map.merge(%{file_ids: [file_id]})

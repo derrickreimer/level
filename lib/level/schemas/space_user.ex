@@ -25,8 +25,10 @@ defmodule Level.Schemas.SpaceUser do
     field :last_name, :string
     field :handle, :string
     field :avatar, :string
+
     belongs_to :space, Space
     belongs_to :user, User
+
     has_many :post_users, PostUser
     has_many :files, File
 

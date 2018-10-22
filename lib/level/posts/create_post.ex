@@ -116,26 +116,32 @@ defmodule Level.Posts.CreatePost do
   defp after_user_post({:ok, result}, author, group) do
     _ = Posts.subscribe(author, [result.post])
     _ = subscribe_mentioned(result.post, result)
-    _ = send_events(result.post, group, result)
+    _ = send_events(result.post, group)
 
     {:ok, result}
   end
 
   defp after_user_post(err, _, _), do: err
 
+  # This is not very efficient, but assuming that posts will not have too
+  # many @-mentions, I'm not going to worry about the performance penalty
+  # of performing a post lookup query for every mention (for now).
   defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      _ = Posts.subscribe(mentioned_user, [post])
-      _ = Posts.mark_as_unread(mentioned_user, [post])
+      case Posts.get_post(mentioned_user, post.id) do
+        {:ok, _} ->
+          _ = Posts.subscribe(mentioned_user, [post])
+          _ = Posts.mark_as_unread(mentioned_user, [post])
+          _ = Events.user_mentioned(mentioned_user.id, post)
+
+        _ ->
+          false
+      end
     end)
   end
 
-  defp send_events(post, group, %{mentions: mentioned_users}) do
+  defp send_events(post, group) do
     _ = Events.post_created(group.id, post)
-
-    Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
-      _ = Events.user_mentioned(id, post)
-    end)
   end
 
   defp after_bot_post({:ok, result}, recipient) do
