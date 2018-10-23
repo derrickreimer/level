@@ -1,4 +1,4 @@
-module Page.InviteToGroup exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
+module Page.GroupPermissions exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Avatar
 import Connection exposing (Connection)
@@ -11,13 +11,12 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.CreateGroupInvitations as CreateGroupInvitations
 import Pagination
-import Query.InviteToGroupInit as InviteToGroupInit
+import Query.GroupPermissionsInit as GroupPermissionsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
-import Route.InviteToGroup exposing (Params)
+import Route.GroupPermissions exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -77,11 +76,11 @@ title =
 init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
-        |> InviteToGroupInit.request params
+        |> GroupPermissionsInit.request params
         |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> Globals -> ( Session, InviteToGroupInit.Response ) -> ( Globals, Model )
+buildModel : Params -> Globals -> ( Session, GroupPermissionsInit.Response ) -> ( Globals, Model )
 buildModel params globals ( newSession, resp ) =
     let
         model =
@@ -110,8 +109,6 @@ teardown model =
 type Msg
     = NoOp
     | UserToggled Id
-    | Submit
-    | Submitted (Result Session.Error ( Session, CreateGroupInvitations.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -130,37 +127,6 @@ update msg globals model =
                         ListHelpers.insertUniqueBy identity toggledId model.selectedIds
             in
             ( ( { model | selectedIds = newSelectedIds }, Cmd.none ), globals )
-
-        Submit ->
-            let
-                cmd =
-                    globals.session
-                        |> CreateGroupInvitations.request model.spaceId model.groupId model.selectedIds
-                        |> Task.attempt Submitted
-            in
-            ( ( { model | isSubmitting = True }, cmd ), globals )
-
-        Submitted (Ok ( newSession, CreateGroupInvitations.Success )) ->
-            let
-                groupParams =
-                    Route.Group.init
-                        (Route.InviteToGroup.getSpaceSlug model.params)
-                        (Route.InviteToGroup.getGroupId model.params)
-            in
-            ( ( model, Route.pushUrl globals.navKey (Route.Group groupParams) )
-            , { globals | session = newSession }
-            )
-
-        Submitted (Ok ( newSession, CreateGroupInvitations.Invalid errors )) ->
-            ( ( { model | isSubmitting = False }, Cmd.none )
-            , { globals | session = newSession }
-            )
-
-        Submitted (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        Submitted (Err _) ->
-            ( ( model, Cmd.none ), globals )
 
 
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -201,6 +167,12 @@ view repo maybeCurrentRoute model =
 
 resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
+    let
+        groupParams =
+            Route.Group.init
+                (Route.GroupPermissions.getSpaceSlug model.params)
+                (Route.GroupPermissions.getGroupId model.params)
+    in
     View.SpaceLayout.layout
         data.viewer
         data.space
@@ -208,23 +180,17 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-5" ]
-                [ nav [ class "text-xl font-extrabold text-dusty-blue-dark" ] [ text <| Group.name data.group ]
-                , h1 [ class "flex-1 font-extrabold text-3xl" ] [ text "Invite people to the group" ]
+                [ nav [ class "text-xl font-extrabold" ]
+                    [ a [ Route.href (Route.Group groupParams), class "no-underline text-dusty-blue-dark" ] [ text <| Group.name data.group ]
+                    ]
+                , h1 [ class "flex-1 font-extrabold text-3xl" ] [ text "Permissions" ]
                 ]
             , div [ class "pb-8" ]
                 [ p [ class "text-base" ]
-                    [ text "Select everyone you would like to invite to the group. They will receive a message in their Level inbox as soon as you click the send button."
+                    [ text "Manage who is allowed in the group and appoint other owners to help admininstrate it."
                     ]
                 ]
             , usersView repo model
-            , div [ class "pb-4" ]
-                [ button
-                    [ class "btn btn-blue btn-lg"
-                    , onClick Submit
-                    , disabled (isNotSubmittable model)
-                    ]
-                    [ text "Send invitations" ]
-                ]
             ]
         ]
 

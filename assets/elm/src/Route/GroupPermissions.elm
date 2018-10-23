@@ -1,4 +1,4 @@
-module Route.InviteToGroup exposing
+module Route.GroupPermissions exposing
     ( Params
     , init, getSpaceSlug, getGroupId
     , parser
@@ -71,7 +71,7 @@ getGroupId (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "groups" </> string </> s "invites")
+        map Internal (string </> s "groups" </> string </> s "permissions")
 
 
 
@@ -80,4 +80,4 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "groups", internal.groupId, "invites" ] []
+    absolute [ internal.spaceSlug, "groups", internal.groupId, "permissions" ] []

@@ -31,7 +31,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
-import Route.InviteToGroup
+import Route.GroupPermissions
 import Route.Search
 import Scroll
 import Session exposing (Session)
@@ -861,10 +861,10 @@ sidebarView params group featuredMembers =
         , ul [ class "list-reset leading-normal" ]
             [ li []
                 [ a
-                    [ Route.href (Route.InviteToGroup <| Route.InviteToGroup.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
-                    , class "text-sm text-dusty-blue-dark no-underline"
+                    [ Route.href (Route.GroupPermissions <| Route.GroupPermissions.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
+                    , class "text-md text-dusty-blue no-underline font-bold"
                     ]
-                    [ text "Invite members" ]
+                    [ text "Permissions" ]
                 ]
             , li []
                 [ subscribeButtonView (Group.membershipState group)
@@ -876,7 +876,7 @@ sidebarView params group featuredMembers =
 memberListView : List SpaceUser -> Html Msg
 memberListView featuredMembers =
     if List.isEmpty featuredMembers then
-        div [ class "pb-4 text-sm" ] [ text "Nobody has joined yet." ]
+        div [ class "pb-4 text-sm text-blue" ] [ text "Nobody has joined yet." ]
 
     else
         div [ class "pb-4" ] <| List.map memberItemView featuredMembers
@@ -895,14 +895,14 @@ subscribeButtonView state =
     case state of
         GroupMembership.NotSubscribed ->
             button
-                [ class "text-sm text-dusty-blue-dark no-underline"
+                [ class "text-md text-dusty-blue no-underline font-bold"
                 , onClick SubscribeClicked
                 ]
                 [ text "Join this group" ]
 
         GroupMembership.Subscribed ->
             button
-                [ class "text-sm text-dusty-blue-dark no-underline"
+                [ class "text-md text-dusty-blue no-underline font-bold"
                 , onClick UnsubscribeClicked
                 ]
                 [ text "Leave this group" ]

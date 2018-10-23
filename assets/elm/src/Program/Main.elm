@@ -15,7 +15,7 @@ import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Page.Group
 import Page.Groups
 import Page.Inbox
-import Page.InviteToGroup
+import Page.GroupPermissions
 import Page.InviteUsers
 import Page.NewGroup
 import Page.NewSpace
@@ -155,7 +155,7 @@ type Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
     | NewGroupMsg Page.NewGroup.Msg
-    | InviteToGroupMsg Page.InviteToGroup.Msg
+    | GroupPermissionsMsg Page.GroupPermissions.Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.SpaceSettings.Msg
@@ -322,10 +322,10 @@ update msg model =
                 |> Page.NewGroup.update pageMsg globals model.navKey
                 |> updatePageWithGlobals NewGroup NewGroupMsg model
 
-        ( InviteToGroupMsg pageMsg, InviteToGroup pageModel ) ->
+        ( GroupPermissionsMsg pageMsg, GroupPermissions pageModel ) ->
             pageModel
-                |> Page.InviteToGroup.update pageMsg globals
-                |> updatePageWithGlobals InviteToGroup InviteToGroupMsg model
+                |> Page.GroupPermissions.update pageMsg globals
+                |> updatePageWithGlobals GroupPermissions GroupPermissionsMsg model
 
         ( PostMsg pageMsg, Post pageModel ) ->
             pageModel
@@ -421,7 +421,7 @@ type Page
     | Groups Page.Groups.Model
     | Group Page.Group.Model
     | NewGroup Page.NewGroup.Model
-    | InviteToGroup Page.InviteToGroup.Model
+    | GroupPermissions Page.GroupPermissions.Model
     | Post Page.Post.Model
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.SpaceSettings.Model
@@ -438,7 +438,7 @@ type PageInit
     | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
     | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
-    | InviteToGroupInit (Result Session.Error ( Globals, Page.InviteToGroup.Model ))
+    | GroupPermissionsInit (Result Session.Error ( Globals, Page.GroupPermissions.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.SpaceSettings.Model ))
@@ -525,10 +525,10 @@ navigateTo maybeRoute model =
                 |> Page.NewGroup.init spaceSlug
                 |> transition model NewGroupInit
 
-        Just (Route.InviteToGroup params) ->
+        Just (Route.GroupPermissions params) ->
             globals
-                |> Page.InviteToGroup.init params
-                |> transition model InviteToGroupInit
+                |> Page.GroupPermissions.init params
+                |> transition model GroupPermissionsInit
 
         Just (Route.Post spaceSlug postId) ->
             globals
@@ -578,8 +578,8 @@ pageTitle repo page =
         NewGroup _ ->
             Page.NewGroup.title
 
-        InviteToGroup _ ->
-            Page.InviteToGroup.title
+        GroupPermissions _ ->
+            Page.GroupPermissions.title
 
         Post pageModel ->
             Page.Post.title pageModel
@@ -704,13 +704,13 @@ setupPage pageInit model =
         NewGroupInit (Err _) ->
             ( model, Cmd.none )
 
-        InviteToGroupInit (Ok result) ->
-            perform Page.InviteToGroup.setup InviteToGroup InviteToGroupMsg model result
+        GroupPermissionsInit (Ok result) ->
+            perform Page.GroupPermissions.setup GroupPermissions GroupPermissionsMsg model result
 
-        InviteToGroupInit (Err Session.Expired) ->
+        GroupPermissionsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
-        InviteToGroupInit (Err _) ->
+        GroupPermissionsInit (Err _) ->
             ( model, Cmd.none )
 
         PostInit _ (Ok result) ->
@@ -798,8 +798,8 @@ teardownPage page =
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
 
-        InviteToGroup pageModel ->
-            Cmd.map InviteToGroupMsg (Page.InviteToGroup.teardown pageModel)
+        GroupPermissions pageModel ->
+            Cmd.map GroupPermissionsMsg (Page.GroupPermissions.teardown pageModel)
 
         UserSettings pageModel ->
             Cmd.map UserSettingsMsg (Page.UserSettings.teardown pageModel)
@@ -890,8 +890,8 @@ routeFor page =
         NewGroup { spaceSlug } ->
             Just <| Route.NewGroup spaceSlug
 
-        InviteToGroup { params } ->
-            Just <| Route.InviteToGroup params
+        GroupPermissions { params } ->
+            Just <| Route.GroupPermissions params
 
         Post { spaceSlug, postComp } ->
             Just <| Route.Post spaceSlug postComp.id
@@ -970,10 +970,10 @@ pageView repo page pushStatus =
                 |> Page.NewGroup.view repo (routeFor page)
                 |> Html.map NewGroupMsg
 
-        InviteToGroup pageModel ->
+        GroupPermissions pageModel ->
             pageModel
-                |> Page.InviteToGroup.view repo (routeFor page)
-                |> Html.map InviteToGroupMsg
+                |> Page.GroupPermissions.view repo (routeFor page)
+                |> Html.map GroupPermissionsMsg
 
         Post pageModel ->
             pageModel
@@ -1179,10 +1179,10 @@ sendEventToPage globals event model =
                 |> Page.NewGroup.consumeEvent event
                 |> updatePage NewGroup NewGroupMsg model
 
-        InviteToGroup pageModel ->
+        GroupPermissions pageModel ->
             pageModel
-                |> Page.InviteToGroup.consumeEvent event
-                |> updatePage InviteToGroup InviteToGroupMsg model
+                |> Page.GroupPermissions.consumeEvent event
+                |> updatePage GroupPermissions GroupPermissionsMsg model
 
         Post pageModel ->
             pageModel
