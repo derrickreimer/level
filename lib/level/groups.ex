@@ -8,7 +8,6 @@ defmodule Level.Groups do
   import Level.Gettext
 
   alias Ecto.Changeset
-  alias Ecto.Multi
   alias Level.Events
   alias Level.Repo
   alias Level.Schemas.Group
@@ -140,71 +139,6 @@ defmodule Level.Groups do
         limit: 10
 
     {:ok, Repo.all(query)}
-  end
-
-  @doc """
-  Updates group membership state.
-  """
-  @spec update_group_membership(Group.t(), SpaceUser.t(), String.t()) ::
-          {:ok, %{group: Group.t(), group_user: GroupUser.t() | nil}}
-          | {:error, GroupUser.t() | nil, Changeset.t()}
-  def update_group_membership(group, space_user, state) do
-    case {get_group_user(group, space_user), state} do
-      {{:ok, %GroupUser{} = group_user}, "NOT_SUBSCRIBED"} ->
-        case delete_group_membership(group, space_user, group_user) do
-          {:ok, _} ->
-            Events.group_membership_updated(group.id, {group, nil})
-            {:ok, %{group: group, group_user: nil}}
-
-          {:error, _, %Changeset{} = changeset, _} ->
-            {:error, group_user, changeset}
-        end
-
-      {{:ok, nil}, "SUBSCRIBED"} ->
-        case create_group_membership(group, space_user) do
-          {:ok, %{group_user: group_user}} ->
-            Events.group_membership_updated(group.id, {group, group_user})
-            {:ok, %{group: group, group_user: group_user}}
-
-          {:error, _, %Changeset{} = changeset, _} ->
-            {:error, nil, changeset}
-        end
-
-      {{:ok, %GroupUser{} = group_user}, _} ->
-        {:ok, %{group: group, group_user: group_user}}
-
-      {{:ok, nil}, _} ->
-        {:ok, %{group: group, group_user: nil}}
-    end
-  end
-
-  defp create_group_membership(group, space_user) do
-    params = %{
-      space_id: group.space_id,
-      group_id: group.id,
-      space_user_id: space_user.id,
-      state: "SUBSCRIBED"
-    }
-
-    Multi.new()
-    |> Multi.insert(:group_user, GroupUser.changeset(%GroupUser{}, params))
-    |> Multi.run(:bookmarked, fn _ ->
-      case bookmark_group(group, space_user) do
-        :ok -> {:ok, true}
-        _ -> {:ok, false}
-      end
-    end)
-    |> Repo.transaction()
-  end
-
-  defp delete_group_membership(group, space_user, group_user) do
-    Multi.new()
-    |> Multi.delete(:group_user, group_user)
-    |> Multi.run(:unbookmarked, fn _ ->
-      unbookmark_group(group, space_user)
-      {:ok, true}
-    end)
-    |> Repo.transaction()
   end
 
   @doc """

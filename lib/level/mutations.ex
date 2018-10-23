@@ -6,7 +6,6 @@ defmodule Level.Mutations do
   alias Level.Groups
   alias Level.Mentions
   alias Level.Posts
-  alias Level.Schemas.GroupUser
   alias Level.Schemas.User
   alias Level.Spaces
   alias Level.Users
@@ -39,11 +38,6 @@ defmodule Level.Mutations do
           group: Groups.Group.t() | nil,
           errors: validation_errors
         }
-
-  @typedoc "The payload for a group membership mutation"
-  @type update_group_membership_payload ::
-          {:ok, %{success: boolean(), membership: GroupUser.t(), errors: validation_errors()}}
-          | {:error, String.t()}
 
   @typedoc "The payload for the subscribe to group mutation"
   @type subscribe_to_group_payload ::
@@ -249,26 +243,6 @@ defmodule Level.Mutations do
 
       {:error, changeset} ->
         %{success: false, group: nil, errors: format_errors(changeset), args: args}
-    end
-  end
-
-  @doc """
-  Updates a group membership.
-  """
-  @spec update_group_membership(map(), info()) :: update_group_membership_payload()
-  def update_group_membership(args, %{context: %{current_user: user}}) do
-    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
-         {:ok, group} <- Groups.get_group(space_user, args.group_id),
-         {:ok, %{group: updated_group, group_user: group_user}} <-
-           Groups.update_group_membership(group, space_user, args.state) do
-      {:ok, %{success: true, group: updated_group, membership: group_user, errors: []}}
-    else
-      {:error, %GroupUser{} = group_user, changeset} ->
-        {:ok,
-         %{success: false, group: nil, membership: group_user, errors: format_errors(changeset)}}
-
-      err ->
-        err
     end
   end
 
