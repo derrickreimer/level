@@ -10,6 +10,6 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias Level.Bots
+alias Level.Levelbot
 
-Bots.create_level_bot!()
+Levelbot.create_bot!()

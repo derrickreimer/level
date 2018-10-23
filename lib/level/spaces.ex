@@ -9,8 +9,8 @@ defmodule Level.Spaces do
   alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.AssetStore
-  alias Level.Bots
   alias Level.Events
+  alias Level.Levelbot
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -101,7 +101,7 @@ defmodule Level.Spaces do
   end
 
   defp install_levelbot(space) do
-    bot = Bots.get_level_bot!()
+    bot = Levelbot.get_bot!()
 
     params = %{
       space_id: space.id,
