@@ -62,7 +62,16 @@ defmodule Level.Spaces do
   @doc """
   Fetches a space by id.
   """
+  @spec get_space(String.t()) :: get_space_result()
   @spec get_space(User.t(), String.t()) :: get_space_result()
+
+  def get_space(id) do
+    case Repo.get(Space, id) do
+      %Space{} = space -> {:ok, space}
+      nil -> {:error, dgettext("errors", "Space not found")}
+    end
+  end
+
   def get_space(user, id) do
     with %Space{} = space <- Repo.get(Space, id),
          {:ok, space_user} <- get_space_user(user, space) do

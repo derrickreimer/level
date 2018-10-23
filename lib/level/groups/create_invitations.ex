@@ -6,6 +6,7 @@ defmodule Level.Groups.CreateInvitations do
   alias Level.Repo
   alias Level.Schemas.GroupInvitation
   alias Level.Schemas.SpaceUser
+  alias Level.Spaces
 
   def perform(group, invitor, invitees) do
     invitees
@@ -17,7 +18,7 @@ defmodule Level.Groups.CreateInvitations do
   defp create_invitation(group, invitor, invitee) do
     case insert_record(group, invitor, invitee) do
       {:ok, invitation} ->
-        _ = send_message(group, invitor, invitee, invitation)
+        send_message(group, invitor, invitee, invitation)
         invitation
 
       _ ->
@@ -39,13 +40,20 @@ defmodule Level.Groups.CreateInvitations do
   end
 
   defp send_message(group, invitor, invitee, _invitation) do
-    levelbot = Levelbot.get_space_bot!(invitee)
+    case Spaces.get_space(group.space_id) do
+      {:ok, space} ->
+        levelbot = Levelbot.get_space_bot!(invitee)
 
-    body = """
-    #{SpaceUser.display_name(invitor)} invited you to join the #{group.name} group.
-    """
+        body = """
+        #{SpaceUser.display_name(invitor)} invited you to join the #{group.name} group.
+        [Check it out &rarr;](/#{space.slug}/groups/#{group.id})
+        """
 
-    Posts.create_post(levelbot, invitee, %{body: body})
+        Posts.create_post(levelbot, invitee, %{body: body})
+
+      _ ->
+        false
+    end
   end
 
   defp to_ok_tuple(value), do: {:ok, value}
