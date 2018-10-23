@@ -246,8 +246,12 @@ defmodule Level.Groups do
     ]
 
     case Repo.insert(changeset, opts) do
-      {:ok, _} -> :ok
-      err -> err
+      {:ok, _} ->
+        bookmark_group(group, space_user)
+        :ok
+
+      err ->
+        err
     end
   end
 
@@ -270,8 +274,12 @@ defmodule Level.Groups do
     ]
 
     case Repo.insert(changeset, opts) do
-      {:ok, _} -> :ok
-      err -> err
+      {:ok, _} ->
+        unbookmark_group(group, space_user)
+        :ok
+
+      err ->
+        err
     end
   end
 

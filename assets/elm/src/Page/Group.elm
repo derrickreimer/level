@@ -18,9 +18,10 @@ import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CreatePost as CreatePost
+import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
+import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
 import Mutation.UpdateGroup as UpdateGroup
-import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
@@ -202,8 +203,10 @@ type Msg
     | NewPostFileUploadError Id
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
-    | MembershipStateToggled GroupMembershipState
-    | MembershipStateSubmitted (Result Session.Error ( Session, UpdateGroupMembership.Response ))
+    | SubscribeClicked
+    | Subscribed (Result Session.Error ( Session, SubscribeToGroup.Response ))
+    | UnsubscribeClicked
+    | Unsubscribed (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
     | NameClicked
     | NameEditorChanged String
     | NameEditorDismissed
@@ -291,17 +294,56 @@ update msg globals model =
             { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
                 |> noCmd globals
 
-        MembershipStateToggled state ->
+        SubscribeClicked ->
             let
                 cmd =
                     globals.session
-                        |> UpdateGroupMembership.request model.spaceId model.groupId state
-                        |> Task.attempt MembershipStateSubmitted
+                        |> SubscribeToGroup.request model.spaceId model.groupId
+                        |> Task.attempt Subscribed
             in
             ( ( model, cmd ), globals )
 
-        MembershipStateSubmitted _ ->
-            -- TODO: handle errors
+        Subscribed (Ok ( newSession, SubscribeToGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+
+        Subscribed (Ok ( newSession, SubscribeToGroup.Invalid _ )) ->
+            noCmd globals model
+
+        Subscribed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Subscribed (Err _) ->
+            noCmd globals model
+
+        UnsubscribeClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> UnsubscribeFromGroup.request model.spaceId model.groupId
+                        |> Task.attempt Unsubscribed
+            in
+            ( ( model, cmd ), globals )
+
+        Unsubscribed (Ok ( newSession, UnsubscribeFromGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+
+        Unsubscribed (Ok ( newSession, UnsubscribeFromGroup.Invalid _ )) ->
+            noCmd globals model
+
+        Unsubscribed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Unsubscribed (Err _) ->
             noCmd globals model
 
         NameClicked ->
@@ -851,16 +893,16 @@ memberItemView member =
 subscribeButtonView : GroupMembershipState -> Html Msg
 subscribeButtonView state =
     case state of
-        NotSubscribed ->
+        GroupMembership.NotSubscribed ->
             button
                 [ class "text-sm text-dusty-blue-dark no-underline"
-                , onClick (MembershipStateToggled Subscribed)
+                , onClick SubscribeClicked
                 ]
                 [ text "Join this group" ]
 
-        Subscribed ->
+        GroupMembership.Subscribed ->
             button
                 [ class "text-sm text-dusty-blue-dark no-underline"
-                , onClick (MembershipStateToggled NotSubscribed)
+                , onClick UnsubscribeClicked
                 ]
                 [ text "Leave this group" ]
