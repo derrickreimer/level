@@ -816,14 +816,18 @@ sidebarView params group featuredMembers =
             , privacyToggle (Group.isPrivate group)
             ]
         , memberListView featuredMembers
-        , div []
-            [ a
-                [ Route.href (Route.InviteToGroup <| Route.InviteToGroup.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
-                , class "text-sm text-blue no-underline"
+        , ul [ class "list-reset leading-normal" ]
+            [ li []
+                [ a
+                    [ Route.href (Route.InviteToGroup <| Route.InviteToGroup.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
+                    , class "text-sm text-dusty-blue-dark font-bold no-underline"
+                    ]
+                    [ text "Invite members" ]
                 ]
-                [ text "Invite members" ]
+            , li []
+                [ subscribeButtonView (Group.membershipState group)
+                ]
             ]
-        , subscribeButtonView (Group.membershipState group)
         ]
 
 
@@ -849,14 +853,14 @@ subscribeButtonView state =
     case state of
         NotSubscribed ->
             button
-                [ class "text-sm text-blue"
+                [ class "text-sm text-dusty-blue-dark font-bold no-underline"
                 , onClick (MembershipStateToggled Subscribed)
                 ]
                 [ text "Join this group" ]
 
         Subscribed ->
             button
-                [ class "text-sm text-blue"
+                [ class "text-sm text-dusty-blue-dark font-bold no-underline"
                 , onClick (MembershipStateToggled NotSubscribed)
                 ]
                 [ text "Leave this group" ]

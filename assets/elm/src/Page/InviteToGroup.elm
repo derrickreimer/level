@@ -151,8 +151,9 @@ resolvedView repo maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
-            [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 font-extrabold text-3xl" ] [ text ("Invite people to " ++ Group.name data.group) ]
+            [ div [ class "pb-5" ]
+                [ nav [ class "text-xl font-extrabold text-dusty-blue-dark" ] [ text <| Group.name data.group ]
+                , h1 [ class "flex-1 font-extrabold text-3xl" ] [ text "Invite people to the group" ]
                 ]
             , div [ class "pb-8" ]
                 [ p [ class "text-base" ]

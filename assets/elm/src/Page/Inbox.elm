@@ -504,17 +504,23 @@ sidebarView space featuredUsers pushStatus =
                 ]
             ]
         , div [ class "pb-4" ] <| List.map userItemView featuredUsers
-        , viewUnless (PushStatus.getIsSubscribed pushStatus |> Maybe.withDefault True) <|
-            button
-                [ class "block mb-4 text-sm text-blue font-bold"
-                , onClick PushSubscribeClicked
+        , ul [ class "list-reset" ]
+            [ li []
+                [ a
+                    [ Route.href (Route.InviteUsers (Space.slug space))
+                    , class "text-sm text-dusty-blue-dark font-bold no-underline"
+                    ]
+                    [ text "Invite people" ]
                 ]
-                [ text "Enable notifications" ]
-        , a
-            [ Route.href (Route.InviteUsers (Space.slug space))
-            , class "block text-sm text-blue no-underline"
+            , viewUnless (PushStatus.getIsSubscribed pushStatus |> Maybe.withDefault True) <|
+                li []
+                    [ button
+                        [ class "block mb-4 text-sm text-blue font-bold"
+                        , onClick PushSubscribeClicked
+                        ]
+                        [ text "Enable notifications" ]
+                    ]
             ]
-            [ text "Invite people" ]
         ]
 
 

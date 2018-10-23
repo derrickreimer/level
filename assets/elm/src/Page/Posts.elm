@@ -379,11 +379,15 @@ sidebarView space featuredUsers =
                 ]
             ]
         , div [ class "pb-4" ] <| List.map userItemView featuredUsers
-        , a
-            [ Route.href (Route.InviteUsers (Space.slug space))
-            , class "block text-sm text-blue no-underline"
+        , ul [ class "list-reset" ]
+            [ li []
+                [ a
+                    [ Route.href (Route.InviteUsers (Space.slug space))
+                    , class "text-sm text-dusty-blue-dark font-bold no-underline"
+                    ]
+                    [ text "Invite people" ]
+                ]
             ]
-            [ text "Invite people" ]
         ]
 
 
