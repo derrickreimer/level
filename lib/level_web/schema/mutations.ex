@@ -202,6 +202,46 @@ defmodule LevelWeb.Schema.Mutations do
     interface :validatable
   end
 
+  @desc "The response to subscribing to a group."
+  object :subscribe_to_group_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The group.
+    """
+    field :group, :group
+
+    interface :validatable
+  end
+
+  @desc "The response to unsubscribing from a group."
+  object :unsubscribe_from_group_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The group.
+    """
+    field :group, :group
+
+    interface :validatable
+  end
+
   @desc "The payload for an updating group bookmark state."
   object :bookmark_group_payload do
     @desc "The current bookmark status."

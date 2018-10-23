@@ -45,6 +45,16 @@ defmodule Level.Mutations do
           {:ok, %{success: boolean(), membership: GroupUser.t(), errors: validation_errors()}}
           | {:error, String.t()}
 
+  @typedoc "The payload for the subscribe to group mutation"
+  @type subscribe_to_group_payload ::
+          {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
+          | {:error, String.t()}
+
+  @typedoc "The payload for the unsubscribe from group mutation"
+  @type unsubscribe_from_group_payload ::
+          {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
+          | {:error, String.t()}
+
   @typedoc "The payload for updating group bookmark state"
   @type bookmark_group_payload ::
           {:ok, %{is_bookmarked: boolean(), group: Groups.Group.t()}}
@@ -247,6 +257,36 @@ defmodule Level.Mutations do
         {:ok,
          %{success: false, group: nil, membership: group_user, errors: format_errors(changeset)}}
 
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Subscribes to a group.
+  """
+  @spec subscribe_to_group(map(), info()) :: subscribe_to_group_payload()
+  def subscribe_to_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         :ok <- Groups.subscribe(group, space_user) do
+      {:ok, %{success: true, group: group, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Unsubscribes from a group.
+  """
+  @spec unsubscribe_from_group(map(), info()) :: unsubscribe_from_group_payload()
+  def unsubscribe_from_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         :ok <- Groups.unsubscribe(group, space_user) do
+      {:ok, %{success: true, group: group, errors: []}}
+    else
       err ->
         err
     end

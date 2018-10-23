@@ -144,6 +144,22 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_group_membership/2
     end
 
+    @desc "Subscribes to a group."
+    field :subscribe_to_group, type: :subscribe_to_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.subscribe_to_group/2
+    end
+
+    @desc "Unsubscribe from group."
+    field :unsubscribe_from_group, type: :unsubscribe_from_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.unsubscribe_from_group/2
+    end
+
     @desc "Bookmark a group."
     field :bookmark_group, type: :bookmark_group_payload do
       arg :space_id, non_null(:id)
