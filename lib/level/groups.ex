@@ -340,14 +340,74 @@ defmodule Level.Groups do
         space_id: group.space_id,
         space_user_id: space_user.id,
         group_id: group.id,
-        state: "NOT_SUBSCRIBED",
-        role: "MEMBER"
+        state: "NOT_SUBSCRIBED"
       })
 
     case Repo.insert(changeset, on_conflict: :nothing) do
       {:ok, _} -> :ok
       err -> err
     end
+  end
+
+  @doc """
+  Subscribes a user to a group.
+  """
+  @spec subscribe(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
+  def subscribe(%Group{} = group, %SpaceUser{} = space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        state: "SUBSCRIBED"
+      })
+
+    opts = [
+      on_conflict: [set: [state: "SUBSCRIBED"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
+
+    case Repo.insert(changeset, opts) do
+      {:ok, _} -> :ok
+      err -> err
+    end
+  end
+
+  @doc """
+  Unsubscribes a user from a group.
+  """
+  @spec unsubscribe(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
+  def unsubscribe(%Group{} = group, %SpaceUser{} = space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        state: "NOT_SUBSCRIBED"
+      })
+
+    opts = [
+      on_conflict: [set: [state: "NOT_SUBSCRIBED"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
+
+    case Repo.insert(changeset, opts) do
+      {:ok, _} -> :ok
+      err -> err
+    end
+  end
+
+  @doc """
+  Revokes a user's access from a group.
+  """
+  @spec revoke_access(Group.t(), SpaceUser.t()) :: :ok
+  def revoke_access(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
+    query =
+      from gu in GroupUser,
+        where: gu.space_user_id == ^space_user_id and gu.group_id == ^group_id
+
+    {_count, _} = Repo.delete_all(query)
+    :ok
   end
 
   @doc """

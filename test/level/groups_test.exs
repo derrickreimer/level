@@ -387,4 +387,81 @@ defmodule Level.GroupsTest do
       assert Groups.get_user_state(group, space_user) == :subscribed
     end
   end
+
+  describe "subscribe/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, Map.merge(result, %{group: group})}
+    end
+
+    test "sets the user to subscribed", %{space: space, group: group} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      assert Groups.get_user_state(group, another_user) == nil
+
+      Groups.subscribe(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :subscribed
+    end
+
+    test "sets the user to subscribed when previously granted access", %{
+      space: space,
+      group: group
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.grant_access(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :not_subscribed
+
+      Groups.subscribe(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :subscribed
+    end
+  end
+
+  describe "unsubscribe/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, Map.merge(result, %{group: group})}
+    end
+
+    test "sets the user to not subscribed", %{space: space, group: group} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      assert Groups.get_user_state(group, another_user) == nil
+
+      Groups.unsubscribe(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :not_subscribed
+    end
+
+    test "sets the user to not subscribed when previously subscribed", %{
+      space: space,
+      group: group
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.subscribe(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :subscribed
+
+      Groups.unsubscribe(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :not_subscribed
+    end
+  end
+
+  describe "revoke_access/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user, %{is_private: true})
+      {:ok, Map.merge(result, %{group: group})}
+    end
+
+    test "revokes the user's access to private groups", %{
+      space: space,
+      group: group
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.subscribe(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :subscribed
+
+      Groups.revoke_access(group, another_user)
+      assert Groups.get_user_state(group, another_user) == nil
+      assert {:error, _} = Groups.get_group(another_user, group.id)
+    end
+  end
 end
