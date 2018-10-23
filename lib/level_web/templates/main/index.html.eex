@@ -1,2 +1,3 @@
-<div class="h-screen w-full bg-turquoise">
+<div class="font-sans font-antialised flex items-center justify-center h-screen w-full bg-turquoise">
+  <h1 class="text-3xl text-white font-black">Loading...</h1>
 </div>
