@@ -152,14 +152,43 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold text-3xl" ] [ text ("Invite to " ++ Group.name data.group) ]
+                [ h1 [ class "flex-1 font-extrabold text-3xl" ] [ text ("Invite people to " ++ Group.name data.group) ]
                 ]
             , div [ class "pb-8" ]
-                [ label [ class "flex items-center p-4 w-full rounded bg-grey-light" ]
-                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+                [ p [ class "text-base" ]
+                    [ text "Select everyone you would like to invite to the group. They will receive a message in their Level inbox as soon as you click the send button."
                     ]
                 ]
-            , text "TODO"
+            , usersView repo model.spaceUserIds
+            , div [ class "pb-4" ]
+                [ button [ class "btn btn-blue btn-lg" ] [ text "Send invitations" ] ]
+            ]
+        ]
+
+
+usersView : Repo -> Connection Id -> Html Msg
+usersView repo connection =
+    div [ class "pb-6" ]
+        (connection
+            |> Connection.toList
+            |> List.filterMap (\id -> Repo.getSpaceUser id repo)
+            |> List.map userView
+        )
+
+
+userView : SpaceUser -> Html Msg
+userView spaceUser =
+    div []
+        [ label [ class "control checkbox flex items-center pr-4 pb-1 font-normal text-lg select-none" ]
+            [ div [ class "flex-0" ]
+                [ input
+                    [ type_ "checkbox"
+                    , class "checkbox"
+                    ]
+                    []
+                , span [ class "control-indicator" ] []
+                ]
+            , div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+            , text (SpaceUser.displayName spaceUser)
             ]
         ]
