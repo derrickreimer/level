@@ -55,6 +55,16 @@ defmodule Level.Mutations do
           {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
           | {:error, String.t()}
 
+  @typedoc "The payload for the grant group access mutation"
+  @type grant_group_access_payload ::
+          {:ok, %{success: boolean(), errors: validation_errors()}}
+          | {:error, String.t()}
+
+  @typedoc "The payload for the revoke group access mutation"
+  @type revoke_group_access_payload ::
+          {:ok, %{success: boolean(), errors: validation_errors()}}
+          | {:error, String.t()}
+
   @typedoc "The payload for updating group bookmark state"
   @type bookmark_group_payload ::
           {:ok, %{is_bookmarked: boolean(), group: Groups.Group.t()}}
@@ -286,6 +296,38 @@ defmodule Level.Mutations do
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
          :ok <- Groups.unsubscribe(group, space_user) do
       {:ok, %{success: true, group: group, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Grants a user access to a group.
+  """
+  @spec grant_group_access(map(), info()) :: grant_group_access_payload()
+  def grant_group_access(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
+         :ok <- Groups.grant_access(user, group, space_user) do
+      {:ok, %{success: true, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Revokes a user's access to a group.
+  """
+  @spec revoke_group_access(map(), info()) :: revoke_group_access_payload()
+  def revoke_group_access(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
+         :ok <- Groups.revoke_access(user, group, space_user) do
+      {:ok, %{success: true, errors: []}}
     else
       err ->
         err

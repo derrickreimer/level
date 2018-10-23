@@ -242,6 +242,36 @@ defmodule LevelWeb.Schema.Mutations do
     interface :validatable
   end
 
+  @desc "The response to granting group access."
+  object :grant_group_access_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    interface :validatable
+  end
+
+  @desc "The response to revoking group access."
+  object :revoke_group_access_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    interface :validatable
+  end
+
   @desc "The payload for an updating group bookmark state."
   object :bookmark_group_payload do
     @desc "The current bookmark status."

@@ -294,25 +294,6 @@ defmodule Level.Groups do
   end
 
   @doc """
-  Grants a user access to a group.
-  """
-  @spec grant_access(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
-  def grant_access(%Group{} = group, %SpaceUser{} = space_user) do
-    changeset =
-      Changeset.change(%GroupUser{}, %{
-        space_id: group.space_id,
-        space_user_id: space_user.id,
-        group_id: group.id,
-        state: "NOT_SUBSCRIBED"
-      })
-
-    case Repo.insert(changeset, on_conflict: :nothing) do
-      {:ok, _} -> :ok
-      err -> err
-    end
-  end
-
-  @doc """
   Subscribes a user to a group.
   """
   @spec subscribe(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
@@ -361,16 +342,49 @@ defmodule Level.Groups do
   end
 
   @doc """
+  Grants a user access to a group.
+  """
+  @spec grant_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def grant_access(%User{} = current_user, %Group{} = group, %SpaceUser{} = space_user) do
+    case get_user_role(group, current_user) do
+      :owner ->
+        changeset =
+          Changeset.change(%GroupUser{}, %{
+            space_id: group.space_id,
+            space_user_id: space_user.id,
+            group_id: group.id,
+            state: "NOT_SUBSCRIBED"
+          })
+
+        case Repo.insert(changeset, on_conflict: :nothing) do
+          {:ok, _} -> :ok
+          _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
+        end
+
+      _ ->
+        {:error, dgettext("errors", "You are not authorized to perform this action.")}
+    end
+  end
+
+  @doc """
   Revokes a user's access from a group.
   """
-  @spec revoke_access(Group.t(), SpaceUser.t()) :: :ok
-  def revoke_access(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
-    query =
-      from gu in GroupUser,
-        where: gu.space_user_id == ^space_user_id and gu.group_id == ^group_id
+  @spec revoke_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def revoke_access(%User{} = current_user, %Group{} = group, %SpaceUser{id: space_user_id}) do
+    case get_user_role(group, current_user) do
+      :owner ->
+        group_id = group.id
 
-    {_count, _} = Repo.delete_all(query)
-    :ok
+        query =
+          from gu in GroupUser,
+            where: gu.space_user_id == ^space_user_id and gu.group_id == ^group_id
+
+        {_count, _} = Repo.delete_all(query)
+        :ok
+
+      _ ->
+        {:error, dgettext("errors", "You are not authorized to perform this action.")}
+    end
   end
 
   @doc """
@@ -424,9 +438,9 @@ defmodule Level.Groups do
   @doc """
   Gets a user's state.
   """
-  @spec get_user_state(Group.t(), SpaceUser.t()) :: :not_subscribed | :subscribed | nil
-  def get_user_state(%Group{} = group, %SpaceUser{} = space_user) do
-    case get_group_user(group, space_user) do
+  @spec get_user_state(Group.t(), User.t() | SpaceUser.t()) :: :not_subscribed | :subscribed | nil
+  def get_user_state(%Group{} = group, user) do
+    case get_group_user(group, user) do
       {:ok, %GroupUser{state: "SUBSCRIBED"}} -> :subscribed
       {:ok, %GroupUser{state: "NOT_SUBSCRIBED"}} -> :not_subscribed
       _ -> nil
@@ -436,9 +450,9 @@ defmodule Level.Groups do
   @doc """
   Gets a user's role.
   """
-  @spec get_user_role(Group.t(), SpaceUser.t()) :: :owner | :member | nil
-  def get_user_role(%Group{} = group, %SpaceUser{} = space_user) do
-    case get_group_user(group, space_user) do
+  @spec get_user_role(Group.t(), User.t() | SpaceUser.t()) :: :owner | :member | nil
+  def get_user_role(%Group{} = group, user) do
+    case get_group_user(group, user) do
       {:ok, %GroupUser{role: "OWNER"}} -> :owner
       {:ok, %GroupUser{role: "MEMBER"}} -> :member
       _ -> nil
