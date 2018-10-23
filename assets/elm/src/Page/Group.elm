@@ -820,7 +820,7 @@ sidebarView params group featuredMembers =
             [ li []
                 [ a
                     [ Route.href (Route.InviteToGroup <| Route.InviteToGroup.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
-                    , class "text-sm text-dusty-blue-dark font-bold no-underline"
+                    , class "text-sm text-dusty-blue-dark no-underline"
                     ]
                     [ text "Invite members" ]
                 ]
@@ -853,14 +853,14 @@ subscribeButtonView state =
     case state of
         NotSubscribed ->
             button
-                [ class "text-sm text-dusty-blue-dark font-bold no-underline"
+                [ class "text-sm text-dusty-blue-dark no-underline"
                 , onClick (MembershipStateToggled Subscribed)
                 ]
                 [ text "Join this group" ]
 
         Subscribed ->
             button
-                [ class "text-sm text-dusty-blue-dark font-bold no-underline"
+                [ class "text-sm text-dusty-blue-dark no-underline"
                 , onClick (MembershipStateToggled NotSubscribed)
                 ]
                 [ text "Leave this group" ]

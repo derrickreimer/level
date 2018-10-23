@@ -383,7 +383,7 @@ sidebarView space featuredUsers =
             [ li []
                 [ a
                     [ Route.href (Route.InviteUsers (Space.slug space))
-                    , class "text-sm text-dusty-blue-dark font-bold no-underline"
+                    , class "text-sm text-dusty-blue-dark no-underline"
                     ]
                     [ text "Invite people" ]
                 ]

@@ -508,14 +508,14 @@ sidebarView space featuredUsers pushStatus =
             [ li []
                 [ a
                     [ Route.href (Route.InviteUsers (Space.slug space))
-                    , class "text-sm text-dusty-blue-dark font-bold no-underline"
+                    , class "text-sm text-dusty-blue-dark no-underline"
                     ]
                     [ text "Invite people" ]
                 ]
             , viewUnless (PushStatus.getIsSubscribed pushStatus |> Maybe.withDefault True) <|
                 li []
                     [ button
-                        [ class "block mb-4 text-sm text-blue font-bold"
+                        [ class "block mb-4 text-sm text-blue"
                         , onClick PushSubscribeClicked
                         ]
                         [ text "Enable notifications" ]
