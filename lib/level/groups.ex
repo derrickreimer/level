@@ -143,50 +143,6 @@ defmodule Level.Groups do
   end
 
   @doc """
-  Creates a group membership.
-  """
-  @spec create_group_membership(Group.t(), SpaceUser.t()) ::
-          {:ok, %{group_user: GroupUser.t(), bookmarked: boolean()}}
-          | {:error, :group_user | :bookmarked, any(),
-             %{optional(:group_user | :bookmarked) => any()}}
-  def create_group_membership(group, space_user) do
-    params = %{
-      space_id: group.space_id,
-      group_id: group.id,
-      space_user_id: space_user.id,
-      state: "SUBSCRIBED"
-    }
-
-    Multi.new()
-    |> Multi.insert(:group_user, GroupUser.changeset(%GroupUser{}, params))
-    |> Multi.run(:bookmarked, fn _ ->
-      case bookmark_group(group, space_user) do
-        :ok -> {:ok, true}
-        _ -> {:ok, false}
-      end
-    end)
-    |> Repo.transaction()
-  end
-
-  @doc """
-  Deletes a group membership.
-  """
-  @spec delete_group_membership(Group.t(), SpaceUser.t(), GroupUser.t()) ::
-          {:ok, %{group_user: GroupUser.t(), unbookmarked: boolean()}}
-          | {:error, :group_user | :unbookmarked, any(),
-             %{optional(:group_user | :unbookmarked) => any()}}
-          | no_return()
-  def delete_group_membership(group, space_user, group_user) do
-    Multi.new()
-    |> Multi.delete(:group_user, group_user)
-    |> Multi.run(:unbookmarked, fn _ ->
-      unbookmark_group(group, space_user)
-      {:ok, true}
-    end)
-    |> Repo.transaction()
-  end
-
-  @doc """
   Updates group membership state.
   """
   @spec update_group_membership(Group.t(), SpaceUser.t(), String.t()) ::
@@ -220,6 +176,35 @@ defmodule Level.Groups do
       {{:ok, nil}, _} ->
         {:ok, %{group: group, group_user: nil}}
     end
+  end
+
+  defp create_group_membership(group, space_user) do
+    params = %{
+      space_id: group.space_id,
+      group_id: group.id,
+      space_user_id: space_user.id,
+      state: "SUBSCRIBED"
+    }
+
+    Multi.new()
+    |> Multi.insert(:group_user, GroupUser.changeset(%GroupUser{}, params))
+    |> Multi.run(:bookmarked, fn _ ->
+      case bookmark_group(group, space_user) do
+        :ok -> {:ok, true}
+        _ -> {:ok, false}
+      end
+    end)
+    |> Repo.transaction()
+  end
+
+  defp delete_group_membership(group, space_user, group_user) do
+    Multi.new()
+    |> Multi.delete(:group_user, group_user)
+    |> Multi.run(:unbookmarked, fn _ ->
+      unbookmark_group(group, space_user)
+      {:ok, true}
+    end)
+    |> Repo.transaction()
   end
 
   @doc """

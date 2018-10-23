@@ -116,7 +116,7 @@ defmodule Level.GroupsTest do
       {:ok, %{group: %Group{id: group_id} = group}} =
         create_group(space_user, %{is_private: true})
 
-      Groups.create_group_membership(group, another_space_user)
+      Groups.subscribe(group, another_space_user)
       assert {:ok, %Group{id: ^group_id}} = Groups.get_group(another_space_user, group_id)
     end
 
@@ -239,59 +239,6 @@ defmodule Level.GroupsTest do
       assert closed_group.state == "CLOSED"
     end
   end
-
-  describe "create_group_membership/2" do
-    setup do
-      create_user_and_space()
-    end
-
-    test "bookmarks the group", %{
-      space_user: space_user,
-      space: space
-    } do
-      {:ok, %{group: group}} = create_group(space_user)
-      {:ok, %{space_user: another_space_user, user: another_user}} = create_space_member(space)
-
-      Groups.create_group_membership(group, another_space_user)
-
-      assert Groups.is_bookmarked(another_user, group)
-    end
-
-    test "establishes a new membership if not already one", %{
-      space_user: space_user,
-      space: space
-    } do
-      {:ok, %{group: group}} = create_group(space_user)
-      {:ok, %{space_user: another_space_user}} = create_space_member(space)
-
-      {:ok, %{group_user: group_user}} = Groups.create_group_membership(group, another_space_user)
-      assert group_user.group_id == group.id
-      assert group_user.space_user_id == another_space_user.id
-    end
-
-    test "returns an error if user is already a member", %{space_user: space_user} do
-      {:ok, %{group: group}} = create_group(space_user)
-
-      # The creator of the group is already a member, so...
-      {:error, :group_user, changeset, _} = Groups.create_group_membership(group, space_user)
-      assert changeset.errors == [user: {"is already a member", []}]
-    end
-  end
-
-  # describe "delete_group_membership/3" do
-  #   setup do
-  #     create_user_and_space()
-  #   end
-  #
-  #   test "leaves and unbookmarks the group", %{user: user, space_user: space_user} do
-  #     {:ok, %{group: group, membership: %{group_user: group_user, bookmarked: true}}} =
-  #       create_group(space_user)
-  #
-  #     Groups.delete_group_membership(group, space_user, group_user)
-  #     refute Groups.is_bookmarked(user, group)
-  #     assert {:ok, nil} = Groups.get_group_user(group, space_user)
-  #   end
-  # end
 
   describe "is_bookmarked/2" do
     setup do

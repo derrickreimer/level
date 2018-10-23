@@ -29,7 +29,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
 
   test "groups expose the current viewer's membership", %{conn: conn, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
-    Groups.create_group_membership(group, space_user)
+    Groups.subscribe(group, space_user)
     variables = %{group_id: group.id}
 
     conn =
