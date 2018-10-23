@@ -18,6 +18,7 @@ type alias Response =
     { viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
+    , groupId : Id
     , spaceUserIds : Connection Id
     , repo : Repo
     }
@@ -27,6 +28,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
+    , group : Group
     , spaceUsers : Connection SpaceUser
     }
 
@@ -36,7 +38,8 @@ document =
     GraphQL.toDocument
         """
         query InviteToGroupInit(
-          $spaceSlug: ID!
+          $spaceSlug: ID!,
+          $groupId: ID!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -53,6 +56,9 @@ document =
               ...GroupFields
             }
           }
+          group(id: $groupId) {
+            ...GroupFields
+          }
         }
         """
         [ SpaceUser.fragment
@@ -67,18 +73,20 @@ variables params =
     Just
         (Encode.object
             [ ( "spaceSlug", Encode.string <| Route.InviteToGroup.getSpaceSlug params )
+            , ( "groupId", Id.encoder <| Route.InviteToGroup.getGroupId params )
             ]
         )
 
 
 decoder : Decoder Data
 decoder =
-    Decode.at [ "data", "spaceUser" ] <|
-        Decode.map4 Data
-            SpaceUser.decoder
-            (field "space" Space.decoder)
-            (field "bookmarks" (list Group.decoder))
-            (Decode.at [ "space", "spaceUsers" ] (Connection.decoder SpaceUser.decoder))
+    Decode.at [ "data" ] <|
+        Decode.map5 Data
+            (field "spaceUser" SpaceUser.decoder)
+            (Decode.at [ "spaceUser", "space" ] Space.decoder)
+            (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
+            (field "group" Group.decoder)
+            (Decode.at [ "spaceUser", "space", "spaceUsers" ] (Connection.decoder SpaceUser.decoder))
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -88,6 +96,7 @@ buildResponse ( session, data ) =
             Repo.empty
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setSpace data.space
+                |> Repo.setGroup data.group
                 |> Repo.setGroups data.bookmarks
                 |> Repo.setSpaceUsers (Connection.toList data.spaceUsers)
 
@@ -96,6 +105,7 @@ buildResponse ( session, data ) =
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
+                (Group.id data.group)
                 (Connection.map SpaceUser.id data.spaceUsers)
                 repo
     in
