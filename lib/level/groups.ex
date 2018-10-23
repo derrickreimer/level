@@ -79,24 +79,28 @@ defmodule Level.Groups do
   @doc """
   Creates a group.
   """
-  @spec create_group(SpaceUser.t(), map()) ::
-          {:ok,
-           %{group: Group.t(), membership: %{group_user: GroupUser.t(), bookmarked: boolean()}}}
-          | {:error, :group | :membership, any(), %{optional(:group | :membership) => any()}}
+  @spec create_group(SpaceUser.t(), map()) :: {:ok, %{group: Group.t()}} | {:error, Changeset.t()}
   def create_group(space_user, params \\ %{}) do
     params_with_relations =
       params
       |> Map.put(:space_id, space_user.space_id)
       |> Map.put(:creator_id, space_user.id)
 
-    changeset = Group.create_changeset(%Group{}, params_with_relations)
+    %Group{}
+    |> Group.create_changeset(params_with_relations)
+    |> Repo.insert()
+    |> after_create_group(space_user)
+  end
 
-    Multi.new()
-    |> Multi.insert(:group, changeset)
-    |> Multi.run(:membership, fn %{group: group} ->
-      create_group_membership(group, space_user)
-    end)
-    |> Repo.transaction()
+  defp after_create_group({:ok, group}, space_user) do
+    subscribe(group, space_user)
+    set_owner_role(group, space_user)
+    bookmark_group(group, space_user)
+    {:ok, %{group: group}}
+  end
+
+  defp after_create_group(err, _) do
+    err
   end
 
   @doc """
@@ -116,32 +120,6 @@ defmodule Level.Groups do
   end
 
   defp after_update_group(err), do: err
-
-  @doc """
-  Fetches a group membership by group and user.
-  """
-  @spec get_group_user(Group.t(), SpaceUser.t()) :: {:ok, GroupUser.t() | nil}
-  @spec get_group_user(Group.t(), User.t()) :: {:ok, GroupUser.t() | nil}
-
-  def get_group_user(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
-    GroupUser
-    |> Repo.get_by(space_user_id: space_user_id, group_id: group_id)
-    |> handle_get_group_user()
-  end
-
-  def get_group_user(%Group{id: group_id}, %User{id: user_id}) do
-    queryable =
-      from gu in GroupUser,
-        join: su in assoc(gu, :space_user),
-        where: su.user_id == ^user_id
-
-    queryable
-    |> Repo.get_by(group_id: group_id)
-    |> handle_get_group_user()
-  end
-
-  defp handle_get_group_user(%GroupUser{} = group_user), do: {:ok, group_user}
-  defp handle_get_group_user(_), do: {:ok, nil}
 
   @doc """
   Lists featured group memberships (for display in the sidebar).
@@ -411,6 +389,54 @@ defmodule Level.Groups do
   end
 
   @doc """
+  Makes a user an owner of a group.
+  """
+  @spec set_owner_role(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
+  def set_owner_role(%Group{} = group, %SpaceUser{} = space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        role: "OWNER"
+      })
+
+    opts = [
+      on_conflict: [set: [role: "OWNER"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
+
+    case Repo.insert(changeset, opts) do
+      {:ok, _} -> :ok
+      err -> err
+    end
+  end
+
+  @doc """
+  Makes a user have a member role.
+  """
+  @spec set_member_role(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
+  def set_member_role(%Group{} = group, %SpaceUser{} = space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        role: "MEMBER"
+      })
+
+    opts = [
+      on_conflict: [set: [role: "MEMBER"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
+
+    case Repo.insert(changeset, opts) do
+      {:ok, _} -> :ok
+      err -> err
+    end
+  end
+
+  @doc """
   Gets a user's state.
   """
   @spec get_user_state(Group.t(), SpaceUser.t()) :: :not_subscribed | :subscribed | nil
@@ -421,4 +447,38 @@ defmodule Level.Groups do
       _ -> nil
     end
   end
+
+  @doc """
+  Gets a user's role.
+  """
+  @spec get_user_role(Group.t(), SpaceUser.t()) :: :owner | :member | nil
+  def get_user_role(%Group{} = group, %SpaceUser{} = space_user) do
+    case get_group_user(group, space_user) do
+      {:ok, %GroupUser{role: "OWNER"}} -> :owner
+      {:ok, %GroupUser{role: "MEMBER"}} -> :member
+      _ -> nil
+    end
+  end
+
+  # Internal
+
+  defp get_group_user(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
+    GroupUser
+    |> Repo.get_by(space_user_id: space_user_id, group_id: group_id)
+    |> handle_get_group_user()
+  end
+
+  defp get_group_user(%Group{id: group_id}, %User{id: user_id}) do
+    queryable =
+      from gu in GroupUser,
+        join: su in assoc(gu, :space_user),
+        where: su.user_id == ^user_id
+
+    queryable
+    |> Repo.get_by(group_id: group_id)
+    |> handle_get_group_user()
+  end
+
+  defp handle_get_group_user(%GroupUser{} = group_user), do: {:ok, group_user}
+  defp handle_get_group_user(_), do: {:ok, nil}
 end

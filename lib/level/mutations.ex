@@ -7,7 +7,6 @@ defmodule Level.Mutations do
   alias Level.Mentions
   alias Level.Posts
   alias Level.Schemas.GroupUser
-  alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
   alias Level.Spaces
   alias Level.Users
@@ -177,11 +176,8 @@ defmodule Level.Mutations do
            {:ok, %{group: group}} <- Groups.create_group(space_user, args) do
         %{success: true, group: group, errors: []}
       else
-        {:error, :group, changeset, _} ->
+        {:error, changeset} ->
           %{success: false, group: nil, errors: format_errors(changeset)}
-
-        _ ->
-          %{success: false, group: nil, errors: []}
       end
 
     {:ok, resp}
@@ -224,7 +220,6 @@ defmodule Level.Mutations do
     end
   end
 
-  @spec bulk_create_group(SpaceUser.t(), String.t()) :: bulk_create_group_payload()
   defp bulk_create_group(space_user, name) do
     args = %{name: name}
 
@@ -232,11 +227,8 @@ defmodule Level.Mutations do
       {:ok, %{group: group}} ->
         %{success: true, group: group, errors: [], args: args}
 
-      {:error, :group, changeset, _} ->
+      {:error, changeset} ->
         %{success: false, group: nil, errors: format_errors(changeset), args: args}
-
-      _ ->
-        %{success: false, group: nil, errors: [], args: args}
     end
   end
 
