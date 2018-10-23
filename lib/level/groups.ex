@@ -9,6 +9,7 @@ defmodule Level.Groups do
 
   alias Ecto.Multi
   alias Level.Events
+  alias Level.Groups.CreateInvitations
   alias Level.Repo
   alias Level.Schemas.Group
   alias Level.Schemas.GroupBookmark
@@ -332,32 +333,9 @@ defmodule Level.Groups do
   @doc """
   Creates group invitations.
   """
-  @spec create_invitations(SpaceUser.t(), Group.t(), [SpaceUser.t()]) ::
+  @spec create_invitations(Group.t(), SpaceUser.t(), [SpaceUser.t()]) ::
           {:ok, [GroupInvitation.t()]}
-  def create_invitations(%SpaceUser{} = invitor, %Group{} = group, invitees) do
-    invitees
-    |> Enum.map(fn invitee ->
-      case create_invitation(invitor, group, invitee) do
-        {:ok, invitation} -> invitation
-        _ -> nil
-      end
-    end)
-    |> Enum.reject(&is_nil/1)
-    |> to_ok_tuple()
+  def create_invitations(%Group{} = group, %SpaceUser{} = invitor, invitees) do
+    CreateInvitations.perform(group, invitor, invitees)
   end
-
-  defp create_invitation(invitor, group, invitee) do
-    params = %{
-      space_id: invitor.space_id,
-      group_id: group.id,
-      invitee_id: invitee.id,
-      invitor_id: invitor.id
-    }
-
-    %GroupInvitation{}
-    |> GroupInvitation.create_changeset(params)
-    |> Repo.insert()
-  end
-
-  defp to_ok_tuple(value), do: {:ok, value}
 end

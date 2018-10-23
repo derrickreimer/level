@@ -564,7 +564,7 @@ defmodule Level.Mutations do
     with {:ok, %{space: space, space_user: space_user}} <- Spaces.get_space(user, space_id),
          {:ok, group} <- Groups.get_group(user, group_id),
          invitees <- Spaces.get_space_users(space, invitee_ids),
-         {:ok, _} <- Groups.create_invitations(space_user, group, invitees) do
+         {:ok, _} <- Groups.create_invitations(group, space_user, invitees) do
       {:ok, %{success: true, errors: [], invitees: invitees}}
     else
       err ->

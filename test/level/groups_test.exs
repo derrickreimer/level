@@ -374,7 +374,7 @@ defmodule Level.GroupsTest do
       {:ok, %{space_user: invitee}} = create_space_member(space)
 
       {:ok, [%GroupInvitation{} = invitation]} =
-        Groups.create_invitations(invitor, group, [invitee])
+        Groups.create_invitations(group, invitor, [invitee])
 
       assert invitation.invitor_id == invitor.id
       assert invitation.invitee_id == invitee.id
