@@ -361,4 +361,30 @@ defmodule Level.GroupsTest do
       assert Groups.is_bookmarked(user, group)
     end
   end
+
+  describe "grant_access/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user, %{is_private: true})
+      {:ok, Map.merge(result, %{group: group})}
+    end
+
+    test "sets the user to not subscribed if not already a member", %{space: space, group: group} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      assert Groups.get_user_state(group, another_user) == nil
+      assert {:error, _} = Groups.get_group(another_user, group.id)
+
+      Groups.grant_access(group, another_user)
+
+      assert {:ok, _} = Groups.get_group(another_user, group.id)
+      assert Groups.get_user_state(group, another_user) == :not_subscribed
+    end
+
+    test "does not change state for subscribed users", %{space_user: space_user, group: group} do
+      assert Groups.get_user_state(group, space_user) == :subscribed
+      Groups.grant_access(group, space_user)
+      assert Groups.get_user_state(group, space_user) == :subscribed
+    end
+  end
 end

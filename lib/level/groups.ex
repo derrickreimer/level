@@ -7,6 +7,7 @@ defmodule Level.Groups do
   import Ecto.Query, warn: false
   import Level.Gettext
 
+  alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.Events
   alias Level.Repo
@@ -101,7 +102,7 @@ defmodule Level.Groups do
   @doc """
   Updates a group.
   """
-  @spec update_group(Group.t(), map()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
+  @spec update_group(Group.t(), map()) :: {:ok, Group.t()} | {:error, Changeset.t()}
   def update_group(group, params) do
     group
     |> Group.update_changeset(params)
@@ -212,7 +213,7 @@ defmodule Level.Groups do
   """
   @spec update_group_membership(Group.t(), SpaceUser.t(), String.t()) ::
           {:ok, %{group: Group.t(), group_user: GroupUser.t() | nil}}
-          | {:error, GroupUser.t() | nil, Ecto.Changeset.t()}
+          | {:error, GroupUser.t() | nil, Changeset.t()}
   def update_group_membership(group, space_user, state) do
     case {get_group_user(group, space_user), state} do
       {{:ok, %GroupUser{} = group_user}, "NOT_SUBSCRIBED"} ->
@@ -221,7 +222,7 @@ defmodule Level.Groups do
             Events.group_membership_updated(group.id, {group, nil})
             {:ok, %{group: group, group_user: nil}}
 
-          {:error, _, %Ecto.Changeset{} = changeset, _} ->
+          {:error, _, %Changeset{} = changeset, _} ->
             {:error, group_user, changeset}
         end
 
@@ -231,7 +232,7 @@ defmodule Level.Groups do
             Events.group_membership_updated(group.id, {group, group_user})
             {:ok, %{group: group, group_user: group_user}}
 
-          {:error, _, %Ecto.Changeset{} = changeset, _} ->
+          {:error, _, %Changeset{} = changeset, _} ->
             {:error, nil, changeset}
         end
 
@@ -264,7 +265,7 @@ defmodule Level.Groups do
         Events.group_bookmarked(space_user.id, group)
         :ok
 
-      {:error, %Ecto.Changeset{errors: [uniqueness: _]}} ->
+      {:error, %Changeset{errors: [uniqueness: _]}} ->
         :ok
 
       {:error, _} ->
@@ -322,10 +323,42 @@ defmodule Level.Groups do
   @doc """
   Closes a group.
   """
-  @spec close_group(Group.t()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
+  @spec close_group(Group.t()) :: {:ok, Group.t()} | {:error, Changeset.t()}
   def close_group(group) do
     group
-    |> Ecto.Changeset.change(state: "CLOSED")
+    |> Changeset.change(state: "CLOSED")
     |> Repo.update()
+  end
+
+  @doc """
+  Grants a user access to a group.
+  """
+  @spec grant_access(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
+  def grant_access(%Group{} = group, %SpaceUser{} = space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        state: "NOT_SUBSCRIBED",
+        role: "MEMBER"
+      })
+
+    case Repo.insert(changeset, on_conflict: :nothing) do
+      {:ok, _} -> :ok
+      err -> err
+    end
+  end
+
+  @doc """
+  Gets a user's state.
+  """
+  @spec get_user_state(Group.t(), SpaceUser.t()) :: :not_subscribed | :subscribed | nil
+  def get_user_state(%Group{} = group, %SpaceUser{} = space_user) do
+    case get_group_user(group, space_user) do
+      {:ok, %GroupUser{state: "SUBSCRIBED"}} -> :subscribed
+      {:ok, %GroupUser{state: "NOT_SUBSCRIBED"}} -> :not_subscribed
+      _ -> nil
+    end
   end
 end
