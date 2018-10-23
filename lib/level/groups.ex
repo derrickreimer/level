@@ -9,11 +9,9 @@ defmodule Level.Groups do
 
   alias Ecto.Multi
   alias Level.Events
-  alias Level.Groups.CreateInvitations
   alias Level.Repo
   alias Level.Schemas.Group
   alias Level.Schemas.GroupBookmark
-  alias Level.Schemas.GroupInvitation
   alias Level.Schemas.GroupUser
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
@@ -176,7 +174,8 @@ defmodule Level.Groups do
     params = %{
       space_id: group.space_id,
       group_id: group.id,
-      space_user_id: space_user.id
+      space_user_id: space_user.id,
+      state: "SUBSCRIBED"
     }
 
     Multi.new()
@@ -328,14 +327,5 @@ defmodule Level.Groups do
     group
     |> Ecto.Changeset.change(state: "CLOSED")
     |> Repo.update()
-  end
-
-  @doc """
-  Creates group invitations.
-  """
-  @spec create_invitations(Group.t(), SpaceUser.t(), [SpaceUser.t()]) ::
-          {:ok, [GroupInvitation.t()]}
-  def create_invitations(%Group{} = group, %SpaceUser{} = invitor, invitees) do
-    CreateInvitations.perform(group, invitor, invitees)
   end
 end

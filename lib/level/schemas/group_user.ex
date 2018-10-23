@@ -16,16 +16,12 @@ defmodule Level.Schemas.GroupUser do
   @foreign_key_type :binary_id
 
   schema "group_users" do
+    field :state, :string, read_after_writes: true
+
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
     belongs_to :group, Group
     has_one :user, through: [:space_user, :user]
-
-    # For now, there is only one subscription level that we are working with,
-    # so we'll just use a virtual field instead of a actual database column.
-    # If we add more later, then we'll create a column for this and backfill
-    # existing records with SUBSCRIBED.
-    field :state, :string, virtual: true, default: "SUBSCRIBED"
 
     # Holds the group name when loaded via a join
     field :name, :string, virtual: true
@@ -39,7 +35,7 @@ defmodule Level.Schemas.GroupUser do
   @doc false
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:space_id, :space_user_id, :group_id])
+    |> cast(params, [:space_id, :space_user_id, :group_id, :state])
     |> unique_constraint(
       :user,
       name: :group_users_space_user_id_group_id_index,

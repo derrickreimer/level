@@ -54,23 +54,32 @@ CREATE TYPE public.bot_state AS ENUM (
 
 
 --
--- Name: group_invitation_state; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.group_invitation_state AS ENUM (
-    'PENDING',
-    'ACCEPTED',
-    'REVOKED'
-);
-
-
---
 -- Name: group_state; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.group_state AS ENUM (
     'OPEN',
     'CLOSED'
+);
+
+
+--
+-- Name: group_user_role; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.group_user_role AS ENUM (
+    'MEMBER',
+    'OWNER'
+);
+
+
+--
+-- Name: group_user_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.group_user_state AS ENUM (
+    'NOT_SUBSCRIBED',
+    'SUBSCRIBED'
 );
 
 
@@ -287,22 +296,6 @@ CREATE TABLE public.group_bookmarks (
 
 
 --
--- Name: group_invitations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.group_invitations (
-    id uuid NOT NULL,
-    space_id uuid NOT NULL,
-    group_id uuid NOT NULL,
-    invitor_id uuid NOT NULL,
-    invitee_id uuid NOT NULL,
-    state public.group_invitation_state DEFAULT 'PENDING'::public.group_invitation_state NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
 -- Name: group_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -312,7 +305,9 @@ CREATE TABLE public.group_users (
     space_user_id uuid NOT NULL,
     group_id uuid NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    state public.group_user_state DEFAULT 'NOT_SUBSCRIBED'::public.group_user_state NOT NULL,
+    role public.group_user_role DEFAULT 'MEMBER'::public.group_user_role NOT NULL
 );
 
 
@@ -730,14 +725,6 @@ ALTER TABLE ONLY public.group_bookmarks
 
 
 --
--- Name: group_invitations group_invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT group_invitations_pkey PRIMARY KEY (id);
-
-
---
 -- Name: group_users group_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -949,13 +936,6 @@ CREATE UNIQUE INDEX bots_lower_handle_index ON public.bots USING btree (lower((h
 --
 
 CREATE UNIQUE INDEX group_bookmarks_space_user_id_group_id_index ON public.group_bookmarks USING btree (space_user_id, group_id);
-
-
---
--- Name: group_invitations_unique; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX group_invitations_unique ON public.group_invitations USING btree (group_id, invitee_id) WHERE (state = 'PENDING'::public.group_invitation_state);
 
 
 --
@@ -1220,38 +1200,6 @@ ALTER TABLE ONLY public.group_bookmarks
 
 ALTER TABLE ONLY public.group_bookmarks
     ADD CONSTRAINT group_bookmarks_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
-
-
---
--- Name: group_invitations group_invitations_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT group_invitations_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
-
-
---
--- Name: group_invitations group_invitations_invitee_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT group_invitations_invitee_id_fkey FOREIGN KEY (invitee_id) REFERENCES public.space_users(id);
-
-
---
--- Name: group_invitations group_invitations_invitor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT group_invitations_invitor_id_fkey FOREIGN KEY (invitor_id) REFERENCES public.space_users(id);
-
-
---
--- Name: group_invitations group_invitations_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT group_invitations_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
 
 
 --
@@ -1746,5 +1694,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181022184547);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556);
 

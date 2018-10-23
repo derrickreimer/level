@@ -261,15 +261,6 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.reopen_post/2
     end
-
-    @desc "Invites users to join a group."
-    field :create_group_invitations, :create_group_invitations_payload do
-      arg :space_id, non_null(:id)
-      arg :group_id, non_null(:id)
-      arg :invitee_ids, list_of(non_null(:id))
-
-      resolve &Level.Mutations.create_group_invitations/2
-    end
   end
 
   subscription do
