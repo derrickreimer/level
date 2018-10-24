@@ -898,7 +898,7 @@ sidebarView params group featuredMembers =
 memberListView : List SpaceUser -> Html Msg
 memberListView featuredMembers =
     if List.isEmpty featuredMembers then
-        div [ class "pb-4 text-sm text-blue" ] [ text "Nobody has joined yet." ]
+        div [ class "pb-4 text-sm text-dusty-blue-darker" ] [ text "Nobody has joined yet." ]
 
     else
         div [ class "pb-4" ] <| List.map memberItemView featuredMembers

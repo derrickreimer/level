@@ -120,7 +120,7 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches featured group memberships.
+  Fetches featured space members.
   """
   @spec featured_space_users(Space.t(), map(), info()) :: {:ok, [SpaceUser.t()]} | no_return()
   def featured_space_users(%Space{} = space, _args, %{context: %{current_user: _user}} = _info) do
