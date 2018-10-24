@@ -1,21 +1,21 @@
-defmodule LevelWeb.GraphQL.UpdateGroupMembershipTest do
+defmodule LevelWeb.GraphQL.SubscribeToGroupTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Groups
+
   @query """
-    mutation UpdateGroupMembership(
+    mutation SubscribeToGroup(
       $space_id: ID!,
-      $group_id: ID!,
-      $state: GroupMembershipState,
+      $group_id: ID!
     ) {
-      updateGroupMembership(
+      subscribeToGroup(
         spaceId: $space_id,
         groupId: $group_id,
-        state: $state
       ) {
         success
-        membership {
-          state
+        group {
+          id
         }
         errors {
           attribute
@@ -31,12 +31,14 @@ defmodule LevelWeb.GraphQL.UpdateGroupMembershipTest do
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "updates state if the user is allowed to access the group", %{
+  test "subscribes if group is public", %{
     conn: conn,
+    space: space,
     space_user: space_user
   } do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Old name"})
-    variables = %{space_id: group.space_id, group_id: group.id, state: "NOT_SUBSCRIBED"}
+    {:ok, %{space_user: another_user}} = create_space_member(space)
+    {:ok, %{group: group}} = create_group(another_user)
+    variables = %{space_id: group.space_id, group_id: group.id}
 
     conn =
       conn
@@ -45,13 +47,18 @@ defmodule LevelWeb.GraphQL.UpdateGroupMembershipTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "updateGroupMembership" => %{
+               "subscribeToGroup" => %{
                  "success" => true,
-                 "membership" => nil,
+                 "group" => %{
+                   "id" => group.id
+                 },
                  "errors" => []
                }
              }
            }
+
+    assert Groups.get_user_state(group, space_user) == :subscribed
+    assert Groups.get_user_role(group, space_user) == :member
   end
 
   test "returns top-level errors if user is not allowed to access the group", %{
@@ -60,7 +67,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupMembershipTest do
   } do
     {:ok, %{space_user: another_space_user}} = create_space_member(space)
     {:ok, %{group: group}} = create_group(another_space_user, %{is_private: true})
-    variables = %{space_id: group.space_id, group_id: group.id, state: "SUBSCRIBED"}
+    variables = %{space_id: group.space_id, group_id: group.id}
 
     conn =
       conn
@@ -68,12 +75,12 @@ defmodule LevelWeb.GraphQL.UpdateGroupMembershipTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"updateGroupMembership" => nil},
+             "data" => %{"subscribeToGroup" => nil},
              "errors" => [
                %{
-                 "locations" => [%{"column" => 0, "line" => 6}],
+                 "locations" => [%{"column" => 0, "line" => 5}],
                  "message" => "Group not found",
-                 "path" => ["updateGroupMembership"]
+                 "path" => ["subscribeToGroup"]
                }
              ]
            }

@@ -18,9 +18,10 @@ import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CreatePost as CreatePost
+import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
+import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
 import Mutation.UpdateGroup as UpdateGroup
-import Mutation.UpdateGroupMembership as UpdateGroupMembership
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
@@ -30,6 +31,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
+import Route.GroupPermissions
 import Route.Search
 import Scroll
 import Session exposing (Session)
@@ -201,8 +203,10 @@ type Msg
     | NewPostFileUploadError Id
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
-    | MembershipStateToggled GroupMembershipState
-    | MembershipStateSubmitted (Result Session.Error ( Session, UpdateGroupMembership.Response ))
+    | SubscribeClicked
+    | Subscribed (Result Session.Error ( Session, SubscribeToGroup.Response ))
+    | UnsubscribeClicked
+    | Unsubscribed (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
     | NameClicked
     | NameEditorChanged String
     | NameEditorDismissed
@@ -290,17 +294,56 @@ update msg globals model =
             { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
                 |> noCmd globals
 
-        MembershipStateToggled state ->
+        SubscribeClicked ->
             let
                 cmd =
                     globals.session
-                        |> UpdateGroupMembership.request model.spaceId model.groupId state
-                        |> Task.attempt MembershipStateSubmitted
+                        |> SubscribeToGroup.request model.spaceId model.groupId
+                        |> Task.attempt Subscribed
             in
             ( ( model, cmd ), globals )
 
-        MembershipStateSubmitted _ ->
-            -- TODO: handle errors
+        Subscribed (Ok ( newSession, SubscribeToGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+
+        Subscribed (Ok ( newSession, SubscribeToGroup.Invalid _ )) ->
+            noCmd globals model
+
+        Subscribed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Subscribed (Err _) ->
+            noCmd globals model
+
+        UnsubscribeClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> UnsubscribeFromGroup.request model.spaceId model.groupId
+                        |> Task.attempt Unsubscribed
+            in
+            ( ( model, cmd ), globals )
+
+        Unsubscribed (Ok ( newSession, UnsubscribeFromGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+
+        Unsubscribed (Ok ( newSession, UnsubscribeFromGroup.Invalid _ )) ->
+            noCmd globals model
+
+        Unsubscribed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Unsubscribed (Err _) ->
             noCmd globals model
 
         NameClicked ->
@@ -361,6 +404,7 @@ update msg globals model =
                 newNameEditor =
                     model.nameEditor
                         |> FieldEditor.collapse
+                        |> FieldEditor.setIsSubmitting False
 
                 newModel =
                     { model | nameEditor = newNameEditor }
@@ -544,7 +588,17 @@ consumeEvent event session model =
         Event.GroupUnbookmarked group ->
             ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
-        Event.GroupMembershipUpdated group ->
+        Event.SubscribedToGroup group ->
+            if Group.id group == model.groupId then
+                ( model
+                , FeaturedMemberships.request model.groupId session
+                    |> Task.attempt FeaturedMembershipsRefreshed
+                )
+
+            else
+                ( model, Cmd.none )
+
+        Event.UnsubscribedFromGroup group ->
             if Group.id group == model.groupId then
                 ( model
                 , FeaturedMemberships.request model.groupId session
@@ -640,7 +694,7 @@ resolvedView repo maybeCurrentRoute model data =
                 ]
             , newPostView model.spaceId model.postComposer data.viewer
             , postsView repo data.space data.viewer model.now model.postComps
-            , sidebarView data.group data.featuredMembers
+            , sidebarView model.params data.group data.featuredMembers
             ]
         ]
 
@@ -689,13 +743,13 @@ nameView group editor =
                 ]
 
 
-privacyToggle : Bool -> Html Msg
-privacyToggle isPrivate =
+privacyIcon : Bool -> Html Msg
+privacyIcon isPrivate =
     if isPrivate == True then
-        button [ class "mx-2", onClick (PrivacyToggle False) ] [ Icons.lock ]
+        span [ class "mx-2" ] [ Icons.lock ]
 
     else
-        button [ class "mx-2", onClick (PrivacyToggle True) ] [ Icons.unlock ]
+        span [ class "mx-2" ] [ Icons.unlock ]
 
 
 nameErrors : FieldEditor String -> Html Msg
@@ -807,22 +861,44 @@ postView repo space currentUser now component =
         ]
 
 
-sidebarView : Group -> List SpaceUser -> Html Msg
-sidebarView group featuredMembers =
+sidebarView : Params -> Group -> List SpaceUser -> Html Msg
+sidebarView params group featuredMembers =
+    let
+        permissionsParams =
+            Route.GroupPermissions.init
+                (Route.Group.getSpaceSlug params)
+                (Route.Group.getGroupId params)
+    in
     View.SpaceLayout.rightSidebar
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
             [ text "Members"
-            , privacyToggle (Group.isPrivate group)
+
+            -- Hide this for now while private groups are disabled
+            , viewIf False <|
+                privacyIcon (Group.isPrivate group)
             ]
         , memberListView featuredMembers
-        , subscribeButtonView (Group.membershipState group)
+        , ul [ class "list-reset leading-normal" ]
+            [ -- Hide this for now while private groups are disabled
+              viewIf False <|
+                li []
+                    [ a
+                        [ Route.href (Route.GroupPermissions permissionsParams)
+                        , class "text-md text-dusty-blue no-underline font-bold"
+                        ]
+                        [ text "Permissions" ]
+                    ]
+            , li []
+                [ subscribeButtonView (Group.membershipState group)
+                ]
+            ]
         ]
 
 
 memberListView : List SpaceUser -> Html Msg
 memberListView featuredMembers =
     if List.isEmpty featuredMembers then
-        div [ class "pb-4 text-sm" ] [ text "Nobody has joined yet." ]
+        div [ class "pb-4 text-sm text-blue" ] [ text "Nobody has joined yet." ]
 
     else
         div [ class "pb-4" ] <| List.map memberItemView featuredMembers
@@ -839,16 +915,16 @@ memberItemView member =
 subscribeButtonView : GroupMembershipState -> Html Msg
 subscribeButtonView state =
     case state of
-        NotSubscribed ->
+        GroupMembership.NotSubscribed ->
             button
-                [ class "text-sm text-blue"
-                , onClick (MembershipStateToggled Subscribed)
+                [ class "text-md text-dusty-blue no-underline font-bold"
+                , onClick SubscribeClicked
                 ]
                 [ text "Join this group" ]
 
-        Subscribed ->
+        GroupMembership.Subscribed ->
             button
-                [ class "text-sm text-blue"
-                , onClick (MembershipStateToggled NotSubscribed)
+                [ class "text-md text-dusty-blue no-underline font-bold"
+                , onClick UnsubscribeClicked
                 ]
                 [ text "Leave this group" ]

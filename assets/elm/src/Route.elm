@@ -9,6 +9,7 @@ import Html.Attributes as Attr
 import Route.Group
 import Route.Groups
 import Route.Inbox
+import Route.GroupPermissions
 import Route.Posts
 import Route.Search
 import Route.SpaceUsers
@@ -34,6 +35,7 @@ type Route
     | Groups Route.Groups.Params
     | Group Route.Group.Params
     | NewGroup String
+    | GroupPermissions Route.GroupPermissions.Params
     | Post String String
     | UserSettings
     | SpaceSettings String
@@ -54,6 +56,7 @@ parser =
         , Parser.map InviteUsers (Parser.string </> s "invites")
         , Parser.map Groups Route.Groups.parser
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
+        , Parser.map GroupPermissions Route.GroupPermissions.parser
         , Parser.map Group Route.Group.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
@@ -138,6 +141,9 @@ toString page =
 
         NewGroup slug ->
             absolute [ slug, "groups", "new" ] []
+
+        GroupPermissions params ->
+            Route.GroupPermissions.toString params
 
         Post slug id ->
             absolute [ slug, "posts", id ] []

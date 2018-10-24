@@ -6,8 +6,6 @@ defmodule Level.Mutations do
   alias Level.Groups
   alias Level.Mentions
   alias Level.Posts
-  alias Level.Schemas.GroupUser
-  alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
   alias Level.Spaces
   alias Level.Users
@@ -41,9 +39,24 @@ defmodule Level.Mutations do
           errors: validation_errors
         }
 
-  @typedoc "The payload for a group membership mutation"
-  @type update_group_membership_payload ::
-          {:ok, %{success: boolean(), membership: GroupUser.t(), errors: validation_errors()}}
+  @typedoc "The payload for the subscribe to group mutation"
+  @type subscribe_to_group_payload ::
+          {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
+          | {:error, String.t()}
+
+  @typedoc "The payload for the unsubscribe from group mutation"
+  @type unsubscribe_from_group_payload ::
+          {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
+          | {:error, String.t()}
+
+  @typedoc "The payload for the grant group access mutation"
+  @type grant_group_access_payload ::
+          {:ok, %{success: boolean(), errors: validation_errors()}}
+          | {:error, String.t()}
+
+  @typedoc "The payload for the revoke group access mutation"
+  @type revoke_group_access_payload ::
+          {:ok, %{success: boolean(), errors: validation_errors()}}
           | {:error, String.t()}
 
   @typedoc "The payload for updating group bookmark state"
@@ -177,11 +190,8 @@ defmodule Level.Mutations do
            {:ok, %{group: group}} <- Groups.create_group(space_user, args) do
         %{success: true, group: group, errors: []}
       else
-        {:error, :group, changeset, _} ->
+        {:error, changeset} ->
           %{success: false, group: nil, errors: format_errors(changeset)}
-
-        _ ->
-          %{success: false, group: nil, errors: []}
       end
 
     {:ok, resp}
@@ -224,7 +234,6 @@ defmodule Level.Mutations do
     end
   end
 
-  @spec bulk_create_group(SpaceUser.t(), String.t()) :: bulk_create_group_payload()
   defp bulk_create_group(space_user, name) do
     args = %{name: name}
 
@@ -232,29 +241,68 @@ defmodule Level.Mutations do
       {:ok, %{group: group}} ->
         %{success: true, group: group, errors: [], args: args}
 
-      {:error, :group, changeset, _} ->
+      {:error, changeset} ->
         %{success: false, group: nil, errors: format_errors(changeset), args: args}
-
-      _ ->
-        %{success: false, group: nil, errors: [], args: args}
     end
   end
 
   @doc """
-  Updates a group membership.
+  Subscribes to a group.
   """
-  @spec update_group_membership(map(), info()) :: update_group_membership_payload()
-  def update_group_membership(args, %{context: %{current_user: user}}) do
+  @spec subscribe_to_group(map(), info()) :: subscribe_to_group_payload()
+  def subscribe_to_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
-         {:ok, %{group: updated_group, group_user: group_user}} <-
-           Groups.update_group_membership(group, space_user, args.state) do
-      {:ok, %{success: true, group: updated_group, membership: group_user, errors: []}}
+         :ok <- Groups.subscribe(group, space_user) do
+      {:ok, %{success: true, group: group, errors: []}}
     else
-      {:error, %GroupUser{} = group_user, changeset} ->
-        {:ok,
-         %{success: false, group: nil, membership: group_user, errors: format_errors(changeset)}}
+      err ->
+        err
+    end
+  end
 
+  @doc """
+  Unsubscribes from a group.
+  """
+  @spec unsubscribe_from_group(map(), info()) :: unsubscribe_from_group_payload()
+  def unsubscribe_from_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         :ok <- Groups.unsubscribe(group, space_user) do
+      {:ok, %{success: true, group: group, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Grants a user access to a group.
+  """
+  @spec grant_group_access(map(), info()) :: grant_group_access_payload()
+  def grant_group_access(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
+         :ok <- Groups.grant_access(user, group, space_user) do
+      {:ok, %{success: true, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Revokes a user's access to a group.
+  """
+  @spec revoke_group_access(map(), info()) :: revoke_group_access_payload()
+  def revoke_group_access(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
+         :ok <- Groups.revoke_access(user, group, space_user) do
+      {:ok, %{success: true, errors: []}}
+    else
       err ->
         err
     end

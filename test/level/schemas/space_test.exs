@@ -1,4 +1,4 @@
-defmodule Level.Spaces.SpaceTest do
+defmodule Level.Schemas.SpaceTest do
   use Level.DataCase, async: true
 
   alias Level.Schemas.Space

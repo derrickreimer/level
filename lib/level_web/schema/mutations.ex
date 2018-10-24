@@ -175,8 +175,8 @@ defmodule LevelWeb.Schema.Mutations do
     field :name, non_null(:string)
   end
 
-  @desc "The response to updating a group."
-  object :update_group_membership_payload do
+  @desc "The response to subscribing to a group."
+  object :subscribe_to_group_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why
@@ -188,16 +188,59 @@ defmodule LevelWeb.Schema.Mutations do
     field :errors, list_of(:error)
 
     @desc """
-    The mutated membership. If the mutation was not successful,
-    this field may be null.
-    """
-    field :membership, :group_membership
-
-    @desc """
-    The group. If the mutation was not successful,
-    this field may be null.
+    The group.
     """
     field :group, :group
+
+    interface :validatable
+  end
+
+  @desc "The response to unsubscribing from a group."
+  object :unsubscribe_from_group_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The group.
+    """
+    field :group, :group
+
+    interface :validatable
+  end
+
+  @desc "The response to granting group access."
+  object :grant_group_access_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    interface :validatable
+  end
+
+  @desc "The response to revoking group access."
+  object :revoke_group_access_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
 
     interface :validatable
   end
@@ -438,6 +481,24 @@ defmodule LevelWeb.Schema.Mutations do
 
     @desc "The reopened post."
     field :post, non_null(:post)
+
+    interface :validatable
+  end
+
+  @desc "The response to creating group invitations."
+  object :create_group_invitations_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc "The reopened post."
+    field :invitees, list_of(non_null(:space_user))
 
     interface :validatable
   end

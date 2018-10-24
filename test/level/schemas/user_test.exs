@@ -1,4 +1,4 @@
-defmodule Level.Users.UserTest do
+defmodule Level.Schemas.UserTest do
   use Level.DataCase, async: true
 
   alias Level.Schemas.User

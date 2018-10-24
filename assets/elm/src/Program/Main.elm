@@ -13,6 +13,7 @@ import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Page.Group
+import Page.GroupPermissions
 import Page.Groups
 import Page.Inbox
 import Page.InviteUsers
@@ -154,6 +155,7 @@ type Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
     | NewGroupMsg Page.NewGroup.Msg
+    | GroupPermissionsMsg Page.GroupPermissions.Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.SpaceSettings.Msg
@@ -320,6 +322,11 @@ update msg model =
                 |> Page.NewGroup.update pageMsg globals model.navKey
                 |> updatePageWithGlobals NewGroup NewGroupMsg model
 
+        ( GroupPermissionsMsg pageMsg, GroupPermissions pageModel ) ->
+            pageModel
+                |> Page.GroupPermissions.update pageMsg globals
+                |> updatePageWithGlobals GroupPermissions GroupPermissionsMsg model
+
         ( PostMsg pageMsg, Post pageModel ) ->
             pageModel
                 |> Page.Post.update pageMsg globals
@@ -414,6 +421,7 @@ type Page
     | Groups Page.Groups.Model
     | Group Page.Group.Model
     | NewGroup Page.NewGroup.Model
+    | GroupPermissions Page.GroupPermissions.Model
     | Post Page.Post.Model
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.SpaceSettings.Model
@@ -430,6 +438,7 @@ type PageInit
     | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
     | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
+    | GroupPermissionsInit (Result Session.Error ( Globals, Page.GroupPermissions.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.SpaceSettings.Model ))
@@ -516,6 +525,11 @@ navigateTo maybeRoute model =
                 |> Page.NewGroup.init spaceSlug
                 |> transition model NewGroupInit
 
+        Just (Route.GroupPermissions params) ->
+            globals
+                |> Page.GroupPermissions.init params
+                |> transition model GroupPermissionsInit
+
         Just (Route.Post spaceSlug postId) ->
             globals
                 |> Page.Post.init spaceSlug postId
@@ -563,6 +577,9 @@ pageTitle repo page =
 
         NewGroup _ ->
             Page.NewGroup.title
+
+        GroupPermissions _ ->
+            Page.GroupPermissions.title
 
         Post pageModel ->
             Page.Post.title pageModel
@@ -687,6 +704,15 @@ setupPage pageInit model =
         NewGroupInit (Err _) ->
             ( model, Cmd.none )
 
+        GroupPermissionsInit (Ok result) ->
+            perform Page.GroupPermissions.setup GroupPermissions GroupPermissionsMsg model result
+
+        GroupPermissionsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        GroupPermissionsInit (Err _) ->
+            ( model, Cmd.none )
+
         PostInit _ (Ok result) ->
             let
                 ( newGlobals, pageModel ) =
@@ -771,6 +797,9 @@ teardownPage page =
 
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
+
+        GroupPermissions pageModel ->
+            Cmd.map GroupPermissionsMsg (Page.GroupPermissions.teardown pageModel)
 
         UserSettings pageModel ->
             Cmd.map UserSettingsMsg (Page.UserSettings.teardown pageModel)
@@ -861,6 +890,9 @@ routeFor page =
         NewGroup { spaceSlug } ->
             Just <| Route.NewGroup spaceSlug
 
+        GroupPermissions { params } ->
+            Just <| Route.GroupPermissions params
+
         Post { spaceSlug, postComp } ->
             Just <| Route.Post spaceSlug postComp.id
 
@@ -938,6 +970,11 @@ pageView repo page pushStatus =
                 |> Page.NewGroup.view repo (routeFor page)
                 |> Html.map NewGroupMsg
 
+        GroupPermissions pageModel ->
+            pageModel
+                |> Page.GroupPermissions.view repo (routeFor page)
+                |> Html.map GroupPermissionsMsg
+
         Post pageModel ->
             pageModel
                 |> Page.Post.view repo (routeFor page)
@@ -984,7 +1021,12 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.GroupMembershipUpdated group ->
+        Event.SubscribedToGroup group ->
+            ( { model | repo = Repo.setGroup group model.repo }
+            , Cmd.none
+            )
+
+        Event.UnsubscribedFromGroup group ->
             ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
             )
@@ -1141,6 +1183,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.NewGroup.consumeEvent event
                 |> updatePage NewGroup NewGroupMsg model
+
+        GroupPermissions pageModel ->
+            pageModel
+                |> Page.GroupPermissions.consumeEvent event
+                |> updatePage GroupPermissions GroupPermissionsMsg model
 
         Post pageModel ->
             pageModel

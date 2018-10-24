@@ -21,7 +21,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.Helpers exposing (setFocus)
+import View.Helpers exposing (setFocus, viewIf)
 import View.SpaceLayout
 
 
@@ -230,17 +230,20 @@ resolvedView repo maybeCurrentRoute model data =
                     []
                 , errorView "name" model.errors
                 ]
-            , label [ class "control checkbox pb-6" ]
-                [ input
-                    [ type_ "checkbox"
-                    , class "checkbox"
-                    , onClick PrivacyToggled
-                    , checked model.isPrivate
+
+            -- Hide this while group privacy controls are disabled
+            , viewIf False <|
+                label [ class "control checkbox pb-6" ]
+                    [ input
+                        [ type_ "checkbox"
+                        , class "checkbox"
+                        , onClick PrivacyToggled
+                        , checked model.isPrivate
+                        ]
+                        []
+                    , span [ class "control-indicator" ] []
+                    , span [ class "select-none" ] [ text "Make this group private (invite only)" ]
                     ]
-                    []
-                , span [ class "control-indicator" ] []
-                , span [ class "select-none" ] [ text "Make this group private (invite only)" ]
-                ]
             , button
                 [ type_ "submit"
                 , class "btn btn-blue"

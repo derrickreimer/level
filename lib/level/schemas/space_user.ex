@@ -38,6 +38,13 @@ defmodule Level.Schemas.SpaceUser do
     timestamps()
   end
 
+  @doc """
+  Generates a display name for a space user.
+  """
+  def display_name(%__MODULE__{first_name: first_name, last_name: last_name}) do
+    "#{first_name} #{last_name}"
+  end
+
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct

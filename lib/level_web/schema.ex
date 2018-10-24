@@ -135,13 +135,38 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_group/2
     end
 
-    @desc "Update a group membership."
-    field :update_group_membership, type: :update_group_membership_payload do
+    @desc "Subscribes to a group."
+    field :subscribe_to_group, type: :subscribe_to_group_payload do
       arg :space_id, non_null(:id)
       arg :group_id, non_null(:id)
-      arg :state, non_null(:group_membership_state)
 
-      resolve &Level.Mutations.update_group_membership/2
+      resolve &Level.Mutations.subscribe_to_group/2
+    end
+
+    @desc "Unsubscribe from group."
+    field :unsubscribe_from_group, type: :unsubscribe_from_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.unsubscribe_from_group/2
+    end
+
+    @desc "Grant group access to a user."
+    field :grant_group_access, type: :grant_group_access_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
+
+      resolve &Level.Mutations.grant_group_access/2
+    end
+
+    @desc "Revoke group access from a user."
+    field :revoke_group_access, type: :revoke_group_access_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
+
+      resolve &Level.Mutations.revoke_group_access/2
     end
 
     @desc "Bookmark a group."

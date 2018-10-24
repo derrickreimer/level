@@ -62,7 +62,7 @@ defmodule Level.PostsTest do
       {:ok, group} = Groups.update_group(group, %{is_private: true})
       {:ok, %{post: %Post{id: post_id}}} = create_post(space_user, group)
       {:ok, %{user: another_user, space_user: another_space_user}} = create_space_member(space)
-      {:ok, _} = Groups.create_group_membership(group, another_space_user)
+      :ok = Groups.subscribe(group, another_space_user)
 
       assert %Post{id: ^post_id} =
                another_user

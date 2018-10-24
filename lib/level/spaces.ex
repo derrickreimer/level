@@ -9,8 +9,8 @@ defmodule Level.Spaces do
   alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.AssetStore
-  alias Level.Bots
   alias Level.Events
+  alias Level.Levelbot
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -62,7 +62,16 @@ defmodule Level.Spaces do
   @doc """
   Fetches a space by id.
   """
+  @spec get_space(String.t()) :: get_space_result()
   @spec get_space(User.t(), String.t()) :: get_space_result()
+
+  def get_space(id) do
+    case Repo.get(Space, id) do
+      %Space{} = space -> {:ok, space}
+      nil -> {:error, dgettext("errors", "Space not found")}
+    end
+  end
+
   def get_space(user, id) do
     with %Space{} = space <- Repo.get(Space, id),
          {:ok, space_user} <- get_space_user(user, space) do
@@ -101,7 +110,7 @@ defmodule Level.Spaces do
   end
 
   defp install_levelbot(space) do
-    bot = Bots.get_level_bot!()
+    bot = Levelbot.get_bot!()
 
     params = %{
       space_id: space.id,
@@ -224,6 +233,17 @@ defmodule Level.Spaces do
       _ ->
         {:error, dgettext("errors", "Space user not found")}
     end
+  end
+
+  @doc """
+  Fetches a list of space users by id.
+  """
+  @spec get_space_users(Space.t(), [String.t()]) :: [SpaceUser.t()] | no_return()
+  def get_space_users(%Space{} = space, ids) do
+    space
+    |> space_users_base_query()
+    |> where([su, s], su.id in ^ids)
+    |> Repo.all()
   end
 
   @doc """

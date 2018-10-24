@@ -84,11 +84,13 @@ defmodule Level.Posts do
   def search_query(%SpaceUser{id: space_user_id, space_id: space_id}, query) do
     from ps in SearchResult,
       join: p in assoc(ps, :post),
-      join: g in assoc(p, :groups),
+      left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
+      left_join: pu in assoc(p, :post_users),
+      on: pu.space_user_id == ^space_user_id,
       where: ps.space_id == ^space_id,
-      where: g.is_private == false or not is_nil(gu.id),
+      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
       where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^query)),
       select: %{
         ps

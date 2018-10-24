@@ -65,7 +65,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Manage this space"
+    "Space Settings"
 
 
 
@@ -259,8 +259,9 @@ resolvedView maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
-            [ div [ class "pb-6" ]
-                [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Space Settings" ]
+            [ div [ class "pb-8" ]
+                [ nav [ class "text-xl font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
+                , h1 [ class "font-extrabold text-3xl" ] [ text "Space Settings" ]
                 ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
