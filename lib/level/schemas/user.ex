@@ -38,6 +38,13 @@ defmodule Level.Schemas.User do
   end
 
   @doc """
+  Generates a display name for a user.
+  """
+  def display_name(%__MODULE__{first_name: first_name, last_name: last_name}) do
+    "#{first_name} #{last_name}"
+  end
+
+  @doc """
   The regex format for an email address.
   Borrowed from http://www.regular-expressions.info/email.html
   """

@@ -31,6 +31,9 @@ config :level, :generators,
 # Configure js error reporting
 config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY")
 
+# Configure Fullstory reporting
+config :level, :fullstory, org: System.get_env("FULLSTORY_ORG")
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
