@@ -32,7 +32,8 @@ type Event
     | RepliesViewed (List Reply)
     | MentionsDismissed Post
     | UserMentioned Post
-    | GroupMembershipUpdated Group
+    | SubscribedToGroup Group
+    | UnsubscribedFromGroup Group
     | GroupUpdated Group
     | ReplyCreated Reply
     | ReplyUpdated Reply
@@ -69,7 +70,8 @@ eventDecoder =
         -- GROUP EVENTS
         , Decode.map GroupUpdated GroupSubscription.groupUpdatedDecoder
         , Decode.map PostCreated GroupSubscription.postCreatedDecoder
-        , Decode.map GroupMembershipUpdated GroupSubscription.groupMembershipUpdatedDecoder
+        , Decode.map SubscribedToGroup GroupSubscription.subscribedToGroupDecoder
+        , Decode.map UnsubscribedFromGroup GroupSubscription.unsubscribedFromGroupDecoder
 
         -- POST EVENTS
         , Decode.map PostUpdated PostSubscription.postUpdatedDecoder

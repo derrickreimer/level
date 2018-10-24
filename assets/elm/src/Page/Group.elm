@@ -588,7 +588,17 @@ consumeEvent event session model =
         Event.GroupUnbookmarked group ->
             ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
 
-        Event.GroupMembershipUpdated group ->
+        Event.SubscribedToGroup group ->
+            if Group.id group == model.groupId then
+                ( model
+                , FeaturedMemberships.request model.groupId session
+                    |> Task.attempt FeaturedMembershipsRefreshed
+                )
+
+            else
+                ( model, Cmd.none )
+
+        Event.UnsubscribedFromGroup group ->
             if Group.id group == model.groupId then
                 ( model
                 , FeaturedMemberships.request model.groupId session

@@ -13,9 +13,9 @@ import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Page.Group
+import Page.GroupPermissions
 import Page.Groups
 import Page.Inbox
-import Page.GroupPermissions
 import Page.InviteUsers
 import Page.NewGroup
 import Page.NewSpace
@@ -1021,7 +1021,12 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.GroupMembershipUpdated group ->
+        Event.SubscribedToGroup group ->
+            ( { model | repo = Repo.setGroup group model.repo }
+            , Cmd.none
+            )
+
+        Event.UnsubscribedFromGroup group ->
             ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
             )
