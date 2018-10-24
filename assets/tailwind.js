@@ -72,6 +72,7 @@ let colors = {
 
   // Reds
   'red': '#ff1e12',
+  'red-lightest': '#fcebea',
 
   // Orange
   'orange': '#df9700',

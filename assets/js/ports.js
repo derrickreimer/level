@@ -1,22 +1,44 @@
-import {
-  createPhoenixSocket,
-  createAbsintheSocket,
-  updateSocketToken
-} from "./socket";
+import { createPhoenixSocket, createAbsintheSocket } from "./socket";
 import { Presence } from "phoenix";
-import { getApiToken } from "./token";
+import { getInitialApiToken, fetchApiToken } from "./token";
 import { insertTextAtCursor } from "./utils";
 import * as AbsintheSocket from "@absinthe/socket";
-import autosize from "autosize";
 import * as Background from "./background";
+import autosize from "autosize";
 
 const logEvent = eventName => (...args) =>
   console.log("[ports." + eventName + "]", ...args);
 
 export const attachPorts = app => {
-  let phoenixSocket = createPhoenixSocket(getApiToken());
+  // Start with the initial API token generated at page-load time.
+  // This variable may get mutated over time as tokens expire.
+  let token = getInitialApiToken();
+
+  let socketParams = () => {
+    return { Authorization: "Bearer " + token };
+  };
+
+  let phoenixSocket = createPhoenixSocket(socketParams);
   let absintheSocket = createAbsintheSocket(phoenixSocket);
   let channels = {};
+
+  phoenixSocket.onOpen(() => {
+    const payload = { type: "opened" };
+    app.ports.socketIn.send(payload);
+    logEvent("socketIn")(payload);
+  });
+
+  phoenixSocket.onError(() => {
+    fetchApiToken().then(newToken => {
+      token = newToken;
+    });
+  });
+
+  phoenixSocket.onClose(() => {
+    const payload = { type: "closed" };
+    app.ports.socketIn.send(payload);
+    logEvent("socketIn")(payload);
+  });
 
   const joinChannel = topic => {
     if (channels[topic]) return;
@@ -67,45 +89,39 @@ export const attachPorts = app => {
     delete channels[topic];
   };
 
-  app.ports.updateToken.subscribe(token => {
-    updateSocketToken(phoenixSocket, token);
+  app.ports.updateToken.subscribe(newToken => {
+    token = newToken;
     logEvent("updateToken")(token);
   });
 
-  app.ports.sendSocket.subscribe(doc => {
-    const notifier = AbsintheSocket.send(absintheSocket, doc);
+  app.ports.socketOut.subscribe(args => {
+    switch (args.method) {
+      case "sendSubscription":
+        const notifier = AbsintheSocket.send(absintheSocket, args);
 
-    AbsintheSocket.observe(absintheSocket, notifier, {
-      onAbort: data => {
-        logEvent("socketAbort")(data);
-        app.ports.socketAbort.send(data);
-      },
-      onError: data => {
-        logEvent("socketError")(data);
-        app.ports.socketError.send(data);
-      },
-      onStart: data => {
-        logEvent("socketStart")(data);
-        app.ports.socketStart.send(data);
-      },
-      onResult: data => {
-        logEvent("socketResult")(data);
-        app.ports.socketResult.send(data);
-      }
-    });
+        AbsintheSocket.observe(absintheSocket, notifier, {
+          onResult: data => {
+            data.type = "message";
+            app.ports.socketIn.send(data);
+            logEvent("socketIn")(data);
+          }
+        });
 
-    logEvent("sendSocket")(doc);
-  });
+        break;
 
-  app.ports.cancelSocket.subscribe(clientId => {
-    const notifiers = absintheSocket.notifiers.filter(notifier => {
-      return notifier.request.clientId == clientId;
-    });
+      case "cancelSubscription":
+        const notifiers = absintheSocket.notifiers.filter(notifier => {
+          return notifier.request.clientId == args.clientId;
+        });
 
-    notifiers.forEach(notifier => {
-      logEvent("socket.cancel")(notifier);
-      AbsintheSocket.cancel(absintheSocket, notifier);
-    });
+        notifiers.forEach(notifier => {
+          AbsintheSocket.cancel(absintheSocket, notifier);
+        });
+
+        break;
+    }
+
+    logEvent("socketOut")(args);
   });
 
   app.ports.presenceOut.subscribe(arg => {
@@ -246,5 +262,5 @@ export const attachPorts = app => {
         insertTextAtCursor(node, args.text);
         break;
     }
-  })
+  });
 };

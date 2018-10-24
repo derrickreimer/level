@@ -39,6 +39,7 @@ import Route.Groups
 import Route.Inbox
 import Session exposing (Session)
 import Socket
+import SocketState exposing (SocketState(..))
 import Space exposing (Space)
 import SpaceUser
 import Subscription.SpaceSubscription as SpaceSubscription
@@ -46,6 +47,7 @@ import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
 import Url exposing (Url)
 import Util exposing (Lazy(..))
+import View.Helpers exposing (viewIf)
 
 
 
@@ -75,6 +77,7 @@ type alias Model =
     , page : Page
     , isTransitioning : Bool
     , pushStatus : PushStatus
+    , socketState : SocketState
     }
 
 
@@ -118,6 +121,7 @@ buildModel flags navKey =
         Blank
         True
         (PushStatus.init flags.supportsNotifications)
+        SocketState.Unknown
 
 
 setup : MainInit.Response -> Model -> Cmd Msg
@@ -160,10 +164,7 @@ type Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.SpaceSettings.Msg
     | SearchMsg Page.Search.Msg
-    | SocketAbort Decode.Value
-    | SocketStart Decode.Value
-    | SocketResult Decode.Value
-    | SocketError Decode.Value
+    | SocketIn Decode.Value
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
     | PresenceIn Decode.Value
@@ -347,33 +348,29 @@ update msg model =
                 |> Page.Search.update pageMsg globals
                 |> updatePageWithGlobals Search SearchMsg model
 
-        ( SocketAbort value, _ ) ->
-            ( model, Cmd.none )
+        ( SocketIn value, page ) ->
+            case Socket.decodeEvent value of
+                Socket.MessageReceived messageData ->
+                    let
+                        event =
+                            Event.decodeEvent messageData
 
-        ( SocketStart value, _ ) ->
-            ( model, Cmd.none )
+                        ( newModel, cmd ) =
+                            consumeEvent event model
 
-        ( SocketResult value, page ) ->
-            let
-                event =
-                    Event.decodeEvent value
+                        ( newModel2, cmd2 ) =
+                            sendEventToPage globals event newModel
+                    in
+                    ( newModel2, Cmd.batch [ cmd, cmd2 ] )
 
-                ( newModel, cmd ) =
-                    consumeEvent event model
+                Socket.Opened ->
+                    ( { model | socketState = SocketState.Open }, Cmd.none )
 
-                ( newModel2, cmd2 ) =
-                    sendEventToPage globals event newModel
-            in
-            ( newModel2, Cmd.batch [ cmd, cmd2 ] )
+                Socket.Closed ->
+                    ( { model | socketState = SocketState.Closed }, Cmd.none )
 
-        ( SocketError value, _ ) ->
-            let
-                cmd =
-                    model.session
-                        |> Session.fetchNewToken
-                        |> Task.attempt SessionRefreshed
-            in
-            ( model, cmd )
+                Socket.Unknown ->
+                    ( model, Cmd.none )
 
         ( PushManagerIn value, _ ) ->
             case PushManager.decodePayload value of
@@ -1235,7 +1232,7 @@ sendPresenceToPage event model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Socket.listen SocketAbort SocketStart SocketResult SocketError
+        [ Socket.receive SocketIn
         , PushManager.receive PushManagerIn
         , Presence.receive PresenceIn
         , pageSubscription model.page
@@ -1250,4 +1247,16 @@ view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
         [ pageView model.repo model.page model.pushStatus
+        , centerNoticeView model
+        ]
+
+
+centerNoticeView : Model -> Html Msg
+centerNoticeView model =
+    div [ class "font-sans font-antialised fixed px-3 pin-t pin-l-50 z-50", style "transform" "translateX(-50%)" ]
+        [ viewIf (model.socketState == SocketState.Closed) <|
+            div [ class "relative px-5 py-4 border-b-3 border-red bg-red-lightest text-sm text-red" ]
+                [ h2 [ class "pb-2 font-extrabold text-lg" ] [ text "Attempting to reconnect..." ]
+                , p [ class "text-sm" ] [ text "If the problem persists, try refreshing the page." ]
+                ]
         ]

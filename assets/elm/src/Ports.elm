@@ -1,25 +1,15 @@
-port module Ports exposing (cancelSocket, postEditorOut, presenceIn, presenceOut, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, sendSocket, socketAbort, socketError, socketResult, socketStart, socketTokenUpdated, updateToken)
+port module Ports exposing (postEditorOut, presenceIn, presenceOut, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, socketIn, socketOut, socketTokenUpdated, updateToken)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Scroll.Types
-import Socket.Types
 
 
 
 -- INBOUND
 
 
-port socketAbort : (Decode.Value -> msg) -> Sub msg
-
-
-port socketStart : (Decode.Value -> msg) -> Sub msg
-
-
-port socketResult : (Decode.Value -> msg) -> Sub msg
-
-
-port socketError : (Decode.Value -> msg) -> Sub msg
+port socketIn : (Decode.Value -> msg) -> Sub msg
 
 
 port socketTokenUpdated : (Decode.Value -> msg) -> Sub msg
@@ -44,10 +34,7 @@ port dragIn : (Decode.Value -> msg) -> Sub msg
 -- OUTBOUND
 
 
-port sendSocket : Socket.Types.Payload -> Cmd msg
-
-
-port cancelSocket : String -> Cmd msg
+port socketOut : Encode.Value -> Cmd msg
 
 
 port updateToken : String -> Cmd msg
