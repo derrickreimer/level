@@ -1,10 +1,38 @@
-module Subscription exposing (decoder)
+module Subscription exposing (cancel, decoder, send)
 
+import GraphQL exposing (Document, serializeDocument)
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
+import Socket
 
 
+send : String -> Document -> Maybe Encode.Value -> Cmd msg
+send clientId document maybeVariables =
+    let
+        encodedVariables =
+            case maybeVariables of
+                Just variables ->
+                    variables
 
--- HELPERS
+                Nothing ->
+                    Encode.null
+    in
+    Socket.send <|
+        Encode.object
+            [ ( "method", Encode.string "sendSubscription" )
+            , ( "clientId", Encode.string clientId )
+            , ( "operation", Encode.string (serializeDocument document) )
+            , ( "variables", encodedVariables )
+            ]
+
+
+cancel : String -> Cmd msg
+cancel clientId =
+    Socket.send <|
+        Encode.object
+            [ ( "method", Encode.string "cancelSubscription" )
+            , ( "clientId", Encode.string clientId )
+            ]
 
 
 decoder : String -> String -> String -> Decoder a -> Decoder a
@@ -17,7 +45,7 @@ decoder topic event nodeType nodeDecoder =
             else
                 Decode.fail "payload does not match"
     in
-    Decode.at [ "data", topic ++ "Subscription" ] <|
+    Decode.field (topic ++ "Subscription") <|
         (Decode.field "__typename" Decode.string
             |> Decode.andThen payloadDecoder
         )

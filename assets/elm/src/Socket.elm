@@ -1,36 +1,49 @@
-module Socket exposing (cancel, listen, send)
+module Socket exposing (Message(..), decodeMessage, decoder, receive, send)
 
-import GraphQL exposing (Document, serializeDocument)
-import Json.Decode exposing (Value)
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Ports
-import Socket.Types exposing (Payload)
+
+
+type Message
+    = Event Decode.Value
+    | Unknown
 
 
 
 -- INBOUND
 
 
-listen : (Value -> msg) -> (Value -> msg) -> (Value -> msg) -> (Value -> msg) -> Sub msg
-listen toAbortMsg toStartMsg toResultMsg toErrorMsg =
-    Sub.batch
-        [ Ports.socketAbort toAbortMsg
-        , Ports.socketStart toStartMsg
-        , Ports.socketResult toResultMsg
-        , Ports.socketError toErrorMsg
-        ]
+receive : (Decode.Value -> msg) -> Sub msg
+receive toMsg =
+    Ports.socketIn toMsg
+
+
+decoder : Decoder Message
+decoder =
+    let
+        convert type_ =
+            case type_ of
+                "event" ->
+                    Decode.map Event (Decode.field "data" Decode.value)
+
+                _ ->
+                    Decode.fail "message not recognized"
+    in
+    Decode.field "type" Decode.string
+        |> Decode.andThen convert
+
+
+decodeMessage : Decode.Value -> Message
+decodeMessage value =
+    Decode.decodeValue decoder value
+        |> Result.withDefault Unknown
 
 
 
 -- OUTBOUND
 
 
-send : String -> Document -> Maybe Encode.Value -> Cmd msg
-send clientId document maybeVariables =
-    Payload clientId (serializeDocument document) maybeVariables
-        |> Ports.sendSocket
-
-
-cancel : String -> Cmd msg
-cancel clientId =
-    Ports.cancelSocket clientId
+send : Encode.Value -> Cmd msg
+send data =
+    Ports.socketOut data

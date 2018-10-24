@@ -142,7 +142,7 @@ defmodule LevelWeb.Auth do
   Use the `generate_signed_jwt/1` function to generate a fully-signed
   token in binary format.
   """
-  def generate_jwt(user, lifespan_seconds \\ 15 * 60) do
+  def generate_jwt(user, lifespan_seconds \\ 5 * 60) do
     %Joken.Token{}
     |> with_json_module(Poison)
     |> with_exp(current_time() + lifespan_seconds)

@@ -18,6 +18,14 @@ export const attachPorts = app => {
   let absintheSocket = createAbsintheSocket(phoenixSocket);
   let channels = {};
 
+  phoenixSocket.onError((...args) => {
+    console.log("onError", ...args);
+  });
+
+  phoenixSocket.onClose((...args) => {
+    console.log("onClose", ...args);
+  });
+
   const joinChannel = topic => {
     if (channels[topic]) return;
 
@@ -72,40 +80,34 @@ export const attachPorts = app => {
     logEvent("updateToken")(token);
   });
 
-  app.ports.sendSocket.subscribe(doc => {
-    const notifier = AbsintheSocket.send(absintheSocket, doc);
+  app.ports.socketOut.subscribe(args => {
+    switch (args.method) {
+      case "sendSubscription":
+        const notifier = AbsintheSocket.send(absintheSocket, args);
 
-    AbsintheSocket.observe(absintheSocket, notifier, {
-      onAbort: data => {
-        logEvent("socketAbort")(data);
-        app.ports.socketAbort.send(data);
-      },
-      onError: data => {
-        logEvent("socketError")(data);
-        app.ports.socketError.send(data);
-      },
-      onStart: data => {
-        logEvent("socketStart")(data);
-        app.ports.socketStart.send(data);
-      },
-      onResult: data => {
-        logEvent("socketResult")(data);
-        app.ports.socketResult.send(data);
-      }
-    });
+        AbsintheSocket.observe(absintheSocket, notifier, {
+          onResult: data => {
+            data.type = "event";
+            app.ports.socketIn.send(data);
+            logEvent("socketIn")(data);
+          }
+        });
 
-    logEvent("sendSocket")(doc);
-  });
+        break;
 
-  app.ports.cancelSocket.subscribe(clientId => {
-    const notifiers = absintheSocket.notifiers.filter(notifier => {
-      return notifier.request.clientId == clientId;
-    });
+      case "cancelSubscription":
+        const notifiers = absintheSocket.notifiers.filter(notifier => {
+          return notifier.request.clientId == args.clientId;
+        });
 
-    notifiers.forEach(notifier => {
-      logEvent("socket.cancel")(notifier);
-      AbsintheSocket.cancel(absintheSocket, notifier);
-    });
+        notifiers.forEach(notifier => {
+          AbsintheSocket.cancel(absintheSocket, notifier);
+        });
+
+        break;
+    }
+
+    logEvent("socketOut")(args);
   });
 
   app.ports.presenceOut.subscribe(arg => {

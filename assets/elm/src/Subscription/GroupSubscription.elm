@@ -17,12 +17,12 @@ import Subscription
 
 subscribe : String -> Cmd msg
 subscribe groupId =
-    Socket.send (clientId groupId) document (variables groupId)
+    Subscription.send (clientId groupId) document (variables groupId)
 
 
 unsubscribe : String -> Cmd msg
 unsubscribe groupId =
-    Socket.cancel (clientId groupId)
+    Subscription.cancel (clientId groupId)
 
 
 

@@ -160,10 +160,7 @@ type Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.SpaceSettings.Msg
     | SearchMsg Page.Search.Msg
-    | SocketAbort Decode.Value
-    | SocketStart Decode.Value
-    | SocketResult Decode.Value
-    | SocketError Decode.Value
+    | SocketIn Decode.Value
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
     | PresenceIn Decode.Value
@@ -347,33 +344,23 @@ update msg model =
                 |> Page.Search.update pageMsg globals
                 |> updatePageWithGlobals Search SearchMsg model
 
-        ( SocketAbort value, _ ) ->
-            ( model, Cmd.none )
+        ( SocketIn value, page ) ->
+            case Socket.decodeMessage value of
+                Socket.Event eventData ->
+                    let
+                        event =
+                            Event.decodeEvent eventData
 
-        ( SocketStart value, _ ) ->
-            ( model, Cmd.none )
+                        ( newModel, cmd ) =
+                            consumeEvent event model
 
-        ( SocketResult value, page ) ->
-            let
-                event =
-                    Event.decodeEvent value
+                        ( newModel2, cmd2 ) =
+                            sendEventToPage globals event newModel
+                    in
+                    ( newModel2, Cmd.batch [ cmd, cmd2 ] )
 
-                ( newModel, cmd ) =
-                    consumeEvent event model
-
-                ( newModel2, cmd2 ) =
-                    sendEventToPage globals event newModel
-            in
-            ( newModel2, Cmd.batch [ cmd, cmd2 ] )
-
-        ( SocketError value, _ ) ->
-            let
-                cmd =
-                    model.session
-                        |> Session.fetchNewToken
-                        |> Task.attempt SessionRefreshed
-            in
-            ( model, cmd )
+                Socket.Unknown ->
+                    ( model, Cmd.none )
 
         ( PushManagerIn value, _ ) ->
             case PushManager.decodePayload value of
@@ -1235,7 +1222,7 @@ sendPresenceToPage event model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Socket.listen SocketAbort SocketStart SocketResult SocketError
+        [ Socket.receive SocketIn
         , PushManager.receive PushManagerIn
         , Presence.receive PresenceIn
         , pageSubscription model.page
