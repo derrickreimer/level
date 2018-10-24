@@ -179,13 +179,17 @@ resolvedView repo maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
-            [ div [ class "pb-5" ]
-                [ nav [ class "text-xl font-extrabold" ]
-                    [ a [ Route.href (Route.Group groupParams), class "no-underline text-dusty-blue-dark" ] [ text <| Group.name data.group ]
+            [ div [ class "pb-3" ]
+                [ nav [ class "text-xl font-extrabold leading-tight" ]
+                    [ a
+                        [ Route.href (Route.Group groupParams)
+                        , class "no-underline text-dusty-blue-dark"
+                        ]
+                        [ text <| Group.name data.group ]
                     ]
                 , h1 [ class "flex-1 font-extrabold text-3xl" ] [ text "Permissions" ]
                 ]
-            , div [ class "pb-8" ]
+            , div [ class "pb-6" ]
                 [ p [ class "text-base" ]
                     [ text "Manage who is allowed in the group and appoint other owners to help admininstrate it."
                     ]
