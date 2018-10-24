@@ -404,6 +404,7 @@ update msg globals model =
                 newNameEditor =
                     model.nameEditor
                         |> FieldEditor.collapse
+                        |> FieldEditor.setIsSubmitting False
 
                 newModel =
                     { model | nameEditor = newNameEditor }
@@ -852,6 +853,12 @@ postView repo space currentUser now component =
 
 sidebarView : Params -> Group -> List SpaceUser -> Html Msg
 sidebarView params group featuredMembers =
+    let
+        permissionsParams =
+            Route.GroupPermissions.init
+                (Route.Group.getSpaceSlug params)
+                (Route.Group.getGroupId params)
+    in
     View.SpaceLayout.rightSidebar
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
             [ text "Members"
@@ -866,7 +873,7 @@ sidebarView params group featuredMembers =
               viewIf False <|
                 li []
                     [ a
-                        [ Route.href (Route.GroupPermissions <| Route.GroupPermissions.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
+                        [ Route.href (Route.GroupPermissions permissionsParams)
                         , class "text-md text-dusty-blue no-underline font-bold"
                         ]
                         [ text "Permissions" ]
