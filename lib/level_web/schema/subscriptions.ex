@@ -31,7 +31,13 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for messages propagated to a group topic."
   union :group_subscription_payload do
-    types [:group_updated_payload, :post_created_payload, :group_membership_updated_payload]
+    types [
+      :group_updated_payload,
+      :post_created_payload,
+      :subscribed_to_group_payload,
+      :unsubscribed_from_group_payload
+    ]
+
     resolve_type &type_resolver/2
   end
 
@@ -140,13 +146,22 @@ defmodule LevelWeb.Schema.Subscriptions do
     field :replies, list_of(:reply)
   end
 
-  @desc "The payload for the group membership updated event."
-  object :group_membership_updated_payload do
-    @desc "The updated membership."
-    field :membership, :group_membership
-
+  @desc "The payload for the subscribed to group event."
+  object :subscribed_to_group_payload do
     @desc "The group."
     field :group, non_null(:group)
+
+    @desc "The space user."
+    field :space_user, non_null(:space_user)
+  end
+
+  @desc "The payload for the unsubscribed from group event."
+  object :unsubscribed_from_group_payload do
+    @desc "The group."
+    field :group, non_null(:group)
+
+    @desc "The space user."
+    field :space_user, non_null(:space_user)
   end
 
   @desc "The payload for the reply created event."

@@ -245,14 +245,19 @@ defmodule Level.Groups do
       conflict_target: [:space_user_id, :group_id]
     ]
 
-    case Repo.insert(changeset, opts) do
-      {:ok, _} ->
-        bookmark_group(group, space_user)
-        :ok
+    changeset
+    |> Repo.insert(opts)
+    |> after_subscribe(group, space_user)
+  end
 
-      err ->
-        err
-    end
+  defp after_subscribe({:ok, _}, group, space_user) do
+    bookmark_group(group, space_user)
+    Events.subscribed_to_group(group.id, group, space_user)
+    :ok
+  end
+
+  defp after_subscribe(err, _, _) do
+    err
   end
 
   @doc """
@@ -273,14 +278,19 @@ defmodule Level.Groups do
       conflict_target: [:space_user_id, :group_id]
     ]
 
-    case Repo.insert(changeset, opts) do
-      {:ok, _} ->
-        unbookmark_group(group, space_user)
-        :ok
+    changeset
+    |> Repo.insert(opts)
+    |> after_unsubscribe(group, space_user)
+  end
 
-      err ->
-        err
-    end
+  defp after_unsubscribe({:ok, _}, group, space_user) do
+    unbookmark_group(group, space_user)
+    Events.unsubscribed_from_group(group.id, group, space_user)
+    :ok
+  end
+
+  defp after_unsubscribe(err, _, _) do
+    err
   end
 
   @doc """

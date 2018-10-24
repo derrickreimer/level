@@ -76,6 +76,14 @@ defmodule Level.Events do
     publish_to_group(id, :group_updated, %{group: group})
   end
 
+  def subscribed_to_group(id, %Group{} = group, %SpaceUser{} = space_user) do
+    publish_to_group(id, :subscribed_to_group, %{group: group, space_user: space_user})
+  end
+
+  def unsubscribed_from_group(id, %Group{} = group, %SpaceUser{} = space_user) do
+    publish_to_group(id, :unsubscribed_from_group, %{group: group, space_user: space_user})
+  end
+
   # Post
 
   def post_updated(%Post{} = post) do
