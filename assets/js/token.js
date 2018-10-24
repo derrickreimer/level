@@ -1,4 +1,4 @@
-export const getApiToken = () => {
+export const getInitialApiToken = () => {
   return document.head.querySelector("meta[name='api_token']").content;
 };
 
@@ -11,7 +11,8 @@ export const fetchApiToken = () => {
     fetch("/api/tokens", { method: "POST" })
       .then(response => {
         if (response.status == 201) {
-          response.json()
+          response
+            .json()
             .then(data => resolve(data.token))
             .catch(reject);
         } else {
@@ -23,4 +24,4 @@ export const fetchApiToken = () => {
       })
       .catch(reject);
   });
-}
+};

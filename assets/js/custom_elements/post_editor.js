@@ -12,8 +12,10 @@ const isOutside = (rect, clientX, clientY) => {
 };
 
 const generateRandomToken = () => {
-  return [...Array(32)].map(_ => (~~(Math.random() * 36)).toString(36)).join('');
-}
+  return [...Array(32)]
+    .map(_ => (~~(Math.random() * 36)).toString(36))
+    .join("");
+};
 
 customElements.define(
   "post-editor",
@@ -167,7 +169,7 @@ customElements.define(
         contentType: file.type,
         size: file.size,
         contents: null
-      }
+      };
 
       this.sendEvent("fileAdded", metadata);
       this.uploadFile(clientId, file);
@@ -190,17 +192,17 @@ customElements.define(
           let xhr = new XMLHttpRequest();
           let formData = new FormData();
 
-          formData.append('file[space_id]', this.spaceId);
-          formData.append('file[client_id]', clientId);
-          formData.append('file[data]', file);
+          formData.append("file[space_id]", this.spaceId);
+          formData.append("file[client_id]", clientId);
+          formData.append("file[data]", file);
 
-          xhr.open('POST', '/api/files', true);
+          xhr.open("POST", "/api/files", true);
 
-          xhr.setRequestHeader('authorization', 'Bearer ' + token);
+          xhr.setRequestHeader("authorization", "Bearer " + token);
 
           xhr.upload.addEventListener("progress", e => {
             if (e.lengthComputable) {
-              let percentage = Math.round((e.loaded * 100) / e.total);
+              let percentage = Math.round(e.loaded * 100 / e.total);
               this.sendEvent("fileUploadProgress", { clientId, percentage });
             }
           });
@@ -222,7 +224,10 @@ customElements.define(
                   break;
 
                 default:
-                  this.sendEvent("fileUploadError", { clientId: clientId, status: xhr.status });
+                  this.sendEvent("fileUploadError", {
+                    clientId: clientId,
+                    status: xhr.status
+                  });
                   break;
               }
             }

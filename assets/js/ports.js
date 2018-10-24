@@ -1,20 +1,24 @@
-import {
-  createPhoenixSocket,
-  createAbsintheSocket,
-  updateSocketToken
-} from "./socket";
+import { createPhoenixSocket, createAbsintheSocket } from "./socket";
 import { Presence } from "phoenix";
-import { getApiToken } from "./token";
+import { getInitialApiToken, fetchApiToken } from "./token";
 import { insertTextAtCursor } from "./utils";
 import * as AbsintheSocket from "@absinthe/socket";
-import autosize from "autosize";
 import * as Background from "./background";
+import autosize from "autosize";
 
 const logEvent = eventName => (...args) =>
   console.log("[ports." + eventName + "]", ...args);
 
 export const attachPorts = app => {
-  let phoenixSocket = createPhoenixSocket(getApiToken());
+  // Start with the initial API token generated at page-load time.
+  // This variable may get mutated over time as tokens expire.
+  let token = getInitialApiToken();
+
+  let socketParams = () => {
+    return { Authorization: "Bearer " + token };
+  };
+
+  let phoenixSocket = createPhoenixSocket(socketParams);
   let absintheSocket = createAbsintheSocket(phoenixSocket);
   let channels = {};
 
@@ -24,15 +28,16 @@ export const attachPorts = app => {
     logEvent("socketIn")(payload);
   });
 
-  phoenixSocket.onError((...args) => {
+  phoenixSocket.onError(() => {
+    fetchApiToken().then(newToken => {
+      token = newToken;
+    });
+  });
+
+  phoenixSocket.onClose(() => {
     const payload = { type: "closed" };
     app.ports.socketIn.send(payload);
     logEvent("socketIn")(payload);
-    console.log("onError", ...args);
-  });
-
-  phoenixSocket.onClose((...args) => {
-    console.log("onClose", ...args);
   });
 
   const joinChannel = topic => {
@@ -84,8 +89,8 @@ export const attachPorts = app => {
     delete channels[topic];
   };
 
-  app.ports.updateToken.subscribe(token => {
-    updateSocketToken(phoenixSocket, token);
+  app.ports.updateToken.subscribe(newToken => {
+    token = newToken;
     logEvent("updateToken")(token);
   });
 
@@ -257,5 +262,5 @@ export const attachPorts = app => {
         insertTextAtCursor(node, args.text);
         break;
     }
-  })
+  });
 };
