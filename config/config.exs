@@ -8,7 +8,8 @@ use Mix.Config
 # General application configuration
 config :level,
   ecto_repos: [Level.Repo],
-  mailer_host: System.get_env("LEVEL_MAILER_HOST") || "level.test"
+  mailer_host: System.get_env("LEVEL_MAILER_HOST") || "level.test",
+  env: Mix.env()
 
 # Configures the endpoint
 config :level, LevelWeb.Endpoint,
@@ -26,6 +27,9 @@ config :level, :generators,
   migration: true,
   binary_id: true,
   sample_binary_id: "11111111-1111-1111-1111-111111111111"
+
+# Configure js error reporting
+config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY")
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

@@ -156,7 +156,11 @@ The following environment variables must be set in production:
     </tr>
     <tr>
       <td><code>HONEYBADGER_API_KEY</code></td>
-      <td>The API key for Honeybadger.io (exception monitoring).</td>
+      <td>The API key for Honeybadger.io exception monitoring (Elixir).</td>
+    </tr>
+    <tr>
+      <td><code>HONEYBADGER_JS_API_KEY</code></td>
+      <td>The API key for Honeybadger.io exception monitoring (JavaScript).</td>
     </tr>
   </tbody>
 </table>

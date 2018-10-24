@@ -7,6 +7,8 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <meta name="csrf_token" content="<%= Plug.CSRFProtection.get_csrf_token() %>">
+    <meta name="env" content="<%= Application.get_env(:level, :env) %>">
+    <meta name="honeybadger_js_api_key" content="<%= Application.get_env(:level, :honeybadger_js)[:api_key] %>">
 
     <%= if assigns[:api_token] do %>
     <meta name="api_token" content="<%= @api_token %>">

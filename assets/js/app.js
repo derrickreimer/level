@@ -20,6 +20,7 @@ import * as Main from "./modules/main";
 import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
 import * as Background from "./background";
+import * as Honeybadger from "honeybadger-js";
 import "./custom_elements/rendered_html";
 import "./custom_elements/clipboard_button";
 import "./custom_elements/post_editor";
@@ -56,3 +57,14 @@ setInterval(() => {
     document.body.classList.remove("scrolled-top");
   }
 }, 100);
+
+// Setup error tracking
+const env = document.head.querySelector("meta[name='env']").content;
+const hbApiKey = document.head.querySelector("meta[name='honeybadger_js_api_key']").content;
+
+if (hbApiKey) {
+  Honeybadger.configure({
+    apiKey: hbApiKey,
+    environment: env
+  });
+}

@@ -39,6 +39,10 @@ defmodule LevelWeb.SessionController do
 
   defp put_feature_flags(conn, _opts) do
     conn
-    |> assign(:signups_enabled, FeatureFlags.signups_enabled?(Mix.env()))
+    |> assign(:signups_enabled, FeatureFlags.signups_enabled?(env()))
+  end
+
+  defp env do
+    Application.get_env(:level, :env)
   end
 end

@@ -4,6 +4,8 @@ defmodule LevelWeb.Router do
   use LevelWeb, :router
   use Honeybadger.Plug
 
+  @env Application.get_env(:level, :env)
+
   pipeline :anonymous_browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -76,7 +78,7 @@ defmodule LevelWeb.Router do
   end
 
   # Preview sent emails in development mode
-  if Mix.env() == :dev do
+  if @env == :dev do
     forward "/sent_emails", Bamboo.EmailPreviewPlug
   end
 
@@ -98,7 +100,7 @@ defmodule LevelWeb.Router do
   end
 
   def generate_token(user) do
-    case Mix.env() do
+    case @env do
       :dev ->
         LevelWeb.Auth.generate_signed_jwt(user, 604_800 * 52)
 

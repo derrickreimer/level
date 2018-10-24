@@ -38,12 +38,16 @@ defmodule LevelWeb.UserController do
   end
 
   defp check_feature_flag(conn, _opts) do
-    if signups_enabled?(Mix.env()) do
+    if signups_enabled?(env()) do
       conn
     else
       conn
       |> redirect(to: page_path(conn, :index))
       |> halt()
     end
+  end
+
+  defp env do
+    Application.get_env(:level, :env)
   end
 end
