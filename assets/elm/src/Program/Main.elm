@@ -1247,19 +1247,14 @@ view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
         [ pageView model.repo model.page model.pushStatus
-        , noticesView model
+        , centerNoticeView model
         ]
 
 
-noticesView : Model -> Html Msg
-noticesView model =
-    div [ class "fixed flex justify-center px-3 pin-t w-full z-50" ]
+centerNoticeView : Model -> Html Msg
+centerNoticeView model =
+    div [ class "fixed px-3 pin-t pin-l-50 z-50", style "transform" "translateX(-50%)" ]
         [ viewIf (model.socketState == SocketState.Closed) <|
-            errorNoticeView "Attempting to reconnect..."
+            div [ class "relative mt-3 px-6 py-3 rounded-full bg-red-lightest text-sm text-red font-extrabold" ]
+                [ text "Attempting to reconnect..." ]
         ]
-
-
-errorNoticeView : String -> Html Msg
-errorNoticeView message =
-    div [ class "mt-3 px-6 py-3 rounded-full bg-red text-sm text-white font-extrabold" ]
-        [ text message ]

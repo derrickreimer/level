@@ -398,3 +398,11 @@ post-editor.dragging-over > * {
   @apply bg-white;
   box-shadow: inset 0 0 0 2px config('colors.grey');
 }
+
+.pin-l-50 {
+  left: 50%;
+}
+
+.-pin-l-50 {
+  left: -50%;
+}
