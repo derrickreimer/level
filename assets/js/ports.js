@@ -18,7 +18,16 @@ export const attachPorts = app => {
   let absintheSocket = createAbsintheSocket(phoenixSocket);
   let channels = {};
 
+  phoenixSocket.onOpen(() => {
+    const payload = { type: "opened" };
+    app.ports.socketIn.send(payload);
+    logEvent("socketIn")(payload);
+  });
+
   phoenixSocket.onError((...args) => {
+    const payload = { type: "closed" };
+    app.ports.socketIn.send(payload);
+    logEvent("socketIn")(payload);
     console.log("onError", ...args);
   });
 
@@ -87,7 +96,7 @@ export const attachPorts = app => {
 
         AbsintheSocket.observe(absintheSocket, notifier, {
           onResult: data => {
-            data.type = "event";
+            data.type = "message";
             app.ports.socketIn.send(data);
             logEvent("socketIn")(data);
           }

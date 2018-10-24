@@ -39,6 +39,7 @@ import Route.Groups
 import Route.Inbox
 import Session exposing (Session)
 import Socket
+import SocketState exposing (SocketState(..))
 import Space exposing (Space)
 import SpaceUser
 import Subscription.SpaceSubscription as SpaceSubscription
@@ -75,6 +76,7 @@ type alias Model =
     , page : Page
     , isTransitioning : Bool
     , pushStatus : PushStatus
+    , socketState : SocketState
     }
 
 
@@ -118,6 +120,7 @@ buildModel flags navKey =
         Blank
         True
         (PushStatus.init flags.supportsNotifications)
+        SocketState.Unknown
 
 
 setup : MainInit.Response -> Model -> Cmd Msg
@@ -345,11 +348,11 @@ update msg model =
                 |> updatePageWithGlobals Search SearchMsg model
 
         ( SocketIn value, page ) ->
-            case Socket.decodeMessage value of
-                Socket.Event eventData ->
+            case Socket.decodeEvent value of
+                Socket.MessageReceived messageData ->
                     let
                         event =
-                            Event.decodeEvent eventData
+                            Event.decodeEvent messageData
 
                         ( newModel, cmd ) =
                             consumeEvent event model
@@ -358,6 +361,12 @@ update msg model =
                             sendEventToPage globals event newModel
                     in
                     ( newModel2, Cmd.batch [ cmd, cmd2 ] )
+
+                Socket.Opened ->
+                    ( { model | socketState = SocketState.Open }, Cmd.none )
+
+                Socket.Closed ->
+                    ( { model | socketState = SocketState.Closed }, Cmd.none )
 
                 Socket.Unknown ->
                     ( model, Cmd.none )

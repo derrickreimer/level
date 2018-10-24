@@ -1,12 +1,14 @@
-module Socket exposing (Message(..), decodeMessage, decoder, receive, send)
+module Socket exposing (Event(..), decodeEvent, decoder, receive, send)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Ports
 
 
-type Message
-    = Event Decode.Value
+type Event
+    = MessageReceived Decode.Value
+    | Opened
+    | Closed
     | Unknown
 
 
@@ -19,13 +21,19 @@ receive toMsg =
     Ports.socketIn toMsg
 
 
-decoder : Decoder Message
+decoder : Decoder Event
 decoder =
     let
         convert type_ =
             case type_ of
-                "event" ->
-                    Decode.map Event (Decode.field "data" Decode.value)
+                "message" ->
+                    Decode.map MessageReceived (Decode.field "data" Decode.value)
+
+                "opened" ->
+                    Decode.succeed Opened
+
+                "closed" ->
+                    Decode.succeed Closed
 
                 _ ->
                     Decode.fail "message not recognized"
@@ -34,8 +42,8 @@ decoder =
         |> Decode.andThen convert
 
 
-decodeMessage : Decode.Value -> Message
-decodeMessage value =
+decodeEvent : Decode.Value -> Event
+decodeEvent value =
     Decode.decodeValue decoder value
         |> Result.withDefault Unknown
 
