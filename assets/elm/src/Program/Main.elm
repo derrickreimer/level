@@ -1253,8 +1253,10 @@ view model =
 
 centerNoticeView : Model -> Html Msg
 centerNoticeView model =
-    div [ class "fixed px-3 pin-t pin-l-50 z-50", style "transform" "translateX(-50%)" ]
+    div [ class "font-sans font-antialised fixed px-3 pin-t pin-l-50 z-50", style "transform" "translateX(-50%)" ]
         [ viewIf (model.socketState == SocketState.Closed) <|
-            div [ class "relative mt-3 px-6 py-3 rounded-full bg-red-lightest text-sm text-red font-extrabold" ]
-                [ text "Attempting to reconnect..." ]
+            div [ class "relative px-5 py-4 border-b-3 border-red bg-red-lightest text-sm text-red" ]
+                [ h2 [ class "pb-2 font-extrabold text-lg" ] [ text "Attempting to reconnect..." ]
+                , p [ class "text-sm" ] [ text "If the problem persists, try refreshing the page." ]
+                ]
         ]
