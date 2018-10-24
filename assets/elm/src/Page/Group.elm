@@ -732,13 +732,13 @@ nameView group editor =
                 ]
 
 
-privacyToggle : Bool -> Html Msg
-privacyToggle isPrivate =
+privacyIcon : Bool -> Html Msg
+privacyIcon isPrivate =
     if isPrivate == True then
-        button [ class "mx-2", onClick (PrivacyToggle False) ] [ Icons.lock ]
+        span [ class "mx-2" ] [ Icons.lock ]
 
     else
-        button [ class "mx-2", onClick (PrivacyToggle True) ] [ Icons.unlock ]
+        span [ class "mx-2" ] [ Icons.unlock ]
 
 
 nameErrors : FieldEditor String -> Html Msg
@@ -855,17 +855,22 @@ sidebarView params group featuredMembers =
     View.SpaceLayout.rightSidebar
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
             [ text "Members"
-            , privacyToggle (Group.isPrivate group)
+
+            -- Hide this for now while private groups are disabled
+            , viewIf False <|
+                privacyIcon (Group.isPrivate group)
             ]
         , memberListView featuredMembers
         , ul [ class "list-reset leading-normal" ]
-            [ li []
-                [ a
-                    [ Route.href (Route.GroupPermissions <| Route.GroupPermissions.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
-                    , class "text-md text-dusty-blue no-underline font-bold"
+            [ -- Hide this for now while private groups are disabled
+              viewIf False <|
+                li []
+                    [ a
+                        [ Route.href (Route.GroupPermissions <| Route.GroupPermissions.init (Route.Group.getSpaceSlug params) (Route.Group.getGroupId params))
+                        , class "text-md text-dusty-blue no-underline font-bold"
+                        ]
+                        [ text "Permissions" ]
                     ]
-                    [ text "Permissions" ]
-                ]
             , li []
                 [ subscribeButtonView (Group.membershipState group)
                 ]
