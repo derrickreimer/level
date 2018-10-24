@@ -47,6 +47,7 @@ import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
 import Url exposing (Url)
 import Util exposing (Lazy(..))
+import View.Helpers exposing (viewIf)
 
 
 
@@ -1246,4 +1247,19 @@ view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
         [ pageView model.repo model.page model.pushStatus
+        , noticesView model
         ]
+
+
+noticesView : Model -> Html Msg
+noticesView model =
+    div [ class "fixed flex justify-center px-3 pin-t w-full z-50" ]
+        [ viewIf (model.socketState == SocketState.Closed) <|
+            errorNoticeView "Attempting to reconnect..."
+        ]
+
+
+errorNoticeView : String -> Html Msg
+errorNoticeView message =
+    div [ class "mt-3 px-6 py-3 rounded-full bg-red text-sm text-white font-extrabold" ]
+        [ text message ]
