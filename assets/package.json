@@ -12,7 +12,8 @@
     "honeybadger-js": "^0.5.5",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
-    "stretchy": "^1.0.0"
+    "stretchy": "^1.0.0",
+    "tributejs": "^3.3.5"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

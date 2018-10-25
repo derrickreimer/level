@@ -9,6 +9,7 @@ import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (decodeString)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
@@ -32,6 +33,7 @@ import Post
 import Presence exposing (PresenceList)
 import PushManager
 import PushStatus exposing (PushStatus)
+import Query.GetSpaceUserLists as GetSpaceUserLists
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -42,6 +44,7 @@ import Socket
 import SocketState exposing (SocketState(..))
 import Space exposing (Space)
 import SpaceUser
+import SpaceUserLists exposing (SpaceUserLists)
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
@@ -78,6 +81,7 @@ type alias Model =
     , isTransitioning : Bool
     , pushStatus : PushStatus
     , socketState : SocketState
+    , spaceUserLists : SpaceUserLists
     }
 
 
@@ -122,20 +126,24 @@ buildModel flags navKey =
         True
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
+        SpaceUserLists.init
 
 
 setup : MainInit.Response -> Model -> Cmd Msg
 setup { spaceIds, spaceUserIds } model =
     let
         spaceSubs =
-            spaceIds
-                |> List.map SpaceSubscription.subscribe
+            List.map SpaceSubscription.subscribe spaceIds
 
         spaceUserSubs =
-            spaceUserIds
-                |> List.map SpaceUserSubscription.subscribe
+            List.map SpaceUserSubscription.subscribe spaceUserIds
+
+        getSpaceUserLists =
+            model.session
+                |> GetSpaceUserLists.request
+                |> Task.attempt SpaceUserListsLoaded
     in
-    Cmd.batch (spaceSubs ++ spaceUserSubs)
+    Cmd.batch (spaceSubs ++ spaceUserSubs ++ [ getSpaceUserLists ])
 
 
 
@@ -147,6 +155,7 @@ type Msg
     | UrlRequest UrlRequest
     | AppInitialized (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
+    | SpaceUserListsLoaded (Result Session.Error ( Session, GetSpaceUserLists.Response ))
     | PageInitialized PageInit
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
@@ -222,6 +231,20 @@ update msg model =
 
         ( SessionRefreshed (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
+
+        ( SpaceUserListsLoaded (Ok ( newSession, resp )), _ ) ->
+            ( { model
+                | spaceUserLists = resp.spaceUserLists
+                , repo = Repo.union resp.repo model.repo
+              }
+            , Cmd.none
+            )
+
+        ( SpaceUserListsLoaded (Err Session.Expired), _ ) ->
+            ( model, Route.toLogin )
+
+        ( SpaceUserListsLoaded (Err _), _ ) ->
+            ( model, Cmd.none )
 
         ( PageInitialized pageInit, _ ) ->
             setupPage pageInit model
@@ -909,8 +932,8 @@ routeFor page =
             Nothing
 
 
-pageView : Repo -> Page -> PushStatus -> Html Msg
-pageView repo page pushStatus =
+pageView : Repo -> Page -> PushStatus -> SpaceUserLists -> Html Msg
+pageView repo page pushStatus spaceUserLists =
     case page of
         Spaces pageModel ->
             pageModel
@@ -934,12 +957,12 @@ pageView repo page pushStatus =
 
         Posts pageModel ->
             pageModel
-                |> Page.Posts.view repo (routeFor page)
+                |> Page.Posts.view repo (routeFor page) spaceUserLists
                 |> Html.map PostsMsg
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view repo (routeFor page) pushStatus
+                |> Page.Inbox.view repo (routeFor page) pushStatus spaceUserLists
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
@@ -959,7 +982,7 @@ pageView repo page pushStatus =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view repo (routeFor page)
+                |> Page.Group.view repo (routeFor page) spaceUserLists
                 |> Html.map GroupMsg
 
         NewGroup pageModel ->
@@ -974,7 +997,7 @@ pageView repo page pushStatus =
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view repo (routeFor page)
+                |> Page.Post.view repo (routeFor page) spaceUserLists
                 |> Html.map PostMsg
 
         UserSettings pageModel ->
@@ -1246,7 +1269,7 @@ subscriptions model =
 view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
-        [ pageView model.repo model.page model.pushStatus
+        [ pageView model.repo model.page model.pushStatus model.spaceUserLists
         , centerNoticeView model
         ]
 

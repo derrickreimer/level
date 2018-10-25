@@ -1,6 +1,7 @@
 import "@webcomponents/custom-elements";
 import autosize from "autosize";
 import { fetchApiToken } from "../token";
+import Tribute from "tributejs";
 
 const isOutside = (rect, clientX, clientY) => {
   return (
@@ -26,7 +27,9 @@ customElements.define(
     connectedCallback() {
       this.setupAutosize();
       this.setupDragDrop();
+      this.setupMentions();
       this._dragging_over = false;
+      this._spaceUsers = [];
     }
 
     /**
@@ -34,6 +37,19 @@ customElements.define(
      */
     disconnectedCallback() {
       this.teardownAutosize();
+      this.teardownMentions();
+    }
+
+    get spaceUsers() {
+      return this._spaceUsers;
+    }
+
+    set spaceUsers(newValue) {
+      this._spaceUsers = newValue;
+
+      if (this._tribute) {
+        this._tribute.append(0, newValue, true);
+      }
     }
 
     /**
@@ -54,6 +70,39 @@ customElements.define(
       if (textarea) {
         autosize.destroy(textarea);
       }
+    }
+
+    /**
+     * Initializes Tribute @-mention completion.
+     */
+    setupMentions() {
+      let textarea = this.querySelector("textarea");
+      if (!textarea) return;
+
+      this._tribute = new Tribute({
+        values: this._spaceUsers,
+        lookup: item => {
+          return item.displayName + " (@" + item.handle + ")";
+        },
+        fillAttr: "handle",
+        menuContainer: this,
+        positionMenu: false
+      });
+
+      this._tribute.attach(textarea);
+
+      // Trigger a synthetic "input" event when tribute programmatically
+      // updates the textarea value to prevent Elm from clobbering it.
+      textarea.addEventListener("tribute-replaced", e => {
+        textarea.dispatchEvent(new CustomEvent("input", {}));
+      });
+    }
+
+    /**
+     * Teardown Tribute @-mention completion.
+     */
+    teardownMentions() {
+      this._tribute.detach(this.querySelector("textarea"));
     }
 
     /**
