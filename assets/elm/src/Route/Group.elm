@@ -1,6 +1,6 @@
 module Route.Group exposing
-    ( Params
-    , init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath
+    ( Params, State(..)
+    , init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath, getState, setState
     , parser
     , toString
     )
@@ -10,12 +10,12 @@ module Route.Group exposing
 
 # Types
 
-@docs Params
+@docs Params, State
 
 
 # API
 
-@docs init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath
+@docs init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath, getState, setState
 
 
 # Parsing
@@ -44,7 +44,13 @@ type alias Internal =
     , groupId : Id
     , after : Maybe String
     , before : Maybe String
+    , state : State
     }
+
+
+type State
+    = Open
+    | Closed
 
 
 
@@ -53,7 +59,7 @@ type alias Internal =
 
 init : String -> Id -> Params
 init spaceSlug groupId =
-    Params (Internal spaceSlug groupId Nothing Nothing)
+    Params (Internal spaceSlug groupId Nothing Nothing Open)
 
 
 getSpaceSlug : Params -> String
@@ -86,6 +92,16 @@ hasSamePath p1 p2 =
     getSpaceSlug p1 == getSpaceSlug p2 && getGroupId p1 == getGroupId p2
 
 
+getState : Params -> State
+getState (Params internal) =
+    internal.state
+
+
+setState : State -> Params -> Params
+setState newState (Params internal) =
+    Params { internal | state = newState }
+
+
 
 -- PARSING
 
@@ -93,7 +109,7 @@ hasSamePath p1 p2 =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "groups" </> string <?> Query.string "after" <?> Query.string "before")
+        map Internal (string </> s "groups" </> string <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
 
 
 
@@ -109,11 +125,35 @@ toString (Params internal) =
 -- PRIVATE
 
 
+parseState : Maybe String -> State
+parseState value =
+    case value of
+        Just "closed" ->
+            Closed
+
+        Just "open" ->
+            Open
+
+        _ ->
+            Open
+
+
+castState : State -> Maybe String
+castState state =
+    case state of
+        Open ->
+            Nothing
+
+        Closed ->
+            Just "closed"
+
+
 buildQuery : Internal -> List QueryParameter
 buildQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
+        , ( "state", castState internal.state )
         ]
 
 

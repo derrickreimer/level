@@ -51,7 +51,8 @@ document =
           $first: Int,
           $last: Int,
           $before: Cursor,
-          $after: Cursor
+          $after: Cursor,
+          $stateFilter: PostStateFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -74,8 +75,13 @@ document =
               last: $last,
               before: $before,
               after: $after,
-              filter: { watching: ALL },
-              orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
+              filter: {
+                state: $stateFilter
+              },
+              orderBy: {
+                field: LAST_ACTIVITY_AT,
+                direction: DESC
+              }
             ) {
               ...PostConnectionFields
               edges {
@@ -106,6 +112,9 @@ variables params limit =
         groupId =
             Id.encoder (Route.Group.getGroupId params)
 
+        stateFilter =
+            Encode.string (castState <| Route.Group.getState params)
+
         values =
             case
                 ( Route.Group.getBefore params
@@ -117,6 +126,7 @@ variables params limit =
                     , ( "groupId", groupId )
                     , ( "last", Encode.int limit )
                     , ( "before", Encode.string before )
+                    , ( "stateFilter", stateFilter )
                     ]
 
                 ( Nothing, Just after ) ->
@@ -124,15 +134,27 @@ variables params limit =
                     , ( "groupId", groupId )
                     , ( "first", Encode.int limit )
                     , ( "after", Encode.string after )
+                    , ( "stateFilter", stateFilter )
                     ]
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "groupId", groupId )
                     , ( "first", Encode.int limit )
+                    , ( "stateFilter", stateFilter )
                     ]
     in
     Just (Encode.object values)
+
+
+castState : Route.Group.State -> String
+castState state =
+    case state of
+        Route.Group.Open ->
+            "OPEN"
+
+        Route.Group.Closed ->
+            "CLOSED"
 
 
 decoder : Decoder Data
