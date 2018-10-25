@@ -314,16 +314,37 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "sticky pin-t border-b mb-3 py-4 bg-white z-50" ]
+            [ div [ class "sticky pin-t border-b mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]
                     , controlsView model
+                    ]
+                , div [ class "flex items-baseline" ]
+                    [ filterTab "Open" Route.Posts.Open (openParams model.params) model.params
+                    , filterTab "Closed" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
             , postsView repo spaceUsers model data
             , sidebarView data.space data.featuredUsers
             ]
         ]
+
+
+filterTab : String -> Route.Posts.State -> Params -> Params -> Html Msg
+filterTab label state linkParams currentParams =
+    let
+        isCurrent =
+            Route.Posts.getState currentParams == state
+    in
+    a
+        [ Route.href (Route.Posts linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        ]
+        [ text label ]
 
 
 controlsView : Model -> Html Msg
@@ -402,3 +423,21 @@ userItemView user =
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]
+
+
+
+-- INTERNAL
+
+
+openParams : Params -> Params
+openParams params =
+    params
+        |> Route.Posts.setCursors Nothing Nothing
+        |> Route.Posts.setState Route.Posts.Open
+
+
+closedParams : Params -> Params
+closedParams params =
+    params
+        |> Route.Posts.setCursors Nothing Nothing
+        |> Route.Posts.setState Route.Posts.Closed

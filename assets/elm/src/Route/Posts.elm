@@ -1,6 +1,6 @@
 module Route.Posts exposing
-    ( Params
-    , init, getSpaceSlug, getAfter, getBefore, setCursors
+    ( Params, State(..)
+    , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState
     , parser
     , toString
     )
@@ -10,12 +10,12 @@ module Route.Posts exposing
 
 # Types
 
-@docs Params
+@docs Params, State
 
 
 # API
 
-@docs init, getSpaceSlug, getAfter, getBefore, setCursors
+@docs init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState
 
 
 # Parsing
@@ -42,7 +42,13 @@ type alias Internal =
     { spaceSlug : String
     , after : Maybe String
     , before : Maybe String
+    , state : State
     }
+
+
+type State
+    = Open
+    | Closed
 
 
 
@@ -51,7 +57,7 @@ type alias Internal =
 
 init : String -> Params
 init spaceSlug =
-    Params (Internal spaceSlug Nothing Nothing)
+    Params (Internal spaceSlug Nothing Nothing Open)
 
 
 getSpaceSlug : Params -> String
@@ -74,6 +80,16 @@ setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
 
 
+getState : Params -> State
+getState (Params internal) =
+    internal.state
+
+
+setState : State -> Params -> Params
+setState newState (Params internal) =
+    Params { internal | state = newState }
+
+
 
 -- PARSING
 
@@ -81,7 +97,7 @@ setCursors before after (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "posts" <?> Query.string "after" <?> Query.string "before")
+        map Internal (string </> s "posts" <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
 
 
 
@@ -97,11 +113,35 @@ toString (Params internal) =
 -- PRIVATE
 
 
+parseState : Maybe String -> State
+parseState value =
+    case value of
+        Just "closed" ->
+            Closed
+
+        Just "open" ->
+            Open
+
+        _ ->
+            Open
+
+
+castState : State -> Maybe String
+castState state =
+    case state of
+        Open ->
+            Nothing
+
+        Closed ->
+            Just "closed"
+
+
 buildQuery : Internal -> List QueryParameter
 buildQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
+        , ( "state", castState internal.state )
         ]
 
 

@@ -46,7 +46,8 @@ document =
           $first: Int,
           $last: Int,
           $before: Cursor,
-          $after: Cursor
+          $after: Cursor,
+          $stateFilter: PostStateFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -63,7 +64,10 @@ document =
                 last: $last,
                 before: $before,
                 after: $after,
-                filter: { watching: IS_WATCHING },
+                filter: {
+                  watching: IS_WATCHING,
+                  state: $stateFilter
+                },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
                 ...PostConnectionFields
@@ -93,6 +97,9 @@ variables params =
         spaceSlug =
             Encode.string (Route.Posts.getSpaceSlug params)
 
+        stateFilter =
+            Encode.string (castState <| Route.Posts.getState params)
+
         values =
             case
                 ( Route.Posts.getBefore params
@@ -103,20 +110,33 @@ variables params =
                     [ ( "spaceSlug", spaceSlug )
                     , ( "last", Encode.int 20 )
                     , ( "before", Encode.string before )
+                    , ( "stateFilter", stateFilter )
                     ]
 
                 ( Nothing, Just after ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", Encode.int 20 )
                     , ( "after", Encode.string after )
+                    , ( "stateFilter", stateFilter )
                     ]
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", Encode.int 20 )
+                    , ( "stateFilter", stateFilter )
                     ]
     in
     Just (Encode.object values)
+
+
+castState : Route.Posts.State -> String
+castState state =
+    case state of
+        Route.Posts.Open ->
+            "OPEN"
+
+        Route.Posts.Closed ->
+            "CLOSED"
 
 
 decoder : Decoder Data
