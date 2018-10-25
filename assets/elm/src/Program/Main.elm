@@ -6,7 +6,6 @@ import Browser.Navigation as Nav
 import Connection
 import Event exposing (Event)
 import Globals exposing (Globals)
-import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Id exposing (Id)
@@ -29,7 +28,6 @@ import Page.SpaceSettings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
-import Post
 import Presence exposing (PresenceList)
 import PushManager
 import PushStatus exposing (PushStatus)
@@ -43,7 +41,6 @@ import Session exposing (Session)
 import Socket
 import SocketState exposing (SocketState(..))
 import Space exposing (Space)
-import SpaceUser
 import SpaceUserLists exposing (SpaceUserLists)
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
