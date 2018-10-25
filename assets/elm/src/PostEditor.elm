@@ -52,6 +52,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import ListHelpers
 import Ports
+import SpaceUser exposing (SpaceUser)
 import ValidationError exposing (ValidationError)
 import View.Helpers exposing (viewUnless)
 
@@ -270,6 +271,7 @@ insertFileLink fileId editor =
 
 type alias ViewConfig msg =
     { spaceId : Id
+    , spaceUsers : List SpaceUser
     , onFileAdded : File -> msg
     , onFileUploadProgress : Id -> Int -> msg
     , onFileUploaded : Id -> Id -> String -> msg
@@ -282,6 +284,7 @@ wrapper : ViewConfig msg -> List (Html msg) -> Html msg
 wrapper config children =
     Html.node "post-editor"
         [ property "spaceId" (Id.encoder config.spaceId)
+        , property "spaceUsers" (spaceUsersEncoder config.spaceUsers)
         , on "fileAdded" <|
             Decode.map config.onFileAdded
                 (Decode.at [ "detail" ] File.decoder)
@@ -300,6 +303,19 @@ wrapper config children =
         , classList config.classList
         ]
         children
+
+
+spaceUsersEncoder : List SpaceUser -> Encode.Value
+spaceUsersEncoder list =
+    Encode.list spaceUserEncoder list
+
+
+spaceUserEncoder : SpaceUser -> Encode.Value
+spaceUserEncoder spaceUser =
+    Encode.object
+        [ ( "handle", Encode.string <| SpaceUser.handle spaceUser )
+        , ( "displayName", Encode.string <| SpaceUser.displayName spaceUser )
+        ]
 
 
 filesView : PostEditor -> Html msg

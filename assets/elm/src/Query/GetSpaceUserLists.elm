@@ -11,11 +11,12 @@ import Repo exposing (Repo)
 import Session exposing (Session)
 import Space exposing (Space, setupStateDecoder)
 import SpaceUser exposing (SpaceUser)
+import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)
 
 
 type alias Response =
-    { spaceUserLists : Dict Id (List Id)
+    { spaceUserLists : SpaceUserLists
     , repo : Repo
     }
 
@@ -78,9 +79,14 @@ buildResponse ( session, data ) =
         reducer list repo =
             Repo.setSpaceUsers list repo
 
+        spaceUserLists =
+            data
+                |> Dict.map (\_ list -> List.map SpaceUser.id list)
+                |> Dict.foldr SpaceUserLists.setList SpaceUserLists.init
+
         resp =
             Response
-                (Dict.map (\_ spaceUsers -> List.map SpaceUser.id spaceUsers) data)
+                spaceUserLists
                 (List.foldr reducer Repo.empty (Dict.values data))
     in
     ( session, resp )

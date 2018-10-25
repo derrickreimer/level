@@ -748,18 +748,18 @@ handleReplyCreated reply model =
 -- VIEWS
 
 
-view : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-view repo space currentUser now model =
+view : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Model -> Html Msg
+view repo space currentUser now spaceUsers model =
     case resolveData repo model of
         Just data ->
-            resolvedView repo space currentUser now model data
+            resolvedView repo space currentUser now spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Data -> Html Msg
-resolvedView repo space currentUser (( zone, posix ) as now) model data =
+resolvedView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model data =
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
@@ -793,7 +793,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView space model.mode data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
-                postEditorView (Space.id space) model.postEditor
+                postEditorView (Space.id space) spaceUsers model.postEditor
             , div [ class "flex items-center" ]
                 [ div [ class "flex-grow" ]
                     [ viewIf (Post.state data.post == Post.Open) <|
@@ -801,15 +801,15 @@ resolvedView repo space currentUser (( zone, posix ) as now) model data =
                     ]
                 ]
             , div [ class "relative" ]
-                [ repliesView repo space data.post now model.replyIds model.mode model.replyEditors
-                , replyComposerView (Space.id space) currentUser data.post model
+                [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
+                , replyComposerView (Space.id space) currentUser data.post spaceUsers model
                 ]
             ]
         ]
 
 
-checkableView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Model -> Html Msg
-checkableView repo space viewer now model =
+checkableView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Model -> Html Msg
+checkableView repo space viewer now spaceUsers model =
     div [ class "flex" ]
         [ div [ class "mr-1 py-3 flex-0" ]
             [ label [ class "control checkbox" ]
@@ -824,7 +824,7 @@ checkableView repo space viewer now model =
                 ]
             ]
         , div [ class "flex-1" ]
-            [ view repo space viewer now model
+            [ view repo space viewer now spaceUsers model
             ]
         ]
 
@@ -857,11 +857,12 @@ bodyView space mode post =
         ]
 
 
-postEditorView : Id -> PostEditor -> Html Msg
-postEditorView spaceId editor =
+postEditorView : Id -> List SpaceUser -> PostEditor -> Html Msg
+postEditorView spaceId spaceUsers editor =
     let
         config =
             { spaceId = spaceId
+            , spaceUsers = spaceUsers
             , onFileAdded = PostEditorFileAdded
             , onFileUploadProgress = PostEditorFileUploadProgress
             , onFileUploaded = PostEditorFileUploaded
@@ -906,8 +907,8 @@ postEditorView spaceId editor =
 -- PRIVATE REPLY VIEW FUNCTIONS
 
 
-repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> ReplyEditors -> Html Msg
-repliesView repo space post now replyIds mode editors =
+repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> List SpaceUser -> ReplyEditors -> Html Msg
+repliesView repo space post now replyIds mode spaceUsers editors =
     let
         ( replies, hasPreviousPage ) =
             visibleReplies repo mode replyIds
@@ -931,12 +932,12 @@ repliesView repo space post now replyIds mode editors =
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
         div []
             [ viewIf hasPreviousPage actionButton
-            , div [] (List.map (replyView repo now (Space.id space) post mode editors) replies)
+            , div [] (List.map (replyView repo now (Space.id space) post mode editors spaceUsers) replies)
             ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Id -> Post -> Mode -> ReplyEditors -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
+replyView : Repo -> ( Zone, Posix ) -> Id -> Post -> Mode -> ReplyEditors -> List SpaceUser -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) spaceId post mode editors spaceUsers reply =
     let
         replyId =
             Reply.id reply
@@ -975,7 +976,7 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
-                        replyEditorView spaceId replyId editor
+                        replyEditorView spaceId replyId spaceUsers editor
                     ]
                 ]
 
@@ -984,16 +985,17 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors reply =
             text ""
 
 
-replyEditorView : Id -> Id -> PostEditor -> Html Msg
-replyEditorView spaceId replyId editor =
+replyEditorView : Id -> Id -> List SpaceUser -> PostEditor -> Html Msg
+replyEditorView spaceId replyId spaceUsers editor =
     let
         config =
             { spaceId = spaceId
+            , spaceUsers = spaceUsers
             , onFileAdded = ReplyEditorFileAdded replyId
             , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
             , onFileUploaded = ReplyEditorFileUploaded replyId
             , onFileUploadError = ReplyEditorFileUploadError replyId
-            , classList = []
+            , classList = [ ( "tribute-pin-t", True ) ]
             }
     in
     PostEditor.wrapper config
@@ -1029,8 +1031,8 @@ replyEditorView spaceId replyId editor =
         ]
 
 
-replyComposerView : Id -> SpaceUser -> Post -> Model -> Html Msg
-replyComposerView spaceId currentUser post model =
+replyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> Model -> Html Msg
+replyComposerView spaceId currentUser post spaceUsers model =
     if Post.state post == Post.Closed then
         clickToExpandIf (model.mode == Feed)
             [ div [ class "flex items-center my-3" ]
@@ -1042,18 +1044,19 @@ replyComposerView spaceId currentUser post model =
             ]
 
     else if PostEditor.isExpanded model.replyComposer then
-        expandedReplyComposerView spaceId currentUser post model.replyComposer
+        expandedReplyComposerView spaceId currentUser post spaceUsers model.replyComposer
 
     else
         viewUnless (Connection.isEmpty model.replyIds) <|
             replyPromptView currentUser
 
 
-expandedReplyComposerView : Id -> SpaceUser -> Post -> PostEditor -> Html Msg
-expandedReplyComposerView spaceId currentUser post editor =
+expandedReplyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> PostEditor -> Html Msg
+expandedReplyComposerView spaceId currentUser post spaceUsers editor =
     let
         config =
             { spaceId = spaceId
+            , spaceUsers = spaceUsers
             , onFileAdded = NewReplyFileAdded
             , onFileUploadProgress = NewReplyFileUploadProgress
             , onFileUploaded = NewReplyFileUploaded

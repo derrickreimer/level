@@ -4,7 +4,6 @@ import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Connection
-import Dict exposing (Dict)
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -45,6 +44,7 @@ import Socket
 import SocketState exposing (SocketState(..))
 import Space exposing (Space)
 import SpaceUser
+import SpaceUserLists exposing (SpaceUserLists)
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
@@ -81,7 +81,7 @@ type alias Model =
     , isTransitioning : Bool
     , pushStatus : PushStatus
     , socketState : SocketState
-    , spaceUserLists : Dict Id (List Id)
+    , spaceUserLists : SpaceUserLists
     }
 
 
@@ -126,7 +126,7 @@ buildModel flags navKey =
         True
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
-        Dict.empty
+        SpaceUserLists.init
 
 
 setup : MainInit.Response -> Model -> Cmd Msg
@@ -932,8 +932,8 @@ routeFor page =
             Nothing
 
 
-pageView : Repo -> Page -> PushStatus -> Html Msg
-pageView repo page pushStatus =
+pageView : Repo -> Page -> PushStatus -> SpaceUserLists -> Html Msg
+pageView repo page pushStatus spaceUserLists =
     case page of
         Spaces pageModel ->
             pageModel
@@ -957,12 +957,12 @@ pageView repo page pushStatus =
 
         Posts pageModel ->
             pageModel
-                |> Page.Posts.view repo (routeFor page)
+                |> Page.Posts.view repo (routeFor page) spaceUserLists
                 |> Html.map PostsMsg
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view repo (routeFor page) pushStatus
+                |> Page.Inbox.view repo (routeFor page) pushStatus spaceUserLists
                 |> Html.map InboxMsg
 
         SpaceUsers pageModel ->
@@ -982,7 +982,7 @@ pageView repo page pushStatus =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view repo (routeFor page)
+                |> Page.Group.view repo (routeFor page) spaceUserLists
                 |> Html.map GroupMsg
 
         NewGroup pageModel ->
@@ -997,7 +997,7 @@ pageView repo page pushStatus =
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view repo (routeFor page)
+                |> Page.Post.view repo (routeFor page) spaceUserLists
                 |> Html.map PostMsg
 
         UserSettings pageModel ->
@@ -1269,7 +1269,7 @@ subscriptions model =
 view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
-        [ pageView model.repo model.page model.pushStatus
+        [ pageView model.repo model.page model.pushStatus model.spaceUserLists
         , centerNoticeView model
         ]
 

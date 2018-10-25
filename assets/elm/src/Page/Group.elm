@@ -37,6 +37,7 @@ import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
+import SpaceUserLists exposing (SpaceUserLists)
 import Subscription.GroupSubscription as GroupSubscription
 import Task exposing (Task)
 import TaskHelpers
@@ -666,18 +667,22 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
+view : Repo -> Maybe Route -> SpaceUserLists -> Model -> Html Msg
+view repo maybeCurrentRoute spaceUserLists model =
+    let
+        spaceUsers =
+            SpaceUserLists.resolveList repo model.spaceId spaceUserLists
+    in
     case resolveData repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute model data
+            resolvedView repo maybeCurrentRoute spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute model data =
+resolvedView : Repo -> Maybe Route -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute spaceUsers model data =
     View.SpaceLayout.layout
         data.viewer
         data.space
@@ -692,8 +697,8 @@ resolvedView repo maybeCurrentRoute model data =
                     , controlsView model
                     ]
                 ]
-            , newPostView model.spaceId model.postComposer data.viewer
-            , postsView repo data.space data.viewer model.now model.postComps
+            , newPostView model.spaceId model.postComposer data.viewer spaceUsers
+            , postsView repo data.space data.viewer model.now model.postComps spaceUsers
             , sidebarView model.params data.group data.featuredMembers
             ]
         ]
@@ -799,11 +804,12 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-newPostView : Id -> PostEditor -> SpaceUser -> Html Msg
-newPostView spaceId editor currentUser =
+newPostView : Id -> PostEditor -> SpaceUser -> List SpaceUser -> Html Msg
+newPostView spaceId editor currentUser spaceUsers =
     let
         config =
             { spaceId = spaceId
+            , spaceUsers = spaceUsers
             , onFileAdded = NewPostFileAdded
             , onFileUploadProgress = NewPostFileUploadProgress
             , onFileUploaded = NewPostFileUploaded
@@ -843,21 +849,21 @@ newPostView spaceId editor currentUser =
         ]
 
 
-postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> Html Msg
-postsView repo space currentUser now connection =
+postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> List SpaceUser -> Html Msg
+postsView repo space currentUser now connection spaceUsers =
     if Connection.isEmptyAndExpanded connection then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "Be the first one to post here!" ]
 
     else
         div [] <|
-            Connection.mapList (postView repo space currentUser now) connection
+            Connection.mapList (postView repo space currentUser now spaceUsers) connection
 
 
-postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Component.Post.Model -> Html Msg
-postView repo space currentUser now component =
+postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Component.Post.Model -> Html Msg
+postView repo space currentUser now spaceUsers component =
     div [ class "p-4" ]
-        [ Component.Post.view repo space currentUser now component
+        [ Component.Post.view repo space currentUser now spaceUsers component
             |> Html.map (PostComponentMsg component.id)
         ]
 

@@ -29,6 +29,7 @@ import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
+import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
@@ -291,18 +292,22 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
+view : Repo -> Maybe Route -> SpaceUserLists -> Model -> Html Msg
+view repo maybeCurrentRoute spaceUserLists model =
+    let
+        spaceUsers =
+            SpaceUserLists.resolveList repo model.spaceId spaceUserLists
+    in
     case resolveData repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute model data
+            resolvedView repo maybeCurrentRoute spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute model data =
+resolvedView : Repo -> Maybe Route -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute spaceUsers model data =
     View.SpaceLayout.layout
         data.viewer
         data.space
@@ -315,7 +320,7 @@ resolvedView repo maybeCurrentRoute model data =
                     , controlsView model
                     ]
                 ]
-            , postsView repo model data
+            , postsView repo spaceUsers model data
             , sidebarView data.space data.featuredUsers
             ]
         ]
@@ -347,22 +352,22 @@ paginationView params connection =
         (\afterCursor -> Route.Posts (Route.Posts.setCursors Nothing (Just afterCursor) params))
 
 
-postsView : Repo -> Model -> Data -> Html Msg
-postsView repo model data =
+postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+postsView repo spaceUsers model data =
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-8 pb-8 text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (postView repo model data) model.postComps
+            Connection.mapList (postView repo spaceUsers model data) model.postComps
 
 
-postView : Repo -> Model -> Data -> Component.Post.Model -> Html Msg
-postView repo model data component =
+postView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+postView repo spaceUsers model data component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.view repo data.space data.viewer model.now
+            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
             |> Html.map (PostComponentMsg component.id)
         ]
 

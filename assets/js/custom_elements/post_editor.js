@@ -29,6 +29,7 @@ customElements.define(
       this.setupDragDrop();
       this.setupMentions();
       this._dragging_over = false;
+      this._spaceUsers = [];
     }
 
     /**
@@ -37,6 +38,18 @@ customElements.define(
     disconnectedCallback() {
       this.teardownAutosize();
       this.teardownMentions();
+    }
+
+    get spaceUsers() {
+      return this._spaceUsers;
+    }
+
+    set spaceUsers(newValue) {
+      this._spaceUsers = newValue;
+
+      if (this._tribute) {
+        this._tribute.append(0, newValue, true);
+      }
     }
 
     /**
@@ -66,19 +79,17 @@ customElements.define(
       let textarea = this.querySelector("textarea");
       if (!textarea) return;
 
-      this.tribute = new Tribute({
-        values: [
-          {key: "Derrick Reimer", value: "derrick"},
-          {key: "Don Johnson", value: "xact"}
-        ],
-        lookup: (obj) => {
-          return obj.key + " (@" + obj.value + ")";
+      this._tribute = new Tribute({
+        values: this._spaceUsers,
+        lookup: (item) => {
+          return item.displayName + " (@" + item.handle + ")";
         },
+        fillAttr: "handle",
         menuContainer: this,
         positionMenu: false
       });
 
-      this.tribute.attach(textarea);
+      this._tribute.attach(textarea);
 
       // Trigger a synthetic "input" event when tribute programmatically
       // updates the textarea value to prevent Elm from clobbering it.
@@ -91,7 +102,7 @@ customElements.define(
      * Teardown Tribute @-mention completion.
      */
     teardownMentions() {
-      this.tribute.detach(this.querySelector("textarea"));
+      this._tribute.detach(this.querySelector("textarea"));
     }
 
     /**

@@ -28,6 +28,7 @@ import Route exposing (Route)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
+import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
@@ -461,32 +462,36 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
+view : Repo -> Maybe Route -> SpaceUserLists -> Model -> Html Msg
+view repo maybeCurrentRoute spaceUserLists model =
+    let
+        spaceUsers =
+            SpaceUserLists.resolveList repo model.spaceId spaceUserLists
+    in
     case resolveData repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute model data
+            resolvedView repo maybeCurrentRoute spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute model data =
+resolvedView : Repo -> Maybe Route -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView repo maybeCurrentRoute spaceUsers model data =
     View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ postView repo model data
+            [ postView repo spaceUsers model data
             , sidebarView repo model
             ]
         ]
 
 
-postView : Repo -> Model -> Data -> Html Msg
-postView repo model data =
+postView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+postView repo spaceUsers model data =
     div []
         [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
             [ button
@@ -497,7 +502,8 @@ postView repo model data =
             , inboxStateButton model.isChangingInboxState data.post
             , postStateButton model.isChangingState data.post
             ]
-        , Component.Post.view repo data.space data.viewer model.now model.postComp
+        , model.postComp
+            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
             |> Html.map PostComponentMsg
         ]
 
