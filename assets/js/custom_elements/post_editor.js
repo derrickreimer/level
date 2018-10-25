@@ -1,6 +1,7 @@
 import "@webcomponents/custom-elements";
 import autosize from "autosize";
 import { fetchApiToken } from "../token";
+import Tribute from "tributejs";
 
 const isOutside = (rect, clientX, clientY) => {
   return (
@@ -26,6 +27,7 @@ customElements.define(
     connectedCallback() {
       this.setupAutosize();
       this.setupDragDrop();
+      this.setupMentions();
       this._dragging_over = false;
     }
 
@@ -34,6 +36,7 @@ customElements.define(
      */
     disconnectedCallback() {
       this.teardownAutosize();
+      this.teardownMentions();
     }
 
     /**
@@ -54,6 +57,41 @@ customElements.define(
       if (textarea) {
         autosize.destroy(textarea);
       }
+    }
+
+    /**
+     * Initializes Tribute @-mention completion.
+     */
+    setupMentions() {
+      let textarea = this.querySelector("textarea");
+      if (!textarea) return;
+
+      this.tribute = new Tribute({
+        values: [
+          {key: "Derrick Reimer", value: "derrick"},
+          {key: "Don Johnson", value: "xact"}
+        ],
+        lookup: (obj) => {
+          return obj.key + " (@" + obj.value + ")";
+        },
+        menuContainer: this,
+        positionMenu: false
+      });
+
+      this.tribute.attach(textarea);
+
+      // Trigger a synthetic "input" event when tribute programmatically
+      // updates the textarea value to prevent Elm from clobbering it.
+      textarea.addEventListener("tribute-replaced", (e) => {
+        textarea.dispatchEvent(new CustomEvent("input", {}));
+      });
+    }
+
+    /**
+     * Teardown Tribute @-mention completion.
+     */
+    teardownMentions() {
+      this.tribute.detach(this.querySelector("textarea"));
     }
 
     /**

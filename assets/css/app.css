@@ -225,6 +225,10 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg width='16px' height='13px' viewBox='0 0 16 13' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-rule='nonzero'%3E%3Cpath d='M5.20018971,8.67665709 L13.8460109,0 L16,2.16167145 L7.35417882,10.8383285 L5.20018971,13 L0,7.78126346 L2.15398911,5.619592 L5.20018971,8.67665709 Z'%3E%3C/path%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
+/**
+ * Markdown Documents
+ */
+
 .markdown {
   @apply leading-normal;
 }
@@ -283,6 +287,48 @@ post-editor {
 
 post-editor.dragging-over > * {
   box-shadow: inset 0 0 0 2px config('colors.blue');
+}
+
+/**
+ * @-mention flyover styles
+ */
+
+.tribute-container {
+  @apply absolute block pin-t pin-l p-1 overflow-auto z-50 shadow-lg bg-white rounded w-full;
+  height: auto;
+  max-height: 300px;
+  transform: translateY(-100%);
+}
+
+.tribute-container ul {
+  @apply list-reset;
+}
+
+.tribute-container li {
+  @apply font-sans font-antialised;
+  @apply px-3 py-2 cursor-pointer border-b border-grey-light;
+  @apply text-dusty-blue-dark;
+  @apply rounded;
+}
+
+.tribute-container li:last-child {
+  @apply border-none;
+}
+
+.tribute-container li.highlight, .tribute-container li:hover {
+  @apply bg-grey-light border-transparent;
+}
+
+.tribute-container li span {
+  @apply font-bold;
+}
+
+.tribute-container li.no-match {
+  @apply cursor-default;
+}
+
+.tribute-container .menu-highlighted {
+  @apply font-bold;
 }
 
 /**
