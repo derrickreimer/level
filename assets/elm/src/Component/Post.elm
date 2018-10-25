@@ -1170,7 +1170,7 @@ visibleReplies repo mode replyIds =
         Feed ->
             let
                 { nodes, hasPreviousPage } =
-                    Connection.last 3 replyIds
+                    Connection.last 10 replyIds
             in
             ( Repo.getReplies nodes repo, hasPreviousPage )
 

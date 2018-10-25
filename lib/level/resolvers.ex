@@ -386,7 +386,7 @@ defmodule Level.Resolvers do
   def can_update?(%Space{} = space, _, %{context: %{current_user: user}}) do
     case Spaces.get_space_user(user, space) do
       {:ok, space_user} ->
-        {:ok, space_user.role == "OWNER"}
+        {:ok, Spaces.can_update?(space_user)}
 
       _ ->
         {:ok, false}

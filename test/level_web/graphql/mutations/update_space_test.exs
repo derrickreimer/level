@@ -2,6 +2,8 @@ defmodule LevelWeb.GraphQL.UpdateSpaceTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Spaces
+
   @query """
     mutation UpdateSpace(
       $space_id: ID!,
@@ -73,6 +75,33 @@ defmodule LevelWeb.GraphQL.UpdateSpaceTest do
                  ]
                }
              }
+           }
+  end
+
+  test "returns top-level error out user is not allowed", %{
+    conn: conn,
+    space: space,
+    space_user: space_user
+  } do
+    # Members are not allowed to update spaces
+    Spaces.update_space_user(space_user, %{role: "MEMBER"})
+
+    variables = %{space_id: space.id, name: "New name"}
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{"updateSpace" => nil},
+             "errors" => [
+               %{
+                 "locations" => [%{"column" => 0, "line" => 6}],
+                 "message" => "You are not authorized to perform this action.",
+                 "path" => ["updateSpace"]
+               }
+             ]
            }
   end
 

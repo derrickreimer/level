@@ -3,6 +3,8 @@ defmodule Level.Mutations do
   Functions for performing GraphQL mutations.
   """
 
+  import Level.Gettext
+
   alias Level.Groups
   alias Level.Mentions
   alias Level.Posts
@@ -146,9 +148,20 @@ defmodule Level.Mutations do
   def update_space(%{space_id: space_id} = args, %{context: %{current_user: user}}) do
     user
     |> Spaces.get_space(space_id)
+    |> authorize_update_space()
     |> do_space_update(args)
     |> build_space_update_result()
   end
+
+  defp authorize_update_space({:ok, %{space_user: space_user}} = result) do
+    if Spaces.can_update?(space_user) do
+      result
+    else
+      {:error, dgettext("errors", "You are not authorized to perform this action.")}
+    end
+  end
+
+  defp authorize_update_space(err), do: err
 
   defp do_space_update({:ok, %{space: space}}, args), do: Spaces.update_space(space, args)
   defp do_space_update(err, _args), do: err

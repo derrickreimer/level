@@ -14,6 +14,7 @@ import Route.Posts
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
+import View.Helpers exposing (viewIf)
 
 
 
@@ -65,7 +66,8 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
             , groupLinks space bookmarks maybeCurrentRoute
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
-                , navLink space "Settings" (Just <| Route.SpaceSettings (Space.slug space)) maybeCurrentRoute
+                , viewIf (Space.canUpdate space) <|
+                    navLink space "Settings" (Just <| Route.SpaceSettings (Space.slug space)) maybeCurrentRoute
                 ]
             ]
         , div [ class "absolute pin-b w-full" ]

@@ -419,4 +419,12 @@ defmodule Level.Spaces do
   end
 
   defp handle_space_user_update(err), do: err
+
+  @doc """
+  Determines if a user is allowed to update a space.
+  """
+  @spec can_update?(SpaceUser.t()) :: boolean()
+  def can_update?(%SpaceUser{role: role}) do
+    role == "OWNER"
+  end
 end

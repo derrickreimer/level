@@ -1,4 +1,4 @@
-module Space exposing (SetupState(..), Space, avatar, avatarUrl, decoder, fragment, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
+module Space exposing (SetupState(..), Space, avatar, avatarUrl, canUpdate, decoder, fragment, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -86,6 +86,11 @@ avatar size (Space data) =
 openInvitationUrl : Space -> Maybe String
 openInvitationUrl (Space data) =
     data.openInvitationUrl
+
+
+canUpdate : Space -> Bool
+canUpdate (Space data) =
+    data.canUpdate
 
 
 
