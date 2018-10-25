@@ -859,7 +859,7 @@ newPostView spaceId editor currentUser spaceUsers =
                         []
                     , PostEditor.filesView editor
                     , div [ class "flex items-baseline justify-end" ]
-                        [ div [ class "mr-3 text-sm text-dusty-blue" ]
+                        [ div [ class "mr-3 text-sm text-dusty-blue select-none" ]
                             [ text "Press ⌘↩ or" ]
                         , button
                             [ class "btn btn-blue btn-md"

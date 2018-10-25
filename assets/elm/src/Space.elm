@@ -4,7 +4,7 @@ import Avatar
 import GraphQL exposing (Fragment)
 import Html exposing (Html)
 import Id exposing (Id)
-import Json.Decode as Decode exposing (Decoder, field, int, maybe, string)
+import Json.Decode as Decode exposing (Decoder, bool, field, int, maybe, string)
 import Json.Encode as Encode
 import Route exposing (Route)
 import Route.Inbox
@@ -25,6 +25,7 @@ type alias Data =
     , avatarUrl : Maybe String
     , setupState : SetupState
     , openInvitationUrl : Maybe String
+    , canUpdate : Bool
     , fetchedAt : Int
     }
 
@@ -46,6 +47,7 @@ fragment =
           avatarUrl
           setupState
           openInvitationUrl
+          canUpdate
           fetchedAt
         }
         """
@@ -93,13 +95,14 @@ openInvitationUrl (Space data) =
 decoder : Decoder Space
 decoder =
     Decode.map Space <|
-        Decode.map7 Data
+        Decode.map8 Data
             (field "id" Id.decoder)
             (field "name" string)
             (field "slug" string)
             (field "avatarUrl" (maybe string))
             (field "setupState" setupStateDecoder)
             (field "openInvitationUrl" (maybe string))
+            (field "canUpdate" bool)
             (field "fetchedAt" int)
 
 

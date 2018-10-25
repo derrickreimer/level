@@ -379,6 +379,20 @@ defmodule Level.Resolvers do
     dataloader_one(loader, :db, SpaceBot, space_bot_id)
   end
 
+  @doc """
+  Determines whether the current user is allowed to update the resource.
+  """
+  @spec can_update?(Space.t(), map(), info()) :: {:ok, boolean()}
+  def can_update?(%Space{} = space, _, %{context: %{current_user: user}}) do
+    case Spaces.get_space_user(user, space) do
+      {:ok, space_user} ->
+        {:ok, space_user.role == "OWNER"}
+
+      _ ->
+        {:ok, false}
+    end
+  end
+
   # Dataloader helpers
 
   defp dataloader_one(loader, source_name, batch_key, item_key) do

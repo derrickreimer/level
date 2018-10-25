@@ -237,6 +237,13 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp), resolve: fetch_time()
+
+    # Viewer-contextual fields
+
+    @desc "Determines whether the current user is allowed to update the space."
+    field :can_update, non_null(:boolean) do
+      resolve &Resolvers.can_update?/3
+    end
   end
 
   @desc "A group is a collection of users within a space."

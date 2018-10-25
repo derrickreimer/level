@@ -106,7 +106,7 @@ uploader nodeId maybeSrc changeMsg =
                 ]
 
         Nothing ->
-            label [ class "flex w-24 h-24 items-center text-center text-base leading-tight text-dusty-blue border-2 rounded-full border-dashed cursor-pointer no-select" ]
+            label [ class "flex w-24 h-24 items-center text-center text-sm leading-tight text-dusty-blue border-2 rounded-full border-dashed cursor-pointer no-select" ]
                 [ text "Upload an avatar..."
                 , File.input nodeId changeMsg [ class "invisible-file" ]
                 ]
