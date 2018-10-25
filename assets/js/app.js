@@ -60,7 +60,9 @@ setInterval(() => {
 
 // Setup error tracking
 const env = document.head.querySelector("meta[name='env']").content;
-const hbApiKey = document.head.querySelector("meta[name='honeybadger_js_api_key']").content;
+const hbApiKey = document.head.querySelector(
+  "meta[name='honeybadger_js_api_key']"
+).content;
 
 if (hbApiKey) {
   Honeybadger.configure({

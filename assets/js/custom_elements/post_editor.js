@@ -81,7 +81,7 @@ customElements.define(
 
       this._tribute = new Tribute({
         values: this._spaceUsers,
-        lookup: (item) => {
+        lookup: item => {
           return item.displayName + " (@" + item.handle + ")";
         },
         fillAttr: "handle",
@@ -93,7 +93,7 @@ customElements.define(
 
       // Trigger a synthetic "input" event when tribute programmatically
       // updates the textarea value to prevent Elm from clobbering it.
-      textarea.addEventListener("tribute-replaced", (e) => {
+      textarea.addEventListener("tribute-replaced", e => {
         textarea.dispatchEvent(new CustomEvent("input", {}));
       });
     }

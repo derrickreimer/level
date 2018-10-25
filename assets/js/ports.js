@@ -29,11 +29,13 @@ export const attachPorts = app => {
   });
 
   phoenixSocket.onError(() => {
-    fetchApiToken().then(newToken => {
-      token = newToken;
-    }).catch(() => {
-      console.log("Token refresh failed");
-    });
+    fetchApiToken()
+      .then(newToken => {
+        token = newToken;
+      })
+      .catch(() => {
+        console.log("Token refresh failed");
+      });
   });
 
   phoenixSocket.onClose(() => {
