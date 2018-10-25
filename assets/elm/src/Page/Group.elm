@@ -698,10 +698,31 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                     ]
                 ]
             , newPostView model.spaceId model.postComposer data.viewer spaceUsers
-            , postsView repo data.space data.viewer model.now model.postComps spaceUsers
+            , div [ class "sticky flex items-baseline mx-4 mb-4 border-b" ]
+                [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
+                , filterTab "Closed" Route.Group.Closed (closedParams model.params) model.params
+                ]
+            , postsView repo model.params data.space data.viewer model.now model.postComps spaceUsers
             , sidebarView model.params data.group data.featuredMembers
             ]
         ]
+
+
+filterTab : String -> Route.Group.State -> Params -> Params -> Html Msg
+filterTab label state linkParams currentParams =
+    let
+        isCurrent =
+            Route.Group.getState currentParams == state
+    in
+    a
+        [ Route.href (Route.Group linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        ]
+        [ text label ]
 
 
 nameView : Group -> FieldEditor String -> Html Msg
@@ -849,11 +870,17 @@ newPostView spaceId editor currentUser spaceUsers =
         ]
 
 
-postsView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> List SpaceUser -> Html Msg
-postsView repo space currentUser now connection spaceUsers =
+postsView : Repo -> Params -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> List SpaceUser -> Html Msg
+postsView repo params space currentUser now connection spaceUsers =
     if Connection.isEmptyAndExpanded connection then
-        div [ class "pt-8 pb-8 text-center text-lg" ]
-            [ text "Be the first one to post here!" ]
+        case Route.Group.getState params of
+            Route.Group.Open ->
+                div [ class "pt-8 pb-8 text-center text-lg" ]
+                    [ text "Be the first one to post here!" ]
+
+            Route.Group.Closed ->
+                div [ class "pt-8 pb-8 text-center text-lg" ]
+                    [ text "There are no closed posts to show here!" ]
 
     else
         div [] <|
@@ -935,3 +962,21 @@ subscribeButtonView state =
                 , onClick UnsubscribeClicked
                 ]
                 [ text "Leave this group" ]
+
+
+
+-- INTERNAL
+
+
+openParams : Params -> Params
+openParams params =
+    params
+        |> Route.Group.setCursors Nothing Nothing
+        |> Route.Group.setState Route.Group.Open
+
+
+closedParams : Params -> Params
+closedParams params =
+    params
+        |> Route.Group.setCursors Nothing Nothing
+        |> Route.Group.setState Route.Group.Closed
