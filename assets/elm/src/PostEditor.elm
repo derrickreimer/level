@@ -274,6 +274,7 @@ type alias ViewConfig msg =
     , onFileUploadProgress : Id -> Int -> msg
     , onFileUploaded : Id -> Id -> String -> msg
     , onFileUploadError : Id -> msg
+    , classList : List ( String, Bool )
     }
 
 
@@ -296,6 +297,7 @@ wrapper config children =
         , on "fileUploadError" <|
             Decode.map config.onFileUploadError
                 (Decode.at [ "detail", "clientId" ] Id.decoder)
+        , classList config.classList
         ]
         children
 

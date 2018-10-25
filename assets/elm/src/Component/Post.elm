@@ -866,6 +866,7 @@ postEditorView spaceId editor =
             , onFileUploadProgress = PostEditorFileUploadProgress
             , onFileUploaded = PostEditorFileUploaded
             , onFileUploadError = PostEditorFileUploadError
+            , classList = [ ( "tribute-pin-t", True ) ]
             }
     in
     PostEditor.wrapper config
@@ -992,6 +993,7 @@ replyEditorView spaceId replyId editor =
             , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
             , onFileUploaded = ReplyEditorFileUploaded replyId
             , onFileUploadError = ReplyEditorFileUploadError replyId
+            , classList = []
             }
     in
     PostEditor.wrapper config
@@ -1056,6 +1058,7 @@ expandedReplyComposerView spaceId currentUser post editor =
             , onFileUploadProgress = NewReplyFileUploadProgress
             , onFileUploaded = NewReplyFileUploaded
             , onFileUploadError = NewReplyFileUploadError
+            , classList = [ ( "tribute-pin-t", True ) ]
             }
     in
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]

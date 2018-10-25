@@ -282,7 +282,7 @@ body {
 }
 
 post-editor {
-  @apply block;
+  @apply block relative;
 }
 
 post-editor.dragging-over > * {
@@ -294,9 +294,15 @@ post-editor.dragging-over > * {
  */
 
 .tribute-container {
-  @apply absolute block pin-t pin-l p-1 overflow-auto z-50 shadow-lg bg-white rounded w-full;
+  @apply absolute block pin-b pin-l p-1 overflow-auto z-30 shadow-lg bg-white rounded w-full;
   height: auto;
   max-height: 300px;
+  transform: translateY(100%);
+}
+
+.tribute-pin-t .tribute-container {
+  @apply pin-t;
+  bottom: inherit;
   transform: translateY(-100%);
 }
 

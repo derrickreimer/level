@@ -808,6 +808,7 @@ newPostView spaceId editor currentUser =
             , onFileUploadProgress = NewPostFileUploadProgress
             , onFileUploaded = NewPostFileUploaded
             , onFileUploadError = NewPostFileUploadError
+            , classList = []
             }
     in
     PostEditor.wrapper config
