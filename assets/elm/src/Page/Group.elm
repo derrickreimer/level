@@ -619,7 +619,11 @@ consumeEvent event session model =
                         (Post.id post)
                         (Connection.map Reply.id replies)
             in
-            if List.member model.groupId (Post.groupIds post) then
+            if
+                Route.Group.getState model.params
+                    == Route.Group.Open
+                    && List.member model.groupId (Post.groupIds post)
+            then
                 ( { model | postComps = Connection.prepend .id postComp model.postComps }
                 , Cmd.map (PostComponentMsg <| Post.id post) (Component.Post.setup postComp)
                 )
