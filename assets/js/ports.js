@@ -31,6 +31,8 @@ export const attachPorts = app => {
   phoenixSocket.onError(() => {
     fetchApiToken().then(newToken => {
       token = newToken;
+    }).catch(() => {
+      console.log("Token refresh failed");
     });
   });
 
@@ -41,8 +43,6 @@ export const attachPorts = app => {
   });
 
   const joinChannel = topic => {
-    if (channels[topic]) return;
-
     let channel = phoenixSocket.channel(topic, {});
     let presence = new Presence(channel);
 
