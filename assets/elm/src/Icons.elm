@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, heart, image, inboxWhite, lock, logo, open, reply, search, square, sync, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, heart, image, inboxWhite, lock, logo, open, refresh, reply, search, square, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -152,10 +152,10 @@ reply =
         svg [ width "14px", height "14px", viewBox "0 0 14 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "corner-up-left", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "3.75 7.5 0 3.75 3.75 0" ] [], Svg.path [ d "M11.8181818,12 L11.8181818,6.90909091 C11.8181818,5.30244436 10.5157375,4 8.90909091,4 L0.181818182,4", id "Shape" ] [] ] ] ]
 
 
-sync : Html msg
-sync =
+refresh : Html msg
+refresh =
     iconView <|
-        svg [ width "20px", height "17px", viewBox "0 0 20 17", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "refresh-cw", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "17.6 0.799999979 17.6 5.59999985 12.8 5.59999985" ] [], polyline [ id "Shape", points "0 13.5999996 0 8.79999977 4.8 8.79999977" ] [], Svg.path [ d "M2.008,4.79999987 C2.83270531,2.46944926 4.79541373,0.724974577 7.20662937,0.179406607 C9.61784502,-0.366161362 12.1403527,0.363476577 13.888,2.11199994 L17.6,5.59999985 M0,8.79999977 L3.712,12.2879997 C5.45964733,14.036523 7.98215498,14.766161 10.3933706,14.220593 C12.8045863,13.675025 14.7672947,11.9305504 15.592,9.59999975", id "Shape" ] [] ] ] ]
+        svg [ width "19px", height "16px", viewBox "0 0 19 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "refresh-cw", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "16.6000004 0.754545452 16.6000004 5.28181816 12.0727276 5.28181816" ] [], polyline [ id "Shape", points "0 12.8272727 0 8.29999997 4.52727283 8.29999997" ] [], Svg.path [ d "M1.89390913,4.52727271 C2.6717562,2.32913969 4.52294715,0.683782855 6.79716195,0.169213054 C9.07137676,-0.345356747 11.4505602,0.342824506 13.0989094,1.99199999 L16.6000004,5.28181816 M0,8.29999997 L3.50109099,11.5898181 C5.14944021,13.2389936 7.52862362,13.9271749 9.80283843,13.4126051 C12.0770532,12.8980353 13.9282442,11.2526784 14.7060912,9.05454542", id "Shape" ] [] ] ] ]
 
 
 search : Html msg
