@@ -1143,7 +1143,7 @@ staticFileView file =
                 , title "Download file"
                 ]
                 [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
-                , div [ class "text-sm font-bold truncate" ] [ text (File.getName file) ]
+                , div [ class "text-sm font-bold truncate" ] [ text <| "Download " ++ File.getName file ]
                 ]
 
         _ ->
