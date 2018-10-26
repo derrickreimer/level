@@ -61,7 +61,6 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
             [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
-                , navLink space "Drafts" Nothing maybeCurrentRoute
                 ]
             , groupLinks space bookmarks maybeCurrentRoute
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
