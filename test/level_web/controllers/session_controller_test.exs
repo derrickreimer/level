@@ -52,4 +52,26 @@ defmodule LevelWeb.SessionControllerTest do
       assert html_response(conn, 200) =~ "Oops, those credentials are not correct"
     end
   end
+
+  describe "GET /logout" do
+    setup %{conn: conn} do
+      password = "$ecret$"
+      {:ok, %{user: user}} = create_user_and_space(%{password: password})
+      {:ok, %{conn: conn, user: user, password: password}}
+    end
+
+    test "logs the user out", %{conn: conn, user: user, password: password} do
+      signed_in_conn =
+        conn
+        |> post("/login", %{"session" => %{"email" => user.email, "password" => password}})
+
+      signed_out_conn =
+        signed_in_conn
+        |> recycle()
+        |> get("/logout")
+
+      assert signed_out_conn.assigns[:current_user] == nil
+      assert redirected_to(signed_out_conn, 302) =~ "/login"
+    end
+  end
 end

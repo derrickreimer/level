@@ -45,6 +45,7 @@ defmodule LevelWeb.Router do
 
     get "/login", SessionController, :new
     post "/login", SessionController, :create
+    get "/logout", SessionController, :destroy
 
     get "/signup", UserController, :new
     post "/signup", UserController, :create

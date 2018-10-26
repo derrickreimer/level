@@ -88,6 +88,7 @@ defmodule LevelWeb.Auth do
   def sign_out(conn) do
     conn
     |> delete_session(:user_id)
+    |> put_current_user(nil)
   end
 
   @doc """

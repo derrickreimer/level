@@ -1,5 +1,9 @@
 <%= if get_flash(@conn, :error) do %>
-  <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
+  <div class="px-4 py-4 bg-red-lightest border-b-2 border-red text-red text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
+<% end %>
+
+<%= if get_flash(@conn, :info) do %>
+  <div class="px-4 py-4 bg-green-lightest border-b-2 border-green text-green-dark text-center font-bold" role="alert"><%= get_flash(@conn, :info) %></div>
 <% end %>
 
 <div class="bg-grey-lighter h-full min-h-screen">
