@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, heart, image, inboxWhite, lock, logo, open, refresh, reply, search, square, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, heart, image, inboxWhite, lock, logOut, logo, open, refresh, reply, search, square, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -92,19 +92,25 @@ closedAvatar =
 file : Color -> Html msg
 file strokeColor =
     iconView <|
-        svg [ width "14px", height "17px", viewBox "0 0 14 17", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "file", transform "translate(1.000000, 1.000000)", stroke (Color.toHex strokeColor), strokeWidth "2" ] [ Svg.path [ d "M6.75,0 L1.5,0 C0.671572875,0 0,0.671572875 0,1.5 L0,13.5 C0,14.3284271 0.671572875,15 1.5,15 L10.5,15 C11.3284271,15 12,14.3284271 12,13.5 L12,5.25 L6.75,0 Z", id "Shape" ] [], polyline [ id "Shape", points "6.75 0 6.75 5.25 12 5.25" ] [] ] ] ]
+        svg [ width "14px", height "17px", viewBox "0 0 14 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "file", transform "translate(1.000000, 1.000000)", stroke (Color.toHex strokeColor), strokeWidth "2" ] [ Svg.path [ d "M6.75,0 L1.5,0 C0.671572875,0 0,0.671572875 0,1.5 L0,13.5 C0,14.3284271 0.671572875,15 1.5,15 L10.5,15 C11.3284271,15 12,14.3284271 12,13.5 L12,5.25 L6.75,0 Z", id "Shape" ] [], polyline [ id "Shape", points "6.75 0 6.75 5.25 12 5.25" ] [] ] ] ]
 
 
 image : Color -> Html msg
 image strokeColor =
     iconView <|
-        svg [ width "17px", height "17px", viewBox "0 0 17 17", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "image", transform "translate(1.000000, 1.000000)", stroke (Color.toHex strokeColor), strokeWidth "2" ] [ rect [ id "Rectangle-path", x "0", y "0", width "15", height "15", rx "2" ] [], circle [ id "Oval", cx "4.58333333", cy "4.58333333", r "1.25" ] [], polyline [ id "Shape", points "15 10 10.8333333 5.83333333 1.66666667 15" ] [] ] ] ]
+        svg [ width "17px", height "17px", viewBox "0 0 17 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "image", transform "translate(1.000000, 1.000000)", stroke (Color.toHex strokeColor), strokeWidth "2" ] [ rect [ id "Rectangle-path", x "0", y "0", width "15", height "15", rx "2" ] [], circle [ id "Oval", cx "4.58333333", cy "4.58333333", r "1.25" ] [], polyline [ id "Shape", points "15 10 10.8333333 5.83333333 1.66666667 15" ] [] ] ] ]
 
 
 inboxWhite : Html msg
 inboxWhite =
     iconView <|
         svg [ width "17px", height "14px", viewBox "0 0 17 14", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(1.000000, 1.000000)", stroke "#FFFFFF", strokeWidth "2" ] [ polyline [ id "Shape", points "15 6 10.5 6 9 8.25 6 8.25 4.5 6 0 6" ] [], Svg.path [ d "M2.5875,0.8325 L0,6 L0,10.5 C0,11.3284271 0.671572875,12 1.5,12 L13.5,12 C14.3284271,12 15,11.3284271 15,10.5 L15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 Z", id "Shape" ] [] ] ] ]
+
+
+logOut : Html msg
+logOut =
+    iconView <|
+        svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "log-out", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M6,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L6,0", id "Shape" ] [], polyline [ id "Shape", points "13 14 18 9 13 4" ] [], Svg.path [ d "M18,9 L6,9", id "Shape" ] [] ] ] ]
 
 
 {-| Using the `circle` feather icon.
@@ -138,7 +144,7 @@ heart =
 lock : Html msg
 lock =
     iconView <|
-        svg [ width "16px", height "18px", viewBox "0 0 16 18", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "lock", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ rect [ id "Rectangle-path", fill "#8A98A5", x "0", y "7.2", width "14", height "8.8", rx "2" ] [], Svg.path [ d "M3.11111111,7.2 L3.11111111,4 C3.11111111,1.790861 4.85222597,1.24344979e-15 7,8.8817842e-16 C9.14777403,1.77635684e-16 10.8888889,1.790861 10.8888889,4 L10.8888889,7.2", id "Shape" ] [] ] ] ]
+        svg [ width "16px", height "18px", viewBox "0 0 16 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "lock", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ rect [ id "Rectangle-path", fill "#8A98A5", x "0", y "7.2", width "14", height "8.8", rx "2" ] [], Svg.path [ d "M3.11111111,7.2 L3.11111111,4 C3.11111111,1.790861 4.85222597,1.24344979e-15 7,8.8817842e-16 C9.14777403,1.77635684e-16 10.8888889,1.790861 10.8888889,4 L10.8888889,7.2", id "Shape" ] [] ] ] ]
 
 
 logo : Html msg

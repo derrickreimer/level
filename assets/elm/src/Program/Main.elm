@@ -207,7 +207,15 @@ update msg model =
         ( UrlRequest request, _ ) ->
             case request of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.navKey (Url.toString url) )
+                    let
+                        urlString =
+                            Url.toString url
+                    in
+                    if String.endsWith "/logout" urlString then
+                        ( model, Nav.load urlString )
+
+                    else
+                        ( model, Nav.pushUrl model.navKey (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )

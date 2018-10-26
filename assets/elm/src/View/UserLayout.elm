@@ -28,8 +28,16 @@ layout user bodyView =
         [ div [ class "flex pb-16 sm:pb-16 items-center" ]
             [ a [ Route.href Route.Spaces, class "logo logo-sm" ]
                 [ Icons.logo ]
-            , div [ class "flex flex-grow justify-end" ]
-                [ currentUserView user ]
+            , div [ class "flex items-center flex-grow justify-end" ]
+                [ currentUserView user
+                , a
+                    [ class "ml-4"
+                    , href "/logout"
+                    , rel "tooltip"
+                    , title "Sign out"
+                    ]
+                    [ Icons.logOut ]
+                ]
             ]
         , bodyView
         ]
@@ -41,7 +49,7 @@ layout user bodyView =
 
 currentUserView : User -> Html msg
 currentUserView user =
-    a [ href "#", class "flex items-center no-underline text-dusty-blue-darker" ]
+    a [ Route.href Route.UserSettings, class "flex items-center no-underline text-dusty-blue-darker" ]
         [ div [] [ User.avatar Avatar.Small user ]
         , div [ class "ml-2 text-sm leading-normal" ]
             [ div [] [ text "Signed in as" ]
