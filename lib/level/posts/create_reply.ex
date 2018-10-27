@@ -44,7 +44,7 @@ defmodule Level.Posts.CreateReply do
   """
   @spec build_push_payload(Reply.t(), SpaceUser.t()) :: WebPush.Payload.t()
   def build_push_payload(%Reply{} = reply, %SpaceUser{} = author) do
-    body = "@#{author.handle}: " <> reply.body
+    body = "@#{author.handle}: " <> truncate(reply.body)
     %WebPush.Payload{body: body, tag: nil}
   end
 
@@ -173,5 +173,13 @@ defmodule Level.Posts.CreateReply do
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       _ = events.user_mentioned(id, post)
     end)
+  end
+
+  defp truncate(text) do
+    if String.length(text) > 30 do
+      String.slice(text, 0..30) <> "..."
+    else
+      text
+    end
   end
 end
