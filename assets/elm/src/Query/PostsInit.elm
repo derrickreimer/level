@@ -65,7 +65,7 @@ document =
                 before: $before,
                 after: $after,
                 filter: {
-                  watching: IS_WATCHING,
+                  followingState: IS_FOLLOWING,
                   state: $stateFilter
                 },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }

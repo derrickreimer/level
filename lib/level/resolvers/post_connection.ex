@@ -16,7 +16,7 @@ defmodule Level.Resolvers.PostConnection do
             before: nil,
             after: nil,
             filter: %{
-              watching: :all,
+              following_state: :all,
               inbox_state: :all,
               state: :all
             },
@@ -31,7 +31,7 @@ defmodule Level.Resolvers.PostConnection do
           before: String.t() | nil,
           after: String.t() | nil,
           filter: %{
-            watching: :is_watching | :all,
+            following_state: :is_following | :all,
             inbox_state: :unread | :read | :dismissed | :undismissed | :all,
             state: :open | :closed | :all
           },
@@ -51,7 +51,7 @@ defmodule Level.Resolvers.PostConnection do
       user
       |> build_base_query(parent)
       |> apply_activity(args)
-      |> apply_watching(args)
+      |> apply_following_state(args)
       |> apply_inbox_state(args)
       |> apply_state(args)
 
@@ -89,7 +89,7 @@ defmodule Level.Resolvers.PostConnection do
 
   defp apply_activity(base_query, _), do: base_query
 
-  defp apply_watching(base_query, %{filter: %{watching: :is_watching}}) do
+  defp apply_following_state(base_query, %{filter: %{following_state: :is_following}}) do
     from [p, su, g, gu] in base_query,
       left_join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id,
@@ -97,7 +97,7 @@ defmodule Level.Resolvers.PostConnection do
       group_by: p.id
   end
 
-  defp apply_watching(base_query, _), do: base_query
+  defp apply_following_state(base_query, _), do: base_query
 
   defp apply_inbox_state(base_query, %{filter: %{inbox_state: :unread}}) do
     from [p, su, g, gu] in base_query,

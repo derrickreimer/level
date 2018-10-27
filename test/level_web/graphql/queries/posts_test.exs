@@ -7,7 +7,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
   @query """
     query Posts(
       $space_id: ID!,
-      $watching: WatchingFilter,
+      $following_state: FollowingStateFilter,
       $inbox_state: InboxStateFilter,
       $state: PostStateFilter,
       $order_field: PostOrderField
@@ -16,7 +16,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
         posts(
           first: 10,
           filter: {
-            watching: $watching,
+            followingState: $following_state,
             inboxState: $inbox_state,
             state: $state
           },
@@ -44,7 +44,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "filtering by 'is watching' excludes posts the user is not watching", %{
+  test "filtering by 'is following' excludes posts the user is not following", %{
     conn: conn,
     space: space,
     space_user: space_user
@@ -56,7 +56,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      watching: "IS_WATCHING"
+      following_state: "IS_FOLLOWING"
     }
 
     conn =

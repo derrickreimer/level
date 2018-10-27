@@ -60,11 +60,11 @@ defmodule LevelWeb.Schema.InputObjects do
   @desc "Filtering criteria for post connections."
   input_object :post_filters do
     @desc """
-    Filter by whether the post is being watched by the user. "Watched"
-    posts include those posted a group the user is subscribed to, or
-    those that the user is explicity subscribed to.
+    Filter by whether the post is being followed by the user. A user is considered
+    to be "following" a post if they are explicitly subscribed to it, or if the
+    post was created in a group that the user belongs to.
     """
-    field :watching, :watching_filter, default_value: :all
+    field :following_state, :following_state_filter, default_value: :all
 
     @desc """
     Filter by the different inbox states.

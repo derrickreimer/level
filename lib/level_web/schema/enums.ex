@@ -94,8 +94,8 @@ defmodule LevelWeb.Schema.Enums do
     value :closed, as: "CLOSED"
   end
 
-  enum :watching_filter do
-    value :is_watching
+  enum :following_state_filter do
+    value :is_following
     value :all
   end
 
