@@ -26,6 +26,7 @@ layout viewer space bookmarks maybeCurrentRoute children =
     div [ class "font-sans font-antialised" ]
         [ fullSidebar viewer space bookmarks maybeCurrentRoute
         , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
+        , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         ]
 
 

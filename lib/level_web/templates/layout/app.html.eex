@@ -55,6 +55,14 @@
         });
       </script>
     <% end %>
+
+    <script>
+      var HW_config = {
+        selector: "#headway", // CSS selector where to inject the badge
+        account: "7Q9Qv7" // your account ID, you can find it in Settings->Widget
+      };
+    </script>
+    <script async src="//cdn.headwayapp.co/widget.js"></script>
   </head>
 
   <body>
