@@ -13,7 +13,7 @@ use Mix.Config
 # which you typically run after static files are built.
 config :level, LevelWeb.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [host: System.get_env("LEVEL_HOST"), port: 80],
+  url: [host: System.get_env("LEVEL_HOST"), port: 80, scheme: "https"],
   cache_static_manifest: "priv/static/cache_manifest.json",
   secret_key_base: System.get_env("LEVEL_SECRET_KEY_BASE")
 
