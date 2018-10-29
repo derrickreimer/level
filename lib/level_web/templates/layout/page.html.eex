@@ -57,6 +57,7 @@
         <div class="container mx-auto mt-8 p-8 border-grey text-center text-base text-white opacity-75">
           <div class="pb-16 text-lg">
             <%= link "Source Code", to: "https://github.com/levelhq/level", class: "mx-2 text-white no-underline" %>
+            <%= link "Docs", to: "https://docs.level.app/", class: "mx-2 text-white no-underline" %>
             <%= link "Screencasts", to: "https://www.youtube.com/c/LevelLive", class: "mx-2 text-white no-underline" %>
             <%= link "Manifesto", to: page_path(@conn, :manifesto), class: "mx-2 text-white no-underline" %>
             <%= link "SVG-to-Elm Tool", to: svg_to_elm_path(@conn, :index), class: "mx-2 text-white no-underline" %>
