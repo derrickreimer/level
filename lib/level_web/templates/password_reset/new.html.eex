@@ -15,34 +15,21 @@
         <% end %>
       </div>
 
-      <%= form_for @conn, session_path(@conn, :create), [as: :session], fn f -> %>
+      <%= form_for @conn, password_reset_path(@conn, :create), [as: :password_reset], fn f -> %>
         <div class="px-8 sm:px-12 py-8 bg-white rounded-lg border">
-          <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darkest pb-8">Sign in to Level</h1>
+          <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darkest pb-8">Reset my password</h1>
           <div class="pb-6">
             <%= label f, :email, gettext("Email address"), class: "input-label" %>
             <%= text_input f, :email, class: "input-field", autofocus: true, placeholder: "jane@smithco.com" %>
             <%= error_tag f, :email, class: "form-errors" %>
           </div>
 
-          <div class="pb-6">
-            <%= label f, :password, gettext("Password"), class: "input-label" %>
-            <%= password_input f, :password, class: "input-field", autofocus: true %>
-            <%= error_tag f, :password, class: "form-errors" %>
-          </div>
-
-          <%= submit gettext("Sign in"), class: "btn btn-blue w-full" %>
+          <%= submit gettext("Reset password"), class: "btn btn-blue w-full" %>
         </div>
 
-        <%= if @signups_enabled do %>
-          <div class="px-8 pt-6 text-sm text-dusty-blue-dark text-center">
-            <%= gettext "Don't have an account?" %>
-            <%= link gettext("Sign up free"), to: user_path(@conn, :new), class: "text-blue" %>
-          </div>
-        <% end %>
-
         <div class="px-8 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
-          <%= gettext "I forgot my password." %>
-          <%= link gettext("Reset it"), to: password_reset_path(@conn, :new), class: "text-blue" %>
+          <%= gettext "Nevermind, I remembered!" %>
+          <%= link gettext("Sign in"), to: session_path(@conn, :new), class: "text-blue" %>
         </div>
       <% end %>
     </div>

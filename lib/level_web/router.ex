@@ -47,6 +47,10 @@ defmodule LevelWeb.Router do
     post "/login", SessionController, :create
     get "/logout", SessionController, :destroy
 
+    get "/reset-password", PasswordResetController, :new
+    post "/reset-password", PasswordResetController, :create
+    get "/reset-password/initiated", PasswordResetController, :initiated
+
     get "/signup", UserController, :new
     post "/signup", UserController, :create
 
