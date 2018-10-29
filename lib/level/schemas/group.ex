@@ -21,6 +21,7 @@ defmodule Level.Schemas.Group do
     field :name, :string
     field :description, :string
     field :is_private, :boolean, default: false
+    field :is_default, :boolean, default: false
 
     belongs_to :space, Space
     belongs_to :creator, SpaceUser
