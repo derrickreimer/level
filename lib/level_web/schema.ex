@@ -111,7 +111,8 @@ defmodule LevelWeb.Schema do
       arg :space_id, non_null(:id)
       arg :name, non_null(:string)
       arg :description, :string
-      arg :is_private, :boolean
+      arg :is_private, :boolean, default_value: false
+      arg :is_default, :boolean, default_value: false
 
       resolve &Level.Mutations.create_group/2
     end
@@ -131,6 +132,7 @@ defmodule LevelWeb.Schema do
       arg :name, :string
       arg :description, :string
       arg :is_private, :boolean
+      arg :is_default, :boolean
 
       resolve &Level.Mutations.update_group/2
     end

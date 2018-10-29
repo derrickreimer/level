@@ -258,6 +258,9 @@ defmodule LevelWeb.Schema.Objects do
     field :space, non_null(:space), resolve: dataloader(:db)
     field :creator, non_null(:user), resolve: dataloader(:db)
 
+    @desc "Determines whether the users are automatically subscribed to the group when they join."
+    field :is_default, non_null(:boolean)
+
     @desc "Posts sent to the group."
     field :posts, non_null(:post_connection) do
       arg :first, :integer
