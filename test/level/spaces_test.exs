@@ -3,6 +3,7 @@ defmodule Level.SpacesTest do
 
   import Ecto.Query
 
+  alias Level.Groups
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -267,6 +268,30 @@ defmodule Level.SpacesTest do
 
     test "returns not found result if token does not exist" do
       assert {:error, :not_found} = Spaces.get_open_invitation_by_token("notfound")
+    end
+  end
+
+  describe "create_member/2" do
+    setup do
+      {:ok, result} = create_user_and_space()
+      {:ok, new_user} = create_user()
+      {:ok, Map.merge(result, %{new_user: new_user})}
+    end
+
+    test "add the user as a member of the space", %{space: space, new_user: new_user} do
+      {:ok, space_user} = Spaces.create_member(new_user, space)
+      assert space_user.role == "MEMBER"
+    end
+
+    test "adds the user to the default groups", %{
+      space: space,
+      space_user: space_user,
+      new_user: new_user
+    } do
+      {:ok, %{group: default_group}} = create_group(space_user, %{is_default: true})
+      {:ok, _} = Spaces.create_member(new_user, space)
+      assert Groups.get_user_role(default_group, new_user) == :member
+      assert Groups.get_user_state(default_group, new_user) == :subscribed
     end
   end
 end

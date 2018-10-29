@@ -9,18 +9,21 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
       $space_id: ID!,
       $name: String!,
       $description: String,
-      $is_private: Boolean
+      $is_private: Boolean,
+      $is_default: Boolean
     ) {
       createGroup(
         spaceId: $space_id,
         name: $name,
         description: $description,
-        isPrivate: $is_private
+        isPrivate: $is_private,
+        isDefault: $is_default
       ) {
         success
         group {
           name
           description
+          isDefault
         }
         errors {
           attribute
@@ -52,7 +55,34 @@ defmodule LevelWeb.GraphQL.CreateGroupTest do
                  "success" => true,
                  "group" => %{
                    "name" => variables.name,
-                   "description" => variables.description
+                   "description" => variables.description,
+                   "isDefault" => false
+                 },
+                 "errors" => []
+               }
+             }
+           }
+  end
+
+  test "creates default groups", %{conn: conn, space: space} do
+    variables =
+      valid_group_params()
+      |> Map.put(:space_id, space.id)
+      |> Map.put(:is_default, true)
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "createGroup" => %{
+                 "success" => true,
+                 "group" => %{
+                   "name" => variables.name,
+                   "description" => variables.description,
+                   "isDefault" => true
                  },
                  "errors" => []
                }

@@ -10,6 +10,7 @@ defmodule Level.Spaces do
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Events
+  alias Level.Groups
   alias Level.Levelbot
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
@@ -251,17 +252,7 @@ defmodule Level.Spaces do
   """
   @spec create_owner(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
   def create_owner(user, space) do
-    %SpaceUser{}
-    |> SpaceUser.create_changeset(%{
-      user_id: user.id,
-      space_id: space.id,
-      role: "OWNER",
-      first_name: user.first_name,
-      last_name: user.last_name,
-      handle: user.handle,
-      avatar: user.avatar
-    })
-    |> Repo.insert()
+    create_member_with_role(user, space, "OWNER")
   end
 
   @doc """
@@ -269,18 +260,33 @@ defmodule Level.Spaces do
   """
   @spec create_member(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
   def create_member(user, space) do
+    create_member_with_role(user, space, "MEMBER")
+  end
+
+  defp create_member_with_role(user, space, role) do
     %SpaceUser{}
     |> SpaceUser.create_changeset(%{
       user_id: user.id,
       space_id: space.id,
-      role: "MEMBER",
+      role: role,
       first_name: user.first_name,
       last_name: user.last_name,
       handle: user.handle,
       avatar: user.avatar
     })
     |> Repo.insert()
+    |> after_create_member(space)
   end
+
+  defp after_create_member({:ok, space_user}, space) do
+    space
+    |> list_default_groups()
+    |> Enum.each(fn group -> Groups.subscribe(group, space_user) end)
+
+    {:ok, space_user}
+  end
+
+  defp after_create_member(err, _), do: err
 
   @doc """
   Fetches the active open invitation for a space.
@@ -426,5 +432,14 @@ defmodule Level.Spaces do
   @spec can_update?(SpaceUser.t()) :: boolean()
   def can_update?(%SpaceUser{role: role}) do
     role == "OWNER"
+  end
+
+  # Internal
+
+  defp list_default_groups(%Space{} = space) do
+    space
+    |> Ecto.assoc(:groups)
+    |> where([g], g.is_default == true)
+    |> Repo.all()
   end
 end

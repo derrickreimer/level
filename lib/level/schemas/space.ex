@@ -7,6 +7,7 @@ defmodule Level.Schemas.Space do
   import Ecto.Changeset
   import Level.Gettext
 
+  alias Level.Schemas.Group
   alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
@@ -19,6 +20,7 @@ defmodule Level.Schemas.Space do
     field :slug, :string, default: ""
     field :avatar, :string
     has_many :space_users, SpaceUser
+    has_many :groups, Group
 
     timestamps()
   end
