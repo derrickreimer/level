@@ -35,14 +35,14 @@ defmodule Level.Schemas.Group do
   @doc false
   def create_changeset(%__MODULE__{} = group, attrs) do
     group
-    |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_private])
+    |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_private, :is_default])
     |> validate()
   end
 
   @doc false
   def update_changeset(%__MODULE__{} = group, attrs) do
     group
-    |> cast(attrs, [:name, :description, :is_private])
+    |> cast(attrs, [:name, :description, :is_private, :is_default])
     |> validate()
   end
 
