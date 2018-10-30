@@ -171,7 +171,7 @@ defmodule Level.Users do
   Initiates password reset.
   """
   @spec initiate_password_reset(User.t()) :: {:ok, PasswordReset.t()} | no_return()
-  def initiate_password_reset(%User{id: user_id} = user) do
+  def initiate_password_reset(%User{} = user) do
     one_day_from_now =
       NaiveDateTime.utc_now()
       |> NaiveDateTime.add(60 * 60 * 24)
