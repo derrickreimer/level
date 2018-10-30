@@ -256,13 +256,51 @@ export const attachPorts = app => {
   }
 
   app.ports.postEditorOut.subscribe(args => {
-    let node = document.getElementById(args.id);
-    if (!node) return;
+    logEvent("postEditorOut")(args);
 
-    switch (args.command) {
-      case "insertAtCursor":
-        insertTextAtCursor(node, args.text);
-        break;
-    }
+    requestAnimationFrame(() => {
+      let node = document.getElementById(args.id);
+      let storage = window.localStorage;
+      const key = "level:postEditor:" + args.id;
+      if (!node) return;
+
+      switch (args.command) {
+        case "insertAtCursor":
+          insertTextAtCursor(node, args.text);
+          break;
+
+        case "saveLocal":
+          if (!storage) break;
+
+          if (args.body === "") {
+            storage.removeItem(key);
+          } else {
+            storage.setItem(key, args.body);
+          }
+
+          break;
+
+        case "clearLocal":
+          if (!storage) break;
+          storage.removeItem(key);
+          break;
+
+        case "fetchLocal":
+          if (!storage) break;
+          let value = storage.getItem(key);
+          if (!value) break;
+
+          const payload = {
+            id: args.id,
+            type: "localDataFetched",
+            body: value
+          };
+
+          app.ports.postEditorIn.send(payload);
+          logEvent("postEditorIn")(payload);
+
+          break;
+      }
+    });
   });
 };
