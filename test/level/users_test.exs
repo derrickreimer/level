@@ -1,6 +1,8 @@
 defmodule Level.UsersTest do
   use Level.DataCase, async: true
+  use Bamboo.Test
 
+  alias Level.Email
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
   alias Level.Users
@@ -84,6 +86,18 @@ defmodule Level.UsersTest do
     test "returns an invalid keys error if payload has wrong data", %{user: user} do
       assert {:error, :invalid_keys} = Users.create_push_subscription(user, ~s({"foo": "bar"}))
       assert %{} = Users.get_push_subscriptions([user.id])
+    end
+  end
+
+  describe "initiate_password_reset/1" do
+    setup do
+      {:ok, user} = create_user()
+      {:ok, %{user: user}}
+    end
+
+    test "sends a password reset email", %{user: user} do
+      {:ok, reset} = Users.initiate_password_reset(user)
+      assert_delivered_email(Email.password_reset(user, reset))
     end
   end
 end

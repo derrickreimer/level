@@ -72,6 +72,15 @@ defmodule Level.Schemas.User do
     |> put_password_hash()
   end
 
+  @doc false
+  def reset_password_changeset(struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [:password])
+    |> validate_required([:password])
+    |> validate_length(:password, min: 6)
+    |> put_password_hash()
+  end
+
   @doc """
   Applies user attribute validations to a changeset.
   """

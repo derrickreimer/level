@@ -8,7 +8,10 @@ defmodule Level.Users do
 
   alias Ecto.Multi
   alias Level.AssetStore
+  alias Level.Email
+  alias Level.Mailer
   alias Level.Repo
+  alias Level.Schemas.PasswordReset
   alias Level.Schemas.Reservation
   alias Level.Schemas.User
   alias Level.Spaces
@@ -20,6 +23,20 @@ defmodule Level.Users do
   @spec get_user_by_id(String.t()) :: {:ok, User.t()} | {:error, String.t()}
   def get_user_by_id(id) do
     case Repo.get(User, id) do
+      %User{} = user ->
+        {:ok, user}
+
+      _ ->
+        {:error, dgettext("errors", "User not found")}
+    end
+  end
+
+  @doc """
+  Fetches a user by email.
+  """
+  @spec get_user_by_email(String.t()) :: {:ok, User.t()} | {:error, String.t()}
+  def get_user_by_email(email) do
+    case Repo.get_by(User, %{email: email}) do
       %User{} = user ->
         {:ok, user}
 
@@ -148,5 +165,64 @@ defmodule Level.Users do
         }
   def get_push_subscriptions(user_ids) do
     WebPush.get_subscriptions(user_ids)
+  end
+
+  @doc """
+  Initiates password reset.
+  """
+  @spec initiate_password_reset(User.t()) :: {:ok, PasswordReset.t()} | no_return()
+  def initiate_password_reset(%User{id: user_id} = user) do
+    one_day_from_now =
+      NaiveDateTime.utc_now()
+      |> NaiveDateTime.add(60 * 60 * 24)
+
+    %PasswordReset{}
+    |> Ecto.Changeset.change(%{user_id: user.id, expires_at: one_day_from_now})
+    |> Repo.insert!()
+    |> after_insert_password_reset(user)
+  end
+
+  defp after_insert_password_reset(reset, user) do
+    user
+    |> Email.password_reset(reset)
+    |> Mailer.deliver_now()
+
+    {:ok, reset}
+  end
+
+  @doc """
+  Fetches a password reset record.
+  """
+  @spec get_password_reset(String.t()) :: {:ok, PasswordReset.t()} | {:error, String.t()}
+  def get_password_reset(id) do
+    now = NaiveDateTime.utc_now()
+
+    query =
+      from pr in PasswordReset,
+        where: pr.id == ^id and pr.expires_at > ^now
+
+    case Repo.one(query) do
+      nil -> {:error, dgettext("errors", "Password reset not found")}
+      reset -> {:ok, Repo.preload(reset, :user)}
+    end
+  end
+
+  @doc """
+  Builds a reset password changeset.
+  """
+  @spec reset_password_changeset(User.t(), map()) :: Ecto.Changeset.t()
+  def reset_password_changeset(%User{} = user, params \\ %{}) do
+    User.reset_password_changeset(user, params)
+  end
+
+  @doc """
+  Resets the user's password.
+  """
+  @spec reset_password(PasswordReset.t(), String.t()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def reset_password(%PasswordReset{} = reset, new_password) do
+    reset.user
+    |> reset_password_changeset(%{password: new_password})
+    |> Repo.update()
   end
 end

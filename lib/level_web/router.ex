@@ -50,6 +50,8 @@ defmodule LevelWeb.Router do
     get "/reset-password", PasswordResetController, :new
     post "/reset-password", PasswordResetController, :create
     get "/reset-password/initiated", PasswordResetController, :initiated
+    get "/reset-password/:id", PasswordResetController, :show
+    put("/reset-password/:id", PasswordResetController, :update)
 
     get "/signup", UserController, :new
     post "/signup", UserController, :create
@@ -84,7 +86,7 @@ defmodule LevelWeb.Router do
 
   # Preview sent emails in development mode
   if @env == :dev do
-    forward "/sent_emails", Bamboo.EmailPreviewPlug
+    forward "/sent_emails", Bamboo.SentEmailViewerPlug
   end
 
   # Important: this must be the last route defined
