@@ -10,6 +10,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Id exposing (Id)
+import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
@@ -19,6 +20,7 @@ import Mutation.RecordPostView as RecordPostView
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
 import Post exposing (Post)
+import PostEditor
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
@@ -191,6 +193,7 @@ recordReplyViews globals model =
 
 type Msg
     = NoOp
+    | PostEditorEventReceived Decode.Value
     | PostComponentMsg Component.Post.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
@@ -213,6 +216,17 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
+
+        PostEditorEventReceived value ->
+            let
+                newPostComp =
+                    Component.Post.handleEditorEventReceived value model.postComp
+            in
+            ( ( { model | postComp = newPostComp }
+              , Cmd.none
+              )
+            , globals
+            )
 
         PostComponentMsg componentMsg ->
             let
@@ -455,7 +469,10 @@ handleJoin presence globals model =
 
 subscriptions : Sub Msg
 subscriptions =
-    every 1000 Tick
+    Sub.batch
+        [ every 1000 Tick
+        , PostEditor.receive PostEditorEventReceived
+        ]
 
 
 
