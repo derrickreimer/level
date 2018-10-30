@@ -3,7 +3,8 @@ module PostEditor exposing
     , getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
     , getFiles, getUploadIds, getFileById, addFile, setFiles, setFileUploadPercentage, setFileState
-    , insertAtCursor, insertFileLink
+    , Event(..), receive, decoder, decodeEvent
+    , insertAtCursor, insertFileLink, fetchLocal, saveLocal, clearLocal
     , ViewConfig, wrapper, filesView
     )
 
@@ -30,9 +31,14 @@ module PostEditor exposing
 @docs getFiles, getUploadIds, getFileById, addFile, setFiles, setFileUploadPercentage, setFileState
 
 
-# Commands
+# Inbound Events
 
-@docs insertAtCursor, insertFileLink
+@docs Event, receive, decoder, decodeEvent
+
+
+# Outbound Commands
+
+@docs insertAtCursor, insertFileLink, fetchLocal, saveLocal, clearLocal
 
 
 # Views
@@ -237,7 +243,44 @@ setFileState clientId newState (PostEditor internal) =
 
 
 
--- COMMANDS
+-- INBOUND EVENTS
+
+
+type Event
+    = LocalDataFetched Id String
+    | Unknown
+
+
+receive : (Decode.Value -> msg) -> Sub msg
+receive toMsg =
+    Ports.postEditorIn toMsg
+
+
+decoder : Decoder Event
+decoder =
+    let
+        convert type_ =
+            case type_ of
+                "localDataFetched" ->
+                    Decode.map2 LocalDataFetched
+                        (Decode.field "id" Decode.string)
+                        (Decode.field "body" Decode.string)
+
+                _ ->
+                    Decode.fail "event not recognized"
+    in
+    Decode.field "type" Decode.string
+        |> Decode.andThen convert
+
+
+decodeEvent : Decode.Value -> Event
+decodeEvent value =
+    Decode.decodeValue decoder value
+        |> Result.withDefault Unknown
+
+
+
+-- OUTBOUND COMMANDS
 
 
 insertAtCursor : String -> PostEditor -> Cmd msg
@@ -263,6 +306,34 @@ insertFileLink fileId editor =
 
         Nothing ->
             Cmd.none
+
+
+fetchLocal : PostEditor -> Cmd msg
+fetchLocal editor =
+    Ports.postEditorOut <|
+        Encode.object
+            [ ( "id", Id.encoder (getId editor) )
+            , ( "command", Encode.string "fetchLocal" )
+            ]
+
+
+saveLocal : PostEditor -> Cmd msg
+saveLocal editor =
+    Ports.postEditorOut <|
+        Encode.object
+            [ ( "id", Id.encoder (getId editor) )
+            , ( "command", Encode.string "saveLocal" )
+            , ( "body", Encode.string (getBody editor) )
+            ]
+
+
+clearLocal : PostEditor -> Cmd msg
+clearLocal editor =
+    Ports.postEditorOut <|
+        Encode.object
+            [ ( "id", Id.encoder (getId editor) )
+            , ( "command", Encode.string "clearLocal" )
+            ]
 
 
 

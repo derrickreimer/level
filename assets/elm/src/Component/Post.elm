@@ -1,4 +1,4 @@
-module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleReplyCreated, init, setup, teardown, update, view)
+module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -140,10 +140,11 @@ setupReplyComposer postId replyComposer =
     if PostEditor.isExpanded replyComposer then
         let
             composerId =
-                replyComposerId postId
+                PostEditor.getId replyComposer
         in
         Cmd.batch
             [ setFocus composerId NoOp
+            , PostEditor.fetchLocal replyComposer
             ]
 
     else
@@ -221,10 +222,14 @@ update msg spaceId globals model =
 
         NewReplyBodyChanged val ->
             let
-                newModel =
-                    { model | replyComposer = PostEditor.setBody val model.replyComposer }
+                newReplyComposer =
+                    PostEditor.setBody val model.replyComposer
             in
-            noCmd globals newModel
+            ( ( { model | replyComposer = newReplyComposer }
+              , PostEditor.saveLocal newReplyComposer
+              )
+            , globals
+            )
 
         NewReplyFileAdded file ->
             noCmd globals { model | replyComposer = PostEditor.addFile file model.replyComposer }
@@ -271,7 +276,12 @@ update msg spaceId globals model =
                 newModel =
                     { model | replyComposer = newReplyComposer }
             in
-            ( ( newModel, setFocus (PostEditor.getId model.replyComposer) NoOp )
+            ( ( newModel
+              , Cmd.batch
+                    [ setFocus (PostEditor.getId model.replyComposer) NoOp
+                    , PostEditor.saveLocal newReplyComposer
+                    ]
+              )
             , { globals | session = newSession }
             )
 
@@ -742,6 +752,24 @@ handleReplyCreated reply model =
 
     else
         ( model, Cmd.none )
+
+
+handleEditorEventReceived : Decode.Value -> Model -> Model
+handleEditorEventReceived value model =
+    case PostEditor.decodeEvent value of
+        PostEditor.LocalDataFetched id body ->
+            if id == PostEditor.getId model.replyComposer then
+                let
+                    newReplyComposer =
+                        PostEditor.setBody body model.replyComposer
+                in
+                { model | replyComposer = newReplyComposer }
+
+            else
+                model
+
+        PostEditor.Unknown ->
+            model
 
 
 

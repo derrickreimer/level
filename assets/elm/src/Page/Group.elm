@@ -14,6 +14,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import Json.Decode as Decode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
@@ -130,7 +131,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 postComps
                 now
                 (FieldEditor.init "name-editor" "")
-                (PostEditor.init "post-composer")
+                (PostEditor.init ("post-composer-" ++ resp.groupId))
                 (FieldEditor.init "search-editor" "")
 
         newRepo =
@@ -149,8 +150,9 @@ setup model =
     let
         pageCmd =
             Cmd.batch
-                [ setFocus "post-composer" NoOp
+                [ setFocus (PostEditor.getId model.postComposer) NoOp
                 , setupSockets model.groupId
+                , PostEditor.fetchLocal model.postComposer
                 ]
 
         postsCmd =
@@ -197,6 +199,7 @@ type Msg
     = NoOp
     | Tick Posix
     | SetCurrentTime Posix Zone
+    | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
     | NewPostFileUploadProgress Id Int
@@ -239,8 +242,36 @@ update msg globals model =
         SetCurrentTime posix zone ->
             noCmd globals { model | now = ( zone, posix ) }
 
+        PostEditorEventReceived value ->
+            case PostEditor.decodeEvent value of
+                PostEditor.LocalDataFetched id body ->
+                    if id == PostEditor.getId model.postComposer then
+                        let
+                            newPostComposer =
+                                PostEditor.setBody body model.postComposer
+                        in
+                        ( ( { model | postComposer = newPostComposer }
+                          , Cmd.none
+                          )
+                        , globals
+                        )
+
+                    else
+                        noCmd globals model
+
+                PostEditor.Unknown ->
+                    noCmd globals model
+
         NewPostBodyChanged value ->
-            noCmd globals { model | postComposer = PostEditor.setBody value model.postComposer }
+            let
+                newPostComposer =
+                    PostEditor.setBody value model.postComposer
+            in
+            ( ( { model | postComposer = newPostComposer }
+              , PostEditor.saveLocal newPostComposer
+              )
+            , globals
+            )
 
         NewPostFileAdded file ->
             noCmd globals { model | postComposer = PostEditor.addFile file model.postComposer }
@@ -283,7 +314,7 @@ update msg globals model =
                         |> PostEditor.reset
             in
             ( ( { model | postComposer = newPostComposer }
-              , Cmd.none
+              , PostEditor.saveLocal newPostComposer
               )
             , { globals | session = newSession }
             )
@@ -664,6 +695,7 @@ subscriptions =
         , KeyboardShortcuts.subscribe
             [ ( "/", ExpandSearchEditor )
             ]
+        , PostEditor.receive PostEditorEventReceived
         ]
 
 
