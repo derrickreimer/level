@@ -42,6 +42,21 @@ defmodule Level.SvgTest do
       {:ok, result} = Svg.to_elm(svg)
       assert_trimmed_equal(result, expected)
     end
+
+    test "handles comments outside of the root <svg> node" do
+      svg = ~s{
+        <!-- A cool thing -->
+        <svg>
+        </svg>
+      }
+
+      expected = ~s{
+        svg [] []
+      }
+
+      {:ok, result} = Svg.to_elm(svg)
+      assert_trimmed_equal(result, expected)
+    end
   end
 
   def assert_trimmed_equal(a, b) do
