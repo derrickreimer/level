@@ -570,4 +570,34 @@ defmodule Level.PostsTest do
                |> Repo.all()
     end
   end
+
+  describe "close_post/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "marks the post as closed", %{post: post, space_user: space_user} do
+      assert post.state == "OPEN"
+      {:ok, %{post: closed_post}} = Posts.close_post(space_user, post)
+      assert closed_post.id == post.id
+      assert closed_post.state == "CLOSED"
+    end
+
+    test "dismissed the post from the closer's inbox", %{
+      space: space,
+      post: post,
+      space_user: space_user
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      {:ok, _} = Posts.mark_as_unread(space_user, [post])
+      {:ok, _} = Posts.mark_as_unread(another_user, [post])
+      {:ok, _} = Posts.close_post(space_user, post)
+
+      assert %{inbox: "DISMISSED"} = Posts.get_user_state(post, space_user)
+      assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_user)
+    end
+  end
 end
