@@ -550,23 +550,25 @@ defmodule Level.Posts do
   @doc """
   Closes a post.
   """
-  @spec close_post(SpaceUser.t(), Post.t()) :: {:ok, Post.t()}
-  def close_post(%SpaceUser{} = space_user, %Post{} = post) do
+  @spec close_post(SpaceUser.t(), Post.t()) ::
+          {:ok, %{post: Post.t(), log: PostLog.t()}} | {:error, atom(), any(), any()}
+  def close_post(%SpaceUser{} = closer, %Post{} = post) do
     Multi.new()
     |> Multi.update(:post, Ecto.Changeset.change(post, %{state: "CLOSED"}))
-    |> log_post_closed(space_user)
+    |> log_post_closed(closer)
     |> Repo.transaction()
-    |> after_post_closed()
+    |> after_post_closed(closer)
   end
 
-  defp log_post_closed(multi, space_user) do
+  defp log_post_closed(multi, closer) do
     Multi.run(multi, :log, fn %{post: post} ->
-      PostLog.post_closed(post, space_user)
+      PostLog.post_closed(post, closer)
     end)
   end
 
-  defp after_post_closed({:ok, %{post: post}} = result) do
+  defp after_post_closed({:ok, %{post: post}} = result, closer) do
     _ = Events.post_closed(post.id, post)
+    _ = dismiss(closer, [post])
     result
   end
 
