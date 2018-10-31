@@ -47,8 +47,7 @@ document =
           $last: Int,
           $before: Cursor,
           $after: Cursor,
-          $inboxStateFilter: InboxStateFilter!,
-          $stateFilter: PostStateFilter!
+          $inboxStateFilter: InboxStateFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -66,8 +65,7 @@ document =
                 before: $before,
                 after: $after,
                 filter: {
-                  inboxState: $inboxStateFilter,
-                  state: $stateFilter
+                  inboxState: $inboxStateFilter
                 },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
@@ -101,7 +99,7 @@ variables params =
         limit =
             Encode.int 20
 
-        ( inboxStateFilter, stateFilter ) =
+        inboxStateFilter =
             castFilters (Route.Inbox.getFilter params)
 
         values =
@@ -115,7 +113,6 @@ variables params =
                     , ( "last", limit )
                     , ( "before", Encode.string before )
                     , ( "inboxStateFilter", Encode.string inboxStateFilter )
-                    , ( "stateFilter", Encode.string stateFilter )
                     ]
 
                 ( Nothing, Just after ) ->
@@ -123,30 +120,25 @@ variables params =
                     , ( "first", limit )
                     , ( "after", Encode.string after )
                     , ( "inboxStateFilter", Encode.string inboxStateFilter )
-                    , ( "stateFilter", Encode.string stateFilter )
                     ]
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", limit )
                     , ( "inboxStateFilter", Encode.string inboxStateFilter )
-                    , ( "stateFilter", Encode.string stateFilter )
                     ]
     in
     Just (Encode.object values)
 
 
-castFilters : Route.Inbox.Filter -> ( String, String )
+castFilters : Route.Inbox.Filter -> String
 castFilters filter =
     case filter of
-        Route.Inbox.Open ->
-            ( "UNDISMISSED", "OPEN" )
-
-        Route.Inbox.Closed ->
-            ( "UNDISMISSED", "CLOSED" )
+        Route.Inbox.Undismissed ->
+            "UNDISMISSED"
 
         Route.Inbox.Dismissed ->
-            ( "DISMISSED", "ALL" )
+            "DISMISSED"
 
 
 decoder : Decoder Data

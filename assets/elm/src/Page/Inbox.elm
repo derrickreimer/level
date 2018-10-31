@@ -405,8 +405,7 @@ resolvedView repo maybeCurrentRoute pushStatus spaceUsers model data =
                         , controlsView model data
                         ]
                     , div [ class "flex items-baseline" ]
-                        [ filterTab "Open" Route.Inbox.Open (openParams model.params) model.params
-                        , filterTab "Closed" Route.Inbox.Closed (closedParams model.params) model.params
+                        [ filterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
                         , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
                     ]
@@ -541,18 +540,11 @@ userItemView user =
 -- INTERNAL
 
 
-openParams : Params -> Params
-openParams params =
+undismissedParams : Params -> Params
+undismissedParams params =
     params
         |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Open
-
-
-closedParams : Params -> Params
-closedParams params =
-    params
-        |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Closed
+        |> Route.Inbox.setFilter Route.Inbox.Undismissed
 
 
 dismissedParams : Params -> Params
