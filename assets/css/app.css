@@ -281,6 +281,10 @@ body {
   @apply text-blue;
 }
 
+.markdown blockquote {
+  @apply pl-3 mb-4 border-l-3 border-grey text-dusty-blue-dark;
+}
+
 post-editor {
   @apply block relative;
 }
