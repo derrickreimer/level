@@ -18,5 +18,10 @@ defmodule Level.MarkdownTest do
       {:ok, result, _} = Markdown.to_html("Hello\nWorld")
       assert result == "<p>Hello<br />World</p>\n"
     end
+
+    test "auto-hyperlinks urls" do
+      {:ok, result, _} = Markdown.to_html("Look at https://level.app")
+      assert result == ~s(<p>Look at <a href="https://level.app">https://level.app</a></p>\n)
+    end
   end
 end
