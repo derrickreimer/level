@@ -9,6 +9,9 @@ import autosize from "autosize";
 const logEvent = eventName => (...args) =>
   console.log("[ports." + eventName + "]", ...args);
 
+const logError = eventName => (...args) =>
+  console.error("[ports." + eventName + "]", ...args);
+
 export const attachPorts = app => {
   // Start with the initial API token generated at page-load time.
   // This variable may get mutated over time as tokens expire.
@@ -117,7 +120,17 @@ export const attachPorts = app => {
         });
 
         notifiers.forEach(notifier => {
-          AbsintheSocket.cancel(absintheSocket, notifier);
+          // Sometimes if you navigate quickly in the app, an "unsubscribe"
+          // command gets sent before Absinthe has a chance to actually
+          // join the Phoenix channel. In this case, we can safely just
+          // swallow the exception and move along.
+          //
+          // https://github.com/levelhq/level/issues/123
+          try {
+            AbsintheSocket.cancel(absintheSocket, notifier);
+          } catch (error) {
+            logError("socketIn")(error);
+          }
         });
 
         break;
