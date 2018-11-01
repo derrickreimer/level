@@ -77,7 +77,7 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                      %{
                        "node" => %{
                          "body" => "Hey!",
-                         "bodyHtml" => "<p>Hey!</p>\n",
+                         "bodyHtml" => "<p>Hey!</p>",
                          "author" => %{
                            "firstName" => space_user.first_name
                          },

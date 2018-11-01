@@ -538,17 +538,12 @@ defmodule Level.PostsTest do
     end
 
     test "converts markdown to html", %{viewer: viewer} do
-      assert Posts.render_body("Foo", viewer) == {:ok, "<p>Foo</p>\n"}
+      assert Posts.render_body("Foo", viewer) == {:ok, "<p>Foo</p>"}
     end
 
     test "emboldens mentions", %{viewer: viewer} do
       assert Posts.render_body("@tiff Hey", viewer) ==
-               {:ok, "<p><strong class=\"user-mention\">@tiff</strong> Hey</p>\n"}
-    end
-
-    test "applies a special class for viewer mentions", %{viewer: viewer} do
-      assert Posts.render_body("@derrick Hey", viewer) ==
-               {:ok, "<p><strong class=\"user-mention is-viewer\">@derrick</strong> Hey</p>\n"}
+               {:ok, "<p><strong class=\"user-mention\">@tiff</strong> Hey</p>"}
     end
   end
 
