@@ -18,7 +18,9 @@ import Json.Decode as Decode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
+import Mutation.CloseGroup as CloseGroup
 import Mutation.CreatePost as CreatePost
+import Mutation.ReopenGroup as ReopenGroup
 import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
@@ -228,6 +230,10 @@ type Msg
     | CollapseSearchEditor
     | SearchEditorChanged String
     | SearchSubmitted
+    | CloseClicked
+    | Closed (Result Session.Error ( Session, CloseGroup.Response ))
+    | ReopenClicked
+    | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -596,6 +602,52 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
+        CloseClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> CloseGroup.request model.spaceId model.groupId
+                        |> Task.attempt Closed
+            in
+            ( ( model, cmd ), globals )
+
+        Closed (Ok ( newSession, CloseGroup.Success newGroup )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
+            in
+            noCmd { globals | session = newSession, repo = newRepo } model
+
+        Closed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Closed (Err _) ->
+            noCmd globals model
+
+        ReopenClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> ReopenGroup.request model.spaceId model.groupId
+                        |> Task.attempt Reopened
+            in
+            ( ( model, cmd ), globals )
+
+        Reopened (Ok ( newSession, ReopenGroup.Success newGroup )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
+            in
+            noCmd { globals | session = newSession, repo = newRepo } model
+
+        Reopened (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Reopened (Err _) ->
+            noCmd globals model
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -961,6 +1013,8 @@ sidebarView params group featuredMembers =
             , li []
                 [ subscribeButtonView (Group.membershipState group)
                 ]
+            , li []
+                [ stateButtonView (Group.state group) ]
             ]
         ]
 
@@ -998,6 +1052,24 @@ subscribeButtonView state =
                 , onClick UnsubscribeClicked
                 ]
                 [ text "Leave this group" ]
+
+
+stateButtonView : Group.State -> Html Msg
+stateButtonView state =
+    case state of
+        Group.Open ->
+            button
+                [ class "text-md text-dusty-blue no-underline font-bold"
+                , onClick CloseClicked
+                ]
+                [ text "Close this group" ]
+
+        Group.Closed ->
+            button
+                [ class "text-md text-dusty-blue no-underline font-bold"
+                , onClick ReopenClicked
+                ]
+                [ text "Reopen this group" ]
 
 
 

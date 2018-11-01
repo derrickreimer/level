@@ -1,9 +1,9 @@
-module Group exposing (Group, decoder, fragment, id, isBookmarked, isPrivate, membershipState, name)
+module Group exposing (Group, State(..), decoder, fragment, id, isBookmarked, isPrivate, membershipState, name, state)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
 import Id exposing (Id)
-import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
+import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, string, succeed)
 
 
 
@@ -14,8 +14,14 @@ type Group
     = Group Data
 
 
+type State
+    = Open
+    | Closed
+
+
 type alias Data =
     { id : Id
+    , state : State
     , name : String
     , isPrivate : Bool
     , isBookmarked : Bool
@@ -30,6 +36,7 @@ fragment =
         """
         fragment GroupFields on Group {
           id
+          state
           name
           isPrivate
           isBookmarked
@@ -49,6 +56,11 @@ fragment =
 id : Group -> Id
 id (Group data) =
     data.id
+
+
+state : Group -> State
+state (Group data) =
+    data.state
 
 
 name : Group -> String
@@ -78,17 +90,36 @@ membershipState (Group data) =
 decoder : Decoder Group
 decoder =
     Decode.map Group <|
-        Decode.map6 Data
+        Decode.map7 Data
             (field "id" Id.decoder)
+            (field "state" stateDecoder)
             (field "name" string)
             (field "isPrivate" bool)
             (field "isBookmarked" bool)
-            stateDecoder
+            membershipStateDecoder
             (field "fetchedAt" int)
 
 
-stateDecoder : Decoder GroupMembershipState
+stateDecoder : Decoder State
 stateDecoder =
+    let
+        convert : String -> Decoder State
+        convert raw =
+            case raw of
+                "OPEN" ->
+                    succeed Open
+
+                "CLOSED" ->
+                    succeed Closed
+
+                _ ->
+                    fail "State not valid"
+    in
+    Decode.andThen convert string
+
+
+membershipStateDecoder : Decoder GroupMembershipState
+membershipStateDecoder =
     Decode.oneOf
         [ Decode.at [ "membership", "state" ] GroupMembership.stateDecoder
         , Decode.succeed NotSubscribed
