@@ -6,7 +6,7 @@ defmodule Level.MarkdownTest do
   describe "to_html/1" do
     test "transforms markdown to HTML" do
       {:ok, result, _} = Markdown.to_html("# Title")
-      assert result == "<h1>Title</h1>\n"
+      assert result == "<h1>Title</h1>"
     end
 
     test "scrubs script tags" do
@@ -16,12 +16,12 @@ defmodule Level.MarkdownTest do
 
     test "makes all line breaks significant" do
       {:ok, result, _} = Markdown.to_html("Hello\nWorld")
-      assert result == "<p>Hello<br />World</p>\n"
+      assert result == "<p>Hello<br/>World</p>"
     end
 
     test "auto-hyperlinks urls" do
       {:ok, result, _} = Markdown.to_html("Look at https://level.app")
-      assert result == ~s(<p>Look at <a href="https://level.app">https://level.app</a></p>\n)
+      assert result == ~s(<p>Look at <a href="https://level.app">https://level.app</a></p>)
     end
   end
 end
