@@ -27,7 +27,8 @@ defmodule Level.Groups do
       where: g.space_id == ^space_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == ^space_user_id,
-      where: g.is_private == false or (g.is_private == true and not is_nil(gu.id))
+      where: g.is_private == false or (g.is_private == true and not is_nil(gu.id)),
+      where: g.state != "DELETED"
   end
 
   def groups_base_query(%User{id: user_id}) do
@@ -36,7 +37,8 @@ defmodule Level.Groups do
       on: su.space_id == g.space_id and su.user_id == ^user_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == su.id,
-      where: g.is_private == false or (g.is_private == true and not is_nil(gu.id))
+      where: g.is_private == false or (g.is_private == true and not is_nil(gu.id)),
+      where: g.state != "DELETED"
   end
 
   @doc """
@@ -225,6 +227,33 @@ defmodule Level.Groups do
     group
     |> Changeset.change(state: "CLOSED")
     |> Repo.update()
+  end
+
+  @doc """
+  Reopens a group.
+  """
+  @spec reopen_group(Group.t()) :: {:ok, Group.t()} | {:error, Changeset.t()}
+  def reopen_group(group) do
+    group
+    |> Changeset.change(state: "OPEN")
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a group.
+  """
+  @spec delete_group(SpaceUser.t(), Group.t()) ::
+          {:ok, Group.t()} | {:error, Changeset.t() | String.t()}
+  def delete_group(current_user, group) do
+    case get_user_role(group, current_user) do
+      :owner ->
+        group
+        |> Changeset.change(state: "DELETED")
+        |> Repo.update()
+
+      _ ->
+        {:error, dgettext("errors", "You are not authorized to perform this action.")}
+    end
   end
 
   @doc """

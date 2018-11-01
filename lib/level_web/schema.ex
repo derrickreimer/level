@@ -137,6 +137,30 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_group/2
     end
 
+    @desc "Closes a group."
+    field :close_group, type: :close_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.close_group/2
+    end
+
+    @desc "Reopens a group."
+    field :reopen_group, type: :reopen_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.reopen_group/2
+    end
+
+    @desc "Deletes a group."
+    field :delete_group, type: :delete_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.delete_group/2
+    end
+
     @desc "Subscribes to a group."
     field :subscribe_to_group, type: :subscribe_to_group_payload do
       arg :space_id, non_null(:id)
