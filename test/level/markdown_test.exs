@@ -23,5 +23,17 @@ defmodule Level.MarkdownTest do
       {:ok, result, _} = Markdown.to_html("Look at https://level.app")
       assert result == ~s(<p>Look at <a href="https://level.app">https://level.app</a></p>)
     end
+
+    test "does not convert urls to links inside code blocks" do
+      markdown = """
+      ```
+      https://level.app
+      ```
+      """
+
+      {:ok, result, _} = Markdown.to_html(markdown)
+
+      assert result == ~s(<pre><code class="">https://level.app</code></pre>)
+    end
   end
 end

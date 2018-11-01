@@ -5,6 +5,12 @@ defmodule Level.Markdown do
 
   alias Earmark.Options
 
+  @url_regex ~r/\bhttps?:\/\/
+    [a-zA-Z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;=%]+
+    [a-zA-Z0-9\-_~:\/\?#\[\]@!$&\*\+;=%]/ix
+
+  @unlinkable_tag_names ["code"]
+
   @doc """
   Convert a string of Markdown to HTML.
   """
@@ -25,15 +31,34 @@ defmodule Level.Markdown do
   end
 
   defp autolink({status, html, errors}) do
-    tree =
+    autolinked_html =
       html
       |> Floki.parse()
-      |> Floki.map(&autolink_node/1)
+      |> map_linkable_text(&replace_urls/1)
+      |> Floki.raw_html(encode: false)
 
-    {status, Floki.raw_html(tree), errors}
+    {status, autolinked_html, errors}
   end
 
-  defp autolink_node(value) do
-    value
+  def map_linkable_text(nodes, mapper) when is_list(nodes) do
+    Enum.map(nodes, fn node -> map_linkable_text(node, mapper) end)
   end
+
+  def map_linkable_text({_, _, []} = node, _), do: node
+
+  def map_linkable_text({tag_name, attrs, children} = node, mapper) do
+    if Enum.member?(@unlinkable_tag_names, tag_name) do
+      node
+    else
+      {tag_name, attrs, map_linkable_text(children, mapper)}
+    end
+  end
+
+  def map_linkable_text(node, mapper) when is_binary(node), do: mapper.(node)
+
+  defp replace_urls(text) do
+    Regex.replace(@url_regex, text, &build_link/1)
+  end
+
+  defp build_link(url), do: ~s(<a href="#{url}">#{url}</a>)
 end
