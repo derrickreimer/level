@@ -35,5 +35,20 @@ defmodule Level.MarkdownTest do
 
       assert result == ~s(<pre><code class="">https://level.app</code></pre>)
     end
+
+    test "does not convert urls to links inside other links" do
+      markdown = """
+      [https://level.app](https://google.com)
+      """
+
+      {:ok, result, _} = Markdown.to_html(markdown)
+
+      assert result == ~s(<p><a href="https://google.com">https://level.app</a></p>)
+    end
+
+    test "highlights mentions" do
+      {:ok, result, _} = Markdown.to_html("Hey @derrick")
+      assert result == ~s(<p>Hey <strong class="user-mention">@derrick</strong></p>)
+    end
   end
 end

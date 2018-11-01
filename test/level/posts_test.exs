@@ -545,11 +545,6 @@ defmodule Level.PostsTest do
       assert Posts.render_body("@tiff Hey", viewer) ==
                {:ok, "<p><strong class=\"user-mention\">@tiff</strong> Hey</p>"}
     end
-
-    test "applies a special class for viewer mentions", %{viewer: viewer} do
-      assert Posts.render_body("@derrick Hey", viewer) ==
-               {:ok, "<p><strong class=\"user-mention is-viewer\">@derrick</strong> Hey</p>"}
-    end
   end
 
   describe "attach_files/2" do

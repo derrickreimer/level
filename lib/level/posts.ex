@@ -10,7 +10,6 @@ defmodule Level.Posts do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Markdown
-  alias Level.Mentions
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
   alias Level.Posts.UpdatePost
@@ -431,36 +430,14 @@ defmodule Level.Posts do
   Render a post or reply body.
   """
   @spec render_body(String.t(), User.t()) :: {:ok, String.t()}
-  def render_body(raw_body, current_user) do
+  def render_body(raw_body, _current_user) do
     raw_body
     |> render_markdown()
-    |> render_mentions(current_user)
   end
 
   defp render_markdown(raw_body) do
     {_status, html, _errors} = Markdown.to_html(raw_body)
     {:ok, html}
-  end
-
-  defp render_mentions({:ok, html}, current_user) do
-    replaced_html =
-      Regex.replace(Mentions.handle_pattern(), html, fn match, handle ->
-        String.replace(
-          match,
-          "@#{handle}",
-          "<strong class=\"#{mention_classes(handle, current_user)}\">@#{handle}</strong>"
-        )
-      end)
-
-    {:ok, replaced_html}
-  end
-
-  defp mention_classes(handle, %User{handle: viewer_handle}) do
-    if String.downcase(handle) == String.downcase(viewer_handle) do
-      "user-mention is-viewer"
-    else
-      "user-mention"
-    end
   end
 
   @doc """
