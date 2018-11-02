@@ -785,7 +785,15 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                     , controlsView model
                     ]
                 ]
-            , newPostView model.spaceId model.postComposer data.viewer spaceUsers
+            , viewIf (Group.state data.group == Group.Open) <|
+                newPostView model.spaceId model.postComposer data.viewer spaceUsers
+            , viewIf (Group.state data.group == Group.Closed) <|
+                p [ class "flex items-center p-4 mb-4 bg-grey-light rounded-lg text-dusty-blue-dark" ]
+                    [ div [ class "flex-grow" ] [ text "This group is closed." ]
+                    , div [ class "flex-no-shrink" ]
+                        [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
+                        ]
+                    ]
             , div [ class "sticky flex items-baseline mx-4 mb-4 border-b" ]
                 [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab "Closed" Route.Group.Closed (closedParams model.params) model.params
@@ -1013,8 +1021,14 @@ sidebarView params group featuredMembers =
             , li []
                 [ subscribeButtonView (Group.membershipState group)
                 ]
-            , li []
-                [ stateButtonView (Group.state group) ]
+            , viewIf (Group.state group == Group.Open) <|
+                li []
+                    [ button
+                        [ class "text-md text-dusty-blue no-underline font-bold"
+                        , onClick CloseClicked
+                        ]
+                        [ text "Close this group" ]
+                    ]
             ]
         ]
 
@@ -1052,24 +1066,6 @@ subscribeButtonView state =
                 , onClick UnsubscribeClicked
                 ]
                 [ text "Leave this group" ]
-
-
-stateButtonView : Group.State -> Html Msg
-stateButtonView state =
-    case state of
-        Group.Open ->
-            button
-                [ class "text-md text-dusty-blue no-underline font-bold"
-                , onClick CloseClicked
-                ]
-                [ text "Close this group" ]
-
-        Group.Closed ->
-            button
-                [ class "text-md text-dusty-blue no-underline font-bold"
-                , onClick ReopenClicked
-                ]
-                [ text "Reopen this group" ]
 
 
 
