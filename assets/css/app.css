@@ -346,7 +346,7 @@ post-editor.dragging-over > * {
  */
 
 .marketing-headline {
-  @apply mb-8 font-black leading-tight text-5xl text-dusty-blue-darkest;
+  @apply mb-8 font-black leading-tight text-4xl text-dusty-blue-darkest;
 }
 
 @screen sm {

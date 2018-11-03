@@ -1,10 +1,10 @@
-<article class="marketing-long-form">
+<article class="marketing-long-form overflow-x-hidden">
   <div class="mx-auto max-w-md">
     <h1 class="marketing-headline">Team communication optimized for deep work.</h1>
 
     <img src="<%= static_path(@conn, "/images/marketing/sarah.jpg") %>"
          alt="Sarah"
-         class="float-right -mr-16 pl-12 pb-8 pt-8"
+         class="sm:float-right -mr-16 sm:pl-12 pb-8 pt-8"
          style="width: 280px; transform: rotate(2deg);" />
 
     <p>Meet Sarah, the founder of the CoffeeKit and waffle lover. CoffeeKit helps boutique coffee shops manage their business operations.</p>
@@ -65,7 +65,7 @@
 
   <div class="mx-auto max-w-md">
     <p>Serendipity brought them together to hash out the details this time. But if Lisa and Kevin had been focusing on other tasks when Sarah stopped by, she could have just left a note for them to see later.</p>
-    <h2 class="marketing-sub-head">Level assumes that most conversations are not urgent enough pull makers out of their deep work.</h2>
+    <h2 class="marketing-sub-head">Level assumes that most conversations are not urgent enough to pull makers out of their deep work.</h2>
     <p>Once everyone is done chatting, Sarah marks the post as resolved to signal to the rest of the team that the conversation is done.</p>
   </div>
 
