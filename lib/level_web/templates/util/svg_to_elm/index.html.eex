@@ -1,7 +1,7 @@
 <article class="mx-auto max-w-md">
   <h1 class="pb-6 font-black leading-tight text-5xl text-dusty-blue-darkest">Convert SVG to Elm</h1>
   <p class="pb-6">A free little utility for converting raw SVGs into <a href="https://package.elm-lang.org/packages/elm/svg/1.0.0/" class="text-blue no-underline">elm/svg</a> code.</p>
-  
+
   <%= form_for @conn, svg_to_elm_path(@conn, :create), [as: :converter], fn f -> %>
     <div class="pb-4">
       <%= label f, :svg, gettext("Your SVG code"), class: "input-label text-base hidden" %>
@@ -26,11 +26,11 @@
         <textarea id="elm_output" name="elm_output" class="input-field h-16 font-mono text-base leading-normal overflow-auto whitespace-no-wrap" readonly><%= @elm_output %></textarea>
       </div>
     <% end %>
-    
+
     <%= submit gettext("Convert to Elm"), class: "btn btn-blue" %>
   <% end %>
 
-  <p class="my-8 py-8 border-t text-dusty-blue">Built with ♥️ by the maker of Level, an alternative to real-time chat for software teams. 
+  <p class="my-8 py-8 border-t text-dusty-blue">Built with ♥️ by the maker of Level, an alternative to real-time chat for software teams.
     <a href="https://level.app" class="text-blue font-extrabold no-underline">Reserve your handle</a> to claim your little slice of real estate.
   </p>
 </article>
