@@ -50,6 +50,6 @@ defmodule Level.Schemas.Group do
   def validate(changeset) do
     changeset
     |> validate_required([:name])
-    |> unique_constraint(:name, name: :groups_unique_names_when_open)
+    |> unique_constraint(:name, name: :groups_unique_names_when_undeleted)
   end
 end
