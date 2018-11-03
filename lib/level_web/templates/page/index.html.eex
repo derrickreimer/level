@@ -1,33 +1,95 @@
-<article class="mx-auto max-w-md">
-  <h1 class="mb-8 font-black leading-tight text-5xl sm:leading-tighter sm:text-6xl text text-dusty-blue-darkest">Remember that time you forgot to open Slack?</h1>
+<article>
+  <div class="mx-auto max-w-md">
+    <h1 class="mb-8 font-black leading-tight text-5xl sm:leading-tighter sm:text-6xl text text-dusty-blue-darkest">Team communication optimized for deep work.</h1>
 
-  <p class="mb-6">I&rsquo;m guessing you got a lot done and felt a sense of calm as you slipped deep into The Zone. After a little time passed, you began contemplating why your day was going so smoothly &mdash; and then, with a sigh, you figured it out.</p>
-  <p class="mb-6">It&rsquo;s no coincidence disconnecting from real-time chat was so calm and productive.</p>
-  <p class="mb-6">No falsely-urgent push notifications were competing for your attention. No ever-present red dots were enticing you to dismiss them. There were no virtual taps on the shoulder that could have waited until later.</p>
-  <p class="mb-6">What if this way of working was the norm instead of a happy accident?</p>
+    <img src="<%= static_path(@conn, "/images/sarah.jpg") %>"
+         alt="Sarah"
+         class="float-right -mr-16 pl-12 pb-8 pt-8"
+         style="width: 280px; transform: rotate(2deg);" />
 
-  <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">Introducing Level: an alternative to real-time chat designed for the software development workflow.</h2>
+    <p class="mb-6">Meet Sarah, the founder of the CoffeeKit and waffle lover. CoffeeKit helps boutique coffee shops manage their business operations.</p>
+    <p class="mb-6">The year is 2018 and coffee hipsterdom is spreading like a stream of espresso exiting a portafilter at 9 bars of pressure.</p>
+    <p class="mb-6">Mustache wax and fedora hats are in short supply.</p>
+    <p class="mb-6">If you were to be dropped into any American urban city from outer space, you&rsquo;d think you were in Portland, Oregon.</p>
+    <p class="mb-6">Suffice to say, business is booming for CoffeeKit and its team of designers, developers, marketers, and support folks.</p>
+    <p class="mb-6">CoffeeKit uses Level to communicate.</p>
 
-  <p class="mb-6">I&rsquo;ve spent the last five years at Drip using Slack for team communication. It felt lovely at first, but before long became a source of anxiety for me and many of my colleagues.</p>
-  <p class="mb-6">When it came time to decide what product to build next, I couldn&rsquo;t get this problem out of my head. I asked myself, &ldquo;Is Slack the best we can do?&rdquo;</p>
-  <p class="mb-6">The answer is a <strong>definite no</strong>. As a developer, I know our tools can do so much more to protect our maker time. That&rsquo;s why I&rsquo;m building Level.</p>
+    <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">Monday morning has arrived.</h2>
 
-  <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">How Level is different</h2>
+    <p class="mb-6">After eating a waffle, Sarah starts her work day by checking her Level Inbox.</p>
+    <p class="mb-6">Her colleague, Joe, had a specific question for Sarah, so he made sure to <strong>@-mention her to kick it into her Inbox</strong>.</p>
+  </div>
 
-  <p class="mb-6">Email is too siloed, too formal, and too slow. Chat is too urgent, too interruptive, and too disorganized.</p>
-  <p class="mb-6">Level is the happy medium between chat and email.</p>
+  <div class="mx-auto" style="max-width: 1132px;">
+    <img src="<%= static_path(@conn, "/images/sarah-inbox.png") %>"
+         alt="Sarah's inbox"
+         class="block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto" />
+  </div>
 
-  <ul class="mb-6">
-    <li>Every conversation is threaded</li>
-    <li>Every person has a carefully-curated inbox</li>
-    <li>Every interaction is asynchronous by default</li>
-    <li>Notifications are only sent for time-sensitive things</li>
-    <li>Going into synchronous mode requires deliberate action</li>
-    <li>Presence indicators only exist in synchronous mode</li>
-    <li>The product is <a href="https://github.com/levelhq/level" class="text-blue" target="_blank">source-available</a></li>
-  </ul>
+  <div class="mx-auto max-w-md">
+    <p class="mb-6">Joe&rsquo;s question is important, but not urgent. Sarah decides to come back to it later, and she&rsquo;s <strong>not afraid of forgetting</strong> because the message will remain in her Inbox until she takes action.</p>
 
-  <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">Reserve your handle today</h2>
+    <p class="mb-6">There&rsquo;s a chance someone else on the Engineering team will see it and chime in to help in the meantime. But it won&rsquo;t show up in anyone else&rsquo;s Inbox unless they deliberately join the conversation.</p>
 
-  <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
+    <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">The Inbox is like an extension of your brain. It remembers what&rsquo;s on your plate so you don&rsquo;t have to.</h2>
+
+    <p class="mb-6">One of Sarah&rsquo;s older posts has also landed in her Inbox, because her teammate Lisa replied to it.</p>
+  </div>
+
+  <div class="mx-auto" style="max-width: 656px;">
+    <img src="<%= static_path(@conn, "/images/lisa-to-sarah.png") %>"
+         alt="Lisa's reply to Sarah"
+         class="block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto" />
+  </div>
+
+  <div class="mx-auto max-w-md">
+    <p class="mb-6">Sarah fires off a response and dismisses the post from her Inbox.<br/><strong>If someone replies later, the Post will scoot back into her Inbox.</strong></p>
+  </div>
+
+  <div class="mx-auto" style="max-width: 656px;">
+    <img src="<%= static_path(@conn, "/images/reply-to-lisa.png") %>"
+         alt="Sarah's reply to Lisa"
+         class="block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto" />
+  </div>
+
+  <div class="mx-auto max-w-md">
+    <p class="mb-6">Finished with her Inbox for now, she jumps to her <strong>Activity feed</strong> to skim through other conversations that have happened around the space.</p>
+    <p class="mb-6">She sees a one that interests her. It so happens that Kevin and Lisa are also there, and a spontaneous real-time conversation ensues!</p>
+  </div>
+
+  <div class="mx-auto" style="max-width: 1132px;">
+    <img src="<%= static_path(@conn, "/images/sarah-activity.png") %>"
+         alt="Sarah's activity feed"
+         class="block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto" />
+  </div>
+
+  <div class="mx-auto max-w-md">
+    <p class="mb-6">This time, serendipity brought them together to hash it out. But if Kevin and Lisa happened to be focusing on other tasks when Sarah came by, she could have just as easily left a note for them to see later.</p>
+    <p class="mb-6">Unlike chat, <strong>Level assumes that a majority of communication is not urgent enough pull makers out of their deep work</strong>.</p>
+    <p class="mb-6">Once everyone is done chatting, Sarah marks the post as resolved to signal to the rest of the team that the conversation is done.</p>
+  </div>
+
+  <div class="mx-auto" style="max-width: 665px;">
+    <img src="<%= static_path(@conn, "/images/mark-resolved.png") %>"
+         alt="Sarah marks the post as resolved"
+         class="block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto" />
+  </div>
+
+  <div class="mx-auto max-w-md">
+    <p class="mb-6">There&rsquo;s a chance that Sarah won&rsquo;t see every post. That&rsquo;s actually a preferable outcome! It&rsquo;s neither possible nor necessary for any single person to follow every conversation.</p>
+    <p class="mb-6">Instead, Level encourages teams to <strong>be explicit about communicating who needs to see and respond to messages</strong>.</p>
+    <p class="mb-6">Now that she&rsquo;s sufficiently caught up, Sarah closes the tab and gets to work.</p>
+    <p class="mb-6">No red dots will beckon Sarah to come back to Level. She will not receive any push notifications (except for genuine emergencies). No presence indicators will imply that she is &ldquo;available&rdquo; to interrupt.</p>
+
+    <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">When it&rsquo;s time to get to work, Level leaves you alone.</h2>
+
+    <p class="mb-6">Sarah can confidently get in The Zone, knowing that she will not have to deal with a hellscape of important chat messages commingled with unimportant chit-chat. Instead, she&rsquo;ll have well-organized Inbox waiting for her.</p>
+    <p class="mb-6">Do you want your day to look more like Sarah&rsquo;s?</p>
+  </div>
+
+  <div class="mx-auto max-w-md">
+    <h2 class="mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest">Reserve your handle today</h2>
+
+    <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
+  </div>
 </article>

@@ -341,6 +341,10 @@ post-editor.dragging-over > * {
   @apply font-bold;
 }
 
+.outline-grey {
+  box-shadow: 0 0 0 1px config('colors.grey');
+}
+
 /**
  * This injects all of Tailwind's utility classes, generated based on your
  * config file.
