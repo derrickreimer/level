@@ -185,7 +185,7 @@ defmodule LevelWeb.Schema.Objects do
       arg :before, :cursor
       arg :after, :cursor
       arg :order_by, :group_order
-      arg :state, :group_state
+      arg :state, :group_state_filter, default_value: :open
       resolve &Resolvers.groups/3
     end
 
