@@ -788,7 +788,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
             , viewIf (Group.state data.group == Group.Open) <|
                 newPostView model.spaceId model.postComposer data.viewer spaceUsers
             , viewIf (Group.state data.group == Group.Closed) <|
-                p [ class "flex items-center p-4 mb-4 bg-grey-light rounded-lg text-dusty-blue-dark" ]
+                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-extrabold" ]
                     [ div [ class "flex-grow" ] [ text "This group is closed." ]
                     , div [ class "flex-no-shrink" ]
                         [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
