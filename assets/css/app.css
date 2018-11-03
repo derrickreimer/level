@@ -341,8 +341,16 @@ post-editor.dragging-over > * {
   @apply font-bold;
 }
 
-.outline-grey {
-  box-shadow: 0 0 0 1px config('colors.grey');
+/**
+ * Marketing site common styles
+ */
+
+.marketing-sub-head {
+  @apply mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest;
+}
+
+.marketing-screenshot {
+  @apply block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto;
 }
 
 /**
@@ -465,4 +473,8 @@ post-editor.dragging-over > * {
 
 .-pin-l-50 {
   left: -50%;
+}
+
+.outline-grey {
+  box-shadow: 0 0 0 1px config('colors.grey');
 }

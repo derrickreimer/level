@@ -27,7 +27,7 @@
     <%= if assigns[:page_title] do %>
     <title><%= @page_title %></title>
     <% else %>
-    <title>Level: Distraction-free communication for software teams</title>
+    <title>Team communication optimized for deep work – Level</title>
     <% end %>
 
     <%= if assigns[:og] do %>
