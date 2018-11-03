@@ -1,23 +1,23 @@
-<article>
+<article class="marketing-long-form">
   <div class="mx-auto max-w-md">
-    <h1 class="mb-8 font-black leading-tight text-5xl sm:leading-tighter sm:text-6xl text text-dusty-blue-darkest">Team communication optimized for deep work.</h1>
+    <h1 class="marketing-headline">Team communication optimized for deep work.</h1>
 
     <img src="<%= static_path(@conn, "/images/marketing/sarah.jpg") %>"
          alt="Sarah"
          class="float-right -mr-16 pl-12 pb-8 pt-8"
          style="width: 280px; transform: rotate(2deg);" />
 
-    <p class="mb-6">Meet Sarah, the founder of the CoffeeKit and waffle lover. CoffeeKit helps boutique coffee shops manage their business operations.</p>
-    <p class="mb-6">The year is 2018 and coffee hipsterdom is spreading like a stream of espresso exiting a portafilter at 9 bars of pressure.</p>
-    <p class="mb-6">Mustache wax and fedora hats are in short supply.</p>
-    <p class="mb-6">If you were to be dropped into any American urban city from outer space, you&rsquo;d think you were in Portland, Oregon.</p>
-    <p class="mb-6">Suffice to say, business is booming for CoffeeKit and its team of designers, developers, marketers, and support folks.</p>
-    <p class="mb-6">CoffeeKit uses Level to communicate.</p>
+    <p>Meet Sarah, the founder of the CoffeeKit and waffle lover. CoffeeKit helps boutique coffee shops manage their business operations.</p>
+    <p>The year is 2018 and coffee hipsterdom is spreading like a stream of espresso exiting a portafilter at 9 bars of pressure.</p>
+    <p>Mustache wax and fedora hats are in short supply.</p>
+    <p>If you were to be dropped into any American urban city from outer space, you&rsquo;d think you were in Portland, Oregon.</p>
+    <p>Suffice to say, business is booming for CoffeeKit and its team of designers, developers, marketers, and support folks.</p>
+    <p>CoffeeKit uses Level to communicate.</p>
 
     <h2 class="marketing-sub-head">Monday morning has arrived.</h2>
 
-    <p class="mb-6">After eating a waffle, Sarah starts her workday by checking her Level Inbox.</p>
-    <p class="mb-6">First up, Joe Gibraltar posted a direct question for Sarah in the Engineering group. He made sure to <strong>@-mention her</strong> so that the post would land in her Inbox.</p>
+    <p>After eating a waffle, Sarah starts her workday by checking her Level Inbox.</p>
+    <p>First up, Joe Gibraltar posted a direct question for Sarah in the Engineering group. He made sure to <strong>@-mention her</strong> so that the post would land in her Inbox.</p>
   </div>
 
   <div class="mx-auto" style="max-width: 1132px;">
@@ -27,13 +27,13 @@
   </div>
 
   <div class="mx-auto max-w-md">
-    <p class="mb-6">Joe&rsquo;s question is important, but not immediately urgent &mdash; it can wait until Sarah has accurate info to pass along. Sarah decides to come back to it later, and she&rsquo;s <strong>not afraid of forgetting</strong> because the message will remain in her Inbox until she takes action.</p>
+    <p>Joe&rsquo;s question is important, but not immediately urgent &mdash; it can wait until Sarah has accurate info to pass along. Sarah decides to come back to it later, and she&rsquo;s <strong>not afraid of forgetting</strong> because the message will remain in her Inbox until she takes action.</p>
 
-    <p class="mb-6">There&rsquo;s a chance someone else on the Engineering team will see it and chime in to help in the meantime. But it won&rsquo;t show up in anyone else&rsquo;s Inbox unless they deliberately join the conversation.</p>
+    <p>There&rsquo;s a chance someone else on the Engineering team will see it and chime in to help in the meantime. But it won&rsquo;t show up in anyone else&rsquo;s Inbox unless they deliberately join the conversation.</p>
 
     <h2 class="marketing-sub-head">The Inbox is like an extension of your brain. It remembers what&rsquo;s on your plate, so you don&rsquo;t have to.</h2>
 
-    <p class="mb-6">One of Sarah&rsquo;s older posts has also landed in her Inbox because her teammate Lisa replied to it.</p>
+    <p>One of Sarah&rsquo;s older posts has also landed in her Inbox because her teammate Lisa replied to it.</p>
   </div>
 
   <div class="mx-auto" style="max-width: 656px;">
@@ -43,7 +43,7 @@
   </div>
 
   <div class="mx-auto max-w-md">
-    <p class="mb-6">Sarah fires off a response and dismisses the post from her Inbox. Dismissing the post keeps Sarah's "to-do list" clean. If someone replies again later, the post will scoot back into her Inbox.</p>
+    <p>Sarah fires off a response and dismisses the post from her Inbox. Dismissing the post keeps Sarah's "to-do list" clean. If someone replies again later, the post will scoot back into her Inbox.</p>
   </div>
 
   <div class="mx-auto" style="max-width: 656px;">
@@ -53,8 +53,8 @@
   </div>
 
   <div class="mx-auto max-w-md">
-    <p class="mb-6">Finished with her Inbox (for now), she jumps to her <strong>Activity feed</strong> to skim through other conversations that have happened around the space.</p>
-    <p class="mb-6">She sees a one that interests her. It so happens that Kevin and Lisa are also there, and a spontaneous real-time conversation ensues!</p>
+    <p>Finished with her Inbox (for now), she jumps to her <strong>Activity feed</strong> to skim through other conversations that have happened around the space.</p>
+    <p>She sees a one that interests her. It so happens that Kevin and Lisa are also there, and a spontaneous real-time conversation ensues!</p>
   </div>
 
   <div class="mx-auto" style="max-width: 1132px;">
@@ -64,9 +64,9 @@
   </div>
 
   <div class="mx-auto max-w-md">
-    <p class="mb-6">Serendipity brought them together to hash out the details this time. But if Lisa and Kevin had been focusing on other tasks when Sarah stopped by, she could have just left a note for them to see later.</p>
+    <p>Serendipity brought them together to hash out the details this time. But if Lisa and Kevin had been focusing on other tasks when Sarah stopped by, she could have just left a note for them to see later.</p>
     <h2 class="marketing-sub-head">Level assumes that most conversations are not urgent enough pull makers out of their deep work.</h2>
-    <p class="mb-6">Once everyone is done chatting, Sarah marks the post as resolved to signal to the rest of the team that the conversation is done.</p>
+    <p>Once everyone is done chatting, Sarah marks the post as resolved to signal to the rest of the team that the conversation is done.</p>
   </div>
 
   <div class="mx-auto" style="max-width: 665px;">
@@ -76,15 +76,13 @@
   </div>
 
   <div class="mx-auto max-w-md">
-    <p class="mb-6">There&rsquo;s a chance that Sarah won&rsquo;t see every post like this one. That&rsquo;s actually preferred! It&rsquo;s neither possible nor necessary for any single person to follow every conversation.</p>
+    <p>There&rsquo;s a chance that Sarah won&rsquo;t see every post like this one. That&rsquo;s actually preferred! It&rsquo;s neither possible nor necessary for any single person to follow every conversation.</p>
     <h2 class="marketing-sub-head">Level encourages teams to <strong>be explicit about communicating who needs to see and respond to messages</strong>.</h2>
-    <p class="mb-6">Now that she&rsquo;s sufficiently caught up, Sarah closes the tab and gets to work.</p>
-    <p class="mb-6">No red dots will beckon Sarah to come back to Level. She will not receive any push notifications &mdash; unless a real emergency happens. No presence indicators will imply that she is &ldquo;available&rdquo; to interrupt.</p>
-
-    <h2 class="marketing-sub-head">When it&rsquo;s time to get to work, Level leaves you alone.</h2>
-
-    <p class="mb-6">Sarah can confidently get in The Zone, knowing that she will not have to deal with a hellscape of red dots and stress about missing important messages that are jumbled up with idle chit-chat.</p>
-    <p class="mb-6">Do you want your day to look more like Sarah&rsquo;s?</p>
+    <p>Now that she&rsquo;s sufficiently caught up, Sarah closes the tab and gets to work.</p>
+    <p>No red dots will beckon Sarah to come back to Level. She will not receive any push notifications &mdash; unless a real emergency happens. No presence indicators will imply that she is &ldquo;available&rdquo; to interrupt.</p>
+    <p>When it&rsquo;s time to get to work, Level leaves you alone.</h2>
+    <p>Sarah can confidently get in The Zone, knowing that she will not have to deal with a hellscape of red dots and stress about missing important messages that are jumbled up with idle chit-chat.</p>
+    <p>Do you want your day to look more like Sarah&rsquo;s?</p>
   </div>
 
   <div class="mx-auto max-w-md">

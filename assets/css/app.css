@@ -345,12 +345,26 @@ post-editor.dragging-over > * {
  * Marketing site common styles
  */
 
+.marketing-headline {
+  @apply mb-8 font-black leading-tight text-5xl text-dusty-blue-darkest;
+}
+
+@screen sm {
+  .marketing-headline {
+    @apply leading-tighter text-6xl;
+  }
+}
+
 .marketing-sub-head {
   @apply mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest;
 }
 
 .marketing-screenshot {
   @apply block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto;
+}
+
+.marketing-long-form p {
+  @apply mb-6;
 }
 
 /**
