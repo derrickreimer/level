@@ -26,6 +26,17 @@ defmodule Level.UsersTest do
       {:error, %Ecto.Changeset{errors: errors}} = Users.create_user(params)
       assert errors == [email: {"is invalid", [validation: :format]}]
     end
+
+    test "requires a unique email address" do
+      {:ok, _} = create_user(%{email: "derrick@level.app"})
+
+      params =
+        valid_user_params()
+        |> Map.put(:email, "derrick@level.app")
+
+      {:error, %Ecto.Changeset{errors: errors}} = Users.create_user(params)
+      assert errors == [email: {"is already taken", []}]
+    end
   end
 
   describe "update_user/2" do

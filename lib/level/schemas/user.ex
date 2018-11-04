@@ -93,7 +93,7 @@ defmodule Level.Schemas.User do
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
     |> Handles.validate_format(:handle)
     |> unique_constraint(:email,
-      name: :users_space_id_email_index,
+      name: :users_lower_email_index,
       message: dgettext("errors", "is already taken")
     )
     |> unique_constraint(:handle,
