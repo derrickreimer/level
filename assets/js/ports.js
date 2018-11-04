@@ -230,7 +230,7 @@ export const attachPorts = app => {
     logEvent("requestFile")({ id });
   });
 
-  if (Background.isSupported) {
+  if (Background.isSupported()) {
     app.ports.pushManagerOut.subscribe(method => {
       switch (method) {
         case "getSubscription":
