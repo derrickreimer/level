@@ -229,6 +229,60 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Closes a group.
+  """
+  @spec close_group(map(), info()) :: group_mutation_result()
+  def close_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, updated_group} <- Groups.close_group(group) do
+      {:ok, %{success: true, group: updated_group, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Reopens a group.
+  """
+  @spec reopen_group(map(), info()) :: group_mutation_result()
+  def reopen_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, updated_group} <- Groups.reopen_group(group) do
+      {:ok, %{success: true, group: updated_group, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Deletes a group.
+  """
+  @spec delete_group(map(), info()) :: group_mutation_result()
+  def delete_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, _} <- Groups.delete_group(space_user, group) do
+      {:ok, %{success: true, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
   Create multiple groups.
   """
   @spec bulk_create_groups(map(), info()) :: bulk_create_groups_result()

@@ -34,7 +34,7 @@ defmodule Level.ResolversTest do
       {:ok, closed_group} = Groups.close_group(closed_group)
 
       {:ok, %{edges: edges}} =
-        Resolvers.groups(space, %{first: 10, state: "CLOSED"}, build_context(user))
+        Resolvers.groups(space, %{first: 10, state: :closed}, build_context(user))
 
       assert edges_include?(edges, closed_group.id)
       refute edges_include?(edges, open_group.id)

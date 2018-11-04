@@ -112,4 +112,10 @@ defmodule LevelWeb.Schema.Enums do
     value :closed
     value :all
   end
+
+  enum :group_state_filter do
+    value :open
+    value :closed
+    value :all
+  end
 end

@@ -18,7 +18,9 @@ import Json.Decode as Decode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
+import Mutation.CloseGroup as CloseGroup
 import Mutation.CreatePost as CreatePost
+import Mutation.ReopenGroup as ReopenGroup
 import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
@@ -228,6 +230,10 @@ type Msg
     | CollapseSearchEditor
     | SearchEditorChanged String
     | SearchSubmitted
+    | CloseClicked
+    | Closed (Result Session.Error ( Session, CloseGroup.Response ))
+    | ReopenClicked
+    | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -596,6 +602,52 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
+        CloseClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> CloseGroup.request model.spaceId model.groupId
+                        |> Task.attempt Closed
+            in
+            ( ( model, cmd ), globals )
+
+        Closed (Ok ( newSession, CloseGroup.Success newGroup )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
+            in
+            noCmd { globals | session = newSession, repo = newRepo } model
+
+        Closed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Closed (Err _) ->
+            noCmd globals model
+
+        ReopenClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> ReopenGroup.request model.spaceId model.groupId
+                        |> Task.attempt Reopened
+            in
+            ( ( model, cmd ), globals )
+
+        Reopened (Ok ( newSession, ReopenGroup.Success newGroup )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
+            in
+            noCmd { globals | session = newSession, repo = newRepo } model
+
+        Reopened (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Reopened (Err _) ->
+            noCmd globals model
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -733,7 +785,15 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                     , controlsView model
                     ]
                 ]
-            , newPostView model.spaceId model.postComposer data.viewer spaceUsers
+            , viewIf (Group.state data.group == Group.Open) <|
+                newPostView model.spaceId model.postComposer data.viewer spaceUsers
+            , viewIf (Group.state data.group == Group.Closed) <|
+                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-extrabold" ]
+                    [ div [ class "flex-grow" ] [ text "This group is closed." ]
+                    , div [ class "flex-no-shrink" ]
+                        [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
+                        ]
+                    ]
             , div [ class "sticky flex items-baseline mx-4 mb-4 border-b" ]
                 [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab "Closed" Route.Group.Closed (closedParams model.params) model.params
@@ -961,6 +1021,14 @@ sidebarView params group featuredMembers =
             , li []
                 [ subscribeButtonView (Group.membershipState group)
                 ]
+            , viewIf (Group.state group == Group.Open) <|
+                li []
+                    [ button
+                        [ class "text-md text-dusty-blue no-underline font-bold"
+                        , onClick CloseClicked
+                        ]
+                        [ text "Close this group" ]
+                    ]
             ]
         ]
 

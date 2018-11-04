@@ -40,7 +40,8 @@ document params =
           $first: Int,
           $last: Int,
           $before: Cursor,
-          $after: Cursor
+          $after: Cursor,
+          $state: GroupStateFilter
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -50,7 +51,8 @@ document params =
                 first: $first,
                 last: $last,
                 before: $before,
-                after: $after
+                after: $after,
+                state: $state
               ) {
                 ...GroupConnectionFields
               }
@@ -74,6 +76,14 @@ variables params limit =
         spaceSlug =
             Encode.string (Route.Groups.getSpaceSlug params)
 
+        state =
+            case Route.Groups.getState params of
+                Route.Groups.Open ->
+                    "OPEN"
+
+                Route.Groups.Closed ->
+                    "CLOSED"
+
         values =
             case
                 ( Route.Groups.getBefore params
@@ -84,17 +94,20 @@ variables params limit =
                     [ ( "spaceSlug", spaceSlug )
                     , ( "last", Encode.int limit )
                     , ( "before", Encode.string before )
+                    , ( "state", Encode.string state )
                     ]
 
                 ( Nothing, Just after ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", Encode.int limit )
                     , ( "after", Encode.string after )
+                    , ( "state", Encode.string state )
                     ]
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", Encode.int limit )
+                    , ( "state", Encode.string state )
                     ]
     in
     Just (Encode.object values)

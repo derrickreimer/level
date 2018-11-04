@@ -240,6 +240,39 @@ defmodule Level.GroupsTest do
     end
   end
 
+  describe "reopen_group/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "transitions closed groups to open", %{space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, closed_group} = Groups.close_group(group)
+      {:ok, reopened_group} = Groups.reopen_group(closed_group)
+      assert reopened_group.state == "OPEN"
+    end
+  end
+
+  describe "delete_group/1" do
+    setup do
+      create_user_and_space()
+    end
+
+    test "transitions groups to deleted if space user is an owner", %{space_user: space_user} do
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, deleted_group} = Groups.delete_group(space_user, group)
+      assert deleted_group.state == "DELETED"
+    end
+
+    test "errors out if user is not authorized", %{space: space, space_user: space_user} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      {:ok, %{group: group}} = create_group(space_user)
+
+      assert {:error, "You are not authorized to perform this action."} =
+               Groups.delete_group(another_user, group)
+    end
+  end
+
   describe "is_bookmarked/2" do
     setup do
       create_user_and_space()
