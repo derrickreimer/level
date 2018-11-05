@@ -140,7 +140,7 @@ setupReplyComposer postId replyComposer =
     if PostEditor.isExpanded replyComposer then
         let
             composerId =
-                PostEditor.getId replyComposer
+                PostEditor.getTextareaId replyComposer
         in
         Cmd.batch
             [ setFocus composerId NoOp
@@ -211,7 +211,7 @@ update msg spaceId globals model =
             let
                 cmd =
                     Cmd.batch
-                        [ setFocus (PostEditor.getId model.replyComposer) NoOp
+                        [ setFocus (PostEditor.getTextareaId model.replyComposer) NoOp
                         , markVisibleRepliesAsViewed globals spaceId model
                         ]
 
@@ -269,7 +269,7 @@ update msg spaceId globals model =
 
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
-                newReplyComposer =
+                ( newReplyComposer, cmd ) =
                     model.replyComposer
                         |> PostEditor.reset
 
@@ -278,8 +278,8 @@ update msg spaceId globals model =
             in
             ( ( newModel
               , Cmd.batch
-                    [ setFocus (PostEditor.getId model.replyComposer) NoOp
-                    , PostEditor.saveLocal newReplyComposer
+                    [ setFocus (PostEditor.getTextareaId model.replyComposer) NoOp
+                    , cmd
                     ]
               )
             , { globals | session = newSession }
@@ -294,7 +294,7 @@ update msg spaceId globals model =
         NewReplyEscaped ->
             if PostEditor.getBody model.replyComposer == "" && model.mode == Feed then
                 ( ( { model | replyComposer = PostEditor.collapse model.replyComposer }
-                  , unsetFocus (PostEditor.getId model.replyComposer) NoOp
+                  , unsetFocus (PostEditor.getTextareaId model.replyComposer) NoOp
                   )
                 , globals
                 )
@@ -401,7 +401,7 @@ update msg spaceId globals model =
                 Just data ->
                     let
                         nodeId =
-                            PostEditor.getId model.postEditor
+                            PostEditor.getTextareaId model.postEditor
 
                         newPostEditor =
                             model.postEditor
@@ -531,7 +531,7 @@ update msg spaceId globals model =
                                 |> PostEditor.clearErrors
 
                         nodeId =
-                            PostEditor.getId newReplyEditor
+                            PostEditor.getTextareaId newReplyEditor
 
                         cmd =
                             Cmd.batch
@@ -889,7 +889,8 @@ postEditorView : Id -> List SpaceUser -> PostEditor -> Html Msg
 postEditorView spaceId spaceUsers editor =
     let
         config =
-            { spaceId = spaceId
+            { editor = editor
+            , spaceId = spaceId
             , spaceUsers = spaceUsers
             , onFileAdded = PostEditorFileAdded
             , onFileUploadProgress = PostEditorFileUploadProgress
@@ -901,7 +902,7 @@ postEditorView spaceId spaceUsers editor =
     PostEditor.wrapper config
         [ label [ class "composer my-2 p-3" ]
             [ textarea
-                [ id (PostEditor.getId editor)
+                [ id (PostEditor.getTextareaId editor)
                 , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
                 , placeholder "Edit post..."
                 , onInput PostEditorBodyChanged
@@ -1017,7 +1018,8 @@ replyEditorView : Id -> Id -> List SpaceUser -> PostEditor -> Html Msg
 replyEditorView spaceId replyId spaceUsers editor =
     let
         config =
-            { spaceId = spaceId
+            { editor = editor
+            , spaceId = spaceId
             , spaceUsers = spaceUsers
             , onFileAdded = ReplyEditorFileAdded replyId
             , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
@@ -1029,7 +1031,7 @@ replyEditorView spaceId replyId spaceUsers editor =
     PostEditor.wrapper config
         [ label [ class "composer my-2 p-3" ]
             [ textarea
-                [ id (PostEditor.getId editor)
+                [ id (PostEditor.getTextareaId editor)
                 , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
                 , placeholder "Edit reply..."
                 , onInput (ReplyEditorBodyChanged replyId)
@@ -1083,7 +1085,8 @@ expandedReplyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> PostEdi
 expandedReplyComposerView spaceId currentUser post spaceUsers editor =
     let
         config =
-            { spaceId = spaceId
+            { editor = editor
+            , spaceId = spaceId
             , spaceUsers = spaceUsers
             , onFileAdded = NewReplyFileAdded
             , onFileUploadProgress = NewReplyFileUploadProgress
@@ -1111,7 +1114,7 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
                     [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea
-                            [ id (PostEditor.getId editor)
+                            [ id (PostEditor.getTextareaId editor)
                             , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                             , placeholder "Write a reply..."
                             , onInput NewReplyBodyChanged

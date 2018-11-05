@@ -152,7 +152,7 @@ setup model =
     let
         pageCmd =
             Cmd.batch
-                [ setFocus (PostEditor.getId model.postComposer) NoOp
+                [ setFocus (PostEditor.getTextareaId model.postComposer) NoOp
                 , setupSockets model.groupId
                 , PostEditor.fetchLocal model.postComposer
                 ]
@@ -315,13 +315,11 @@ update msg globals model =
 
         NewPostSubmitted (Ok ( newSession, response )) ->
             let
-                newPostComposer =
+                ( newPostComposer, cmd ) =
                     model.postComposer
                         |> PostEditor.reset
             in
-            ( ( { model | postComposer = newPostComposer }
-              , PostEditor.saveLocal newPostComposer
-              )
+            ( ( { model | postComposer = newPostComposer }, cmd )
             , { globals | session = newSession }
             )
 
@@ -925,7 +923,8 @@ newPostView : Id -> PostEditor -> SpaceUser -> List SpaceUser -> Html Msg
 newPostView spaceId editor currentUser spaceUsers =
     let
         config =
-            { spaceId = spaceId
+            { editor = editor
+            , spaceId = spaceId
             , spaceUsers = spaceUsers
             , onFileAdded = NewPostFileAdded
             , onFileUploadProgress = NewPostFileUploadProgress
@@ -940,7 +939,7 @@ newPostView spaceId editor currentUser spaceUsers =
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
                 , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
-                        [ id (PostEditor.getId editor)
+                        [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged

@@ -30,6 +30,12 @@ customElements.define(
       this.setupMentions();
       this._dragging_over = false;
       this._spaceUsers = [];
+
+      this.addEventListener("bodyChanged", this.handleBodyChanged);
+      this.addEventListener("focus", e => {
+        let textarea = this.querySelector("textarea");
+        if (textarea) textarea.focus();
+      });
     }
 
     /**
@@ -38,6 +44,7 @@ customElements.define(
     disconnectedCallback() {
       this.teardownAutosize();
       this.teardownMentions();
+      this.removeEventListener("bodyChanged", this.handleBodyChanged);
     }
 
     get spaceUsers() {
@@ -177,6 +184,13 @@ customElements.define(
           this.handleDataTransfer(dt);
         }
       });
+    }
+
+    handleBodyChanged() {
+      let textarea = this.querySelector("textarea");
+      if (textarea) {
+        autosize.update(textarea);
+      };
     }
 
     /**

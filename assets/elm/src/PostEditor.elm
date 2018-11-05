@@ -1,10 +1,10 @@
 module PostEditor exposing
     ( PostEditor, init
-    , getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
+    , getId, getTextareaId, getBody, getErrors, setBody, setErrors, clearErrors, reset
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
     , getFiles, getUploadIds, getFileById, addFile, setFiles, setFileUploadPercentage, setFileState
     , Event(..), receive, decoder, decodeEvent
-    , insertAtCursor, insertFileLink, fetchLocal, saveLocal, clearLocal
+    , insertAtCursor, insertFileLink, fetchLocal, saveLocal, clearLocal, triggerBodyChanged
     , ViewConfig, wrapper, filesView
     )
 
@@ -18,7 +18,7 @@ module PostEditor exposing
 
 # General
 
-@docs getId, getBody, getErrors, setBody, setErrors, clearErrors, reset
+@docs getId, getTextareaId, getBody, getErrors, setBody, setErrors, clearErrors, reset
 
 
 # Visual Settings
@@ -38,7 +38,7 @@ module PostEditor exposing
 
 # Outbound Commands
 
-@docs insertAtCursor, insertFileLink, fetchLocal, saveLocal, clearLocal
+@docs insertAtCursor, insertFileLink, fetchLocal, saveLocal, clearLocal, triggerBodyChanged
 
 
 # Views
@@ -91,6 +91,11 @@ getId (PostEditor internal) =
     internal.id
 
 
+getTextareaId : PostEditor -> Id
+getTextareaId (PostEditor internal) =
+    internal.id ++ "__textarea"
+
+
 getBody : PostEditor -> String
 getBody (PostEditor internal) =
     internal.body
@@ -116,13 +121,22 @@ clearErrors (PostEditor internal) =
     PostEditor { internal | errors = [] }
 
 
-reset : PostEditor -> PostEditor
+reset : PostEditor -> ( PostEditor, Cmd msg )
 reset editor =
-    editor
-        |> setBody ""
-        |> setNotSubmitting
-        |> setFiles []
-        |> clearErrors
+    let
+        newEditor =
+            editor
+                |> setBody ""
+                |> setNotSubmitting
+                |> setFiles []
+                |> clearErrors
+    in
+    ( newEditor
+    , Cmd.batch
+        [ saveLocal newEditor
+        , triggerBodyChanged newEditor
+        ]
+    )
 
 
 
@@ -336,12 +350,22 @@ clearLocal editor =
             ]
 
 
+triggerBodyChanged : PostEditor -> Cmd msg
+triggerBodyChanged editor =
+    Ports.postEditorOut <|
+        Encode.object
+            [ ( "id", Id.encoder (getId editor) )
+            , ( "command", Encode.string "triggerBodyChanged" )
+            ]
+
+
 
 -- VIEW
 
 
 type alias ViewConfig msg =
-    { spaceId : Id
+    { editor : PostEditor
+    , spaceId : Id
     , spaceUsers : List SpaceUser
     , onFileAdded : File -> msg
     , onFileUploadProgress : Id -> Int -> msg
@@ -354,7 +378,8 @@ type alias ViewConfig msg =
 wrapper : ViewConfig msg -> List (Html msg) -> Html msg
 wrapper config children =
     Html.node "post-editor"
-        [ property "spaceId" (Id.encoder config.spaceId)
+        [ id (getId config.editor)
+        , property "spaceId" (Id.encoder config.spaceId)
         , property "spaceUsers" (spaceUsersEncoder config.spaceUsers)
         , on "fileAdded" <|
             Decode.map config.onFileAdded

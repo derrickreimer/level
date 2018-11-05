@@ -273,13 +273,14 @@ export const attachPorts = app => {
 
     requestAnimationFrame(() => {
       let node = document.getElementById(args.id);
+      let textarea = document.getElementById(args.id + "__textarea");
       let storage = window.localStorage;
       const key = "level:postEditor:" + args.id;
-      if (!node) return;
+      if (!node || !textarea) return;
 
       switch (args.command) {
         case "insertAtCursor":
-          insertTextAtCursor(node, args.text);
+          insertTextAtCursor(textarea, args.text);
           break;
 
         case "saveLocal":
@@ -312,6 +313,10 @@ export const attachPorts = app => {
           app.ports.postEditorIn.send(payload);
           logEvent("postEditorIn")(payload);
 
+          break;
+
+        case "triggerBodyChanged":
+          node.dispatchEvent(new CustomEvent("bodyChanged", {}));
           break;
       }
     });
