@@ -114,7 +114,9 @@ refreshIfExpired : Session -> Posix -> Task Error Session
 refreshIfExpired session now =
     case session.payload of
         Ok payload ->
-            if toFloat (Time.posixToMillis now) >= payload.exp * 1000 then
+            -- Shorten the expiration window by 1 minute to account for
+            -- potential clock drift between client and server
+            if toFloat (Time.posixToMillis now) >= (payload.exp * 1000 - 60000) then
                 fetchNewToken session
 
             else
