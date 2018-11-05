@@ -794,7 +794,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                     ]
             , div [ class "sticky flex items-baseline mx-4 mb-4 border-b" ]
                 [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
-                , filterTab "Closed" Route.Group.Closed (closedParams model.params) model.params
+                , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
             , postsView repo model.params data.space data.viewer model.now model.postComps spaceUsers
             , sidebarView model.params data.group data.featuredMembers
