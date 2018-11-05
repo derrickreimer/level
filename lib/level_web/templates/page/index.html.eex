@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-md">
     <h1 class="marketing-headline">Team communication optimized for deep work.</h1>
 
-    <img src="<%= static_path(@conn, "/images/marketing/sarah.jpg") %>"
+    <img src="<%= static_url(@conn, "/images/marketing/sarah.jpg") %>"
          alt="Sarah"
          class="sm:float-right -mr-16 sm:pl-12 pb-8 pt-8"
          style="width: 280px; transform: rotate(2deg);" />
@@ -21,7 +21,7 @@
   </div>
 
   <div class="mx-auto" style="max-width: 1132px;">
-    <img src="<%= static_path(@conn, "/images/marketing/sarah-inbox.png") %>"
+    <img src="<%= static_url(@conn, "/images/marketing/sarah-inbox.png") %>"
          alt="Sarah's inbox"
          class="marketing-screenshot" />
   </div>
@@ -37,7 +37,7 @@
   </div>
 
   <div class="mx-auto" style="max-width: 656px;">
-    <img src="<%= static_path(@conn, "/images/marketing/lisa-to-sarah.png") %>"
+    <img src="<%= static_url(@conn, "/images/marketing/lisa-to-sarah.png") %>"
          alt="Lisa's reply to Sarah"
          class="marketing-screenshot" />
   </div>
@@ -47,7 +47,7 @@
   </div>
 
   <div class="mx-auto" style="max-width: 656px;">
-    <img src="<%= static_path(@conn, "/images/marketing/reply-to-lisa.png") %>"
+    <img src="<%= static_url(@conn, "/images/marketing/reply-to-lisa.png") %>"
          alt="Sarah's reply to Lisa"
          class="marketing-screenshot" />
   </div>
@@ -58,7 +58,7 @@
   </div>
 
   <div class="mx-auto" style="max-width: 1132px;">
-    <img src="<%= static_path(@conn, "/images/marketing/sarah-activity.png") %>"
+    <img src="<%= static_url(@conn, "/images/marketing/sarah-activity.png") %>"
          alt="Sarah's activity feed"
          class="marketing-screenshot" />
   </div>
@@ -70,7 +70,7 @@
   </div>
 
   <div class="mx-auto" style="max-width: 665px;">
-    <img src="<%= static_path(@conn, "/images/marketing/mark-resolved.png") %>"
+    <img src="<%= static_url(@conn, "/images/marketing/mark-resolved.png") %>"
          alt="Sarah marks the post as resolved"
          class="marketing-screenshot" />
   </div>

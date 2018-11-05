@@ -26,8 +26,8 @@
     <title>Level</title>
     <% end %>
 
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
-    <link rel="icon" type="image/png" href="<%= static_path(@conn, "/images/favicon.png") %>">
+    <link rel="stylesheet" href="<%= static_url(@conn, "/css/app.css") %>">
+    <link rel="icon" type="image/png" href="<%= static_url(@conn, "/images/favicon.png") %>">
 
     <script>
     window['_fs_debug'] = false;
@@ -69,6 +69,6 @@
     <div class="font-sans font-antialised" data-stretchy-filter=".js-stretchy">
       <%= render @view_module, @view_template, assigns %>
     </div>
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <script src="<%= static_url(@conn, "/js/app.js") %>"></script>
   </body>
 </html>
