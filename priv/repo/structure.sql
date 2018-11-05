@@ -267,6 +267,22 @@ CREATE TABLE public.bots (
 
 
 --
+-- Name: digest_posts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.digest_posts (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    digest_id uuid NOT NULL,
+    digest_section_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    rank integer NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: digest_sections; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -279,7 +295,7 @@ CREATE TABLE public.digest_sections (
     summary_html text,
     link_text text,
     link_url text,
-    rank integer,
+    rank integer NOT NULL,
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -759,6 +775,14 @@ ALTER TABLE ONLY public.bots
 
 
 --
+-- Name: digest_posts digest_posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.digest_posts
+    ADD CONSTRAINT digest_posts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: digest_sections digest_sections_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1234,6 +1258,38 @@ CREATE TRIGGER update_search_vector BEFORE INSERT OR UPDATE ON public.posts FOR 
 --
 
 CREATE TRIGGER update_search_vector BEFORE INSERT OR UPDATE ON public.replies FOR EACH ROW EXECUTE PROCEDURE public.replies_search_vector_trigger();
+
+
+--
+-- Name: digest_posts digest_posts_digest_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.digest_posts
+    ADD CONSTRAINT digest_posts_digest_id_fkey FOREIGN KEY (digest_id) REFERENCES public.digests(id);
+
+
+--
+-- Name: digest_posts digest_posts_digest_section_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.digest_posts
+    ADD CONSTRAINT digest_posts_digest_section_id_fkey FOREIGN KEY (digest_section_id) REFERENCES public.digest_sections(id);
+
+
+--
+-- Name: digest_posts digest_posts_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.digest_posts
+    ADD CONSTRAINT digest_posts_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: digest_posts digest_posts_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.digest_posts
+    ADD CONSTRAINT digest_posts_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
 
 
 --
@@ -1808,5 +1864,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328), (20181105203544);
 
