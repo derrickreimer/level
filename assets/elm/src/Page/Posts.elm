@@ -396,7 +396,7 @@ postView repo spaceUsers model data component =
 sidebarView : Space -> List SpaceUser -> Html Msg
 sidebarView space featuredUsers =
     View.SpaceLayout.rightSidebar
-        [ h3 [ class "mb-2 text-base font-extrabold" ]
+        [ h3 [ class "mb-2 text-lg font-extrabold" ]
             [ a
                 [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
                 , class "flex items-center text-dusty-blue-darkest no-underline"
