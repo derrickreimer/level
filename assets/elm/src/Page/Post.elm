@@ -570,7 +570,7 @@ postStateButton isChangingState post =
                 , onClick ClosePostClicked
                 , disabled isChangingState
                 ]
-                [ text "Mark as closed" ]
+                [ text "Mark as resolved" ]
 
         Post.Closed ->
             button

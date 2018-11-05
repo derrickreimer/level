@@ -321,7 +321,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                     ]
                 , div [ class "flex items-baseline" ]
                     [ filterTab "Open" Route.Posts.Open (openParams model.params) model.params
-                    , filterTab "Closed" Route.Posts.Closed (closedParams model.params) model.params
+                    , filterTab "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
             , postsView repo spaceUsers model data

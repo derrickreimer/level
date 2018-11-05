@@ -1068,7 +1068,7 @@ replyComposerView spaceId currentUser post spaceUsers model =
             [ div [ class "flex items-center my-3" ]
                 [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
                 , div [ class "flex-grow leading-semi-loose" ]
-                    [ span [ class "text-dusty-blue-dark" ] [ text "This post is closed" ]
+                    [ span [ class "text-dusty-blue-dark" ] [ text "This post is marked as resolved" ]
                     ]
                 ]
             ]
