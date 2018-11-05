@@ -1,6 +1,6 @@
 <div class="flex pb-16 sm:pb-24 items-center text-xl leading-normal">
   <%= link to: page_path(@conn, :index), class: "logo logo-md" do %>
-    <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
+    <%= img_tag(static_url(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
   <% end %>
 
   <div class="flex flex-grow justify-start sm:justify-end">

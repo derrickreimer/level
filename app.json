@@ -46,6 +46,10 @@
       "description": "The domain via which to send transaction emails (typically the same as LEVEL_HOST).",
       "value": ""
     },
+    "LEVEL_CDN_HOST": {
+      "description": "The host for the CDN for serving static assets (like Level's CSS and application JS).",
+      "value": ""
+    },
     "LEVEL_SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"

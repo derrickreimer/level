@@ -95,6 +95,10 @@ The following environment variables must be set in production:
       <td>The domain on which you are serving the app (used for generating URLs).</td>
     </tr>
     <tr>
+      <td><code>LEVEL_CDN_HOST</code></td>
+      <td>The host for the CDN for serving static assets (like Level's CSS and application JS).</td>
+    </tr>
+    <tr>
       <td><code>LEVEL_MAILER_HOST</code></td>
       <td>The domain via which to send transaction emails (usually same as <code>LEVEL_HOST</code>).</td>
     </tr>

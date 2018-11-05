@@ -11,7 +11,7 @@
     <div class="w-full">
       <div class="mb-8 flex justify-center">
         <%= link to: page_path(@conn, :index), class: "logo" do %>
-          <%= img_tag(static_path(@conn, "/images/logo-md.svg"), alt: "Level") %>
+          <%= img_tag(static_url(@conn, "/images/logo-md.svg"), alt: "Level") %>
         <% end %>
       </div>
 
