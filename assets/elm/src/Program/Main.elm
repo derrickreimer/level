@@ -667,7 +667,11 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         InboxInit (Ok result) ->
-            perform Page.Inbox.setup Inbox InboxMsg model result
+            let
+                ( newGlobals, pageModel ) =
+                    result
+            in
+            perform (Page.Inbox.setup newGlobals) Inbox InboxMsg model result
 
         InboxInit (Err Session.Expired) ->
             ( model, Route.toLogin )

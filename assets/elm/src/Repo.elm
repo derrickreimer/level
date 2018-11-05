@@ -7,7 +7,7 @@ module Repo exposing
     , getSpaceBot, setSpaceBot
     , getActor, setActor
     , getGroup, getGroups, setGroup, setGroups
-    , getPost, setPost, setPosts
+    , getPost, getPosts, setPost, setPosts
     , getReply, getReplies, setReply, setReplies
     )
 
@@ -56,7 +56,7 @@ module Repo exposing
 
 # Posts
 
-@docs getPost, setPost, setPosts
+@docs getPost, getPosts, setPost, setPosts
 
 
 # Replies
@@ -259,9 +259,14 @@ setGroups groups repo =
 -- POSTS
 
 
-getPost : String -> Repo -> Maybe Post
+getPost : Id -> Repo -> Maybe Post
 getPost id (Repo data) =
     Dict.get id data.posts
+
+
+getPosts : List Id -> Repo -> List Post
+getPosts ids repo =
+    List.filterMap (\id -> getPost id repo) ids
 
 
 setPost : Post -> Repo -> Repo
