@@ -7,6 +7,7 @@ defmodule Level.DigestsTest do
   describe "build/2" do
     test "stores digest metadata" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
+
       start_at = one_day_ago()
       end_at = Timex.now()
 
@@ -24,6 +25,7 @@ defmodule Level.DigestsTest do
 
     test "summarizes inbox activity when there are no unreads" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
+
       {:ok, digest} = Digests.build(space_user, daily_opts())
 
       [inbox_section | _] = digest.sections
@@ -32,6 +34,7 @@ defmodule Level.DigestsTest do
 
     test "summarizes inbox activity when there are unread posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
+
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
       Posts.mark_as_unread(space_user, [post])

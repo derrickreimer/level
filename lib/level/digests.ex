@@ -86,13 +86,22 @@ defmodule Level.Digests do
     summary = "You have #{unread_snippet} in your inbox."
     summary_html = "You have <strong>#{unread_snippet}</strong> in your inbox."
 
-    section =
+    record =
       insert_digest_section!(digest, %{
         title: "Inbox Highlights",
         summary: summary,
         summary_html: summary_html,
         rank: 1
       })
+
+    section = %Section{
+      title: record.title,
+      summary: record.summary,
+      summary_html: record.summary_html,
+      link_text: record.link_text,
+      link_url: record.link_url,
+      posts: []
+    }
 
     [section | sections]
   end
@@ -118,26 +127,15 @@ defmodule Level.Digests do
   end
 
   defp assemble_digest({:ok, data}) do
-    sections =
-      Enum.map(data.sections, fn section ->
-        %Section{
-          title: section.title,
-          summary: section.summary,
-          summary_html: section.summary_html,
-          link_text: section.link_text,
-          link_url: section.link_url,
-          posts: []
-        }
-      end)
+    digest = %Digest{
+      id: data.digest.id,
+      title: data.digest.title,
+      sections: data.sections,
+      start_at: data.digest.start_at,
+      end_at: data.digest.end_at
+    }
 
-    {:ok,
-     %Digest{
-       id: data.digest.id,
-       title: data.digest.title,
-       sections: sections,
-       start_at: data.digest.start_at,
-       end_at: data.digest.end_at
-     }}
+    {:ok, digest}
   end
 
   defp assemble_digest(_) do
