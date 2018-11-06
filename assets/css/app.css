@@ -492,3 +492,7 @@ post-editor.dragging-over > * {
 .outline-grey {
   box-shadow: 0 0 0 1px config('colors.grey');
 }
+
+.tilt-2deg {
+  transform: rotate(2deg);
+}

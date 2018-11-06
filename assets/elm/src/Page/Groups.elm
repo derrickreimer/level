@@ -203,8 +203,14 @@ groupsView repo params space groupIds =
                 |> partitionGroups []
     in
     if List.isEmpty partitions then
-        div [ class "p-2 text-center" ]
-            [ text "Wowza! This space does not have any groups yet." ]
+        case Route.Groups.getState params of
+            Route.Groups.Open ->
+                div [ class "p-2 text-center" ]
+                    [ text "Wowza! This space does not have any groups yet." ]
+
+            Route.Groups.Closed ->
+                div [ class "p-2 text-center" ]
+                    [ text "There are no closed groups to show." ]
 
     else
         div [ class "leading-semi-loose" ]

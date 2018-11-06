@@ -4,10 +4,10 @@
 
     <img src="<%= static_url(@conn, "/images/marketing/sarah.jpg") %>"
          alt="Sarah"
-         class="sm:float-right -mr-16 sm:pl-12 pb-8 pt-8"
-         style="width: 280px; transform: rotate(2deg);" />
+         class="sm:float-right -mr-16 sm:pl-12 pb-8 pt-8 tilt-2deg"
+         style="width: 280px;" />
 
-    <p>Meet Sarah, the founder of the CoffeeKit and waffle lover. CoffeeKit helps boutique coffee shops manage their business operations.</p>
+    <p>Meet Sarah, the founder of CoffeeKit and waffle lover. CoffeeKit helps boutique coffee shops manage their business operations.</p>
     <p>The year is 2018 and coffee hipsterdom is spreading like a stream of espresso exiting a portafilter at 9 bars of pressure.</p>
     <p>Mustache wax and fedora hats are in short supply.</p>
     <p>If you were to be dropped into any American urban city from outer space, you&rsquo;d think you were in Portland, Oregon.</p>

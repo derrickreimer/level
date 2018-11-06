@@ -192,7 +192,7 @@ formView model =
             ]
         , button
             [ type_ "submit"
-            , class "btn btn-blue mb-4"
+            , class "btn btn-blue font-extrabold mb-4"
             , onClick Submit
             , disabled (model.formState == Submitting)
             ]
