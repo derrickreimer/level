@@ -33,13 +33,18 @@
     <%= if assigns[:og] do %>
     <meta property="og:title" content="<%= @og.title %>">
     <meta property="og:type" content="text/html">
-    <meta property="og:image" content="https://level.app<%= static_url(@conn, @og.image) %>">
+    <meta property="og:image" content="<%= static_url(@conn, @og.image) %>">
     <meta property="og:description" content="<%= @og.description %>">
     <meta property="og:url" content="<%= @og.url %>">
     <% end %>
 
     <link rel="stylesheet" href="<%= static_url(@conn, "/css/app.css") %>">
-    <link rel="icon" type="image/png" href="<%= static_url(@conn, "/images/favicon.png") %>">
+
+    <link rel="shortcut icon" href="<%= static_url(@conn, "/favicon.ico") %>" />
+    <link rel="apple-touch-icon" sizes="180x180" href="<%= static_url(@conn, "/apple-touch-icon.png") %>">
+    <link rel="manifest" href="<%= static_url(@conn, "/site.webmanifest") %>">
+    <meta name="msapplication-TileColor" content="#12C1D5">
+    <meta name="theme-color" content="#ffffff">
   </head>
 
   <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal text-xl bg-turquoise selection-turquoise"  data-stretchy-filter=".js-stretchy">

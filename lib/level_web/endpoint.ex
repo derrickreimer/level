@@ -14,7 +14,8 @@ defmodule LevelWeb.Endpoint do
     at: "/",
     from: :level,
     gzip: true,
-    only: ~w(css fonts images js favicon.ico robots.txt service-worker.js),
+    only_matching:
+      ~w(css fonts images js robots.txt service-worker.js favicon android apple mstile safari browserconfig.xml site.webmanifest),
     headers: [{"access-control-allow-origin", "*"}]
 
   # Code reloading can be explicitly enabled under the
