@@ -5,8 +5,6 @@ defmodule Level.Posts.Query do
 
   import Ecto.Query
 
-  alias Ecto.Query
-  alias Level.Repo
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.SpaceUser
@@ -54,6 +52,8 @@ defmodule Level.Posts.Query do
   """
   @spec count(Ecto.Query.t()) :: Ecto.Query.t()
   def count(query) do
-    from [p, ...] in query, select: count(p.id)
+    from [p, ...] in query,
+      select: count(p.id),
+      group_by: p.id
   end
 end

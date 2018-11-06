@@ -30,7 +30,16 @@ defmodule Level.Schemas.DigestSection do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :digest_id, :title, :summary, :summary_html, :link_text, :link_url])
+    |> cast(attrs, [
+      :space_id,
+      :digest_id,
+      :title,
+      :summary,
+      :summary_html,
+      :link_text,
+      :link_url,
+      :rank
+    ])
     |> validate_required([:title])
   end
 end
