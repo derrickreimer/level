@@ -22,7 +22,15 @@ defmodule Level.DigestsTest do
       assert digest.end_at == DateTime.to_naive(end_at)
     end
 
-    test "summarizes inbox activity" do
+    test "summarizes inbox activity when there are no unreads" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, digest} = Digests.build(space_user, daily_opts())
+
+      [inbox_section | _] = digest.sections
+      assert inbox_section.summary =~ ~r/You have 0 unread posts in your inbox/
+    end
+
+    test "summarizes inbox activity when there are unread posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)

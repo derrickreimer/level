@@ -52,8 +52,7 @@ defmodule Level.Posts.Query do
   """
   @spec count(Ecto.Query.t()) :: Ecto.Query.t()
   def count(query) do
-    from [p, ...] in query,
-      select: count(p.id),
-      group_by: p.id
+    from p in subquery(query),
+      select: fragment("count(*)")
   end
 end
