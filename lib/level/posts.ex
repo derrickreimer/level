@@ -10,6 +10,7 @@ defmodule Level.Posts do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Markdown
+  alias Level.Posts
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
   alias Level.Posts.UpdatePost
@@ -50,30 +51,9 @@ defmodule Level.Posts do
   @doc """
   Builds a query for posts accessible to a particular user.
   """
-  @spec posts_base_query(User.t()) :: Ecto.Query.t()
-  def posts_base_query(%User{id: user_id} = _user) do
-    from p in Post,
-      join: su in SpaceUser,
-      on: su.space_id == p.space_id and su.user_id == ^user_id,
-      left_join: g in assoc(p, :groups),
-      left_join: gu in GroupUser,
-      on: gu.space_user_id == su.id and gu.group_id == g.id,
-      left_join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == su.id,
-      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
-      distinct: p.id
-  end
-
-  @spec posts_base_query(SpaceUser.t()) :: Ecto.Query.t()
-  def posts_base_query(%SpaceUser{id: space_user_id} = _space_user) do
-    from p in Post,
-      left_join: g in assoc(p, :groups),
-      left_join: gu in GroupUser,
-      on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
-      left_join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == ^space_user_id,
-      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
-      distinct: p.id
+  @spec posts_base_query(User.t() | SpaceUser.t()) :: Ecto.Query.t()
+  def posts_base_query(user) do
+    Posts.Query.base_query(user)
   end
 
   @doc """
