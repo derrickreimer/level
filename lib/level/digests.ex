@@ -3,6 +3,8 @@ defmodule Level.Digests do
   The Digests context.
   """
 
+  require Ecto.Query
+
   alias Ecto.Multi
   alias Level.Digests.Digest
   alias Level.Digests.Section
@@ -86,44 +88,44 @@ defmodule Level.Digests do
     summary = "You have #{unread_snippet} in your inbox."
     summary_html = "You have <strong>#{unread_snippet}</strong> in your inbox."
 
-    record =
-      insert_digest_section!(digest, %{
+    section_record =
+      insert_section!(digest, %{
         title: "Inbox Highlights",
         summary: summary,
         summary_html: summary_html,
         rank: 1
       })
 
+    posts = highlighted_inbox_posts(space_user)
+    insert_post_snapshots!(digest, section_record, posts)
+
     section = %Section{
-      title: record.title,
-      summary: record.summary,
-      summary_html: record.summary_html,
-      link_text: record.link_text,
-      link_url: record.link_url,
-      posts: []
+      title: section_record.title,
+      summary: section_record.summary,
+      summary_html: section_record.summary_html,
+      link_text: section_record.link_text,
+      link_url: section_record.link_url,
+      posts: posts
     }
 
     [section | sections]
   end
 
-  defp insert_digest_section!(digest, params) do
-    params =
-      Map.merge(params, %{
-        space_id: digest.space_id,
-        digest_id: digest.id
-      })
-
-    %Schemas.DigestSection{}
-    |> Schemas.DigestSection.create_changeset(params)
-    |> Repo.insert!()
-  end
-
   defp unread_inbox_count(space_user) do
     space_user
     |> Posts.Query.base_query()
-    |> Posts.Query.where_is_unread()
+    |> Posts.Query.where_unread_in_inbox()
     |> Posts.Query.count()
     |> Repo.one()
+  end
+
+  defp highlighted_inbox_posts(space_user) do
+    space_user
+    |> Posts.Query.base_query()
+    |> Posts.Query.where_undismissed_in_inbox()
+    |> Posts.Query.select_last_activity_at()
+    |> Ecto.Query.limit(5)
+    |> Repo.all()
   end
 
   defp assemble_digest({:ok, data}) do
@@ -148,5 +150,41 @@ defmodule Level.Digests do
     else
       "#{count} #{plural}"
     end
+  end
+
+  # Private persistence functions
+
+  defp insert_section!(digest, params) do
+    params =
+      Map.merge(params, %{
+        space_id: digest.space_id,
+        digest_id: digest.id
+      })
+
+    %Schemas.DigestSection{}
+    |> Schemas.DigestSection.create_changeset(params)
+    |> Repo.insert!()
+  end
+
+  defp insert_post_snapshots!(digest, section, posts) do
+    posts
+    |> Enum.with_index()
+    |> Enum.map(fn {post, rank} ->
+      insert_post_snapshot!(digest, section, post, rank)
+    end)
+  end
+
+  defp insert_post_snapshot!(digest, section, post, rank) do
+    params = %{
+      space_id: digest.space_id,
+      digest_id: digest.id,
+      digest_section_id: section.id,
+      post_id: post.id,
+      rank: rank
+    }
+
+    %Schemas.DigestPost{}
+    |> Schemas.DigestPost.create_changeset(params)
+    |> Repo.insert!()
   end
 end

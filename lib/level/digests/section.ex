@@ -3,7 +3,7 @@ defmodule Level.Digests.Section do
   A section in a digest.
   """
 
-  alias Level.Digests.Post
+  alias Level.Schemas.Post
 
   defstruct [:title, :summary, :summary_html, :link_text, :link_url, :posts]
 

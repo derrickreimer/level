@@ -43,6 +43,10 @@ defmodule Level.DigestsTest do
 
       [inbox_section | _] = digest.sections
       assert inbox_section.summary =~ ~r/You have 1 unread post in your inbox/
+
+      assert Enum.any?(inbox_section.posts, fn section_post ->
+               section_post.id == post.id
+             end)
     end
   end
 

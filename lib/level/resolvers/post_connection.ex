@@ -65,13 +65,15 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp build_base_query(user, %Space{id: space_id}) do
-    from [p, su, g, gu] in Posts.posts_base_query(user),
-      where: p.space_id == ^space_id
+    user
+    |> Posts.Query.base_query()
+    |> Posts.Query.where_in_space(space_id)
   end
 
   defp build_base_query(user, %Group{id: group_id}) do
-    from [p, su, g, gu] in Posts.posts_base_query(user),
-      where: g.id == ^group_id
+    user
+    |> Posts.Query.base_query()
+    |> Posts.Query.where_in_group(group_id)
   end
 
   defp process_args(%{order_by: %{field: :posted_at} = order_by} = args) do
@@ -81,56 +83,41 @@ defmodule Level.Resolvers.PostConnection do
   defp process_args(args), do: args
 
   defp apply_activity(base_query, %{order_by: %{field: :last_activity_at}}) do
-    from [p, su, g, gu] in base_query,
-      left_join: pl in assoc(p, :post_logs),
-      group_by: p.id,
-      select_merge: %{last_activity_at: max(pl.occurred_at)}
+    Posts.Query.select_last_activity_at(base_query)
   end
 
   defp apply_activity(base_query, _), do: base_query
 
   defp apply_following_state(base_query, %{filter: %{following_state: :is_following}}) do
-    from [p, su, g, gu] in base_query,
-      left_join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == su.id,
-      where: not is_nil(gu.id) or pu.subscription_state == "SUBSCRIBED",
-      group_by: p.id
+    Posts.Query.where_is_following(base_query)
   end
 
   defp apply_following_state(base_query, _), do: base_query
 
   defp apply_inbox_state(base_query, %{filter: %{inbox_state: :unread}}) do
-    from [p, su, g, gu] in base_query,
-      join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == su.id and pu.inbox_state == "UNREAD"
+    Posts.Query.where_unread_in_inbox(base_query)
   end
 
   defp apply_inbox_state(base_query, %{filter: %{inbox_state: :read}}) do
-    from [p, su, g, gu] in base_query,
-      join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == su.id and pu.inbox_state == "READ"
+    Posts.Query.where_read_in_inbox(base_query)
   end
 
   defp apply_inbox_state(base_query, %{filter: %{inbox_state: :undismissed}}) do
-    from [p, su, g, gu] in base_query,
-      join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == su.id and (pu.inbox_state == "UNREAD" or pu.inbox_state == "READ")
+    Posts.Query.where_undismissed_in_inbox(base_query)
   end
 
   defp apply_inbox_state(base_query, %{filter: %{inbox_state: :dismissed}}) do
-    from [p, su, g, gu] in base_query,
-      join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == su.id and pu.inbox_state == "DISMISSED"
+    Posts.Query.where_dismissed_from_inbox(base_query)
   end
 
   defp apply_inbox_state(base_query, _), do: base_query
 
   defp apply_state(base_query, %{filter: %{state: :open}}) do
-    from [p, su, g, gu] in base_query, where: p.state == "OPEN"
+    Posts.Query.where_open(base_query)
   end
 
   defp apply_state(base_query, %{filter: %{state: :closed}}) do
-    from [p, su, g, gu] in base_query, where: p.state == "CLOSED"
+    Posts.Query.where_closed(base_query)
   end
 
   defp apply_state(base_query, _), do: base_query
