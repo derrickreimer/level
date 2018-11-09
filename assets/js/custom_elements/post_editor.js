@@ -93,7 +93,8 @@ customElements.define(
         },
         fillAttr: "handle",
         menuContainer: this,
-        positionMenu: false
+        positionMenu: false,
+        allowSpaces: false
       });
 
       this._tribute.attach(textarea);
@@ -102,6 +103,13 @@ customElements.define(
       // updates the textarea value to prevent Elm from clobbering it.
       textarea.addEventListener("tribute-replaced", e => {
         textarea.dispatchEvent(new CustomEvent("input", {}));
+      });
+
+      // Close the tribute menu when active and a space is entered.
+      textarea.addEventListener("input", e => {
+        if (!this._tribute) return;
+        if (!this._tribute.isActive) return;
+        if (e.data === " ") this._tribute.hideMenu();
       });
     }
 
