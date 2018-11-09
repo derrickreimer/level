@@ -1,40 +1,51 @@
 <table class="py-10px w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td class="w-40px align-top" valign="top" width="40">
-      <img src="./avatar.jpg" alt="Author" class="avatar" />
+      <%= if has_avatar?(@post.author) do %>
+        <img src="<%= avatar_url(@post.author) %>" alt="Author" class="avatar" />
+      <% end %>
     </td>
     <td>
-      <p class="mb-0"><strong class="text-sm">Derrick Reimer</strong> <span class="ml-2 text-dusty-blue text-xs">11:20 am</span></p>
+      <p class="mb-0">
+        <strong class="text-sm"><%= display_name(@post.author) %></strong>
+        <span class="ml-2 text-dusty-blue text-xs"><%= timestamp(@post) %></span>
+      </p>
 
       <!-- Post Body -->
       <table class="text-sm w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td>
-            <p>I just pushed a change out to the Inbox. There’s nothing like authoring some documentation to make your realize the confusing spots in the app.</p>
+            <%= render_body(@post) %>
           </td>
         </tr>
       </table>
 
-      <!-- Reply -->
-      <table class="py-10x w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td class="w-40px align-top" valign="top">
-            <img src="./avatar.jpg" alt="Author" class="avatar" />
-          </td>
-          <td>
-            <p class="mb-0"><strong class="text-sm">Derrick Reimer</strong></p>
+      <!-- Replies -->
+      <%= for reply <- @post.recent_replies do %>
+        <table class="py-10x w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="w-40px align-top" valign="top">
+              <%= if has_avatar?(reply_author(reply)) do %>
+                <img src="<%= avatar_url(reply_author(reply)) %>" alt="Author" class="avatar" />
+              <% end %>
+            </td>
+            <td>
+              <p class="mb-0">
+                <strong class="text-sm"><%= display_name(reply_author(reply)) %></strong>
+              </p>
 
-            <!-- Reply Body -->
-            <table class="text-sm w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td>
-                  <p>Cool cool.</p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
+              <!-- Reply Body -->
+              <table class="text-sm w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <%= render_body(reply) %>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      <% end %>
     </td>
   </tr>
 </table>

@@ -5,8 +5,11 @@ defmodule Level.Digests do
 
   require Ecto.Query
 
+  import LevelWeb.Router.Helpers
+
   alias Ecto.Multi
   alias Level.Digests.Digest
+  alias Level.Digests.Post
   alias Level.Digests.Section
   alias Level.Email
   alias Level.Mailer
@@ -51,11 +54,24 @@ defmodule Level.Digests do
   """
   @spec build(SpaceUser.t(), opts()) :: {:ok, Digest.t()} | {:error, String.t()}
   def build(%SpaceUser{} = space_user, opts) do
+    space_user =
+      space_user
+      |> Repo.preload(:space)
+
     Multi.new()
     |> insert_digest(space_user, opts)
     |> insert_sections(space_user, opts)
     |> Repo.transaction()
     |> assemble_digest(space_user)
+  end
+
+  @doc """
+  Sends a compiled digest email.
+  """
+  def send_email(%Digest{} = digest) do
+    digest
+    |> Email.digest()
+    |> Mailer.deliver_now()
   end
 
   defp insert_digest(multi, space_user, opts) do
@@ -90,15 +106,27 @@ defmodule Level.Digests do
     summary = "You have #{unread_snippet} in your inbox."
     summary_html = "You have <strong>#{unread_snippet}</strong> in your inbox."
 
+    link_url =
+      main_url(LevelWeb.Endpoint, :index, [
+        space_user.space.slug,
+        "inbox"
+      ])
+
     section_record =
       insert_section!(digest, %{
         title: "Inbox Highlights",
         summary: summary,
         summary_html: summary_html,
+        link_text: "View my inbox",
+        link_url: link_url,
         rank: 1
       })
 
-    posts = highlighted_inbox_posts(space_user)
+    posts =
+      space_user
+      |> highlighted_inbox_posts()
+      |> assemble_posts()
+
     insert_post_snapshots!(digest, section_record, posts)
 
     section = %Section{
@@ -111,6 +139,10 @@ defmodule Level.Digests do
     }
 
     [section | sections]
+  end
+
+  defp assemble_posts(posts) do
+    Enum.map(posts, fn post -> Post.build(post) end)
   end
 
   defp unread_inbox_count(space_user) do
@@ -194,14 +226,5 @@ defmodule Level.Digests do
     %Schemas.DigestPost{}
     |> Schemas.DigestPost.create_changeset(params)
     |> Repo.insert!()
-  end
-
-  @doc """
-  Sends a compiled digest email.
-  """
-  def send_email(%Digest{} = digest) do
-    digest
-    |> Email.digest()
-    |> Mailer.deliver_now()
   end
 end
