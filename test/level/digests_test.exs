@@ -1,7 +1,10 @@
 defmodule Level.DigestsTest do
   use Level.DataCase, async: true
+  use Bamboo.Test
 
   alias Level.Digests
+  alias Level.Digests.Digest
+  alias Level.Email
   alias Level.Posts
 
   describe "build/2" do
@@ -47,6 +50,23 @@ defmodule Level.DigestsTest do
       assert Enum.any?(inbox_section.posts, fn section_post ->
                section_post.id == post.id
              end)
+    end
+  end
+
+  describe "send_email/1" do
+    test "delivers the digest" do
+      digest = %Digest{
+        id: "xxxx",
+        title: "Your Daily Digest",
+        subject: "[Level] Your Daily Digest",
+        to_email: "derrick@level.app",
+        sections: [],
+        start_at: Timex.to_datetime({{2018, 11, 1}, {10, 0, 0}}, "America/Chicago"),
+        end_at: Timex.to_datetime({{2018, 11, 2}, {10, 0, 0}}, "America/Chicago")
+      }
+
+      Digests.send_email(digest)
+      assert_delivered_email(Email.digest(digest))
     end
   end
 

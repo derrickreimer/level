@@ -1,0 +1,40 @@
+<table class="py-10px w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td class="w-40px align-top" valign="top" width="40">
+      <img src="./avatar.jpg" alt="Author" class="avatar" />
+    </td>
+    <td>
+      <p class="mb-0"><strong class="text-sm">Derrick Reimer</strong> <span class="ml-2 text-dusty-blue text-xs">11:20 am</span></p>
+
+      <!-- Post Body -->
+      <table class="text-sm w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <p>I just pushed a change out to the Inbox. There’s nothing like authoring some documentation to make your realize the confusing spots in the app.</p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Reply -->
+      <table class="py-10x w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="w-40px align-top" valign="top">
+            <img src="./avatar.jpg" alt="Author" class="avatar" />
+          </td>
+          <td>
+            <p class="mb-0"><strong class="text-sm">Derrick Reimer</strong></p>
+
+            <!-- Reply Body -->
+            <table class="text-sm w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <p>Cool cool.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

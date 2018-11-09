@@ -8,6 +8,8 @@ defmodule Level.Digests do
   alias Ecto.Multi
   alias Level.Digests.Digest
   alias Level.Digests.Section
+  alias Level.Email
+  alias Level.Mailer
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas
@@ -53,7 +55,7 @@ defmodule Level.Digests do
     |> insert_digest(space_user, opts)
     |> insert_sections(space_user, opts)
     |> Repo.transaction()
-    |> assemble_digest()
+    |> assemble_digest(space_user)
   end
 
   defp insert_digest(multi, space_user, opts) do
@@ -128,10 +130,16 @@ defmodule Level.Digests do
     |> Repo.all()
   end
 
-  defp assemble_digest({:ok, data}) do
+  defp assemble_digest({:ok, data}, space_user) do
+    space_user =
+      space_user
+      |> Repo.preload(:user)
+
     digest = %Digest{
       id: data.digest.id,
       title: data.digest.title,
+      subject: data.digest.title,
+      to_email: space_user.user.email,
       sections: data.sections,
       start_at: data.digest.start_at,
       end_at: data.digest.end_at
@@ -140,7 +148,7 @@ defmodule Level.Digests do
     {:ok, digest}
   end
 
-  defp assemble_digest(_) do
+  defp assemble_digest(_, _) do
     {:error, "An unexpected error occurred"}
   end
 
@@ -186,5 +194,14 @@ defmodule Level.Digests do
     %Schemas.DigestPost{}
     |> Schemas.DigestPost.create_changeset(params)
     |> Repo.insert!()
+  end
+
+  @doc """
+  Sends a compiled digest email.
+  """
+  def send_email(%Digest{} = digest) do
+    digest
+    |> Email.digest()
+    |> Mailer.deliver_now()
   end
 end
