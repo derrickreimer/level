@@ -999,8 +999,8 @@ sidebarView params group featuredMembers =
                 (Route.Group.getGroupId params)
     in
     View.SpaceLayout.rightSidebar
-        [ h3 [ class "flex items-center mb-2 text-lg font-extrabold" ]
-            [ text "Members"
+        [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
+            [ text "Group Members"
 
             -- Hide this for now while private groups are disabled
             , viewIf False <|
