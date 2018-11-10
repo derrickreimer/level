@@ -7,6 +7,7 @@ defmodule Level.Schemas.DigestSection do
   import Ecto.Changeset
 
   alias Level.Schemas.Digest
+  alias Level.Schemas.DigestPost
   alias Level.Schemas.Space
 
   @type t :: %__MODULE__{}
@@ -23,6 +24,7 @@ defmodule Level.Schemas.DigestSection do
 
     belongs_to :space, Space
     belongs_to :digest, Digest
+    has_many :digest_posts, DigestPost
 
     timestamps()
   end

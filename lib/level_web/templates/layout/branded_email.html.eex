@@ -262,10 +262,10 @@
 
             <!-- Body -->
             <tr>
-              <td class="m-0 p-0 w-full cell-0 border-b-grey bg-white" width="100%" cellpadding="0" cellspacing="0">
+              <td class="m-0 p-0 w-full cell-0 bg-white" width="100%" cellpadding="0" cellspacing="0">
                 <table class="container-570" align="center" width="570" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td class="p-25x35">
+                    <td class="p-25x35 border-b-grey">
                       <%= render @view_module, @view_template, assigns %>
                     </td>
                   </tr>

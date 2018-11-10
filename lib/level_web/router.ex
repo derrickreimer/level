@@ -89,9 +89,11 @@ defmodule LevelWeb.Router do
     forward "/sent_emails", Bamboo.SentEmailViewerPlug
   end
 
-  # Important: this must be the last route defined
   scope "/", LevelWeb do
     pipe_through :authenticated_browser
+    get "/digests/:space_id/:digest_id", DigestController, :show
+
+    # Important: this must be the last route defined
     get "/*path", MainController, :index
   end
 

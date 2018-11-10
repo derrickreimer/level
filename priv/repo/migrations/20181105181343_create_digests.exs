@@ -10,6 +10,8 @@ defmodule Level.Repo.Migrations.CreateDigests do
         null: false
 
       add :title, :text, null: false
+      add :subject, :text, null: false
+      add :to_email, :text, null: false
       add :start_at, :naive_datetime, null: false
       add :end_at, :naive_datetime, null: false
 
