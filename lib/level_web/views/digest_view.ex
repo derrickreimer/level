@@ -32,6 +32,27 @@ defmodule LevelWeb.DigestView do
     AssetStore.avatar_url(user_or_bot.avatar)
   end
 
+  def avatar(user_or_bot) do
+    if has_avatar?(user_or_bot) do
+      raw(~s(<img src="#{avatar_url(user_or_bot)}" alt="Author" class="avatar" />))
+    else
+      initial =
+        user_or_bot
+        |> display_name()
+        |> String.first()
+
+      raw(~s{
+        <table class="w-32px h-32px cell-0" width="32" height="32" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="texitar" width="32" height="32">
+              #{initial}
+            </td>
+          </tr>
+        </table>
+      })
+    end
+  end
+
   def render_body(%Post{} = post) do
     {:ok, rendered_body} = Posts.render_body(post.body)
     raw(rendered_body)

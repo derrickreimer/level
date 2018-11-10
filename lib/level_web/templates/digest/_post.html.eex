@@ -1,9 +1,7 @@
 <table class="py-10px w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td class="w-40px align-top" valign="top" width="40">
-      <%= if has_avatar?(@post.author) do %>
-        <img src="<%= avatar_url(@post.author) %>" alt="Author" class="avatar" />
-      <% end %>
+      <%= avatar(@post.author) %>
     </td>
     <td>
       <p class="mb-0">
@@ -25,9 +23,7 @@
         <table class="py-10x w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td class="w-40px align-top" valign="top">
-              <%= if has_avatar?(reply_author(reply)) do %>
-                <img src="<%= avatar_url(reply_author(reply)) %>" alt="Author" class="avatar" />
-              <% end %>
+              <%= avatar(reply_author(reply)) %>
             </td>
             <td>
               <p class="mb-0">
