@@ -3,7 +3,11 @@ defmodule Level.Uuid do
   Functions for validating uuids.
   """
 
-  @regex ~r/^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/
+  @regex ~r/^(\{){0,1}[0-9a-fA-F]{8}\-
+    [0-9a-fA-F]{4}\-
+    [0-9a-fA-F]{4}\-
+    [0-9a-fA-F]{4}\-
+    [0-9a-fA-F]{12}(\}){0,1}$/ix
 
   @doc """
   Determines if given value is a valid UUID string.
