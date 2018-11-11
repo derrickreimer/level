@@ -10,8 +10,8 @@ defmodule Level.Handles do
   @doc """
   Regex for validating handle format.
   """
-  def handle_format do
-    ~r/^(?>[A-Za-z][A-Za-z0-9-\.]*[A-Za-z0-9])$/
+  def handle_pattern do
+    ~r/^(?>[a-z0-9][a-z0-9-]*)$/ix
   end
 
   @doc """
@@ -22,7 +22,7 @@ defmodule Level.Handles do
     Changeset.validate_format(
       changeset,
       field,
-      handle_format(),
+      handle_pattern(),
       message: dgettext("errors", "must contain letters, numbers, and dashes only")
     )
   end
