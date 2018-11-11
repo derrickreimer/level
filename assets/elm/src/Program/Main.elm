@@ -79,12 +79,14 @@ type alias Model =
     , pushStatus : PushStatus
     , socketState : SocketState
     , spaceUserLists : SpaceUserLists
+    , timeZone : String
     }
 
 
 type alias Flags =
     { apiToken : String
     , supportsNotifications : Bool
+    , timeZone : String
     }
 
 
@@ -124,6 +126,7 @@ buildModel flags navKey =
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
         SpaceUserLists.init
+        flags.timeZone
 
 
 setup : MainInit.Response -> Model -> Cmd Msg
@@ -141,6 +144,11 @@ setup { spaceIds, spaceUserIds } model =
                 |> Task.attempt SpaceUserListsLoaded
     in
     Cmd.batch (spaceSubs ++ spaceUserSubs ++ [ getSpaceUserLists ])
+
+
+buildGlobals : Model -> Globals
+buildGlobals model =
+    Globals model.session model.repo model.navKey model.timeZone
 
 
 
@@ -198,7 +206,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         globals =
-            Globals model.session model.repo model.navKey
+            buildGlobals model
     in
     case ( msg, model.page ) of
         ( UrlChange url, _ ) ->
@@ -486,7 +494,7 @@ navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
         globals =
-            Globals model.session model.repo model.navKey
+            buildGlobals model
     in
     case maybeRoute of
         Nothing ->
@@ -1250,7 +1258,7 @@ sendPresenceToPage event model =
     case model.page of
         Post pageModel ->
             pageModel
-                |> Page.Post.receivePresence event (Globals model.session model.repo model.navKey)
+                |> Page.Post.receivePresence event (buildGlobals model)
                 |> updatePage Post PostMsg model
 
         _ ->
