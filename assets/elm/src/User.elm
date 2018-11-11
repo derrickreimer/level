@@ -22,6 +22,7 @@ type alias Data =
     , lastName : String
     , handle : String
     , avatarUrl : Maybe String
+    , timeZone : Maybe String
     , fetchedAt : Int
     }
 
@@ -37,6 +38,7 @@ fragment =
           lastName
           handle
           avatarUrl
+          timeZone
           fetchedAt
         }
         """
@@ -94,11 +96,12 @@ avatar size (User data) =
 decoder : Decoder User
 decoder =
     Decode.map User <|
-        Decode.map7 Data
+        Decode.map8 Data
             (field "id" Id.decoder)
             (field "email" string)
             (field "firstName" string)
             (field "lastName" string)
             (field "handle" string)
             (field "avatarUrl" (maybe string))
+            (field "timeZone" (maybe string))
             (field "fetchedAt" int)

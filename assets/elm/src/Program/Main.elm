@@ -10,6 +10,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (decodeString)
+import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Page.Group
@@ -46,7 +47,7 @@ import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
 import Url exposing (Url)
-import Util exposing (Lazy(..))
+import User exposing (User)
 import View.Helpers exposing (viewIf)
 
 
@@ -79,6 +80,7 @@ type alias Model =
     , pushStatus : PushStatus
     , socketState : SocketState
     , spaceUserLists : SpaceUserLists
+    , currentUser : Lazy User
     , timeZone : String
     }
 
@@ -126,11 +128,12 @@ buildModel flags navKey =
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
         SpaceUserLists.init
+        NotLoaded
         flags.timeZone
 
 
-setup : MainInit.Response -> Model -> Cmd Msg
-setup { spaceIds, spaceUserIds } model =
+setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
+setup { currentUser, spaceIds, spaceUserIds } model =
     let
         spaceSubs =
             List.map SpaceSubscription.subscribe spaceIds
@@ -143,7 +146,9 @@ setup { spaceIds, spaceUserIds } model =
                 |> GetSpaceUserLists.request
                 |> Task.attempt SpaceUserListsLoaded
     in
-    Cmd.batch (spaceSubs ++ spaceUserSubs ++ [ getSpaceUserLists ])
+    ( { model | currentUser = Loaded currentUser }
+    , Cmd.batch (spaceSubs ++ spaceUserSubs ++ [ getSpaceUserLists ])
+    )
 
 
 buildGlobals : Model -> Globals
@@ -229,9 +234,11 @@ update msg model =
                     ( model, Nav.load href )
 
         ( AppInitialized (Ok ( newSession, response )), _ ) ->
-            ( { model | session = newSession }
-            , setup response model
-            )
+            let
+                ( newModel, cmd ) =
+                    setup response model
+            in
+            ( { newModel | session = newSession }, cmd )
 
         ( AppInitialized (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
