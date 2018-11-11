@@ -31,10 +31,10 @@ defmodule Level.Digests do
   @doc """
   Fetches a digest.
   """
-  def get_digest(%SpaceUser{id: space_user_id}, id) do
+  def get_digest(space_id, digest_id) do
     query =
       from d in Schemas.Digest,
-        where: d.space_user_id == ^space_user_id and d.id == ^id,
+        where: d.space_id == ^space_id and d.id == ^digest_id,
         preload: [digest_sections: [digest_posts: :post]]
 
     query
@@ -233,6 +233,7 @@ defmodule Level.Digests do
   defp assemble_digest(digest, assembled_sections) do
     %Digest{
       id: digest.id,
+      space_id: digest.space_id,
       title: digest.title,
       subject: digest.subject,
       to_email: digest.to_email,

@@ -25,7 +25,8 @@ defmodule Level.EmailTest do
 
   defp build_digest do
     %Digest{
-      id: "xxxx",
+      id: "11111111-1111-1111-1111-111111111111",
+      space_id: "11111111-1111-1111-1111-111111111111",
       title: "Your Daily Digest",
       subject: "Your Daily Digest (subject)",
       to_email: "derrick@level.app",

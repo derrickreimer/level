@@ -7,6 +7,25 @@ defmodule Level.DigestsTest do
   alias Level.Email
   alias Level.Posts
 
+  describe "get_digest/2" do
+    test "fetches by space id and digest id" do
+      {:ok, %{space: space, space_user: space_user}} = create_user_and_space()
+      {:ok, opts} = Digests.daily_opts(Timex.now())
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts)
+
+      assert {:ok, %Digest{id: ^digest_id}} = Digests.get_digest(space.id, digest_id)
+    end
+
+    test "returns an error if space and digest pair do not match" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, opts} = Digests.daily_opts(Timex.now())
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts)
+
+      dummy_id = "11111111-1111-1111-1111-111111111111"
+      assert {:error, _} = Digests.get_digest(dummy_id, digest_id)
+    end
+  end
+
   describe "build/2" do
     test "stores digest metadata" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
@@ -56,7 +75,8 @@ defmodule Level.DigestsTest do
   describe "send_email/1" do
     test "delivers the digest" do
       digest = %Digest{
-        id: "xxxx",
+        id: "11111111-1111-1111-1111-111111111111",
+        space_id: "11111111-1111-1111-1111-111111111111",
         title: "Your Daily Digest",
         subject: "[Level] Your Daily Digest",
         to_email: "derrick@level.app",

@@ -1,2 +1,2 @@
 Follow this link to view your digest:
-[insert permalink]
+<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>

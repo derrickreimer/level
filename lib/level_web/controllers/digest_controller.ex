@@ -4,25 +4,29 @@ defmodule LevelWeb.DigestController do
   use LevelWeb, :controller
 
   alias Level.Digests
-  alias Level.Spaces
+
+  plug LevelWeb.ValidateIds
 
   def show(conn, %{"space_id" => space_id, "digest_id" => digest_id}) do
-    with {:ok, %{space_user: space_user}} <-
-           Spaces.get_space(conn.assigns[:current_user], space_id),
-         {:ok, digest} <- Digests.get_digest(space_user, digest_id) do
-      conn
-      |> assign(:preheader, "")
-      |> assign(:subject, digest.subject)
-      |> assign(:digest, digest)
-      |> put_layout({LevelWeb.LayoutView, "branded_email.html"})
-      |> render("show.html")
-    else
-      _ ->
+    case Digests.get_digest(space_id, digest_id) do
+      {:ok, digest} ->
         conn
-        |> put_status(404)
-        |> put_view(ErrorView)
-        |> render("404.html")
-        |> halt()
+        |> assign(:preheader, "")
+        |> assign(:subject, digest.subject)
+        |> assign(:digest, digest)
+        |> put_layout({LevelWeb.LayoutView, "branded_email.html"})
+        |> render("show.html")
+
+      _ ->
+        render_404(conn)
     end
+  end
+
+  defp render_404(conn) do
+    conn
+    |> put_status(404)
+    |> put_view(LevelWeb.ErrorView)
+    |> render("404.html")
+    |> halt()
   end
 end

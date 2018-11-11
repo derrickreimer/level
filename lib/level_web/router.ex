@@ -61,6 +61,8 @@ defmodule LevelWeb.Router do
 
     get "/svg-to-elm", Util.SvgToElmController, :index
     post "/svg-to-elm", Util.SvgToElmController, :create
+
+    get "/digests/:space_id/:digest_id", DigestController, :show
   end
 
   scope "/" do
@@ -91,7 +93,6 @@ defmodule LevelWeb.Router do
 
   scope "/", LevelWeb do
     pipe_through :authenticated_browser
-    get "/digests/:space_id/:digest_id", DigestController, :show
 
     # Important: this must be the last route defined
     get "/*path", MainController, :index
