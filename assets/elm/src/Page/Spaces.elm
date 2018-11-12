@@ -149,7 +149,7 @@ resolvedView repo model data =
                     ]
                 ]
             , div [ class "pb-6" ]
-                [ label [ class "flex p-4 w-full rounded bg-grey-light" ]
+                [ label [ class "flex items-center p-4 w-full rounded bg-grey-light" ]
                     [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
                     , input
                         [ id "search-input"
