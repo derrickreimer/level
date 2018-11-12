@@ -2,15 +2,13 @@
 
 [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
-Level is an alternative to real-time chat designed for the software development workflow.
+Level is team communication software optimized for deep work.
 
 **Sign up at [level.app](https://level.app)** to reserve your handle and get on the updates list.
 
 ## Project Status
 
-Level is currently in the **pre-launch** phase and under active development by a small team. Most tasks are being tracked offline as the foundations of the product come together, in the interest of rapid development and reaching an alpha stage for teams to start using it as quickly as possible.
-
-As opportunities arise in the future for community contributions, we mark issues accordingly in the GitHub issue tracker.
+Level is currently in the **pre-launch** phase and under active development by [a company of one](https://twitter.com/derrickreimer). Most tasks are being tracked offline as the foundations of the product come together, in the interest of rapid development and reaching an alpha stage for teams to start using it as quickly as possible.
 
 ## Developer Setup
 
