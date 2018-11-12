@@ -67,13 +67,16 @@
 
     <script src="<%= static_url(@conn, "/js/app.js") %>"></script>
 
+    <%= if Application.get_env(:level, :helpscout)[:beacon_id] do %>
     <!-- Help Scout -->
     <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
     <script type="text/javascript">
-      window.Beacon('init', '35093bad-ec79-47de-b0af-4b9bc01136ac');
+      window.Beacon('init', '<%= Application.get_env(:level, :helpscout)[:beacon_id] %>');
     </script>
     <!-- / Help Scout -->
+    <% end %>
 
+    <%= if Application.get_env(:level, :fathom)[:site_id] do %>
     <!-- Fathom - simple website analytics - https://github.com/usefathom/fathom -->
     <script>
     (function(f, a, t, h, o, m){
@@ -85,25 +88,28 @@
     	o.async=1; o.src=t; o.id='fathom-script';
     	m.parentNode.insertBefore(o,m)
     })(document, window, '//level.usesfathom.com/tracker.js', 'fathom');
-    fathom('set', 'siteId', 'EHPCH');
+    fathom('set', 'siteId', '<%= Application.get_env(:level, :fathom)[:site_id] %>');
     fathom('trackPageview');
     </script>
     <!-- / Fathom -->
+    <% end %>
 
+    <% if Application.get_env(:level, :drip)[:account_id] do %>
     <!-- Drip -->
     <script type="text/javascript">
       var _dcq = _dcq || [];
       var _dcs = _dcs || {};
-      _dcs.account = '4267422';
+      _dcs.account = '<%= Application.get_env(:level, :drip)[:account_id] %>';
 
       (function() {
         var dc = document.createElement('script');
         dc.type = 'text/javascript'; dc.async = true;
-        dc.src = '//tag.getdrip.com/4267422.js';
+        dc.src = '//tag.getdrip.com/<%= Application.get_env(:level, :drip)[:account_id] %>.js';
         var s = document.getElementsByTagName('script')[0];
         s.parentNode.insertBefore(dc, s);
       })();
     </script>
     <!-- / Drip -->
+    <% end %>
   </body>
 </html>

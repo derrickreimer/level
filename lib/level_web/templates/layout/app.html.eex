@@ -34,6 +34,8 @@
     <meta name="msapplication-TileColor" content="#12C1D5">
     <meta name="theme-color" content="#ffffff">
 
+    <%= if Application.get_env(:level, :fullstory)[:org] do %>
+    <!-- FullStory -->
     <script>
     window['_fs_debug'] = false;
     window['_fs_host'] = 'fullstory.com';
@@ -51,6 +53,8 @@
         g.clearUserCookie=function(){};
     })(window,document,window['_fs_namespace'],'script','user');
     </script>
+    <!-- / FullStory -->
+    <% end %>
 
     <%= if assigns[:current_user] do %>
       <script>

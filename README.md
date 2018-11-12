@@ -152,9 +152,20 @@ The following environment variables must be set in production:
       <td>A VAPID private key.</td>
     </tr>
   </tbody>
+</table>
+
+The following variables are for non-essential external services.
+
+<table>
+  <thead>
+    <tr>
+      <th>Variable</th>
+      <th>Description</th>
+    </tr>
+  <thead>
   <tbody>
     <tr>
-      <td colspan="2"><strong>Monitoring</strong></td>
+      <td colspan="2"><strong>Exception Monitoring</strong></td>
     </tr>
     <tr>
       <td><code>HONEYBADGER_API_KEY</code></td>
@@ -163,6 +174,40 @@ The following environment variables must be set in production:
     <tr>
       <td><code>HONEYBADGER_JS_API_KEY</code></td>
       <td>The API key for Honeybadger.io exception monitoring (JavaScript).</td>
+    </tr>
+  </tbody>
+
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Analytics</strong></td>
+    </tr>
+    <tr>
+      <td><code>FATHOM_SITE_ID</code></td>
+      <td>The site ID for Fathom Analytics.</td>
+    </tr>
+    <tr>
+      <td><code>FULLSTORY_ORG</code></td>
+      <td>The organization ID for FullStory.</td>
+    </tr>
+  </tbody>
+
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Email Marketing</strong></td>
+    </tr>
+    <tr>
+      <td><code>DRIP_ACCOUNT_ID</code></td>
+      <td>The account ID for Drip.</td>
+    </tr>
+  </tbody>
+
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Support</strong></td>
+    </tr>
+    <tr>
+      <td><code>HELPSCOUT_BEACON_ID</code></td>
+      <td>The Beacon ID for Help Scout.</td>
     </tr>
   </tbody>
 </table>

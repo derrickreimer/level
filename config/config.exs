@@ -28,11 +28,12 @@ config :level, :generators,
   binary_id: true,
   sample_binary_id: "11111111-1111-1111-1111-111111111111"
 
-# Configure js error reporting
-config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY")
-
-# Configure Fullstory reporting
+# Configure external services
+config :level, :drip, account_id: System.get_env("DRIP_ACCOUNT_ID")
+config :level, :fathom, site_id: System.get_env("FATHOM_SITE_ID")
 config :level, :fullstory, org: System.get_env("FULLSTORY_ORG")
+config :level, :helpscout, beacon_id: System.get_env("HELPSCOUT_BEACON_ID")
+config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY")
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
