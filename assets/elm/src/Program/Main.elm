@@ -13,6 +13,7 @@ import Json.Decode as Decode exposing (decodeString)
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
+import Mutation.UpdateUser as UpdateUser
 import Page.Group
 import Page.GroupPermissions
 import Page.Groups
@@ -135,19 +136,38 @@ buildModel flags navKey =
 setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
 setup { currentUser, spaceIds, spaceUserIds } model =
     let
-        spaceSubs =
-            List.map SpaceSubscription.subscribe spaceIds
+        subscribeToSpaces =
+            Cmd.batch <|
+                List.map SpaceSubscription.subscribe spaceIds
 
-        spaceUserSubs =
-            List.map SpaceUserSubscription.subscribe spaceUserIds
+        subscribeToSpaceUsers =
+            Cmd.batch <|
+                List.map SpaceUserSubscription.subscribe spaceUserIds
 
         getSpaceUserLists =
             model.session
                 |> GetSpaceUserLists.request
                 |> Task.attempt SpaceUserListsLoaded
+
+        updateTimeZone =
+            -- Note: It would be better to present the user with a notice that their
+            -- time zone on file differs from the one currently detected in their browser,
+            -- and ask if they want to change it.
+            if User.timeZone currentUser /= model.timeZone then
+                model.session
+                    |> UpdateUser.request (UpdateUser.timeZoneVariables model.timeZone)
+                    |> Task.attempt TimeZoneUpdated
+
+            else
+                Cmd.none
     in
     ( { model | currentUser = Loaded currentUser }
-    , Cmd.batch (spaceSubs ++ spaceUserSubs ++ [ getSpaceUserLists ])
+    , Cmd.batch
+        [ subscribeToSpaces
+        , subscribeToSpaceUsers
+        , getSpaceUserLists
+        , updateTimeZone
+        ]
     )
 
 
@@ -166,6 +186,7 @@ type Msg
     | AppInitialized (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | SpaceUserListsLoaded (Result Session.Error ( Session, GetSpaceUserLists.Response ))
+    | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
@@ -264,6 +285,12 @@ update msg model =
             ( model, Route.toLogin )
 
         ( SpaceUserListsLoaded (Err _), _ ) ->
+            ( model, Cmd.none )
+
+        ( TimeZoneUpdated (Ok ( newSession, UpdateUser.Success newUser )), _ ) ->
+            ( { model | currentUser = Loaded newUser, session = newSession }, Cmd.none )
+
+        ( TimeZoneUpdated _, _ ) ->
             ( model, Cmd.none )
 
         ( PageInitialized pageInit, _ ) ->

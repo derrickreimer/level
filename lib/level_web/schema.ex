@@ -61,6 +61,7 @@ defmodule LevelWeb.Schema do
       arg :last_name, :string
       arg :handle, :string
       arg :email, :string
+      arg :time_zone, :string
 
       resolve &Level.Mutations.update_user/2
     end

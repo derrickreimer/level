@@ -1,4 +1,4 @@
-module Mutation.UpdateUser exposing (Response(..), request)
+module Mutation.UpdateUser exposing (Response(..), request, settingsVariables, timeZoneVariables)
 
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
@@ -23,13 +23,15 @@ document =
           $firstName: String,
           $lastName: String,
           $handle: String,
-          $email: String
+          $email: String,
+          $timeZone: String
         ) {
           updateUser(
             firstName: $firstName,
             lastName: $lastName,
             handle: $handle,
-            email: $email
+            email: $email,
+            timeZone: $timeZone
           ) {
             ...ValidationFields
             user {
@@ -43,14 +45,22 @@ document =
         ]
 
 
-variables : String -> String -> String -> String -> Maybe Encode.Value
-variables firstName lastName handle email =
+settingsVariables : String -> String -> String -> String -> Maybe Encode.Value
+settingsVariables firstName lastName handle email =
     Just <|
         Encode.object
             [ ( "firstName", Encode.string firstName )
             , ( "lastName", Encode.string lastName )
             , ( "handle", Encode.string handle )
             , ( "email", Encode.string email )
+            ]
+
+
+timeZoneVariables : String -> Maybe Encode.Value
+timeZoneVariables timeZone =
+    Just <|
+        Encode.object
+            [ ( "timeZone", Encode.string timeZone )
             ]
 
 
@@ -82,7 +92,7 @@ decoder =
         |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> String -> String -> Session -> Task Session.Error ( Session, Response )
-request firstName lastName handle email session =
+request : Maybe Encode.Value -> Session -> Task Session.Error ( Session, Response )
+request maybeVariables session =
     Session.request session <|
-        GraphQL.request document (variables firstName lastName handle email) decoder
+        GraphQL.request document maybeVariables decoder

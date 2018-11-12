@@ -6,18 +6,21 @@ defmodule LevelWeb.GraphQL.UpdateUserTest do
     mutation UpdateUser(
       $first_name: String,
       $last_name: String,
-      $email: String
+      $email: String,
+      $time_zone: String
     ) {
       updateUser(
         firstName: $first_name,
         lastName: $last_name,
-        email: $email
+        email: $email,
+        timeZone: $time_zone
       ) {
         success
         user {
           firstName
           lastName
           email
+          timeZone
         }
         errors {
           attribute
@@ -28,7 +31,9 @@ defmodule LevelWeb.GraphQL.UpdateUserTest do
   """
 
   setup %{conn: conn} do
-    {:ok, %{user: user, space: space, space_user: space_user}} = create_user_and_space()
+    {:ok, %{user: user, space: space, space_user: space_user}} =
+      create_user_and_space(%{time_zone: "Etc/UTC"})
+
     conn = authenticate_with_jwt(conn, user)
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
@@ -48,12 +53,25 @@ defmodule LevelWeb.GraphQL.UpdateUserTest do
                  "user" => %{
                    "firstName" => "Saint",
                    "lastName" => "Paul",
-                   "email" => "paul@gmail.com"
+                   "email" => "paul@gmail.com",
+                   "timeZone" => "Etc/UTC"
                  },
                  "errors" => []
                }
              }
            }
+  end
+
+  test "updates time zone", %{conn: conn} do
+    variables = %{time_zone: "America/Chicago"}
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert resp = json_response(conn, 200)
+    assert resp["data"]["updateUser"]["user"]["timeZone"] == "America/Chicago"
   end
 
   test "returns validation errors given invalid data", %{conn: conn} do

@@ -140,9 +140,12 @@ update msg globals model =
 
         Submit ->
             let
+                variables =
+                    UpdateUser.settingsVariables model.firstName model.lastName model.handle model.email
+
                 cmd =
                     globals.session
-                        |> UpdateUser.request model.firstName model.lastName model.handle model.email
+                        |> UpdateUser.request variables
                         |> Task.attempt Submitted
             in
             ( ( { model | isSubmitting = True, errors = [] }, cmd ), globals )
