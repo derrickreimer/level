@@ -94,7 +94,7 @@
     <!-- / Fathom -->
     <% end %>
 
-    <% if Application.get_env(:level, :drip)[:account_id] do %>
+    <%= if Application.get_env(:level, :drip)[:account_id] do %>
     <!-- Drip -->
     <script type="text/javascript">
       var _dcq = _dcq || [];
