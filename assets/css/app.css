@@ -360,7 +360,11 @@ post-editor.dragging-over > * {
 }
 
 .marketing-screenshot {
-  @apply block rounded border-grey outline-grey my-8 max-w-full w-auto h-auto;
+  @apply block rounded border-grey max-w-full w-auto h-auto;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 0 0 1px config('colors.grey'), 0 0 50px 5px rgba(0,0,0,0.12);
+
 }
 
 .marketing-long-form p {
