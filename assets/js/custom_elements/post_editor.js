@@ -198,7 +198,7 @@ customElements.define(
       let textarea = this.querySelector("textarea");
       if (textarea) {
         autosize.update(textarea);
-      };
+      }
     }
 
     /**

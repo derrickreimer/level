@@ -1,4 +1,4 @@
-module Program.Reservation exposing (Model, Msg(..), subscriptions, update, view)
+port module Program.Reservation exposing (Model, Msg(..), subscriptions, update, view)
 
 import Browser
 import Html exposing (..)
@@ -82,7 +82,14 @@ update msg model =
             ( { model | formState = Submitting }, submit model )
 
         Submitted (Ok _) ->
-            ( { model | formState = PostSubmit }, Cmd.none )
+            let
+                args =
+                    Encode.object
+                        [ ( "email", Encode.string model.email )
+                        , ( "handle", Encode.string model.handle )
+                        ]
+            in
+            ( { model | formState = PostSubmit }, afterSubmit args )
 
         Submitted (Err (Http.BadStatus resp)) ->
             case decodeString failureDecoder resp.body of
@@ -318,3 +325,10 @@ buildBody model =
 failureDecoder : Decode.Decoder (List ValidationError)
 failureDecoder =
     Decode.field "errors" (Decode.list ValidationError.decoder)
+
+
+
+-- PORTS
+
+
+port afterSubmit : Encode.Value -> Cmd msg
