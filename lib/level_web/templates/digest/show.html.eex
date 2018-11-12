@@ -1,0 +1,17 @@
+<!-- Header -->
+<table class="border-b-grey w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td>
+      <h1 class="font-extrabold text-dusty-blue-darkest text-xl"><%= @digest.title %></h1>
+      <p class="text-dusty-blue-dark">
+        <span><%= Timex.format!(@digest.end_at, "{WDfull}, {Mfull} {D}, {YYYY}") %></span>
+        <span class="ml-2 text-dusty-blue text-sm">@ <%= Timex.format!(@digest.end_at, "{h12}:{m} {am}") %></span>
+      </p>
+    </td>
+  </tr>
+</table>
+
+<!-- Sections -->
+<%= for section <- @digest.sections do %>
+  <%= render LevelWeb.DigestView, "_section.html", %{section: section, digest: @digest} %>
+<% end %>

@@ -1,0 +1,2 @@
+Follow this link to view your digest:
+<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>

@@ -1,0 +1,1 @@
+<%= render LevelWeb.DigestView, "show.html", assigns %>

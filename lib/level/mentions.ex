@@ -17,7 +17,7 @@ defmodule Level.Mentions do
   @doc """
   The pattern for matching handles in a body of text.
   """
-  def handle_pattern do
+  def mention_pattern do
     ~r/
       (?:^|\W)                    # beginning of string or non-word char
       @((?>[a-z0-9][a-z0-9-]*))   # at-handle
@@ -63,7 +63,7 @@ defmodule Level.Mentions do
   end
 
   defp do_record(body, post, reply_id, author_id) do
-    handle_pattern()
+    mention_pattern()
     |> Regex.run(body, capture: :all_but_first)
     |> process_handles(post, reply_id, author_id)
   end

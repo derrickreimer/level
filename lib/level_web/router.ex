@@ -61,6 +61,8 @@ defmodule LevelWeb.Router do
 
     get "/svg-to-elm", Util.SvgToElmController, :index
     post "/svg-to-elm", Util.SvgToElmController, :create
+
+    get "/digests/:space_id/:digest_id", DigestController, :show
   end
 
   scope "/" do
@@ -89,9 +91,10 @@ defmodule LevelWeb.Router do
     forward "/sent_emails", Bamboo.SentEmailViewerPlug
   end
 
-  # Important: this must be the last route defined
   scope "/", LevelWeb do
     pipe_through :authenticated_browser
+
+    # Important: this must be the last route defined
     get "/*path", MainController, :index
   end
 

@@ -9,10 +9,12 @@ import Session exposing (Session)
 import Space exposing (Space, setupStateDecoder)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import User exposing (User)
 
 
 type alias Response =
-    { spaceIds : List Id
+    { currentUser : User
+    , spaceIds : List Id
     , spaceUserIds : List Id
     }
 
@@ -23,6 +25,7 @@ document =
         """
         query MainInit {
           viewer {
+            ...UserFields
             spaceUsers(
               first: 100
             ) {
@@ -38,7 +41,8 @@ document =
           }
         }
         """
-        []
+        [ User.fragment
+        ]
 
 
 variables : Maybe Encode.Value
@@ -48,10 +52,11 @@ variables =
 
 decoder : Decoder Response
 decoder =
-    Decode.at [ "data", "viewer", "spaceUsers", "edges" ] <|
-        Decode.map2 Response
-            (list (Decode.at [ "node", "space", "id" ] Id.decoder))
-            (list (Decode.at [ "node", "id" ] Id.decoder))
+    Decode.at [ "data", "viewer" ] <|
+        Decode.map3 Response
+            User.decoder
+            (Decode.at [ "spaceUsers", "edges" ] (list (Decode.at [ "node", "space", "id" ] Id.decoder)))
+            (Decode.at [ "spaceUsers", "edges" ] (list (Decode.at [ "node", "id" ] Id.decoder)))
 
 
 request : Session -> Task Session.Error ( Session, Response )

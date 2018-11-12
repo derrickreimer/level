@@ -61,6 +61,7 @@ defmodule LevelWeb.Schema do
       arg :last_name, :string
       arg :handle, :string
       arg :email, :string
+      arg :time_zone, :string
 
       resolve &Level.Mutations.update_user/2
     end
@@ -280,6 +281,14 @@ defmodule LevelWeb.Schema do
       arg :post_ids, non_null(list_of(:id))
 
       resolve &Level.Mutations.mark_as_unread/2
+    end
+
+    @desc "Marks posts as read in a user's inbox."
+    field :mark_as_read, type: :mark_as_unread_payload do
+      arg :space_id, non_null(:id)
+      arg :post_ids, non_null(list_of(:id))
+
+      resolve &Level.Mutations.mark_as_read/2
     end
 
     @desc "Registers a push subscription."

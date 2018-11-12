@@ -1,0 +1,21 @@
+<table class="w-full cell-0 border-b-grey last:border-none" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td class="py-20px">
+      <h2 class="font-extrabold text-dusty-blue-darkest text-lg"><%= @section.title %></h2>
+      <p><%= raw(@section.summary_html) %></p>
+
+      <!-- Posts -->
+      <%= for post <- @section.posts do %>
+        <%= render LevelWeb.DigestView, "_post.html", %{digest: @digest, post: post} %>
+      <% end %>
+
+      <table>
+        <tr>
+          <td>
+            <a href="<%= @section.link_url %>" class="btn" target="_blank"><%= @section.link_text %></a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

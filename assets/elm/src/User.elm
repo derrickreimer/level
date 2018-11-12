@@ -1,4 +1,4 @@
-module User exposing (User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, handle, id, lastName)
+module User exposing (User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, handle, id, lastName, timeZone)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -22,6 +22,7 @@ type alias Data =
     , lastName : String
     , handle : String
     , avatarUrl : Maybe String
+    , timeZone : String
     , fetchedAt : Int
     }
 
@@ -37,6 +38,7 @@ fragment =
           lastName
           handle
           avatarUrl
+          timeZone
           fetchedAt
         }
         """
@@ -72,6 +74,11 @@ handle (User data) =
     data.handle
 
 
+timeZone : User -> String
+timeZone (User data) =
+    data.timeZone
+
+
 avatarUrl : User -> Maybe String
 avatarUrl (User data) =
     data.avatarUrl
@@ -94,11 +101,12 @@ avatar size (User data) =
 decoder : Decoder User
 decoder =
     Decode.map User <|
-        Decode.map7 Data
+        Decode.map8 Data
             (field "id" Id.decoder)
             (field "email" string)
             (field "firstName" string)
             (field "lastName" string)
             (field "handle" string)
             (field "avatarUrl" (maybe string))
+            (field "timeZone" string)
             (field "fetchedAt" int)

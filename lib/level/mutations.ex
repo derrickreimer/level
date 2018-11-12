@@ -599,6 +599,26 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Marks posts as read.
+  """
+  @spec mark_as_read(map(), info()) ::
+          {:ok, %{success: boolean(), posts: [Posts.Post.t()] | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+  def mark_as_read(
+        %{space_id: space_id, post_ids: post_ids},
+        %{context: %{current_user: user}}
+      ) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
+         {:ok, posts} <- Posts.get_posts(user, post_ids),
+         {:ok, read_posts} <- Posts.mark_as_read(space_user, posts) do
+      {:ok, %{success: true, posts: read_posts, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
   Registers a push subscription.
   """
   @spec register_push_subscription(map(), info()) ::

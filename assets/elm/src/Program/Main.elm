@@ -10,8 +10,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (decodeString)
+import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
+import Mutation.UpdateUser as UpdateUser
 import Page.Group
 import Page.GroupPermissions
 import Page.Groups
@@ -46,7 +48,7 @@ import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
 import Url exposing (Url)
-import Util exposing (Lazy(..))
+import User exposing (User)
 import View.Helpers exposing (viewIf)
 
 
@@ -79,12 +81,15 @@ type alias Model =
     , pushStatus : PushStatus
     , socketState : SocketState
     , spaceUserLists : SpaceUserLists
+    , currentUser : Lazy User
+    , timeZone : String
     }
 
 
 type alias Flags =
     { apiToken : String
     , supportsNotifications : Bool
+    , timeZone : String
     }
 
 
@@ -124,23 +129,51 @@ buildModel flags navKey =
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
         SpaceUserLists.init
+        NotLoaded
+        flags.timeZone
 
 
-setup : MainInit.Response -> Model -> Cmd Msg
-setup { spaceIds, spaceUserIds } model =
+setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
+setup { currentUser, spaceIds, spaceUserIds } model =
     let
-        spaceSubs =
-            List.map SpaceSubscription.subscribe spaceIds
+        subscribeToSpaces =
+            Cmd.batch <|
+                List.map SpaceSubscription.subscribe spaceIds
 
-        spaceUserSubs =
-            List.map SpaceUserSubscription.subscribe spaceUserIds
+        subscribeToSpaceUsers =
+            Cmd.batch <|
+                List.map SpaceUserSubscription.subscribe spaceUserIds
 
         getSpaceUserLists =
             model.session
                 |> GetSpaceUserLists.request
                 |> Task.attempt SpaceUserListsLoaded
+
+        updateTimeZone =
+            -- Note: It would be better to present the user with a notice that their
+            -- time zone on file differs from the one currently detected in their browser,
+            -- and ask if they want to change it.
+            if User.timeZone currentUser /= model.timeZone then
+                model.session
+                    |> UpdateUser.request (UpdateUser.timeZoneVariables model.timeZone)
+                    |> Task.attempt TimeZoneUpdated
+
+            else
+                Cmd.none
     in
-    Cmd.batch (spaceSubs ++ spaceUserSubs ++ [ getSpaceUserLists ])
+    ( { model | currentUser = Loaded currentUser }
+    , Cmd.batch
+        [ subscribeToSpaces
+        , subscribeToSpaceUsers
+        , getSpaceUserLists
+        , updateTimeZone
+        ]
+    )
+
+
+buildGlobals : Model -> Globals
+buildGlobals model =
+    Globals model.session model.repo model.navKey model.timeZone
 
 
 
@@ -153,6 +186,7 @@ type Msg
     | AppInitialized (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | SpaceUserListsLoaded (Result Session.Error ( Session, GetSpaceUserLists.Response ))
+    | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
     | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
     | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
@@ -198,7 +232,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         globals =
-            Globals model.session model.repo model.navKey
+            buildGlobals model
     in
     case ( msg, model.page ) of
         ( UrlChange url, _ ) ->
@@ -221,9 +255,11 @@ update msg model =
                     ( model, Nav.load href )
 
         ( AppInitialized (Ok ( newSession, response )), _ ) ->
-            ( { model | session = newSession }
-            , setup response model
-            )
+            let
+                ( newModel, cmd ) =
+                    setup response model
+            in
+            ( { newModel | session = newSession }, cmd )
 
         ( AppInitialized (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
@@ -249,6 +285,12 @@ update msg model =
             ( model, Route.toLogin )
 
         ( SpaceUserListsLoaded (Err _), _ ) ->
+            ( model, Cmd.none )
+
+        ( TimeZoneUpdated (Ok ( newSession, UpdateUser.Success newUser )), _ ) ->
+            ( { model | currentUser = Loaded newUser, session = newSession }, Cmd.none )
+
+        ( TimeZoneUpdated _, _ ) ->
             ( model, Cmd.none )
 
         ( PageInitialized pageInit, _ ) ->
@@ -486,7 +528,7 @@ navigateTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 navigateTo maybeRoute model =
     let
         globals =
-            Globals model.session model.repo model.navKey
+            buildGlobals model
     in
     case maybeRoute of
         Nothing ->
@@ -667,7 +709,11 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         InboxInit (Ok result) ->
-            perform Page.Inbox.setup Inbox InboxMsg model result
+            let
+                ( newGlobals, pageModel ) =
+                    result
+            in
+            perform (Page.Inbox.setup newGlobals) Inbox InboxMsg model result
 
         InboxInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -1246,7 +1292,7 @@ sendPresenceToPage event model =
     case model.page of
         Post pageModel ->
             pageModel
-                |> Page.Post.receivePresence event (Globals model.session model.repo model.navKey)
+                |> Page.Post.receivePresence event (buildGlobals model)
                 |> updatePage Post PostMsg model
 
         _ ->

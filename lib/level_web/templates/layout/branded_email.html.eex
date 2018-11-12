@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title><%= @subject %></title>
+    <style type="text/css" rel="stylesheet" media="all">
+
+    /* Base */
+
+    *:not(br):not(tr):not(html) {
+      font-family: system-ui, BlinkMacSystemFont, -apple-system, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Arial, sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100% !important;
+      height: 100%;
+      margin: 0;
+      line-height: 1.4;
+      background-color: #fff;
+      color: #374b61;
+      -webkit-text-size-adjust: none;
+    }
+
+    p,
+    ul,
+    ol,
+    blockquote {
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    a {
+      color: #4b73e1;
+    }
+
+    a img {
+      border: none;
+    }
+
+    td {
+      word-break: break-word;
+    }
+
+    .preheader {
+      display: none !important;
+      visibility: hidden;
+      mso-hide: all;
+      font-size: 1px;
+      line-height: 1px;
+      max-height: 0;
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    /* Buttons */
+
+    .btn {
+      background-color: #4b73e1;
+      border-top: 8px solid #4b73e1;
+      border-right: 20px solid #4b73e1;
+      border-bottom: 8px solid #4b73e1;
+      border-left: 20px solid #4b73e1;
+      display: inline-block;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 9999px;
+      -webkit-text-size-adjust: none;
+      font-size: 14px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    /* Typography */
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 34px;
+      text-align: left;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #22384c;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    p {
+      margin-top: 0;
+      color: #374b61;
+      line-height: 1.5em;
+      text-align: left;
+    }
+
+    /* Utilities */
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+    }
+
+    .texitar {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+      background-color: #8a98a5;
+      vertical-align: middle;
+      text-align: center;
+      font-size: 14px;
+      color: #fff;
+      font-weight: bold;
+      line-height: 0;
+    }
+
+    .text-xl {
+      font-size: 34px;
+    }
+
+    .text-lg {
+      font-size: 22px;
+    }
+
+    .text-base {
+      font-size: 16px;
+    }
+
+    .text-sm {
+      font-size: 14px;
+    }
+
+    .text-xs {
+      font-size: 13px;
+    }
+
+    .text-dusty-blue {
+      color: #8a98a5;
+    }
+
+    .text-dusty-blue-dark {
+      color: #50667a;
+    }
+
+    .text-dusty-blue-darker {
+      color: #374b61;
+    }
+
+    .text-dusty-blue-darkest {
+      color: #22384c;
+    }
+
+    .text-white {
+      color: #fff;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .font-bold {
+      font-weight: 600;
+    }
+
+    .font-extrabold {
+      font-weight: 800;
+    }
+
+    .m-0 {
+      margin: 0;
+    }
+
+    .p-0 {
+      padding: 0;
+    }
+
+    .mb-0 {
+      margin-bottom: 0;
+    }
+
+    .ml-2 {
+      margin-left: 4px;
+    }
+
+    .py-10px {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .py-20px {
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+
+    .p-24x30 {
+      padding: 24px 30px;
+    }
+
+    .p-25x35 {
+      padding: 25px 35px;
+    }
+
+    .w-32px {
+      width: 32px;
+    }
+
+    .w-40px {
+      width: 40px;
+    }
+
+    .w-full {
+      width: 100%;
+      -premailer-width: 100%;
+    }
+
+    .h-32px {
+      height: 32px;
+    }
+
+    .align-top {
+      vertical-align: top;
+    }
+
+    .align-middle {
+      vertical-align: middle;
+    }
+
+    .cell-0 {
+      -premailer-cellpadding: 0;
+      -premailer-cellspacing: 0;
+    }
+
+    .bg-white {
+      background-color: #fff;
+    }
+
+    .bg-dusty-blue {
+      background-color: #8a98a5;
+    }
+
+    .border-b-grey {
+      border-bottom: 1px solid #e2e6e8;
+    }
+
+    .last\:border-none:last-child {
+      border: 0;
+    }
+
+    .container-570 {
+      width: 570px;
+      margin: 0 auto;
+      padding: 0;
+      -premailer-width: 570px;
+      -premailer-cellpadding: 0;
+      -premailer-cellspacing: 0;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .container-570 {
+        width: 100% !important;
+      }
+    }
+    </style>
+  </head>
+
+  <body class="text-base">
+    <span class="preheader"><%= @preheader %></span>
+    <table class="bg-white m-0 p-0 w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center">
+          <table class="m-0 p-0 w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+
+            <!-- Masthead -->
+            <tr>
+              <td>
+                <table class="container-570" align="center" width="570" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td class="p-24x30">
+                      <a href="https://level.app/" style="width: 90px;">
+                        <img src="<%= static_url(LevelWeb.Endpoint, "/images/logo-200.png") %>" alt="Level" style="width: 90px;">
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td class="m-0 p-0 w-full cell-0 bg-white" width="100%" cellpadding="0" cellspacing="0">
+                <table class="container-570" align="center" width="570" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td class="p-25x35 border-b-grey">
+                      <%= render @view_module, @view_template, assigns %>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td>
+                <table class="container-570" align="center" width="570" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td class="p-25x35 text-center" align="center">
+                      <p class="sub text-center text-dusty-blue text-xs">
+                        &copy; 2018 Level Technologies, LLC
+                        <br>5123 W 98th St #1025
+                        <br>Minneapolis, MN 55437
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

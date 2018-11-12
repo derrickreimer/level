@@ -70,7 +70,7 @@ defmodule Level.Markdown do
   defp build_link(url), do: ~s(<a href="#{url}">#{url}</a>)
 
   defp highlight_mentions(text) do
-    Regex.replace(Mentions.handle_pattern(), text, fn match, handle ->
+    Regex.replace(Mentions.mention_pattern(), text, fn match, handle ->
       String.replace(match, "@#{handle}", ~s(<strong class="user-mention">@#{handle}</strong>))
     end)
   end

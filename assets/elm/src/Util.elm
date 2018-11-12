@@ -1,13 +1,8 @@
-module Util exposing (Lazy(..), dateDecoder, postWithCsrfToken)
+module Util exposing (dateDecoder, postWithCsrfToken)
 
 import Http
 import Json.Decode as Decode exposing (Decoder, andThen, fail, string, succeed)
 import Time exposing (Posix)
-
-
-type Lazy a
-    = NotLoaded
-    | Loaded a
 
 
 

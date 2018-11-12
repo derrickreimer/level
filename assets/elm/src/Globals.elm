@@ -9,4 +9,5 @@ type alias Globals =
     { session : Session
     , repo : Repo
     , navKey : Nav.Key
+    , timeZone : String
     }

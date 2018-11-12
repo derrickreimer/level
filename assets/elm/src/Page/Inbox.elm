@@ -17,6 +17,7 @@ import Json.Encode as Encode
 import KeyboardShortcuts
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissPosts as DismissPosts
+import Mutation.MarkAsRead as MarkAsRead
 import Pagination
 import Post exposing (Post)
 import PushManager
@@ -124,8 +125,8 @@ buildPostComponent params ( postId, replyIds ) =
     Component.Post.init Component.Post.Feed True (Route.Inbox.getSpaceSlug params) postId replyIds
 
 
-setup : Model -> Cmd Msg
-setup model =
+setup : Globals -> Model -> Cmd Msg
+setup globals model =
     let
         postsCmd =
             model.postComps
@@ -135,6 +136,7 @@ setup model =
     Cmd.batch
         [ postsCmd
         , Scroll.toDocumentTop NoOp
+        , markPostsAsRead globals model
         ]
 
 
@@ -163,6 +165,29 @@ teardownPostComps comps =
         |> Cmd.batch
 
 
+markPostsAsRead : Globals -> Model -> Cmd Msg
+markPostsAsRead globals model =
+    let
+        postIds =
+            model.postComps
+                |> Connection.toList
+                |> List.map .postId
+
+        unreadPostIds =
+            globals.repo
+                |> Repo.getPosts postIds
+                |> List.filter (\post -> Post.inboxState post == Post.Unread)
+                |> List.map Post.id
+    in
+    if List.length unreadPostIds > 0 then
+        globals.session
+            |> MarkAsRead.request model.spaceId unreadPostIds
+            |> Task.attempt PostsMarkedAsRead
+
+    else
+        Cmd.none
+
+
 
 -- UPDATE
 
@@ -170,6 +195,7 @@ teardownPostComps comps =
 type Msg
     = Tick Posix
     | SetCurrentTime Posix Zone
+    | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
     | PostComponentMsg String Component.Post.Msg
     | DismissPostsClicked
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
@@ -191,6 +217,12 @@ update msg globals model =
         SetCurrentTime posix zone ->
             { model | now = ( zone, posix ) }
                 |> noCmd globals
+
+        PostsMarkedAsRead (Ok ( newSession, _ )) ->
+            ( ( model, Cmd.none ), { globals | session = newSession } )
+
+        PostsMarkedAsRead _ ->
+            noCmd globals model
 
         PostComponentMsg id componentMsg ->
             case Connection.get .id id model.postComps of

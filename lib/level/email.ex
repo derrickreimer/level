@@ -5,6 +5,7 @@ defmodule Level.Email do
 
   use Bamboo.Phoenix, view: LevelWeb.EmailView
 
+  alias Level.Digests.Digest
   alias Level.Schemas.PasswordReset
   alias Level.Schemas.User
   alias LevelWeb.LayoutView
@@ -21,9 +22,29 @@ defmodule Level.Email do
     |> render(:password_reset)
   end
 
+  @doc """
+  Generates a digest email.
+  """
+  @spec digest(Digest.t()) :: Bamboo.Email.t()
+  def digest(%Digest{} = digest) do
+    base_digest_email()
+    |> to(digest.to_email)
+    |> subject(digest.subject)
+    |> assign(:subject, digest.subject)
+    |> assign(:preheader, "")
+    |> assign(:digest, digest)
+    |> render(:digest)
+  end
+
   defp base_email do
     new_email()
     |> from("Level Support <support@level.app>")
     |> put_html_layout({LayoutView, "plain_text_email.html"})
+  end
+
+  defp base_digest_email do
+    new_email()
+    |> from("Level <support@level.app>")
+    |> put_html_layout({LayoutView, "branded_email.html"})
   end
 end
