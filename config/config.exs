@@ -35,6 +35,13 @@ config :level, :fullstory, org: System.get_env("FULLSTORY_ORG")
 config :level, :helpscout, beacon_id: System.get_env("HELPSCOUT_BEACON_ID")
 config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY")
 
+# Configure the scheduler
+config :level, Level.Scheduler,
+  jobs: [
+    # Hourly
+    {"0 * * * *", {Level.Digests, :build_and_send, []}}
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
