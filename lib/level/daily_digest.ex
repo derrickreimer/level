@@ -14,8 +14,8 @@ defmodule Level.DailyDigest do
   Fetches space user ids that are due to receive the daily digest
   at the time the query is run.
   """
-  @spec due_query(integer()) :: Ecto.Query.t()
-  def due_query(hour_of_day) do
+  @spec due_query(DateTime.t(), integer()) :: Ecto.Query.t()
+  def due_query(now, hour_of_day) do
     # Here's the query written SQL:
     #
     # SELECT * FROM (
@@ -32,10 +32,11 @@ defmodule Level.DailyDigest do
         join: u in assoc(su, :user),
         select: %{
           su
-          | hour: fragment("EXTRACT(HOUR FROM NOW() AT TIME ZONE ?)", u.time_zone),
+          | hour: fragment("EXTRACT(HOUR FROM ? AT TIME ZONE ?)", ^now, u.time_zone),
             digest_key:
               fragment(
-                "concat('daily:', to_char(NOW() AT TIME ZONE ?, 'yyyy-mm-dd'))",
+                "concat('daily:', to_char(? AT TIME ZONE ?, 'yyyy-mm-dd'))",
+                ^now,
                 u.time_zone
               )
         }
