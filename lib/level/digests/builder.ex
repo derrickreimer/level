@@ -1,7 +1,7 @@
 defmodule Level.Digests.Builder do
   @moduledoc false
 
-  require Ecto.Query
+  import Ecto.Query
   import LevelWeb.Router.Helpers
 
   alias Ecto.Multi
@@ -147,11 +147,16 @@ defmodule Level.Digests.Builder do
   end
 
   defp get_highlighted_inbox_posts(space_user) do
-    space_user
-    |> Posts.Query.base_query()
-    |> Posts.Query.where_undismissed_in_inbox()
-    |> Posts.Query.select_last_activity_at()
-    |> Ecto.Query.limit(5)
+    inner_query =
+      space_user
+      |> Posts.Query.base_query()
+      |> Posts.Query.where_undismissed_in_inbox()
+      |> Posts.Query.select_last_activity_at()
+
+    inner_query
+    |> subquery()
+    |> order_by(desc: :last_activity_at)
+    |> limit(5)
     |> Repo.all()
   end
 
