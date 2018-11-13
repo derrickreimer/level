@@ -5,30 +5,34 @@ defmodule Level.DailyDigest do
 
   import Ecto.Query
 
-  alias Level.DailyDigest.Result
+  alias Level.DailyDigest.Sendable
+  alias Level.Digests
   alias Level.Digests.Options
+  alias Level.Repo
   alias Level.Schemas.Digest
   alias Level.Schemas.SpaceUser
+
+  @doc """
+  Builds options to a pass to the digest generator.
+  """
+  @spec options_for(String.t(), DateTime.t()) :: Options.t()
+  def options_for(key, end_at) do
+    %Options{
+      title: "Your Daily Digest",
+      key: key,
+      start_at: Timex.shift(end_at, hours: -24),
+      end_at: end_at
+    }
+  end
 
   @doc """
   Fetches space user ids that are due to receive the daily digest
   at the time the query is run.
   """
-  @spec due_query(DateTime.t(), integer()) :: Ecto.Query.t()
-  def due_query(now, hour_of_day) do
-    # Here's the query written SQL:
-    #
-    # SELECT * FROM (
-    #   SELECT EXTRACT(HOUR FROM NOW() AT TIME ZONE u.time_zone) AS hour,
-    #          concat('daily:', to_char(NOW() AT TIME ZONE u.time_zone, 'yyyy-mm-dd')) AS digest_key,
-    #          su.*
-    #   FROM space_users AS su
-    #   INNER JOIN users AS u ON su.user_id = u.id
-    # ) AS su2
-    # LEFT OUTER JOIN digests AS d ON d.space_user_id = su2.id AND d.key = su2.digest_key
-    # WHERE d.id IS NULL AND su2.hour >= ?;
+  @spec sendable_query(DateTime.t(), integer()) :: Ecto.Query.t()
+  def sendable_query(now, hour_of_day \\ 16) do
     inner_query =
-      from su in Result,
+      from su in Sendable,
         join: u in assoc(su, :user),
         select: %{
           su
@@ -48,23 +52,43 @@ defmodule Level.DailyDigest do
   end
 
   @doc """
-  Builds options to a pass to the digest generator.
+  Accepts a query for Sendable records and executes it.
   """
-  @spec build_options(String.t(), DateTime.t()) :: {:ok, Options.t()} | {:error, term()}
-  def build_options(key, end_at) do
-    case Timex.shift(end_at, hours: -24) do
-      {:error, term} ->
-        {:error, term}
+  @spec fetch_sendables(Ecto.Query.t()) :: [Sendable.t()]
+  def fetch_sendables(query) do
+    Repo.all(query)
+  end
 
-      start_at ->
-        opts = %Options{
-          title: "Your Daily Digest",
-          key: key,
-          start_at: start_at,
-          end_at: end_at
-        }
+  @doc """
+  Builds and sends all due digests.
 
-        {:ok, opts}
-    end
+  TODO: parallelize this with retries.
+  """
+  @spec build_and_send([Sendable.t()]) :: [{:ok, Digest.t()} | {:error, Sendable.t()}]
+  def build_and_send(results) do
+    now = DateTime.utc_now()
+
+    Enum.map(results, fn result ->
+      space_user = Repo.get(SpaceUser, result.id)
+      opts = options_for(result.digest_key, now)
+
+      with {:ok, digest} <- Digests.build(space_user, opts),
+           _ <- Digests.send_email(digest) do
+        {:ok, digest}
+      else
+        _ ->
+          {:error, result}
+      end
+    end)
+  end
+
+  @doc """
+  Fetches sendables and processes them.
+  """
+  def periodic_task do
+    DateTime.utc_now()
+    |> sendable_query()
+    |> fetch_sendables()
+    |> build_and_send()
   end
 end

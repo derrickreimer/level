@@ -2,12 +2,12 @@ defmodule Level.DailyDigestTest do
   use Level.DataCase, async: true
 
   alias Level.DailyDigest
-  alias Level.DailyDigest.Result
+  alias Level.DailyDigest.Sendable
   alias Level.Digests
   alias Level.Repo
   alias Level.Schemas.SpaceUser
 
-  describe "due_query/1" do
+  describe "sendable_query/1" do
     setup do
       {:ok, now, 0} = DateTime.from_iso8601("2018-11-01T10:00:00Z")
       {:ok, %{now: now}}
@@ -19,14 +19,14 @@ defmodule Level.DailyDigestTest do
       {:ok, %{space_user: %SpaceUser{id: space_user_id}}} =
         create_user_and_space(%{time_zone: "Etc/UTC"})
 
-      query = DailyDigest.due_query(now, now.hour - 1)
-      assert [%Result{id: ^space_user_id}] = Repo.all(query)
+      query = DailyDigest.sendable_query(now, now.hour - 1)
+      assert [%Sendable{id: ^space_user_id}] = Repo.all(query)
     end
 
     test "does not include users that are not yet due", %{now: now} do
       {:ok, %{space_user: _}} = create_user_and_space(%{time_zone: "Etc/UTC"})
 
-      query = DailyDigest.due_query(now, now.hour + 1)
+      query = DailyDigest.sendable_query(now, now.hour + 1)
       assert [] = Repo.all(query)
     end
 
@@ -37,15 +37,15 @@ defmodule Level.DailyDigestTest do
         create_user_and_space(%{time_zone: "Etc/UTC"})
 
       # Obtain the proper digest key
-      query = DailyDigest.due_query(now, now.hour)
-      [%Result{id: ^space_user_id, digest_key: digest_key}] = Repo.all(query)
+      query = DailyDigest.sendable_query(now, now.hour)
+      [%Sendable{id: ^space_user_id, digest_key: digest_key}] = Repo.all(query)
 
       # Build the digest
-      {:ok, opts} = DailyDigest.build_options(digest_key, DateTime.utc_now())
+      opts = DailyDigest.options_for(digest_key, DateTime.utc_now())
       {:ok, _} = Digests.build(space_user, opts)
 
       # Verify that the user no longer appears in the results
-      query = DailyDigest.due_query(now, now.hour)
+      query = DailyDigest.sendable_query(now, now.hour)
       assert [] = Repo.all(query)
     end
   end

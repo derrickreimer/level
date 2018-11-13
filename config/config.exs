@@ -38,8 +38,8 @@ config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY"
 # Configure the scheduler
 config :level, Level.Scheduler,
   jobs: [
-    # Hourly
-    {"0 * * * *", {Level.Digests, :build_and_send, []}}
+    # Every 10 minutes
+    {"*/10 * * * *", {Level.DailyDigest, :periodic_task, []}}
   ]
 
 # Import environment specific config. This must remain at the bottom

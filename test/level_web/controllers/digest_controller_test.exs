@@ -8,7 +8,7 @@ defmodule LevelWeb.DigestControllerTest do
   describe "GET /digests/:space_id/:digest_id" do
     test "renders the digest if found", %{conn: conn} do
       {:ok, %{space: space, space_user: space_user}} = create_user_and_space()
-      {:ok, opts} = DailyDigest.build_options("daily", Timex.now())
+      opts = DailyDigest.options_for("daily", Timex.now())
       {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts)
 
       conn =

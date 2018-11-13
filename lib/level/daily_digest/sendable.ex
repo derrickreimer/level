@@ -1,4 +1,4 @@
-defmodule Level.DailyDigest.Result do
+defmodule Level.DailyDigest.Sendable do
   @moduledoc false
 
   use Ecto.Schema

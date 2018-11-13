@@ -48,6 +48,7 @@ defmodule Level.Digests do
   @doc """
   Sends a compiled digest email.
   """
+  @spec send_email(Digest.t()) :: Bamboo.Email.t() | no_return()
   def send_email(%Digest{} = digest) do
     digest
     |> Email.digest()
