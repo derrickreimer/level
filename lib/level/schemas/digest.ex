@@ -15,6 +15,7 @@ defmodule Level.Schemas.Digest do
   @foreign_key_type :binary_id
 
   schema "digests" do
+    field :key, :string
     field :title, :string
     field :subject, :string
     field :to_email, :string
@@ -31,7 +32,15 @@ defmodule Level.Schemas.Digest do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_user_id, :title, :subject, :to_email, :start_at, :end_at])
-    |> validate_required([:title, :subject, :to_email, :start_at, :end_at])
+    |> cast(attrs, [
+      :space_id,
+      :space_user_id,
+      :key,
+      :title,
+      :subject,
+      :to_email,
+      :start_at,
+      :end_at
+    ])
   end
 end

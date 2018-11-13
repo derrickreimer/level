@@ -6,6 +6,11 @@ defmodule Level.Digests.Compiler do
   alias Level.Digests.Section
   alias Level.Schemas
 
+  @spec compile_digest(Schemas.Digest.t()) :: Digest.t()
+  def compile_digest(digest) do
+    compile_digest(digest, compile_sections(digest.digest_sections))
+  end
+
   @spec compile_digest(Schemas.Digest.t(), [Section.t()]) :: Digest.t()
   def compile_digest(digest, compiled_sections) do
     %Digest{

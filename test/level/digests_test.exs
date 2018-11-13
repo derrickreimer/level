@@ -4,22 +4,21 @@ defmodule Level.DigestsTest do
 
   alias Level.Digests
   alias Level.Digests.Digest
+  alias Level.Digests.Options
   alias Level.Email
   alias Level.Posts
 
   describe "get_digest/2" do
     test "fetches by space id and digest id" do
       {:ok, %{space: space, space_user: space_user}} = create_user_and_space()
-      {:ok, opts} = Digests.daily_opts(Timex.now())
-      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts)
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, daily_opts())
 
       assert {:ok, %Digest{id: ^digest_id}} = Digests.get_digest(space.id, digest_id)
     end
 
     test "returns an error if space and digest pair do not match" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, opts} = Digests.daily_opts(Timex.now())
-      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts)
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, daily_opts())
 
       dummy_id = "11111111-1111-1111-1111-111111111111"
       assert {:error, _} = Digests.get_digest(dummy_id, digest_id)
@@ -34,8 +33,9 @@ defmodule Level.DigestsTest do
       end_at = Timex.now()
 
       {:ok, digest} =
-        Digests.build(space_user, %{
+        Digests.build(space_user, %Options{
           title: "Foo",
+          key: "daily",
           start_at: start_at,
           end_at: end_at
         })
@@ -96,8 +96,9 @@ defmodule Level.DigestsTest do
   end
 
   defp daily_opts do
-    %{
+    %Options{
       title: "Your Daily Digest",
+      key: "daily",
       start_at: one_day_ago(),
       end_at: Timex.now()
     }

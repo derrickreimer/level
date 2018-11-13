@@ -6,12 +6,13 @@ defmodule Level.Digests.Builder do
 
   alias Ecto.Multi
   alias Level.Digests.Compiler
+  alias Level.Digests.Options
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas
   alias Level.Schemas.SpaceUser
 
-  def build(%SpaceUser{} = space_user, opts) do
+  def build(%SpaceUser{} = space_user, %Options{} = opts) do
     space_user =
       space_user
       |> Repo.preload(:space)
@@ -28,6 +29,7 @@ defmodule Level.Digests.Builder do
     params = %{
       space_id: space_user.space_id,
       space_user_id: space_user.id,
+      key: opts.key,
       title: opts.title,
       subject: opts.title,
       to_email: space_user.user.email,

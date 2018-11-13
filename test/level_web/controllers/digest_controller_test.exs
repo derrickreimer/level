@@ -1,13 +1,14 @@
 defmodule LevelWeb.DigestControllerTest do
   use LevelWeb.ConnCase, async: true
 
+  alias Level.DailyDigest
   alias Level.Digests
   alias Level.Digests.Digest
 
   describe "GET /digests/:space_id/:digest_id" do
     test "renders the digest if found", %{conn: conn} do
       {:ok, %{space: space, space_user: space_user}} = create_user_and_space()
-      {:ok, opts} = Digests.daily_opts(Timex.now())
+      {:ok, opts} = DailyDigest.build_options("daily", Timex.now())
       {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts)
 
       conn =
