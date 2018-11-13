@@ -56,7 +56,8 @@ defmodule Level.Digests.Builder do
 
   defp build_inbox_section(sections, digest, space_user, _opts) do
     unread_count = get_unread_inbox_count(space_user)
-    {summary, summary_html} = inbox_section_summary(unread_count)
+    read_count = get_read_inbox_count(space_user)
+    {summary, summary_html} = inbox_section_summary(unread_count, read_count)
 
     link_url =
       main_url(LevelWeb.Endpoint, :index, [
@@ -84,16 +85,48 @@ defmodule Level.Digests.Builder do
     [section | sections]
   end
 
-  def inbox_section_summary(0) do
-    plaintext = "You're all caught up! You have no unread posts in your inbox."
-    html = "You&rsquo;re all caught up! You have no unread posts in your inbox."
-    {plaintext, html}
+  def inbox_section_summary(0, 0) do
+    text = "Congratulations! You've achieved Inbox Zero."
+    html = "Congratulations! You&rsquo;ve achieved Inbox Zero."
+    {text, html}
   end
 
-  def inbox_section_summary(unread_count) do
-    phrase = pluralize(unread_count, "unread post", "unread posts")
-    plaintext = "You have #{phrase} in your inbox."
-    html = "You have <strong>#{phrase}</strong> in your inbox."
+  def inbox_section_summary(unread_count, 0) do
+    unread_phrase = pluralize(unread_count, "unread post", "unread posts")
+    text = "You have #{unread_phrase} in your inbox. Here are a few of the top ones."
+
+    html =
+      "You have <strong>#{unread_phrase}</strong> in your inbox. " <>
+        "Here are a few of the top ones."
+
+    {text, html}
+  end
+
+  def inbox_section_summary(0, read_count) do
+    read_phrase = pluralize(read_count, "post", "posts")
+    text = "You have #{read_phrase} in your inbox. Here are a few of the top ones."
+
+    html =
+      "You have <strong>#{read_phrase}</strong> in your inbox. " <>
+        "Here are a few of the top ones."
+
+    {text, html}
+  end
+
+  def inbox_section_summary(unread_count, read_count) do
+    unread_phrase = pluralize(unread_count, "unread post", "unread posts")
+    read_phrase = pluralize(read_count, "post", "posts")
+
+    plaintext =
+      "You have #{unread_phrase} and " <>
+        "#{read_phrase} you have already seen in your inbox. " <>
+        "Here are a few of the top ones."
+
+    html =
+      "You have <strong>#{unread_phrase}</strong> and " <>
+        "#{read_phrase} you have already seen in your inbox. " <>
+        "Here are a few of the top ones."
+
     {plaintext, html}
   end
 
@@ -101,6 +134,14 @@ defmodule Level.Digests.Builder do
     space_user
     |> Posts.Query.base_query()
     |> Posts.Query.where_unread_in_inbox()
+    |> Posts.Query.count()
+    |> Repo.one()
+  end
+
+  defp get_read_inbox_count(space_user) do
+    space_user
+    |> Posts.Query.base_query()
+    |> Posts.Query.where_read_in_inbox()
     |> Posts.Query.count()
     |> Repo.one()
   end

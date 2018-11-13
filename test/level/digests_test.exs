@@ -52,16 +52,13 @@ defmodule Level.DigestsTest do
 
       [inbox_section | _] = digest.sections
 
-      assert inbox_section.summary =~
-               ~r/You're all caught up! You have no unread posts in your inbox/
+      assert inbox_section.summary =~ ~r/Congratulations! You've achieved Inbox Zero./
     end
 
     test "summarizes inbox activity when there are unread posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
-
       {:ok, %{group: group}} = create_group(space_user)
-      {:ok, %{post: post}} = create_post(space_user, group)
-      Posts.mark_as_unread(space_user, [post])
+      post = create_unread_post(space_user, group)
 
       {:ok, digest} = Digests.build(space_user, daily_opts())
 
@@ -71,6 +68,31 @@ defmodule Level.DigestsTest do
       assert Enum.any?(inbox_section.posts, fn section_post ->
                section_post.id == post.id
              end)
+    end
+
+    test "summarizes inbox activity when there are unread and read posts" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      create_unread_post(space_user, group)
+      create_read_post(space_user, group)
+
+      {:ok, digest} = Digests.build(space_user, daily_opts())
+
+      [inbox_section | _] = digest.sections
+
+      assert inbox_section.summary =~
+               ~r/You have 1 unread post and 1 post you have already seen in your inbox/
+    end
+
+    test "summarizes inbox activity when there are only read posts" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      create_read_post(space_user, group)
+
+      {:ok, digest} = Digests.build(space_user, daily_opts())
+
+      [inbox_section | _] = digest.sections
+      assert inbox_section.summary =~ ~r/You have 1 post in your inbox/
     end
   end
 
@@ -104,5 +126,17 @@ defmodule Level.DigestsTest do
       start_at: one_day_ago(),
       end_at: Timex.now()
     }
+  end
+
+  defp create_unread_post(space_user, group) do
+    {:ok, %{post: post}} = create_post(space_user, group)
+    Posts.mark_as_unread(space_user, [post])
+    post
+  end
+
+  defp create_read_post(space_user, group) do
+    {:ok, %{post: post}} = create_post(space_user, group)
+    Posts.mark_as_read(space_user, [post])
+    post
   end
 end
