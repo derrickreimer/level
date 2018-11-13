@@ -51,7 +51,9 @@ defmodule Level.DigestsTest do
       {:ok, digest} = Digests.build(space_user, daily_opts())
 
       [inbox_section | _] = digest.sections
-      assert inbox_section.summary =~ ~r/You have 0 unread posts in your inbox/
+
+      assert inbox_section.summary =~
+               ~r/You're all caught up! You have no unread posts in your inbox/
     end
 
     test "summarizes inbox activity when there are unread posts" do

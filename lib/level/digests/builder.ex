@@ -55,10 +55,8 @@ defmodule Level.Digests.Builder do
   end
 
   defp build_inbox_section(sections, digest, space_user, _opts) do
-    unreads = unread_inbox_count(space_user)
-    unread_snippet = pluralize(unreads, "unread post", "unread posts")
-    summary = "You have #{unread_snippet} in your inbox."
-    summary_html = "You have <strong>#{unread_snippet}</strong> in your inbox."
+    unread_count = get_unread_inbox_count(space_user)
+    {summary, summary_html} = inbox_section_summary(unread_count)
 
     link_url =
       main_url(LevelWeb.Endpoint, :index, [
@@ -78,7 +76,7 @@ defmodule Level.Digests.Builder do
 
     compiled_posts =
       space_user
-      |> highlighted_inbox_posts()
+      |> get_highlighted_inbox_posts()
       |> Compiler.compile_posts()
 
     insert_posts!(digest, section_record, compiled_posts)
@@ -86,7 +84,20 @@ defmodule Level.Digests.Builder do
     [section | sections]
   end
 
-  defp unread_inbox_count(space_user) do
+  def inbox_section_summary(0) do
+    plaintext = "You're all caught up! You have no unread posts in your inbox."
+    html = "You&rsquo;re all caught up! You have no unread posts in your inbox."
+    {plaintext, html}
+  end
+
+  def inbox_section_summary(unread_count) do
+    phrase = pluralize(unread_count, "unread post", "unread posts")
+    plaintext = "You have #{phrase} in your inbox."
+    html = "You have <strong>#{phrase}</strong> in your inbox."
+    {plaintext, html}
+  end
+
+  defp get_unread_inbox_count(space_user) do
     space_user
     |> Posts.Query.base_query()
     |> Posts.Query.where_unread_in_inbox()
@@ -94,7 +105,7 @@ defmodule Level.Digests.Builder do
     |> Repo.one()
   end
 
-  defp highlighted_inbox_posts(space_user) do
+  defp get_highlighted_inbox_posts(space_user) do
     space_user
     |> Posts.Query.base_query()
     |> Posts.Query.where_undismissed_in_inbox()

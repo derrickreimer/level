@@ -27,12 +27,17 @@ defmodule Level.Digests.Compiler do
 
   @spec compile_sections([Schemas.DigestSection.t()]) :: [Section.t()]
   def compile_sections(sections) do
-    Enum.map(sections, &compile_section/1)
+    sections
+    |> Enum.sort(&(&1.rank <= &2.rank))
+    |> Enum.map(&compile_section/1)
   end
 
   @spec compile_section(Schemas.DigestSection.t()) :: Section.t()
   def compile_section(section) do
-    posts = Enum.map(section.digest_posts, fn digest_post -> digest_post.post end)
+    posts =
+      section.digest_posts
+      |> Enum.sort(&(&1.rank <= &2.rank))
+      |> Enum.map(& &1.post)
 
     %Section{
       title: section.title,
