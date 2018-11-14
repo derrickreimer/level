@@ -8,16 +8,10 @@
 
     /* Base */
 
-    *:not(br):not(tr):not(html):not(code) {
-      font-family: system-ui, BlinkMacSystemFont, -apple-system, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Arial, sans-serif;
-      box-sizing: border-box;
-    }
-
     body {
       width: 100% !important;
       height: 100%;
       margin: 0;
-      line-height: 1.4;
       background-color: #fff;
       color: #374b61;
       -webkit-text-size-adjust: none;
@@ -27,7 +21,6 @@
     ul,
     ol,
     blockquote {
-      line-height: 1.4;
       text-align: left;
     }
 
@@ -74,6 +67,24 @@
     }
 
     /* Typography */
+
+    body,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    ol,
+    ul,
+    li,
+    blockquote,
+    p {
+      font-family: system-ui, BlinkMacSystemFont, -apple-system, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Arial, sans-serif;
+      line-height: 1.4;
+      text-align: left;
+      box-sizing: border-box;
+    }
 
     h1 {
       margin-top: 0;

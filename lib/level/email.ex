@@ -34,6 +34,7 @@ defmodule Level.Email do
     |> assign(:preheader, "")
     |> assign(:digest, digest)
     |> render(:digest)
+    |> inline_styles()
   end
 
   defp base_email do
@@ -46,5 +47,12 @@ defmodule Level.Email do
     new_email()
     |> from("Level <support@level.app>")
     |> put_html_layout({LayoutView, "branded_email.html"})
+  end
+
+  defp inline_styles(email) do
+    html = Premailex.to_inline_css(email.html_body)
+
+    email
+    |> html_body(html)
   end
 end
