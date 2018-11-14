@@ -39,7 +39,7 @@ config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY"
 config :level, Level.Scheduler,
   jobs: [
     # Every 10 minutes
-    {"*/10 * * * *", {Level.DailyDigest, :periodic_task, []}}
+    # {"*/10 * * * *", {Level.DailyDigest, :periodic_task, []}}
   ]
 
 # Import environment specific config. This must remain at the bottom
