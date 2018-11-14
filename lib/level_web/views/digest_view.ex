@@ -18,15 +18,21 @@ defmodule LevelWeb.DigestView do
   end
 
   def digest_date(%Digest{} = digest) do
-    Timex.format!(digest.end_at, "{WDfull}, {Mfull} {D}, {YYYY}")
+    digest.end_at
+    |> in_time_zone(digest.time_zone)
+    |> Timex.format!("{WDfull}, {Mfull} {D}, {YYYY}")
   end
 
   def digest_time(%Digest{} = digest) do
-    Timex.format!(digest.end_at, "{h12}:{m} {am}")
+    digest.end_at
+    |> in_time_zone(digest.time_zone)
+    |> Timex.format!("{h12}:{m} {am}")
   end
 
-  def post_timestamp(%Post{} = post) do
-    Timex.format!(post.posted_at, "{Mshort} {D} at {h12}:{m} {am}")
+  def post_timestamp(digest, post) do
+    post.posted_at
+    |> in_time_zone(digest.time_zone)
+    |> Timex.format!("{Mshort} {D} at {h12}:{m} {am}")
   end
 
   def reply_author(%Reply{} = reply) do
@@ -70,5 +76,12 @@ defmodule LevelWeb.DigestView do
   def render_body(%Reply{} = reply) do
     {:ok, rendered_body} = Posts.render_body(reply.body)
     raw(rendered_body)
+  end
+
+  def in_time_zone(date, tz) do
+    case Timex.Timezone.convert(date, tz) do
+      {:error, _} -> date
+      converted_date -> converted_date
+    end
   end
 end

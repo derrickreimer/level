@@ -37,7 +37,8 @@ defmodule Level.DigestsTest do
           title: "Tom's Digest",
           key: "daily",
           start_at: start_at,
-          end_at: end_at
+          end_at: end_at,
+          time_zone: "Etc/UTC"
         })
 
       assert digest.title == "Tom's Digest"
@@ -102,12 +103,14 @@ defmodule Level.DigestsTest do
       digest = %Digest{
         id: "11111111-1111-1111-1111-111111111111",
         space_id: "11111111-1111-1111-1111-111111111111",
+        space_name: "Level",
         title: "Your Daily Digest",
         subject: "[Level] Your Daily Digest",
         to_email: "derrick@level.app",
         sections: [],
-        start_at: Timex.to_datetime({{2018, 11, 1}, {10, 0, 0}}, "America/Chicago"),
-        end_at: Timex.to_datetime({{2018, 11, 2}, {10, 0, 0}}, "America/Chicago")
+        start_at: ~N[2018-11-01 10:00:00],
+        end_at: ~N[2018-11-02 10:00:00],
+        time_zone: "Etc/UTC"
       }
 
       Digests.send_email(digest)
@@ -125,7 +128,8 @@ defmodule Level.DigestsTest do
       title: "Your Daily Digest",
       key: "daily",
       start_at: one_day_ago(),
-      end_at: Timex.now()
+      end_at: Timex.now(),
+      time_zone: "Etc/UTC"
     }
   end
 

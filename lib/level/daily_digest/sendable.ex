@@ -12,6 +12,7 @@ defmodule Level.DailyDigest.Sendable do
   schema "space_users" do
     field :digest_key, :string
     field :hour, :integer
+    field :time_zone, :string
     belongs_to :user, User
   end
 end

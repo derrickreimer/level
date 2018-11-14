@@ -19,14 +19,14 @@ defmodule Level.Digests.Builder do
       |> Repo.preload(:user)
 
     Multi.new()
-    |> persist_digest(space_user, opts)
+    |> persist_digest(space_user.space, space_user, opts)
     |> persist_sections(space_user, opts)
     |> Repo.transaction()
-    |> after_build()
+    |> after_build(space_user.space)
   end
 
-  defp persist_digest(multi, space_user, opts) do
-    subject = "[" <> space_user.space.name <> "] " <> opts.title
+  defp persist_digest(multi, space, space_user, opts) do
+    subject = "[" <> space.name <> "] " <> opts.title
 
     params = %{
       space_id: space_user.space_id,
@@ -36,7 +36,8 @@ defmodule Level.Digests.Builder do
       subject: subject,
       to_email: space_user.user.email,
       start_at: opts.start_at,
-      end_at: opts.end_at
+      end_at: opts.end_at,
+      time_zone: opts.time_zone
     }
 
     changeset =
@@ -162,11 +163,11 @@ defmodule Level.Digests.Builder do
     |> Repo.all()
   end
 
-  defp after_build({:ok, data}) do
-    {:ok, Compiler.compile_digest(data.digest, data.sections)}
+  defp after_build({:ok, data}, space) do
+    {:ok, Compiler.compile_digest(space, data.digest, data.sections)}
   end
 
-  defp after_build(_) do
+  defp after_build(_, _) do
     {:error, "An unexpected error occurred"}
   end
 

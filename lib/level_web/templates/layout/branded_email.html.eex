@@ -106,12 +106,12 @@
       text-align: left;
     }
 
-    ul,
-    ol {
+    .markdown ul,
+    .markdown ol {
       margin-bottom: 14px;
     }
 
-    pre {
+    .markdown pre {
       margin-bottom: 14px;
       padding: 5px;
       background-color: #f7f8f8;
@@ -119,7 +119,7 @@
       overflow: auto;
     }
 
-    code {
+    .markdown code {
       margin: 0 2px;
       padding: 1px 2px;
       background-color: #f7f8f8;
@@ -127,7 +127,7 @@
       font-family: monospace;
     }
 
-    pre code {
+    .markdown pre code {
       margin: 0;
       padding: 0;
       background: transparent;
@@ -137,13 +137,12 @@
       font-family: monospace;
     }
 
-    img,
-    img:last-child {
-      margin-top: 14px;
-      margin-bottom: 14px;
+    .markdown img {
+      margin-top: 10px;
+      margin-bottom: 10px;
     }
 
-    blockquote {
+    .markdown blockquote {
       padding-left: 12px;
       margin-left: 0;
       margin-bottom: 14px;
@@ -234,6 +233,10 @@
 
     .mb-0 {
       margin-bottom: 0;
+    }
+
+    .mb-3 {
+      margin-bottom: 6px;
     }
 
     .ml-2 {

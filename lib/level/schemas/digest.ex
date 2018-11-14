@@ -21,6 +21,7 @@ defmodule Level.Schemas.Digest do
     field :to_email, :string
     field :start_at, :naive_datetime
     field :end_at, :naive_datetime
+    field :time_zone, :string
 
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
@@ -40,7 +41,8 @@ defmodule Level.Schemas.Digest do
       :subject,
       :to_email,
       :start_at,
-      :end_at
+      :end_at,
+      :time_zone
     ])
   end
 end

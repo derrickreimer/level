@@ -6,13 +6,13 @@
     <td>
       <p class="mb-0">
         <strong class="text-sm"><%= display_name(@post.author) %></strong>
-        <span class="ml-2 text-dusty-blue text-xs"><%= post_timestamp(@post) %></span>
+        <span class="ml-2 text-dusty-blue text-xs"><%= post_timestamp(@digest, @post) %></span>
       </p>
 
       <!-- Post Body -->
       <table class="text-sm w-full cell-0 table-layout-fixed" width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td>
+          <td class="markdown">
             <%= render_body(@post) %>
           </td>
         </tr>
@@ -31,9 +31,9 @@
               </p>
 
               <!-- Reply Body -->
-              <table class="text-sm w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+              <table class="text-sm w-full cell-0 table-layout-fixed" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td>
+                  <td class="markdown">
                     <%= render_body(reply) %>
                   </td>
                 </tr>

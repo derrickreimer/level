@@ -41,7 +41,7 @@ defmodule Level.DailyDigestTest do
       [%Sendable{id: ^space_user_id, digest_key: digest_key}] = Repo.all(query)
 
       # Build the digest
-      opts = DailyDigest.options_for(digest_key, DateTime.utc_now())
+      opts = DailyDigest.options_for(digest_key, DateTime.utc_now(), "Etc/UTC")
       {:ok, _} = Digests.build(space_user, opts)
 
       # Verify that the user no longer appears in the results

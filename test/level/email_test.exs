@@ -9,7 +9,7 @@ defmodule Level.EmailTest do
     test "has the right subject and recipient" do
       digest = build_digest()
       email = Email.digest(digest)
-      assert email.subject == "Your Daily Digest (subject)"
+      assert email.subject == "[CoffeeKit] Your Daily Digest"
       assert email.to == "derrick@level.app"
     end
 
@@ -27,12 +27,14 @@ defmodule Level.EmailTest do
     %Digest{
       id: "11111111-1111-1111-1111-111111111111",
       space_id: "11111111-1111-1111-1111-111111111111",
+      space_name: "CoffeeKit",
       title: "Your Daily Digest",
-      subject: "Your Daily Digest (subject)",
+      subject: "[CoffeeKit] Your Daily Digest",
       to_email: "derrick@level.app",
-      start_at: Timex.to_datetime({{2018, 11, 1}, {10, 0, 0}}, "America/Chicago"),
-      end_at: Timex.to_datetime({{2018, 11, 2}, {10, 0, 0}}, "America/Chicago"),
-      sections: []
+      sections: [],
+      start_at: ~N[2018-11-01 10:00:00],
+      end_at: ~N[2018-11-02 10:00:00],
+      time_zone: "Etc/UTC"
     }
   end
 end

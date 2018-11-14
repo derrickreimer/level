@@ -15,13 +15,14 @@ defmodule Level.DailyDigest do
   @doc """
   Builds options to a pass to the digest generator.
   """
-  @spec options_for(String.t(), DateTime.t()) :: Options.t()
-  def options_for(key, end_at) do
+  @spec options_for(String.t(), DateTime.t(), String.t()) :: Options.t()
+  def options_for(key, end_at, time_zone) do
     %Options{
       title: "Your Daily Digest",
       key: key,
       start_at: Timex.shift(end_at, hours: -24),
-      end_at: end_at
+      end_at: end_at,
+      time_zone: time_zone
     }
   end
 
@@ -42,7 +43,8 @@ defmodule Level.DailyDigest do
                 "concat('daily:', to_char(? AT TIME ZONE ?, 'yyyy-mm-dd'))",
                 ^now,
                 u.time_zone
-              )
+              ),
+            time_zone: u.time_zone
         }
 
     from r in subquery(inner_query),
@@ -70,7 +72,7 @@ defmodule Level.DailyDigest do
 
     Enum.map(results, fn result ->
       space_user = Repo.get(SpaceUser, result.id)
-      opts = options_for(result.digest_key, now)
+      opts = options_for(result.digest_key, now, result.time_zone)
 
       with {:ok, digest} <- Digests.build(space_user, opts),
            _ <- Digests.send_email(digest) do

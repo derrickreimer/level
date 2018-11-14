@@ -24,7 +24,8 @@ defmodule Level.Digests do
     query =
       from d in Schemas.Digest,
         where: d.space_id == ^space_id and d.id == ^digest_id,
-        preload: [digest_sections: [digest_posts: :post]]
+        preload: [digest_sections: [digest_posts: :post]],
+        preload: [:space]
 
     query
     |> Repo.one()
@@ -32,7 +33,7 @@ defmodule Level.Digests do
   end
 
   defp after_get_digest(%Schemas.Digest{} = digest) do
-    {:ok, Compiler.compile_digest(digest)}
+    {:ok, Compiler.compile_digest(digest.space, digest)}
   end
 
   defp after_get_digest(_), do: {:error, dgettext("errors", "Digest not found")}

@@ -5,23 +5,26 @@ defmodule Level.Digests.Compiler do
   alias Level.Digests.Post
   alias Level.Digests.Section
   alias Level.Schemas
+  alias Level.Schemas.Space
 
-  @spec compile_digest(Schemas.Digest.t()) :: Digest.t()
-  def compile_digest(digest) do
-    compile_digest(digest, compile_sections(digest.digest_sections))
+  @spec compile_digest(Space.t(), Schemas.Digest.t()) :: Digest.t()
+  def compile_digest(space, digest) do
+    compile_digest(space, digest, compile_sections(digest.digest_sections))
   end
 
-  @spec compile_digest(Schemas.Digest.t(), [Section.t()]) :: Digest.t()
-  def compile_digest(digest, compiled_sections) do
+  @spec compile_digest(Space.t(), Schemas.Digest.t(), [Section.t()]) :: Digest.t()
+  def compile_digest(space, digest, compiled_sections) do
     %Digest{
       id: digest.id,
       space_id: digest.space_id,
+      space_name: space.name,
       title: digest.title,
       subject: digest.subject,
       to_email: digest.to_email,
       sections: compiled_sections,
       start_at: digest.start_at,
-      end_at: digest.end_at
+      end_at: digest.end_at,
+      time_zone: digest.time_zone
     }
   end
 
