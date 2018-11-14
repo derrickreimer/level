@@ -64,7 +64,7 @@ defmodule Level.Mixfile do
       {:dataloader, "~> 1.0.0"},
       {:joken, "~> 1.5"},
       {:bamboo, "~> 1.1"},
-      {:bamboo_smtp, "~> 1.6"},
+      {:bamboo_postmark, "~> 0.4.2"},
       {:excoveralls, "~> 0.8", only: :test},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:earmark, "~> 1.2.5"},

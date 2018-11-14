@@ -2,8 +2,8 @@
 <table class="border-b-grey w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td>
-      <p class="text-dusty-blue-dark font-extrabold mb-3"><%= @digest.space_name %></p>
-      <h1 class="font-extrabold text-dusty-blue-darkest text-xl"><%= @digest.title %></h1>
+      <p class="text-dusty-blue-dark font-extrabold mb-0"><%= @digest.space_name %></p>
+      <h1 class="mb-2 font-extrabold text-dusty-blue-darkest text-xl"><%= @digest.title %></h1>
       <p class="text-dusty-blue-dark">
         <span><%= digest_date(@digest) %></span>
         <span class="ml-2 text-dusty-blue text-sm">@ <%= digest_time(@digest) %></span>

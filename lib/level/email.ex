@@ -51,8 +51,6 @@ defmodule Level.Email do
 
   defp inline_styles(email) do
     html = Premailex.to_inline_css(email.html_body)
-
-    email
-    |> html_body(html)
+    html_body(email, html)
   end
 end

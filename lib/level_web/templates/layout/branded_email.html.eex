@@ -79,34 +79,16 @@
     ul,
     li,
     blockquote,
-    p {
+    p,
+    a {
       font-family: system-ui, BlinkMacSystemFont, -apple-system, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Arial, sans-serif;
       line-height: 1.4;
       text-align: left;
       box-sizing: border-box;
     }
 
-    h1 {
-      margin-top: 0;
-      margin-bottom: 8px;
-      font-size: 24px;
-      text-align: left;
-    }
-
-    h2 {
-      margin-top: 0;
-      margin-bottom: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      text-align: left;
-    }
-
-    h3 {
-      margin-top: 0;
-      color: #22384c;
-      font-size: 14px;
-      font-weight: bold;
-      text-align: left;
+    h1, h2, h3, h4, h5, h6 {
+      margin: 0;
     }
 
     p {
@@ -114,6 +96,29 @@
       margin-bottom: 14px;
       color: #374b61;
       line-height: 1.5em;
+      text-align: left;
+    }
+
+    .markdown h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 24px;
+      text-align: left;
+    }
+
+    .markdown h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .markdown h3 {
+      margin-top: 0;
+      color: #22384c;
+      font-size: 14px;
+      font-weight: bold;
       text-align: left;
     }
 
@@ -128,6 +133,7 @@
       background-color: #f7f8f8;
       border-radius: 3px;
       overflow: auto;
+      white-space: pre;
     }
 
     .markdown code {
@@ -238,12 +244,12 @@
       margin: 0;
     }
 
-    .p-0 {
-      padding: 0;
-    }
-
     .mb-0 {
       margin-bottom: 0;
+    }
+
+    .mb-2 {
+      margin-bottom: 4px;
     }
 
     .mb-3 {
@@ -252,6 +258,14 @@
 
     .ml-2 {
       margin-left: 4px;
+    }
+
+    .p-0 {
+      padding: 0;
+    }
+
+    .pb-0 {
+      padding-bottom: 0;
     }
 
     .py-10px {
@@ -366,7 +380,7 @@
               <td class="m-0 p-0 w-full cell-0 bg-white" width="100%" cellpadding="0" cellspacing="0">
                 <table class="container-570" align="center" width="570" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td class="p-25x35 border-b-grey">
+                    <td class="p-25x35 pb-0">
                       <%= render @view_module, @view_template, assigns %>
                     </td>
                   </tr>

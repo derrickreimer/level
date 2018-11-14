@@ -30,14 +30,8 @@ config :level, Level.Repo,
 
 # Configure the mailer
 config :level, Level.Mailer,
-  adapter: Bamboo.SMTPAdapter,
-  server: {:system, "LEVEL_SMTP_HOST"},
-  port: {:system, "LEVEL_SMTP_PORT"},
-  username: {:system, "LEVEL_SMTP_USERNAME"},
-  password: {:system, "LEVEL_SMTP_PASSWORD"},
-  tls: :always,
-  ssl: false,
-  retries: 1
+  adapter: Bamboo.PostmarkAdapter,
+  api_key: System.get_env("POSTMARK_API_KEY")
 
 # Configure asset storage
 config :level, :asset_store,

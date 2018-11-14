@@ -120,23 +120,11 @@ The following environment variables must be set in production:
   </tbody>
   <tbody>
     <tr>
-      <td colspan="2"><strong>SMTP</strong><br>We recommend <a href="https://postmarkapp.com/">Postmark</a>.</td>
+      <td colspan="2"><strong>Transactional Email</strong></td>
     </tr>
     <tr>
-      <td><code>LEVEL_SMTP_HOST</code></td>
-      <td>The hostname of the your SMTP provider.</td>
-    </tr>
-    <tr>
-      <td><code>LEVEL_SMTP_PORT</code></td>
-      <td>The port number for your SMTP provider.</td>
-    </tr>
-    <tr>
-      <td><code>LEVEL_SMTP_USERNAME</code></td>
-      <td>The username for your SMTP provider.</td>
-    </tr>
-    <tr>
-      <td><code>LEVEL_SMTP_PASSWORD</code></td>
-      <td>The password for your SMTP provider.</td>
+      <td><code>POSTMARK_API_KEY</code></td>
+      <td>The API key for <a href="https://postmarkapp.com/">Postmark</a>.</td>
     </tr>
   </tbody>
   <tbody>
