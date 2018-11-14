@@ -58,20 +58,8 @@
       "description": "The maximum number of database connections each process may consume.",
       "value": "18"
     },
-    "LEVEL_SMTP_HOST": {
-      "description": "The hostname of the your SMTP provider (we recommend Postmark).",
-      "value": ""
-    },
-    "LEVEL_SMTP_PORT": {
-      "description": "The port number for your SMTP provider.",
-      "value": ""
-    },
-    "LEVEL_SMTP_USERNAME": {
-      "description": "The username for your SMTP provider.",
-      "value": ""
-    },
-    "LEVEL_SMTP_PASSWORD": {
-      "description": "The password for your SMTP provider.",
+    "POSTMARK_API_KEY": {
+      "description": "The API key for Postmark (transactional email sending).",
       "value": ""
     },
     "HONEYBADGER_API_KEY": {

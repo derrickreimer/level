@@ -2,10 +2,11 @@
 <table class="border-b-grey w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td>
-      <h1 class="font-extrabold text-dusty-blue-darkest text-xl"><%= @digest.title %></h1>
+      <p class="text-dusty-blue-dark font-extrabold mb-0"><%= @digest.space_name %></p>
+      <h1 class="mb-2 font-extrabold text-dusty-blue-darkest text-xl"><%= @digest.title %></h1>
       <p class="text-dusty-blue-dark">
-        <span><%= Timex.format!(@digest.end_at, "{WDfull}, {Mfull} {D}, {YYYY}") %></span>
-        <span class="ml-2 text-dusty-blue text-sm">@ <%= Timex.format!(@digest.end_at, "{h12}:{m} {am}") %></span>
+        <span><%= digest_date(@digest) %></span>
+        <span class="ml-2 text-dusty-blue text-sm">@ <%= digest_time(@digest) %></span>
       </p>
     </td>
   </tr>
@@ -15,3 +16,14 @@
 <%= for section <- @digest.sections do %>
   <%= render LevelWeb.DigestView, "_section.html", %{section: section, digest: @digest} %>
 <% end %>
+
+<!-- View in browser -->
+<table class="w-full cell-0 text-center" align="center" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td class="pt-25px">
+      <p class="text-dusty-blue text-xs">
+        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>">Click here</a> to view this digest in the browser.
+      </p>
+    </td>
+  </tr>
+</table>
