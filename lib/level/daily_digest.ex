@@ -85,9 +85,9 @@ defmodule Level.DailyDigest do
   @doc """
   Fetches sendables and processes them.
   """
-  def periodic_task do
+  def periodic_task(hour_of_day \\ 16) do
     DateTime.utc_now()
-    |> sendable_query()
+    |> sendable_query(hour_of_day)
     |> fetch_sendables()
     |> build_and_send()
   end

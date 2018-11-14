@@ -8,7 +8,7 @@
 
     /* Base */
 
-    *:not(br):not(tr):not(html) {
+    *:not(br):not(tr):not(html):not(code) {
       font-family: system-ui, BlinkMacSystemFont, -apple-system, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Arial, sans-serif;
       box-sizing: border-box;
     }
@@ -100,9 +100,55 @@
 
     p {
       margin-top: 0;
+      margin-bottom: 14px;
       color: #374b61;
       line-height: 1.5em;
       text-align: left;
+    }
+
+    ul,
+    ol {
+      margin-bottom: 14px;
+    }
+
+    pre {
+      margin-bottom: 14px;
+      padding: 5px;
+      background-color: #f7f8f8;
+      border-radius: 3px;
+      overflow: auto;
+    }
+
+    code {
+      margin: 0 2px;
+      padding: 1px 2px;
+      background-color: #f7f8f8;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    pre code {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      border-radius: 0;
+      word-wrap: normal;
+      overflow: visible;
+      font-family: monospace;
+    }
+
+    img,
+    img:last-child {
+      margin-top: 14px;
+      margin-bottom: 14px;
+    }
+
+    blockquote {
+      padding-left: 12px;
+      margin-left: 0;
+      margin-bottom: 14px;
+      border-left: 2px solid #e2e6e8;
+      color: #50667a;
     }
 
     /* Utilities */
@@ -267,6 +313,10 @@
       -premailer-cellspacing: 0;
     }
 
+    .table-layout-fixed {
+      table-layout: fixed;
+    }
+
     @media only screen and (max-width: 600px) {
       .container-570 {
         width: 100% !important;
@@ -316,7 +366,7 @@
                 <table class="container-570" align="center" width="570" cellpadding="0" cellspacing="0">
                   <tr>
                     <td class="p-25x35 text-center" align="center">
-                      <p class="sub text-center text-dusty-blue text-xs">
+                      <p class="text-center text-dusty-blue text-xs">
                         &copy; 2018 Level Technologies, LLC
                         <br>5123 W 98th St #1025
                         <br>Minneapolis, MN 55437

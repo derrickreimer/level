@@ -15,3 +15,14 @@
 <%= for section <- @digest.sections do %>
   <%= render LevelWeb.DigestView, "_section.html", %{section: section, digest: @digest} %>
 <% end %>
+
+<!-- View in browser -->
+<table class="w-full cell-0 text-center" align="center" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td class="p-25x35 text-center" align="center">
+      <p class="text-center text-dusty-blue text-xs">
+        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>">Click here</a> to view this digest in the browser.
+      </p>
+    </td>
+  </tr>
+</table>
