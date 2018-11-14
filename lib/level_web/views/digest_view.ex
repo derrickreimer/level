@@ -4,6 +4,7 @@ defmodule LevelWeb.DigestView do
   use LevelWeb, :view
 
   alias Level.AssetStore
+  alias Level.Digests.Digest
   alias Level.Digests.Post
   alias Level.Posts
   alias Level.Schemas.Reply
@@ -16,7 +17,15 @@ defmodule LevelWeb.DigestView do
     SpaceUser.display_name(space_user)
   end
 
-  def timestamp(%Post{} = post) do
+  def digest_date(%Digest{} = digest) do
+    Timex.format!(digest.end_at, "{WDfull}, {Mfull} {D}, {YYYY}")
+  end
+
+  def digest_time(%Digest{} = digest) do
+    Timex.format!(digest.end_at, "{h12}:{m} {am}")
+  end
+
+  def post_timestamp(%Post{} = post) do
     Timex.format!(post.posted_at, "{Mshort} {D} at {h12}:{m} {am}")
   end
 

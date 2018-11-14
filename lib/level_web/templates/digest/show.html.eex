@@ -4,8 +4,8 @@
     <td>
       <h1 class="font-extrabold text-dusty-blue-darkest text-xl"><%= @digest.title %></h1>
       <p class="text-dusty-blue-dark">
-        <span><%= Timex.format!(@digest.end_at, "{WDfull}, {Mfull} {D}, {YYYY}") %></span>
-        <span class="ml-2 text-dusty-blue text-sm">@ <%= Timex.format!(@digest.end_at, "{h12}:{m} {am}") %></span>
+        <span><%= digest_date(@digest) %></span>
+        <span class="ml-2 text-dusty-blue text-sm">@ <%= digest_time(@digest) %></span>
       </p>
     </td>
   </tr>

@@ -6,7 +6,7 @@
     <td>
       <p class="mb-0">
         <strong class="text-sm"><%= display_name(@post.author) %></strong>
-        <span class="ml-2 text-dusty-blue text-xs"><%= timestamp(@post) %></span>
+        <span class="ml-2 text-dusty-blue text-xs"><%= post_timestamp(@post) %></span>
       </p>
 
       <!-- Post Body -->

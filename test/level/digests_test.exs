@@ -27,20 +27,21 @@ defmodule Level.DigestsTest do
 
   describe "build/2" do
     test "stores digest metadata" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{space_user: space_user}} = create_user_and_space(%{}, %{name: "Myspace"})
 
       start_at = one_day_ago()
       end_at = Timex.now()
 
       {:ok, digest} =
         Digests.build(space_user, %Options{
-          title: "Foo",
+          title: "Tom's Digest",
           key: "daily",
           start_at: start_at,
           end_at: end_at
         })
 
-      assert digest.title == "Foo"
+      assert digest.title == "Tom's Digest"
+      assert digest.subject == "[Myspace] Tom's Digest"
       assert digest.start_at == DateTime.to_naive(start_at)
       assert digest.end_at == DateTime.to_naive(end_at)
     end
