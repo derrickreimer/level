@@ -11,7 +11,7 @@ import Route.Group
 import Route.Groups
 import Route.Inbox
 import Route.Posts
-import Route.SpaceSettings
+import Route.Settings
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
@@ -68,7 +68,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
                 , viewIf (Space.canUpdate space) <|
-                    navLink space "Settings" (Just <| Route.SpaceSettings (Route.SpaceSettings.init (Space.slug space) Route.SpaceSettings.Preferences)) maybeCurrentRoute
+                    navLink space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug space) Route.Settings.Preferences)) maybeCurrentRoute
                 ]
             ]
         , div [ class "absolute pin-b w-full" ]
@@ -126,8 +126,8 @@ navLink space title maybeRoute maybeCurrentRoute =
         ( Just (Route.Posts params), Just (Route.Posts _) ) ->
             currentItem (Route.Posts params)
 
-        ( Just (Route.SpaceSettings params), Just (Route.SpaceSettings _) ) ->
-            currentItem (Route.SpaceSettings params)
+        ( Just (Route.Settings params), Just (Route.Settings _) ) ->
+            currentItem (Route.Settings params)
 
         ( Just (Route.Group params), Just (Route.Group currentParams) ) ->
             if Route.Group.hasSamePath params currentParams then

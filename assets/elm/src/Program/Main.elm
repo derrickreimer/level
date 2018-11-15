@@ -26,7 +26,7 @@ import Page.Posts
 import Page.Search
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
-import Page.SpaceSettings
+import Page.Settings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
@@ -202,7 +202,7 @@ type Msg
     | GroupPermissionsMsg Page.GroupPermissions.Msg
     | PostMsg Page.Post.Msg
     | UserSettingsMsg Page.UserSettings.Msg
-    | SpaceSettingsMsg Page.SpaceSettings.Msg
+    | SpaceSettingsMsg Page.Settings.Msg
     | SearchMsg Page.Search.Msg
     | SocketIn Decode.Value
     | PushManagerIn Decode.Value
@@ -410,7 +410,7 @@ update msg model =
 
         ( SpaceSettingsMsg pageMsg, SpaceSettings pageModel ) ->
             pageModel
-                |> Page.SpaceSettings.update pageMsg globals
+                |> Page.Settings.update pageMsg globals
                 |> updatePageWithGlobals SpaceSettings SpaceSettingsMsg model
 
         ( SearchMsg pageMsg, Search pageModel ) ->
@@ -491,7 +491,7 @@ type Page
     | GroupPermissions Page.GroupPermissions.Model
     | Post Page.Post.Model
     | UserSettings Page.UserSettings.Model
-    | SpaceSettings Page.SpaceSettings.Model
+    | SpaceSettings Page.Settings.Model
     | Search Page.Search.Model
 
 
@@ -508,7 +508,7 @@ type PageInit
     | GroupPermissionsInit (Result Session.Error ( Globals, Page.GroupPermissions.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
-    | SpaceSettingsInit (Result Session.Error ( Globals, Page.SpaceSettings.Model ))
+    | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SetupCreateGroupsInit (Result Session.Error ( Globals, Page.Setup.CreateGroups.Model ))
     | SetupInviteUsersInit (Result Session.Error ( Globals, Page.Setup.InviteUsers.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
@@ -602,9 +602,9 @@ navigateTo maybeRoute model =
                 |> Page.Post.init spaceSlug postId
                 |> transition model (PostInit postId)
 
-        Just (Route.SpaceSettings spaceSlug) ->
+        Just (Route.Settings spaceSlug) ->
             globals
-                |> Page.SpaceSettings.init spaceSlug
+                |> Page.Settings.init spaceSlug
                 |> transition model SpaceSettingsInit
 
         Just Route.UserSettings ->
@@ -652,7 +652,7 @@ pageTitle repo page =
             Page.Post.title pageModel
 
         SpaceSettings _ ->
-            Page.SpaceSettings.title
+            Page.Settings.title
 
         InviteUsers _ ->
             Page.InviteUsers.title
@@ -807,7 +807,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         SpaceSettingsInit (Ok result) ->
-            perform Page.SpaceSettings.setup SpaceSettings SpaceSettingsMsg model result
+            perform Page.Settings.setup SpaceSettings SpaceSettingsMsg model result
 
         SpaceSettingsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -876,7 +876,7 @@ teardownPage page =
             Cmd.map UserSettingsMsg (Page.UserSettings.teardown pageModel)
 
         SpaceSettings pageModel ->
-            Cmd.map SpaceSettingsMsg (Page.SpaceSettings.teardown pageModel)
+            Cmd.map SpaceSettingsMsg (Page.Settings.teardown pageModel)
 
         Posts pageModel ->
             Cmd.map PostsMsg (Page.Posts.teardown pageModel)
@@ -916,7 +916,7 @@ pageSubscription page =
             Sub.map UserSettingsMsg Page.UserSettings.subscriptions
 
         SpaceSettings _ ->
-            Sub.map SpaceSettingsMsg Page.SpaceSettings.subscriptions
+            Sub.map SpaceSettingsMsg Page.Settings.subscriptions
 
         Search _ ->
             Sub.map SearchMsg Page.Search.subscriptions
@@ -971,7 +971,7 @@ routeFor page =
             Just <| Route.UserSettings
 
         SpaceSettings { params } ->
-            Just <| Route.SpaceSettings params
+            Just <| Route.Settings params
 
         Search { params } ->
             Just <| Route.Search params
@@ -1058,7 +1058,7 @@ pageView repo page pushStatus spaceUserLists =
 
         SpaceSettings pageModel ->
             pageModel
-                |> Page.SpaceSettings.view repo (routeFor page)
+                |> Page.Settings.view repo (routeFor page)
                 |> Html.map SpaceSettingsMsg
 
         Search pageModel ->
@@ -1272,7 +1272,7 @@ sendEventToPage globals event model =
 
         SpaceSettings pageModel ->
             pageModel
-                |> Page.SpaceSettings.consumeEvent event
+                |> Page.Settings.consumeEvent event
                 |> updatePage SpaceSettings SpaceSettingsMsg model
 
         Search pageModel ->

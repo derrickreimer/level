@@ -12,7 +12,7 @@ import Route.Groups
 import Route.Inbox
 import Route.Posts
 import Route.Search
-import Route.SpaceSettings
+import Route.Settings
 import Route.SpaceUsers
 import Url exposing (Url)
 import Url.Builder as Builder exposing (absolute)
@@ -39,7 +39,7 @@ type Route
     | GroupPermissions Route.GroupPermissions.Params
     | Post String String
     | UserSettings
-    | SpaceSettings Route.SpaceSettings.Params
+    | Settings Route.Settings.Params
     | Search Route.Search.Params
 
 
@@ -61,7 +61,7 @@ parser =
         , Parser.map Group Route.Group.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
-        , Parser.map SpaceSettings Route.SpaceSettings.parser
+        , Parser.map Settings Route.Settings.parser
         , Parser.map Search Route.Search.parser
         ]
 
@@ -152,8 +152,8 @@ toString page =
         UserSettings ->
             absolute [ "user", "settings" ] []
 
-        SpaceSettings params ->
-            Route.SpaceSettings.toString params
+        Settings params ->
+            Route.Settings.toString params
 
         Search params ->
             Route.Search.toString params

@@ -1,4 +1,4 @@
-module Route.SpaceSettings exposing
+module Route.Settings exposing
     ( Params, Section(..)
     , init, getSpaceSlug, getSection, setSection
     , parser

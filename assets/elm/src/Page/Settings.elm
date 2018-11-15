@@ -1,4 +1,4 @@
-module Page.SpaceSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Settings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
 import Event exposing (Event)
@@ -16,7 +16,7 @@ import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.SpaceSettings exposing (Params)
+import Route.Settings exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -76,7 +76,7 @@ title =
 init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
-        |> SetupInit.request (Route.SpaceSettings.getSpaceSlug params)
+        |> SetupInit.request (Route.Settings.getSpaceSlug params)
         |> Task.map (buildModel params globals)
 
 
@@ -265,8 +265,8 @@ resolvedView maybeCurrentRoute model data =
                 , h1 [ class "font-extrabold text-3xl" ] [ text "Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 mr-8 border-b" ]
-                [ filterTab "Preferences" Route.SpaceSettings.Preferences (Route.SpaceSettings.setSection Route.SpaceSettings.Preferences model.params) model.params
-                , filterTab "Space Settings" Route.SpaceSettings.Space (Route.SpaceSettings.setSection Route.SpaceSettings.Space model.params) model.params
+                [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
+                , filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
@@ -333,14 +333,14 @@ resolvedView maybeCurrentRoute model data =
         ]
 
 
-filterTab : String -> Route.SpaceSettings.Section -> Params -> Params -> Html Msg
+filterTab : String -> Route.Settings.Section -> Params -> Params -> Html Msg
 filterTab label section linkParams currentParams =
     let
         isCurrent =
-            Route.SpaceSettings.getSection currentParams == section
+            Route.Settings.getSection currentParams == section
     in
     a
-        [ Route.href (Route.SpaceSettings linkParams)
+        [ Route.href (Route.Settings linkParams)
         , classList
             [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
