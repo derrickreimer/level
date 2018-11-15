@@ -6,6 +6,7 @@ defmodule Level.Schemas.Digest do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Level.OlsonTimeZone
   alias Level.Schemas.DigestSection
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
@@ -44,5 +45,6 @@ defmodule Level.Schemas.Digest do
       :end_at,
       :time_zone
     ])
+    |> OlsonTimeZone.validate(:time_zone)
   end
 end

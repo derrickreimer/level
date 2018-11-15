@@ -10,6 +10,7 @@ defmodule Level.Schemas.User do
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
   alias Level.Handles
+  alias Level.OlsonTimeZone
   alias Level.Schemas.PushSubscription
   alias Level.Schemas.SpaceUser
 
@@ -57,8 +58,8 @@ defmodule Level.Schemas.User do
     struct
     |> cast(attrs, [:email, :handle, :first_name, :last_name, :password, :time_zone])
     |> validate_required([:first_name, :last_name, :handle, :email, :password])
-    |> validate()
     |> put_default_time_zone()
+    |> validate()
     |> put_password_hash()
     |> put_change(:session_salt, generate_salt())
   end
@@ -92,6 +93,7 @@ defmodule Level.Schemas.User do
     |> validate_length(:password, min: 6)
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
     |> Handles.validate_format(:handle)
+    |> OlsonTimeZone.validate(:time_zone)
     |> unique_constraint(:email,
       name: :users_lower_email_index,
       message: dgettext("errors", "is already taken")
