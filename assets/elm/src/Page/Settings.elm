@@ -39,6 +39,7 @@ type alias Model =
     , bookmarkIds : List Id
     , name : String
     , slug : String
+    , isDailyDigestEnabled : Bool
     , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
@@ -92,6 +93,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.bookmarkIds
                 (Space.name resp.space)
                 (Space.slug resp.space)
+                True
                 (Space.avatarUrl resp.space)
                 []
                 False
@@ -118,14 +120,15 @@ teardown model =
 
 
 type Msg
-    = NameChanged String
+    = NoOp
+    | NameChanged String
     | SlugChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, UpdateSpace.Response ))
     | AvatarSubmitted (Result Session.Error ( Session, UpdateSpaceAvatar.Response ))
     | AvatarSelected
     | FileReceived Decode.Value
-    | NoOp
+    | DailyDigestToggled
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -199,6 +202,9 @@ update msg globals model =
             -- TODO: handle unexpected exceptions
             noCmd globals { model | isSubmitting = False }
 
+        DailyDigestToggled ->
+            ( ( { model | isDailyDigestEnabled = not model.isDailyDigestEnabled }, Cmd.none ), globals )
+
         NoOp ->
             noCmd globals model
 
@@ -265,78 +271,93 @@ resolvedView maybeCurrentRoute model data =
                 [ nav [ class "text-xl font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
                 , h1 [ class "font-extrabold text-3xl" ] [ text "Settings" ]
                 ]
-            , div [ class "flex items-baseline mb-6 mr-8 border-b" ]
+            , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
                 , filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
+            , viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
+                preferencesView model data
             , viewIf (Route.Settings.getSection model.params == Route.Settings.Space) <|
                 spaceSettingsView model data
             ]
         ]
 
 
+preferencesView : Model -> Data -> Html Msg
+preferencesView model data =
+    label [ class "control checkbox pb-6" ]
+        [ input
+            [ type_ "checkbox"
+            , class "checkbox"
+            , onClick DailyDigestToggled
+            , checked model.isDailyDigestEnabled
+            ]
+            []
+        , span [ class "control-indicator" ] []
+        , span [ class "select-none" ] [ text "Send me a daily digest at 4:00 pm" ]
+        ]
+
+
 spaceSettingsView : Model -> Data -> Html Msg
 spaceSettingsView model data =
-    div [ class "flex" ]
-        [ div [ class "flex-1 mr-8" ]
-            [ div [ class "pb-6" ]
-                [ label [ for "name", class "input-label" ] [ text "Space Name" ]
-                , input
-                    [ id "name"
-                    , type_ "text"
-                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
-                    , name "name"
-                    , placeholder "Acme, Co."
-                    , value model.name
-                    , onInput NameChanged
-                    , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                    , disabled model.isSubmitting
-                    ]
-                    []
-                , errorView "name" model.errors
-                ]
-            , div [ class "pb-6" ]
-                [ label [ for "slug", class "input-label" ] [ text "URL" ]
-                , div
-                    [ classList
-                        [ ( "input-field inline-flex leading-none items-baseline", True )
-                        , ( "input-field-error", isInvalid "slug" model.errors )
-                        ]
-                    ]
-                    [ label
-                        [ for "slug"
-                        , class "flex-none text-dusty-blue-darker select-none"
-                        ]
-                        [ text "level.app/" ]
-                    , div [ class "flex-1" ]
-                        [ input
-                            [ id "slug"
-                            , type_ "text"
-                            , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
-                            , name "slug"
-                            , placeholder "smith-co"
-                            , value model.slug
-                            , onInput SlugChanged
-                            , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                            , disabled model.isSubmitting
-                            ]
-                            []
-                        ]
-                    ]
-                , errorView "slug" model.errors
-                ]
-            , div [ class "pb-6" ]
-                [ label [ for "avatar", class "input-label" ] [ text "Logo" ]
-                , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
-                ]
-            , button
-                [ type_ "submit"
-                , class "btn btn-blue"
-                , onClick Submit
+    div []
+        [ div [ class "pb-6" ]
+            [ label [ for "name", class "input-label" ] [ text "Space Name" ]
+            , input
+                [ id "name"
+                , type_ "text"
+                , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
+                , name "name"
+                , placeholder "Acme, Co."
+                , value model.name
+                , onInput NameChanged
+                , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
                 , disabled model.isSubmitting
                 ]
-                [ text "Save settings" ]
+                []
+            , errorView "name" model.errors
             ]
+        , div [ class "pb-6" ]
+            [ label [ for "slug", class "input-label" ] [ text "URL" ]
+            , div
+                [ classList
+                    [ ( "input-field inline-flex leading-none items-baseline", True )
+                    , ( "input-field-error", isInvalid "slug" model.errors )
+                    ]
+                ]
+                [ label
+                    [ for "slug"
+                    , class "flex-none text-dusty-blue-darker select-none"
+                    ]
+                    [ text "level.app/" ]
+                , div [ class "flex-1" ]
+                    [ input
+                        [ id "slug"
+                        , type_ "text"
+                        , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                        , name "slug"
+                        , placeholder "smith-co"
+                        , value model.slug
+                        , onInput SlugChanged
+                        , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                        , disabled model.isSubmitting
+                        ]
+                        []
+                    ]
+                ]
+            , errorView "slug" model.errors
+            ]
+        , div [ class "pb-6" ]
+            [ label [ for "avatar", class "input-label" ] [ text "Logo" ]
+            , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
+            ]
+        , button
+            [ type_ "submit"
+            , class "btn btn-blue"
+            , onClick Submit
+            , disabled model.isSubmitting
+            ]
+            [ text "Save settings" ]
         ]
 
 
