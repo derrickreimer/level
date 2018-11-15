@@ -24,6 +24,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import View.Helpers exposing (viewIf)
 import View.SpaceLayout
 
 
@@ -268,67 +269,73 @@ resolvedView maybeCurrentRoute model data =
                 [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
                 , filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
-            , div [ class "flex" ]
-                [ div [ class "flex-1 mr-8" ]
-                    [ div [ class "pb-6" ]
-                        [ label [ for "name", class "input-label" ] [ text "Space Name" ]
-                        , input
-                            [ id "name"
+            , viewIf (Route.Settings.getSection model.params == Route.Settings.Space) <|
+                spaceSettingsView model data
+            ]
+        ]
+
+
+spaceSettingsView : Model -> Data -> Html Msg
+spaceSettingsView model data =
+    div [ class "flex" ]
+        [ div [ class "flex-1 mr-8" ]
+            [ div [ class "pb-6" ]
+                [ label [ for "name", class "input-label" ] [ text "Space Name" ]
+                , input
+                    [ id "name"
+                    , type_ "text"
+                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
+                    , name "name"
+                    , placeholder "Acme, Co."
+                    , value model.name
+                    , onInput NameChanged
+                    , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                    , disabled model.isSubmitting
+                    ]
+                    []
+                , errorView "name" model.errors
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "slug", class "input-label" ] [ text "URL" ]
+                , div
+                    [ classList
+                        [ ( "input-field inline-flex leading-none items-baseline", True )
+                        , ( "input-field-error", isInvalid "slug" model.errors )
+                        ]
+                    ]
+                    [ label
+                        [ for "slug"
+                        , class "flex-none text-dusty-blue-darker select-none"
+                        ]
+                        [ text "level.app/" ]
+                    , div [ class "flex-1" ]
+                        [ input
+                            [ id "slug"
                             , type_ "text"
-                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
-                            , name "name"
-                            , placeholder "Acme, Co."
-                            , value model.name
-                            , onInput NameChanged
+                            , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                            , name "slug"
+                            , placeholder "smith-co"
+                            , value model.slug
+                            , onInput SlugChanged
                             , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
                             , disabled model.isSubmitting
                             ]
                             []
-                        , errorView "name" model.errors
                         ]
-                    , div [ class "pb-6" ]
-                        [ label [ for "slug", class "input-label" ] [ text "URL" ]
-                        , div
-                            [ classList
-                                [ ( "input-field inline-flex leading-none items-baseline", True )
-                                , ( "input-field-error", isInvalid "slug" model.errors )
-                                ]
-                            ]
-                            [ label
-                                [ for "slug"
-                                , class "flex-none text-dusty-blue-darker select-none"
-                                ]
-                                [ text "level.app/" ]
-                            , div [ class "flex-1" ]
-                                [ input
-                                    [ id "slug"
-                                    , type_ "text"
-                                    , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
-                                    , name "slug"
-                                    , placeholder "smith-co"
-                                    , value model.slug
-                                    , onInput SlugChanged
-                                    , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                                    , disabled model.isSubmitting
-                                    ]
-                                    []
-                                ]
-                            ]
-                        , errorView "slug" model.errors
-                        ]
-                    , div [ class "pb-6" ]
-                        [ label [ for "avatar", class "input-label" ] [ text "Logo" ]
-                        , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
-                        ]
-                    , button
-                        [ type_ "submit"
-                        , class "btn btn-blue"
-                        , onClick Submit
-                        , disabled model.isSubmitting
-                        ]
-                        [ text "Save settings" ]
                     ]
+                , errorView "slug" model.errors
                 ]
+            , div [ class "pb-6" ]
+                [ label [ for "avatar", class "input-label" ] [ text "Logo" ]
+                , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
+                ]
+            , button
+                [ type_ "submit"
+                , class "btn btn-blue"
+                , onClick Submit
+                , disabled model.isSubmitting
+                ]
+                [ text "Save settings" ]
             ]
         ]
 
