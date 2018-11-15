@@ -177,6 +177,10 @@ The following variables are for non-essential external services.
       <td><code>FULLSTORY_ORG</code></td>
       <td>The organization ID for FullStory.</td>
     </tr>
+    <tr>
+      <td><code>HEAP_ANALYTICS_APP_ID</code></td>
+      <td>The app ID for Heap Analytics.</td>
+    </tr>
   </tbody>
 
   <tbody>

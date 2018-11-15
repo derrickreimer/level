@@ -32,6 +32,7 @@ config :level, :generators,
 config :level, :drip, account_id: System.get_env("DRIP_ACCOUNT_ID")
 config :level, :fathom, site_id: System.get_env("FATHOM_SITE_ID")
 config :level, :fullstory, org: System.get_env("FULLSTORY_ORG")
+config :level, :heap_analytics, app_id: System.get_env("HEAP_ANALYTICS_APP_ID")
 config :level, :helpscout, beacon_id: System.get_env("HELPSCOUT_BEACON_ID")
 config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY")
 

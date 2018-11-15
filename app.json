@@ -61,14 +61,6 @@
     "POSTMARK_API_KEY": {
       "description": "The API key for Postmark (transactional email sending).",
       "value": ""
-    },
-    "HONEYBADGER_API_KEY": {
-      "description": "The API key for Honeybadger.io exception monitoring (Elixir).",
-      "value": ""
-    },
-    "HONEYBADGER_JS_API_KEY": {
-      "description": "The API key for Honeybadger.io exception monitoring (JavaScript).",
-      "value": ""
     }
   }
 }

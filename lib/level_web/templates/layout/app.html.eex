@@ -53,18 +53,38 @@
         g.clearUserCookie=function(){};
     })(window,document,window['_fs_namespace'],'script','user');
     </script>
+
+    <%= if assigns[:current_user] do %>
+    <script>
+      FS.identify("<%= assigns[:current_user].id %>", {
+        displayName: '<%= Level.Schemas.User.display_name(assigns[:current_user]) %>',
+        email: '<%= assigns[:current_user].email %>'
+      });
+    </script>
+    <% end %>
     <!-- / FullStory -->
     <% end %>
 
+    <%= if Application.get_env(:level, :heap_analytics)[:app_id] do %>
+    <!-- Heap -->
+    <script type="text/javascript">
+    window.heap=window.heap||[],heap.load=function(e,t){window.heap.appid=e,window.heap.config=t=t||{};var r=t.forceSSL||"https:"===document.location.protocol,a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=(r?"https:":"http:")+"//cdn.heapanalytics.com/js/heap-"+e+".js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n);for(var o=function(e){return function(){heap.push([e].concat(Array.prototype.slice.call(arguments,0)))}},p=["addEventProperties","addUserProperties","clearEventProperties","identify","resetIdentity","removeEventProperty","setEventProperties","track","unsetEventProperty"],c=0;c<p.length;c++)heap[p[c]]=o(p[c])};
+      heap.load("<%= Application.get_env(:level, :heap_analytics)[:app_id] %>");
+    </script>
+
     <%= if assigns[:current_user] do %>
-      <script>
-        FS.identify("<%= assigns[:current_user].id %>", {
-          displayName: '<%= Level.Schemas.User.display_name(assigns[:current_user]) %>',
-          email: '<%= assigns[:current_user].email %>'
-        });
-      </script>
+    <script type="text/javascript">
+      heap.identify("<%= assigns[:current_user].id %>");
+      heap.addUserProperties({
+        "email": "<%= assigns[:current_user].email %>",
+        "display_name": "<%= Level.Schemas.User.display_name(assigns[:current_user]) %>"
+      });
+    </script>
+    <% end %>
+    <!-- / Heap -->
     <% end %>
 
+    <!-- Headway -->
     <script>
       var HW_config = {
         selector: "#headway", // CSS selector where to inject the badge
@@ -72,6 +92,7 @@
       };
     </script>
     <script async src="//cdn.headwayapp.co/widget.js"></script>
+    <!-- / Headway -->
   </head>
 
   <body>
