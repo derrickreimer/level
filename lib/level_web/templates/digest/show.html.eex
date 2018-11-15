@@ -22,7 +22,8 @@
   <tr>
     <td class="pt-25px">
       <p class="text-dusty-blue text-xs">
-        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>">Click here</a> to view this digest in the browser.
+        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>">Click here</a> to view this digest in the browser.<br/>
+        Times are displayed in the <%= @digest.time_zone %> time zone.
       </p>
     </td>
   </tr>
