@@ -1,6 +1,7 @@
 module Page.Settings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
+import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import File exposing (File)
 import Globals exposing (Globals)
@@ -11,6 +12,7 @@ import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.UpdateDigestSettings as UpdateDigestSettings
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Query.SettingsInit as SettingsInit
@@ -39,7 +41,7 @@ type alias Model =
     , bookmarkIds : List Id
     , name : String
     , slug : String
-    , isDigestEnabled : Bool
+    , digestSettings : DigestSettings
     , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
@@ -93,7 +95,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.bookmarkIds
                 (Space.name resp.space)
                 (Space.slug resp.space)
-                resp.isDigestEnabled
+                resp.digestSettings
                 (Space.avatarUrl resp.space)
                 []
                 False
@@ -128,7 +130,8 @@ type Msg
     | AvatarSubmitted (Result Session.Error ( Session, UpdateSpaceAvatar.Response ))
     | AvatarSelected
     | FileReceived Decode.Value
-    | DailyDigestToggled
+    | DigestToggled
+    | DigestSettingsUpdated (Result Session.Error ( Session, UpdateDigestSettings.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -202,8 +205,28 @@ update msg globals model =
             -- TODO: handle unexpected exceptions
             noCmd globals { model | isSubmitting = False }
 
-        DailyDigestToggled ->
-            ( ( { model | isDigestEnabled = not model.isDigestEnabled }, Cmd.none ), globals )
+        DigestToggled ->
+            let
+                cmd =
+                    globals.session
+                        |> UpdateDigestSettings.request model.spaceId (not (DigestSettings.isEnabled model.digestSettings))
+                        |> Task.attempt DigestSettingsUpdated
+            in
+            ( ( { model | digestSettings = DigestSettings.toggle model.digestSettings }, cmd ), globals )
+
+        DigestSettingsUpdated (Ok ( newSession, UpdateDigestSettings.Success newDigestSettings )) ->
+            ( ( { model | digestSettings = newDigestSettings, isSubmitting = False }
+              , Cmd.none
+              )
+            , { globals | session = newSession }
+            )
+
+        DigestSettingsUpdated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        DigestSettingsUpdated _ ->
+            -- TODO: handle unexpected exceptions
+            noCmd globals { model | isSubmitting = False }
 
         NoOp ->
             noCmd globals model
@@ -289,8 +312,9 @@ preferencesView model data =
         [ input
             [ type_ "checkbox"
             , class "checkbox"
-            , onClick DailyDigestToggled
-            , checked model.isDigestEnabled
+            , onClick DigestToggled
+            , checked (DigestSettings.isEnabled model.digestSettings)
+            , disabled model.isSubmitting
             ]
             []
         , span [ class "control-indicator" ] []

@@ -90,7 +90,7 @@ defmodule LevelWeb.Schema.Objects do
     field :last_name, non_null(:string)
     field :handle, non_null(:string)
 
-    field :digest, :digest_preferences do
+    field :digest_settings, :digest_settings do
       resolve fn space_user, _, %{context: %{current_user: user}} ->
         if space_user.user_id == user.id do
           {:ok, %{is_enabled: space_user.is_digest_enabled}}
@@ -128,7 +128,7 @@ defmodule LevelWeb.Schema.Objects do
   end
 
   @desc "Describes a user's digest sending preferences."
-  object :digest_preferences do
+  object :digest_settings do
     field :is_enabled, non_null(:boolean)
   end
 
