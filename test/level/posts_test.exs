@@ -186,16 +186,17 @@ defmodule Level.PostsTest do
       space_user: space_user,
       group: group
     } do
-      {:ok, %{space_user: %SpaceUser{id: mentioned_id} = mentioned}} =
-        create_space_member(space, %{handle: "tiff"})
+      {:ok, %{space_user: mentioned}} = create_space_member(space, %{handle: "tiff"})
+      {:ok, %{space_user: another_mentioned}} = create_space_member(space, %{handle: "derrick"})
 
-      params = valid_post_params() |> Map.merge(%{body: "Hey @tiff"})
-
-      {:ok, %{post: post, mentions: [%SpaceUser{id: ^mentioned_id}]}} =
-        Posts.create_post(space_user, group, params)
+      params = valid_post_params() |> Map.merge(%{body: "Hey @tiff and @derrick"})
+      {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, another_mentioned)
     end
 
     test "does not subscribe mentioned users who cannot access the post", %{

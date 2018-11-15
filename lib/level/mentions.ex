@@ -64,7 +64,7 @@ defmodule Level.Mentions do
 
   defp do_record(body, post, reply_id, author_id) do
     mention_pattern()
-    |> Regex.run(body, capture: :all_but_first)
+    |> Regex.scan(body, capture: :all_but_first)
     |> process_handles(post, reply_id, author_id)
   end
 
@@ -75,7 +75,7 @@ defmodule Level.Mentions do
   defp process_handles(handles, post, reply_id, author_id) do
     lower_handles =
       handles
-      |> Enum.map(fn handle -> String.downcase(handle) end)
+      |> Enum.map(fn [handle] -> String.downcase(handle) end)
       |> Enum.uniq()
 
     query =
