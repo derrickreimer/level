@@ -970,8 +970,8 @@ routeFor page =
         UserSettings _ ->
             Just <| Route.UserSettings
 
-        SpaceSettings { spaceSlug } ->
-            Just <| Route.SpaceSettings spaceSlug
+        SpaceSettings { params } ->
+            Just <| Route.SpaceSettings params
 
         Search { params } ->
             Just <| Route.Search params

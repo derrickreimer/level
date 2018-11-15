@@ -16,6 +16,7 @@ import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.SpaceSettings exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -31,7 +32,7 @@ import View.SpaceLayout
 
 
 type alias Model =
-    { spaceSlug : String
+    { params : Params
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
@@ -72,19 +73,19 @@ title =
 -- LIFECYCLE
 
 
-init : String -> Globals -> Task Session.Error ( Globals, Model )
-init spaceSlug globals =
+init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init params globals =
     globals.session
-        |> SetupInit.request spaceSlug
-        |> Task.map (buildModel spaceSlug globals)
+        |> SetupInit.request (Route.SpaceSettings.getSpaceSlug params)
+        |> Task.map (buildModel params globals)
 
 
-buildModel : String -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
-buildModel spaceSlug globals ( newSession, resp ) =
+buildModel : Params -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel params globals ( newSession, resp ) =
     let
         model =
             Model
-                spaceSlug
+                params
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
@@ -259,9 +260,13 @@ resolvedView maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
-            [ div [ class "pb-8" ]
+            [ div [ class "pb-4" ]
                 [ nav [ class "text-xl font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
-                , h1 [ class "font-extrabold text-3xl" ] [ text "Space Settings" ]
+                , h1 [ class "font-extrabold text-3xl" ] [ text "Settings" ]
+                ]
+            , div [ class "flex items-baseline mb-6 mr-8 border-b" ]
+                [ filterTab "Preferences" Route.SpaceSettings.Preferences (Route.SpaceSettings.setSection Route.SpaceSettings.Preferences model.params) model.params
+                , filterTab "Space Settings" Route.SpaceSettings.Space (Route.SpaceSettings.setSection Route.SpaceSettings.Space model.params) model.params
                 ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
@@ -311,6 +316,10 @@ resolvedView maybeCurrentRoute model data =
                             ]
                         , errorView "slug" model.errors
                         ]
+                    , div [ class "pb-6" ]
+                        [ label [ for "avatar", class "input-label" ] [ text "Logo" ]
+                        , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
+                        ]
                     , button
                         [ type_ "submit"
                         , class "btn btn-blue"
@@ -319,9 +328,23 @@ resolvedView maybeCurrentRoute model data =
                         ]
                         [ text "Save settings" ]
                     ]
-                , div [ class "flex-0" ]
-                    [ Avatar.uploader "avatar" model.avatarUrl AvatarSelected
-                    ]
                 ]
             ]
         ]
+
+
+filterTab : String -> Route.SpaceSettings.Section -> Params -> Params -> Html Msg
+filterTab label section linkParams currentParams =
+    let
+        isCurrent =
+            Route.SpaceSettings.getSection currentParams == section
+    in
+    a
+        [ Route.href (Route.SpaceSettings linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        ]
+        [ text label ]
