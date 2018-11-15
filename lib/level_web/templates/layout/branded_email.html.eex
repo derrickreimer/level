@@ -341,7 +341,7 @@
       border-bottom: 1px solid #e2e6e8;
     }
 
-    .last\:border-none:last-child {
+    .last--border-none:last-child {
       border: 0;
     }
 
