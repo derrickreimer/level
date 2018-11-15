@@ -68,7 +68,7 @@
         <%= render @view_module, @view_template, assigns %>
       </div>
 
-      <footer class="bg-dusty-blue-darkest">
+      <footer class="footer-bg">
         <div class="container mx-auto mt-8 p-8 border-grey text-center text-base text-white opacity-75">
           <div class="pb-16 text-lg">
             <%= link "Source Code", to: "https://github.com/levelhq/level", class: "mx-2 text-white no-underline" %>
