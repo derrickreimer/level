@@ -363,8 +363,7 @@ post-editor.dragging-over > * {
   @apply block rounded border-grey max-w-full w-auto h-auto;
   margin-top: 3rem;
   margin-bottom: 3rem;
-  box-shadow: 0 0 0 1px config('colors.grey');
-
+  box-shadow: 0 0 0 1px config('colors.grey'), 0 0 30px 0 rgba(0,0,0,0.1);
 }
 
 .marketing-long-form p {
