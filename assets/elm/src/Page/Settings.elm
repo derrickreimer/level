@@ -13,7 +13,7 @@ import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
-import Query.SetupInit as SetupInit
+import Query.SettingsInit as SettingsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Settings exposing (Params)
@@ -39,7 +39,7 @@ type alias Model =
     , bookmarkIds : List Id
     , name : String
     , slug : String
-    , isDailyDigestEnabled : Bool
+    , isDigestEnabled : Bool
     , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
@@ -78,11 +78,11 @@ title =
 init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
-        |> SetupInit.request (Route.Settings.getSpaceSlug params)
+        |> SettingsInit.request (Route.Settings.getSpaceSlug params)
         |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel : Params -> Globals -> ( Session, SettingsInit.Response ) -> ( Globals, Model )
 buildModel params globals ( newSession, resp ) =
     let
         model =
@@ -93,7 +93,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.bookmarkIds
                 (Space.name resp.space)
                 (Space.slug resp.space)
-                True
+                resp.isDigestEnabled
                 (Space.avatarUrl resp.space)
                 []
                 False
@@ -203,7 +203,7 @@ update msg globals model =
             noCmd globals { model | isSubmitting = False }
 
         DailyDigestToggled ->
-            ( ( { model | isDailyDigestEnabled = not model.isDailyDigestEnabled }, Cmd.none ), globals )
+            ( ( { model | isDigestEnabled = not model.isDigestEnabled }, Cmd.none ), globals )
 
         NoOp ->
             noCmd globals model
@@ -290,7 +290,7 @@ preferencesView model data =
             [ type_ "checkbox"
             , class "checkbox"
             , onClick DailyDigestToggled
-            , checked model.isDailyDigestEnabled
+            , checked model.isDigestEnabled
             ]
             []
         , span [ class "control-indicator" ] []
