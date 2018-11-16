@@ -431,7 +431,7 @@ resolvedView repo maybeCurrentRoute pushStatus spaceUsers model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
-                [ div [ class "border-b" ]
+                [ div [ class "trans-border-b-grey" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
                         , controlsView model data

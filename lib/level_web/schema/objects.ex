@@ -90,6 +90,16 @@ defmodule LevelWeb.Schema.Objects do
     field :last_name, non_null(:string)
     field :handle, non_null(:string)
 
+    field :digest_settings, :digest_settings do
+      resolve fn space_user, _, %{context: %{current_user: user}} ->
+        if space_user.user_id == user.id do
+          {:ok, %{is_enabled: space_user.is_digest_enabled}}
+        else
+          {:ok, nil}
+        end
+      end
+    end
+
     @desc "A list of groups the user has bookmarked."
     field :bookmarks, list_of(:group) do
       resolve fn space_user, _args, %{context: %{current_user: user}} ->
@@ -115,6 +125,11 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp), resolve: fetch_time()
+  end
+
+  @desc "Describes a user's digest sending preferences."
+  object :digest_settings do
+    field :is_enabled, non_null(:boolean)
   end
 
   @desc "A space bot represents a bot that has been installed in a particular space."

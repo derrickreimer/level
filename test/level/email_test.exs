@@ -28,6 +28,7 @@ defmodule Level.EmailTest do
       id: "11111111-1111-1111-1111-111111111111",
       space_id: "11111111-1111-1111-1111-111111111111",
       space_name: "CoffeeKit",
+      space_slug: "coffeekit",
       title: "Your Daily Digest",
       subject: "[CoffeeKit] Your Daily Digest",
       to_email: "derrick@level.app",

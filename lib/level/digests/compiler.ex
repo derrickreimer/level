@@ -18,6 +18,7 @@ defmodule Level.Digests.Compiler do
       id: digest.id,
       space_id: digest.space_id,
       space_name: space.name,
+      space_slug: space.slug,
       title: digest.title,
       subject: digest.subject,
       to_email: digest.to_email,

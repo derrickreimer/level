@@ -1,6 +1,7 @@
-module Page.SpaceSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Settings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
+import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import File exposing (File)
 import Globals exposing (Globals)
@@ -11,11 +12,13 @@ import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.UpdateDigestSettings as UpdateDigestSettings
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
-import Query.SetupInit as SetupInit
+import Query.SettingsInit as SettingsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Settings exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -23,6 +26,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import View.Helpers exposing (viewIf)
 import View.SpaceLayout
 
 
@@ -31,12 +35,13 @@ import View.SpaceLayout
 
 
 type alias Model =
-    { spaceSlug : String
+    { params : Params
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
     , name : String
     , slug : String
+    , digestSettings : DigestSettings
     , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
@@ -72,24 +77,25 @@ title =
 -- LIFECYCLE
 
 
-init : String -> Globals -> Task Session.Error ( Globals, Model )
-init spaceSlug globals =
+init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init params globals =
     globals.session
-        |> SetupInit.request spaceSlug
-        |> Task.map (buildModel spaceSlug globals)
+        |> SettingsInit.request (Route.Settings.getSpaceSlug params)
+        |> Task.map (buildModel params globals)
 
 
-buildModel : String -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
-buildModel spaceSlug globals ( newSession, resp ) =
+buildModel : Params -> Globals -> ( Session, SettingsInit.Response ) -> ( Globals, Model )
+buildModel params globals ( newSession, resp ) =
     let
         model =
             Model
-                spaceSlug
+                params
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
                 (Space.name resp.space)
                 (Space.slug resp.space)
+                resp.digestSettings
                 (Space.avatarUrl resp.space)
                 []
                 False
@@ -116,14 +122,16 @@ teardown model =
 
 
 type Msg
-    = NameChanged String
+    = NoOp
+    | NameChanged String
     | SlugChanged String
     | Submit
     | Submitted (Result Session.Error ( Session, UpdateSpace.Response ))
     | AvatarSubmitted (Result Session.Error ( Session, UpdateSpaceAvatar.Response ))
     | AvatarSelected
     | FileReceived Decode.Value
-    | NoOp
+    | DigestToggled
+    | DigestSettingsUpdated (Result Session.Error ( Session, UpdateDigestSettings.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -197,6 +205,29 @@ update msg globals model =
             -- TODO: handle unexpected exceptions
             noCmd globals { model | isSubmitting = False }
 
+        DigestToggled ->
+            let
+                cmd =
+                    globals.session
+                        |> UpdateDigestSettings.request model.spaceId (not (DigestSettings.isEnabled model.digestSettings))
+                        |> Task.attempt DigestSettingsUpdated
+            in
+            ( ( { model | digestSettings = DigestSettings.toggle model.digestSettings }, cmd ), globals )
+
+        DigestSettingsUpdated (Ok ( newSession, UpdateDigestSettings.Success newDigestSettings )) ->
+            ( ( { model | digestSettings = newDigestSettings, isSubmitting = False }
+              , Cmd.none
+              )
+            , { globals | session = newSession }
+            )
+
+        DigestSettingsUpdated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        DigestSettingsUpdated _ ->
+            -- TODO: handle unexpected exceptions
+            noCmd globals { model | isSubmitting = False }
+
         NoOp ->
             noCmd globals model
 
@@ -259,69 +290,114 @@ resolvedView maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
-            [ div [ class "pb-8" ]
+            [ div [ class "pb-4" ]
                 [ nav [ class "text-xl font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
-                , h1 [ class "font-extrabold text-3xl" ] [ text "Space Settings" ]
+                , h1 [ class "font-extrabold text-3xl" ] [ text "Settings" ]
                 ]
-            , div [ class "flex" ]
-                [ div [ class "flex-1 mr-8" ]
-                    [ div [ class "pb-6" ]
-                        [ label [ for "name", class "input-label" ] [ text "Space Name" ]
-                        , input
-                            [ id "name"
-                            , type_ "text"
-                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
-                            , name "name"
-                            , placeholder "Acme, Co."
-                            , value model.name
-                            , onInput NameChanged
-                            , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                            , disabled model.isSubmitting
-                            ]
-                            []
-                        , errorView "name" model.errors
-                        ]
-                    , div [ class "pb-6" ]
-                        [ label [ for "slug", class "input-label" ] [ text "URL" ]
-                        , div
-                            [ classList
-                                [ ( "input-field inline-flex leading-none items-baseline", True )
-                                , ( "input-field-error", isInvalid "slug" model.errors )
-                                ]
-                            ]
-                            [ label
-                                [ for "slug"
-                                , class "flex-none text-dusty-blue-darker select-none"
-                                ]
-                                [ text "level.app/" ]
-                            , div [ class "flex-1" ]
-                                [ input
-                                    [ id "slug"
-                                    , type_ "text"
-                                    , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
-                                    , name "slug"
-                                    , placeholder "smith-co"
-                                    , value model.slug
-                                    , onInput SlugChanged
-                                    , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
-                                    , disabled model.isSubmitting
-                                    ]
-                                    []
-                                ]
-                            ]
-                        , errorView "slug" model.errors
-                        ]
-                    , button
-                        [ type_ "submit"
-                        , class "btn btn-blue"
-                        , onClick Submit
-                        , disabled model.isSubmitting
-                        ]
-                        [ text "Save settings" ]
-                    ]
-                , div [ class "flex-0" ]
-                    [ Avatar.uploader "avatar" model.avatarUrl AvatarSelected
-                    ]
+            , div [ class "flex items-baseline mb-6 border-b" ]
+                [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
+                , viewIf (Space.canUpdate data.space) <|
+                    filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
+            , viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
+                preferencesView model data
+            , viewIf (Route.Settings.getSection model.params == Route.Settings.Space) <|
+                spaceSettingsView model data
             ]
         ]
+
+
+preferencesView : Model -> Data -> Html Msg
+preferencesView model data =
+    label [ class "control checkbox pb-6" ]
+        [ input
+            [ type_ "checkbox"
+            , class "checkbox"
+            , onClick DigestToggled
+            , checked (DigestSettings.isEnabled model.digestSettings)
+            , disabled model.isSubmitting
+            ]
+            []
+        , span [ class "control-indicator" ] []
+        , span [ class "select-none" ] [ text "Send me a daily digest at 4:00 pm" ]
+        ]
+
+
+spaceSettingsView : Model -> Data -> Html Msg
+spaceSettingsView model data =
+    div []
+        [ div [ class "pb-6" ]
+            [ label [ for "name", class "input-label" ] [ text "Space Name" ]
+            , input
+                [ id "name"
+                , type_ "text"
+                , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
+                , name "name"
+                , placeholder "Acme, Co."
+                , value model.name
+                , onInput NameChanged
+                , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                , disabled model.isSubmitting
+                ]
+                []
+            , errorView "name" model.errors
+            ]
+        , div [ class "pb-6" ]
+            [ label [ for "slug", class "input-label" ] [ text "URL" ]
+            , div
+                [ classList
+                    [ ( "input-field inline-flex leading-none items-baseline", True )
+                    , ( "input-field-error", isInvalid "slug" model.errors )
+                    ]
+                ]
+                [ label
+                    [ for "slug"
+                    , class "flex-none text-dusty-blue-darker select-none"
+                    ]
+                    [ text "level.app/" ]
+                , div [ class "flex-1" ]
+                    [ input
+                        [ id "slug"
+                        , type_ "text"
+                        , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                        , name "slug"
+                        , placeholder "smith-co"
+                        , value model.slug
+                        , onInput SlugChanged
+                        , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                        , disabled model.isSubmitting
+                        ]
+                        []
+                    ]
+                ]
+            , errorView "slug" model.errors
+            ]
+        , div [ class "pb-6" ]
+            [ label [ for "avatar", class "input-label" ] [ text "Logo" ]
+            , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
+            ]
+        , button
+            [ type_ "submit"
+            , class "btn btn-blue"
+            , onClick Submit
+            , disabled model.isSubmitting
+            ]
+            [ text "Save settings" ]
+        ]
+
+
+filterTab : String -> Route.Settings.Section -> Params -> Params -> Html Msg
+filterTab label section linkParams currentParams =
+    let
+        isCurrent =
+            Route.Settings.getSection currentParams == section
+    in
+    a
+        [ Route.href (Route.Settings linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        ]
+        [ text label ]

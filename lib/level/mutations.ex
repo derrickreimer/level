@@ -23,6 +23,15 @@ defmodule Level.Mutations do
           {:ok, %{success: boolean(), user: Users.User.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
 
+  @typedoc "The result of mutating digest settings"
+  @type digest_mutation_result ::
+          {:ok,
+           %{
+             success: boolean(),
+             digest_settings: %{is_enabled: boolean()} | nil,
+             errors: validation_errors()
+           }}
+
   @typedoc "The result of a space mutation"
   @type space_mutation_result ::
           {:ok, %{success: boolean(), space: Spaces.Space.t() | nil, errors: validation_errors()}}
@@ -118,6 +127,42 @@ defmodule Level.Mutations do
 
       _ ->
         {:ok, %{success: false, user: nil, errors: []}}
+    end
+  end
+
+  @doc """
+  Updates digest settings.
+  """
+  @spec update_digest_settings(map(), info()) :: digest_mutation_result()
+  def update_digest_settings(%{space_id: space_id} = args, %{context: %{current_user: user}}) do
+    transformed_args =
+      case args do
+        %{is_enabled: is_enabled} = args ->
+          args
+          |> Map.delete(:is_enabled)
+          |> Map.put(:is_digest_enabled, is_enabled)
+
+        args ->
+          args
+      end
+
+    user
+    |> Spaces.get_space(space_id)
+    |> do_update_digest_settings(transformed_args)
+  end
+
+  defp do_update_digest_settings({:ok, %{space_user: space_user}}, args) do
+    case Spaces.update_space_user(space_user, args) do
+      {:ok, space_user} ->
+        {:ok,
+         %{
+           success: true,
+           digest_settings: %{is_enabled: space_user.is_digest_enabled},
+           errors: []
+         }}
+
+      {:error, changeset} ->
+        {:ok, %{success: false, digest_settings: nil, errors: format_errors(changeset)}}
     end
   end
 

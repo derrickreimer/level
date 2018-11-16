@@ -190,6 +190,7 @@
 
     .text-xl {
       font-size: 34px;
+      line-height: 1.2;
     }
 
     .text-lg {
@@ -230,6 +231,10 @@
 
     .text-center {
       text-align: center;
+    }
+
+    .no-underline {
+      text-decoration: none;
     }
 
     .font-bold {

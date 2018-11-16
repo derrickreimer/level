@@ -504,3 +504,11 @@ post-editor.dragging-over > * {
 .tilt-2deg {
   transform: rotate(2deg);
 }
+
+.trans-border-b-grey {
+  box-shadow: 0 1px 0 0 rgba(0,0,0,0.12);
+}
+
+.translate-y-1 {
+  transform: translateY(1px);
+}

@@ -21,6 +21,7 @@ defmodule Level.Schemas.SpaceUser do
   schema "space_users" do
     field :state, :string, read_after_writes: true
     field :role, :string, read_after_writes: true
+    field :is_digest_enabled, :boolean, read_after_writes: true
     field :first_name, :string
     field :last_name, :string
     field :handle, :string
@@ -48,7 +49,16 @@ defmodule Level.Schemas.SpaceUser do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:user_id, :space_id, :role, :first_name, :last_name, :handle, :avatar])
+    |> cast(attrs, [
+      :user_id,
+      :space_id,
+      :role,
+      :first_name,
+      :last_name,
+      :handle,
+      :avatar,
+      :is_digest_enabled
+    ])
     |> validate_required([:role, :first_name, :last_name, :handle])
     |> Handles.validate_format(:handle)
     |> unique_constraint(:handle,
@@ -60,7 +70,7 @@ defmodule Level.Schemas.SpaceUser do
   @doc false
   def update_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:role, :first_name, :last_name, :handle, :avatar])
+    |> cast(attrs, [:role, :first_name, :last_name, :handle, :avatar, :is_digest_enabled])
     |> validate_required([:role, :first_name, :last_name, :handle])
     |> Handles.validate_format(:handle)
     |> unique_constraint(:handle,

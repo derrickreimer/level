@@ -7,11 +7,12 @@ import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Route.Group
+import Route.GroupPermissions
 import Route.Groups
 import Route.Inbox
-import Route.GroupPermissions
 import Route.Posts
 import Route.Search
+import Route.Settings
 import Route.SpaceUsers
 import Url exposing (Url)
 import Url.Builder as Builder exposing (absolute)
@@ -38,7 +39,7 @@ type Route
     | GroupPermissions Route.GroupPermissions.Params
     | Post String String
     | UserSettings
-    | SpaceSettings String
+    | Settings Route.Settings.Params
     | Search Route.Search.Params
 
 
@@ -60,7 +61,7 @@ parser =
         , Parser.map Group Route.Group.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
-        , Parser.map SpaceSettings (Parser.string </> s "settings")
+        , Parser.map Settings Route.Settings.parser
         , Parser.map Search Route.Search.parser
         ]
 
@@ -151,8 +152,8 @@ toString page =
         UserSettings ->
             absolute [ "user", "settings" ] []
 
-        SpaceSettings slug ->
-            absolute [ slug, "settings" ] []
+        Settings params ->
+            Route.Settings.toString params
 
         Search params ->
             Route.Search.toString params

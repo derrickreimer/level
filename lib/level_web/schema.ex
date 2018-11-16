@@ -98,6 +98,14 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.update_space_avatar/2
     end
 
+    @desc "Updates a user's digest settings for a particular space."
+    field :update_digest_settings, type: :update_digest_settings_payload do
+      arg :space_id, non_null(:id)
+      arg :is_enabled, :boolean
+
+      resolve &Level.Mutations.update_digest_settings/2
+    end
+
     @desc "Mark a space setup step as complete."
     field :complete_setup_step, type: :complete_setup_step_payload do
       arg :space_id, non_null(:id)

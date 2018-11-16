@@ -13,6 +13,8 @@ defmodule Level.DailyDigest.Sendable do
     field :digest_key, :string
     field :hour, :integer
     field :time_zone, :string
+    field :is_digest_enabled, :boolean
+
     belongs_to :user, User
   end
 end
