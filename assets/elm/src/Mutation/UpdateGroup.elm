@@ -1,7 +1,8 @@
-module Mutation.UpdateGroup exposing (Response(..), request)
+module Mutation.UpdateGroup exposing (Response(..), isDefaultVariables, request, variables)
 
 import GraphQL exposing (Document)
 import Group exposing (Group)
+import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Session exposing (Session)
@@ -24,12 +25,14 @@ document =
           $groupId: ID!,
           $name: String,
           $isPrivate: Boolean,
+          $isDefault: Boolean
         ) {
           updateGroup(
             spaceId: $spaceId,
             groupId: $groupId,
             name: $name,
-            isPrivate: $isPrivate
+            isPrivate: $isPrivate,
+            isDefault: $isDefault
           ) {
             ...ValidationFields
             group {
@@ -43,12 +46,12 @@ document =
         ]
 
 
-variables : String -> String -> Maybe String -> Maybe Bool -> Maybe Encode.Value
+variables : Id -> Id -> Maybe String -> Maybe Bool -> Encode.Value
 variables spaceId groupId maybeName maybeIsPrivate =
     let
         requiredFields =
-            [ ( "spaceId", Encode.string spaceId )
-            , ( "groupId", Encode.string groupId )
+            [ ( "spaceId", Id.encoder spaceId )
+            , ( "groupId", Id.encoder groupId )
             ]
 
         nameField =
@@ -67,8 +70,16 @@ variables spaceId groupId maybeName maybeIsPrivate =
                 Nothing ->
                     []
     in
-    Just <|
-        Encode.object (requiredFields ++ nameField ++ privacyField)
+    Encode.object (requiredFields ++ nameField ++ privacyField)
+
+
+isDefaultVariables : Id -> Id -> Bool -> Encode.Value
+isDefaultVariables spaceId groupId isDefault =
+    Encode.object
+        [ ( "spaceId", Id.encoder spaceId )
+        , ( "groupId", Id.encoder groupId )
+        , ( "isDefault", Encode.bool isDefault )
+        ]
 
 
 successDecoder : Decoder Response
@@ -99,7 +110,7 @@ decoder =
         |> Decode.andThen conditionalDecoder
 
 
-request : String -> String -> Maybe String -> Maybe Bool -> Session -> Task Session.Error ( Session, Response )
-request spaceId groupId maybeName maybeIsPrivate session =
+request : Encode.Value -> Session -> Task Session.Error ( Session, Response )
+request vars session =
     Session.request session <|
-        GraphQL.request document (variables spaceId groupId maybeName maybeIsPrivate) decoder
+        GraphQL.request document (Just vars) decoder

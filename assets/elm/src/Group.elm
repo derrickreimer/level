@@ -1,4 +1,4 @@
-module Group exposing (Group, State(..), decoder, fragment, id, isBookmarked, isPrivate, membershipState, name, state)
+module Group exposing (Group, State(..), decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, state)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -24,6 +24,7 @@ type alias Data =
     , state : State
     , name : String
     , isPrivate : Bool
+    , isDefault : Bool
     , isBookmarked : Bool
     , membershipState : GroupMembershipState
     , fetchedAt : Int
@@ -39,6 +40,7 @@ fragment =
           state
           name
           isPrivate
+          isDefault
           isBookmarked
           membership {
             state
@@ -73,6 +75,11 @@ isPrivate (Group data) =
     data.isPrivate
 
 
+isDefault : Group -> Bool
+isDefault (Group data) =
+    data.isDefault
+
+
 isBookmarked : Group -> Bool
 isBookmarked (Group data) =
     data.isBookmarked
@@ -90,11 +97,12 @@ membershipState (Group data) =
 decoder : Decoder Group
 decoder =
     Decode.map Group <|
-        Decode.map7 Data
+        Decode.map8 Data
             (field "id" Id.decoder)
             (field "state" stateDecoder)
             (field "name" string)
             (field "isPrivate" bool)
+            (field "isDefault" bool)
             (field "isBookmarked" bool)
             membershipStateDecoder
             (field "fetchedAt" int)

@@ -422,10 +422,6 @@ post-editor.dragging-over > * {
   max-width: 90%;
 }
 
-.min-h-300px {
-  min-height: 300px;
-}
-
 .no-outline {
   outline: none;
 }

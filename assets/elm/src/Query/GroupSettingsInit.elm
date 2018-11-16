@@ -19,6 +19,7 @@ type alias Response =
     , spaceId : Id
     , bookmarkIds : List Id
     , groupId : Id
+    , isDefault : Bool
     , spaceUserIds : Connection Id
     , repo : Repo
     }
@@ -106,6 +107,7 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
                 (Group.id data.group)
+                (Group.isDefault data.group)
                 (Connection.map SpaceUser.id data.spaceUsers)
                 repo
     in

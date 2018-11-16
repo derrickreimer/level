@@ -13,6 +13,7 @@ import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CloseGroup as CloseGroup
 import Mutation.ReopenGroup as ReopenGroup
+import Mutation.UpdateGroup as UpdateGroup
 import Pagination
 import Query.GroupSettingsInit as GroupSettingsInit
 import Repo exposing (Repo)
@@ -39,6 +40,7 @@ type alias Model =
     , spaceId : Id
     , groupId : Id
     , bookmarkIds : List Id
+    , isDefault : Bool
     , spaceUserIds : Connection Id
     , selectedIds : List Id
     , isSubmitting : Bool
@@ -86,7 +88,16 @@ buildModel : Params -> Globals -> ( Session, GroupSettingsInit.Response ) -> ( G
 buildModel params globals ( newSession, resp ) =
     let
         model =
-            Model params resp.viewerId resp.spaceId resp.groupId resp.bookmarkIds resp.spaceUserIds [] False
+            Model
+                params
+                resp.viewerId
+                resp.spaceId
+                resp.groupId
+                resp.bookmarkIds
+                resp.isDefault
+                resp.spaceUserIds
+                []
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -115,6 +126,8 @@ type Msg
     | Closed (Result Session.Error ( Session, CloseGroup.Response ))
     | ReopenClicked
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
+    | DefaultToggled
+    | GroupUpdated (Result Session.Error ( Session, UpdateGroup.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -179,6 +192,39 @@ update msg globals model =
 
         Reopened (Err _) ->
             ( ( model, Cmd.none ), globals )
+
+        DefaultToggled ->
+            let
+                variables =
+                    UpdateGroup.isDefaultVariables model.spaceId model.groupId (not model.isDefault)
+
+                cmd =
+                    globals.session
+                        |> UpdateGroup.request variables
+                        |> Task.attempt GroupUpdated
+            in
+            ( ( { model | isDefault = not model.isDefault, isSubmitting = True }, cmd ), globals )
+
+        GroupUpdated (Ok ( newSession, UpdateGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
+
+        GroupUpdated (Ok ( newSession, _ )) ->
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        GroupUpdated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        GroupUpdated (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
 
 
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -281,7 +327,20 @@ filterTab label section linkParams currentParams =
 
 generalView : Model -> Data -> Html Msg
 generalView model data =
-    div [ class "mb-4 min-h-300px border-b" ] []
+    div [ class "mb-4 pb-16 border-b" ]
+        [ label [ class "control checkbox pb-6" ]
+            [ input
+                [ type_ "checkbox"
+                , class "checkbox"
+                , onClick DefaultToggled
+                , checked model.isDefault
+                , disabled model.isSubmitting
+                ]
+                []
+            , span [ class "control-indicator" ] []
+            , span [ class "select-none" ] [ text "Make this a default group" ]
+            ]
+        ]
 
 
 permissionsView : Repo -> Model -> Html Msg

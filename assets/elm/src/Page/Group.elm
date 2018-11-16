@@ -428,9 +428,12 @@ update msg globals model =
                     model.nameEditor
                         |> FieldEditor.setIsSubmitting True
 
+                variables =
+                    UpdateGroup.variables model.spaceId model.groupId (Just (FieldEditor.getValue newNameEditor)) Nothing
+
                 cmd =
                     globals.session
-                        |> UpdateGroup.request model.spaceId model.groupId (Just (FieldEditor.getValue newNameEditor)) Nothing
+                        |> UpdateGroup.request variables
                         |> Task.attempt NameEditorSubmitted
             in
             ( ( { model | nameEditor = newNameEditor }, cmd ), globals )
@@ -547,9 +550,12 @@ update msg globals model =
 
         PrivacyToggle isPrivate ->
             let
+                variables =
+                    UpdateGroup.variables model.spaceId model.groupId Nothing (Just isPrivate)
+
                 cmd =
                     globals.session
-                        |> UpdateGroup.request model.spaceId model.groupId Nothing (Just isPrivate)
+                        |> UpdateGroup.request variables
                         |> Task.attempt PrivacyToggled
             in
             ( ( model, cmd ), globals )
