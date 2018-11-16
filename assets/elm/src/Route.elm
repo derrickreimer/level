@@ -7,7 +7,7 @@ import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Route.Group
-import Route.GroupPermissions
+import Route.GroupSettings
 import Route.Groups
 import Route.Inbox
 import Route.Posts
@@ -36,7 +36,7 @@ type Route
     | Groups Route.Groups.Params
     | Group Route.Group.Params
     | NewGroup String
-    | GroupPermissions Route.GroupPermissions.Params
+    | GroupSettings Route.GroupSettings.Params
     | Post String String
     | UserSettings
     | Settings Route.Settings.Params
@@ -57,7 +57,7 @@ parser =
         , Parser.map InviteUsers (Parser.string </> s "invites")
         , Parser.map Groups Route.Groups.parser
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
-        , Parser.map GroupPermissions Route.GroupPermissions.parser
+        , Parser.map GroupSettings Route.GroupSettings.parser
         , Parser.map Group Route.Group.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
@@ -143,8 +143,8 @@ toString page =
         NewGroup slug ->
             absolute [ slug, "groups", "new" ] []
 
-        GroupPermissions params ->
-            Route.GroupPermissions.toString params
+        GroupSettings params ->
+            Route.GroupSettings.toString params
 
         Post slug id ->
             absolute [ slug, "posts", id ] []

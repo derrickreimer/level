@@ -1,4 +1,4 @@
-module Page.GroupPermissions exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
+module Page.GroupSettings exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Avatar
 import Connection exposing (Connection)
@@ -11,12 +11,14 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.CloseGroup as CloseGroup
+import Mutation.ReopenGroup as ReopenGroup
 import Pagination
-import Query.GroupPermissionsInit as GroupPermissionsInit
+import Query.GroupSettingsInit as GroupSettingsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
-import Route.GroupPermissions exposing (Params)
+import Route.GroupSettings exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -66,7 +68,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Invite to group"
+    "Group Settings"
 
 
 
@@ -76,11 +78,11 @@ title =
 init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
-        |> GroupPermissionsInit.request params
+        |> GroupSettingsInit.request params
         |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> Globals -> ( Session, GroupPermissionsInit.Response ) -> ( Globals, Model )
+buildModel : Params -> Globals -> ( Session, GroupSettingsInit.Response ) -> ( Globals, Model )
 buildModel params globals ( newSession, resp ) =
     let
         model =
@@ -109,6 +111,10 @@ teardown model =
 type Msg
     = NoOp
     | UserToggled Id
+    | CloseClicked
+    | Closed (Result Session.Error ( Session, CloseGroup.Response ))
+    | ReopenClicked
+    | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -127,6 +133,52 @@ update msg globals model =
                         ListHelpers.insertUniqueBy identity toggledId model.selectedIds
             in
             ( ( { model | selectedIds = newSelectedIds }, Cmd.none ), globals )
+
+        CloseClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> CloseGroup.request model.spaceId model.groupId
+                        |> Task.attempt Closed
+            in
+            ( ( model, cmd ), globals )
+
+        Closed (Ok ( newSession, CloseGroup.Success newGroup )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
+            in
+            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+
+        Closed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Closed (Err _) ->
+            ( ( model, Cmd.none ), globals )
+
+        ReopenClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> ReopenGroup.request model.spaceId model.groupId
+                        |> Task.attempt Reopened
+            in
+            ( ( model, cmd ), globals )
+
+        Reopened (Ok ( newSession, ReopenGroup.Success newGroup )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
+            in
+            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+
+        Reopened (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Reopened (Err _) ->
+            ( ( model, Cmd.none ), globals )
 
 
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -170,8 +222,8 @@ resolvedView repo maybeCurrentRoute model data =
     let
         groupParams =
             Route.Group.init
-                (Route.GroupPermissions.getSpaceSlug model.params)
-                (Route.GroupPermissions.getGroupId model.params)
+                (Route.GroupSettings.getSpaceSlug model.params)
+                (Route.GroupSettings.getGroupId model.params)
     in
     View.SpaceLayout.layout
         data.viewer
@@ -179,7 +231,7 @@ resolvedView repo maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
-            [ div [ class "pb-3" ]
+            [ div [ class "pb-4" ]
                 [ nav [ class "text-xl font-extrabold leading-tight" ]
                     [ a
                         [ Route.href (Route.Group groupParams)
@@ -187,15 +239,60 @@ resolvedView repo maybeCurrentRoute model data =
                         ]
                         [ text <| Group.name data.group ]
                     ]
-                , h1 [ class "flex-1 font-extrabold text-3xl" ] [ text "Permissions" ]
+                , h1 [ class "flex-1 font-extrabold text-3xl" ] [ text "Group Settings" ]
                 ]
-            , div [ class "pb-6" ]
-                [ p [ class "text-base" ]
-                    [ text "Manage who is allowed in the group and appoint other owners to help admininstrate it."
+            , div [ class "flex items-baseline mb-6 border-b" ]
+                [ filterTab "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
+                ]
+            , viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.General) <|
+                generalView model data
+            , viewIf (Group.state data.group == Group.Open) <|
+                button
+                    [ class "text-md text-dusty-blue no-underline font-bold"
+                    , onClick CloseClicked
                     ]
-                ]
-            , usersView repo model
+                    [ text "Close this group" ]
+            , viewIf (Group.state data.group == Group.Closed) <|
+                button
+                    [ class "text-md text-dusty-blue no-underline font-bold"
+                    , onClick ReopenClicked
+                    ]
+                    [ text "Reopen this group" ]
             ]
+        ]
+
+
+filterTab : String -> Route.GroupSettings.Section -> Params -> Params -> Html Msg
+filterTab label section linkParams currentParams =
+    let
+        isCurrent =
+            Route.GroupSettings.getSection currentParams == section
+    in
+    a
+        [ Route.href (Route.GroupSettings linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        ]
+        [ text label ]
+
+
+generalView : Model -> Data -> Html Msg
+generalView model data =
+    div [ class "mb-4 min-h-300px border-b" ] []
+
+
+permissionsView : Repo -> Model -> Html Msg
+permissionsView repo model =
+    div []
+        [ div [ class "pb-6" ]
+            [ p [ class "text-base" ]
+                [ text "Manage who is allowed in the group and appoint other owners to help admininstrate it."
+                ]
+            ]
+        , usersView repo model
         ]
 
 

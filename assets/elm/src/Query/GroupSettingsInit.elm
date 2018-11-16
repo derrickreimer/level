@@ -1,4 +1,4 @@
-module Query.GroupPermissionsInit exposing (Response, request)
+module Query.GroupSettingsInit exposing (Response, request)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -7,7 +7,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Repo exposing (Repo)
-import Route.GroupPermissions exposing (Params)
+import Route.GroupSettings exposing (Params)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -37,7 +37,7 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        query GroupPermissionsInit(
+        query GroupSettingsInit(
           $spaceSlug: ID!,
           $groupId: ID!
         ) {
@@ -72,8 +72,8 @@ variables : Params -> Maybe Encode.Value
 variables params =
     Just
         (Encode.object
-            [ ( "spaceSlug", Encode.string <| Route.GroupPermissions.getSpaceSlug params )
-            , ( "groupId", Id.encoder <| Route.GroupPermissions.getGroupId params )
+            [ ( "spaceSlug", Encode.string <| Route.GroupSettings.getSpaceSlug params )
+            , ( "groupId", Id.encoder <| Route.GroupSettings.getGroupId params )
             ]
         )
 
