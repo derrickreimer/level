@@ -338,7 +338,7 @@ generalView model data =
                 ]
                 []
             , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Make this a default group" ]
+            , span [ class "select-none" ] [ text "Add new members to this group by default" ]
             ]
         ]
 
