@@ -6,6 +6,7 @@ defmodule Level.DailyDigestTest do
   alias Level.Digests
   alias Level.Repo
   alias Level.Schemas.SpaceUser
+  alias Level.Spaces
 
   describe "sendable_query/1" do
     setup do
@@ -46,6 +47,18 @@ defmodule Level.DailyDigestTest do
 
       # Verify that the user no longer appears in the results
       query = DailyDigest.sendable_query(now, now.hour)
+      assert [] = Repo.all(query)
+    end
+
+    test "does not include users with disabled digests", %{
+      now: now
+    } do
+      {:ok, %{space_user: space_user}} = create_user_and_space(%{time_zone: "Etc/UTC"})
+
+      # Disable the digest
+      Spaces.update_space_user(space_user, %{is_digest_enabled: false})
+
+      query = DailyDigest.sendable_query(now, now.hour - 1)
       assert [] = Repo.all(query)
     end
   end

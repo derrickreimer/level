@@ -35,6 +35,7 @@ defmodule Level.DailyDigest do
     inner_query =
       from su in Sendable,
         join: u in assoc(su, :user),
+        where: su.is_digest_enabled == true,
         select: %{
           su
           | hour: fragment("EXTRACT(HOUR FROM ? AT TIME ZONE ?)", ^now, u.time_zone),
