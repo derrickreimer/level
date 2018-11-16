@@ -59,7 +59,7 @@ defmodule Level.Schemas.SpaceUser do
       :avatar,
       :is_digest_enabled
     ])
-    |> validate_required([:role, :first_name, :last_name, :handle, :is_digest_enabled])
+    |> validate_required([:role, :first_name, :last_name, :handle])
     |> Handles.validate_format(:handle)
     |> unique_constraint(:handle,
       name: :space_users_space_id_lower_handle_index,
@@ -71,7 +71,7 @@ defmodule Level.Schemas.SpaceUser do
   def update_changeset(struct, attrs \\ %{}) do
     struct
     |> cast(attrs, [:role, :first_name, :last_name, :handle, :avatar, :is_digest_enabled])
-    |> validate_required([:role, :first_name, :last_name, :handle, :is_digest_enabled])
+    |> validate_required([:role, :first_name, :last_name, :handle])
     |> Handles.validate_format(:handle)
     |> unique_constraint(:handle,
       name: :space_users_space_id_lower_handle_index,
