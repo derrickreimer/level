@@ -296,7 +296,8 @@ resolvedView maybeCurrentRoute model data =
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
-                , filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
+                , viewIf (Space.canUpdate data.space) <|
+                    filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
             , viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
                 preferencesView model data

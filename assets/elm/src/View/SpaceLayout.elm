@@ -67,8 +67,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
             , groupLinks space bookmarks maybeCurrentRoute
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
-                , viewIf (Space.canUpdate space) <|
-                    navLink space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug space) Route.Settings.Preferences)) maybeCurrentRoute
+                , navLink space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug space) Route.Settings.Preferences)) maybeCurrentRoute
                 ]
             ]
         , div [ class "absolute pin-b w-full" ]
