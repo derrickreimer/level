@@ -96,22 +96,22 @@ defmodule Level.Digests.Builder do
 
   def inbox_section_summary(unread_count, 0) do
     unread_phrase = pluralize(unread_count, "unread post", "unread posts")
-    text = "You have #{unread_phrase} in your inbox. Here are a few of the top ones."
-
-    html =
-      "You have <strong>#{unread_phrase}</strong> in your inbox. " <>
-        "Here are a few of the top ones."
+    text = "You have #{unread_phrase} in your inbox. Here are some highlights."
+    html = "You have <strong>#{unread_phrase}</strong> in your inbox. Here are some highlights."
 
     {text, html}
   end
 
   def inbox_section_summary(0, read_count) do
     read_phrase = pluralize(read_count, "post", "posts")
-    text = "You have #{read_phrase} in your inbox. Here are a few of the top ones."
+
+    text =
+      "You have #{read_phrase} in your inbox. " <>
+        "We recommend dismissing posts from your inbox once you are finished with them."
 
     html =
       "You have <strong>#{read_phrase}</strong> in your inbox. " <>
-        "Here are a few of the top ones."
+        "We recommend dismissing posts from your inbox once you are finished with them."
 
     {text, html}
   end
@@ -122,13 +122,11 @@ defmodule Level.Digests.Builder do
 
     plaintext =
       "You have #{unread_phrase} and " <>
-        "#{read_phrase} you have already seen in your inbox. " <>
-        "Here are a few of the top ones."
+        "#{read_phrase} you have already seen in your inbox. Here are some highlights."
 
     html =
       "You have <strong>#{unread_phrase}</strong> and " <>
-        "#{read_phrase} you have already seen in your inbox. " <>
-        "Here are a few of the top ones."
+        "#{read_phrase} you have already seen in your inbox. Here are some highlights."
 
     {plaintext, html}
   end
