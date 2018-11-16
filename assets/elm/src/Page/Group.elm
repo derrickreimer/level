@@ -34,7 +34,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
-import Route.GroupPermissions
+import Route.GroupSettings
 import Route.Search
 import Scroll
 import Session exposing (Session)
@@ -428,9 +428,12 @@ update msg globals model =
                     model.nameEditor
                         |> FieldEditor.setIsSubmitting True
 
+                variables =
+                    UpdateGroup.variables model.spaceId model.groupId (Just (FieldEditor.getValue newNameEditor)) Nothing
+
                 cmd =
                     globals.session
-                        |> UpdateGroup.request model.spaceId model.groupId (Just (FieldEditor.getValue newNameEditor)) Nothing
+                        |> UpdateGroup.request variables
                         |> Task.attempt NameEditorSubmitted
             in
             ( ( { model | nameEditor = newNameEditor }, cmd ), globals )
@@ -547,9 +550,12 @@ update msg globals model =
 
         PrivacyToggle isPrivate ->
             let
+                variables =
+                    UpdateGroup.variables model.spaceId model.groupId Nothing (Just isPrivate)
+
                 cmd =
                     globals.session
-                        |> UpdateGroup.request model.spaceId model.groupId Nothing (Just isPrivate)
+                        |> UpdateGroup.request variables
                         |> Task.attempt PrivacyToggled
             in
             ( ( model, cmd ), globals )
@@ -993,10 +999,11 @@ postView repo space currentUser now spaceUsers component =
 sidebarView : Params -> Group -> List SpaceUser -> Html Msg
 sidebarView params group featuredMembers =
     let
-        permissionsParams =
-            Route.GroupPermissions.init
+        settingsParams =
+            Route.GroupSettings.init
                 (Route.Group.getSpaceSlug params)
                 (Route.Group.getGroupId params)
+                Route.GroupSettings.General
     in
     View.SpaceLayout.rightSidebar
         [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
@@ -1008,26 +1015,16 @@ sidebarView params group featuredMembers =
             ]
         , memberListView featuredMembers
         , ul [ class "list-reset leading-normal" ]
-            [ -- Hide this for now while private groups are disabled
-              viewIf False <|
-                li []
-                    [ a
-                        [ Route.href (Route.GroupPermissions permissionsParams)
-                        , class "text-md text-dusty-blue no-underline font-bold"
-                        ]
-                        [ text "Permissions" ]
-                    ]
-            , li []
+            [ li []
                 [ subscribeButtonView (Group.membershipState group)
                 ]
-            , viewIf (Group.state group == Group.Open) <|
-                li []
-                    [ button
-                        [ class "text-md text-dusty-blue no-underline font-bold"
-                        , onClick CloseClicked
-                        ]
-                        [ text "Close this group" ]
+            , li []
+                [ a
+                    [ Route.href (Route.GroupSettings settingsParams)
+                    , class "text-md text-dusty-blue no-underline font-bold"
                     ]
+                    [ text "Settings" ]
+                ]
             ]
         ]
 
