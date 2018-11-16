@@ -17,13 +17,14 @@
   <%= render LevelWeb.DigestView, "_section.html", %{section: section, digest: @digest} %>
 <% end %>
 
-<!-- View in browser -->
+<!-- Pre-Footer -->
 <table class="w-full cell-0 text-center" align="center" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td class="pt-25px">
       <p class="text-dusty-blue text-xs">
-        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>">Click here</a> to view this digest in the browser.<br/>
-        Times are displayed in the <%= @digest.time_zone %> time zone.
+        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>">Click here</a> to view this digest in the browser.<br/><br/>
+        Times are displayed in the <%= @digest.time_zone %> time zone.<br/>
+        <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space_slug, "settings", "preferences"]) %>">Update my digest settings</a>
       </p>
     </td>
   </tr>

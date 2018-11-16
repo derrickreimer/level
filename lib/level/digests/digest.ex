@@ -8,6 +8,7 @@ defmodule Level.Digests.Digest do
   @enforce_keys [
     :id,
     :space_id,
+    :space_slug,
     :space_name,
     :title,
     :subject,
@@ -21,6 +22,7 @@ defmodule Level.Digests.Digest do
   defstruct [
     :id,
     :space_id,
+    :space_slug,
     :space_name,
     :title,
     :subject,
@@ -34,6 +36,7 @@ defmodule Level.Digests.Digest do
   @type t :: %__MODULE__{
           id: String.t(),
           space_id: String.t(),
+          space_slug: String.t(),
           space_name: String.t(),
           title: String.t(),
           subject: String.t(),

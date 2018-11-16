@@ -104,6 +104,7 @@ defmodule Level.DigestsTest do
         id: "11111111-1111-1111-1111-111111111111",
         space_id: "11111111-1111-1111-1111-111111111111",
         space_name: "Level",
+        space_slug: "level",
         title: "Your Daily Digest",
         subject: "[Level] Your Daily Digest",
         to_email: "derrick@level.app",
