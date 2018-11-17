@@ -3,7 +3,7 @@
     <%= img_tag(static_url(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
   <% end %>
 
-  <div class="flex flex-grow justify-start sm:justify-end">
+  <div class="flex flex-grow justify-start sm:justify-end font-headline">
     <%= link "Journal", to: "https://leveljournal.com", class: "flex-0 ml-6 text-blue no-underline" %>
     <%= link "Sign In", to: session_path(@conn, :new), class: "flex-0 ml-6 text-blue no-underline" %>
   </div>
