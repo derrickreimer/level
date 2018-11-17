@@ -29,6 +29,7 @@
     <meta property="og:url" content="<%= @og.url %>">
     <% end %>
 
+    <link rel="stylesheet" href="<%= static_url(@conn, "/css/fonts.css") %>">
     <link rel="stylesheet" href="<%= static_url(@conn, "/css/app.css") %>">
 
     <link rel="shortcut icon" href="<%= static_url(@conn, "/favicon.ico") %>" />

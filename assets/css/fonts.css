@@ -1,0 +1,47 @@
+@font-face {
+  font-family: "UntitledSansWeb";
+  src: url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Regular.woff2') format('woff2'),
+       url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "UntitledSansWeb";
+  src: url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-RegularItalic.woff2') format('woff2'),
+       url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-RegularItalic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "UntitledSansWeb";
+  src: url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Bold.woff2') format('woff2'),
+       url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "UntitledSansWeb";
+  src: url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-BoldItalic.woff2') format('woff2'),
+       url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-BoldItalic.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "UntitledSansWeb";
+  src: url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Black.woff2') format('woff2'),
+       url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "UntitledSansWeb";
+  src: url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-BlackItalic.woff2') format('woff2'),
+       url('https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+}

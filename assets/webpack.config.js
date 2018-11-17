@@ -1,9 +1,11 @@
 const path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyPlugin = require("uglifyjs-webpack-plugin");
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+const extractAppCSS = new ExtractTextPlugin('../css/app.css');
+const extractFontsCSS = new ExtractTextPlugin('../css/fonts.css');
 
 module.exports = (env, argv) => ({
   entry: './js/app.js',
@@ -25,8 +27,18 @@ module.exports = (env, argv) => ({
         }
       },
       {
-        test: /\.css$/,
-        use: ExtractTextPlugin.extract({
+        test: /app\.css$/,
+        use: extractAppCSS.extract({
+          fallback: 'style-loader',
+          use: [
+            { loader: 'css-loader', options: { importLoaders: 1 } },
+            'postcss-loader'
+          ]
+        })
+      },
+      {
+        test: /fonts\.css$/,
+        use: extractFontsCSS.extract({
           fallback: 'style-loader',
           use: [
             { loader: 'css-loader', options: { importLoaders: 1 } },
@@ -51,7 +63,8 @@ module.exports = (env, argv) => ({
     ]
   },
   plugins: [
-    new ExtractTextPlugin('../css/app.css'),
+    extractAppCSS,
+    extractFontsCSS,
     new CopyWebpackPlugin([{ from: 'static/', to: '../' }]),
     new CompressionPlugin({ test: /(\.js|\.css)$/ })
   ],
