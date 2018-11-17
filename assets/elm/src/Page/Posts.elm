@@ -376,7 +376,7 @@ paginationView params connection =
 postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
 postsView repo spaceUsers model data =
     if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-8 pb-8 text-center text-lg" ]
+        div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else

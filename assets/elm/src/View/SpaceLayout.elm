@@ -56,7 +56,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
         [ div [ class "p-4" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
-                , div [ class "mb-2 font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
+                , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
                 ]
             ]
         , div [ class "absolute px-4 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]

@@ -40,6 +40,15 @@ body {
   @apply .text-dusty-blue-darkest;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-headline;
+}
+
 .logo {
   @apply .block;
   width: 99px;
@@ -351,12 +360,12 @@ post-editor.dragging-over > * {
 
 @screen sm {
   .marketing-headline {
-    @apply leading-tighter text-6xl;
+    @apply tracking-tight leading-tighter text-6xl;
   }
 }
 
 .marketing-sub-head {
-  @apply mt-8 mb-6 font-black leading-tight text-dusty-blue-darkest;
+  @apply mt-8 mb-6 tracking-semi-tight font-black leading-tight text-dusty-blue-darkest;
 }
 
 .marketing-screenshot {
@@ -405,8 +414,8 @@ post-editor.dragging-over > * {
 }
 
 .font-antialised {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; */
 }
 
 .selection-turquoise::selection,

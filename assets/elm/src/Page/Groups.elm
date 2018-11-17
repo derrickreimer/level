@@ -230,17 +230,15 @@ groupPartitionView space ( letter, indexedGroups ) =
 
 groupView : Space -> IndexedGroup -> Html Msg
 groupView space ( index, group ) =
-    div []
-        [ h2 [ class "flex items-center pr-4 font-normal text-lg" ]
-            [ a [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group))), class "flex-1 text-blue no-underline" ] [ text <| Group.name group ]
-            , viewIf (Group.membershipState group == Subscribed) <|
-                div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
-            , div [ class "flex-0" ]
-                [ viewIf (Group.isBookmarked group) <|
-                    Icons.bookmark Icons.On
-                , viewUnless (Group.isBookmarked group) <|
-                    Icons.bookmark Icons.Off
-                ]
+    h2 [ class "flex items-center pr-4 font-normal text-lg" ]
+        [ a [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group))), class "flex-1 text-blue no-underline" ] [ text <| Group.name group ]
+        , viewIf (Group.membershipState group == Subscribed) <|
+            div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
+        , div [ class "flex-0" ]
+            [ viewIf (Group.isBookmarked group) <|
+                Icons.bookmark Icons.On
+            , viewUnless (Group.isBookmarked group) <|
+                Icons.bookmark Icons.Off
             ]
         ]
 

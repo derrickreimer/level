@@ -283,7 +283,7 @@ queryEditorView editor =
 resultsView : Repo -> Params -> ( Zone, Posix ) -> OffsetConnection ResolvedSearchResult -> Html Msg
 resultsView repo params now taggedResults =
     if OffsetConnection.isEmptyAndExpanded taggedResults then
-        div [ class "pt-8 pb-8 text-center text-lg" ]
+        div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
             [ text "This search turned up no results!" ]
 
     else

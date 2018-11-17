@@ -147,8 +147,22 @@ module.exports = {
   */
 
   fonts: {
-    'sans': [
+    'headline': [
       'UntitledSansWeb',
+      'system-ui',
+      'BlinkMacSystemFont',
+      '-apple-system',
+      'Segoe UI',
+      'Roboto',
+      'Oxygen',
+      'Ubuntu',
+      'Cantarell',
+      'Fira Sans',
+      'Droid Sans',
+      'Helvetica Neue',
+      'sans-serif',
+    ],
+    'sans': [
       'system-ui',
       'BlinkMacSystemFont',
       '-apple-system',
@@ -276,8 +290,8 @@ module.exports = {
   */
 
   tracking: {
-    'tight': '-0.05em',
-    'semi-tight': '-0.01em',
+    'tight': '-0.04em',
+    'semi-tight': '-0.025em',
     'normal': '0',
     'wide': '0.05em',
   },
