@@ -414,8 +414,8 @@ post-editor.dragging-over > * {
 }
 
 .font-antialised {
-  /* -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale; */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .selection-turquoise::selection,
