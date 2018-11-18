@@ -798,7 +798,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ span [ class "font-bold" ] [ text <| Actor.displayName data.author ] ]
+                    [ span [ class "font-headline font-bold" ] [ text <| Actor.displayName data.author ] ]
                 , viewIf model.showGroups <|
                     groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
                 , a
@@ -985,7 +985,7 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors spaceUsers rep
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ clickToExpandIf (mode == Feed)
-                        [ span [ class "font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
+                        [ span [ class "font-headline font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             div [ class "inline-block" ]
@@ -1068,7 +1068,13 @@ replyComposerView spaceId currentUser post spaceUsers model =
             [ div [ class "flex items-center my-3" ]
                 [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
                 , div [ class "flex-grow leading-semi-loose" ]
-                    [ span [ class "text-dusty-blue-dark" ] [ text "This post is marked as resolved" ]
+                    [ span [ class "mr-3 text-dusty-blue-dark" ] [ text "This post is resolved" ]
+                    , viewIf (Post.inboxState post == Post.Read || Post.inboxState post == Post.Unread) <|
+                        button
+                            [ class "btn btn-grey-outline btn-sm"
+                            , onClick DismissClicked
+                            ]
+                            [ text "Dismiss from my inbox" ]
                     ]
                 ]
             ]
