@@ -278,7 +278,7 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-4" ]
-                [ nav [ class "text-xl font-extrabold leading-tight" ]
+                [ nav [ class "text-xl font-headline font-extrabold leading-tight" ]
                     [ a
                         [ Route.href (Route.Group groupParams)
                         , class "no-underline text-dusty-blue-dark"

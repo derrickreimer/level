@@ -291,7 +291,7 @@ resolvedView maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
             [ div [ class "pb-4" ]
-                [ nav [ class "text-xl font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
+                [ nav [ class "text-xl font-headline font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
                 , h1 [ class "font-extrabold text-3xl" ] [ text "Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
