@@ -15,14 +15,15 @@ defmodule Level.DailyDigest do
   @doc """
   Builds options to a pass to the digest generator.
   """
-  @spec options_for(String.t(), DateTime.t(), String.t()) :: Options.t()
-  def options_for(key, end_at, time_zone) do
+  @spec options_for(String.t(), DateTime.t(), String.t(), boolean()) :: Options.t()
+  def options_for(key, end_at, time_zone, always_build \\ false) do
     %Options{
       title: "Your Daily Digest",
       key: key,
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
-      time_zone: time_zone
+      time_zone: time_zone,
+      always_build: always_build
     }
   end
 
@@ -75,14 +76,23 @@ defmodule Level.DailyDigest do
       space_user = Repo.get(SpaceUser, result.id)
       opts = options_for(result.digest_key, now, result.time_zone)
 
-      with {:ok, digest} <- Digests.build(space_user, opts),
-           _ <- Digests.send_email(digest) do
-        {:ok, digest}
-      else
-        _ ->
-          {:error, result}
-      end
+      space_user
+      |> Digests.build(opts)
+      |> send_after_build(result)
     end)
+  end
+
+  def send_after_build({:ok, digest}, _) do
+    _ = Digests.send_email(digest)
+    {:ok, digest}
+  end
+
+  def send_after_build(:skip, result) do
+    {:skip, result}
+  end
+
+  def send_after_build(_, result) do
+    {:error, result}
   end
 
   @doc """
