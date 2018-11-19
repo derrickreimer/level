@@ -376,7 +376,7 @@ post-editor.dragging-over > * {
 }
 
 .marketing-long-form p {
-  @apply mb-6;
+  @apply mb-6 text-dusty-blue-darker;
 }
 
 .footer-bg {

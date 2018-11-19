@@ -85,9 +85,47 @@
     <p>Do you want your day to look more like Sarah&rsquo;s?</p>
   </div>
 
-  <div class="mx-auto max-w-md">
-    <h2 class="marketing-sub-head">Reserve your handle today</h2>
+  <div class="mx-auto max-w-md pt-12">
+    <h2 class="marketing-headline">Coming in January</h2>
 
-    <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
+    <p>Start the new year off right with a renewed focus on deep work.</p>
+
+    <p>When you pre-order Level, you can claim your username on level.app
+      and <strong>save your spot in line</strong>.
+      On January 21st, I&rsquo;ll begin sending invitations to folks who participated in the pre-order.</p>
+
+    <div class="mb-4">
+      <button id="preorder-button" class="btn btn-blue">Save my spot in line</button>
+      <a href="#" class="btn btn-dusty-blue-inverse no-underline">Learn more</a>
+      <div id="error-message" class="mt-2 text-red font-bold"></div>
+    </div>
+
+    <p class="text-base">Not ready to pre-order? <a href="https://www.getdrip.com/forms/193887608/submissions/new" data-drip-show-form="193887608" class="text-blue" target="_blank">Jump on the launch list instead</a>.</p>
+
+    <script src="https://js.stripe.com/v3"></script>
+    <script>
+      var stripe = Stripe('<%= Application.get_env(:level, :stripe)[:public_key] %>', {
+        betas: ['checkout_beta_3']
+      });
+
+      var checkoutButton = document.getElementById('preorder-button');
+      checkoutButton.addEventListener('click', function () {
+        // When the customer clicks on the button, redirect
+        // them to Checkout.
+        stripe.redirectToCheckout({
+          items: [{sku: '<%= Application.get_env(:level, :stripe)[:preorder_sku] %>', quantity: 1}],
+          successUrl: 'https://level.app/preorder/success',
+          cancelUrl: 'https://level.app/preorder',
+        })
+        .then(function (result) {
+          if (result.error) {
+            // If `redirectToCheckout` fails due to a browser or network
+            // error, display the localized error message to your customer.
+            var displayError = document.getElementById('error-message');
+            displayError.textContent = result.error.message;
+          }
+        });
+      });
+    </script>
   </div>
 </article>

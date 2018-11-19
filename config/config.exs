@@ -36,6 +36,10 @@ config :level, :heap_analytics, app_id: System.get_env("HEAP_ANALYTICS_APP_ID")
 config :level, :helpscout, beacon_id: System.get_env("HELPSCOUT_BEACON_ID")
 config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY")
 
+config :level, :stripe,
+  public_key: System.get_env("STRIPE_PUBLIC_KEY"),
+  preorder_sku: System.get_env("STRIPE_PREORDER_SKU")
+
 # Configure the scheduler
 config :level, Level.Scheduler,
   jobs: [
