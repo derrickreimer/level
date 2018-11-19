@@ -18,11 +18,33 @@ defmodule Level.Digests.Builder do
       |> Repo.preload(:space)
       |> Repo.preload(:user)
 
+    space_user
+    |> check_skippable(opts)
+    |> perform_build()
+  end
+
+  defp check_skippable(space_user, %Options{always_build: true} = opts) do
+    {:ok, space_user, opts}
+  end
+
+  defp check_skippable(space_user, opts) do
+    if get_undismissed_inbox_count(space_user) > 0 do
+      {:ok, space_user, opts}
+    else
+      :skip
+    end
+  end
+
+  defp perform_build({:ok, space_user, opts}) do
     Multi.new()
     |> persist_digest(space_user.space, space_user, opts)
     |> persist_sections(space_user, opts)
     |> Repo.transaction()
     |> after_build(space_user.space)
+  end
+
+  defp perform_build(:skip) do
+    :skip
   end
 
   defp persist_digest(multi, space, space_user, opts) do
@@ -143,6 +165,14 @@ defmodule Level.Digests.Builder do
     space_user
     |> Posts.Query.base_query()
     |> Posts.Query.where_read_in_inbox()
+    |> Posts.Query.count()
+    |> Repo.one()
+  end
+
+  defp get_undismissed_inbox_count(space_user) do
+    space_user
+    |> Posts.Query.base_query()
+    |> Posts.Query.where_undismissed_in_inbox()
     |> Posts.Query.count()
     |> Repo.one()
   end
