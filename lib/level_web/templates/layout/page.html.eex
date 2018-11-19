@@ -56,6 +56,10 @@
     <% end %>
     <!-- / Heap -->
     <% end %>
+
+    <link rel="preload" href="https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Regular.woff2" as="font" crossorigin="anonymous">
+    <link rel="preload" href="https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Bold.woff2" as="font" crossorigin="anonymous">
+    <link rel="preload" href="https://d3nzzq2dyno8f6.cloudfront.net/UntitledSansWeb-Black.woff2" as="font" crossorigin="anonymous">
   </head>
 
   <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal text-xl bg-turquoise selection-turquoise"  data-stretchy-filter=".js-stretchy">
