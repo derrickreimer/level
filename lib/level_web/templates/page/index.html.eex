@@ -86,7 +86,7 @@
   </div>
 </article>
 
-<div class="my-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
+<div id="preorder" class="mt-16 sm:mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
   <div class="mx-auto max-w-md">
     <div class="font-headline font-bold text-turquoise-dark text-xl">
       Coming January 2019
@@ -94,14 +94,17 @@
 
     <h1 class="marketing-headline">Save your spot in line</h1>
 
-    <p class="mb-6">Make a New Year's resolution to embrace deep work in your company. In late January, I&rsquo;ll begin sending invitations to folks pre-ordered Level.</p>
+    <p class="mb-6">Make a New Year&rsquo;s resolution to embrace deep work at your company. I&rsquo;ll begin sending invitations in late January to folks who have pre-ordered Level. The amount will be credited to your Level subscription when you sign up.</p>
 
     <div class="mb-4">
       <button id="preorder-button" class="btn btn-blue">Buy Level</button>
       <div id="error-message" class="mt-2 text-red font-bold"></div>
     </div>
 
-    <p class="text-base">Not ready to pre-order? <a href="https://www.getdrip.com/forms/193887608/submissions/new" data-drip-show-form="193887608" class="text-blue" target="_blank">Jump on the launch list instead</a>.</p>
+    <p class="text-base">
+      Not ready to pre-order?
+      <button onClick="_dcq.push(['showForm', { id: '193887608' }])" class="text-blue underline">Jump on the launch list instead</button>.
+    </p>
 
     <script src="https://js.stripe.com/v3"></script>
     <script>
@@ -115,8 +118,8 @@
         // them to Checkout.
         stripe.redirectToCheckout({
           items: [{sku: '<%= Application.get_env(:level, :stripe)[:preorder_sku] %>', quantity: 1}],
-          successUrl: 'https://level.app/preorder/success',
-          cancelUrl: 'https://level.app/preorder',
+          successUrl: 'https://level.app/preorder/thanks',
+          cancelUrl: 'https://level.app/#preorder',
         })
         .then(function (result) {
           if (result.error) {
