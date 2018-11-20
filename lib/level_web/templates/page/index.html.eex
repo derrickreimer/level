@@ -94,7 +94,7 @@
 
     <h1 class="marketing-headline">Save your spot in line</h1>
 
-    <p class="mb-6">Make a New Year&rsquo;s resolution to embrace deep work at your company. I&rsquo;ll begin sending invitations in late January to folks who have pre-ordered Level. The amount will be credited to your Level subscription when you sign up.</p>
+    <p class="mb-6">Make a New Year&rsquo;s resolution to embrace deep work at your company. I&rsquo;ll begin sending invitations in late January to folks who pre-order. The $48 one-time fee will be credited to your future Level subscription.</p>
 
     <div class="mb-4">
       <button id="preorder-button" class="btn btn-blue">Buy Level</button>
