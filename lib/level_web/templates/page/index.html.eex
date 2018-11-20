@@ -1,4 +1,4 @@
-<article class="marketing-long-form overflow-x-hidden">
+<article class="marketing-long-form px-8 overflow-x-hidden">
   <div class="mx-auto max-w-md">
     <h1 class="marketing-headline">Team communication optimized for deep work.</h1>
 
@@ -84,19 +84,20 @@
     <p>Sarah can confidently get in The Zone, knowing that she will not have to deal with a hellscape of red dots and stress about missing important messages that are jumbled up with idle chit-chat.</p>
     <p>Do you want your day to look more like Sarah&rsquo;s?</p>
   </div>
+</article>
 
-  <div class="mx-auto max-w-md pt-12">
-    <h2 class="marketing-headline">Coming in January</h2>
+<div class="my-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
+  <div class="mx-auto max-w-md">
+    <div class="font-headline font-bold text-turquoise-dark text-xl">
+      Coming January 2019
+    </div>
 
-    <p>Start the new year off right with a renewed focus on deep work.</p>
+    <h1 class="marketing-headline">Save your spot in line</h1>
 
-    <p>When you pre-order Level, you can claim your username on level.app
-      and <strong>save your spot in line</strong>.
-      On January 21st, I&rsquo;ll begin sending invitations to folks who participated in the pre-order.</p>
+    <p class="mb-6">Make a New Year's resolution to embrace deep work in your company. In late January, I&rsquo;ll begin sending invitations to folks pre-ordered Level.</p>
 
     <div class="mb-4">
-      <button id="preorder-button" class="btn btn-blue">Save my spot in line</button>
-      <a href="#" class="btn btn-dusty-blue-inverse no-underline">Learn more</a>
+      <button id="preorder-button" class="btn btn-blue">Buy Level</button>
       <div id="error-message" class="mt-2 text-red font-bold"></div>
     </div>
 
@@ -128,4 +129,4 @@
       });
     </script>
   </div>
-</article>
+</div>

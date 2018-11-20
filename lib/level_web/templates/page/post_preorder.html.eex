@@ -1,0 +1,19 @@
+<article class="px-8 pb-24 marketing-long-form mx-auto max-w-md h-full">
+  <h1 class="marketing-headline">Thank you!</h1>
+
+  <p>It means so much that you had enough confidence in Level to part with a few of your hard-earned dollars.</p>
+  <p>I can't wait for you to try out the product with your team and hopefully experience a new level of calm in your company.</p>
+
+  <p>We'll be in touch soon.</p>
+
+  <p>Cheers,</p>
+
+  <div class="pb-3">
+    <img src="<%= static_url(@conn, "/images/signature-black.png") %>" alt="Derrick Reimer" style="width: 150px;" />
+  </div>
+
+  <div class="text-base">
+    Derrick Reimer<br>
+    Founder
+  </div>
+</article>

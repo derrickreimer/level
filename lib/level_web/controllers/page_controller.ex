@@ -21,4 +21,8 @@ defmodule LevelWeb.PageController do
   def manifesto(conn, _params) do
     render conn, "manifesto.html"
   end
+
+  def post_preorder(conn, _params) do
+    render conn, "post_preorder.html"
+  end
 end
