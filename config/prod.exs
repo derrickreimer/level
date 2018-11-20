@@ -14,6 +14,7 @@ use Mix.Config
 config :level, LevelWeb.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [host: System.get_env("LEVEL_HOST"), port: 443, scheme: "https"],
+  force_ssl: [rewrite_on: [:x_forwarded_proto]],
   static_url: [scheme: "https", host: System.get_env("LEVEL_CDN_HOST"), port: 443],
   cache_static_manifest: "priv/static/cache_manifest.json",
   secret_key_base: System.get_env("LEVEL_SECRET_KEY_BASE")
