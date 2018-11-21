@@ -86,7 +86,7 @@
   </div>
 </article>
 
-<div id="preorder" class="mt-16 sm:mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
+<div id="preorder" class="mt-16 mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
   <div class="mx-auto max-w-md">
     <div class="font-headline font-bold text-turquoise-dark text-xl">
       Coming January 2019
@@ -94,7 +94,8 @@
 
     <h1 class="marketing-headline">Save your spot in line</h1>
 
-    <p class="mb-6">Make a New Year&rsquo;s resolution to embrace deep work at your company. I&rsquo;ll begin sending invitations in late January to folks who pre-order. The $48 one-time fee will be credited to your future Level subscription.</p>
+    <p class="mb-6">Make a New Year&rsquo;s resolution to embrace deep work at your company.</p>
+    <p class="mb-6">In late January, I&rsquo;ll begin sending invites to sign up. When you pre-order Level today, <strong>you will guarantee your spot in the first cohort</strong>. The $48 one-time payment will be credited toward your team subscription when your company signs up.</p>
 
     <div class="mb-4">
       <button id="preorder-button" class="btn btn-blue">Buy Level</button>
@@ -131,5 +132,23 @@
         });
       });
     </script>
+  </div>
+</div>
+
+<div class="mb-16 px-8">
+  <div class="mx-auto max-w-md text-dusty-blue-darker">
+    <h2 class="mb-3 font-black text-4xl sm:text-5xl tracking-tight">FAQs</h2>
+
+    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">Is the pre-order for individuals or teams?</h3>
+    <p class="mb-4">The pre-order payment will be applied toward a team subscription. Similar to GitHub, it&rsquo;s free to have an individual account, but costs money to create a team space on Level.</p>
+
+    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">What will Level cost?</h3>
+    <p class="mb-4">Pricing starts at $8 per team member, per month. So, $48 will buy one month of service for a team of six, or three months of service for a team of two.</p>
+
+    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">What exactly does pre-ordering buy me?</h3>
+    <p class="mb-4">Similar to pre-ordering a book on Amazon, it guarantees you earliest access to the product. The public launch will be gradual, so it&rsquo;s uncertain when everyone else will be invited in.</p>
+
+    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">Can I take a handle that was already reserved?</h3>
+    <p class="mb-4">Sorry, handle reservations will be honored in the order they were reserved.</p>
   </div>
 </div>
