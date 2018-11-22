@@ -5,6 +5,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Connection
 import Event exposing (Event)
+import Flash exposing (Flash)
 import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -24,9 +25,9 @@ import Page.NewSpace
 import Page.Post
 import Page.Posts
 import Page.Search
+import Page.Settings
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
-import Page.Settings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
@@ -83,6 +84,7 @@ type alias Model =
     , spaceUserLists : SpaceUserLists
     , currentUser : Lazy User
     , timeZone : String
+    , flash : Flash
     }
 
 
@@ -131,6 +133,7 @@ buildModel flags navKey =
         SpaceUserLists.init
         NotLoaded
         flags.timeZone
+        Flash.init
 
 
 setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
