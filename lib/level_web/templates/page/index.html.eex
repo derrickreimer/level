@@ -36,7 +36,7 @@
     <p>One of Sarah&rsquo;s older posts has also landed in her Inbox because her teammate Lisa replied to it.</p>
   </div>
 
-  <div class="mx-auto" style="max-width: 656px;">
+  <div class="mx-auto" style="max-width: 671px;">
     <img src="<%= static_url(@conn, "/images/marketing/lisa-to-sarah.png") %>"
          alt="Lisa's reply to Sarah"
          class="marketing-screenshot" />
@@ -46,7 +46,7 @@
     <p>Sarah fires off a response and dismisses the post from her Inbox. Dismissing the post keeps Sarah's "to-do list" clean. If someone replies again later, the post will scoot back into her Inbox.</p>
   </div>
 
-  <div class="mx-auto" style="max-width: 656px;">
+  <div class="mx-auto" style="max-width: 671px;">
     <img src="<%= static_url(@conn, "/images/marketing/reply-to-lisa.png") %>"
          alt="Sarah's reply to Lisa"
          class="marketing-screenshot" />
@@ -69,7 +69,7 @@
     <p>Once everyone is done chatting, Sarah marks the post as resolved to signal to the rest of the team that the conversation is done.</p>
   </div>
 
-  <div class="mx-auto" style="max-width: 665px;">
+  <div class="mx-auto" style="max-width: 671px;">
     <img src="<%= static_url(@conn, "/images/marketing/mark-resolved.png") %>"
          alt="Sarah marks the post as resolved"
          class="marketing-screenshot" />
