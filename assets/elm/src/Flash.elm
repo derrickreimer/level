@@ -1,5 +1,7 @@
-module Flash exposing (Flash, Key, Level(..), expire, init, set, startClock)
+module Flash exposing (Flash, Key, Level(..), expire, init, set, startTimer, view)
 
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Process
 import Task exposing (Task)
 
@@ -10,7 +12,7 @@ type Flash
 
 type alias Internal =
     { level : Level
-    , text : String
+    , value : String
     , duration : Float
     , key : Key
     , state : State
@@ -23,8 +25,8 @@ type Key
 
 type State
     = Inactive
-    | ClockNotStarted
-    | ClockRunning
+    | TimerStopped
+    | TimerStarted
 
 
 type Level
@@ -40,7 +42,7 @@ init : Flash
 init =
     Flash
         { level = Notice
-        , text = ""
+        , value = ""
         , duration = 0
         , key = Key 0
         , state = Inactive
@@ -48,28 +50,28 @@ init =
 
 
 set : Level -> String -> Float -> Flash -> Flash
-set level text duration (Flash internal) =
+set level value duration (Flash internal) =
     Flash
         { internal
             | level = level
-            , text = text
+            , value = value
             , duration = duration
             , key = increment internal.key
-            , state = ClockNotStarted
+            , state = TimerStopped
         }
 
 
-startClock : (Key -> msg) -> Flash -> ( Flash, Cmd msg )
-startClock toMsg (Flash internal) =
+startTimer : (Key -> msg) -> Flash -> ( Flash, Cmd msg )
+startTimer toMsg (Flash internal) =
     case internal.state of
-        ClockNotStarted ->
+        TimerStopped ->
             let
                 cmd =
                     Process.sleep internal.duration
                         |> Task.perform (\_ -> toMsg internal.key)
 
                 newFlash =
-                    Flash { internal | state = ClockRunning }
+                    Flash { internal | state = TimerStarted }
             in
             ( newFlash, cmd )
 
@@ -84,6 +86,24 @@ expire key (Flash internal) =
 
     else
         Flash internal
+
+
+
+-- VIEW
+
+
+view : Flash -> Html msg
+view (Flash internal) =
+    div
+        [ classList
+            [ ( "flash font-sans font-antialised fixed px-3 pin-t pin-l-50 z-50", True )
+            , ( "flash-in", internal.state == TimerStarted )
+            ]
+        ]
+        [ div [ class "relative px-5 py-3 border-b-3 border-green bg-green-lightest text-green-dark" ]
+            [ h2 [ class "font-bold text-base" ] [ text internal.value ]
+            ]
+        ]
 
 
 

@@ -225,7 +225,7 @@ updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Gl
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
     let
         ( newFlash, flashCmd ) =
-            Flash.startClock FlashExpired newGlobals.flash
+            Flash.startTimer FlashExpired newGlobals.flash
     in
     ( { model
         | session = newGlobals.session
@@ -1341,6 +1341,7 @@ view model =
     Document (pageTitle model.repo model.page)
         [ pageView model.repo model.page model.pushStatus model.spaceUserLists
         , centerNoticeView model
+        , Flash.view model.flash
         ]
 
 
