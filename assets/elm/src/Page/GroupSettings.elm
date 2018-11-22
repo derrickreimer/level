@@ -3,6 +3,7 @@ module Page.GroupSettings exposing (Model, Msg(..), consumeEvent, init, setup, t
 import Avatar
 import Connection exposing (Connection)
 import Event exposing (Event)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -212,7 +213,11 @@ update msg globals model =
                         |> Repo.setGroup group
             in
             ( ( { model | isSubmitting = False }, Cmd.none )
-            , { globals | session = newSession, repo = newRepo }
+            , { globals
+                | session = newSession
+                , repo = newRepo
+                , flash = Flash.set Flash.Notice "Settings updated" 3000 globals.flash
+              }
             )
 
         GroupUpdated (Ok ( newSession, _ )) ->

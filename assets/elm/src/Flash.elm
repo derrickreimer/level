@@ -103,7 +103,7 @@ view (Flash internal) =
         ]
         [ div
             [ classList
-                [ ( "relative px-5 py-3 border-b-3", True )
+                [ ( "relative px-4 py-2 border-b-3", True )
                 , ( "border-green bg-green-lightest text-green-dark", internal.level == Notice )
                 , ( "border-red bg-red-lightest text-sm text-red", internal.level == Alert )
                 ]

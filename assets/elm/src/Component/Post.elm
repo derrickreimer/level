@@ -6,6 +6,7 @@ import Color exposing (Color)
 import Connection exposing (Connection)
 import Dict exposing (Dict)
 import File exposing (File)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -384,8 +385,14 @@ update msg spaceId globals model =
             let
                 nodeId =
                     replyComposerId model.postId
+
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , flash = Flash.set Flash.Notice "Post dismissed" 3000 globals.flash
+                    }
             in
-            ( ( model, setFocus nodeId NoOp ), { globals | session = newSession } )
+            ( ( model, setFocus nodeId NoOp ), newGlobals )
 
         Dismissed (Err Session.Expired) ->
             redirectToLogin globals model

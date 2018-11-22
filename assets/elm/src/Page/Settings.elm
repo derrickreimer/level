@@ -226,7 +226,7 @@ update msg globals model =
             ( ( { model | digestSettings = newDigestSettings, isSubmitting = False }
               , Cmd.none
               )
-            , { globals | session = newSession }
+            , { globals | session = newSession, flash = Flash.set Flash.Notice "Digest updated" 3000 globals.flash }
             )
 
         DigestSettingsUpdated (Err Session.Expired) ->
