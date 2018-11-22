@@ -97,10 +97,17 @@ view (Flash internal) =
     div
         [ classList
             [ ( "flash font-sans font-antialised fixed px-3 pin-t pin-l-50 z-50", True )
-            , ( "flash-in", internal.state == TimerStarted )
+            , ( "hidden", internal.state /= TimerStarted )
+            , ( "block", internal.state == TimerStarted )
             ]
         ]
-        [ div [ class "relative px-5 py-3 border-b-3 border-green bg-green-lightest text-green-dark" ]
+        [ div
+            [ classList
+                [ ( "relative px-5 py-3 border-b-3", True )
+                , ( "border-green bg-green-lightest text-green-dark", internal.level == Notice )
+                , ( "border-red bg-red-lightest text-sm text-red", internal.level == Alert )
+                ]
+            ]
             [ h2 [ class "font-bold text-base" ] [ text internal.value ]
             ]
         ]

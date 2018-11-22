@@ -390,14 +390,7 @@ post-editor.dragging-over > * {
 }
 
 .flash {
-  transform: translateX(-50%) translateY(-100px);
-  transition: transform 400ms ease, opacity 400ms ease;
-  opacity: 0;
-}
-
-.flash.flash-in {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
+  transform: translateX(-50%);
 }
 
 /**
