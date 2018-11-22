@@ -3,6 +3,7 @@ module Page.UserSettings exposing (Model, Msg(..), consumeEvent, init, setup, su
 import Avatar
 import Event exposing (Event)
 import File exposing (File)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -151,7 +152,14 @@ update msg globals model =
             ( ( { model | isSubmitting = True, errors = [] }, cmd ), globals )
 
         Submitted (Ok ( newSession, UpdateUser.Success user )) ->
-            noCmd { globals | session = newSession }
+            let
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , flash = Flash.set Flash.Notice "Settings saved" 3000 globals.flash
+                    }
+            in
+            noCmd newGlobals
                 { model
                     | firstName = User.firstName user
                     , lastName = User.lastName user
