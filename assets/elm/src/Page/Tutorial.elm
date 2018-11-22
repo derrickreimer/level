@@ -260,12 +260,34 @@ stepView step =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "There is no continuous presence tracking." ]
+                , p [ class "mb-6" ] [ text "A friend of mine once told me that in his department, everyone would race to see who was the first get \"online\" in the morning—to appear hardworking to their boss. That's bullshit." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone's actually available to communicate." ]
                 , p [ class "mb-6" ] [ text "It's most definitely not a good proxy for whether someone is slacking off." ]
-                , p [ class "mb-6" ] [ text "A friend of mine once told me that in his department, everyone would race to see who was the first get \"online\" in the morning—to appear hardworking to their boss. That's bullshit." ]
-                , p [ class "mb-6" ] [ text "Level encourages you to step away from it completely when it’s time to get down to work." ]
+                , p [ class "mb-6" ] [ text "Level encourages you to step away completely when it’s time to get real work done." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
                 , backButton "Back to \"Every conversation is threaded\""
+                ]
+
+        5 ->
+            div []
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "The Inbox is your curated to-do list." ]
+                , p [ class "mb-6" ] [ text "It is neither possible, nor desirable for any single person to keep up with every single conversation. Such an endeavor is needlessly stressful and futile." ]
+                , p [ class "mb-6" ] [ text "Level encourages people to be explicit about who needs to be involved." ]
+                , p [ class "mb-6" ] [ text "Posts land in your Level Inbox when you are looped in with an @-mention, or when you've already participated in the conversation." ]
+                , p [ class "mb-6" ] [ text "You can dismiss posts from your Inbox when you're done with them, and they'll slide back in if more activity occurs later." ]
+                , p [ class "mb-6" ] [ text "Of course, you are free to peruse and search other posts—but there is no inherent expectation to see everything." ]
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
+                , backButton "Back to \"No presence tracking\""
+                ]
+
+        6 ->
+            div []
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "The Activity Feed gathers all the posts you might be interested in." ]
+                , p [ class "mb-6" ] [ text "The Activity Feed includes all messages posted in the groups that you have joined." ]
+                , p [ class "mb-6" ] [ text "Remember, posts only land in your Inbox if you have been deliberately looped-in. Everything else of potential interest will show up in your Activity Feed." ]
+                , p [ class "mb-6" ] [ text "You shouldn't feel pressure to read everything in the Activity Feed." ]
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
+                , backButton "Back to \"No presence tracking\""
                 ]
 
         _ ->
