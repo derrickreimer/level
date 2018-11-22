@@ -193,7 +193,7 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-6 text-lg" ]
-                [ h1 [ class "font-extrabold tracking-semi-tight text-5xl" ] [ text "How Level Works" ]
+                [ h1 [ class "mb-2 font-extrabold tracking-semi-tight text-5xl leading-tight" ] [ text "How Level Works" ]
                 , progressBarView step
                 , stepView step
                 ]
