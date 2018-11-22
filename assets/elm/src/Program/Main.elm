@@ -176,7 +176,7 @@ setup { currentUser, spaceIds, spaceUserIds } model =
 
 buildGlobals : Model -> Globals
 buildGlobals model =
-    Globals model.session model.repo model.navKey model.timeZone
+    Globals model.session model.repo model.navKey model.timeZone model.flash
 
 
 
