@@ -261,7 +261,7 @@ stepView step =
             div []
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "There is no continuous presence tracking." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone's actually available to communicate." ]
-                , p [ class "mb-6" ] [ text "It's most definitely not a good proxy for whether someone is \"slacking off.\"" ]
+                , p [ class "mb-6" ] [ text "It's most definitely not a good proxy for whether someone is slacking off." ]
                 , p [ class "mb-6" ] [ text "A friend of mine once told me that in his department, everyone would race to see who was the first get \"online\" in the morning—to appear hardworking to their boss. That's bullshit." ]
                 , p [ class "mb-6" ] [ text "Level encourages you to step away from it completely when it’s time to get down to work." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
