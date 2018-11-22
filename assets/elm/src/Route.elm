@@ -14,6 +14,7 @@ import Route.Posts
 import Route.Search
 import Route.Settings
 import Route.SpaceUsers
+import Route.Tutorial
 import Url exposing (Url)
 import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
@@ -41,6 +42,7 @@ type Route
     | UserSettings
     | Settings Route.Settings.Params
     | Search Route.Search.Params
+    | Tutorial Route.Tutorial.Params
 
 
 parser : Parser (Route -> a) a
@@ -63,6 +65,7 @@ parser =
         , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map Settings Route.Settings.parser
         , Parser.map Search Route.Search.parser
+        , Parser.map Tutorial Route.Tutorial.parser
         ]
 
 
@@ -157,3 +160,6 @@ toString page =
 
         Search params ->
             Route.Search.toString params
+
+        Tutorial params ->
+            Route.Tutorial.toString params

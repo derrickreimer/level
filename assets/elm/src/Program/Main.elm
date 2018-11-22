@@ -30,6 +30,7 @@ import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceUsers
 import Page.Spaces
+import Page.Tutorial
 import Page.UserSettings
 import Presence exposing (PresenceList)
 import PushManager
@@ -207,6 +208,7 @@ type Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.Settings.Msg
     | SearchMsg Page.Search.Msg
+    | TutorialMsg Page.Tutorial.Msg
     | SocketIn Decode.Value
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
@@ -440,6 +442,11 @@ update msg model =
                 |> Page.Search.update pageMsg globals
                 |> updatePageWithGlobals Search SearchMsg model
 
+        ( TutorialMsg pageMsg, Tutorial pageModel ) ->
+            pageModel
+                |> Page.Tutorial.update pageMsg globals
+                |> updatePageWithGlobals Tutorial TutorialMsg model
+
         ( SocketIn value, page ) ->
             case Socket.decodeEvent value of
                 Socket.MessageReceived messageData ->
@@ -522,6 +529,7 @@ type Page
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.Settings.Model
     | Search Page.Search.Model
+    | Tutorial Page.Tutorial.Model
 
 
 type PageInit
@@ -541,6 +549,7 @@ type PageInit
     | SetupCreateGroupsInit (Result Session.Error ( Globals, Page.Setup.CreateGroups.Model ))
     | SetupInviteUsersInit (Result Session.Error ( Globals, Page.Setup.InviteUsers.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
+    | TutorialInit (Result Session.Error ( Globals, Page.Tutorial.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -646,6 +655,11 @@ navigateTo maybeRoute model =
                 |> Page.Search.init params
                 |> transition model SearchInit
 
+        Just (Route.Tutorial params) ->
+            globals
+                |> Page.Tutorial.init params
+                |> transition model TutorialInit
+
 
 pageTitle : Repo -> Page -> String
 pageTitle repo page =
@@ -697,6 +711,9 @@ pageTitle repo page =
 
         Search pageModel ->
             Page.Search.title pageModel
+
+        Tutorial pageModel ->
+            Page.Tutorial.title
 
         NotFound ->
             "404"
@@ -879,6 +896,15 @@ setupPage pageInit model =
         SearchInit (Err err) ->
             ( model, Cmd.none )
 
+        TutorialInit (Ok result) ->
+            perform Page.Tutorial.setup Tutorial TutorialMsg model result
+
+        TutorialInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        TutorialInit (Err err) ->
+            ( model, Cmd.none )
+
 
 teardownPage : Page -> Cmd Msg
 teardownPage page =
@@ -915,6 +941,9 @@ teardownPage page =
 
         Search pageModel ->
             Cmd.map SearchMsg (Page.Search.teardown pageModel)
+
+        Tutorial pageModel ->
+            Cmd.map TutorialMsg (Page.Tutorial.teardown pageModel)
 
         _ ->
             Cmd.none
@@ -1004,6 +1033,9 @@ routeFor page =
 
         Search { params } ->
             Just <| Route.Search params
+
+        Tutorial { params } ->
+            Just <| Route.Tutorial params
 
         Blank ->
             Nothing
@@ -1095,9 +1127,14 @@ pageView repo page pushStatus spaceUserLists =
                 |> Page.Search.view repo (routeFor page)
                 |> Html.map SearchMsg
 
+        Tutorial pageModel ->
+            pageModel
+                |> Page.Tutorial.view repo (routeFor page)
+                |> Html.map TutorialMsg
+
         Blank ->
             div [ class "font-sans font-antialised flex items-center justify-center h-screen w-full bg-turquoise" ]
-                [ h1 [ class "text-3xl text-white font-black" ] [ text "Loading..." ]
+                [ h1 [ class "text-3xl tracking-semi-tight text-white font-black" ] [ text "Loading..." ]
                 ]
 
         NotFound ->
@@ -1308,6 +1345,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.Search.consumeEvent event
                 |> updatePage Search SearchMsg model
+
+        Tutorial pageModel ->
+            pageModel
+                |> Page.Tutorial.consumeEvent event
+                |> updatePage Tutorial TutorialMsg model
 
         Blank ->
             ( model, Cmd.none )
