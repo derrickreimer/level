@@ -11,6 +11,14 @@ customElements.define(
 
     connectedCallback() {
       this._clipboard = new Clipboard(this);
+
+      this._clipboard.on("success", e => {
+        this.dispatchEvent(new CustomEvent("copy"));
+      });
+
+      this._clipboard.on("error", e => {
+        this.dispatchEvent(new CustomEvent("copyFailed"));
+      });
     }
 
     disconnectedCallback() {

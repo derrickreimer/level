@@ -215,7 +215,7 @@ resolvedView model data =
                 ]
             ]
             [ div [ class "pb-6" ]
-                [ h1 [ class "pb-4 font-extrabold text-3xl" ] [ text "Create a space" ]
+                [ h1 [ class "pb-4 font-extrabold tracking-semi-tight text-3xl" ] [ text "Create a space" ]
                 , p [] [ text "Spaces represent companies or organizations. Once you create your space, you can invite your colleagues to join." ]
                 ]
             , div [ class "pb-6" ]

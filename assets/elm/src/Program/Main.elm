@@ -333,6 +333,9 @@ update msg model =
                 ( ( newPageModel, pageCmd ), newGlobals, externalMsg ) =
                     Page.Setup.CreateGroups.update pageMsg globals pageModel
 
+                ( newFlash, flashCmd ) =
+                    Flash.startTimer FlashExpired newGlobals.flash
+
                 ( newModel, cmd ) =
                     case externalMsg of
                         Page.Setup.CreateGroups.SetupStateChanged newState ->
@@ -347,10 +350,12 @@ update msg model =
                 | session = newGlobals.session
                 , repo = newGlobals.repo
                 , page = SetupCreateGroups newPageModel
+                , flash = newFlash
               }
             , Cmd.batch
                 [ Cmd.map SetupCreateGroupsMsg pageCmd
                 , cmd
+                , flashCmd
                 ]
             )
 
@@ -358,6 +363,9 @@ update msg model =
             let
                 ( ( newPageModel, pageCmd ), newGlobals, externalMsg ) =
                     Page.Setup.InviteUsers.update pageMsg globals pageModel
+
+                ( newFlash, flashCmd ) =
+                    Flash.startTimer FlashExpired newGlobals.flash
 
                 ( newModel, cmd ) =
                     case externalMsg of
@@ -373,10 +381,12 @@ update msg model =
                 | session = newGlobals.session
                 , repo = newGlobals.repo
                 , page = SetupInviteUsers newPageModel
+                , flash = newFlash
               }
             , Cmd.batch
                 [ Cmd.map SetupInviteUsersMsg pageCmd
                 , cmd
+                , flashCmd
                 ]
             )
 

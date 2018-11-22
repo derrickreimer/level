@@ -2,12 +2,14 @@ module Page.InviteUsers exposing (Model, Msg(..), consumeEvent, init, setup, tea
 
 import Clipboard
 import Event exposing (Event)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (on, onClick)
 import Id exposing (Id)
+import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
@@ -99,6 +101,8 @@ teardown model =
 
 type Msg
     = NoOp
+    | LinkCopied
+    | LinkCopyFailed
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -106,6 +110,20 @@ update msg globals model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        LinkCopied ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Notice "Invite link copied" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        LinkCopyFailed ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Alert "Hmm, something went wrong" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals )
 
 
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -152,7 +170,7 @@ resolvedView maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto px-8 py-24 max-w-sm leading-normal" ]
-            [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite people to join" ]
+            [ h2 [ class "mb-6 font-extrabold tracking-semi-tight text-3xl" ] [ text "Invite people to join" ]
             , bodyView (Space.openInvitationUrl data.space)
             ]
         ]
@@ -165,7 +183,12 @@ bodyView maybeUrl =
             div []
                 [ p [ class "mb-6" ] [ text "Anyone with this link can join the space with member-level permissions. You can change their role to an admin later if needed." ]
                 , input [ class "mb-4 input-field font-mono text-sm", value url ] []
-                , Clipboard.button "Copy link" url [ class "btn btn-blue" ]
+                , Clipboard.button "Copy link"
+                    url
+                    [ class "btn btn-blue"
+                    , Clipboard.onCopy LinkCopied
+                    , Clipboard.onCopyFailed LinkCopyFailed
+                    ]
                 ]
 
         Nothing ->

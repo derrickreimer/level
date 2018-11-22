@@ -2,6 +2,7 @@ module Page.Setup.InviteUsers exposing (ExternalMsg(..), Model, Msg(..), consume
 
 import Clipboard
 import Event exposing (Event)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -103,6 +104,8 @@ teardown model =
 type Msg
     = Submit
     | Advanced (Result Session.Error ( Session, CompleteSetupStep.Response ))
+    | LinkCopied
+    | LinkCopyFailed
     | InternalNoOp
 
 
@@ -134,6 +137,20 @@ update msg globals model =
 
         Advanced (Err _) ->
             ( ( { model | isSubmitting = False }, Cmd.none ), globals, NoOp )
+
+        LinkCopied ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Notice "Invite link copied" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals, NoOp )
+
+        LinkCopyFailed ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Alert "Hmm, something went wrong" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals, NoOp )
 
         InternalNoOp ->
             ( ( model, Cmd.none ), globals, NoOp )
@@ -183,7 +200,7 @@ resolvedView maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto px-8 py-24 max-w-sm leading-normal" ]
-            [ h2 [ class "mb-6 font-extrabold text-3xl" ] [ text "Invite your colleagues" ]
+            [ h2 [ class "mb-6 font-extrabold tracking-semi-tight text-3xl" ] [ text "Invite your colleagues" ]
             , bodyView (Space.openInvitationUrl data.space) model
             ]
         ]
@@ -197,7 +214,12 @@ bodyView maybeUrl model =
                 [ p [ class "mb-6" ] [ text "The best way to try out Level is with other people! Anyone with this link can join the space:" ]
                 , div [ class "mb-4 flex items-center input-field py-2" ]
                     [ span [ class "mr-4 flex-shrink font-mono text-sm overflow-auto" ] [ text url ]
-                    , Clipboard.button "Copy" url [ class "btn btn-blue btn-xs flex items-center" ]
+                    , Clipboard.button "Copy"
+                        url
+                        [ class "btn btn-blue btn-xs flex items-center"
+                        , Clipboard.onCopy LinkCopied
+                        , Clipboard.onCopyFailed LinkCopyFailed
+                        ]
                     ]
                 , button [ class "btn btn-blue", onClick Submit, disabled model.isSubmitting ] [ text "Next step" ]
                 ]

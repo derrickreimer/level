@@ -226,7 +226,10 @@ update msg globals model =
             ( ( { model | digestSettings = newDigestSettings, isSubmitting = False }
               , Cmd.none
               )
-            , { globals | session = newSession, flash = Flash.set Flash.Notice "Digest updated" 3000 globals.flash }
+            , { globals
+                | session = newSession
+                , flash = Flash.set Flash.Notice "Digest updated" 3000 globals.flash
+              }
             )
 
         DigestSettingsUpdated (Err Session.Expired) ->
@@ -300,7 +303,7 @@ resolvedView maybeCurrentRoute model data =
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
             [ div [ class "pb-4" ]
                 [ nav [ class "text-xl font-headline font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
-                , h1 [ class "font-extrabold text-3xl" ] [ text "Settings" ]
+                , h1 [ class "font-extrabold tracking-semi-tight text-3xl" ] [ text "Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params

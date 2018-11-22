@@ -290,7 +290,7 @@ resolvedView repo maybeCurrentRoute model data =
                         ]
                         [ text <| Group.name data.group ]
                     ]
-                , h1 [ class "flex-1 font-extrabold text-3xl" ] [ text "Group Settings" ]
+                , h1 [ class "flex-1 font-extrabold tracking-semi-tight text-3xl" ] [ text "Group Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
