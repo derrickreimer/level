@@ -1,4 +1,4 @@
-module Flash exposing (Flash, Level(..), init, set, startClock)
+module Flash exposing (Flash, Key, Level(..), expire, init, set, startClock)
 
 import Process
 import Task exposing (Task)

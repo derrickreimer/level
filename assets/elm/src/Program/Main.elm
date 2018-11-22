@@ -211,6 +211,7 @@ type Msg
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
     | PresenceIn Decode.Value
+    | FlashExpired Flash.Key
 
 
 updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( a, Cmd b ) -> ( Model, Cmd Msg )
@@ -222,12 +223,20 @@ updatePage toPage toPageMsg model ( pageModel, pageCmd ) =
 
 updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Globals ) -> ( Model, Cmd Msg )
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
+    let
+        ( newFlash, flashCmd ) =
+            Flash.startClock FlashExpired newGlobals.flash
+    in
     ( { model
         | session = newGlobals.session
         , repo = newGlobals.repo
         , page = toPage newPageModel
+        , flash = newFlash
       }
-    , Cmd.map toPageMsg pageCmd
+    , Cmd.batch
+        [ Cmd.map toPageMsg pageCmd
+        , flashCmd
+        ]
     )
 
 
@@ -467,6 +476,13 @@ update msg model =
 
         ( PresenceIn value, _ ) ->
             sendPresenceToPage (Presence.decode value) model
+
+        ( FlashExpired key, _ ) ->
+            let
+                newFlash =
+                    Flash.expire key model.flash
+            in
+            ( { model | flash = newFlash }, Cmd.none )
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
