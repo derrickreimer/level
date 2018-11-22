@@ -4,6 +4,7 @@ import Avatar
 import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import File exposing (File)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -153,7 +154,14 @@ update msg globals model =
             ( ( { model | isSubmitting = True, errors = [] }, cmd ), globals )
 
         Submitted (Ok ( newSession, UpdateSpace.Success space )) ->
-            noCmd { globals | session = newSession }
+            let
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , flash = Flash.set Flash.Notice "Settings saved" 3000 globals.flash
+                    }
+            in
+            noCmd newGlobals
                 { model
                     | name = Space.name space
                     , slug = Space.slug space
@@ -218,7 +226,7 @@ update msg globals model =
             ( ( { model | digestSettings = newDigestSettings, isSubmitting = False }
               , Cmd.none
               )
-            , { globals | session = newSession }
+            , { globals | session = newSession, flash = Flash.set Flash.Notice "Digest updated" 3000 globals.flash }
             )
 
         DigestSettingsUpdated (Err Session.Expired) ->

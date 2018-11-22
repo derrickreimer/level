@@ -5,6 +5,7 @@ import Component.Post
 import Connection exposing (Connection)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -259,7 +260,7 @@ update msg globals model =
                 ( ( model, cmd ), globals )
 
         PostsDismissed _ ->
-            noCmd globals model
+            noCmd { globals | flash = Flash.set Flash.Notice "Posts dismissed" 3000 globals.flash } model
 
         PushSubscribeClicked ->
             ( ( model, PushManager.subscribe ), globals )

@@ -5,6 +5,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Connection
 import Event exposing (Event)
+import Flash exposing (Flash)
 import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -24,9 +25,9 @@ import Page.NewSpace
 import Page.Post
 import Page.Posts
 import Page.Search
+import Page.Settings
 import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
-import Page.Settings
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
@@ -83,6 +84,7 @@ type alias Model =
     , spaceUserLists : SpaceUserLists
     , currentUser : Lazy User
     , timeZone : String
+    , flash : Flash
     }
 
 
@@ -131,6 +133,7 @@ buildModel flags navKey =
         SpaceUserLists.init
         NotLoaded
         flags.timeZone
+        Flash.init
 
 
 setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
@@ -173,7 +176,7 @@ setup { currentUser, spaceIds, spaceUserIds } model =
 
 buildGlobals : Model -> Globals
 buildGlobals model =
-    Globals model.session model.repo model.navKey model.timeZone
+    Globals model.session model.repo model.navKey model.timeZone model.flash
 
 
 
@@ -208,6 +211,7 @@ type Msg
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
     | PresenceIn Decode.Value
+    | FlashExpired Flash.Key
 
 
 updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( a, Cmd b ) -> ( Model, Cmd Msg )
@@ -219,12 +223,20 @@ updatePage toPage toPageMsg model ( pageModel, pageCmd ) =
 
 updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Globals ) -> ( Model, Cmd Msg )
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
+    let
+        ( newFlash, flashCmd ) =
+            Flash.startTimer FlashExpired newGlobals.flash
+    in
     ( { model
         | session = newGlobals.session
         , repo = newGlobals.repo
         , page = toPage newPageModel
+        , flash = newFlash
       }
-    , Cmd.map toPageMsg pageCmd
+    , Cmd.batch
+        [ Cmd.map toPageMsg pageCmd
+        , flashCmd
+        ]
     )
 
 
@@ -464,6 +476,13 @@ update msg model =
 
         ( PresenceIn value, _ ) ->
             sendPresenceToPage (Presence.decode value) model
+
+        ( FlashExpired key, _ ) ->
+            let
+                newFlash =
+                    Flash.expire key model.flash
+            in
+            ( { model | flash = newFlash }, Cmd.none )
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
@@ -1322,6 +1341,7 @@ view model =
     Document (pageTitle model.repo model.page)
         [ pageView model.repo model.page model.pushStatus model.spaceUserLists
         , centerNoticeView model
+        , Flash.view model.flash
         ]
 
 
