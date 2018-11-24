@@ -192,8 +192,8 @@ resolvedView repo maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
-            [ div [ class "pb-6 text-lg" ]
-                [ h1 [ class "mb-2 font-extrabold tracking-semi-tight text-5xl leading-tight" ] [ text "How Level Works" ]
+            [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
+                [ h1 [ class "mb-2 font-extrabold tracking-semi-tight text-5xl leading-tight text-dusty-blue-darkest" ] [ text "How Level Works" ]
                 , progressBarView step
                 , stepView step
                 ]
@@ -229,22 +229,19 @@ stepView step =
     case step of
         1 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "A fundamentally different paradigm." ]
-                , p [ class "mb-6" ] [ text "Level works a little differently than most team communication tools on the market today." ]
-                , p [ class "mb-6" ]
-                    [ text "But, fear not! It’s actually a really simple tool with a few honest goals: facilitate productive discussions in your organization and "
-                    , strong [] [ text "leave you the hell alone when you’re getting stuff done." ]
+                [ p [ class "mb-6" ]
+                    [ text "Level is designed to do two things well: facilitate healthy discussions among teams and "
+                    , strong [] [ text "leave you alone while you’re getting stuff done." ]
                     ]
-                , p [ class "mb-6" ] [ text "Chat is a greedy. It demands your constant attention and punishes you when you ignore it." ]
-                , p [ class "mb-6" ] [ text "I believe deeply in the power of deep work. In today's climate of seemingly endless distractions and 60+ hour work weeks, it's your competitive advantage to seize." ]
-                , p [ class "mb-6" ] [ text "Others may look at you funny—embrace it. While their productivity is floundering in sea of distraction, you'll be getting more done in a healthy amount of time." ]
-                , p [ class "mb-6" ] [ text "Step one: wean yourself off of real-time chat and embrace asynchronous communication." ]
-                , button [ class "btn btn-blue", onClick Advance ] [ text "Tell me more" ]
+                , p [ class "mb-6" ] [ text "Deep focus is rare these days. The same patterns that make social media so addictive and distracting have permeated the modern workplace." ]
+                , p [ class "mb-6" ] [ text "Companies that choose to foster and protect deep work have a competitive advantage over those who don't—not to mention a much more satisfied team of makers." ]
+                , p [ class "mb-6" ] [ text "Follow along to learn how Level will help you achieve that goal." ]
+                , button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ]
                 ]
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "There are almost no push notifications." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "There are almost no push notifications." ]
                 , p [ class "mb-6" ] [ text "On average, it takes 22 minutes to get back into flow after a single interruption. I’m willing to bet that 99% of conversations are not so urgent they warrant paying that penalty." ]
                 , p [ class "mb-6" ] [ text "If you tell Level a message is a true emergency, it will work hard to get the right person’s attention." ]
                 , p [ class "mb-6" ] [ text "If two or more people happen to be conversing in real-time, Level will send notifications to keep the conversation flowing smoothly." ]
@@ -255,7 +252,7 @@ stepView step =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "Every conversation is threaded." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Every conversation is threaded." ]
                 , p [ class "mb-6" ] [ text "A chat channel is effectively one never-ending conversation." ]
                 , p [ class "mb-6" ] [ text "This does not model how real-life, productive discourse takes place. Plus, it’s an organizational nightmare." ]
                 , p [ class "mb-6" ] [ text "In Level, you can either post in a Group to kick off a new conversation, or reply to an existing post to carry on the discussion." ]
@@ -265,7 +262,7 @@ stepView step =
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "There is no continuous presence tracking." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "There is no continuous presence tracking." ]
                 , p [ class "mb-6" ] [ text "A friend of mine once told me that in his department, everyone would race to see who was the first get \"online\" in the morning—to appear hardworking to their boss. That's bullshit." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone's actually available to communicate." ]
                 , p [ class "mb-6" ] [ text "It's most definitely not a good proxy for whether someone is slacking off." ]
@@ -276,7 +273,7 @@ stepView step =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "The Inbox is your curated to-do list." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Inbox is your curated to-do list." ]
                 , p [ class "mb-6" ] [ text "It’s neither possible, nor desirable, for any single person to keep up with every conversation. Such an endeavor is stressful and futile." ]
                 , p [ class "mb-6" ] [ text "Level encourages you to be explicit about who needs to be involved in a conversation." ]
                 , p [ class "mb-6" ] [ text "When someone loops you in (with an @-mention) or you've already participated in the conversation, that post will land in your Level Inbox." ]
@@ -289,7 +286,7 @@ stepView step =
 
         6 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "The Activity feed is where you can peruse other conversations." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Activity feed is where you can peruse other conversations." ]
                 , p [ class "mb-6" ] [ text "When you join a group, messages posted there will show up in your Activity feed." ]
                 , p [ class "mb-6" ] [ text "Groups can be formed around a team or a particular topic of interest." ]
                 , p [ class "mb-6" ] [ text "Since posts only land in your Inbox if you have been looped in, it's a good idea to periodically peruse your Activity feed." ]
@@ -299,7 +296,7 @@ stepView step =
 
         7 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "Posts can be marked as resolved." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Posts can be marked as resolved." ]
                 , p [ class "mb-6" ] [ text "Every post starts out in an \"open\" state. Once the conversation is done, it is best practice to mark it as resolved to clearly indicate that the discussion is complete." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
                 , backButton "Back to \"The Activity Feed\""
@@ -307,7 +304,7 @@ stepView step =
 
         8 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darker tracking-semi-tight leading-tight" ] [ text "You set your own cadence." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "You set your own cadence." ]
                 , p [ class "mb-6" ] [ text "Level aims to be as unobtrusive as possible. At a minimum, you'll receive a Daily Digest email summarizing what's on your plate in your Level Inbox." ]
                 , p [ class "mb-6" ] [ text "You can also configure Level to send you periodic emails throughout the day to keep you in the know about new activity." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
