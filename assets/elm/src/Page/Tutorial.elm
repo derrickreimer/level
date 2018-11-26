@@ -10,6 +10,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CreateGroup as CreateGroup
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
@@ -37,6 +38,8 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
+    , selectedGroups : List String
+    , isSubmitting : Bool
     }
 
 
@@ -53,6 +56,11 @@ resolveData repo model =
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
+
+
+defaultGroups : List String
+defaultGroups =
+    [ "Everyone", "Engineering", "Marketing", "Support", "Random" ]
 
 
 
@@ -84,6 +92,8 @@ buildModel params globals ( newSession, resp ) =
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
+                [ "Everyone" ]
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -109,6 +119,9 @@ type Msg
     = NoOp
     | BackUp
     | Advance
+    | GroupToggled String
+    | SubmitGroups
+    | GroupsSubmitted (Result Session.Error ( Session, BulkCreateGroups.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -138,6 +151,39 @@ update msg globals model =
                     Route.pushUrl globals.navKey (Route.Tutorial newParams)
             in
             ( ( model, cmd ), globals )
+
+        GroupToggled name ->
+            if List.member name model.selectedGroups then
+                ( ( { model | selectedGroups = removeBy identity name model.selectedGroups }, Cmd.none ), globals )
+
+            else
+                ( ( { model | selectedGroups = name :: model.selectedGroups }, Cmd.none ), globals )
+
+        SubmitGroups ->
+            let
+                cmd =
+                    globals.session
+                        |> BulkCreateGroups.request model.spaceId model.selectedGroups
+                        |> Task.attempt GroupsSubmitted
+            in
+            ( ( { model | isSubmitting = True }, cmd ), globals )
+
+        GroupsSubmitted (Ok ( newSession, BulkCreateGroups.Success )) ->
+            let
+                newParams =
+                    model.params
+                        |> Route.Tutorial.setStep (Route.Tutorial.getStep model.params + 1)
+
+                cmd =
+                    Route.pushUrl globals.navKey (Route.Tutorial newParams)
+            in
+            ( ( { model | isSubmitting = False }, cmd ), { globals | session = newSession } )
+
+        GroupsSubmitted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        GroupsSubmitted (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -195,7 +241,7 @@ resolvedView repo maybeCurrentRoute model data =
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
                 [ headerView step data
-                , stepView step model.params data
+                , stepView step model data
                 ]
             ]
         ]
@@ -204,7 +250,8 @@ resolvedView repo maybeCurrentRoute model data =
 headerView : Int -> Data -> Html Msg
 headerView step data =
     if step == 1 then
-        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ] [ text <| "Welcome to Level, " ++ SpaceUser.firstName data.viewer ]
+        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ]
+            [ text <| "Welcome to Level, " ++ SpaceUser.firstName data.viewer ]
 
     else
         div []
@@ -234,8 +281,8 @@ progressBarView step =
         ]
 
 
-stepView : Int -> Params -> Data -> Html Msg
-stepView step params data =
+stepView : Int -> Model -> Data -> Html Msg
+stepView step model data =
     case step of
         1 ->
             div []
@@ -251,8 +298,9 @@ stepView step params data =
             div []
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Use groups to organize teams or topics." ]
                 , p [ class "mb-6" ] [ text "Similar to channels in chat, a Level Group is simply a place where you can post messages for a particular team or around a topic." ]
-                , p [ class "mb-6" ] [ text "When you join a group, messages posted there will appear in your Activity feed." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
+                , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. Here are some common ones to choose from, but you can always create more later." ]
+                , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next" ] ]
                 , backButton "Back to Introduction"
                 ]
 
@@ -319,7 +367,7 @@ stepView step params data =
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "That’s it!" ]
                 , p [ class "mb-6" ] [ text "You’re now prepared to jump into Level." ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| Route.Inbox (Route.Inbox.init (Route.Tutorial.getSpaceSlug params)), class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
+                , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| Route.Inbox (Route.Inbox.init (Route.Tutorial.getSpaceSlug model.params)), class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
                 , backButton "Back to “Set your cadence”"
                 ]
 
@@ -332,4 +380,19 @@ backButton buttonText =
     button [ class "flex items-center text-base text-dusty-blue font-bold", onClick BackUp ]
         [ span [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
         , text buttonText
+        ]
+
+
+groupCheckbox : List String -> String -> Html Msg
+groupCheckbox selectedGroups name =
+    label [ class "control checkbox mb-1" ]
+        [ input
+            [ type_ "checkbox"
+            , class "checkbox"
+            , onClick (GroupToggled name)
+            , checked (List.member name selectedGroups)
+            ]
+            []
+        , span [ class "control-indicator" ] []
+        , span [ class "select-none" ] [ text name ]
         ]
