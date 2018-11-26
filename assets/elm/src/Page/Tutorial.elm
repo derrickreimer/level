@@ -297,10 +297,13 @@ stepView step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Use groups to organize teams or topics." ]
-                , p [ class "mb-6" ] [ text "Similar to channels in chat, a Level Group is simply a place where you can post messages for a particular team or around a topic." ]
-                , p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. Here are some common ones to choose from, but you can always create more later." ]
-                , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next" ] ]
+                , p [ class "mb-6" ] [ text "Similar to channels in chat, a group in Level is simply a place where you can post messages for a particular team or around a topic." ]
+                , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
+                , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
+                    div []
+                        [ p [ class "mb-6" ] [ text "After this tutorial, click on “Groups” in the left sidebar to explore them." ]
+                        , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
+                        ]
                 , backButton "Back to Introduction"
                 ]
 
@@ -380,6 +383,17 @@ backButton buttonText =
     button [ class "flex items-center text-base text-dusty-blue font-bold", onClick BackUp ]
         [ span [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
         , text buttonText
+        ]
+
+
+createGroupsView : Model -> Html Msg
+createGroupsView model =
+    div []
+        [ p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. Here are some common ones to choose from, but you can always create more later." ]
+        , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
+        , div [ class "mb-4 pb-6 border-b" ]
+            [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next" ]
+            ]
         ]
 
 

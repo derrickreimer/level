@@ -1,4 +1,4 @@
-module SpaceUser exposing (Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, handle, id, lastName, roleDecoder, spaceId, userId)
+module SpaceUser exposing (Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, handle, id, lastName, role, roleDecoder, spaceId, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -97,6 +97,11 @@ handle (SpaceUser data) =
 avatar : Avatar.Size -> SpaceUser -> Html msg
 avatar size (SpaceUser data) =
     Avatar.personAvatar size data
+
+
+role : SpaceUser -> Role
+role (SpaceUser data) =
+    data.role
 
 
 
