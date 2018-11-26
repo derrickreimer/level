@@ -15,6 +15,7 @@ import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
+import Route.Inbox
 import Route.Tutorial exposing (Params)
 import Scroll
 import Session exposing (Session)
@@ -60,7 +61,7 @@ resolveData repo model =
 
 title : String
 title =
-    "How Level Works"
+    "Welcome to Level"
 
 
 
@@ -193,59 +194,64 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
-                [ h1 [ class "mb-2 font-extrabold tracking-semi-tight text-5xl leading-tight text-dusty-blue-darkest" ] [ text "How Level Works" ]
-                , progressBarView step
-                , stepView step
+                [ headerView step
+                , stepView step model.params
                 ]
             ]
         ]
+
+
+headerView : Int -> Html Msg
+headerView step =
+    if step == 1 then
+        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
+
+    else
+        div []
+            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tight text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
+            , progressBarView step
+            ]
 
 
 progressBarView : Int -> Html Msg
 progressBarView step =
     let
         percentage =
-            (toFloat step / 8)
+            (toFloat step / 9)
                 * 100
                 |> round
                 |> String.fromInt
     in
     div [ class "mb-8 flex items-center" ]
-        [ div [ class "flex-no-shrink mr-2 w-48 rounded-full bg-grey-light" ]
+        [ div [ class "flex-no-shrink mr-2 w-32 rounded-full bg-grey-light" ]
             [ div
-                [ class "h-2 rounded-full bg-turquoise"
+                [ class "h-1 rounded-full bg-turquoise"
                 , style "width" (percentage ++ "%")
                 , style "transition" "width 0.5s ease"
                 ]
                 []
             ]
-        , div [ class "text-sm text-dusty-blue" ]
-            [ text <| percentage ++ "% complete" ]
         ]
 
 
-stepView : Int -> Html Msg
-stepView step =
+stepView : Int -> Params -> Html Msg
+stepView step params =
     case step of
         1 ->
             div []
-                [ p [ class "mb-6" ]
-                    [ text "Level is designed to do two things well: facilitate healthy discussions among teams and "
-                    , strong [] [ text "leave you alone while you’re getting stuff done." ]
-                    ]
-                , p [ class "mb-6" ] [ text "Deep focus is rare these days. The same patterns that make social media so addictive and distracting have permeated the modern workplace." ]
-                , p [ class "mb-6" ] [ text "Companies that choose to foster and protect deep work have a competitive advantage over those who don't—not to mention a much more satisfied team of makers." ]
-                , p [ class "mb-6" ] [ text "Follow along to learn how Level will help you achieve that goal." ]
+                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
+                , p [ class "mb-6" ] [ text "I’m so glad you’re here." ]
+                , p [ class "mb-6" ] [ text "Embracing asynchronous communication is big step. Let’s face it—we’ve all been trained by chat tools to expect instant responses from our colleagues. It’s time to detox." ]
+                , p [ class "mb-6" ] [ text "I promise it’s a worthwhile endeavor." ]
+                , p [ class "mb-6" ] [ text "To get started, join me on quick walk through the fundamental ideas behind Level." ]
                 , button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ]
                 ]
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "There are almost no push notifications." ]
-                , p [ class "mb-6" ] [ text "On average, it takes 22 minutes to get back into flow after a single interruption. I’m willing to bet that 99% of conversations are not so urgent they warrant paying that penalty." ]
-                , p [ class "mb-6" ] [ text "If you tell Level a message is a true emergency, it will work hard to get the right person’s attention." ]
-                , p [ class "mb-6" ] [ text "If two or more people happen to be conversing in real-time, Level will send notifications to keep the conversation flowing smoothly." ]
-                , p [ class "mb-6" ] [ text "Otherwise, Level won’t interrupt you." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Use groups to organize teams or topics." ]
+                , p [ class "mb-6" ] [ text "Similar to channels in chat, a Level Group is simply a place where you can post messages for a particular team or around a topic." ]
+                , p [ class "mb-6" ] [ text "When you join a group, messages posted there will appear in your Activity feed." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
                 , backButton "Back to Introduction"
                 ]
@@ -253,62 +259,68 @@ stepView step =
         3 ->
             div []
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Every conversation is threaded." ]
-                , p [ class "mb-6" ] [ text "A chat channel is effectively one never-ending conversation." ]
-                , p [ class "mb-6" ] [ text "This does not model how real-life, productive discourse takes place. Plus, it’s an organizational nightmare." ]
-                , p [ class "mb-6" ] [ text "In Level, you can either post in a Group to kick off a new conversation, or reply to an existing post to carry on the discussion." ]
+                , p [ class "mb-6" ] [ text "A chat timeline is effectively one big never-ending conversation. This does not reflect how productive discourse takes place in real-life." ]
+                , p [ class "mb-6" ] [ text "In Level, you can either post in a group to kick off a new conversation, or reply to an existing post to carry on the discussion." ]
+                , p [ class "mb-6" ] [ text "Once the conversation is done, it is best to mark it as resolved to let the rest of the team know." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
-                , backButton "Back to \"No push notifications\""
+                , backButton "Back to “Groups”"
                 ]
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "There is no continuous presence tracking." ]
-                , p [ class "mb-6" ] [ text "A friend of mine once told me that in his department, everyone would race to see who was the first get \"online\" in the morning—to appear hardworking to their boss. That's bullshit." ]
-                , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone's actually available to communicate." ]
-                , p [ class "mb-6" ] [ text "It's most definitely not a good proxy for whether someone is slacking off." ]
-                , p [ class "mb-6" ] [ text "Level encourages you to step away completely when it’s time to get real work done." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Inbox is your curated to-do list." ]
+                , p [ class "mb-6" ] [ text "It’s neither possible, nor desirable, for any single person to keep up with every conversation. Such an endeavor is stressful and futile." ]
+                , p [ class "mb-6" ] [ text "When someone loops you in (with an @-mention) or you’ve already participated in the conversation, that post will land in your Level Inbox." ]
+                , p [ class "mb-6" ] [ text "You can safely dismiss posts from your Inbox when you’re done with them, and they’ll slide back in if more activity occurs later." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
-                , backButton "Back to \"Every conversation is threaded\""
+                , backButton "Back to “Threaded conversations”"
                 ]
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Inbox is your curated to-do list." ]
-                , p [ class "mb-6" ] [ text "It’s neither possible, nor desirable, for any single person to keep up with every conversation. Such an endeavor is stressful and futile." ]
-                , p [ class "mb-6" ] [ text "Level encourages you to be explicit about who needs to be involved in a conversation." ]
-                , p [ class "mb-6" ] [ text "When someone loops you in (with an @-mention) or you've already participated in the conversation, that post will land in your Level Inbox." ]
-                , p [ class "mb-6" ] [ text "You can safely dismiss posts from your Inbox when you’re done with them, and they’ll slide back in if more activity occurs later." ]
-                , p [ class "mb-6" ] [ text "Suppose you are an engineer and have a question that is blocking your current stream of work. It makes sense to post your question in the Engineering Group and @-mention the key person capable of unblocking the task." ]
-                , p [ class "mb-6" ] [ text "Someone else may end up chiming in to help. But if that doesn't happen, the @-mentioned person will undoubtedly see it in their Inbox the next time they pop into Level." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Browse other conversations via your Activity feed." ]
+                , p [ class "mb-6" ] [ text "Your feed is personalized to only include messages posted in groups that you have joined." ]
+                , p [ class "mb-6" ] [ text "Since posts only land in your Inbox if you have been looped in, it’s a good idea to periodically peruse your Activity feed." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
-                , backButton "Back to \"No presence tracking\""
+                , backButton "Back to “The Inbox”"
                 ]
 
         6 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Activity feed is where you can peruse other conversations." ]
-                , p [ class "mb-6" ] [ text "When you join a group, messages posted there will show up in your Activity feed." ]
-                , p [ class "mb-6" ] [ text "Groups can be formed around a team or a particular topic of interest." ]
-                , p [ class "mb-6" ] [ text "Since posts only land in your Inbox if you have been looped in, it's a good idea to periodically peruse your Activity feed." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "No interruptive push notifications." ]
+                , p [ class "mb-6" ] [ text "On average, it takes 22 minutes to get back into flow after a single interruption. I’m willing to bet that 99% of conversations are not so urgent they warrant paying that penalty." ]
+                , p [ class "mb-6" ] [ text "Level will not send push notifications unless you have a true emergency and flag your message accordingly." ]
+                , p [ class "mb-6" ] [ text "If two or more people happen to be conversing in real-time, Level will send notifications to keep the conversation flowing smoothly." ]
+                , p [ class "mb-6" ] [ text "Otherwise, Level won’t interrupt you." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
-                , backButton "Back to \"The Inbox is your to-do list\""
+                , backButton "Back to “Activity Feed”"
                 ]
 
         7 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Posts can be marked as resolved." ]
-                , p [ class "mb-6" ] [ text "Every post starts out in an \"open\" state. Once the conversation is done, it is best practice to mark it as resolved to clearly indicate that the discussion is complete." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "No presence tracking." ]
+                , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
+                , p [ class "mb-6" ] [ text "And, it’s most definitely not a good proxy for determining whether someone is slacking off." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
-                , backButton "Back to \"The Activity Feed\""
+                , backButton "Back to “No push notifications”"
                 ]
 
         8 ->
             div []
-                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "You set your own cadence." ]
-                , p [ class "mb-6" ] [ text "Level aims to be as unobtrusive as possible. At a minimum, you'll receive a Daily Digest email summarizing what's on your plate in your Level Inbox." ]
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Set your own cadence for checking-in." ]
+                , p [ class "mb-6" ] [ text "Level aims to be as unobtrusive as possible. At a minimum, you’ll receive a Daily Digest email summarizing what’s on your plate in your Level Inbox." ]
                 , p [ class "mb-6" ] [ text "You can also configure Level to send you periodic emails throughout the day to keep you in the know about new activity." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next" ] ]
-                , backButton "Back to \"Posts can be resolved\""
+                , backButton "Back to “No presence tracking”"
+                ]
+
+        9 ->
+            div []
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "That’s it!" ]
+                , p [ class "mb-6" ] [ text "You’re now prepared to jump into Level." ]
+                , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
+                , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| Route.Inbox (Route.Inbox.init (Route.Tutorial.getSpaceSlug params)), class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
+                , backButton "Back to “Set your cadence”"
                 ]
 
         _ ->
