@@ -1,7 +1,9 @@
 module Page.Tutorial exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Browser.Navigation as Nav
+import Clipboard
 import Event exposing (Event)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -122,6 +124,8 @@ type Msg
     | GroupToggled String
     | SubmitGroups
     | GroupsSubmitted (Result Session.Error ( Session, BulkCreateGroups.Response ))
+    | LinkCopied
+    | LinkCopyFailed
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -184,6 +188,20 @@ update msg globals model =
 
         GroupsSubmitted (Err _) ->
             ( ( { model | isSubmitting = False }, Cmd.none ), globals )
+
+        LinkCopied ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Notice "Invite link copied" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        LinkCopyFailed ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Alert "Hmm, something went wrong" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -264,7 +282,7 @@ progressBarView : Int -> Html Msg
 progressBarView step =
     let
         percentage =
-            (toFloat step / 9)
+            (toFloat step / 10)
                 * 100
                 |> round
                 |> String.fromInt
@@ -367,11 +385,19 @@ stepView step model data =
 
         9 ->
             div []
+                [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Invite your colleagues." ]
+                , inviteView (Space.openInvitationUrl data.space)
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
+                , backButton "Back to “Set your cadence”"
+                ]
+
+        10 ->
+            div []
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "That’s it!" ]
                 , p [ class "mb-6" ] [ text "You’re now prepared to jump into Level." ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| Route.Inbox (Route.Inbox.init (Route.Tutorial.getSpaceSlug model.params)), class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
-                , backButton "Back to “Set your cadence”"
+                , backButton "Back to “Invite your colleagues”"
                 ]
 
         _ ->
@@ -410,3 +436,27 @@ groupCheckbox selectedGroups name =
         , span [ class "control-indicator" ] []
         , span [ class "select-none" ] [ text name ]
         ]
+
+
+inviteView : Maybe String -> Html Msg
+inviteView maybeUrl =
+    case maybeUrl of
+        Just url ->
+            div []
+                [ p [ class "mb-6" ] [ text "Anyone with this link can join the space with member-level permissions." ]
+                , div [ class "mb-6 flex items-center input-field py-3" ]
+                    [ span [ class "mr-4 flex-shrink font-mono text-base overflow-auto" ] [ text url ]
+                    , Clipboard.button "Copy"
+                        url
+                        [ class "btn btn-blue btn-xs flex items-center"
+                        , Clipboard.onCopy LinkCopied
+                        , Clipboard.onCopyFailed LinkCopyFailed
+                        ]
+                    ]
+                , p [ class "mb-6" ] [ text "You can always find this link later in the right-hand sidebar of your Inbox." ]
+                ]
+
+        Nothing ->
+            div []
+                [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
+                ]

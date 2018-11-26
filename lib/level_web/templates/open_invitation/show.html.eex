@@ -2,10 +2,10 @@
   <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="container mx-auto p-8">
+<div class="container mx-auto">
   <%= render LevelWeb.PageView, "header.html", assigns %>
 
-  <div class="mx-auto max-w-400px">
+  <div class="mx-auto px-8 max-w-400px">
     <%= form_for @changeset, open_invitation_path(@conn, :accept, @conn.assigns.invitation), [as: :signup], fn f -> %>
       <div class="<%= error_shake(@changeset) %>">
         <h2 class="mb-6 text-3xl font-extrabold">Join the <%= @conn.assigns.space.name %> space</h2>
