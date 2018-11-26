@@ -194,17 +194,17 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
-                [ headerView step
-                , stepView step model.params
+                [ headerView step data
+                , stepView step model.params data
                 ]
             ]
         ]
 
 
-headerView : Int -> Html Msg
-headerView step =
+headerView : Int -> Data -> Html Msg
+headerView step data =
     if step == 1 then
-        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
+        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ] [ text <| "Welcome to Level, " ++ SpaceUser.firstName data.viewer ]
 
     else
         div []
@@ -234,8 +234,8 @@ progressBarView step =
         ]
 
 
-stepView : Int -> Params -> Html Msg
-stepView step params =
+stepView : Int -> Params -> Data -> Html Msg
+stepView step params data =
     case step of
         1 ->
             div []
