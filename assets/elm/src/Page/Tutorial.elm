@@ -309,7 +309,11 @@ stepView step model data =
                 , p [ class "mb-6" ] [ text "Embracing asynchronous communication is big step. Let’s face it—we’ve all been trained by chat tools to expect instant responses from our colleagues. It’s time to detox." ]
                 , p [ class "mb-6" ] [ text "I promise it’s a worthwhile endeavor." ]
                 , p [ class "mb-6" ] [ text "To get started, join me on quick walk through the fundamental ideas behind Level." ]
-                , button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ]
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
+                , a [ Route.href <| inboxRoute model.params, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
+                    [ span [ class "mr-2" ] [ text "Already know Level? Skip the tutorial" ]
+                    , Icons.arrowRight Icons.On
+                    ]
                 ]
 
         2 ->
@@ -396,7 +400,7 @@ stepView step model data =
                 [ h2 [ class "mb-6 text-3xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "That’s it!" ]
                 , p [ class "mb-6" ] [ text "You’re now prepared to jump into Level." ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| Route.Inbox (Route.Inbox.init (Route.Tutorial.getSpaceSlug model.params)), class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
+                , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
                 , backButton "Back to “Invite your colleagues”"
                 ]
 
@@ -410,6 +414,11 @@ backButton buttonText =
         [ span [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
         , text buttonText
         ]
+
+
+inboxRoute : Params -> Route
+inboxRoute params =
+    Route.Inbox (Route.Inbox.init (Route.Tutorial.getSpaceSlug params))
 
 
 createGroupsView : Model -> Html Msg
