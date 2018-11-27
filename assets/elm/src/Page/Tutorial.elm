@@ -14,6 +14,7 @@ import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CreateGroup as CreateGroup
+import Mutation.UpdateTutorialStep as UpdateTutorialStep
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -103,9 +104,15 @@ buildModel params globals ( newSession, resp ) =
     ( { globals | session = newSession, repo = newRepo }, model )
 
 
-setup : Model -> Cmd Msg
-setup model =
-    Cmd.none
+setup : Globals -> Model -> Cmd Msg
+setup globals model =
+    let
+        variables =
+            UpdateTutorialStep.variables model.spaceId "welcome" (Route.Tutorial.getStep model.params)
+    in
+    globals.session
+        |> UpdateTutorialStep.request variables
+        |> Task.attempt StepUpdated
 
 
 teardown : Model -> Cmd Msg
@@ -126,6 +133,7 @@ type Msg
     | GroupsSubmitted (Result Session.Error ( Session, BulkCreateGroups.Response ))
     | LinkCopied
     | LinkCopyFailed
+    | StepUpdated (Result Session.Error ( Session, UpdateTutorialStep.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -202,6 +210,12 @@ update msg globals model =
                     { globals | flash = Flash.set Flash.Alert "Hmm, something went wrong" 3000 globals.flash }
             in
             ( ( model, Cmd.none ), newGlobals )
+
+        StepUpdated (Ok ( newSession, _ )) ->
+            ( ( model, Cmd.none ), { globals | session = newSession } )
+
+        StepUpdated _ ->
+            ( ( model, Cmd.none ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )

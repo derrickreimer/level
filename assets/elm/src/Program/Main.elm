@@ -897,7 +897,11 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         TutorialInit (Ok result) ->
-            perform Page.Tutorial.setup Tutorial TutorialMsg model result
+            let
+                ( newGlobals, pageModel ) =
+                    result
+            in
+            perform (Page.Tutorial.setup newGlobals) Tutorial TutorialMsg model result
 
         TutorialInit (Err Session.Expired) ->
             ( model, Route.toLogin )
