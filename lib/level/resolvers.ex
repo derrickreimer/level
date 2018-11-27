@@ -28,9 +28,11 @@ defmodule Level.Resolvers do
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
+  alias Level.Schemas.Tutorial
   alias Level.Schemas.User
   alias Level.Schemas.UserMention
   alias Level.Spaces
+  alias Level.Tutorials
 
   @typedoc "A info map for Absinthe GraphQL"
   @type info :: %{context: %{current_user: User.t(), loader: Dataloader.t()}}
@@ -391,6 +393,14 @@ defmodule Level.Resolvers do
       _ ->
         {:ok, false}
     end
+  end
+
+  @doc """
+  Fetches a tutorial.
+  """
+  @spec tutorial(SpaceUser.t(), map(), info()) :: {:ok, Tutorial.t()}
+  def tutorial(%SpaceUser{} = space_user, %{key: key}, %{context: %{current_user: user}}) do
+    Tutorials.get_tutorial(space_user, key)
   end
 
   # Dataloader helpers

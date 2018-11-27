@@ -6,6 +6,7 @@ import Html exposing (Html)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (required)
+import Tutorial exposing (Tutorial)
 
 
 
@@ -25,6 +26,7 @@ type alias Data =
     , handle : String
     , role : Role
     , avatarUrl : Maybe String
+    , welcomeTutorial : Maybe Tutorial
     , fetchedAt : Int
     }
 
@@ -49,10 +51,14 @@ fragment =
           handle
           role
           avatarUrl
+          welcomeTutorial: tutorial(key: "welcome") {
+            ...TutorialFields
+          }
           fetchedAt
         }
         """
-        []
+        [ Tutorial.fragment
+        ]
 
 
 
@@ -104,6 +110,11 @@ role (SpaceUser data) =
     data.role
 
 
+welcomeTutorial : SpaceUser -> Maybe Tutorial
+welcomeTutorial (SpaceUser data) =
+    data.welcomeTutorial
+
+
 
 -- DECODERS
 
@@ -138,5 +149,6 @@ decoder =
             |> required "handle" string
             |> required "role" roleDecoder
             |> required "avatarUrl" (maybe string)
+            |> required "welcomeTutorial" (maybe Tutorial.decoder)
             |> required "fetchedAt" int
         )

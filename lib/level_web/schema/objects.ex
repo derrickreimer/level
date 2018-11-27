@@ -100,7 +100,18 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
-    @desc "A list of groups the user has bookmarked."
+    field :tutorial, :tutorial do
+      arg :key, non_null(:string)
+
+      resolve fn space_user, args, %{context: %{current_user: user}} = info ->
+        if space_user.user_id == user.id do
+          Resolvers.tutorial(space_user, args, info)
+        else
+          {:ok, nil}
+        end
+      end
+    end
+
     field :bookmarks, list_of(:group) do
       resolve fn space_user, _args, %{context: %{current_user: user}} ->
         if space_user.user_id == user.id do
