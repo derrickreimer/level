@@ -26,8 +26,6 @@ import Page.Post
 import Page.Posts
 import Page.Search
 import Page.Settings
-import Page.Setup.CreateGroups
-import Page.Setup.InviteUsers
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
@@ -192,8 +190,6 @@ type Msg
     | SpaceUserListsLoaded (Result Session.Error ( Session, GetSpaceUserLists.Response ))
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
-    | SetupCreateGroupsMsg Page.Setup.CreateGroups.Msg
-    | SetupInviteUsersMsg Page.Setup.InviteUsers.Msg
     | SpacesMsg Page.Spaces.Msg
     | NewSpaceMsg Page.NewSpace.Msg
     | PostsMsg Page.Posts.Msg
@@ -330,68 +326,6 @@ update msg model =
                 |> Page.Inbox.update pageMsg globals
                 |> updatePageWithGlobals Inbox InboxMsg model
 
-        ( SetupCreateGroupsMsg pageMsg, SetupCreateGroups pageModel ) ->
-            let
-                ( ( newPageModel, pageCmd ), newGlobals, externalMsg ) =
-                    Page.Setup.CreateGroups.update pageMsg globals pageModel
-
-                ( newFlash, flashCmd ) =
-                    Flash.startTimer FlashExpired newGlobals.flash
-
-                ( newModel, cmd ) =
-                    case externalMsg of
-                        Page.Setup.CreateGroups.SetupStateChanged newState ->
-                            ( model
-                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.spaceSlug newState)
-                            )
-
-                        Page.Setup.CreateGroups.NoOp ->
-                            ( model, Cmd.none )
-            in
-            ( { newModel
-                | session = newGlobals.session
-                , repo = newGlobals.repo
-                , page = SetupCreateGroups newPageModel
-                , flash = newFlash
-              }
-            , Cmd.batch
-                [ Cmd.map SetupCreateGroupsMsg pageCmd
-                , cmd
-                , flashCmd
-                ]
-            )
-
-        ( SetupInviteUsersMsg pageMsg, SetupInviteUsers pageModel ) ->
-            let
-                ( ( newPageModel, pageCmd ), newGlobals, externalMsg ) =
-                    Page.Setup.InviteUsers.update pageMsg globals pageModel
-
-                ( newFlash, flashCmd ) =
-                    Flash.startTimer FlashExpired newGlobals.flash
-
-                ( newModel, cmd ) =
-                    case externalMsg of
-                        Page.Setup.InviteUsers.SetupStateChanged newState ->
-                            ( model
-                            , Route.pushUrl model.navKey (Space.setupRoute pageModel.spaceSlug newState)
-                            )
-
-                        Page.Setup.InviteUsers.NoOp ->
-                            ( model, Cmd.none )
-            in
-            ( { newModel
-                | session = newGlobals.session
-                , repo = newGlobals.repo
-                , page = SetupInviteUsers newPageModel
-                , flash = newFlash
-              }
-            , Cmd.batch
-                [ Cmd.map SetupInviteUsersMsg pageCmd
-                , cmd
-                , flashCmd
-                ]
-            )
-
         ( SpaceUsersMsg pageMsg, SpaceUsers pageModel ) ->
             pageModel
                 |> Page.SpaceUsers.update pageMsg globals
@@ -515,8 +449,6 @@ type Page
     | NotFound
     | Spaces Page.Spaces.Model
     | NewSpace Page.NewSpace.Model
-    | SetupCreateGroups Page.Setup.CreateGroups.Model
-    | SetupInviteUsers Page.Setup.InviteUsers.Model
     | Posts Page.Posts.Model
     | Inbox Page.Inbox.Model
     | SpaceUsers Page.SpaceUsers.Model
@@ -546,8 +478,6 @@ type PageInit
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
-    | SetupCreateGroupsInit (Result Session.Error ( Globals, Page.Setup.CreateGroups.Model ))
-    | SetupInviteUsersInit (Result Session.Error ( Globals, Page.Setup.InviteUsers.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
     | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
 
@@ -574,16 +504,6 @@ navigateTo maybeRoute model =
 
         Just (Route.Root spaceSlug) ->
             navigateTo (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) model
-
-        Just (Route.SetupCreateGroups spaceSlug) ->
-            globals
-                |> Page.Setup.CreateGroups.init spaceSlug
-                |> transition model SetupCreateGroupsInit
-
-        Just (Route.SetupInviteUsers spaceSlug) ->
-            globals
-                |> Page.Setup.InviteUsers.init spaceSlug
-                |> transition model SetupInviteUsersInit
 
         Just Route.Spaces ->
             globals
@@ -702,12 +622,6 @@ pageTitle repo page =
 
         UserSettings _ ->
             Page.UserSettings.title
-
-        SetupCreateGroups _ ->
-            Page.Setup.CreateGroups.title
-
-        SetupInviteUsers _ ->
-            Page.Setup.InviteUsers.title
 
         Search pageModel ->
             Page.Search.title pageModel
@@ -861,32 +775,6 @@ setupPage pageInit model =
         SpaceSettingsInit (Err _) ->
             ( model, Cmd.none )
 
-        SetupCreateGroupsInit (Ok result) ->
-            perform Page.Setup.CreateGroups.setup
-                SetupCreateGroups
-                SetupCreateGroupsMsg
-                model
-                result
-
-        SetupCreateGroupsInit (Err Session.Expired) ->
-            ( model, Route.toLogin )
-
-        SetupCreateGroupsInit (Err _) ->
-            ( model, Cmd.none )
-
-        SetupInviteUsersInit (Ok result) ->
-            perform Page.Setup.InviteUsers.setup
-                SetupInviteUsers
-                SetupInviteUsersMsg
-                model
-                result
-
-        SetupInviteUsersInit (Err Session.Expired) ->
-            ( model, Route.toLogin )
-
-        SetupInviteUsersInit (Err _) ->
-            ( model, Cmd.none )
-
         SearchInit (Ok result) ->
             perform Page.Search.setup Search SearchMsg model result
 
@@ -1002,12 +890,6 @@ routeFor page =
         Inbox { params } ->
             Just <| Route.Inbox params
 
-        SetupCreateGroups { spaceSlug } ->
-            Just <| Route.SetupCreateGroups spaceSlug
-
-        SetupInviteUsers { spaceSlug } ->
-            Just <| Route.SetupInviteUsers spaceSlug
-
         SpaceUsers { params } ->
             Just <| Route.SpaceUsers params
 
@@ -1060,16 +942,6 @@ pageView repo page pushStatus spaceUserLists =
             pageModel
                 |> Page.NewSpace.view repo
                 |> Html.map NewSpaceMsg
-
-        SetupCreateGroups pageModel ->
-            pageModel
-                |> Page.Setup.CreateGroups.view repo (routeFor page)
-                |> Html.map SetupCreateGroupsMsg
-
-        SetupInviteUsers pageModel ->
-            pageModel
-                |> Page.Setup.InviteUsers.view repo (routeFor page)
-                |> Html.map SetupInviteUsersMsg
 
         Posts pageModel ->
             pageModel
@@ -1279,16 +1151,6 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.NewSpace.consumeEvent event
                 |> updatePage NewSpace NewSpaceMsg model
-
-        SetupCreateGroups pageModel ->
-            pageModel
-                |> Page.Setup.CreateGroups.consumeEvent event
-                |> updatePage SetupCreateGroups SetupCreateGroupsMsg model
-
-        SetupInviteUsers pageModel ->
-            pageModel
-                |> Page.Setup.InviteUsers.consumeEvent event
-                |> updatePage SetupInviteUsers SetupInviteUsersMsg model
 
         Posts pageModel ->
             pageModel

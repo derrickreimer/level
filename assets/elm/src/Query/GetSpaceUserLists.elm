@@ -9,7 +9,7 @@ import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Encode as Encode
 import Repo exposing (Repo)
 import Session exposing (Session)
-import Space exposing (Space, setupStateDecoder)
+import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)

@@ -28,8 +28,6 @@ type Route
     = Spaces
     | NewSpace
     | Root String
-    | SetupCreateGroups String
-    | SetupInviteUsers String
     | Posts Route.Posts.Params
     | Inbox Route.Inbox.Params
     | SpaceUsers Route.SpaceUsers.Params
@@ -51,8 +49,6 @@ parser =
         [ Parser.map Spaces (s "spaces")
         , Parser.map NewSpace (s "spaces" </> s "new")
         , Parser.map Root Parser.string
-        , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
-        , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
         , Parser.map Posts Route.Posts.parser
         , Parser.map Inbox Route.Inbox.parser
         , Parser.map SpaceUsers Route.SpaceUsers.parser
@@ -118,12 +114,6 @@ toString page =
 
         Root slug ->
             absolute [ slug ] []
-
-        SetupCreateGroups slug ->
-            absolute [ slug, "setup", "groups" ] []
-
-        SetupInviteUsers slug ->
-            absolute [ slug, "setup", "invites" ] []
 
         Posts params ->
             Route.Posts.toString params

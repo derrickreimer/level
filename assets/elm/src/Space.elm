@@ -1,4 +1,4 @@
-module Space exposing (SetupState(..), Space, avatar, avatarUrl, canUpdate, decoder, fragment, id, name, openInvitationUrl, setSetupState, setupRoute, setupStateDecoder, setupStateEncoder, slug)
+module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, id, name, openInvitationUrl, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -23,17 +23,10 @@ type alias Data =
     , name : String
     , slug : String
     , avatarUrl : Maybe String
-    , setupState : SetupState
     , openInvitationUrl : Maybe String
     , canUpdate : Bool
     , fetchedAt : Int
     }
-
-
-type SetupState
-    = CreateGroups
-    | InviteUsers
-    | Complete
 
 
 fragment : Fragment
@@ -45,7 +38,6 @@ fragment =
           name
           slug
           avatarUrl
-          setupState
           openInvitationUrl
           canUpdate
           fetchedAt
@@ -100,76 +92,11 @@ canUpdate (Space data) =
 decoder : Decoder Space
 decoder =
     Decode.map Space <|
-        Decode.map8 Data
+        Decode.map7 Data
             (field "id" Id.decoder)
             (field "name" string)
             (field "slug" string)
             (field "avatarUrl" (maybe string))
-            (field "setupState" setupStateDecoder)
             (field "openInvitationUrl" (maybe string))
             (field "canUpdate" bool)
             (field "fetchedAt" int)
-
-
-setupStateDecoder : Decoder SetupState
-setupStateDecoder =
-    let
-        convert : String -> Decoder SetupState
-        convert raw =
-            case raw of
-                "CREATE_GROUPS" ->
-                    Decode.succeed CreateGroups
-
-                "INVITE_USERS" ->
-                    Decode.succeed InviteUsers
-
-                "COMPLETE" ->
-                    Decode.succeed Complete
-
-                _ ->
-                    Decode.fail "Setup state not valid"
-    in
-    Decode.andThen convert string
-
-
-
--- ENCODERS
-
-
-setupStateEncoder : SetupState -> Encode.Value
-setupStateEncoder raw =
-    case raw of
-        CreateGroups ->
-            Encode.string "CREATE_GROUPS"
-
-        InviteUsers ->
-            Encode.string "INVITE_USERS"
-
-        Complete ->
-            Encode.string "COMPLETE"
-
-
-
--- API
-
-
-setSetupState : SetupState -> Space -> Space
-setSetupState state (Space record) =
-    Space { record | setupState = state }
-
-
-
--- ROUTING
-
-
-setupRoute : String -> SetupState -> Route
-setupRoute spaceSlug state =
-    case state of
-        CreateGroups ->
-            Route.SetupCreateGroups spaceSlug
-
-        InviteUsers ->
-            Route.SetupInviteUsers spaceSlug
-
-        Complete ->
-            Route.Inbox (Route.Inbox.init spaceSlug)
