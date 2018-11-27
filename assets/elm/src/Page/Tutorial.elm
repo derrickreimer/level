@@ -14,6 +14,7 @@ import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CreateGroup as CreateGroup
+import Mutation.MarkTutorialComplete as MarkTutorialComplete
 import Mutation.UpdateTutorialStep as UpdateTutorialStep
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
@@ -66,6 +67,11 @@ defaultGroups =
     [ "Everyone", "Engineering", "Marketing", "Support", "Random" ]
 
 
+stepCount : Int
+stepCount =
+    9
+
+
 
 -- PAGE PROPERTIES
 
@@ -106,6 +112,19 @@ buildModel params globals ( newSession, resp ) =
 
 setup : Globals -> Model -> Cmd Msg
 setup globals model =
+    Cmd.batch
+        [ updateStep globals model
+        , markIfComplete globals model
+        ]
+
+
+teardown : Model -> Cmd Msg
+teardown model =
+    Cmd.none
+
+
+updateStep : Globals -> Model -> Cmd Msg
+updateStep globals model =
     let
         variables =
             UpdateTutorialStep.variables model.spaceId "welcome" (Route.Tutorial.getStep model.params)
@@ -115,9 +134,19 @@ setup globals model =
         |> Task.attempt StepUpdated
 
 
-teardown : Model -> Cmd Msg
-teardown model =
-    Cmd.none
+markIfComplete : Globals -> Model -> Cmd Msg
+markIfComplete globals model =
+    let
+        variables =
+            MarkTutorialComplete.variables model.spaceId "welcome"
+    in
+    if Route.Tutorial.getStep model.params >= stepCount then
+        globals.session
+            |> MarkTutorialComplete.request variables
+            |> Task.attempt MarkedComplete
+
+    else
+        Cmd.none
 
 
 
@@ -134,6 +163,7 @@ type Msg
     | LinkCopied
     | LinkCopyFailed
     | StepUpdated (Result Session.Error ( Session, UpdateTutorialStep.Response ))
+    | MarkedComplete (Result Session.Error ( Session, MarkTutorialComplete.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -217,6 +247,12 @@ update msg globals model =
         StepUpdated _ ->
             ( ( model, Cmd.none ), globals )
 
+        MarkedComplete (Ok ( newSession, _ )) ->
+            ( ( model, Cmd.none ), { globals | session = newSession } )
+
+        MarkedComplete _ ->
+            ( ( model, Cmd.none ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -296,7 +332,7 @@ progressBarView : Int -> Html Msg
 progressBarView step =
     let
         percentage =
-            (toFloat step / 9)
+            (toFloat step / toFloat stepCount)
                 * 100
                 |> round
                 |> String.fromInt
