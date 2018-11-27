@@ -14,6 +14,7 @@ import Query.Viewer as Viewer
 import Regex exposing (Regex)
 import Repo exposing (Repo)
 import Route
+import Route.WelcomeTutorial
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -126,7 +127,11 @@ update msg globals navKey model =
             ( ( { model | formState = Submitting }, cmd ), globals )
 
         Submitted (Ok ( newSession, CreateSpace.Success space )) ->
-            ( ( model, Route.pushUrl navKey (Route.SetupCreateGroups <| Space.slug space) )
+            let
+                tutorialParams =
+                    Route.WelcomeTutorial.init (Space.slug space) 1
+            in
+            ( ( model, Route.pushUrl navKey (Route.WelcomeTutorial tutorialParams) )
             , { globals | session = newSession }
             )
 
