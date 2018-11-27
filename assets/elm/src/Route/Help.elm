@@ -1,11 +1,11 @@
-module Route.WelcomeTutorial exposing
+module Route.Help exposing
     ( Params
-    , init, getSpaceSlug, getStep, setStep
+    , init, getSpaceSlug
     , parser
     , toString
     )
 
-{-| Route building and parsing for the welcome tutorial.
+{-| Route building and parsing for the help page.
 
 
 # Types
@@ -15,7 +15,7 @@ module Route.WelcomeTutorial exposing
 
 # API
 
-@docs init, getSpaceSlug, getStep, setStep
+@docs init, getSpaceSlug
 
 
 # Parsing
@@ -40,7 +40,6 @@ type Params
 
 type alias Internal =
     { spaceSlug : String
-    , step : Int
     }
 
 
@@ -48,24 +47,14 @@ type alias Internal =
 -- API
 
 
-init : String -> Int -> Params
-init spaceSlug step =
-    Params (Internal spaceSlug step)
+init : String -> Params
+init spaceSlug =
+    Params (Internal spaceSlug)
 
 
 getSpaceSlug : Params -> String
 getSpaceSlug (Params internal) =
     internal.spaceSlug
-
-
-getStep : Params -> Int
-getStep (Params internal) =
-    internal.step
-
-
-setStep : Int -> Params -> Params
-setStep newStep (Params internal) =
-    Params { internal | step = newStep }
 
 
 
@@ -75,7 +64,7 @@ setStep newStep (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "welcome" </> int)
+        map Internal (string </> s "help")
 
 
 
@@ -84,4 +73,4 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "welcome", String.fromInt internal.step ] []
+    absolute [ internal.spaceSlug, "help" ] []

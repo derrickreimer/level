@@ -9,6 +9,7 @@ import Html.Attributes as Attr
 import Route.Group
 import Route.GroupSettings
 import Route.Groups
+import Route.Help
 import Route.Inbox
 import Route.Posts
 import Route.Search
@@ -41,6 +42,7 @@ type Route
     | Settings Route.Settings.Params
     | Search Route.Search.Params
     | WelcomeTutorial Route.WelcomeTutorial.Params
+    | Help Route.Help.Params
 
 
 parser : Parser (Route -> a) a
@@ -62,6 +64,7 @@ parser =
         , Parser.map Settings Route.Settings.parser
         , Parser.map Search Route.Search.parser
         , Parser.map WelcomeTutorial Route.WelcomeTutorial.parser
+        , Parser.map Help Route.Help.parser
         ]
 
 
@@ -153,3 +156,6 @@ toString page =
 
         WelcomeTutorial params ->
             Route.WelcomeTutorial.toString params
+
+        Help params ->
+            Route.Help.toString params

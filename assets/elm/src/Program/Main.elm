@@ -18,6 +18,7 @@ import Mutation.UpdateUser as UpdateUser
 import Page.Group
 import Page.GroupSettings
 import Page.Groups
+import Page.Help
 import Page.Inbox
 import Page.InviteUsers
 import Page.NewGroup
@@ -205,6 +206,7 @@ type Msg
     | SpaceSettingsMsg Page.Settings.Msg
     | SearchMsg Page.Search.Msg
     | WelcomeTutorialMsg Page.WelcomeTutorial.Msg
+    | HelpMsg Page.Help.Msg
     | SocketIn Decode.Value
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
@@ -381,6 +383,11 @@ update msg model =
                 |> Page.WelcomeTutorial.update pageMsg globals
                 |> updatePageWithGlobals WelcomeTutorial WelcomeTutorialMsg model
 
+        ( HelpMsg pageMsg, Help pageModel ) ->
+            pageModel
+                |> Page.Help.update pageMsg globals
+                |> updatePageWithGlobals Help HelpMsg model
+
         ( SocketIn value, page ) ->
             case Socket.decodeEvent value of
                 Socket.MessageReceived messageData ->
@@ -462,6 +469,7 @@ type Page
     | SpaceSettings Page.Settings.Model
     | Search Page.Search.Model
     | WelcomeTutorial Page.WelcomeTutorial.Model
+    | Help Page.Help.Model
 
 
 type PageInit
@@ -480,6 +488,7 @@ type PageInit
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
     | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
+    | HelpInit (Result Session.Error ( Globals, Page.Help.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -580,6 +589,11 @@ navigateTo maybeRoute model =
                 |> Page.WelcomeTutorial.init params
                 |> transition model WelcomeTutorialInit
 
+        Just (Route.Help params) ->
+            globals
+                |> Page.Help.init params
+                |> transition model HelpInit
+
 
 pageTitle : Repo -> Page -> String
 pageTitle repo page =
@@ -628,6 +642,9 @@ pageTitle repo page =
 
         WelcomeTutorial pageModel ->
             Page.WelcomeTutorial.title
+
+        Help pageModel ->
+            Page.Help.title
 
         NotFound ->
             "404"
@@ -797,6 +814,15 @@ setupPage pageInit model =
         WelcomeTutorialInit (Err err) ->
             ( model, Cmd.none )
 
+        HelpInit (Ok result) ->
+            perform Page.Help.setup Help HelpMsg model result
+
+        HelpInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        HelpInit (Err err) ->
+            ( model, Cmd.none )
+
 
 teardownPage : Page -> Cmd Msg
 teardownPage page =
@@ -836,6 +862,9 @@ teardownPage page =
 
         WelcomeTutorial pageModel ->
             Cmd.map WelcomeTutorialMsg (Page.WelcomeTutorial.teardown pageModel)
+
+        Help pageModel ->
+            Cmd.map HelpMsg (Page.Help.teardown pageModel)
 
         _ ->
             Cmd.none
@@ -923,6 +952,9 @@ routeFor page =
         WelcomeTutorial { params } ->
             Just <| Route.WelcomeTutorial params
 
+        Help { params } ->
+            Just <| Route.Help params
+
         Blank ->
             Nothing
 
@@ -1007,6 +1039,11 @@ pageView repo page pushStatus spaceUserLists =
             pageModel
                 |> Page.WelcomeTutorial.view repo (routeFor page)
                 |> Html.map WelcomeTutorialMsg
+
+        Help pageModel ->
+            pageModel
+                |> Page.Help.view repo (routeFor page)
+                |> Html.map HelpMsg
 
         Blank ->
             div [ class "font-sans font-antialised flex items-center justify-center h-screen w-full bg-turquoise" ]
@@ -1216,6 +1253,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.WelcomeTutorial.consumeEvent event
                 |> updatePage WelcomeTutorial WelcomeTutorialMsg model
+
+        Help pageModel ->
+            pageModel
+                |> Page.Help.consumeEvent event
+                |> updatePage Help HelpMsg model
 
         Blank ->
             ( model, Cmd.none )
