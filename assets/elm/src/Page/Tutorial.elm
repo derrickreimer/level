@@ -305,8 +305,9 @@ stepView step model data =
         1 ->
             div []
                 [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
-                , p [ class "mb-6" ] [ text "I’m so glad you are embracing asynchronous communication. Let’s face it—we’ve all been trained by chat tools to expect instant responses from our colleagues. It’s time to detox." ]
-                , p [ class "mb-6" ] [ text "I promise it’s a worthwhile endeavor." ]
+                , p [ class "mb-6" ] [ text "Let’s face it—we’ve all been conditioned by real-time chat to expect instant responses from our teammates." ]
+                , p [ class "mb-6" ] [ text "As a result, our ability to achieve deep focus is suffering. It’s simply unsustainable." ]
+                , p [ class "mb-6" ] [ text "I’m so glad you are here pursuing a better way. It’s time to break some bad habits and start embracing asynchronous communication." ]
                 , p [ class "mb-6" ] [ text "To get started, join me on quick walk through the fundamental ideas behind Level." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
                 , a [ Route.href <| inboxRoute model.params, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
@@ -325,7 +326,7 @@ stepView step model data =
                         [ p [ class "mb-6" ] [ text "After this tutorial, click on “Groups” in the left sidebar to explore them." ]
                         , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                         ]
-                , backButton "Back to Introduction"
+                , backButton "Previous"
                 ]
 
         3 ->
@@ -334,7 +335,7 @@ stepView step model data =
                 , p [ class "mb-6" ] [ text "You can either create a post in a group to kick off a new conversation, or reply to an existing post to carry on the discussion." ]
                 , p [ class "mb-6" ] [ text "Once the conversation is done, it is best to mark it as resolved to let the rest of the team know." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Back to “Groups”"
+                , backButton "Previous"
                 ]
 
         4 ->
@@ -344,36 +345,35 @@ stepView step model data =
                 , p [ class "mb-6" ] [ text "Posts will land in your Inbox when someone loops you in with an @-mention or when you’ve already participated in the conversation and there’s new activity." ]
                 , p [ class "mb-6" ] [ text "You can safely dismiss posts from your Inbox when you’re done with them—they’ll move back to your Inbox if more activity occurs later." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Back to “Threaded conversations”"
+                , backButton "Previous"
                 ]
 
         5 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Activity feed helps you stay in the loop." ]
                 , p [ class "mb-6" ] [ text "Your feed is personalized to only include messages posted in groups that you have joined." ]
-                , p [ class "mb-6" ] [ text "Since posts only land in your Inbox if you have been looped in, it’s a good idea to periodically peruse your Activity feed." ]
+                , p [ class "mb-6" ] [ text "Since posts only land in your Inbox if you have been looped in, it’s a good idea to periodically skim through your Activity feed." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Back to “The Inbox”"
+                , backButton "Previous"
                 ]
 
         6 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "There are no interruptive push notifications." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Level will not interrupt you." ]
                 , p [ class "mb-6" ] [ text "On average, it takes 22 minutes to get back into flow after a single interruption. I’m willing to bet that 99% of conversations are not so urgent they warrant paying that penalty." ]
                 , p [ class "mb-6" ] [ text "Level will not send push notifications unless you have a true emergency and flag your message accordingly." ]
-                , p [ class "mb-6" ] [ text "If two or more people happen to be conversing in real-time, Level will send notifications to keep the conversation flowing smoothly." ]
-                , p [ class "mb-6" ] [ text "Otherwise, Level won’t interrupt you." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Back to “Activity Feed”"
+                , backButton "Previous"
                 ]
 
         7 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "There is no presence tracking." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Level does not track who’s online." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
                 , p [ class "mb-6" ] [ text "And, it’s most definitely not a good proxy for determining whether someone is slacking off." ]
+                , p [ class "mb-6" ] [ text "There’s just one exception: if two or more people are looking at the same post, Level will let them know who else is there (in case they want to chat)." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Back to “No push notifications”"
+                , backButton "Previous"
                 ]
 
         8 ->
@@ -382,7 +382,7 @@ stepView step model data =
                 , p [ class "mb-6" ] [ text "Level aims to be as unobtrusive as possible. At a minimum, you’ll receive a Daily Digest email summarizing what’s on your plate in your Level Inbox." ]
                 , p [ class "mb-6" ] [ text "You can also configure Level to send you periodic emails throughout the day to keep you in the know about new activity." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Back to “No presence tracking”"
+                , backButton "Previous"
                 ]
 
         9 ->
@@ -390,7 +390,7 @@ stepView step model data =
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "You’re ready to go!" ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
-                , backButton "Back to “Invite your colleagues”"
+                , backButton "Previous"
                 ]
 
         _ ->
