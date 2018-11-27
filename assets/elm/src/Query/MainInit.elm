@@ -6,7 +6,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Encode as Encode
 import Session exposing (Session)
-import Space exposing (Space, setupStateDecoder)
+import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import User exposing (User)

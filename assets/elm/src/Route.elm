@@ -14,6 +14,7 @@ import Route.Posts
 import Route.Search
 import Route.Settings
 import Route.SpaceUsers
+import Route.WelcomeTutorial
 import Url exposing (Url)
 import Url.Builder as Builder exposing (absolute)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
@@ -27,8 +28,6 @@ type Route
     = Spaces
     | NewSpace
     | Root String
-    | SetupCreateGroups String
-    | SetupInviteUsers String
     | Posts Route.Posts.Params
     | Inbox Route.Inbox.Params
     | SpaceUsers Route.SpaceUsers.Params
@@ -41,6 +40,7 @@ type Route
     | UserSettings
     | Settings Route.Settings.Params
     | Search Route.Search.Params
+    | WelcomeTutorial Route.WelcomeTutorial.Params
 
 
 parser : Parser (Route -> a) a
@@ -49,8 +49,6 @@ parser =
         [ Parser.map Spaces (s "spaces")
         , Parser.map NewSpace (s "spaces" </> s "new")
         , Parser.map Root Parser.string
-        , Parser.map SetupCreateGroups (Parser.string </> s "setup" </> s "groups")
-        , Parser.map SetupInviteUsers (Parser.string </> s "setup" </> s "invites")
         , Parser.map Posts Route.Posts.parser
         , Parser.map Inbox Route.Inbox.parser
         , Parser.map SpaceUsers Route.SpaceUsers.parser
@@ -63,6 +61,7 @@ parser =
         , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map Settings Route.Settings.parser
         , Parser.map Search Route.Search.parser
+        , Parser.map WelcomeTutorial Route.WelcomeTutorial.parser
         ]
 
 
@@ -116,12 +115,6 @@ toString page =
         Root slug ->
             absolute [ slug ] []
 
-        SetupCreateGroups slug ->
-            absolute [ slug, "setup", "groups" ] []
-
-        SetupInviteUsers slug ->
-            absolute [ slug, "setup", "invites" ] []
-
         Posts params ->
             Route.Posts.toString params
 
@@ -157,3 +150,6 @@ toString page =
 
         Search params ->
             Route.Search.toString params
+
+        WelcomeTutorial params ->
+            Route.WelcomeTutorial.toString params
