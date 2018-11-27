@@ -15,12 +15,14 @@ export function initialize() {
 
   attachPorts(app);
 
-  if (window.Headway) {
-    requestAnimationFrame(() => {
+  // Initialize Headway after a little delay
+  // to give the async script time to load
+  setTimeout(() => {
+    if (window.Headway) {
       window.Headway.init({
         selector: "#headway",
         account: "7Q9Qv7"
       });
-    })
-  }
+    }
+  }, 3000);
 }
