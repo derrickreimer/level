@@ -157,6 +157,7 @@ type Msg
     = NoOp
     | BackUp
     | Advance
+    | SkipClicked
     | GroupToggled String
     | SubmitGroups
     | GroupsSubmitted (Result Session.Error ( Session, BulkCreateGroups.Response ))
@@ -193,6 +194,21 @@ update msg globals model =
                     Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
             in
             ( ( model, cmd ), globals )
+
+        SkipClicked ->
+            let
+                variables =
+                    MarkTutorialComplete.variables model.spaceId "welcome"
+
+                completeCmd =
+                    globals.session
+                        |> MarkTutorialComplete.request variables
+                        |> Task.attempt MarkedComplete
+
+                redirectCmd =
+                    Route.pushUrl globals.navKey (inboxRoute model.params)
+            in
+            ( ( model, Cmd.batch [ completeCmd, redirectCmd ] ), globals )
 
         GroupToggled name ->
             if List.member name model.selectedGroups then
@@ -360,7 +376,7 @@ stepView step model data =
                 , p [ class "mb-6" ] [ text "I’m so glad you are here pursuing a better way. It’s time to break some bad habits and start embracing asynchronous communication." ]
                 , p [ class "mb-6" ] [ text "To get started, join me on quick walk through the fundamental ideas behind Level." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
-                , a [ Route.href <| inboxRoute model.params, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
+                , button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
                     [ span [ class "mr-2" ] [ text "Already know Level? Skip the tutorial" ]
                     , Icons.arrowRight Icons.On
                     ]
