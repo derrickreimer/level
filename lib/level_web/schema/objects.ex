@@ -466,6 +466,14 @@ defmodule LevelWeb.Schema.Objects do
     field :fetched_at, non_null(:timestamp), resolve: fetch_time()
   end
 
+  @desc "A user's relationship with a tutorial."
+  object :tutorial do
+    field :key, non_null(:string)
+    field :current_step, non_null(:integer)
+    field :is_complete, non_null(:boolean)
+    field :space_user, non_null(:space_user), resolve: dataloader(:db)
+  end
+
   @desc "An actor."
   union :actor do
     types [:space_user, :space_bot]

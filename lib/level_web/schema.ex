@@ -329,6 +329,23 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.reopen_post/2
     end
+
+    @desc "Updates a tutorial step."
+    field :update_tutorial_step, :update_tutorial_step_payload do
+      arg :space_id, non_null(:id)
+      arg :key, non_null(:string)
+      arg :current_step, non_null(:integer)
+
+      resolve &Level.Mutations.update_tutorial_step/2
+    end
+
+    @desc "Marks a tutorial as complete."
+    field :mark_tutorial_complete, :mark_tutorial_complete_payload do
+      arg :space_id, non_null(:id)
+      arg :key, non_null(:string)
+
+      resolve &Level.Mutations.mark_tutorial_complete/2
+    end
   end
 
   subscription do

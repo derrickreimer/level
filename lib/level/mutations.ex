@@ -8,8 +8,10 @@ defmodule Level.Mutations do
   alias Level.Groups
   alias Level.Mentions
   alias Level.Posts
+  alias Level.Schemas.Tutorial
   alias Level.Schemas.User
   alias Level.Spaces
+  alias Level.Tutorials
   alias Level.Users
 
   @typedoc "A context map containing the current user"
@@ -700,7 +702,7 @@ defmodule Level.Mutations do
   @doc """
   Closes a post.
   """
-  @spec close_post(map, info()) ::
+  @spec close_post(map(), info()) ::
           {:ok, %{success: boolean(), errors: validation_errors(), post: Post.t()}}
           | {:error, String.t()}
   def close_post(%{space_id: space_id, post_id: post_id}, %{context: %{current_user: user}}) do
@@ -717,7 +719,7 @@ defmodule Level.Mutations do
   @doc """
   Reopens a post.
   """
-  @spec reopen_post(map, info()) ::
+  @spec reopen_post(map(), info()) ::
           {:ok, %{success: boolean(), errors: validation_errors(), post: Post.t()}}
           | {:error, String.t()}
   def reopen_post(%{space_id: space_id, post_id: post_id}, %{context: %{current_user: user}}) do
@@ -726,6 +728,44 @@ defmodule Level.Mutations do
          {:ok, %{post: reopened_post}} <- Posts.reopen_post(space_user, post) do
       {:ok, %{success: true, errors: [], post: reopened_post}}
     else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Updates a tutorial step.
+  """
+  @spec update_tutorial_step(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors(), tutorial: Tutorial.t()}}
+          | {:error, String.t()}
+  def update_tutorial_step(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, tutorial} <- Tutorials.update_current_step(space_user, args.key, args.current_step) do
+      {:ok, %{success: true, errors: [], tutorial: tutorial}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Marks a tutorial as complete.
+  """
+  @spec mark_tutorial_complete(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors(), tutorial: Tutorial.t()}}
+          | {:error, String.t()}
+  def mark_tutorial_complete(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, tutorial} <- Tutorials.mark_as_complete(space_user, args.key) do
+      {:ok, %{success: true, errors: [], tutorial: tutorial}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+
       err ->
         err
     end
