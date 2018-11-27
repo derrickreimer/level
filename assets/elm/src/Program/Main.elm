@@ -30,8 +30,8 @@ import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceUsers
 import Page.Spaces
-import Page.WelcomeTutorial
 import Page.UserSettings
+import Page.WelcomeTutorial
 import Presence exposing (PresenceList)
 import PushManager
 import PushStatus exposing (PushStatus)
@@ -208,7 +208,7 @@ type Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.Settings.Msg
     | SearchMsg Page.Search.Msg
-    | TutorialMsg Page.WelcomeTutorial.Msg
+    | WelcomeTutorialMsg Page.WelcomeTutorial.Msg
     | SocketIn Decode.Value
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
@@ -442,10 +442,10 @@ update msg model =
                 |> Page.Search.update pageMsg globals
                 |> updatePageWithGlobals Search SearchMsg model
 
-        ( TutorialMsg pageMsg, Tutorial pageModel ) ->
+        ( WelcomeTutorialMsg pageMsg, WelcomeTutorial pageModel ) ->
             pageModel
                 |> Page.WelcomeTutorial.update pageMsg globals
-                |> updatePageWithGlobals Tutorial TutorialMsg model
+                |> updatePageWithGlobals WelcomeTutorial WelcomeTutorialMsg model
 
         ( SocketIn value, page ) ->
             case Socket.decodeEvent value of
@@ -529,7 +529,7 @@ type Page
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.Settings.Model
     | Search Page.Search.Model
-    | Tutorial Page.WelcomeTutorial.Model
+    | WelcomeTutorial Page.WelcomeTutorial.Model
 
 
 type PageInit
@@ -549,7 +549,7 @@ type PageInit
     | SetupCreateGroupsInit (Result Session.Error ( Globals, Page.Setup.CreateGroups.Model ))
     | SetupInviteUsersInit (Result Session.Error ( Globals, Page.Setup.InviteUsers.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
-    | TutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
+    | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -658,7 +658,7 @@ navigateTo maybeRoute model =
         Just (Route.WelcomeTutorial params) ->
             globals
                 |> Page.WelcomeTutorial.init params
-                |> transition model TutorialInit
+                |> transition model WelcomeTutorialInit
 
 
 pageTitle : Repo -> Page -> String
@@ -712,7 +712,7 @@ pageTitle repo page =
         Search pageModel ->
             Page.Search.title pageModel
 
-        Tutorial pageModel ->
+        WelcomeTutorial pageModel ->
             Page.WelcomeTutorial.title
 
         NotFound ->
@@ -896,17 +896,17 @@ setupPage pageInit model =
         SearchInit (Err err) ->
             ( model, Cmd.none )
 
-        TutorialInit (Ok result) ->
+        WelcomeTutorialInit (Ok result) ->
             let
                 ( newGlobals, pageModel ) =
                     result
             in
-            perform (Page.WelcomeTutorial.setup newGlobals) Tutorial TutorialMsg model result
+            perform (Page.WelcomeTutorial.setup newGlobals) WelcomeTutorial WelcomeTutorialMsg model result
 
-        TutorialInit (Err Session.Expired) ->
+        WelcomeTutorialInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
-        TutorialInit (Err err) ->
+        WelcomeTutorialInit (Err err) ->
             ( model, Cmd.none )
 
 
@@ -946,8 +946,8 @@ teardownPage page =
         Search pageModel ->
             Cmd.map SearchMsg (Page.Search.teardown pageModel)
 
-        Tutorial pageModel ->
-            Cmd.map TutorialMsg (Page.WelcomeTutorial.teardown pageModel)
+        WelcomeTutorial pageModel ->
+            Cmd.map WelcomeTutorialMsg (Page.WelcomeTutorial.teardown pageModel)
 
         _ ->
             Cmd.none
@@ -1038,7 +1038,7 @@ routeFor page =
         Search { params } ->
             Just <| Route.Search params
 
-        Tutorial { params } ->
+        WelcomeTutorial { params } ->
             Just <| Route.WelcomeTutorial params
 
         Blank ->
@@ -1131,10 +1131,10 @@ pageView repo page pushStatus spaceUserLists =
                 |> Page.Search.view repo (routeFor page)
                 |> Html.map SearchMsg
 
-        Tutorial pageModel ->
+        WelcomeTutorial pageModel ->
             pageModel
                 |> Page.WelcomeTutorial.view repo (routeFor page)
-                |> Html.map TutorialMsg
+                |> Html.map WelcomeTutorialMsg
 
         Blank ->
             div [ class "font-sans font-antialised flex items-center justify-center h-screen w-full bg-turquoise" ]
@@ -1350,10 +1350,10 @@ sendEventToPage globals event model =
                 |> Page.Search.consumeEvent event
                 |> updatePage Search SearchMsg model
 
-        Tutorial pageModel ->
+        WelcomeTutorial pageModel ->
             pageModel
                 |> Page.WelcomeTutorial.consumeEvent event
-                |> updatePage Tutorial TutorialMsg model
+                |> updatePage WelcomeTutorial WelcomeTutorialMsg model
 
         Blank ->
             ( model, Cmd.none )
