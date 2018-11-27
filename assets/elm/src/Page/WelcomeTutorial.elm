@@ -398,8 +398,8 @@ stepView step model data =
         3 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Conversations are always threaded." ]
-                , p [ class "mb-6" ] [ text "You can either create a post in a group to kick off a new conversation, or reply to an existing post to carry on the discussion." ]
-                , p [ class "mb-6" ] [ text "Once the conversation is done, it is best to mark it as resolved to let the rest of the team know." ]
+                , p [ class "mb-6" ] [ text "You can either create a new post to kick off a conversation, or reply to an existing post to carry on the discussion." ]
+                , p [ class "mb-6" ] [ text "Once a conversation is done, it is best to mark it as resolved to let the rest of the team know." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
@@ -479,7 +479,7 @@ inboxRoute params =
 createGroupsView : Model -> Html Msg
 createGroupsView model =
     div []
-        [ p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. Here are some common ones to choose from, but you can always create more later." ]
+        [ p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. Here are a few common ones to choose from. Of course, you can always create more later." ]
         , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
         , div [ class "mb-4 pb-6 border-b" ]
             [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next step" ]
