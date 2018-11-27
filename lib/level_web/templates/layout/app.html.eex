@@ -86,12 +86,6 @@
     <% end %>
 
     <!-- Headway -->
-    <script>
-      var HW_config = {
-        selector: "#headway", // CSS selector where to inject the badge
-        account: "7Q9Qv7" // your account ID, you can find it in Settings->Widget
-      };
-    </script>
     <script async src="//cdn.headwayapp.co/widget.js"></script>
     <!-- / Headway -->
 
@@ -101,9 +95,14 @@
   </head>
 
   <body>
-    <div class="font-sans font-antialised" data-stretchy-filter=".js-stretchy">
+    <div id="elm-container" class="font-sans font-antialised" data-stretchy-filter=".js-stretchy">
       <%= render @view_module, @view_template, assigns %>
     </div>
     <script src="<%= static_url(@conn, "/js/app.js") %>"></script>
+
+    <!-- Help Scout -->
+    <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+    <script type="text/javascript">window.Beacon('init', '907003e9-12d8-4d63-ac3b-34356b2faec0')</script>
+    <!-- / Help Scout -->
   </body>
 </html>

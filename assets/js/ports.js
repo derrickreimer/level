@@ -321,4 +321,14 @@ export const attachPorts = app => {
       }
     });
   });
+
+  app.ports.beaconOut.subscribe(args => {
+    logEvent("beaconOut")(args);
+
+    switch (args.method) {
+      case "open":
+        Beacon("open");
+        break;
+    }
+  });
 };

@@ -1,5 +1,6 @@
 module Page.Help exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Beacon
 import Browser.Navigation as Nav
 import Clipboard
 import Event exposing (Event)
@@ -107,6 +108,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | OpenBeacon
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -114,6 +116,9 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
+
+        OpenBeacon ->
+            ( ( model, Beacon.open ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -169,7 +174,7 @@ resolvedView repo maybeCurrentRoute model data =
                 [ div [ class "mb-6" ]
                     [ h1 [ class "mb-4 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ] [ text "Help" ]
                     ]
-                , ul [ class "list-reset" ]
+                , ul [ class "mb-4 pb-6 border-b list-reset" ]
                     [ li []
                         [ a
                             [ Route.href <| Route.WelcomeTutorial (Route.WelcomeTutorial.init (Route.Help.getSpaceSlug model.params) 1)
@@ -179,6 +184,10 @@ resolvedView repo maybeCurrentRoute model data =
                             , p [ class "text-dusty-blue-dark" ] [ text "A quick tutorial on how Level works." ]
                             ]
                         ]
+                    ]
+                , button [ class "flex items-center text-base text-dusty-blue font-bold", onClick OpenBeacon ]
+                    [ span [ class "mr-2" ] [ Icons.search ]
+                    , text "Search the docs"
                     ]
                 ]
             ]

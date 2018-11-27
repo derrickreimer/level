@@ -14,4 +14,13 @@ export function initialize() {
   });
 
   attachPorts(app);
+
+  if (window.Headway) {
+    requestAnimationFrame(() => {
+      window.Headway.init({
+        selector: "#headway",
+        account: "7Q9Qv7"
+      });
+    })
+  }
 }
