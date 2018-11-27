@@ -1,4 +1,4 @@
-module Page.Tutorial exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
+module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Browser.Navigation as Nav
 import Clipboard
@@ -21,7 +21,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Route.Inbox
-import Route.Tutorial exposing (Params)
+import Route.WelcomeTutorial exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -88,7 +88,7 @@ title =
 init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
-        |> SetupInit.request (Route.Tutorial.getSpaceSlug params)
+        |> SetupInit.request (Route.WelcomeTutorial.getSpaceSlug params)
         |> Task.map (buildModel params globals)
 
 
@@ -127,7 +127,7 @@ updateStep : Globals -> Model -> Cmd Msg
 updateStep globals model =
     let
         variables =
-            UpdateTutorialStep.variables model.spaceId "welcome" (Route.Tutorial.getStep model.params)
+            UpdateTutorialStep.variables model.spaceId "welcome" (Route.WelcomeTutorial.getStep model.params)
     in
     globals.session
         |> UpdateTutorialStep.request variables
@@ -140,7 +140,7 @@ markIfComplete globals model =
         variables =
             MarkTutorialComplete.variables model.spaceId "welcome"
     in
-    if Route.Tutorial.getStep model.params >= stepCount then
+    if Route.WelcomeTutorial.getStep model.params >= stepCount then
         globals.session
             |> MarkTutorialComplete.request variables
             |> Task.attempt MarkedComplete
@@ -176,10 +176,10 @@ update msg globals model =
             let
                 newParams =
                     model.params
-                        |> Route.Tutorial.setStep (Route.Tutorial.getStep model.params - 1)
+                        |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params - 1)
 
                 cmd =
-                    Route.pushUrl globals.navKey (Route.Tutorial newParams)
+                    Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
             in
             ( ( model, cmd ), globals )
 
@@ -187,10 +187,10 @@ update msg globals model =
             let
                 newParams =
                     model.params
-                        |> Route.Tutorial.setStep (Route.Tutorial.getStep model.params + 1)
+                        |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params + 1)
 
                 cmd =
-                    Route.pushUrl globals.navKey (Route.Tutorial newParams)
+                    Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
             in
             ( ( model, cmd ), globals )
 
@@ -214,10 +214,10 @@ update msg globals model =
             let
                 newParams =
                     model.params
-                        |> Route.Tutorial.setStep (Route.Tutorial.getStep model.params + 1)
+                        |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params + 1)
 
                 cmd =
-                    Route.pushUrl globals.navKey (Route.Tutorial newParams)
+                    Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
             in
             ( ( { model | isSubmitting = False }, cmd ), { globals | session = newSession } )
 
@@ -299,7 +299,7 @@ resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
 resolvedView repo maybeCurrentRoute model data =
     let
         step =
-            Route.Tutorial.getStep model.params
+            Route.WelcomeTutorial.getStep model.params
     in
     View.SpaceLayout.layout
         data.viewer
@@ -457,7 +457,7 @@ backButton buttonText =
 
 inboxRoute : Params -> Route
 inboxRoute params =
-    Route.Inbox (Route.Inbox.init (Route.Tutorial.getSpaceSlug params))
+    Route.Inbox (Route.Inbox.init (Route.WelcomeTutorial.getSpaceSlug params))
 
 
 createGroupsView : Model -> Html Msg

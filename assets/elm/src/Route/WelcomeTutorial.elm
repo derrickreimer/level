@@ -1,4 +1,4 @@
-module Route.Tutorial exposing
+module Route.WelcomeTutorial exposing
     ( Params
     , init, getSpaceSlug, getStep, setStep
     , parser
@@ -75,7 +75,7 @@ setStep newStep (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "tutorial" </> int)
+        map Internal (string </> s "welcome" </> int)
 
 
 
@@ -84,4 +84,4 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "tutorial", String.fromInt internal.step ] []
+    absolute [ internal.spaceSlug, "welcome", String.fromInt internal.step ] []

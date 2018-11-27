@@ -30,7 +30,7 @@ import Page.Setup.CreateGroups
 import Page.Setup.InviteUsers
 import Page.SpaceUsers
 import Page.Spaces
-import Page.Tutorial
+import Page.WelcomeTutorial
 import Page.UserSettings
 import Presence exposing (PresenceList)
 import PushManager
@@ -208,7 +208,7 @@ type Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.Settings.Msg
     | SearchMsg Page.Search.Msg
-    | TutorialMsg Page.Tutorial.Msg
+    | TutorialMsg Page.WelcomeTutorial.Msg
     | SocketIn Decode.Value
     | PushManagerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
@@ -444,7 +444,7 @@ update msg model =
 
         ( TutorialMsg pageMsg, Tutorial pageModel ) ->
             pageModel
-                |> Page.Tutorial.update pageMsg globals
+                |> Page.WelcomeTutorial.update pageMsg globals
                 |> updatePageWithGlobals Tutorial TutorialMsg model
 
         ( SocketIn value, page ) ->
@@ -529,7 +529,7 @@ type Page
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.Settings.Model
     | Search Page.Search.Model
-    | Tutorial Page.Tutorial.Model
+    | Tutorial Page.WelcomeTutorial.Model
 
 
 type PageInit
@@ -549,7 +549,7 @@ type PageInit
     | SetupCreateGroupsInit (Result Session.Error ( Globals, Page.Setup.CreateGroups.Model ))
     | SetupInviteUsersInit (Result Session.Error ( Globals, Page.Setup.InviteUsers.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
-    | TutorialInit (Result Session.Error ( Globals, Page.Tutorial.Model ))
+    | TutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -655,9 +655,9 @@ navigateTo maybeRoute model =
                 |> Page.Search.init params
                 |> transition model SearchInit
 
-        Just (Route.Tutorial params) ->
+        Just (Route.WelcomeTutorial params) ->
             globals
-                |> Page.Tutorial.init params
+                |> Page.WelcomeTutorial.init params
                 |> transition model TutorialInit
 
 
@@ -713,7 +713,7 @@ pageTitle repo page =
             Page.Search.title pageModel
 
         Tutorial pageModel ->
-            Page.Tutorial.title
+            Page.WelcomeTutorial.title
 
         NotFound ->
             "404"
@@ -901,7 +901,7 @@ setupPage pageInit model =
                 ( newGlobals, pageModel ) =
                     result
             in
-            perform (Page.Tutorial.setup newGlobals) Tutorial TutorialMsg model result
+            perform (Page.WelcomeTutorial.setup newGlobals) Tutorial TutorialMsg model result
 
         TutorialInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -947,7 +947,7 @@ teardownPage page =
             Cmd.map SearchMsg (Page.Search.teardown pageModel)
 
         Tutorial pageModel ->
-            Cmd.map TutorialMsg (Page.Tutorial.teardown pageModel)
+            Cmd.map TutorialMsg (Page.WelcomeTutorial.teardown pageModel)
 
         _ ->
             Cmd.none
@@ -1039,7 +1039,7 @@ routeFor page =
             Just <| Route.Search params
 
         Tutorial { params } ->
-            Just <| Route.Tutorial params
+            Just <| Route.WelcomeTutorial params
 
         Blank ->
             Nothing
@@ -1133,7 +1133,7 @@ pageView repo page pushStatus spaceUserLists =
 
         Tutorial pageModel ->
             pageModel
-                |> Page.Tutorial.view repo (routeFor page)
+                |> Page.WelcomeTutorial.view repo (routeFor page)
                 |> Html.map TutorialMsg
 
         Blank ->
@@ -1352,7 +1352,7 @@ sendEventToPage globals event model =
 
         Tutorial pageModel ->
             pageModel
-                |> Page.Tutorial.consumeEvent event
+                |> Page.WelcomeTutorial.consumeEvent event
                 |> updatePage Tutorial TutorialMsg model
 
         Blank ->
