@@ -956,14 +956,12 @@ newPostView spaceId editor currentUser spaceUsers =
                         []
                     , PostEditor.filesView editor
                     , div [ class "flex items-baseline justify-end" ]
-                        [ div [ class "mr-3 text-sm text-dusty-blue select-none" ]
-                            [ text "Press ⌘↩ or" ]
-                        , button
+                        [ button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
                             , disabled (PostEditor.isUnsubmittable editor)
                             ]
-                            [ text "Post message" ]
+                            [ text "Send" ]
                         ]
                     ]
                 ]
