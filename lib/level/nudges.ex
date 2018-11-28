@@ -30,8 +30,8 @@ defmodule Level.Nudges do
   @doc """
   Gets nudges for a user.
   """
-  @spec get_nudges(SpaceUser.t()) :: [Nudge.t()]
-  def get_nudges(%SpaceUser{} = space_user) do
+  @spec list_nudges(SpaceUser.t()) :: [Nudge.t()]
+  def list_nudges(%SpaceUser{} = space_user) do
     space_user
     |> Ecto.assoc(:nudges)
     |> Repo.all()

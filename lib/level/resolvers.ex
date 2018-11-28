@@ -414,7 +414,7 @@ defmodule Level.Resolvers do
   @spec nudges(SpaceUser.t(), map(), info()) :: {:ok, [Nudge.t()] | nil}
   def nudges(%SpaceUser{} = space_user, _args, %{context: %{current_user: user}}) do
     if space_user.user_id == user.id do
-      {:ok, Nudges.get_nudges(space_user)}
+      {:ok, Nudges.list_nudges(space_user)}
     else
       {:ok, nil}
     end
