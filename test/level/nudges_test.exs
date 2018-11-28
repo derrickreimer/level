@@ -43,4 +43,13 @@ defmodule Level.NudgesTest do
                Nudges.get_nudge(space_user, "11111111-1111-1111-1111-111111111111")
     end
   end
+
+  describe "delete_nudge/2" do
+    test "deletes the nudge from the database" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 660})
+      {:ok, deleted_nudge} = Nudges.delete_nudge(nudge)
+      assert {:error, _} = Nudges.get_nudge(space_user, deleted_nudge.id)
+    end
+  end
 end

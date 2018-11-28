@@ -56,4 +56,12 @@ defmodule Level.Nudges do
   defp after_fetch(_) do
     {:error, dgettext("errors", "Nudge not found")}
   end
+
+  @doc """
+  Deletes a nudge.
+  """
+  @spec delete_nudge(Nudge.t()) :: {:ok, Nudge.t()} | {:error, Changeset.t()}
+  def delete_nudge(%Nudge{} = nudge) do
+    Repo.delete(nudge)
+  end
 end
