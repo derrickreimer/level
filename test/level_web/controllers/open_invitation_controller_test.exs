@@ -88,7 +88,7 @@ defmodule LevelWeb.OpenInvitationControllerTest do
         conn
         |> post("/invites/#{invitation.token}/accept", %{signup: params})
 
-      assert redirected_to(conn, 302) =~ "/acme"
+      assert redirected_to(conn, 302) =~ "/acme/welcome/1"
 
       # verify the newly-created user is a member of the space
       user = Repo.get_by(User, email: "derrick@level.app")
@@ -110,7 +110,7 @@ defmodule LevelWeb.OpenInvitationControllerTest do
         |> sign_in(user)
         |> post("/invites/#{invitation.token}/accept")
 
-      assert redirected_to(conn, 302) =~ "/acme"
+      assert redirected_to(conn, 302) =~ "/acme/welcome/1"
 
       {:ok, %{space_user: space_user}} = Spaces.get_space(user, space.id)
       assert space_user.role == "MEMBER"
