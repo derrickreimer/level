@@ -106,6 +106,10 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.tutorial/3
     end
 
+    field :nudges, list_of(:nudge) do
+      resolve &Resolvers.nudges/3
+    end
+
     field :bookmarks, list_of(:group) do
       resolve fn space_user, _args, %{context: %{current_user: user}} ->
         if space_user.user_id == user.id do
@@ -130,6 +134,12 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp), resolve: fetch_time()
+  end
+
+  @desc "A time of day at which to nudge a user."
+  object :nudge do
+    field :id, non_null(:id)
+    field :minute, non_null(:integer)
   end
 
   @desc "Describes a user's digest sending preferences."

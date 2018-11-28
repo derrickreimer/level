@@ -8,6 +8,7 @@ defmodule Level.Resolvers do
   import Ecto.Query, warn: false
   import Level.Gettext
 
+  alias Level.Nudges
   alias Level.Pagination
   alias Level.Posts
   alias Level.Repo
@@ -402,6 +403,18 @@ defmodule Level.Resolvers do
   def tutorial(%SpaceUser{} = space_user, %{key: key}, %{context: %{current_user: user}}) do
     if space_user.user_id == user.id do
       Tutorials.get_tutorial(space_user, key)
+    else
+      {:ok, nil}
+    end
+  end
+
+  @doc """
+  Fetches nudges for a space user.
+  """
+  @spec nudges(SpaceUser.t(), map(), info()) :: {:ok, [Nudge.t()] | nil}
+  def nudges(%SpaceUser{} = space_user, _args, %{context: %{current_user: user}}) do
+    if space_user.user_id == user.id do
+      {:ok, Nudges.list_nudges(space_user)}
     else
       {:ok, nil}
     end

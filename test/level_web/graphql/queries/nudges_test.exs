@@ -1,16 +1,18 @@
-defmodule LevelWeb.GraphQL.ListBookmarksTest do
+defmodule LevelWeb.GraphQL.NudgesTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
-  alias Level.Groups
+  alias Level.Nudges
+  alias Level.Schemas.Nudge
 
   @query """
-    query GetBookmarkedGroups(
+    query GetNudges(
       $space_id: ID!
     ) {
       spaceUser(spaceId: $space_id) {
-        bookmarks {
-          name
+        nudges {
+          id
+          minute
         }
       }
     }
@@ -22,10 +24,9 @@ defmodule LevelWeb.GraphQL.ListBookmarksTest do
     {:ok, %{conn: conn, user: user}}
   end
 
-  test "space memberships can list bookmarked groups", %{conn: conn, user: user} do
-    {:ok, %{space: space, space_user: space_user}} = create_space(user, %{name: "Level"})
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineering"})
-    Groups.bookmark_group(group, space_user)
+  test "authenticated space user can read their own nudges", %{conn: conn, user: user} do
+    {:ok, %{space: space, space_user: space_user}} = create_space(user)
+    {:ok, %Nudge{id: nudge_id}} = Nudges.create_nudge(space_user, %{minute: 660})
 
     conn =
       conn
@@ -35,9 +36,10 @@ defmodule LevelWeb.GraphQL.ListBookmarksTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "spaceUser" => %{
-                 "bookmarks" => [
+                 "nudges" => [
                    %{
-                     "name" => "Engineering"
+                     "id" => nudge_id,
+                     "minute" => 660
                    }
                  ]
                }

@@ -10,6 +10,7 @@ defmodule Level.Schemas.SpaceUser do
 
   alias Level.Handles
   alias Level.Schemas.File
+  alias Level.Schemas.Nudge
   alias Level.Schemas.PostUser
   alias Level.Schemas.Space
   alias Level.Schemas.User
@@ -32,6 +33,7 @@ defmodule Level.Schemas.SpaceUser do
 
     has_many :post_users, PostUser
     has_many :files, File
+    has_many :nudges, Nudge
 
     # Fields from the joined space record
     field :space_name, :string, virtual: true
