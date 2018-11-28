@@ -3,6 +3,8 @@ defmodule Level.Nudges do
   The Nudges context.
   """
 
+  import Ecto.Query
+
   alias Ecto.Changeset
   alias Level.Repo
   alias Level.Schemas.Nudge
@@ -22,5 +24,15 @@ defmodule Level.Nudges do
     %Nudge{}
     |> Nudge.create_changeset(params_with_relations)
     |> Repo.insert()
+  end
+
+  @doc """
+  Gets nudges for a user.
+  """
+  @spec get_nudges(SpaceUser.t()) :: [Nudge.t()]
+  def get_nudges(%SpaceUser{} = space_user) do
+    space_user
+    |> Ecto.assoc(:nudges)
+    |> Repo.all()
   end
 end

@@ -18,4 +18,13 @@ defmodule Level.NudgesTest do
                Nudges.create_nudge(space_user, %{minute: 6000})
     end
   end
+
+  describe "get_nudges/1" do
+    test "fetches all nudges for a given user" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 660})
+      [returned_nudge] = Nudges.get_nudges(space_user)
+      assert returned_nudge.id == nudge.id
+    end
+  end
 end
