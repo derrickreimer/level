@@ -10,7 +10,9 @@ defmodule LevelWeb.PasswordResetController do
   plug :fetch_password_reset when action in [:show, :update]
 
   def new(conn, _) do
-    render conn, "new.html"
+    conn
+    |> assign(:page_title, "Reset my password")
+    |> render("new.html")
   end
 
   def create(conn, %{"password_reset" => %{"email" => email}}) do
@@ -38,6 +40,7 @@ defmodule LevelWeb.PasswordResetController do
 
     conn
     |> assign(:changeset, Users.reset_password_changeset(user, %{}))
+    |> assign(:page_title, "Reset my password")
     |> render("show.html")
   end
 
@@ -53,6 +56,7 @@ defmodule LevelWeb.PasswordResetController do
       {:error, changeset} ->
         conn
         |> assign(:changeset, changeset)
+        |> assign(:page_title, "Reset my password")
         |> render("show.html")
     end
   end

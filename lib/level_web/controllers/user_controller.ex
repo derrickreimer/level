@@ -19,6 +19,7 @@ defmodule LevelWeb.UserController do
       _ ->
         conn
         |> assign(:changeset, Users.create_user_changeset(%User{}))
+        |> assign(:page_title, "Sign up for Level")
         |> render("new.html")
     end
   end

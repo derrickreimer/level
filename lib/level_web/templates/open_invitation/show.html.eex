@@ -8,9 +8,9 @@
   <div class="mx-auto px-8 max-w-400px">
     <%= form_for @changeset, open_invitation_path(@conn, :accept, @conn.assigns.invitation), [as: :signup], fn f -> %>
       <div class="<%= error_shake(@changeset) %>">
-        <h2 class="mb-6 text-3xl font-extrabold">Join the <%= @conn.assigns.space.name %> space</h2>
+        <h2 class="mb-6 text-3xl font-extrabold tracking-semi-tight">Join the <%= @conn.assigns.space.name %> space</h2>
 
-        <p class="mb-6 leading-normal"><%= @conn.assigns.space.name %> is trying out Level, a calmer alternative to real-time chat. You&rsquo;re invited to join the space!</p>
+        <p class="mb-6 leading-normal"><%= @conn.assigns.space.name %> is using Level, a team communication platform optimized for deep work. You&rsquo;re invited to join the space!</p>
 
         <div class="max-w-xs">
           <%= if @conn.assigns.current_user do %>

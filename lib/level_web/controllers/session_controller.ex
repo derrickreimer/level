@@ -11,7 +11,9 @@ defmodule LevelWeb.SessionController do
   plug :put_feature_flags
 
   def new(conn, _params) do
-    render conn, "new.html"
+    conn
+    |> assign(:page_title, "Sign in to Level")
+    |> render("new.html")
   end
 
   def create(conn, %{"session" => %{"email" => email, "password" => pass}}) do
@@ -24,6 +26,7 @@ defmodule LevelWeb.SessionController do
       {:error, _reason, conn} ->
         conn
         |> put_flash(:error, "Oops, those credentials are not correct")
+        |> assign(:page_title, "Sign in to Level")
         |> render("new.html")
     end
   end

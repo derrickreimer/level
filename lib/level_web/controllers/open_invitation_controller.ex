@@ -17,6 +17,7 @@ defmodule LevelWeb.OpenInvitationController do
   def show(conn, %{"id" => _invitation_token}) do
     conn
     |> assign(:changeset, Users.create_user_changeset(%User{}))
+    |> assign(:page_title, "Join the " <> conn.assigns.space.name <> " space")
     |> render("show.html")
   end
 
@@ -30,6 +31,7 @@ defmodule LevelWeb.OpenInvitationController do
       {:error, changeset} ->
         conn
         |> assign(:changeset, changeset)
+        |> assign(:page_title, "Join the " <> conn.assigns.space.name <> " space")
         |> render("show.html")
     end
   end
