@@ -384,7 +384,7 @@ stepView step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Groups organize converations." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Groups keep your conversations organized." ]
                 , p [ class "mb-6" ] [ text "Similar to channels in chat, a group in Level is a place where you can post messages around a particular topic." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
