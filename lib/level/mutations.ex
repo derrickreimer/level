@@ -792,6 +792,26 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Deletes a nudge.
+  """
+  @spec delete_nudge(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors(), nudge: Nudge.t()}}
+          | {:error, String.t()}
+  def delete_nudge(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, nudge} <- Nudges.get_nudge(space_user, args.nudge_id),
+         {:ok, deleted_nudge} <- Nudges.delete_nudge(nudge) do
+      {:ok, %{success: true, errors: [], nudge: deleted_nudge}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
   defp format_errors(%Ecto.Changeset{errors: errors}) do
     Enum.map(errors, fn {attr, {msg, props}} ->
       message =
