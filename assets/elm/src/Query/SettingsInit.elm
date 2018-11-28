@@ -8,6 +8,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import Nudge exposing (Nudge)
 import Repo exposing (Repo)
 import Session exposing (Session)
 import Space exposing (Space)
@@ -21,6 +22,7 @@ type alias Response =
     , bookmarkIds : List Id
     , space : Space
     , digestSettings : DigestSettings
+    , nudges : List Nudge
     , repo : Repo
     }
 
@@ -30,6 +32,7 @@ type alias Data =
     , space : Space
     , bookmarks : List Group
     , digestSettings : DigestSettings
+    , nudges : List Nudge
     }
 
 
@@ -42,6 +45,9 @@ document =
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
+            nudges {
+              ...NudgeFields
+            }
             digestSettings {
               ...DigestSettingsFields
             }
@@ -58,6 +64,7 @@ document =
         , SpaceUser.fragment
         , Space.fragment
         , DigestSettings.fragment
+        , Nudge.fragment
         ]
 
 
@@ -77,6 +84,7 @@ decoder =
             |> Pipeline.custom (Decode.field "space" Space.decoder)
             |> Pipeline.custom (Decode.field "bookmarks" (Decode.list Group.decoder))
             |> Pipeline.custom (Decode.field "digestSettings" DigestSettings.decoder)
+            |> Pipeline.custom (Decode.field "nudges" (Decode.list Nudge.decoder))
         )
 
 
@@ -96,6 +104,7 @@ buildResponse ( session, data ) =
                 (List.map Group.id data.bookmarks)
                 data.space
                 data.digestSettings
+                data.nudges
                 repo
     in
     ( session, resp )

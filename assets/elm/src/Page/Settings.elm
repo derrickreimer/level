@@ -16,6 +16,7 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.UpdateDigestSettings as UpdateDigestSettings
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
+import Nudge exposing (Nudge)
 import Query.SettingsInit as SettingsInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -43,6 +44,7 @@ type alias Model =
     , name : String
     , slug : String
     , digestSettings : DigestSettings
+    , nudges : List Nudge
     , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
@@ -97,6 +99,7 @@ buildModel params globals ( newSession, resp ) =
                 (Space.name resp.space)
                 (Space.slug resp.space)
                 resp.digestSettings
+                resp.nudges
                 (Space.avatarUrl resp.space)
                 []
                 False
