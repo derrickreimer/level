@@ -398,9 +398,13 @@ defmodule Level.Resolvers do
   @doc """
   Fetches a tutorial.
   """
-  @spec tutorial(SpaceUser.t(), map(), info()) :: {:ok, Tutorial.t()}
+  @spec tutorial(SpaceUser.t(), map(), info()) :: {:ok, Tutorial.t() | nil}
   def tutorial(%SpaceUser{} = space_user, %{key: key}, %{context: %{current_user: user}}) do
-    Tutorials.get_tutorial(space_user, key)
+    if space_user.user_id == user.id do
+      Tutorials.get_tutorial(space_user, key)
+    else
+      {:ok, nil}
+    end
   end
 
   # Dataloader helpers

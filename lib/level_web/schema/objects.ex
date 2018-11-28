@@ -103,13 +103,7 @@ defmodule LevelWeb.Schema.Objects do
     field :tutorial, :tutorial do
       arg :key, non_null(:string)
 
-      resolve fn space_user, args, %{context: %{current_user: user}} = info ->
-        if space_user.user_id == user.id do
-          Resolvers.tutorial(space_user, args, info)
-        else
-          {:ok, nil}
-        end
-      end
+      resolve &Resolvers.tutorial/3
     end
 
     field :bookmarks, list_of(:group) do
