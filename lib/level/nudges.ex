@@ -4,6 +4,7 @@ defmodule Level.Nudges do
   """
 
   import Ecto.Query
+  import Level.Gettext
 
   alias Ecto.Changeset
   alias Level.Repo
@@ -34,5 +35,25 @@ defmodule Level.Nudges do
     space_user
     |> Ecto.assoc(:nudges)
     |> Repo.all()
+  end
+
+  @doc """
+  Fetches a nudge by id.
+  """
+  @spec get_nudge(SpaceUser.t(), String.t()) :: {:ok, Nudge.t()} | {:error, String.t()}
+  def get_nudge(%SpaceUser{} = space_user, id) do
+    space_user
+    |> Ecto.assoc(:nudges)
+    |> where([n], n.id == ^id)
+    |> Repo.one()
+    |> after_fetch()
+  end
+
+  defp after_fetch(%Nudge{} = nudge) do
+    {:ok, nudge}
+  end
+
+  defp after_fetch(_) do
+    {:error, dgettext("errors", "Nudge not found")}
   end
 end
