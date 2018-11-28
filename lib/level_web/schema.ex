@@ -346,6 +346,14 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.mark_tutorial_complete/2
     end
+
+    @desc "Creates a nudge."
+    field :create_nudge, :create_nudge_payload do
+      arg :space_id, non_null(:id)
+      arg :minute, non_null(:integer)
+
+      resolve &Level.Mutations.create_nudge/2
+    end
   end
 
   subscription do

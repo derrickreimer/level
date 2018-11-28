@@ -7,7 +7,9 @@ defmodule Level.Mutations do
 
   alias Level.Groups
   alias Level.Mentions
+  alias Level.Nudges
   alias Level.Posts
+  alias Level.Schemas.Nudge
   alias Level.Schemas.Tutorial
   alias Level.Schemas.User
   alias Level.Spaces
@@ -762,6 +764,25 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, tutorial} <- Tutorials.mark_as_complete(space_user, args.key) do
       {:ok, %{success: true, errors: [], tutorial: tutorial}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Creates a nudge.
+  """
+  @spec create_nudge(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors(), nudge: Nudge.t()}}
+          | {:error, String.t()}
+  def create_nudge(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, nudge} <- Nudges.create_nudge(space_user, args) do
+      {:ok, %{success: true, errors: [], nudge: nudge}}
     else
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset)}}
