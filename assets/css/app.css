@@ -393,6 +393,17 @@ post-editor.dragging-over > * {
   transform: translateX(-50%);
 }
 
+.tooltip {
+  @apply opacity-0 z-50;
+  transition: opacity 0.2s;
+  visibility: hidden;
+}
+
+:hover > .tooltip {
+  @apply opacity-100;
+  visibility: visible;
+}
+
 /**
  * This injects all of Tailwind's utility classes, generated based on your
  * config file.

@@ -420,9 +420,20 @@ nudgeTile model idx minute =
             ]
         , onClick (NudgeToggled minute)
         ]
-        [ viewIf (isActive || modBy 4 idx == 0) <|
-            div [ class "absolute text-xs text-dusty-blue font-bold", style "bottom" "-20px" ]
+        [ viewIf (modBy 4 idx == 0) <|
+            div
+                [ class "absolute text-xs text-dusty-blue font-bold pin-l-50"
+                , style "bottom" "-20px"
+                , style "transform" "translateX(-50%)"
+                ]
                 [ text (Minutes.toString minute) ]
+        , div
+            [ class "absolute p-2 text-xs font-bold text-white bg-dusty-blue-darker rounded pin-l-50 tooltip"
+            , style "bottom" "-35px"
+            , style "transform" "translateX(-50%)"
+            ]
+            [ text (Minutes.toString minute)
+            ]
         ]
 
 
