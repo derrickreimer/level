@@ -13,6 +13,9 @@ import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Minutes
+import Mutation.CreateNudge as CreateNudge
+import Mutation.DeleteNudge as DeleteNudge
 import Mutation.UpdateDigestSettings as UpdateDigestSettings
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
@@ -65,6 +68,12 @@ resolveData repo model =
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
+
+
+nudgeIntervals : List Int
+nudgeIntervals =
+    List.range 12 36
+        |> List.map ((*) 30)
 
 
 
@@ -136,11 +145,17 @@ type Msg
     | FileReceived Decode.Value
     | DigestToggled
     | DigestSettingsUpdated (Result Session.Error ( Session, UpdateDigestSettings.Response ))
+    | NudgeToggled Int
+    | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
+    | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
+        NoOp ->
+            noCmd globals model
+
         NameChanged val ->
             noCmd globals { model | name = val }
 
@@ -242,7 +257,50 @@ update msg globals model =
             -- TODO: handle unexpected exceptions
             noCmd globals { model | isSubmitting = False }
 
-        NoOp ->
+        NudgeToggled minute ->
+            let
+                cmd =
+                    case nudgeAt minute model of
+                        Just nudge ->
+                            globals.session
+                                |> DeleteNudge.request (DeleteNudge.variables model.spaceId (Nudge.id nudge))
+                                |> Task.attempt NudgeDeleted
+
+                        Nothing ->
+                            globals.session
+                                |> CreateNudge.request (CreateNudge.variables model.spaceId minute)
+                                |> Task.attempt NudgeCreated
+            in
+            ( ( model, cmd ), globals )
+
+        NudgeCreated (Ok ( newSession, CreateNudge.Success nudge )) ->
+            let
+                newNudges =
+                    nudge :: model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeCreated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeCreated _ ->
+            noCmd globals model
+
+        NudgeDeleted (Ok ( newSession, DeleteNudge.Success nudge )) ->
+            let
+                newNudges =
+                    removeBy Nudge.id nudge model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeDeleted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeDeleted _ ->
             noCmd globals model
 
 
@@ -323,17 +381,48 @@ resolvedView maybeCurrentRoute model data =
 
 preferencesView : Model -> Data -> Html Msg
 preferencesView model data =
-    label [ class "control checkbox pb-6" ]
-        [ input
-            [ type_ "checkbox"
-            , class "checkbox"
-            , onClick DigestToggled
-            , checked (DigestSettings.isEnabled model.digestSettings)
-            , disabled model.isSubmitting
+    div []
+        [ label [ class "control checkbox pb-6" ]
+            [ input
+                [ type_ "checkbox"
+                , class "checkbox"
+                , onClick DigestToggled
+                , checked (DigestSettings.isEnabled model.digestSettings)
+                , disabled model.isSubmitting
+                ]
+                []
+            , span [ class "control-indicator" ] []
+            , span [ class "select-none" ] [ text "Email a daily digest after 4:00 pm" ]
             ]
-            []
-        , span [ class "control-indicator" ] []
-        , span [ class "select-none" ] [ text "Send me a daily digest at 4:00 pm" ]
+        , nudgesView model data
+        ]
+
+
+nudgesView : Model -> Data -> Html Msg
+nudgesView model data =
+    div [ class "mb-16" ]
+        [ p [ class "mb-2" ] [ text "Choose times to receive a notification about new Inbox items:" ]
+        , div [ class "flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
+        ]
+
+
+nudgeTile : Model -> Int -> Int -> Html Msg
+nudgeTile model idx minute =
+    let
+        isActive =
+            hasNudgeAt minute model
+    in
+    button
+        [ classList
+            [ ( "mr-1 relative text-center flex-grow rounded h-12", True )
+            , ( "bg-grey", not isActive )
+            , ( "bg-blue", isActive )
+            ]
+        , onClick (NudgeToggled minute)
+        ]
+        [ viewIf (isActive || modBy 4 idx == 0) <|
+            div [ class "absolute text-xs text-dusty-blue font-bold", style "bottom" "-20px" ]
+                [ text (Minutes.toString minute) ]
         ]
 
 
@@ -415,3 +504,19 @@ filterTab label section linkParams currentParams =
             ]
         ]
         [ text label ]
+
+
+
+-- HELPERS
+
+
+hasNudgeAt : Int -> Model -> Bool
+hasNudgeAt minute model =
+    List.any (\nudge -> Nudge.minute nudge == minute) model.nudges
+
+
+nudgeAt : Int -> Model -> Maybe Nudge
+nudgeAt minute model =
+    model.nudges
+        |> List.filter (\nudge -> Nudge.minute nudge == minute)
+        |> List.head
