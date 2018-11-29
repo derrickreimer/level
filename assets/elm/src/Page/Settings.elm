@@ -382,7 +382,16 @@ resolvedView maybeCurrentRoute model data =
 preferencesView : Model -> Data -> Html Msg
 preferencesView model data =
     div []
-        [ label [ class "control checkbox pb-6" ]
+        [ nudgesView model data
+        , digestsView model data
+        ]
+
+
+digestsView : Model -> Data -> Html Msg
+digestsView model data =
+    div []
+        [ h2 [ class "mb-3 text-dusty-blue-darker text-lg font-extrabold" ] [ text "Digests" ]
+        , label [ class "control checkbox pb-6" ]
             [ input
                 [ type_ "checkbox"
                 , class "checkbox"
@@ -392,16 +401,16 @@ preferencesView model data =
                 ]
                 []
             , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Email a daily digest after 4:00 pm" ]
+            , span [ class "select-none" ] [ text "Email me a daily digest after 4pm" ]
             ]
-        , nudgesView model data
         ]
 
 
 nudgesView : Model -> Data -> Html Msg
 nudgesView model data =
     div [ class "mb-16" ]
-        [ p [ class "mb-2" ] [ text "Choose times to receive a notification about new Inbox items:" ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-lg font-extrabold" ] [ text "Nudges" ]
+        , p [ class "mb-3" ] [ text "Choose when to get notified about new activity in your Inbox." ]
         , div [ class "flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
         ]
 
