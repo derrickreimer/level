@@ -414,7 +414,7 @@ nudgeTile model idx minute =
     in
     button
         [ classList
-            [ ( "mr-1 relative text-center flex-grow rounded h-12", True )
+            [ ( "mr-1 relative text-center flex-grow rounded h-12 no-outline", True )
             , ( "bg-grey", not isActive )
             , ( "bg-blue", isActive )
             ]
