@@ -390,7 +390,7 @@ preferencesView model data =
 digestsView : Model -> Data -> Html Msg
 digestsView model data =
     div []
-        [ h2 [ class "mb-3 text-dusty-blue-darker text-lg font-extrabold" ] [ text "Digests" ]
+        [ h2 [ class "mb-3 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Digests" ]
         , label [ class "control checkbox pb-6" ]
             [ input
                 [ type_ "checkbox"
@@ -409,7 +409,7 @@ digestsView model data =
 nudgesView : Model -> Data -> Html Msg
 nudgesView model data =
     div [ class "mb-16" ]
-        [ h2 [ class "mb-2 text-dusty-blue-darker text-lg font-extrabold" ] [ text "Batched Notifications" ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Batched Notifications" ]
         , p [ class "mb-3" ] [ text "Level will not constantly interrupt you with one-off notifications. Instead, you can configure times of day for Level to ping you with a summary." ]
         , div [ class "flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
         ]

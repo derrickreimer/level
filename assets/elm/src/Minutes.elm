@@ -9,13 +9,13 @@ toString minutes =
     else if minutes < 60 then
         "12" ++ formatMinutes (modBy 60 minutes) ++ "a"
 
-    else if minutes < 660 then
+    else if minutes < 720 then
         toAmString minutes
 
-    else if minutes == 660 then
+    else if minutes == 720 then
         "12p"
 
-    else if minutes < 720 then
+    else if minutes < 780 then
         "12" ++ formatMinutes (modBy 60 minutes) ++ "p"
 
     else
@@ -30,7 +30,7 @@ toAmString : Int -> String
 toAmString minutes =
     let
         hour =
-            (minutes // 60) + 1
+            minutes // 60
 
         minute =
             modBy 60 minutes
@@ -42,7 +42,7 @@ toPmString : Int -> String
 toPmString minutes =
     let
         hour =
-            (minutes - 660) // 60
+            (minutes - 720) // 60
 
         minute =
             modBy 60 minutes
