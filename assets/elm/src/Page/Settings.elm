@@ -409,8 +409,8 @@ digestsView model data =
 nudgesView : Model -> Data -> Html Msg
 nudgesView model data =
     div [ class "mb-16" ]
-        [ h2 [ class "mb-2 text-dusty-blue-darker text-lg font-extrabold" ] [ text "Nudges" ]
-        , p [ class "mb-3" ] [ text "Choose when to get notified about new activity in your Inbox." ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-lg font-extrabold" ] [ text "Batched Notifications" ]
+        , p [ class "mb-3" ] [ text "Level will not constantly interrupt you with one-off notifications. Instead, you can configure times of day for Level to ping you with a summary." ]
         , div [ class "flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
         ]
 
