@@ -387,7 +387,8 @@ CREATE VIEW public.due_nudges AS
     n2.inserted_at,
     n2.updated_at,
     n2.time_zone,
-    n2.current_minute
+    n2.current_minute,
+    n2.digest_key
    FROM (( SELECT n.id,
             n.space_id,
             n.space_user_id,
@@ -395,11 +396,12 @@ CREATE VIEW public.due_nudges AS
             n.inserted_at,
             n.updated_at,
             u.time_zone,
-            (((date_part('hour'::text, timezone(u.time_zone, now())))::integer * 60) + (date_part('minute'::text, timezone(u.time_zone, now())))::integer) AS current_minute
+            (((date_part('hour'::text, timezone(u.time_zone, now())))::integer * 60) + (date_part('minute'::text, timezone(u.time_zone, now())))::integer) AS current_minute,
+            concat('nudge:', n.id, ':', to_char(timezone(u.time_zone, now()), 'yyyy-mm-dd'::text)) AS digest_key
            FROM ((public.nudges n
              JOIN public.space_users su ON ((n.space_user_id = su.id)))
              JOIN public.users u ON ((su.user_id = u.id)))) n2
-     LEFT JOIN public.digests d ON ((d.key = concat('nudge:', n2.id, ':', to_char(timezone(n2.time_zone, now()), 'yyyy-mm-dd'::text)))))
+     LEFT JOIN public.digests d ON ((d.key = n2.digest_key)))
   WHERE ((n2.current_minute >= n2.minute) AND (n2.current_minute < (n2.minute + 30)) AND (d.id IS NULL));
 
 

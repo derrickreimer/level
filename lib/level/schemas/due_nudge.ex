@@ -15,6 +15,7 @@ defmodule Level.Schemas.DueNudge do
   schema "due_nudges" do
     field :minute, :integer
     field :current_minute, :integer
+    field :digest_key, :string
 
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
