@@ -86,25 +86,25 @@
   </div>
 </article>
 
-<div id="preorder" class="mt-16 mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
+<div id="buy" class="mt-16 mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
   <div class="mx-auto max-w-md">
     <div class="font-headline font-bold text-turquoise-dark text-xl">
-      Coming January 2019
+      Level is available by invitation only (for now)
     </div>
 
     <h1 class="marketing-headline">Save your spot in line</h1>
 
     <p class="mb-6">Make a New Year&rsquo;s resolution to embrace deep work at your company.</p>
-    <p class="mb-6">In late January, I&rsquo;ll begin sending invites to sign up. When you pre-order Level today, <strong>you will guarantee your spot in the first cohort</strong>. The $48 one-time payment will be credited toward your team subscription when your company signs up.</p>
+    <p class="mb-6">When you put down a deposit for Level today, <strong>you will guarantee your spot in the January cohort</strong>. The $48 one-time payment will be credited toward your team subscription when your company signs up.</p>
 
     <div class="mb-4">
-      <button id="preorder-button" class="btn btn-blue">Buy Level</button>
+      <button id="preorder-button" class="btn btn-blue">Reserve my spot in January</button>
       <div id="error-message" class="mt-2 text-red font-bold"></div>
     </div>
 
     <p class="text-base">
-      Not ready to pre-order?
-      <button onClick="_dcq.push(['showForm', { id: '193887608' }])" class="text-blue underline">Jump on the launch list instead</button>.
+      Not ready to buy?
+      <button onClick="_dcq.push(['showForm', { id: '193887608' }])" class="text-blue underline">Drop your email on the invite request list</button> to join over 6,000 others.
     </p>
 
     <script src="https://js.stripe.com/v3"></script>
@@ -139,16 +139,16 @@
   <div class="mx-auto max-w-md text-dusty-blue-darker">
     <h2 class="mb-3 font-black text-4xl sm:text-5xl tracking-tight">FAQs</h2>
 
-    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">Is the pre-order for individuals or teams?</h3>
-    <p class="mb-4">The pre-order payment will be applied toward a team subscription. Similar to GitHub, it&rsquo;s free to have an individual account, but costs money to create a team space on Level.</p>
+    <h3 class="mt-6 mb-3 font-black tracking-semi-tight leading-tight text-2xl">Is the payment for an individual account or team account?</h3>
+    <p class="mb-4">The payment will be applied toward a team subscription. Similar to GitHub, it&rsquo;s free to have an individual account, but costs money to create a team space on Level.</p>
 
-    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">What will Level cost?</h3>
-    <p class="mb-4">Pricing starts at $8 per team member, per month. So, $48 will buy one month of service for a team of six, or three months of service for a team of two.</p>
+    <h3 class="mt-6 mb-3 font-black tracking-semi-tight leading-tight text-2xl">What does Level cost?</h3>
+    <p class="mb-4">Pricing starts at $8 per team member per month. So, $48 will buy one month of service for a team of six, three months of service for a team of two, etc.</p>
 
-    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">What exactly does pre-ordering buy me?</h3>
-    <p class="mb-4">Similar to pre-ordering a book on Amazon, it guarantees you earliest access to the product. The public launch will be gradual, so it&rsquo;s uncertain when everyone else will be invited in.</p>
+    <h3 class="mt-6 mb-3 font-black tracking-semi-tight leading-tight text-2xl">Why put down a deposit today?</h3>
+    <p class="mb-4">It guarantees you will receive an invitation in January. The roll-out timeline for the rest of the list is uncertain at this point.</p>
 
-    <h3 class="mt-6 mb-2 font-black tracking-semi-tight text-2xl">Can I take a handle that was already reserved?</h3>
+    <h3 class="mt-6 mb-3 font-black tracking-semi-tight leading-tight text-2xl">Can I take a handle that was already reserved?</h3>
     <p class="mb-4">Sorry, handle reservations will be honored in the order they were reserved.</p>
   </div>
 </div>
