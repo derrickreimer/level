@@ -48,6 +48,7 @@ type alias Model =
     , slug : String
     , digestSettings : DigestSettings
     , nudges : List Nudge
+    , timeZone : String
     , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
@@ -109,6 +110,7 @@ buildModel params globals ( newSession, resp ) =
                 (Space.slug resp.space)
                 resp.digestSettings
                 resp.nudges
+                resp.timeZone
                 (Space.avatarUrl resp.space)
                 []
                 False
@@ -408,10 +410,11 @@ digestsView model data =
 
 nudgesView : Model -> Data -> Html Msg
 nudgesView model data =
-    div [ class "mb-16" ]
+    div [ class "mb-8" ]
         [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Batched Notifications" ]
-        , p [ class "mb-3" ] [ text "Level will not constantly interrupt you with one-off notifications. Instead, you can configure times of day for Level to ping you with a summary." ]
-        , div [ class "flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
+        , p [ class "mb-4" ] [ text "Level will not constantly interrupt you with one-off notifications. Instead, you can configure times of day for Level to ping you with a summary." ]
+        , div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
+        , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ model.timeZone ++ " time zone." ]
         ]
 
 
