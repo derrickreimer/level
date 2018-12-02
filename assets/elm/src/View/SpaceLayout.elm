@@ -54,13 +54,13 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
             [ ( "fixed bg-grey-lighter border-r w-48 h-full min-h-screen z-50", True )
             ]
         ]
-        [ div [ class "p-4" ]
+        [ div [ class "p-3" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
                 , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
                 ]
             ]
-        , div [ class "absolute px-4 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
+        , div [ class "absolute px-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px" ]
             [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
@@ -73,7 +73,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
                 ]
             ]
         , div [ class "absolute pin-b w-full" ]
-            [ a [ Route.href Route.UserSettings, class "flex p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
+            [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
                 [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small viewer ]
                 , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
                     [ div [] [ text "Signed in as" ]
@@ -104,21 +104,24 @@ groupLinks space groups maybeCurrentRoute =
 navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
 navLink space title maybeRoute maybeCurrentRoute =
     let
-        link route =
-            a
-                [ route
-                , class "ml-2 text-dusty-blue-darkest no-underline truncate"
-                ]
-                [ text title ]
-
         currentItem route =
-            li [ class "flex items-center font-bold" ]
-                [ div [ class "flex-no-shrink -ml-1 w-1 h-5 bg-turquoise rounded-full" ] []
-                , link (Route.href route)
+            li [ class "flex items-center bg-grey rounded-full" ]
+                [ a
+                    [ Route.href route
+                    , class "ml-3 no-underline truncate text-dusty-blue-darkest font-bold"
+                    ]
+                    [ text title
+                    ]
                 ]
 
         nonCurrentItem route =
-            li [ class "flex" ] [ link (Route.href route) ]
+            li [ class "flex items-center" ]
+                [ a
+                    [ Route.href route
+                    , class "ml-3 no-underline truncate text-dusty-blue-dark"
+                    ]
+                    [ text title ]
+                ]
     in
     case ( maybeRoute, maybeCurrentRoute ) of
         ( Just (Route.Inbox params), Just (Route.Inbox _) ) ->
@@ -148,4 +151,10 @@ navLink space title maybeRoute maybeCurrentRoute =
                 nonCurrentItem route
 
         ( _, _ ) ->
-            li [ class "flex" ] [ link (href "#") ]
+            li [ class "flex" ]
+                [ a
+                    [ href "#"
+                    , class "ml-2 no-underline truncate text-dusty-blue-dark"
+                    ]
+                    [ text title ]
+                ]
