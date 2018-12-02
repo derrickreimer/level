@@ -389,30 +389,11 @@ preferencesView model data =
         ]
 
 
-digestsView : Model -> Data -> Html Msg
-digestsView model data =
-    div []
-        [ h2 [ class "mb-3 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Digests" ]
-        , label [ class "control checkbox pb-6" ]
-            [ input
-                [ type_ "checkbox"
-                , class "checkbox"
-                , onClick DigestToggled
-                , checked (DigestSettings.isEnabled model.digestSettings)
-                , disabled model.isSubmitting
-                ]
-                []
-            , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Email me a daily digest after 4pm" ]
-            ]
-        ]
-
-
 nudgesView : Model -> Data -> Html Msg
 nudgesView model data =
     div [ class "mb-8" ]
-        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Batched Notifications" ]
-        , p [ class "mb-4" ] [ text "Level will not constantly interrupt you with one-off notifications. Instead, you can configure times of day for Level to ping you with a summary." ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Inbox Notifications" ]
+        , p [ class "mb-4" ] [ text "Configure when Level should notify you about new messages in your Inbox." ]
         , div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
         , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ model.timeZone ++ " time zone." ]
         ]
@@ -445,6 +426,26 @@ nudgeTile model idx minute =
             , style "transform" "translateX(-50%)"
             ]
             [ text (Minutes.toString minute)
+            ]
+        ]
+
+
+digestsView : Model -> Data -> Html Msg
+digestsView model data =
+    div []
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Daily Summary" ]
+        , p [ class "mb-6" ] [ text "The Daily Summary reminds you what's waiting in your Inbox and summarizes other conversations that might be of interest to you." ]
+        , label [ class "control checkbox pb-6" ]
+            [ input
+                [ type_ "checkbox"
+                , class "checkbox"
+                , onClick DigestToggled
+                , checked (DigestSettings.isEnabled model.digestSettings)
+                , disabled model.isSubmitting
+                ]
+                []
+            , span [ class "control-indicator" ] []
+            , span [ class "select-none text-dusty-blue-dark" ] [ text "Email me a daily summary" ]
             ]
         ]
 
