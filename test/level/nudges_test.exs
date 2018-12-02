@@ -61,6 +61,16 @@ defmodule Level.NudgesTest do
 
       refute query_includes?(query, nudge.id)
     end
+
+    test "handles times very close to midnight", %{space_user: space_user} do
+      # 23:50 Arizona time
+      query = Nudges.due_query(~N[2018-11-02 06:50:00])
+
+      # 00:10
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 10})
+
+      refute query_includes?(query, nudge.id)
+    end
   end
 
   describe "create_nudge/2" do

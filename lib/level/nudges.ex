@@ -48,7 +48,7 @@ defmodule Level.Nudges do
       left_join: d in "digests",
       on: d.key == n.digest_key,
       where: n.current_minute >= n.minute,
-      where: n.current_minute < fragment("? + 30", n.minute),
+      where: n.current_minute < fragment("LEAST(? + 30, 1440)", n.minute),
       where: is_nil(d.id)
   end
 
