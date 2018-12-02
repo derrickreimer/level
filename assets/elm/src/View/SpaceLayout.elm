@@ -60,13 +60,13 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
                 , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
                 ]
             ]
-        , div [ class "absolute px-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px" ]
-            [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+        , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px", style "right" "-1px" ]
+            [ ul [ class "mb-4 list-reset leading-normal select-none" ]
                 [ navLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
                 ]
             , groupLinks space bookmarks maybeCurrentRoute
-            , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+            , ul [ class "mb-4 list-reset leading-normal select-none" ]
                 [ navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug space) Route.Settings.Preferences)) maybeCurrentRoute
                 , navLink space "Help" (Just <| Route.Help (Route.Help.init (Space.slug space))) maybeCurrentRoute
@@ -98,27 +98,27 @@ groupLinks space groups maybeCurrentRoute =
                 |> List.sortBy Group.name
                 |> List.map linkify
     in
-    ul [ class "mb-4 list-reset leading-semi-loose select-none" ] links
+    ul [ class "mb-4 list-reset leading-normal select-none" ] links
 
 
 navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
 navLink space title maybeRoute maybeCurrentRoute =
     let
         currentItem route =
-            li [ class "flex items-center bg-grey rounded-full" ]
+            li [ class "flex items-center bg-white border-l border-t border-b rounded-l-full", style "margin-right" "-1px" ]
                 [ a
                     [ Route.href route
-                    , class "ml-3 no-underline truncate text-dusty-blue-darkest font-bold"
+                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-darkest font-bold"
                     ]
                     [ text title
                     ]
                 ]
 
         nonCurrentItem route =
-            li [ class "flex items-center" ]
+            li [ class "flex items-center border-l border-t border-b border-transparent" ]
                 [ a
                     [ Route.href route
-                    , class "ml-3 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-dark"
                     ]
                     [ text title ]
                 ]
