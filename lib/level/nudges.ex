@@ -15,6 +15,7 @@ defmodule Level.Nudges do
   @doc """
   Fetches nudges that are due to send.
   """
+  @spec due_query(DateTime.t()) :: Ecto.Query.t()
   def due_query(now) do
     inner_query =
       from n in "nudges",
