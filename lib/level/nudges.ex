@@ -8,8 +8,48 @@ defmodule Level.Nudges do
 
   alias Ecto.Changeset
   alias Level.Repo
+  alias Level.Schemas.DueNudge
   alias Level.Schemas.Nudge
   alias Level.Schemas.SpaceUser
+
+  @doc """
+  Fetches nudges that are due to send.
+  """
+  def due_query(now) do
+    inner_query =
+      from n in "nudges",
+        inner_join: su in "space_users",
+        on: su.id == n.space_user_id,
+        inner_join: u in "users",
+        on: u.id == su.user_id,
+        select: %DueNudge{
+          id: fragment("?::text", n.id),
+          minute: n.minute,
+          time_zone: u.time_zone,
+          digest_key:
+            fragment(
+              "concat('nudge:', ?, ':', to_char(timezone(?, ?), 'yyyy-mm-dd'))",
+              n.id,
+              u.time_zone,
+              ^now
+            ),
+          current_minute:
+            fragment(
+              "(date_part('hour', timezone(?, ?))::integer * 60) + date_part('minute', timezone(?, ?))::integer",
+              u.time_zone,
+              ^now,
+              u.time_zone,
+              ^now
+            )
+        }
+
+    from n in subquery(inner_query),
+      left_join: d in "digests",
+      on: d.key == n.digest_key,
+      where: n.current_minute >= n.minute,
+      where: n.current_minute < fragment("? + 30", n.minute),
+      where: is_nil(d.id)
+  end
 
   @doc """
   Creates a nudge.

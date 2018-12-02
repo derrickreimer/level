@@ -322,90 +322,6 @@ CREATE TABLE public.digests (
 
 
 --
--- Name: nudges; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nudges (
-    id uuid NOT NULL,
-    space_id uuid NOT NULL,
-    space_user_id uuid NOT NULL,
-    minute integer NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: space_users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.space_users (
-    id uuid NOT NULL,
-    space_id uuid NOT NULL,
-    user_id uuid NOT NULL,
-    state public.space_user_state DEFAULT 'ACTIVE'::public.space_user_state NOT NULL,
-    role public.space_user_role DEFAULT 'MEMBER'::public.space_user_role NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    first_name text NOT NULL,
-    last_name text NOT NULL,
-    avatar text,
-    handle public.citext NOT NULL,
-    is_digest_enabled boolean DEFAULT true NOT NULL
-);
-
-
---
--- Name: users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.users (
-    id uuid NOT NULL,
-    state public.user_state DEFAULT 'ACTIVE'::public.user_state NOT NULL,
-    email public.citext NOT NULL,
-    first_name text NOT NULL,
-    last_name text NOT NULL,
-    time_zone text NOT NULL,
-    password_hash text,
-    session_salt text DEFAULT 'salt'::text NOT NULL,
-    inserted_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    avatar text,
-    handle public.citext NOT NULL
-);
-
-
---
--- Name: due_nudges; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.due_nudges AS
- SELECT n2.id,
-    n2.space_id,
-    n2.space_user_id,
-    n2.minute,
-    n2.inserted_at,
-    n2.updated_at,
-    n2.time_zone,
-    n2.current_minute,
-    n2.digest_key
-   FROM (( SELECT n.id,
-            n.space_id,
-            n.space_user_id,
-            n.minute,
-            n.inserted_at,
-            n.updated_at,
-            u.time_zone,
-            (((date_part('hour'::text, timezone(u.time_zone, now())))::integer * 60) + (date_part('minute'::text, timezone(u.time_zone, now())))::integer) AS current_minute,
-            concat('nudge:', n.id, ':', to_char(timezone(u.time_zone, now()), 'yyyy-mm-dd'::text)) AS digest_key
-           FROM ((public.nudges n
-             JOIN public.space_users su ON ((n.space_user_id = su.id)))
-             JOIN public.users u ON ((su.user_id = u.id)))) n2
-     LEFT JOIN public.digests d ON ((d.key = n2.digest_key)))
-  WHERE ((n2.current_minute >= n2.minute) AND (n2.current_minute < (n2.minute + 30)) AND (d.id IS NULL));
-
-
---
 -- Name: files; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -466,6 +382,20 @@ CREATE TABLE public.groups (
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     is_default boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: nudges; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.nudges (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    minute integer NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -784,6 +714,26 @@ CREATE TABLE public.space_setup_steps (
 
 
 --
+-- Name: space_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.space_users (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    state public.space_user_state DEFAULT 'ACTIVE'::public.space_user_state NOT NULL,
+    role public.space_user_role DEFAULT 'MEMBER'::public.space_user_role NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    avatar text,
+    handle public.citext NOT NULL,
+    is_digest_enabled boolean DEFAULT true NOT NULL
+);
+
+
+--
 -- Name: spaces; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -828,6 +778,26 @@ CREATE TABLE public.user_mentions (
     dismissed_at timestamp without time zone,
     occurred_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id uuid NOT NULL,
+    state public.user_state DEFAULT 'ACTIVE'::public.user_state NOT NULL,
+    email public.citext NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    time_zone text NOT NULL,
+    password_hash text,
+    session_salt text DEFAULT 'salt'::text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    avatar text,
+    handle public.citext NOT NULL
 );
 
 
@@ -1991,5 +1961,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328), (20181105203544), (20181112222730), (20181114164623), (20181115205414), (20181126194617), (20181128185401), (20181130195102);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328), (20181105203544), (20181112222730), (20181114164623), (20181115205414), (20181126194617), (20181128185401);
 

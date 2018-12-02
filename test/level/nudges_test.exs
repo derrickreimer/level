@@ -2,8 +2,66 @@ defmodule Level.NudgesTest do
   use Level.DataCase, async: true
 
   alias Ecto.Changeset
+  alias Level.Digests
   alias Level.Nudges
+  alias Level.Repo
   alias Level.Schemas.Nudge
+
+  # Note on time zones: America/Phoenix (-7:00) does not currently observe
+  # daylight saving time, which makes it a good zone to use for testing offset logic.
+
+  describe "due_query/1" do
+    setup do
+      create_user_and_space(%{time_zone: "America/Phoenix"})
+    end
+
+    test "includes nudges that are due within 30 minutes", %{space_user: space_user} do
+      # 3:29 Arizona time
+      query = Nudges.due_query(~N[2018-11-01 10:29:00])
+
+      # 3:00
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 180})
+      assert query_includes?(query, nudge.id)
+    end
+
+    test "does not include nudges that were due over 30 minutes ago", %{space_user: space_user} do
+      # 3:31 Arizona time
+      query = Nudges.due_query(~N[2018-11-01 10:31:00])
+
+      # 3:00
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 180})
+      refute query_includes?(query, nudge.id)
+    end
+
+    test "does not include nudges are due in the future", %{space_user: space_user} do
+      # 2:59 Arizona time
+      query = Nudges.due_query(~N[2018-11-01 09:59:00])
+
+      # 3:00
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 180})
+      refute query_includes?(query, nudge.id)
+    end
+
+    test "does not include nudge that already have a digest", %{space_user: space_user} do
+      # 3:01 Arizona time
+      query = Nudges.due_query(~N[2018-11-01 10:01:00])
+
+      # 3:00
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 180})
+
+      {:ok, _digest} =
+        Digests.build(space_user, %Digests.Options{
+          title: "Recent activity",
+          key: "nudge:#{nudge.id}:2018-11-01",
+          start_at: ~N[2018-11-01 09:01:00],
+          end_at: ~N[2018-11-01 10:01:00],
+          time_zone: "America/Phoenix",
+          always_build: true
+        })
+
+      refute query_includes?(query, nudge.id)
+    end
+  end
 
   describe "create_nudge/2" do
     test "inserts a nudge given valid params" do
@@ -51,5 +109,9 @@ defmodule Level.NudgesTest do
       {:ok, deleted_nudge} = Nudges.delete_nudge(nudge)
       assert {:error, _} = Nudges.get_nudge(space_user, deleted_nudge.id)
     end
+  end
+
+  defp query_includes?(query, id) do
+    Enum.any?(Repo.all(query), fn result -> result.id == id end)
   end
 end
