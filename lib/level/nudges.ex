@@ -7,6 +7,7 @@ defmodule Level.Nudges do
   import Level.Gettext
 
   alias Ecto.Changeset
+  alias Level.Digests
   alias Level.Repo
   alias Level.Schemas.DueNudge
   alias Level.Schemas.Nudge
@@ -104,5 +105,20 @@ defmodule Level.Nudges do
   @spec delete_nudge(Nudge.t()) :: {:ok, Nudge.t()} | {:error, Changeset.t()}
   def delete_nudge(%Nudge{} = nudge) do
     Repo.delete(nudge)
+  end
+
+  @doc """
+  Builds digest options based on "due nudge" data.
+  """
+  @spec digest_options(DueNudge.t()) :: Digests.Options.t()
+  def digest_options(due_nudge) do
+    %Digests.Options{
+      title: "Recent Activity",
+      key: due_nudge.digest_key,
+      start_at: DateTime.utc_now(),
+      end_at: DateTime.utc_now(),
+      time_zone: due_nudge.time_zone,
+      always_build: false
+    }
   end
 end
