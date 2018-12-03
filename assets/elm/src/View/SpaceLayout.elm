@@ -75,7 +75,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
         , div [ class "absolute pin-b w-full" ]
             [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
                 [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small viewer ]
-                , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-semi-loose overflow-hidden" ]
+                , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
                     [ div [] [ text "Signed in as" ]
                     , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName viewer) ]
                     ]
