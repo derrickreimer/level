@@ -97,6 +97,28 @@ CREATE TYPE public.inbox_state AS ENUM (
 
 
 --
+-- Name: notification_event; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.notification_event AS ENUM (
+    'POST_CREATED',
+    'REPLY_CREATED',
+    'POST_CLOSED',
+    'POST_REOPENED'
+);
+
+
+--
+-- Name: notification_state; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.notification_state AS ENUM (
+    'UNDISMISSED',
+    'DISMISSED'
+);
+
+
+--
 -- Name: open_invitation_state; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -382,6 +404,23 @@ CREATE TABLE public.groups (
     inserted_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     is_default boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notifications (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    topic text NOT NULL,
+    state public.notification_state DEFAULT 'UNDISMISSED'::public.notification_state NOT NULL,
+    event public.notification_event NOT NULL,
+    data jsonb,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -863,6 +902,14 @@ ALTER TABLE ONLY public.group_users
 
 ALTER TABLE ONLY public.groups
     ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
 
 
 --
@@ -1470,6 +1517,22 @@ ALTER TABLE ONLY public.groups
 
 
 --
+-- Name: notifications notifications_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: notifications notifications_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: nudges nudges_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1961,5 +2024,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328), (20181105203544), (20181112222730), (20181114164623), (20181115205414), (20181126194617), (20181128185401);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328), (20181105203544), (20181112222730), (20181114164623), (20181115205414), (20181126194617), (20181128185401), (20181203180305);
 
