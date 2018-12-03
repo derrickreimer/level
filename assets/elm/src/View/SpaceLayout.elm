@@ -61,12 +61,12 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
                 ]
             ]
         , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px", style "right" "-1px" ]
-            [ ul [ class "mb-4 list-reset leading-normal select-none" ]
+            [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
                 ]
             , groupLinks space bookmarks maybeCurrentRoute
-            , ul [ class "mb-4 list-reset leading-normal select-none" ]
+            , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug space) Route.Settings.Preferences)) maybeCurrentRoute
                 , navLink space "Help" (Just <| Route.Help (Route.Help.init (Space.slug space))) maybeCurrentRoute
@@ -75,7 +75,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
         , div [ class "absolute pin-b w-full" ]
             [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
                 [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small viewer ]
-                , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
+                , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-semi-loose overflow-hidden" ]
                     [ div [] [ text "Signed in as" ]
                     , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName viewer) ]
                     ]
@@ -98,27 +98,27 @@ groupLinks space groups maybeCurrentRoute =
                 |> List.sortBy Group.name
                 |> List.map linkify
     in
-    ul [ class "mb-4 list-reset leading-normal select-none" ] links
+    ul [ class "mb-4 list-reset leading-semi-loose select-none" ] links
 
 
 navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
 navLink space title maybeRoute maybeCurrentRoute =
     let
         currentItem route =
-            li [ class "flex items-center bg-white border-l border-t border-b rounded-l-full", style "margin-right" "-1px" ]
+            li [ class "flex items-center bg-white border-l border-t border-b rounded-l", style "margin-right" "-1px", style "border-left" "4px solid #12c1d5" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-darkest font-bold"
+                    , class "block w-full mx-2 no-underline truncate text-dusty-blue-darkest font-bold"
                     ]
                     [ text title
                     ]
                 ]
 
         nonCurrentItem route =
-            li [ class "flex items-center border-l border-t border-b border-transparent" ]
+            li [ class "flex items-center border-l border-t border-b border-transparent", style "border-left" "4px solid transparent" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full mx-2 no-underline truncate text-dusty-blue-dark"
                     ]
                     [ text title ]
                 ]
