@@ -105,20 +105,20 @@ navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
 navLink space title maybeRoute maybeCurrentRoute =
     let
         currentItem route =
-            li [ class "flex items-center bg-white border-l border-t border-b rounded-l", style "margin-right" "-1px", style "border-left" "4px solid #12c1d5" ]
+            li [ class "flex items-center bg-white border-l border-t border-b rounded-l-full", style "margin-right" "-1px" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full mx-2 no-underline truncate text-dusty-blue-darkest font-bold"
+                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-darkest font-bold"
                     ]
                     [ text title
                     ]
                 ]
 
         nonCurrentItem route =
-            li [ class "flex items-center border-l border-t border-b border-transparent", style "border-left" "4px solid transparent" ]
+            li [ class "flex items-center border-l border-t border-b border-transparent" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full mx-2 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-dark"
                     ]
                     [ text title ]
                 ]
