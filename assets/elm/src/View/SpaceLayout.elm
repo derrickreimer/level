@@ -60,7 +60,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
                 , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
                 ]
             ]
-        , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px", style "right" "-1px" ]
+        , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px" ]
             [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
@@ -105,20 +105,20 @@ navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
 navLink space title maybeRoute maybeCurrentRoute =
     let
         currentItem route =
-            li [ class "flex items-center bg-white border-l border-t border-b rounded-l-full", style "margin-right" "-1px" ]
+            li [ class "flex items-center border-r-4 border-turquoise" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-darkest font-bold"
+                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-darkest font-bold"
                     ]
                     [ text title
                     ]
                 ]
 
         nonCurrentItem route =
-            li [ class "flex items-center border-l border-t border-b border-transparent" ]
+            li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full mx-3 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-dark"
                     ]
                     [ text title ]
                 ]
