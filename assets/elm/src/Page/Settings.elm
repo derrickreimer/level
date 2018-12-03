@@ -392,7 +392,7 @@ preferencesView model data =
 nudgesView : Model -> Data -> Html Msg
 nudgesView model data =
     div [ class "mb-8" ]
-        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Inbox Notifications" ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Notifications" ]
         , p [ class "mb-4" ] [ text "Configure when Level should notify you about new messages in your Inbox." ]
         , div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
         , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ model.timeZone ++ " time zone." ]
