@@ -642,4 +642,24 @@ defmodule Level.PostsTest do
              end)
     end
   end
+
+  describe "mark_as_read/2" do
+    test "sets the inbox state to read and dismisses notifications" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      Notifications.record_post_created(space_user, post)
+      assert %{inbox: "EXCLUDED"} = Posts.get_user_state(post, space_user)
+
+      Posts.mark_as_read(space_user, [post])
+      assert %{inbox: "READ"} = Posts.get_user_state(post, space_user)
+
+      notifications = Notifications.list(space_user, post)
+
+      assert Enum.all?(notifications, fn notification ->
+               notification.state == "DISMISSED"
+             end)
+    end
+  end
 end

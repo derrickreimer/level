@@ -305,6 +305,7 @@ defmodule Level.Posts do
     end)
 
     Events.posts_marked_as_read(space_user.id, posts)
+    Notifications.dismiss(space_user, posts)
     result
   end
 
