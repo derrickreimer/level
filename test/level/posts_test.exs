@@ -4,10 +4,12 @@ defmodule Level.PostsTest do
   import Ecto.Query
 
   alias Level.Groups
+  alias Level.Notifications
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.File
   alias Level.Schemas.Group
+  alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.PostVersion
   alias Level.Schemas.PostView
@@ -197,6 +199,8 @@ defmodule Level.PostsTest do
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, another_mentioned)
+
+      assert [%Notification{event: "POST_CREATED"}] = Notifications.get_by_post(mentioned, post)
     end
 
     test "does not subscribe mentioned users who cannot access the post", %{

@@ -3,11 +3,27 @@ defmodule Level.Notifications do
   The Notifications context.
   """
 
+  import Ecto.Query
+
   alias Level.Repo
   alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.Reply
   alias Level.Schemas.SpaceUser
+
+  @doc """
+  Fetches notification records for given user and post.
+  """
+  @spec get_by_post(SpaceUser.t(), Post.t()) :: [Notification.t()]
+  def get_by_post(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
+    topic = "post:#{post_id}"
+
+    query =
+      from n in Notification,
+        where: n.topic == ^topic and n.space_user_id == ^space_user_id
+
+    Repo.all(query)
+  end
 
   @doc """
   Records a post created notification.
