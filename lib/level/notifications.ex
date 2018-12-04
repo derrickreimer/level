@@ -76,7 +76,7 @@ defmodule Level.Notifications do
   @spec dismiss(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
   def dismiss(%SpaceUser{} = space_user, posts) do
     posts
-    |> Enum.map(fn post ->
+    |> Enum.each(fn post ->
       space_user
       |> query(post)
       |> Repo.update_all(set: [state: "DISMISSED"])
