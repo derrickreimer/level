@@ -200,7 +200,7 @@ defmodule Level.PostsTest do
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, another_mentioned)
 
-      assert [%Notification{event: "POST_CREATED"}] = Notifications.get_by_post(mentioned, post)
+      assert [%Notification{event: "POST_CREATED"}] = Notifications.list(mentioned, post)
     end
 
     test "does not subscribe mentioned users who cannot access the post", %{
@@ -421,7 +421,7 @@ defmodule Level.PostsTest do
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
 
-      assert [%Notification{event: "REPLY_CREATED"}] = Notifications.get_by_post(mentioned, post)
+      assert [%Notification{event: "REPLY_CREATED"}] = Notifications.list(mentioned, post)
     end
 
     test "does not subscribe mentioned users who cannot access the post", %{
@@ -606,8 +606,8 @@ defmodule Level.PostsTest do
       assert %{inbox: "DISMISSED"} = Posts.get_user_state(post, space_user)
       assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_user)
 
-      assert [] = Notifications.get_by_post(space_user, post)
-      assert [%Notification{event: "POST_CLOSED"}] = Notifications.get_by_post(another_user, post)
+      assert [] = Notifications.list(space_user, post)
+      assert [%Notification{event: "POST_CLOSED"}] = Notifications.list(another_user, post)
     end
   end
 
@@ -637,7 +637,7 @@ defmodule Level.PostsTest do
       {:ok, _} = Posts.close_post(space_user, post)
       {:ok, _} = Posts.reopen_post(space_user, post)
 
-      assert Enum.any?(Notifications.get_by_post(another_user, post), fn notification ->
+      assert Enum.any?(Notifications.list(another_user, post), fn notification ->
                notification.event == "POST_REOPENED"
              end)
     end

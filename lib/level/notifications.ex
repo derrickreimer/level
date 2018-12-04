@@ -12,17 +12,22 @@ defmodule Level.Notifications do
   alias Level.Schemas.SpaceUser
 
   @doc """
+  A query for notifications for a given user and post.
+  """
+  @spec query(SpaceUser.t(), Post.t()) :: Ecto.Query.t()
+  def query(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
+    topic = "post:#{post_id}"
+    from n in Notification, where: n.topic == ^topic and n.space_user_id == ^space_user_id
+  end
+
+  @doc """
   Fetches notification records for given user and post.
   """
-  @spec get_by_post(SpaceUser.t(), Post.t()) :: [Notification.t()]
-  def get_by_post(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
-    topic = "post:#{post_id}"
-
-    query =
-      from n in Notification,
-        where: n.topic == ^topic and n.space_user_id == ^space_user_id
-
-    Repo.all(query)
+  @spec list(SpaceUser.t(), Post.t()) :: [Notification.t()]
+  def list(%SpaceUser{} = space_user, %Post{} = post) do
+    space_user
+    |> query(post)
+    |> Repo.all()
   end
 
   @doc """
@@ -63,6 +68,23 @@ defmodule Level.Notifications do
   def record_post_reopened(%SpaceUser{} = space_user, %Post{id: post_id}) do
     data = %{"post_id" => post_id}
     insert_record(space_user, "POST_REOPENED", "post:#{post_id}", data)
+  end
+
+  @doc """
+  Dismiss notifications for the given posts.
+  """
+  @spec dismiss(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
+  def dismiss(%SpaceUser{} = space_user, posts) do
+    posts
+    |> Enum.map(fn post ->
+      space_user
+      |> query(post)
+      |> Repo.update_all(set: [state: "DISMISSED"])
+
+      post
+    end)
+
+    {:ok, posts}
   end
 
   defp insert_record(space_user, event, topic, data) do
