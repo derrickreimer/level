@@ -420,6 +420,8 @@ defmodule Level.PostsTest do
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
+
+      assert [%Notification{event: "REPLY_CREATED"}] = Notifications.get_by_post(mentioned, post)
     end
 
     test "does not subscribe mentioned users who cannot access the post", %{

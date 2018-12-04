@@ -6,6 +6,7 @@ defmodule Level.Posts.CreateReply do
   alias Ecto.Multi
   alias Level.Files
   alias Level.Mentions
+  alias Level.Notifications
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Post
@@ -127,11 +128,12 @@ defmodule Level.Posts.CreateReply do
     Posts.record_reply_views(author, [reply])
   end
 
-  defp mark_unread_for_subscribers(post, _reply, subscribers, author) do
+  defp mark_unread_for_subscribers(post, reply, subscribers, author) do
     Enum.each(subscribers, fn subscriber ->
       # Skip marking unread for the author
       if subscriber.id !== author.id do
         _ = Posts.mark_as_unread(subscriber, [post])
+        _ = Notifications.record_reply_created(subscriber, reply)
       end
     end)
   end
