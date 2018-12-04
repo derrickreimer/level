@@ -588,18 +588,26 @@ defmodule Level.PostsTest do
       assert closed_post.state == "CLOSED"
     end
 
-    test "dismissed the post from the closer's inbox", %{
+    test "dismissed the post from the closer's inbox and records notifications", %{
       space: space,
       post: post,
       space_user: space_user
     } do
       {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      {:ok, _} = Posts.subscribe(space_user, [post])
+      {:ok, _} = Posts.subscribe(another_user, [post])
+
       {:ok, _} = Posts.mark_as_unread(space_user, [post])
       {:ok, _} = Posts.mark_as_unread(another_user, [post])
+
       {:ok, _} = Posts.close_post(space_user, post)
 
       assert %{inbox: "DISMISSED"} = Posts.get_user_state(post, space_user)
       assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_user)
+
+      assert [] = Notifications.get_by_post(space_user, post)
+      assert [%Notification{event: "POST_CLOSED"}] = Notifications.get_by_post(another_user, post)
     end
   end
 end

@@ -10,6 +10,7 @@ defmodule Level.Posts do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Markdown
+  alias Level.Notifications
   alias Level.Posts
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
@@ -526,7 +527,19 @@ defmodule Level.Posts do
   defp after_post_closed({:ok, %{post: post}} = result, closer) do
     _ = Events.post_closed(post.id, post)
     _ = dismiss(closer, [post])
+    _ = record_closed_notifications(post, closer)
+
     result
+  end
+
+  defp record_closed_notifications(post, closer) do
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== closer.id do
+        _ = Notifications.record_post_closed(subscriber, post)
+      end
+    end)
   end
 
   @doc """
