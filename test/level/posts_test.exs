@@ -610,4 +610,36 @@ defmodule Level.PostsTest do
       assert [%Notification{event: "POST_CLOSED"}] = Notifications.get_by_post(another_user, post)
     end
   end
+
+  describe "reopen_post/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "marks the post as closed", %{post: post, space_user: space_user} do
+      {:ok, %{post: closed_post}} = Posts.close_post(space_user, post)
+      {:ok, %{post: reopened_post}} = Posts.reopen_post(space_user, closed_post)
+
+      assert reopened_post.id == post.id
+      assert reopened_post.state == "OPEN"
+    end
+
+    test "records notifications", %{
+      space: space,
+      post: post,
+      space_user: space_user
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      {:ok, _} = Posts.subscribe(another_user, [post])
+      {:ok, _} = Posts.close_post(space_user, post)
+      {:ok, _} = Posts.reopen_post(space_user, post)
+
+      assert Enum.any?(Notifications.get_by_post(another_user, post), fn notification ->
+               notification.event == "POST_REOPENED"
+             end)
+    end
+  end
 end

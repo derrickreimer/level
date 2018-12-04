@@ -551,7 +551,7 @@ defmodule Level.Posts do
     |> Multi.update(:post, Ecto.Changeset.change(post, %{state: "OPEN"}))
     |> log_post_reopened(space_user)
     |> Repo.transaction()
-    |> after_post_reopened()
+    |> after_post_reopened(space_user)
   end
 
   defp log_post_reopened(multi, space_user) do
@@ -560,9 +560,20 @@ defmodule Level.Posts do
     end)
   end
 
-  defp after_post_reopened({:ok, %{post: post}} = result) do
+  defp after_post_reopened({:ok, %{post: post}} = result, reopener) do
     _ = Events.post_reopened(post.id, post)
+    _ = record_reopened_notifications(post, reopener)
     result
+  end
+
+  defp record_reopened_notifications(post, reopener) do
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== reopener.id do
+        _ = Notifications.record_post_reopened(subscriber, post)
+      end
+    end)
   end
 
   # Internal
