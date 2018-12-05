@@ -1,6 +1,6 @@
 module Route.Inbox exposing
-    ( Params, Filter(..)
-    , init, getSpaceSlug, getAfter, getBefore, getFilter, setCursors, setFilter
+    ( Params, State(..)
+    , init, getSpaceSlug, getAfter, getBefore, getState, setCursors, setState
     , parser
     , toString
     )
@@ -10,12 +10,12 @@ module Route.Inbox exposing
 
 # Types
 
-@docs Params, Filter
+@docs Params, State
 
 
 # API
 
-@docs init, getSpaceSlug, getAfter, getBefore, getFilter, setCursors, setFilter
+@docs init, getSpaceSlug, getAfter, getBefore, getState, setCursors, setState
 
 
 # Parsing
@@ -42,11 +42,11 @@ type alias Internal =
     { spaceSlug : String
     , after : Maybe String
     , before : Maybe String
-    , filter : Filter
+    , state : State
     }
 
 
-type Filter
+type State
     = Undismissed
     | Dismissed
 
@@ -75,9 +75,9 @@ getBefore (Params internal) =
     internal.before
 
 
-getFilter : Params -> Filter
-getFilter (Params internal) =
-    internal.filter
+getState : Params -> State
+getState (Params internal) =
+    internal.state
 
 
 setCursors : Maybe String -> Maybe String -> Params -> Params
@@ -85,9 +85,9 @@ setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
 
 
-setFilter : Filter -> Params -> Params
-setFilter filter (Params internal) =
-    Params { internal | filter = filter }
+setState : State -> Params -> Params
+setState state (Params internal) =
+    Params { internal | state = state }
 
 
 
@@ -97,7 +97,7 @@ setFilter filter (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "inbox" <?> Query.string "after" <?> Query.string "before" <?> Query.map parseFilter (Query.string "filter"))
+        map Internal (string </> s "inbox" <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
 
 
 
@@ -113,8 +113,8 @@ toString (Params internal) =
 -- PRIVATE
 
 
-parseFilter : Maybe String -> Filter
-parseFilter value =
+parseState : Maybe String -> State
+parseState value =
     case value of
         Just "dismissed" ->
             Dismissed
@@ -126,9 +126,9 @@ parseFilter value =
             Undismissed
 
 
-castFilter : Filter -> Maybe String
-castFilter filter =
-    case filter of
+castState : State -> Maybe String
+castState state =
+    case state of
         Undismissed ->
             Nothing
 
@@ -141,7 +141,7 @@ buildQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
-        , ( "filter", castFilter internal.filter )
+        , ( "state", castState internal.state )
         ]
 
 

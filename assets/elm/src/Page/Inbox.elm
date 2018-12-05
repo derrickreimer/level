@@ -449,11 +449,11 @@ resolvedView repo maybeCurrentRoute pushStatus spaceUsers model data =
         ]
 
 
-filterTab : String -> Route.Inbox.Filter -> Params -> Params -> Html Msg
-filterTab label filter linkParams currentParams =
+filterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
+filterTab label state linkParams currentParams =
     let
         isCurrent =
-            Route.Inbox.getFilter currentParams == filter
+            Route.Inbox.getState currentParams == state
     in
     a
         [ Route.href (Route.Inbox linkParams)
@@ -577,14 +577,14 @@ undismissedParams : Params -> Params
 undismissedParams params =
     params
         |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Undismissed
+        |> Route.Inbox.setState Route.Inbox.Undismissed
 
 
 dismissedParams : Params -> Params
 dismissedParams params =
     params
         |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Dismissed
+        |> Route.Inbox.setState Route.Inbox.Dismissed
 
 
 filterBySelected : Connection Component.Post.Model -> List Component.Post.Model

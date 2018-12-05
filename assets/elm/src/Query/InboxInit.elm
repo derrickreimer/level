@@ -100,7 +100,7 @@ variables params =
             Encode.int 20
 
         inboxStateFilter =
-            castFilters (Route.Inbox.getFilter params)
+            castFilters (Route.Inbox.getState params)
 
         values =
             case
@@ -131,7 +131,7 @@ variables params =
     Just (Encode.object values)
 
 
-castFilters : Route.Inbox.Filter -> String
+castFilters : Route.Inbox.State -> String
 castFilters filter =
     case filter of
         Route.Inbox.Undismissed ->
