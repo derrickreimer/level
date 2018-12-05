@@ -8,6 +8,7 @@ defmodule Level.DailyDigest do
   alias Level.DailyDigest.Sendable
   alias Level.Digests
   alias Level.Digests.Options
+  alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Digest
   alias Level.Schemas.SpaceUser
@@ -15,15 +16,14 @@ defmodule Level.DailyDigest do
   @doc """
   Builds options to a pass to the digest generator.
   """
-  @spec options_for(String.t(), DateTime.t(), String.t(), boolean()) :: Options.t()
-  def options_for(key, end_at, time_zone, always_build \\ false) do
+  @spec digest_options(String.t(), DateTime.t(), String.t()) :: Options.t()
+  def digest_options(key, end_at, time_zone) do
     %Options{
       title: "Your Daily Digest",
       key: key,
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
-      time_zone: time_zone,
-      always_build: always_build
+      time_zone: time_zone
     }
   end
 
@@ -68,27 +68,30 @@ defmodule Level.DailyDigest do
 
   TODO: parallelize this with retries.
   """
-  @spec build_and_send([Sendable.t()]) :: [{:ok, Digest.t()} | {:error, Sendable.t()}]
+  @spec build_and_send([Sendable.t()]) :: [
+          {:ok, Digest.t()} | {:skip, Sendable.t()} | {:error, Sendable.t()}
+        ]
   def build_and_send(results) do
     now = DateTime.utc_now()
 
     Enum.map(results, fn result ->
       space_user = Repo.get(SpaceUser, result.id)
-      opts = options_for(result.digest_key, now, result.time_zone)
 
-      space_user
-      |> Digests.build(opts)
-      |> send_after_build(result)
+      if send?(space_user) do
+        opts = digest_options(result.digest_key, now, result.time_zone)
+
+        space_user
+        |> Digests.build(opts)
+        |> send_after_build(result)
+      else
+        {:skip, result}
+      end
     end)
   end
 
   def send_after_build({:ok, digest}, _) do
     _ = Digests.send_email(digest)
     {:ok, digest}
-  end
-
-  def send_after_build(:skip, result) do
-    {:skip, result}
   end
 
   def send_after_build(_, result) do
@@ -103,5 +106,21 @@ defmodule Level.DailyDigest do
     |> sendable_query(hour_of_day)
     |> fetch_sendables()
     |> build_and_send()
+  end
+
+  @doc """
+  Determines if the digest has enough interesting data to actually send.
+  """
+  @spec send?(SpaceUser.t()) :: boolean()
+  def send?(space_user) do
+    get_undismissed_inbox_count(space_user) > 0
+  end
+
+  defp get_undismissed_inbox_count(space_user) do
+    space_user
+    |> Posts.Query.base_query()
+    |> Posts.Query.where_undismissed_in_inbox()
+    |> Posts.Query.count()
+    |> Repo.one()
   end
 end

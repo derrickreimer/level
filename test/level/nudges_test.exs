@@ -55,8 +55,7 @@ defmodule Level.NudgesTest do
           key: "nudge:#{nudge.id}:2018-11-01",
           start_at: ~N[2018-11-01 09:01:00],
           end_at: ~N[2018-11-01 10:01:00],
-          time_zone: "America/Phoenix",
-          always_build: true
+          time_zone: "America/Phoenix"
         })
 
       refute query_includes?(query, nudge.id)

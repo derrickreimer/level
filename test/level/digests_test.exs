@@ -11,14 +11,14 @@ defmodule Level.DigestsTest do
   describe "get_digest/2" do
     test "fetches by space id and digest id" do
       {:ok, %{space: space, space_user: space_user}} = create_user_and_space()
-      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, always_build_opts())
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts())
 
       assert {:ok, %Digest{id: ^digest_id}} = Digests.get_digest(space.id, digest_id)
     end
 
     test "returns an error if space and digest pair do not match" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, always_build_opts())
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts())
 
       dummy_id = "11111111-1111-1111-1111-111111111111"
       assert {:error, _} = Digests.get_digest(dummy_id, digest_id)
@@ -38,8 +38,7 @@ defmodule Level.DigestsTest do
           key: "daily",
           start_at: start_at,
           end_at: end_at,
-          time_zone: "Etc/UTC",
-          always_build: true
+          time_zone: "Etc/UTC"
         })
 
       assert digest.title == "Tom's Digest"
@@ -48,14 +47,9 @@ defmodule Level.DigestsTest do
       assert digest.end_at == DateTime.to_naive(end_at)
     end
 
-    test "skips when there is nothing interesting" do
+    test "summarizes inbox activity when there are no unreads" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
-      assert :skip = Digests.build(space_user, opts())
-    end
-
-    test "summarizes inbox activity when there are no unreads (when always build is true)" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, digest} = Digests.build(space_user, always_build_opts())
+      {:ok, digest} = Digests.build(space_user, opts())
       [inbox_section | _] = digest.sections
 
       assert inbox_section.summary =~ ~r/Congratulations! You've achieved Inbox Zero./
@@ -134,19 +128,7 @@ defmodule Level.DigestsTest do
       key: "daily",
       start_at: one_day_ago(),
       end_at: Timex.now(),
-      time_zone: "Etc/UTC",
-      always_build: false
-    }
-  end
-
-  defp always_build_opts do
-    %Options{
-      title: "Your Daily Digest",
-      key: "daily",
-      start_at: one_day_ago(),
-      end_at: Timex.now(),
-      time_zone: "Etc/UTC",
-      always_build: true
+      time_zone: "Etc/UTC"
     }
   end
 
