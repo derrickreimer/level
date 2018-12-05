@@ -18,7 +18,8 @@ defmodule Level.Resolvers.PostConnection do
             filter: %{
               following_state: :all,
               inbox_state: :all,
-              state: :all
+              state: :all,
+              last_activity: :all
             },
             order_by: %{
               field: :posted_at,
@@ -33,7 +34,8 @@ defmodule Level.Resolvers.PostConnection do
           filter: %{
             following_state: :is_following | :all,
             inbox_state: :unread | :read | :dismissed | :undismissed | :all,
-            state: :open | :closed | :all
+            state: :open | :closed | :all,
+            last_activity: :today | :all
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -50,10 +52,11 @@ defmodule Level.Resolvers.PostConnection do
     base_query =
       user
       |> build_base_query(parent)
-      |> apply_activity(args)
+      |> apply_order_fields(args)
       |> apply_following_state(args)
       |> apply_inbox_state(args)
       |> apply_state(args)
+      |> apply_last_activity(args)
 
     pagination_args =
       args
@@ -82,11 +85,11 @@ defmodule Level.Resolvers.PostConnection do
 
   defp process_args(args), do: args
 
-  defp apply_activity(base_query, %{order_by: %{field: :last_activity_at}}) do
+  defp apply_order_fields(base_query, %{order_by: %{field: :last_activity_at}}) do
     Posts.Query.select_last_activity_at(base_query)
   end
 
-  defp apply_activity(base_query, _), do: base_query
+  defp apply_order_fields(base_query, _), do: base_query
 
   defp apply_following_state(base_query, %{filter: %{following_state: :is_following}}) do
     Posts.Query.where_is_following(base_query)
@@ -121,4 +124,15 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp apply_state(base_query, _), do: base_query
+
+  defp apply_last_activity(base_query, %{
+         filter: %{last_activity: :today},
+         order_by: %{field: :last_activity_at}
+       }) do
+    Posts.Query.where_last_active_today(base_query, DateTime.utc_now())
+  end
+
+  defp apply_last_activity(base_query, _) do
+    base_query
+  end
 end

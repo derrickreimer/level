@@ -118,4 +118,9 @@ defmodule LevelWeb.Schema.Enums do
     value :closed
     value :all
   end
+
+  enum :last_activity_filter do
+    value :today
+    value :all
+  end
 end

@@ -10,7 +10,8 @@ defmodule LevelWeb.GraphQL.PostsTest do
       $following_state: FollowingStateFilter,
       $inbox_state: InboxStateFilter,
       $state: PostStateFilter,
-      $order_field: PostOrderField
+      $order_field: PostOrderField,
+      $last_activity: LastActivityFilter
     ) {
       space(id: $space_id) {
         posts(
@@ -18,7 +19,8 @@ defmodule LevelWeb.GraphQL.PostsTest do
           filter: {
             followingState: $following_state,
             inboxState: $inbox_state,
-            state: $state
+            state: $state,
+            lastActivity: $last_activity
           },
           orderBy: {
             field: $order_field,

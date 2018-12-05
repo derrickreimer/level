@@ -75,5 +75,10 @@ defmodule LevelWeb.Schema.InputObjects do
     Filter by the different post states.
     """
     field :state, :post_state_filter, default_value: :all
+
+    @desc """
+    Filter by last activity.
+    """
+    field :last_activity, :last_activity_filter, default_value: :all
   end
 end
