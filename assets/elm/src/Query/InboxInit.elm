@@ -47,7 +47,8 @@ document =
           $last: Int,
           $before: Cursor,
           $after: Cursor,
-          $inboxStateFilter: InboxStateFilter!
+          $inboxStateFilter: InboxStateFilter!,
+          $lastActivityFilter: LastActivityFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -65,7 +66,8 @@ document =
                 before: $before,
                 after: $after,
                 filter: {
-                  inboxState: $inboxStateFilter
+                  inboxState: $inboxStateFilter,
+                  lastActivity: $lastActivityFilter
                 },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
@@ -100,7 +102,10 @@ variables params =
             Encode.int 20
 
         inboxStateFilter =
-            castFilters (Route.Inbox.getState params)
+            castInboxState (Route.Inbox.getState params)
+
+        lastActivityFilter =
+            castLastActivity (Route.Inbox.getLastActivity params)
 
         values =
             case
@@ -113,6 +118,7 @@ variables params =
                     , ( "last", limit )
                     , ( "before", Encode.string before )
                     , ( "inboxStateFilter", Encode.string inboxStateFilter )
+                    , ( "lastActivityFilter", Encode.string lastActivityFilter )
                     ]
 
                 ( Nothing, Just after ) ->
@@ -120,25 +126,37 @@ variables params =
                     , ( "first", limit )
                     , ( "after", Encode.string after )
                     , ( "inboxStateFilter", Encode.string inboxStateFilter )
+                    , ( "lastActivityFilter", Encode.string lastActivityFilter )
                     ]
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", limit )
                     , ( "inboxStateFilter", Encode.string inboxStateFilter )
+                    , ( "lastActivityFilter", Encode.string lastActivityFilter )
                     ]
     in
     Just (Encode.object values)
 
 
-castFilters : Route.Inbox.State -> String
-castFilters filter =
-    case filter of
+castInboxState : Route.Inbox.State -> String
+castInboxState state =
+    case state of
         Route.Inbox.Undismissed ->
             "UNDISMISSED"
 
         Route.Inbox.Dismissed ->
             "DISMISSED"
+
+
+castLastActivity : Route.Inbox.LastActivity -> String
+castLastActivity lastActivity =
+    case lastActivity of
+        Route.Inbox.All ->
+            "ALL"
+
+        Route.Inbox.Today ->
+            "TODAY"
 
 
 decoder : Decoder Data

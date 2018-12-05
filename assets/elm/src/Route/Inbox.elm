@@ -1,6 +1,6 @@
 module Route.Inbox exposing
-    ( Params, State(..)
-    , init, getSpaceSlug, getAfter, getBefore, getState, setCursors, setState
+    ( Params, State(..), LastActivity(..)
+    , init, getSpaceSlug, getAfter, getBefore, getState, getLastActivity, setCursors, setState, setLastActivity
     , parser
     , toString
     )
@@ -10,12 +10,12 @@ module Route.Inbox exposing
 
 # Types
 
-@docs Params, State
+@docs Params, State, LastActivity
 
 
 # API
 
-@docs init, getSpaceSlug, getAfter, getBefore, getState, setCursors, setState
+@docs init, getSpaceSlug, getAfter, getBefore, getState, getLastActivity, setCursors, setState, setLastActivity
 
 
 # Parsing
@@ -43,6 +43,7 @@ type alias Internal =
     , after : Maybe String
     , before : Maybe String
     , state : State
+    , lastActivity : LastActivity
     }
 
 
@@ -51,13 +52,18 @@ type State
     | Dismissed
 
 
+type LastActivity
+    = All
+    | Today
+
+
 
 -- API
 
 
 init : String -> Params
 init spaceSlug =
-    Params (Internal spaceSlug Nothing Nothing Undismissed)
+    Params (Internal spaceSlug Nothing Nothing Undismissed All)
 
 
 getSpaceSlug : Params -> String
@@ -80,6 +86,11 @@ getState (Params internal) =
     internal.state
 
 
+getLastActivity : Params -> LastActivity
+getLastActivity (Params internal) =
+    internal.lastActivity
+
+
 setCursors : Maybe String -> Maybe String -> Params -> Params
 setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
@@ -90,6 +101,11 @@ setState state (Params internal) =
     Params { internal | state = state }
 
 
+setLastActivity : LastActivity -> Params -> Params
+setLastActivity lastActivity (Params internal) =
+    Params { internal | lastActivity = lastActivity }
+
+
 
 -- PARSING
 
@@ -97,7 +113,14 @@ setState state (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "inbox" <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
+        map Internal
+            (string
+                </> s "inbox"
+                <?> Query.string "after"
+                <?> Query.string "before"
+                <?> Query.map parseState (Query.string "state")
+                <?> Query.map parseLastActivity (Query.string "last_activity")
+            )
 
 
 
@@ -126,6 +149,19 @@ parseState value =
             Undismissed
 
 
+parseLastActivity : Maybe String -> LastActivity
+parseLastActivity value =
+    case value of
+        Just "today" ->
+            Today
+
+        Nothing ->
+            All
+
+        _ ->
+            All
+
+
 castState : State -> Maybe String
 castState state =
     case state of
@@ -136,12 +172,23 @@ castState state =
             Just "dismissed"
 
 
+castLastActivity : LastActivity -> Maybe String
+castLastActivity lastActivity =
+    case lastActivity of
+        All ->
+            Nothing
+
+        Today ->
+            Just "today"
+
+
 buildQuery : Internal -> List QueryParameter
 buildQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
         , ( "state", castState internal.state )
+        , ( "last_activity", castLastActivity internal.lastActivity )
         ]
 
 
