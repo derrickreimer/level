@@ -6,6 +6,7 @@ defmodule Level.DailyDigest do
   import Ecto.Query
 
   alias Level.Digests
+  alias Level.Digests.InboxSummary
   alias Level.Digests.Options
   alias Level.Posts
   alias Level.Repo
@@ -23,7 +24,8 @@ defmodule Level.DailyDigest do
       key: key,
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
-      time_zone: time_zone
+      time_zone: time_zone,
+      sections: [&InboxSummary.build/3]
     }
   end
 

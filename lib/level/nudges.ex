@@ -119,7 +119,8 @@ defmodule Level.Nudges do
       key: due_nudge.digest_key,
       start_at: DateTime.utc_now(),
       end_at: DateTime.utc_now(),
-      time_zone: due_nudge.time_zone
+      time_zone: due_nudge.time_zone,
+      sections: []
     }
   end
 end

@@ -3,7 +3,6 @@ defmodule Level.Digests.Builder do
 
   alias Ecto.Multi
   alias Level.Digests.Compiler
-  alias Level.Digests.InboxSummary
   alias Level.Digests.Options
   alias Level.Repo
   alias Level.Schemas
@@ -46,16 +45,18 @@ defmodule Level.Digests.Builder do
   defp persist_sections(multi, space_user, opts) do
     Multi.run(multi, :sections, fn %{digest: digest} ->
       sections =
-        []
-        |> build_inbox_section(digest, space_user, opts)
+        Enum.reduce(opts.sections, [], fn builder, acc ->
+          case builder.(digest, space_user, opts) do
+            {:ok, section} ->
+              [section | acc]
+
+            _ ->
+              acc
+          end
+        end)
 
       {:ok, sections}
     end)
-  end
-
-  defp build_inbox_section(sections, digest, space_user, opts) do
-    {:ok, section} = InboxSummary.build(digest, space_user, opts)
-    [section | sections]
   end
 
   defp after_build({:ok, data}, space) do
