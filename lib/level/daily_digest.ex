@@ -5,12 +5,12 @@ defmodule Level.DailyDigest do
 
   import Ecto.Query
 
-  alias Level.DailyDigest.Sendable
   alias Level.Digests
   alias Level.Digests.Options
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Digest
+  alias Level.Schemas.DueDigest
   alias Level.Schemas.SpaceUser
 
   @doc """
@@ -31,36 +31,39 @@ defmodule Level.DailyDigest do
   Fetches space user ids that are due to receive the daily digest
   at the time the query is run.
   """
-  @spec sendable_query(DateTime.t(), integer()) :: Ecto.Query.t()
-  def sendable_query(now, hour_of_day \\ 16) do
+  @spec due_query(DateTime.t(), integer()) :: Ecto.Query.t()
+  def due_query(now, hour_of_day \\ 16) do
     inner_query =
-      from su in Sendable,
-        join: u in assoc(su, :user),
+      from su in "space_users",
+        join: u in "users",
+        on: su.user_id == u.id,
         where: su.is_digest_enabled == true,
-        select: %{
-          su
-          | hour: fragment("EXTRACT(HOUR FROM ? AT TIME ZONE ?)", ^now, u.time_zone),
-            digest_key:
-              fragment(
-                "concat('daily:', to_char(? AT TIME ZONE ?, 'yyyy-mm-dd'))",
-                ^now,
-                u.time_zone
-              ),
-            time_zone: u.time_zone
+        select: %DueDigest{
+          id: su.id,
+          space_id: su.space_id,
+          space_user_id: su.id,
+          hour: fragment("EXTRACT(HOUR FROM ? AT TIME ZONE ?)", ^now, u.time_zone),
+          digest_key:
+            fragment(
+              "concat('daily:', to_char(? AT TIME ZONE ?, 'yyyy-mm-dd'))",
+              ^now,
+              u.time_zone
+            ),
+          time_zone: u.time_zone
         }
 
     from r in subquery(inner_query),
       left_join: d in Digest,
-      on: d.space_user_id == r.id and d.key == r.digest_key,
-      where: is_nil(d.id) and r.hour >= ^hour_of_day
-  end
-
-  @doc """
-  Accepts a query for Sendable records and executes it.
-  """
-  @spec fetch_sendables(Ecto.Query.t()) :: [Sendable.t()]
-  def fetch_sendables(query) do
-    Repo.all(query)
+      on: d.space_user_id == r.space_user_id and d.key == r.digest_key,
+      where: is_nil(d.id) and r.hour >= ^hour_of_day,
+      select: %DueDigest{
+        id: fragment("?::text", r.id),
+        space_id: fragment("?::text", r.space_id),
+        space_user_id: fragment("?::text", r.space_user_id),
+        hour: r.hour,
+        digest_key: r.digest_key,
+        time_zone: r.time_zone
+      }
   end
 
   @doc """
@@ -68,8 +71,10 @@ defmodule Level.DailyDigest do
 
   TODO: parallelize this with retries.
   """
-  @spec build_and_send([Sendable.t()]) :: [
-          {:ok, Digest.t()} | {:skip, Sendable.t()} | {:error, Sendable.t()}
+  @spec build_and_send([DueDigest.t()]) :: [
+          {:ok, Digest.t()}
+          | {:skip, DueDigest.t()}
+          | {:error, DueDigest.t()}
         ]
   def build_and_send(results) do
     now = DateTime.utc_now()
@@ -103,8 +108,8 @@ defmodule Level.DailyDigest do
   """
   def periodic_task(hour_of_day \\ 16) do
     DateTime.utc_now()
-    |> sendable_query(hour_of_day)
-    |> fetch_sendables()
+    |> due_query(hour_of_day)
+    |> Repo.all()
     |> build_and_send()
   end
 
