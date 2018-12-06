@@ -44,18 +44,19 @@ defmodule Level.Digests.Builder do
 
   defp persist_sections(multi, space_user, opts) do
     Multi.run(multi, :sections, fn %{digest: digest} ->
-      sections =
-        Enum.reduce(opts.sections, [], fn builder, acc ->
-          case builder.(digest, space_user, opts) do
-            {:ok, section} ->
-              [section | acc]
+      {:ok, reduce_sections(digest, space_user, opts)}
+    end)
+  end
 
-            _ ->
-              acc
-          end
-        end)
+  defp reduce_sections(digest, space_user, opts) do
+    Enum.reduce(opts.sections, [], fn builder, sections ->
+      case builder.(digest, space_user, opts) do
+        {:ok, section} ->
+          [section | sections]
 
-      {:ok, sections}
+        _ ->
+          sections
+      end
     end)
   end
 
