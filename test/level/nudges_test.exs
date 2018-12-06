@@ -186,7 +186,8 @@ defmodule Level.NudgesTest do
         time_zone: "America/Phoenix"
       }
 
-      refute Nudges.filter_sendable([due_nudge], now)
+      refute [due_nudge]
+             |> Nudges.filter_sendable(now)
              |> Enum.any?(fn result -> result.space_user.id == space_user_id end)
     end
   end
