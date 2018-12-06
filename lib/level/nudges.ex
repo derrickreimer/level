@@ -8,6 +8,7 @@ defmodule Level.Nudges do
 
   alias Ecto.Changeset
   alias Level.Digests
+  alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.DueNudge
   alias Level.Schemas.Nudge
@@ -112,15 +113,52 @@ defmodule Level.Nudges do
   @doc """
   Builds digest options based on "due nudge" data.
   """
-  @spec digest_options(DueNudge.t()) :: Digests.Options.t()
-  def digest_options(due_nudge) do
+  @spec digest_options(DueNudge.t(), DateTime.t()) :: Digests.Options.t()
+  def digest_options(due_nudge, now) do
     %Digests.Options{
       title: "Recent Activity",
       key: due_nudge.digest_key,
-      start_at: DateTime.utc_now(),
-      end_at: DateTime.utc_now(),
+      start_at: now,
+      end_at: now,
       time_zone: due_nudge.time_zone,
       sections: []
     }
+  end
+
+  @doc """
+  Filter a list of due nudge records to only include ones that should send.
+  """
+  @spec filter_sendable([DueNudge.t()], DateTime.t()) :: [DueNudge.t()]
+  def filter_sendable(due_nudges, now) do
+    due_nudges_with_preloads = Repo.preload(due_nudges, :space_user)
+
+    Enum.filter(due_nudges_with_preloads, fn due_nudge ->
+      space_user = due_nudge.space_user
+
+      # Check to see if their is at least one unread post today
+      get_first_unread_today(space_user, now) != nil
+    end)
+  end
+
+  @doc """
+  Builds a digest for a due nudge.
+  """
+  @spec build(DueNudge.t(), DateTime.t()) :: {:ok, Digest.t()} | {:error, String.t()}
+  def build(due_nudge, now) do
+    due_nudge = Repo.preload(due_nudge, :space_user)
+    opts = digest_options(due_nudge, now)
+    Digests.build(due_nudge.space_user, opts)
+  end
+
+  # Private helpers
+
+  defp get_first_unread_today(space_user, now) do
+    space_user
+    |> Posts.Query.base_query()
+    |> Posts.Query.select_last_activity_at()
+    |> Posts.Query.where_unread_in_inbox()
+    |> Posts.Query.where_last_active_today(now)
+    |> limit(1)
+    |> Repo.one()
   end
 end

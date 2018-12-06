@@ -4,8 +4,11 @@ defmodule Level.NudgesTest do
   alias Ecto.Changeset
   alias Level.Digests
   alias Level.Nudges
+  alias Level.Posts
   alias Level.Repo
+  alias Level.Schemas.DueNudge
   alias Level.Schemas.Nudge
+  alias Level.Schemas.PostLog
 
   # Note on time zones: America/Phoenix (-7:00) does not currently observe
   # daylight saving time, which makes it a good zone to use for testing offset logic.
@@ -118,6 +121,73 @@ defmodule Level.NudgesTest do
       {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 660})
       {:ok, deleted_nudge} = Nudges.delete_nudge(nudge)
       assert {:error, _} = Nudges.get_nudge(space_user, deleted_nudge.id)
+    end
+  end
+
+  describe "filter_sendable/2" do
+    test "keeps records where there is at least one unread with activity today" do
+      {:ok, %{space_user: space_user}} = create_user_and_space(%{time_zone: "America/Phoenix"})
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      # Clear out all log entries for the post
+      Repo.delete_all(PostLog)
+
+      # 3:00 local time
+      now = ~N[2018-11-01 10:00:00] |> DateTime.from_naive!("Etc/UTC")
+      space_user_id = space_user.id
+
+      # Log some activity
+      {:ok, _} = PostLog.post_edited(post, space_user, now)
+
+      # Mark the post as unread
+      {:ok, _} = Posts.mark_as_unread(space_user, [post])
+
+      # Construct due nudge
+      due_nudge = %DueNudge{
+        id: space_user.id,
+        space_id: space_user.space_id,
+        space_user_id: space_user.id,
+        digest_key: "nudge",
+        minute: 0,
+        current_minute: 0,
+        time_zone: "America/Phoenix"
+      }
+
+      assert [%DueNudge{id: ^space_user_id}] = Nudges.filter_sendable([due_nudge], now)
+    end
+
+    test "excludes records where there is not at least one unread with activity today" do
+      {:ok, %{space_user: space_user}} = create_user_and_space(%{time_zone: "America/Phoenix"})
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      # Clear out all log entries for the post
+      Repo.delete_all(PostLog)
+
+      # 3:00 local time
+      now = ~N[2018-11-01 10:00:00] |> DateTime.from_naive!("Etc/UTC")
+      space_user_id = space_user.id
+
+      # Log some activity a day ago
+      {:ok, _} = PostLog.post_edited(post, space_user, ~N[2018-10-31 10:00:00])
+
+      # Mark the post as unread
+      {:ok, _} = Posts.mark_as_unread(space_user, [post])
+
+      # Construct due nudge
+      due_nudge = %DueNudge{
+        id: space_user.id,
+        space_id: space_user.space_id,
+        space_user_id: space_user.id,
+        digest_key: "nudge",
+        minute: 0,
+        current_minute: 0,
+        time_zone: "America/Phoenix"
+      }
+
+      refute Nudges.filter_sendable([due_nudge], now)
+             |> Enum.any?(fn result -> result.space_user.id == space_user_id end)
     end
   end
 
