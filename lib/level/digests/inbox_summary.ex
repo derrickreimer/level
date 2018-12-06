@@ -16,9 +16,9 @@ defmodule Level.Digests.InboxSummary do
 
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
   def build(digest, space_user, _opts) do
-    unread_count = get_unread_inbox_count(space_user)
-    read_count = get_read_inbox_count(space_user)
-    {summary, summary_html} = inbox_section_summary(unread_count, read_count)
+    unread_count = get_unread_count(space_user)
+    read_count = get_read_count(space_user)
+    {summary, summary_html} = build_summary(unread_count, read_count)
 
     link_url =
       main_url(LevelWeb.Endpoint, :index, [
@@ -38,7 +38,7 @@ defmodule Level.Digests.InboxSummary do
 
     compiled_posts =
       space_user
-      |> get_highlighted_inbox_posts()
+      |> get_highlighted_posts()
       |> Compiler.compile_posts()
 
     Persistence.insert_posts!(digest, section_record, compiled_posts)
@@ -46,7 +46,7 @@ defmodule Level.Digests.InboxSummary do
     {:ok, section}
   end
 
-  defp get_unread_inbox_count(space_user) do
+  defp get_unread_count(space_user) do
     space_user
     |> Posts.Query.base_query()
     |> Posts.Query.where_unread_in_inbox()
@@ -54,7 +54,7 @@ defmodule Level.Digests.InboxSummary do
     |> Repo.one()
   end
 
-  defp get_read_inbox_count(space_user) do
+  defp get_read_count(space_user) do
     space_user
     |> Posts.Query.base_query()
     |> Posts.Query.where_read_in_inbox()
@@ -62,7 +62,7 @@ defmodule Level.Digests.InboxSummary do
     |> Repo.one()
   end
 
-  defp get_highlighted_inbox_posts(space_user) do
+  defp get_highlighted_posts(space_user) do
     inner_query =
       space_user
       |> Posts.Query.base_query()
@@ -76,13 +76,13 @@ defmodule Level.Digests.InboxSummary do
     |> Repo.all()
   end
 
-  defp inbox_section_summary(0, 0) do
+  defp build_summary(0, 0) do
     text = "Congratulations! You've achieved Inbox Zero."
     html = "Congratulations! You&rsquo;ve achieved Inbox Zero."
     {text, html}
   end
 
-  defp inbox_section_summary(unread_count, 0) do
+  defp build_summary(unread_count, 0) do
     unread_phrase = pluralize(unread_count, "unread post", "unread posts")
     text = "You have #{unread_phrase} in your inbox. Here are some highlights."
     html = "You have <strong>#{unread_phrase}</strong> in your inbox. Here are some highlights."
@@ -90,7 +90,7 @@ defmodule Level.Digests.InboxSummary do
     {text, html}
   end
 
-  defp inbox_section_summary(0, read_count) do
+  defp build_summary(0, read_count) do
     read_phrase = pluralize(read_count, "post", "posts")
 
     text =
@@ -104,7 +104,7 @@ defmodule Level.Digests.InboxSummary do
     {text, html}
   end
 
-  defp inbox_section_summary(unread_count, read_count) do
+  defp build_summary(unread_count, read_count) do
     unread_phrase = pluralize(unread_count, "unread post", "unread posts")
     read_phrase = pluralize(read_count, "post", "posts")
 
