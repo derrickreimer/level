@@ -130,9 +130,9 @@ defmodule Level.Nudges do
   """
   @spec filter_sendable([DueNudge.t()], DateTime.t()) :: [DueNudge.t()]
   def filter_sendable(due_nudges, now) do
-    due_nudges_with_preloads = Repo.preload(due_nudges, :space_user)
+    due_nudge = Repo.preload(due_nudges, :space_user)
 
-    Enum.filter(due_nudges_with_preloads, fn due_nudge ->
+    Enum.filter(due_nudge, fn due_nudge ->
       space_user = due_nudge.space_user
 
       # Check to see if their is at least one unread post today
