@@ -68,17 +68,13 @@ defmodule Level.DailyDigest do
 
   @doc """
   Builds and sends all due digests.
-
-  TODO: parallelize this with retries.
   """
-  @spec build_and_send([DueDigest.t()]) :: [
+  @spec build_and_send([DueDigest.t()], DateTime.t()) :: [
           {:ok, Digest.t()}
           | {:skip, DueDigest.t()}
           | {:error, DueDigest.t()}
         ]
-  def build_and_send(results) do
-    now = DateTime.utc_now()
-
+  def build_and_send(results, now) do
     Enum.map(results, fn result ->
       space_user = Repo.get(SpaceUser, result.id)
 
@@ -106,11 +102,18 @@ defmodule Level.DailyDigest do
   @doc """
   Fetches sendables and processes them.
   """
+  @spec periodic_task(integer()) :: [
+          {:ok, Digest.t()}
+          | {:skip, DueDigest.t()}
+          | {:error, DueDigest.t()}
+        ]
   def periodic_task(hour_of_day \\ 16) do
-    DateTime.utc_now()
+    now = DateTime.utc_now()
+
+    now
     |> due_query(hour_of_day)
     |> Repo.all()
-    |> build_and_send()
+    |> build_and_send(now)
   end
 
   @doc """

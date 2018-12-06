@@ -6,7 +6,6 @@ defmodule Level.DigestsTest do
   alias Level.Digests.Digest
   alias Level.Digests.Options
   alias Level.Email
-  alias Level.Posts
 
   describe "get_digest/2" do
     test "fetches by space id and digest id" do
@@ -46,54 +45,6 @@ defmodule Level.DigestsTest do
       assert digest.start_at == DateTime.to_naive(start_at)
       assert digest.end_at == DateTime.to_naive(end_at)
     end
-
-    test "summarizes inbox activity when there are no unreads" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, digest} = Digests.build(space_user, opts())
-      [inbox_section | _] = digest.sections
-
-      assert inbox_section.summary =~ ~r/Congratulations! You've achieved Inbox Zero./
-    end
-
-    test "summarizes inbox activity when there are unread posts" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
-      post = create_unread_post(space_user, group)
-
-      {:ok, digest} = Digests.build(space_user, opts())
-
-      [inbox_section | _] = digest.sections
-      assert inbox_section.summary =~ ~r/You have 1 unread post in your inbox/
-
-      assert Enum.any?(inbox_section.posts, fn section_post ->
-               section_post.id == post.id
-             end)
-    end
-
-    test "summarizes inbox activity when there are unread and read posts" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
-      create_unread_post(space_user, group)
-      create_read_post(space_user, group)
-
-      {:ok, digest} = Digests.build(space_user, opts())
-
-      [inbox_section | _] = digest.sections
-
-      assert inbox_section.summary =~
-               ~r/You have 1 unread post and 1 post you have already seen in your inbox/
-    end
-
-    test "summarizes inbox activity when there are only read posts" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
-      create_read_post(space_user, group)
-
-      {:ok, digest} = Digests.build(space_user, opts())
-
-      [inbox_section | _] = digest.sections
-      assert inbox_section.summary =~ ~r/You have 1 post in your inbox/
-    end
   end
 
   describe "send_email/1" do
@@ -130,17 +81,5 @@ defmodule Level.DigestsTest do
       end_at: Timex.now(),
       time_zone: "Etc/UTC"
     }
-  end
-
-  defp create_unread_post(space_user, group) do
-    {:ok, %{post: post}} = create_post(space_user, group)
-    Posts.mark_as_unread(space_user, [post])
-    post
-  end
-
-  defp create_read_post(space_user, group) do
-    {:ok, %{post: post}} = create_post(space_user, group)
-    Posts.mark_as_read(space_user, [post])
-    post
   end
 end

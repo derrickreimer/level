@@ -3,6 +3,7 @@ defmodule Level.DailyDigestTest do
 
   alias Level.DailyDigest
   alias Level.Digests
+  alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.DueDigest
   alias Level.Schemas.SpaceUser
@@ -61,5 +62,82 @@ defmodule Level.DailyDigestTest do
       query = DailyDigest.due_query(now, now.hour - 1)
       assert [] = Repo.all(query)
     end
+  end
+
+  describe "build_and_send/2" do
+    test "summarizes inbox activity when there are no unreads" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+
+      due_digest = build_due_digest(space_user)
+
+      assert [{:skip, ^due_digest}] =
+               DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
+    end
+
+    test "summarizes inbox activity when there are unread posts" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      post = create_unread_post(space_user, group)
+
+      due_digest = build_due_digest(space_user)
+      [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
+
+      [inbox_section | _] = digest.sections
+      assert inbox_section.summary =~ ~r/You have 1 unread post in your inbox/
+
+      assert Enum.any?(inbox_section.posts, fn section_post ->
+               section_post.id == post.id
+             end)
+    end
+
+    test "summarizes inbox activity when there are unread and read posts" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      create_unread_post(space_user, group)
+      create_read_post(space_user, group)
+
+      due_digest = build_due_digest(space_user)
+      [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
+
+      [inbox_section | _] = digest.sections
+
+      assert inbox_section.summary =~
+               ~r/You have 1 unread post and 1 post you have already seen in your inbox/
+    end
+
+    test "summarizes inbox activity when there are only read posts" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      create_read_post(space_user, group)
+
+      due_digest = build_due_digest(space_user)
+      [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
+
+      [inbox_section | _] = digest.sections
+      assert inbox_section.summary =~ ~r/You have 1 post in your inbox/
+    end
+  end
+
+  defp build_due_digest(space_user) do
+    %DueDigest{
+      id: space_user.id,
+      space_id: space_user.space_id,
+      space_user_id: space_user.id,
+      digest_key: "daily",
+      hour: 0,
+      time_zone: "America/Phoenix"
+    }
+  end
+
+  defp create_unread_post(space_user, group) do
+    {:ok, %{post: post}} = create_post(space_user, group)
+    Posts.mark_as_unread(space_user, [post])
+    post
+  end
+
+  defp create_read_post(space_user, group) do
+    {:ok, %{post: post}} = create_post(space_user, group)
+    Posts.mark_as_read(space_user, [post])
+    post
   end
 end
