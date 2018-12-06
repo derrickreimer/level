@@ -15,9 +15,8 @@ defmodule Level.Digests.UnreadToday do
   alias Level.Schemas.SpaceUser
 
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
-  def build(digest, space_user, _opts) do
-    now = DateTime.utc_now()
-    unread_count = get_unread_count(space_user, now)
+  def build(digest, space_user, opts) do
+    unread_count = get_unread_count(space_user, opts.now)
     {summary, summary_html} = build_summary(unread_count)
 
     link_url =
@@ -38,7 +37,7 @@ defmodule Level.Digests.UnreadToday do
 
     compiled_posts =
       space_user
-      |> get_highlighted_inbox_posts(now)
+      |> get_highlighted_inbox_posts(opts.now)
       |> Compiler.compile_posts()
 
     Persistence.insert_posts!(digest, section_record, compiled_posts)

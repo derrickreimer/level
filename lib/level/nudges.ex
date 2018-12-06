@@ -8,6 +8,7 @@ defmodule Level.Nudges do
 
   alias Ecto.Changeset
   alias Level.Digests
+  alias Level.Digests.UnreadToday
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.DueNudge
@@ -120,8 +121,9 @@ defmodule Level.Nudges do
       key: due_nudge.digest_key,
       start_at: now,
       end_at: now,
+      now: now,
       time_zone: due_nudge.time_zone,
-      sections: []
+      sections: [&UnreadToday.build/3]
     }
   end
 
@@ -133,9 +135,8 @@ defmodule Level.Nudges do
     due_nudge = Repo.preload(due_nudges, :space_user)
 
     Enum.filter(due_nudge, fn due_nudge ->
-      space_user = due_nudge.space_user
-
       # Check to see if their is at least one unread post today
+      space_user = due_nudge.space_user
       get_first_unread_today(space_user, now) != nil
     end)
   end
@@ -143,8 +144,8 @@ defmodule Level.Nudges do
   @doc """
   Builds a digest for a due nudge.
   """
-  @spec build(DueNudge.t(), DateTime.t()) :: {:ok, Digest.t()} | {:error, String.t()}
-  def build(due_nudge, now) do
+  @spec build_digest(DueNudge.t(), DateTime.t()) :: {:ok, Digest.t()} | {:error, String.t()}
+  def build_digest(due_nudge, now) do
     due_nudge = Repo.preload(due_nudge, :space_user)
     opts = digest_options(due_nudge, now)
     Digests.build(due_nudge.space_user, opts)

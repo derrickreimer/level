@@ -25,7 +25,8 @@ defmodule Level.DailyDigest do
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
       time_zone: time_zone,
-      sections: [&InboxSummary.build/3]
+      sections: [&InboxSummary.build/3],
+      now: DateTime.utc_now()
     }
   end
 

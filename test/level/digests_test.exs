@@ -37,6 +37,7 @@ defmodule Level.DigestsTest do
           key: "daily",
           start_at: start_at,
           end_at: end_at,
+          now: end_at,
           time_zone: "Etc/UTC",
           sections: []
         })
@@ -80,6 +81,7 @@ defmodule Level.DigestsTest do
       key: "daily",
       start_at: one_day_ago(),
       end_at: Timex.now(),
+      now: Timex.now(),
       time_zone: "Etc/UTC",
       sections: []
     }
