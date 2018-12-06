@@ -21,13 +21,7 @@ defmodule Level.Posts.QueryTest do
       now = ~N[2018-11-01 10:00:00]
 
       # Log some activity
-      {:ok, log} = PostLog.post_edited(post, space_user)
-
-      # Update the occurred at timestamp on that activity
-      {:ok, _} =
-        log
-        |> Ecto.Changeset.change(occurred_at: now)
-        |> Repo.update()
+      {:ok, _} = PostLog.post_edited(post, space_user, now)
 
       query =
         space_user
@@ -51,14 +45,8 @@ defmodule Level.Posts.QueryTest do
       # 3:00
       now = ~N[2018-11-01 10:00:00]
 
-      # Log some activity
-      {:ok, log} = PostLog.post_edited(post, space_user)
-
-      # Update the occurred at timestamp on that activity
-      {:ok, _} =
-        log
-        |> Ecto.Changeset.change(occurred_at: ~N[2018-11-01 05:00:00])
-        |> Repo.update()
+      # Log some past activity
+      {:ok, _} = PostLog.post_edited(post, space_user, ~N[2018-11-01 05:00:00])
 
       query =
         space_user
