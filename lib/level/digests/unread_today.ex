@@ -20,17 +20,22 @@ defmodule Level.Digests.UnreadToday do
     {summary, summary_html} = build_summary(unread_count)
 
     link_url =
-      main_url(LevelWeb.Endpoint, :index, [
-        space_user.space.slug,
-        "inbox"
-      ])
+      main_url(
+        LevelWeb.Endpoint,
+        :index,
+        [
+          space_user.space.slug,
+          "inbox"
+        ],
+        last_activity: "today"
+      )
 
     section_record =
       Persistence.insert_section!(digest, %{
         title: "Unread Today",
         summary: summary,
         summary_html: summary_html,
-        link_text: "View my inbox",
+        link_text: "View today's posts",
         link_url: link_url,
         rank: 1
       })

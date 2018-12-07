@@ -116,8 +116,11 @@ defmodule Level.Nudges do
   """
   @spec digest_options(DueNudge.t(), DateTime.t()) :: Digests.Options.t()
   def digest_options(due_nudge, now) do
+    timestamp = digest_time(now, due_nudge.time_zone)
+
     %Digests.Options{
-      title: "Recent Activity",
+      title: "Notifications",
+      subject: "Notifications @ #{timestamp}",
       key: due_nudge.digest_key,
       start_at: now,
       end_at: now,
@@ -125,6 +128,19 @@ defmodule Level.Nudges do
       time_zone: due_nudge.time_zone,
       sections: [&UnreadToday.build/3]
     }
+  end
+
+  defp digest_time(now, time_zone) do
+    now
+    |> in_time_zone(time_zone)
+    |> Timex.format!("{h12}:{m} {am}")
+  end
+
+  defp in_time_zone(date, tz) do
+    case Timex.Timezone.convert(date, tz) do
+      {:error, _} -> date
+      converted_date -> converted_date
+    end
   end
 
   @doc """

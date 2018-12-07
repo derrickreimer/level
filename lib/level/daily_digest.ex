@@ -21,6 +21,7 @@ defmodule Level.DailyDigest do
   def digest_options(key, end_at, time_zone) do
     %Options{
       title: "Your Daily Digest",
+      subject: "Your Daily Digest",
       key: key,
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,

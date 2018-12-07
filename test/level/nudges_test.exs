@@ -56,6 +56,7 @@ defmodule Level.NudgesTest do
       {:ok, _digest} =
         Digests.build(space_user, %Digests.Options{
           title: "Recent activity",
+          subject: "Recent activity",
           key: "nudge:#{nudge.id}:2018-11-01",
           start_at: ~N[2018-11-01 09:01:00],
           end_at: ~N[2018-11-01 10:01:00],

@@ -34,6 +34,7 @@ defmodule Level.DigestsTest do
       {:ok, digest} =
         Digests.build(space_user, %Options{
           title: "Tom's Digest",
+          subject: "Tom's Digest",
           key: "daily",
           start_at: start_at,
           end_at: end_at,
@@ -56,7 +57,7 @@ defmodule Level.DigestsTest do
         space_id: "11111111-1111-1111-1111-111111111111",
         space_name: "Level",
         space_slug: "level",
-        title: "Your Daily Digest",
+        title: "Your Daily Digest (title)",
         subject: "[Level] Your Daily Digest",
         to_email: "derrick@level.app",
         sections: [],
@@ -77,7 +78,8 @@ defmodule Level.DigestsTest do
 
   defp opts do
     %Options{
-      title: "Your Daily Digest",
+      title: "Your Daily Digest (title)",
+      subject: "Your Daily Digest",
       key: "daily",
       start_at: one_day_ago(),
       end_at: Timex.now(),

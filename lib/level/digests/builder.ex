@@ -24,7 +24,7 @@ defmodule Level.Digests.Builder do
   end
 
   defp persist_digest(multi, space, space_user, opts) do
-    subject = "[" <> space.name <> "] " <> opts.title
+    subject = "[" <> space.name <> "] " <> opts.subject
 
     params = %{
       space_id: space_user.space_id,
