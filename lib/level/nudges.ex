@@ -28,8 +28,8 @@ defmodule Level.Nudges do
         on: u.id == su.user_id,
         select: %DueNudge{
           id: fragment("?::text", n.id),
-          space_id: n.space_id,
-          space_user_id: n.space_user_id,
+          space_id: fragment("?::text", n.space_id),
+          space_user_id: fragment("?::text", n.space_user_id),
           minute: n.minute,
           time_zone: u.time_zone,
           digest_key:
