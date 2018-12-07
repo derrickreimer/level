@@ -68,7 +68,7 @@ defmodule Level.Posts.Query do
       query,
       [p, su, u, g, gu, pu, pl],
       fragment(
-        "date_trunc('day', timezone(?, timezone('Etc/UTC', ?))) = date_trunc('day', timezone(?, timezone('Etc/UTC', ?)))",
+        "date_trunc('day', timezone(?, ?::timestamptz)) = date_trunc('day', timezone(?, ?))",
         u.time_zone,
         pl.occurred_at,
         u.time_zone,

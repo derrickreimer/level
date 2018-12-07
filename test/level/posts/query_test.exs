@@ -52,7 +52,7 @@ defmodule Level.Posts.QueryTest do
         space_user
         |> Posts.Query.base_query()
         |> Posts.Query.select_last_activity_at()
-        |> Posts.Query.where_last_active_today(DateTime.from_naive!(now, "Etc/UTC"))
+        |> Posts.Query.where_last_active_today(now)
 
       results = Repo.all(query)
 
