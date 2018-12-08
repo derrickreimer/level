@@ -1,5 +1,5 @@
 module Route.SpaceUsers exposing
-    ( Params(..)
+    ( Params
     , init, getSpaceSlug, getAfter, getBefore, getQuery, setCursors, setQuery
     , parser
     , toString

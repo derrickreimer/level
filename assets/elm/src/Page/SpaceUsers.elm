@@ -14,7 +14,7 @@ import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.SpaceUsers exposing (Params(..))
+import Route.SpaceUsers exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)

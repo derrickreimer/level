@@ -27,6 +27,7 @@ import Page.Post
 import Page.Posts
 import Page.Search
 import Page.Settings
+import Page.SpaceUser
 import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
@@ -195,6 +196,7 @@ type Msg
     | NewSpaceMsg Page.NewSpace.Msg
     | PostsMsg Page.Posts.Msg
     | InboxMsg Page.Inbox.Msg
+    | SpaceUserMsg Page.SpaceUser.Msg
     | SpaceUsersMsg Page.SpaceUsers.Msg
     | InviteUsersMsg Page.InviteUsers.Msg
     | GroupsMsg Page.Groups.Msg
@@ -328,6 +330,11 @@ update msg model =
                 |> Page.Inbox.update pageMsg globals
                 |> updatePageWithGlobals Inbox InboxMsg model
 
+        ( SpaceUserMsg pageMsg, SpaceUser pageModel ) ->
+            pageModel
+                |> Page.SpaceUser.update pageMsg globals
+                |> updatePageWithGlobals SpaceUser SpaceUserMsg model
+
         ( SpaceUsersMsg pageMsg, SpaceUsers pageModel ) ->
             pageModel
                 |> Page.SpaceUsers.update pageMsg globals
@@ -458,6 +465,7 @@ type Page
     | NewSpace Page.NewSpace.Model
     | Posts Page.Posts.Model
     | Inbox Page.Inbox.Model
+    | SpaceUser Page.SpaceUser.Model
     | SpaceUsers Page.SpaceUsers.Model
     | InviteUsers Page.InviteUsers.Model
     | Groups Page.Groups.Model
@@ -477,6 +485,7 @@ type PageInit
     | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
     | InboxInit (Result Session.Error ( Globals, Page.Inbox.Model ))
+    | SpaceUserInit (Result Session.Error ( Globals, Page.SpaceUser.Model ))
     | SpaceUsersInit (Result Session.Error ( Globals, Page.SpaceUsers.Model ))
     | InviteUsersInit (Result Session.Error ( Globals, Page.InviteUsers.Model ))
     | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
@@ -533,6 +542,11 @@ navigateTo maybeRoute model =
             globals
                 |> Page.Inbox.init params
                 |> transition model InboxInit
+
+        Just (Route.SpaceUser params) ->
+            globals
+                |> Page.SpaceUser.init params
+                |> transition model SpaceUserInit
 
         Just (Route.SpaceUsers params) ->
             globals
@@ -609,6 +623,9 @@ pageTitle repo page =
 
         Inbox _ ->
             Page.Inbox.title
+
+        SpaceUser _ ->
+            Page.SpaceUser.title
 
         SpaceUsers _ ->
             Page.SpaceUsers.title
@@ -705,6 +722,15 @@ setupPage pageInit model =
             ( model, Route.toLogin )
 
         PostsInit (Err _) ->
+            ( model, Cmd.none )
+
+        SpaceUserInit (Ok result) ->
+            perform Page.SpaceUser.setup SpaceUser SpaceUserMsg model result
+
+        SpaceUserInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        SpaceUserInit (Err _) ->
             ( model, Cmd.none )
 
         SpaceUsersInit (Ok result) ->
@@ -833,6 +859,9 @@ teardownPage page =
         NewSpace pageModel ->
             Cmd.map NewSpaceMsg (Page.NewSpace.teardown pageModel)
 
+        SpaceUser pageModel ->
+            Cmd.map SpaceUserMsg (Page.SpaceUser.teardown pageModel)
+
         SpaceUsers pageModel ->
             Cmd.map SpaceUsersMsg (Page.SpaceUsers.teardown pageModel)
 
@@ -919,6 +948,9 @@ routeFor page =
         Inbox { params } ->
             Just <| Route.Inbox params
 
+        SpaceUser { params } ->
+            Just <| Route.SpaceUser params
+
         SpaceUsers { params } ->
             Just <| Route.SpaceUsers params
 
@@ -984,6 +1016,11 @@ pageView repo page pushStatus spaceUserLists =
             pageModel
                 |> Page.Inbox.view repo (routeFor page) pushStatus spaceUserLists
                 |> Html.map InboxMsg
+
+        SpaceUser pageModel ->
+            pageModel
+                |> Page.SpaceUser.view repo (routeFor page)
+                |> Html.map SpaceUserMsg
 
         SpaceUsers pageModel ->
             pageModel
@@ -1198,6 +1235,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.Inbox.consumeEvent event globals
                 |> updatePage Inbox InboxMsg model
+
+        SpaceUser pageModel ->
+            pageModel
+                |> Page.SpaceUser.consumeEvent event
+                |> updatePage SpaceUser SpaceUserMsg model
 
         SpaceUsers pageModel ->
             pageModel
