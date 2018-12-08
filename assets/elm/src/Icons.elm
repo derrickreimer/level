@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, heart, image, inboxWhite, lock, logOut, logo, open, refresh, reply, search, square, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, filter, heart, image, inboxWhite, lock, logOut, logo, open, refresh, reply, search, square, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -93,6 +93,12 @@ file : Color -> Html msg
 file strokeColor =
     iconView <|
         svg [ width "14px", height "17px", viewBox "0 0 14 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "file", transform "translate(1.000000, 1.000000)", stroke (Color.toHex strokeColor), strokeWidth "2" ] [ Svg.path [ d "M6.75,0 L1.5,0 C0.671572875,0 0,0.671572875 0,1.5 L0,13.5 C0,14.3284271 0.671572875,15 1.5,15 L10.5,15 C11.3284271,15 12,14.3284271 12,13.5 L12,5.25 L6.75,0 Z", id "Shape" ] [], polyline [ id "Shape", points "6.75 0 6.75 5.25 12 5.25" ] [] ] ] ]
+
+
+filter : Html msg
+filter =
+    iconView <|
+        svg [ width "19px", height "17px", viewBox "0 0 19 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "filter", transform "translate(1.000000, 1.000000)", stroke "#FFFFFF", strokeWidth "2" ] [ polygon [ id "Shape", points "17 0 0 0 6.8 7.88333333 6.8 13.3333333 10.2 15 10.2 7.88333333" ] [] ] ] ]
 
 
 image : Color -> Html msg
