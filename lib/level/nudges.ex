@@ -167,6 +167,33 @@ defmodule Level.Nudges do
     Digests.build(due_nudge.space_user, opts)
   end
 
+  @doc """
+  Fetches nudges that are due and sends them.
+  """
+  @spec periodic_task(DateTime.t()) :: [{:ok, Digest.t()} | {:error, DueNudge.t()}]
+  def periodic_task(injected_now \\ nil) do
+    now = injected_now || DateTime.utc_now()
+
+    now
+    |> due_query()
+    |> Repo.all()
+    |> filter_sendable(now)
+    |> build_digests(now)
+  end
+
+  defp build_digests(due_nudges, now) do
+    Enum.map(due_nudges, fn due_nudge ->
+      case build_digest(due_nudge, now) do
+        {:ok, digest} ->
+          _ = Digests.send_email(digest)
+          {:ok, digest}
+
+        {:error, _} ->
+          {:error, due_nudge}
+      end
+    end)
+  end
+
   # Private helpers
 
   defp get_first_unread_today(space_user, now) do
