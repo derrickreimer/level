@@ -13,6 +13,9 @@ import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Minutes
+import Mutation.CreateNudge as CreateNudge
+import Mutation.DeleteNudge as DeleteNudge
 import Mutation.UpdateDigestSettings as UpdateDigestSettings
 import Mutation.UpdateSpace as UpdateSpace
 import Mutation.UpdateSpaceAvatar as UpdateSpaceAvatar
@@ -45,6 +48,7 @@ type alias Model =
     , slug : String
     , digestSettings : DigestSettings
     , nudges : List Nudge
+    , timeZone : String
     , avatarUrl : Maybe String
     , errors : List ValidationError
     , isSubmitting : Bool
@@ -65,6 +69,12 @@ resolveData repo model =
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
+
+
+nudgeIntervals : List Int
+nudgeIntervals =
+    List.range 12 36
+        |> List.map ((*) 30)
 
 
 
@@ -100,6 +110,7 @@ buildModel params globals ( newSession, resp ) =
                 (Space.slug resp.space)
                 resp.digestSettings
                 resp.nudges
+                resp.timeZone
                 (Space.avatarUrl resp.space)
                 []
                 False
@@ -136,11 +147,17 @@ type Msg
     | FileReceived Decode.Value
     | DigestToggled
     | DigestSettingsUpdated (Result Session.Error ( Session, UpdateDigestSettings.Response ))
+    | NudgeToggled Int
+    | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
+    | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
+        NoOp ->
+            noCmd globals model
+
         NameChanged val ->
             noCmd globals { model | name = val }
 
@@ -242,7 +259,50 @@ update msg globals model =
             -- TODO: handle unexpected exceptions
             noCmd globals { model | isSubmitting = False }
 
-        NoOp ->
+        NudgeToggled minute ->
+            let
+                cmd =
+                    case nudgeAt minute model of
+                        Just nudge ->
+                            globals.session
+                                |> DeleteNudge.request (DeleteNudge.variables model.spaceId (Nudge.id nudge))
+                                |> Task.attempt NudgeDeleted
+
+                        Nothing ->
+                            globals.session
+                                |> CreateNudge.request (CreateNudge.variables model.spaceId minute)
+                                |> Task.attempt NudgeCreated
+            in
+            ( ( model, cmd ), globals )
+
+        NudgeCreated (Ok ( newSession, CreateNudge.Success nudge )) ->
+            let
+                newNudges =
+                    nudge :: model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeCreated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeCreated _ ->
+            noCmd globals model
+
+        NudgeDeleted (Ok ( newSession, DeleteNudge.Success nudge )) ->
+            let
+                newNudges =
+                    removeBy Nudge.id nudge model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeDeleted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeDeleted _ ->
             noCmd globals model
 
 
@@ -323,17 +383,70 @@ resolvedView maybeCurrentRoute model data =
 
 preferencesView : Model -> Data -> Html Msg
 preferencesView model data =
-    label [ class "control checkbox pb-6" ]
-        [ input
-            [ type_ "checkbox"
-            , class "checkbox"
-            , onClick DigestToggled
-            , checked (DigestSettings.isEnabled model.digestSettings)
-            , disabled model.isSubmitting
+    div []
+        [ nudgesView model data
+        , digestsView model data
+        ]
+
+
+nudgesView : Model -> Data -> Html Msg
+nudgesView model data =
+    div [ class "mb-8" ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Notifications" ]
+        , p [ class "mb-4" ] [ text "Configure when Level should notify you about new messages in your Inbox." ]
+        , div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
+        , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ model.timeZone ++ " time zone." ]
+        ]
+
+
+nudgeTile : Model -> Int -> Int -> Html Msg
+nudgeTile model idx minute =
+    let
+        isActive =
+            hasNudgeAt minute model
+    in
+    button
+        [ classList
+            [ ( "mr-1 relative text-center flex-grow rounded h-12 no-outline", True )
+            , ( "bg-grey", not isActive )
+            , ( "bg-blue", isActive )
             ]
-            []
-        , span [ class "control-indicator" ] []
-        , span [ class "select-none" ] [ text "Send me a daily digest at 4:00 pm" ]
+        , onClick (NudgeToggled minute)
+        ]
+        [ viewIf (modBy 4 idx == 0) <|
+            div
+                [ class "absolute text-xs text-dusty-blue font-bold pin-l-50"
+                , style "bottom" "-20px"
+                , style "transform" "translateX(-50%)"
+                ]
+                [ text (Minutes.toString minute) ]
+        , div
+            [ class "absolute p-2 text-xs font-bold text-white bg-dusty-blue-darker rounded pin-l-50 tooltip"
+            , style "bottom" "-35px"
+            , style "transform" "translateX(-50%)"
+            ]
+            [ text (Minutes.toString minute)
+            ]
+        ]
+
+
+digestsView : Model -> Data -> Html Msg
+digestsView model data =
+    div []
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Daily Summary" ]
+        , p [ class "mb-6" ] [ text "The Daily Summary reminds you what's waiting in your Inbox and summarizes other conversations that might be of interest to you." ]
+        , label [ class "control checkbox pb-6" ]
+            [ input
+                [ type_ "checkbox"
+                , class "checkbox"
+                , onClick DigestToggled
+                , checked (DigestSettings.isEnabled model.digestSettings)
+                , disabled model.isSubmitting
+                ]
+                []
+            , span [ class "control-indicator" ] []
+            , span [ class "select-none text-dusty-blue-dark" ] [ text "Email me a daily summary" ]
+            ]
         ]
 
 
@@ -415,3 +528,19 @@ filterTab label section linkParams currentParams =
             ]
         ]
         [ text label ]
+
+
+
+-- HELPERS
+
+
+hasNudgeAt : Int -> Model -> Bool
+hasNudgeAt minute model =
+    List.any (\nudge -> Nudge.minute nudge == minute) model.nudges
+
+
+nudgeAt : Int -> Model -> Maybe Nudge
+nudgeAt minute model =
+    model.nudges
+        |> List.filter (\nudge -> Nudge.minute nudge == minute)
+        |> List.head

@@ -2,6 +2,7 @@ module Globals exposing (Globals)
 
 import Browser.Navigation as Nav
 import Flash exposing (Flash)
+import Lazy exposing (Lazy)
 import Repo exposing (Repo)
 import Session exposing (Session)
 

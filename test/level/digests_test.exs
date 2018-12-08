@@ -6,19 +6,18 @@ defmodule Level.DigestsTest do
   alias Level.Digests.Digest
   alias Level.Digests.Options
   alias Level.Email
-  alias Level.Posts
 
   describe "get_digest/2" do
     test "fetches by space id and digest id" do
       {:ok, %{space: space, space_user: space_user}} = create_user_and_space()
-      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, always_build_opts())
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts())
 
       assert {:ok, %Digest{id: ^digest_id}} = Digests.get_digest(space.id, digest_id)
     end
 
     test "returns an error if space and digest pair do not match" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, always_build_opts())
+      {:ok, %Digest{id: digest_id}} = Digests.build(space_user, opts())
 
       dummy_id = "11111111-1111-1111-1111-111111111111"
       assert {:error, _} = Digests.get_digest(dummy_id, digest_id)
@@ -35,70 +34,19 @@ defmodule Level.DigestsTest do
       {:ok, digest} =
         Digests.build(space_user, %Options{
           title: "Tom's Digest",
+          subject: "Tom's Digest",
           key: "daily",
           start_at: start_at,
           end_at: end_at,
+          now: end_at,
           time_zone: "Etc/UTC",
-          always_build: true
+          sections: []
         })
 
       assert digest.title == "Tom's Digest"
       assert digest.subject == "[Myspace] Tom's Digest"
       assert digest.start_at == DateTime.to_naive(start_at)
       assert digest.end_at == DateTime.to_naive(end_at)
-    end
-
-    test "skips when there is nothing interesting" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      assert :skip = Digests.build(space_user, opts())
-    end
-
-    test "summarizes inbox activity when there are no unreads (when always build is true)" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, digest} = Digests.build(space_user, always_build_opts())
-      [inbox_section | _] = digest.sections
-
-      assert inbox_section.summary =~ ~r/Congratulations! You've achieved Inbox Zero./
-    end
-
-    test "summarizes inbox activity when there are unread posts" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
-      post = create_unread_post(space_user, group)
-
-      {:ok, digest} = Digests.build(space_user, opts())
-
-      [inbox_section | _] = digest.sections
-      assert inbox_section.summary =~ ~r/You have 1 unread post in your inbox/
-
-      assert Enum.any?(inbox_section.posts, fn section_post ->
-               section_post.id == post.id
-             end)
-    end
-
-    test "summarizes inbox activity when there are unread and read posts" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
-      create_unread_post(space_user, group)
-      create_read_post(space_user, group)
-
-      {:ok, digest} = Digests.build(space_user, opts())
-
-      [inbox_section | _] = digest.sections
-
-      assert inbox_section.summary =~
-               ~r/You have 1 unread post and 1 post you have already seen in your inbox/
-    end
-
-    test "summarizes inbox activity when there are only read posts" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
-      create_read_post(space_user, group)
-
-      {:ok, digest} = Digests.build(space_user, opts())
-
-      [inbox_section | _] = digest.sections
-      assert inbox_section.summary =~ ~r/You have 1 post in your inbox/
     end
   end
 
@@ -109,7 +57,7 @@ defmodule Level.DigestsTest do
         space_id: "11111111-1111-1111-1111-111111111111",
         space_name: "Level",
         space_slug: "level",
-        title: "Your Daily Digest",
+        title: "Your Daily Digest (title)",
         subject: "[Level] Your Daily Digest",
         to_email: "derrick@level.app",
         sections: [],
@@ -130,35 +78,14 @@ defmodule Level.DigestsTest do
 
   defp opts do
     %Options{
-      title: "Your Daily Digest",
+      title: "Your Daily Digest (title)",
+      subject: "Your Daily Digest",
       key: "daily",
       start_at: one_day_ago(),
       end_at: Timex.now(),
+      now: Timex.now(),
       time_zone: "Etc/UTC",
-      always_build: false
+      sections: []
     }
-  end
-
-  defp always_build_opts do
-    %Options{
-      title: "Your Daily Digest",
-      key: "daily",
-      start_at: one_day_ago(),
-      end_at: Timex.now(),
-      time_zone: "Etc/UTC",
-      always_build: true
-    }
-  end
-
-  defp create_unread_post(space_user, group) do
-    {:ok, %{post: post}} = create_post(space_user, group)
-    Posts.mark_as_unread(space_user, [post])
-    post
-  end
-
-  defp create_read_post(space_user, group) do
-    {:ok, %{post: post}} = create_post(space_user, group)
-    Posts.mark_as_read(space_user, [post])
-    post
   end
 end

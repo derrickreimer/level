@@ -4,10 +4,12 @@ defmodule Level.PostsTest do
   import Ecto.Query
 
   alias Level.Groups
+  alias Level.Notifications
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.File
   alias Level.Schemas.Group
+  alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.PostVersion
   alias Level.Schemas.PostView
@@ -197,6 +199,8 @@ defmodule Level.PostsTest do
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, another_mentioned)
+
+      assert [%Notification{event: "POST_CREATED"}] = Notifications.list(mentioned, post)
     end
 
     test "does not subscribe mentioned users who cannot access the post", %{
@@ -416,6 +420,8 @@ defmodule Level.PostsTest do
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
+
+      assert [%Notification{event: "REPLY_CREATED"}] = Notifications.list(mentioned, post)
     end
 
     test "does not subscribe mentioned users who cannot access the post", %{
@@ -582,18 +588,78 @@ defmodule Level.PostsTest do
       assert closed_post.state == "CLOSED"
     end
 
-    test "dismissed the post from the closer's inbox", %{
+    test "dismissed the post from the closer's inbox and records notifications", %{
       space: space,
       post: post,
       space_user: space_user
     } do
       {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      {:ok, _} = Posts.subscribe(space_user, [post])
+      {:ok, _} = Posts.subscribe(another_user, [post])
+
       {:ok, _} = Posts.mark_as_unread(space_user, [post])
       {:ok, _} = Posts.mark_as_unread(another_user, [post])
+
       {:ok, _} = Posts.close_post(space_user, post)
 
       assert %{inbox: "DISMISSED"} = Posts.get_user_state(post, space_user)
       assert %{inbox: "UNREAD"} = Posts.get_user_state(post, another_user)
+
+      assert [] = Notifications.list(space_user, post)
+      assert [%Notification{event: "POST_CLOSED"}] = Notifications.list(another_user, post)
+    end
+  end
+
+  describe "reopen_post/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, Map.merge(result, %{group: group, post: post})}
+    end
+
+    test "marks the post as closed", %{post: post, space_user: space_user} do
+      {:ok, %{post: closed_post}} = Posts.close_post(space_user, post)
+      {:ok, %{post: reopened_post}} = Posts.reopen_post(space_user, closed_post)
+
+      assert reopened_post.id == post.id
+      assert reopened_post.state == "OPEN"
+    end
+
+    test "records notifications", %{
+      space: space,
+      post: post,
+      space_user: space_user
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      {:ok, _} = Posts.subscribe(another_user, [post])
+      {:ok, _} = Posts.close_post(space_user, post)
+      {:ok, _} = Posts.reopen_post(space_user, post)
+
+      assert Enum.any?(Notifications.list(another_user, post), fn notification ->
+               notification.event == "POST_REOPENED"
+             end)
+    end
+  end
+
+  describe "mark_as_read/2" do
+    test "sets the inbox state to read and dismisses notifications" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      Notifications.record_post_created(space_user, post)
+      assert %{inbox: "EXCLUDED"} = Posts.get_user_state(post, space_user)
+
+      Posts.mark_as_read(space_user, [post])
+      assert %{inbox: "READ"} = Posts.get_user_state(post, space_user)
+
+      notifications = Notifications.list(space_user, post)
+
+      assert Enum.all?(notifications, fn notification ->
+               notification.state == "DISMISSED"
+             end)
     end
   end
 end

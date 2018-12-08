@@ -6,6 +6,7 @@ defmodule Level.Posts.CreatePost do
   alias Level.Events
   alias Level.Files
   alias Level.Mentions
+  alias Level.Notifications
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Group
@@ -133,6 +134,7 @@ defmodule Level.Posts.CreatePost do
           _ = Posts.subscribe(mentioned_user, [post])
           _ = Posts.mark_as_unread(mentioned_user, [post])
           _ = Events.user_mentioned(mentioned_user.id, post)
+          _ = Notifications.record_post_created(mentioned_user, post)
 
         _ ->
           false

@@ -105,7 +105,7 @@ h6 {
 .btn {
   @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2 .whitespace-no-wrap .cursor-pointer .text-center .inline-block;
   transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
-  line-height: 1.15;
+  /* line-height: 1.15; */
 }
 
 .btn:focus {
@@ -161,6 +161,14 @@ h6 {
 }
 
 .btn-dusty-blue-inverse:hover {
+  @apply bg-grey-lighter;
+}
+
+.btn-blue-inverse {
+  @apply bg-white border-white text-blue;
+}
+
+.btn-blue-inverse:hover {
   @apply bg-grey-lighter;
 }
 
@@ -391,6 +399,17 @@ post-editor.dragging-over > * {
 
 .flash {
   transform: translateX(-50%);
+}
+
+.tooltip {
+  @apply opacity-0 z-50;
+  transition: opacity 0.2s;
+  visibility: hidden;
+}
+
+:hover > .tooltip {
+  @apply opacity-100;
+  visibility: visible;
 }
 
 /**

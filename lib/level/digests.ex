@@ -41,7 +41,7 @@ defmodule Level.Digests do
   @doc """
   Builds a digest for the given user.
   """
-  @spec build(SpaceUser.t(), Options.t()) :: {:ok, Digest.t()} | :skip | {:error, String.t()}
+  @spec build(SpaceUser.t(), Options.t()) :: {:ok, Digest.t()} | {:error, String.t()}
   def build(%SpaceUser{} = space_user, %Options{} = opts) do
     Builder.build(space_user, opts)
   end

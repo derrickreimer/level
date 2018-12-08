@@ -23,6 +23,7 @@ type alias Response =
     , space : Space
     , digestSettings : DigestSettings
     , nudges : List Nudge
+    , timeZone : String
     , repo : Repo
     }
 
@@ -33,6 +34,7 @@ type alias Data =
     , bookmarks : List Group
     , digestSettings : DigestSettings
     , nudges : List Nudge
+    , timeZone : String
     }
 
 
@@ -43,6 +45,9 @@ document =
         query GroupInit(
           $spaceSlug: String!
         ) {
+          viewer {
+            timeZone
+          }
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
             nudges {
@@ -78,13 +83,14 @@ variables spaceSlug =
 
 decoder : Decoder Data
 decoder =
-    Decode.at [ "data", "spaceUser" ] <|
+    Decode.at [ "data" ] <|
         (Decode.succeed Data
-            |> Pipeline.custom SpaceUser.decoder
-            |> Pipeline.custom (Decode.field "space" Space.decoder)
-            |> Pipeline.custom (Decode.field "bookmarks" (Decode.list Group.decoder))
-            |> Pipeline.custom (Decode.field "digestSettings" DigestSettings.decoder)
-            |> Pipeline.custom (Decode.field "nudges" (Decode.list Nudge.decoder))
+            |> Pipeline.custom (Decode.field "spaceUser" SpaceUser.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarks" ] (Decode.list Group.decoder))
+            |> Pipeline.custom (Decode.at [ "spaceUser", "digestSettings" ] DigestSettings.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "nudges" ] (Decode.list Nudge.decoder))
+            |> Pipeline.custom (Decode.at [ "viewer", "timeZone" ] Decode.string)
         )
 
 
@@ -105,6 +111,7 @@ buildResponse ( session, data ) =
                 data.space
                 data.digestSettings
                 data.nudges
+                data.timeZone
                 repo
     in
     ( session, resp )

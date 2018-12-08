@@ -10,6 +10,7 @@ defmodule Level.Posts do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Markdown
+  alias Level.Notifications
   alias Level.Posts
   alias Level.Posts.CreatePost
   alias Level.Posts.CreateReply
@@ -304,6 +305,7 @@ defmodule Level.Posts do
     end)
 
     Events.posts_marked_as_read(space_user.id, posts)
+    Notifications.dismiss(space_user, posts)
     result
   end
 
@@ -526,7 +528,19 @@ defmodule Level.Posts do
   defp after_post_closed({:ok, %{post: post}} = result, closer) do
     _ = Events.post_closed(post.id, post)
     _ = dismiss(closer, [post])
+    _ = record_closed_notifications(post, closer)
+
     result
+  end
+
+  defp record_closed_notifications(post, closer) do
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== closer.id do
+        _ = Notifications.record_post_closed(subscriber, post)
+      end
+    end)
   end
 
   @doc """
@@ -538,7 +552,7 @@ defmodule Level.Posts do
     |> Multi.update(:post, Ecto.Changeset.change(post, %{state: "OPEN"}))
     |> log_post_reopened(space_user)
     |> Repo.transaction()
-    |> after_post_reopened()
+    |> after_post_reopened(space_user)
   end
 
   defp log_post_reopened(multi, space_user) do
@@ -547,9 +561,20 @@ defmodule Level.Posts do
     end)
   end
 
-  defp after_post_reopened({:ok, %{post: post}} = result) do
+  defp after_post_reopened({:ok, %{post: post}} = result, reopener) do
     _ = Events.post_reopened(post.id, post)
+    _ = record_reopened_notifications(post, reopener)
     result
+  end
+
+  defp record_reopened_notifications(post, reopener) do
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== reopener.id do
+        _ = Notifications.record_post_reopened(subscriber, post)
+      end
+    end)
   end
 
   # Internal

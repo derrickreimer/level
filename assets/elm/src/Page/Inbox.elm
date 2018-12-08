@@ -443,17 +443,18 @@ resolvedView repo maybeCurrentRoute pushStatus spaceUsers model data =
                         ]
                     ]
                 ]
+            , filterNoticeView repo model data
             , postsView repo spaceUsers model data
             , sidebarView data.space data.featuredUsers pushStatus
             ]
         ]
 
 
-filterTab : String -> Route.Inbox.Filter -> Params -> Params -> Html Msg
-filterTab label filter linkParams currentParams =
+filterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
+filterTab label state linkParams currentParams =
     let
         isCurrent =
-            Route.Inbox.getFilter currentParams == filter
+            Route.Inbox.getState currentParams == state
     in
     a
         [ Route.href (Route.Inbox linkParams)
@@ -507,6 +508,29 @@ paginationView params connection =
     Pagination.view connection
         (\beforeCursor -> Route.Inbox (Route.Inbox.setCursors (Just beforeCursor) Nothing params))
         (\afterCursor -> Route.Inbox (Route.Inbox.setCursors Nothing (Just afterCursor) params))
+
+
+filterNoticeView : Repo -> Model -> Data -> Html Msg
+filterNoticeView repo model data =
+    if Route.Inbox.getLastActivity model.params == Route.Inbox.Today then
+        let
+            resetParams =
+                model.params
+                    |> Route.Inbox.setLastActivity Route.Inbox.All
+                    |> Route.Inbox.setCursors Nothing Nothing
+        in
+        div [ class "flex items-center mb-3 py-2 pl-4 pr-2 rounded-full bg-blue text-white text-sm font-extrabold" ]
+            [ div [ class "mr-2 flex-no-shrink" ] [ Icons.filter ]
+            , div [ class "flex-grow" ] [ text "Showing activity from today only" ]
+            , a
+                [ Route.href <| Route.Inbox resetParams
+                , class "btn btn-xs btn-blue-inverse no-underline flex-no-shrink"
+                ]
+                [ text "Clear this filter" ]
+            ]
+
+    else
+        text ""
 
 
 postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
@@ -577,14 +601,14 @@ undismissedParams : Params -> Params
 undismissedParams params =
     params
         |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Undismissed
+        |> Route.Inbox.setState Route.Inbox.Undismissed
 
 
 dismissedParams : Params -> Params
 dismissedParams params =
     params
         |> Route.Inbox.setCursors Nothing Nothing
-        |> Route.Inbox.setFilter Route.Inbox.Dismissed
+        |> Route.Inbox.setState Route.Inbox.Dismissed
 
 
 filterBySelected : Connection Component.Post.Model -> List Component.Post.Model
