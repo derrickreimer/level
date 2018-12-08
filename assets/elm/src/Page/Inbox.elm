@@ -524,7 +524,7 @@ filterNoticeView repo model data =
             , div [ class "flex-grow" ] [ text "Showing activity from today only" ]
             , a
                 [ Route.href <| Route.Inbox resetParams
-                , class "btn btn-xs btn-blue-inverse no-underline flex-no-shrink"
+                , class "btn btn-flex btn-xs btn-blue-inverse no-underline flex-no-shrink"
                 ]
                 [ text "Clear this filter" ]
             ]

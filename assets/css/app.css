@@ -105,7 +105,11 @@ h6 {
 .btn {
   @apply .rounded-full .px-6 .py-3 .font-bold .text-white .border-2 .whitespace-no-wrap .cursor-pointer .text-center .inline-block;
   transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
-  /* line-height: 1.15; */
+  line-height: 1.15;
+}
+
+.btn-flex {
+  @apply flex items-center;
 }
 
 .btn:focus {
