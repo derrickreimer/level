@@ -26,8 +26,9 @@ defmodule LevelWeb.Schema do
       end)
     end
 
-    @desc "Fetches a space membership by space id."
+    @desc "Fetches a space user."
     field :space_user, :space_user do
+      arg :id, :id
       arg :space_id, :id
       arg :space_slug, :string
       resolve &Level.Resolvers.space_user/2
