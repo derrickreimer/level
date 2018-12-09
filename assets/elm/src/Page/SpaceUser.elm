@@ -19,6 +19,7 @@ import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import View.Helpers exposing (viewIf)
 import View.SpaceLayout
 
 
@@ -149,7 +150,8 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "max-w-md mx-auto" ]
             [ detailView model data
-            , sidebarView
+            , viewIf (Space.canManageMembers data.space) <|
+                sidebarView
             ]
         ]
 
