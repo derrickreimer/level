@@ -781,7 +781,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-90 leading-normal" ]
-            [ div [ class "scrolled-top-no-border sticky pin-t border-b py-4 bg-white z-40" ]
+            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-4 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ nameView data.group model.nameEditor
                     , bookmarkButtonView (Group.isBookmarked data.group)

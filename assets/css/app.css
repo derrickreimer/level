@@ -518,6 +518,7 @@ post-editor.dragging-over > * {
 
 .scrolled-top .scrolled-top-no-border {
   @apply border-transparent;
+  box-shadow: none;
 }
 
 .link-reset {
@@ -551,7 +552,7 @@ post-editor.dragging-over > * {
 }
 
 .trans-border-b-grey {
-  box-shadow: 0 1px 0 0 rgba(0,0,0,0.12);
+  box-shadow: 0 1px 0 0 rgba(0,0,0,0.09);
 }
 
 .translate-y-1 {
