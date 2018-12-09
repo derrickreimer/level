@@ -14,6 +14,7 @@ import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.SpaceUser
 import Route.SpaceUsers exposing (Params)
 import Scroll
 import Session exposing (Session)
@@ -186,25 +187,29 @@ usersView repo params spaceUserIds =
                 |> partitionUsers []
     in
     div [ class "leading-semi-loose" ]
-        [ div [] <| List.map userPartitionView partitions
+        [ div [] <| List.map (userPartitionView params) partitions
         , paginationView params spaceUserIds
         ]
 
 
-userPartitionView : ( String, List IndexedUser ) -> Html Msg
-userPartitionView ( letter, indexedUsers ) =
+userPartitionView : Params -> ( String, List IndexedUser ) -> Html Msg
+userPartitionView params ( letter, indexedUsers ) =
     div [ class "flex" ]
         [ div [ class "flex-0 flex-no-shrink pt-1 pl-5 w-12 text-sm text-dusty-blue font-bold" ] [ text letter ]
         , div [ class "flex-1" ] <|
-            List.map userView indexedUsers
+            List.map (userView params) indexedUsers
         ]
 
 
-userView : IndexedUser -> Html Msg
-userView ( index, spaceUser ) =
-    div []
-        [ h2 [ class "flex items-center pr-4 pb-1 font-normal text-lg" ]
-            [ div [ class "mr-4" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+userView : Params -> IndexedUser -> Html Msg
+userView params ( index, spaceUser ) =
+    let
+        viewParams =
+            Route.SpaceUser.init (Route.SpaceUsers.getSpaceSlug params) (SpaceUser.id spaceUser)
+    in
+    a [ Route.href <| Route.SpaceUser viewParams, class "no-underline text-dusty-blue-darker" ]
+        [ h2 [ class "flex items-center pr-4 pb-1 font-normal font-sans text-lg" ]
+            [ div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
             , text (SpaceUser.displayName spaceUser)
             ]
         ]

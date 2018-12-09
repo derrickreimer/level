@@ -35,7 +35,7 @@ texitar : Size -> String -> Html msg
 texitar size body =
     div
         [ classList
-            [ ( "avatar", True )
+            [ ( "avatar font-sans", True )
             , ( sizeClass size, True )
             ]
         ]
