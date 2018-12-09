@@ -434,6 +434,14 @@ defmodule Level.Spaces do
     role == "OWNER"
   end
 
+  @doc """
+  Determines if a user is allowed to manage members.
+  """
+  @spec can_manage_members?(SpaceUser.t()) :: boolean()
+  def can_manage_members?(%SpaceUser{role: role}) do
+    role == "OWNER"
+  end
+
   # Internal
 
   defp list_default_groups(%Space{} = space) do

@@ -294,4 +294,28 @@ defmodule Level.SpacesTest do
       assert Groups.get_user_state(default_group, new_user) == :subscribed
     end
   end
+
+  describe "can_update?/1" do
+    test "is true if user is an owner" do
+      space_user = %SpaceUser{role: "OWNER"}
+      assert Spaces.can_update?(space_user)
+    end
+
+    test "is false if user is an regular member" do
+      space_user = %SpaceUser{role: "MEMBER"}
+      refute Spaces.can_update?(space_user)
+    end
+  end
+
+  describe "can_manage_members?/1" do
+    test "is true if user is an owner" do
+      space_user = %SpaceUser{role: "OWNER"}
+      assert Spaces.can_manage_members?(space_user)
+    end
+
+    test "is false if user is an regular member" do
+      space_user = %SpaceUser{role: "MEMBER"}
+      refute Spaces.can_manage_members?(space_user)
+    end
+  end
 end

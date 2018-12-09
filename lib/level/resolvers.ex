@@ -401,6 +401,20 @@ defmodule Level.Resolvers do
   end
 
   @doc """
+  Determines whether the current user is allowed to manage space members.
+  """
+  @spec can_manage_members?(Space.t(), map(), info()) :: {:ok, boolean()}
+  def can_manage_members?(%Space{} = space, _, %{context: %{current_user: user}}) do
+    case Spaces.get_space_user(user, space) do
+      {:ok, space_user} ->
+        {:ok, Spaces.can_manage_members?(space_user)}
+
+      _ ->
+        {:ok, false}
+    end
+  end
+
+  @doc """
   Fetches a tutorial.
   """
   @spec tutorial(SpaceUser.t(), map(), info()) :: {:ok, Tutorial.t() | nil}
