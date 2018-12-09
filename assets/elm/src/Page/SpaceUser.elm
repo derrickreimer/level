@@ -147,22 +147,41 @@ resolvedView repo maybeCurrentRoute model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "max-w-md mx-auto py-8" ]
-            [ div [ class "pb-4 mb-6 border-b" ]
-                [ a
-                    [ Route.href <| Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params))
-                    , class "flex items-center font-bold text-dusty-blue no-underline"
-                    ]
-                    [ div [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
-                    , div [] [ text "View the member list" ]
-                    ]
+        [ div [ class "max-w-md mx-auto" ]
+            [ detailView model data
+            , sidebarView
+            ]
+        ]
+
+
+detailView : Model -> Data -> Html Msg
+detailView model data =
+    div [ class "px-8 py-6" ]
+        [ div [ class "pb-4 mb-6 border-b" ]
+            [ a
+                [ Route.href <| Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params))
+                , class "flex items-center font-bold text-dusty-blue no-underline"
                 ]
-            , div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
-                , div [ class "flex-grow" ]
-                    [ h1 [ class "mb-1 font-extrabold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
-                    , h2 [ class "font-normal text-dusty-blue text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
-                    ]
+                [ div [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
+                , div [] [ text "View the member list" ]
                 ]
             ]
+        , div [ class "flex" ]
+            [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
+            , div [ class "flex-grow" ]
+                [ h1 [ class "mb-1 font-extrabold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
+                , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
+                ]
+            ]
+        ]
+
+
+sidebarView : Html Msg
+sidebarView =
+    View.SpaceLayout.rightSidebar
+        [ h3 [ class "mb-3 text-base font-extrabold" ] [ text "Actions" ]
+        , button
+            [ class "text-md text-dusty-blue no-underline font-bold"
+            ]
+            [ text "Revoke access" ]
         ]
