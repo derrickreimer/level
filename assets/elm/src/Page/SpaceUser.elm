@@ -28,6 +28,7 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
+    , spaceUserId : Id
     }
 
 
@@ -35,15 +36,17 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
+    , spaceUser : SpaceUser
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map3 Data
+    Maybe.map4 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Just <| Repo.getGroups model.bookmarkIds repo)
+        (Repo.getSpaceUser model.spaceUserId repo)
 
 
 
@@ -70,7 +73,7 @@ buildModel : Params -> Globals -> ( Session, SpaceUserInit.Response ) -> ( Globa
 buildModel params globals ( newSession, resp ) =
     let
         model =
-            Model params resp.viewerId resp.spaceId resp.bookmarkIds
+            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserId
 
         newRepo =
             Repo.union resp.repo globals.repo

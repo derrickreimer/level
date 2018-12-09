@@ -18,6 +18,7 @@ type alias Response =
     { viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
+    , spaceUserId : Id
     , repo : Repo
     }
 
@@ -26,6 +27,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
+    , spaceUser : SpaceUser
     }
 
 
@@ -34,9 +36,10 @@ document =
     GraphQL.toDocument
         """
         query SpaceUsersInit(
-          $spaceSlug: ID!
+          $spaceSlug: ID!,
+          $spaceUserId: ID!
         ) {
-          spaceUser(spaceSlug: $spaceSlug) {
+          viewingUser: spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
             space {
               ...SpaceFields
@@ -44,6 +47,9 @@ document =
             bookmarks {
               ...GroupFields
             }
+          }
+          viewedUser: spaceUser(id: $spaceUserId) {
+            ...SpaceUserFields
           }
         }
         """
@@ -65,11 +71,12 @@ variables params =
 
 decoder : Decoder Data
 decoder =
-    Decode.at [ "data", "spaceUser" ] <|
-        Decode.map3 Data
-            SpaceUser.decoder
-            (field "space" Space.decoder)
-            (field "bookmarks" (list Group.decoder))
+    Decode.at [ "data" ] <|
+        Decode.map4 Data
+            (field "viewingUser" SpaceUser.decoder)
+            (Decode.at [ "viewingUser", "space" ] Space.decoder)
+            (Decode.at [ "viewingUser", "bookmarks" ] (list Group.decoder))
+            (field "viewedUser" SpaceUser.decoder)
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -78,6 +85,7 @@ buildResponse ( session, data ) =
         repo =
             Repo.empty
                 |> Repo.setSpaceUser data.viewer
+                |> Repo.setSpaceUser data.spaceUser
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.bookmarks
 
@@ -86,6 +94,7 @@ buildResponse ( session, data ) =
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
+                (SpaceUser.id data.spaceUser)
                 repo
     in
     ( session, resp )
