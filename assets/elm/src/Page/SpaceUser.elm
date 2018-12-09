@@ -154,7 +154,7 @@ resolvedView repo maybeCurrentRoute model data =
                     , class "flex items-center font-bold text-dusty-blue no-underline"
                     ]
                     [ div [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
-                    , div [] [ text "Back to People" ]
+                    , div [] [ text "View the member list" ]
                     ]
                 ]
             , div [ class "flex" ]
