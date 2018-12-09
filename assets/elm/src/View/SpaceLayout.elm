@@ -13,6 +13,7 @@ import Route.Help
 import Route.Inbox
 import Route.Posts
 import Route.Settings
+import Route.SpaceUsers
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
@@ -67,7 +68,8 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
                 ]
             , groupLinks space bookmarks maybeCurrentRoute
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
+                [ navLink space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug space))) maybeCurrentRoute
+                , navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
                 , navLink space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug space) Route.Settings.Preferences)) maybeCurrentRoute
                 , navLink space "Help" (Just <| Route.Help (Route.Help.init (Space.slug space))) maybeCurrentRoute
                 ]

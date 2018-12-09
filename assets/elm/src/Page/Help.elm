@@ -170,9 +170,9 @@ resolvedView repo maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
-            [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
+            [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ div [ class "mb-6" ]
-                    [ h1 [ class "mb-4 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ] [ text "Help" ]
+                    [ h1 [ class "mb-4 font-extrabold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Help" ]
                     ]
                 , ul [ class "mb-4 pb-6 border-b list-reset" ]
                     [ li []
@@ -180,8 +180,8 @@ resolvedView repo maybeCurrentRoute model data =
                             [ Route.href <| Route.WelcomeTutorial (Route.WelcomeTutorial.init (Route.Help.getSpaceSlug model.params) 1)
                             , class "no-underline"
                             ]
-                            [ h2 [ class "block text-2xl text-blue font-extrabold tracking-semi-tight" ] [ text "Welcome to Level" ]
-                            , p [ class "text-dusty-blue-dark" ] [ text "A quick tutorial on how Level works." ]
+                            [ h2 [ class "block text-xl text-blue font-extrabold tracking-semi-tight" ] [ text "Welcome to Level" ]
+                            , p [ class "text-dusty-blue-dark text-base" ] [ text "A quick tutorial on how Level works." ]
                             ]
                         ]
                     ]

@@ -365,8 +365,7 @@ resolvedView maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
             [ div [ class "pb-4" ]
-                [ nav [ class "text-xl font-headline font-extrabold text-dusty-blue-dark leading-tight" ] [ text <| Space.name data.space ]
-                , h1 [ class "font-extrabold tracking-semi-tight text-3xl" ] [ text "Settings" ]
+                [ h1 [ class "font-extrabold tracking-semi-tight text-3xl" ] [ text "Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params

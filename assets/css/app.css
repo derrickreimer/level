@@ -196,6 +196,10 @@ h6 {
   @apply w-12 h-12 text-lg;
 }
 
+.avatar-xl {
+  @apply w-16 h-16 text-3xl;
+}
+
 .control {
   @apply flex items-center;
   position: relative;

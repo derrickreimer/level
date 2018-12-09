@@ -1,16 +1,19 @@
 module Page.SpaceUser exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Avatar
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Icons
 import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.SpaceUserInit as SpaceUserInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.SpaceUser exposing (Params)
+import Route.SpaceUsers
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -144,4 +147,22 @@ resolvedView repo maybeCurrentRoute model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        []
+        [ div [ class "max-w-md mx-auto py-8" ]
+            [ div [ class "pb-4 mb-6 border-b" ]
+                [ a
+                    [ Route.href <| Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params))
+                    , class "flex items-center font-bold text-dusty-blue no-underline"
+                    ]
+                    [ div [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
+                    , div [] [ text "Back to People" ]
+                    ]
+                ]
+            , div [ class "flex" ]
+                [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
+                , div [ class "flex-grow" ]
+                    [ h1 [ class "mb-1 font-extrabold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
+                    , h2 [ class "font-normal text-dusty-blue text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
+                    ]
+                ]
+            ]
+        ]

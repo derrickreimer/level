@@ -10,6 +10,7 @@ type Size
     | Small
     | Medium
     | Large
+    | XLarge
 
 
 type alias Person a =
@@ -158,3 +159,6 @@ sizeClass size =
 
         Large ->
             "avatar-lg"
+
+        XLarge ->
+            "avatar-xl"
