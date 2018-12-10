@@ -175,7 +175,6 @@ defmodule Level.Spaces do
       join: s in assoc(su, :space),
       join: usu in SpaceUser,
       on: usu.space_id == su.space_id and usu.user_id == ^user.id,
-      where: su.state == "ACTIVE",
       select: %{su | space_name: s.name}
   end
 
@@ -183,7 +182,6 @@ defmodule Level.Spaces do
     from su in SpaceUser,
       join: s in assoc(su, :space),
       where: su.space_id == ^space.id,
-      where: su.state == "ACTIVE",
       select: %{su | space_name: s.name}
   end
 
@@ -206,6 +204,7 @@ defmodule Level.Spaces do
     result =
       space
       |> space_users_base_query()
+      |> where([su], su.state == "ACTIVE")
       |> order_by([su, s], asc: su.last_name)
       |> limit(10)
       |> Repo.all()
@@ -218,8 +217,14 @@ defmodule Level.Spaces do
   """
   @spec get_space_user(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
   @spec get_space_user(User.t(), String.t()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
-  def get_space_user(%User{} = user, %Space{} = space) do
-    case Repo.get_by(space_users_base_query(user), user_id: user.id, space_id: space.id) do
+  def get_space_user(%User{id: user_id} = user, %Space{id: space_id}) do
+    query =
+      user
+      |> space_users_base_query()
+      |> where([su], su.space_id == ^space_id and su.user_id == ^user_id)
+      |> where([su], su.state == "ACTIVE")
+
+    case Repo.one(query) do
       %SpaceUser{} = space_user ->
         {:ok, space_user}
 
@@ -229,24 +234,19 @@ defmodule Level.Spaces do
   end
 
   def get_space_user(%User{} = user, space_user_id) do
-    case Repo.get_by(space_users_base_query(user), id: space_user_id) do
+    query =
+      user
+      |> space_users_base_query()
+      |> where([su], su.id == ^space_user_id)
+      |> where([su], su.state == "ACTIVE")
+
+    case Repo.one(query) do
       %SpaceUser{} = space_user ->
         {:ok, space_user}
 
       _ ->
         {:error, dgettext("errors", "Space user not found")}
     end
-  end
-
-  @doc """
-  Fetches a list of space users by id.
-  """
-  @spec get_space_users(Space.t(), [String.t()]) :: [SpaceUser.t()] | no_return()
-  def get_space_users(%Space{} = space, ids) do
-    space
-    |> space_users_base_query()
-    |> where([su, s], su.id in ^ids)
-    |> Repo.all()
   end
 
   @doc """

@@ -37,7 +37,7 @@ defmodule Level.Resolvers.SpaceUserConnection do
       base_query =
         user
         |> Spaces.space_users_base_query()
-        |> where([su], su.user_id == ^user.id)
+        |> where([su], su.user_id == ^user.id and su.state == "ACTIVE")
 
       wrapped_query = from(su in subquery(base_query))
       Pagination.fetch_result(wrapped_query, Args.build(args))
@@ -47,7 +47,11 @@ defmodule Level.Resolvers.SpaceUserConnection do
   end
 
   def get(%Space{} = space, args, %{context: %{current_user: _authenticated_user}} = _info) do
-    base_query = Spaces.space_users_base_query(space)
+    base_query =
+      space
+      |> Spaces.space_users_base_query()
+      |> where([su], su.state == "ACTIVE")
+
     wrapped_query = from(su in subquery(base_query))
     Pagination.fetch_result(wrapped_query, Args.build(args))
   end

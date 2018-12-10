@@ -139,6 +139,17 @@ defmodule Level.SpacesTest do
       assert space_user.user_id == user.id
     end
 
+    test "returns an error if the users access is revoked", %{
+      user: user,
+      space: space,
+      space_user: space_user
+    } do
+      {:ok, _} = Spaces.revoke_access(space_user)
+
+      {:error, message} = Spaces.get_space_by_slug(user, space.slug)
+      assert message == "Space not found"
+    end
+
     test "returns an error if user cannot access the space", %{space: space} do
       {:ok, another_user} = create_user()
 
