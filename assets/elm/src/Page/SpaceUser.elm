@@ -2,6 +2,7 @@ module Page.SpaceUser exposing (Model, Msg(..), consumeEvent, init, setup, teard
 
 import Avatar
 import Event exposing (Event)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -11,6 +12,7 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.RevokeSpaceAccess as RevokeSpaceAccess
 import Query.SpaceUserInit as SpaceUserInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -105,6 +107,8 @@ teardown model =
 type Msg
     = NoOp
     | ToggleRevokeModel
+    | RevokeAccess
+    | AccessRevoked (Result Session.Error ( Session, RevokeSpaceAccess.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -115,6 +119,37 @@ update msg globals model =
 
         ToggleRevokeModel ->
             ( ( { model | showRevokeModel = not model.showRevokeModel }, Cmd.none ), globals )
+
+        RevokeAccess ->
+            let
+                cmd =
+                    globals.session
+                        |> RevokeSpaceAccess.request (RevokeSpaceAccess.variables model.spaceId model.spaceUserId)
+                        |> Task.attempt AccessRevoked
+            in
+            ( ( model, cmd ), globals )
+
+        AccessRevoked (Ok ( newSession, resp )) ->
+            let
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , flash = Flash.set Flash.Notice "User removed" 3000 globals.flash
+                    }
+
+                listParams =
+                    Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params)
+
+                cmd =
+                    Route.pushUrl globals.navKey (Route.SpaceUsers listParams)
+            in
+            ( ( model, cmd ), newGlobals )
+
+        AccessRevoked (Err Session.Expired) ->
+            ( ( model, Route.toLogin ), globals )
+
+        AccessRevoked (Err _) ->
+            ( ( model, Cmd.none ), globals )
 
 
 
@@ -207,7 +242,7 @@ revokeModal model data =
                 ]
                 [ h2 [ class "mb-4 font-extrabold text-dusty-blue-darker" ] [ text "Revoke access to this space" ]
                 , p [ class "mb-6" ] [ text "Their existing posts will still be accessible to other members of the space, but they will no longer have access." ]
-                , button [ class "mr-2 btn btn-blue btn-md" ] [ text <| "Remove " ++ SpaceUser.displayName data.spaceUser ]
+                , button [ class "mr-2 btn btn-blue btn-md", onClick RevokeAccess ] [ text <| "Remove " ++ SpaceUser.displayName data.spaceUser ]
                 , button [ class "btn btn-grey-outline btn-md", onClick ToggleRevokeModel ] [ text "Cancel" ]
                 ]
             ]
