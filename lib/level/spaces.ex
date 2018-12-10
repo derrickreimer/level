@@ -175,6 +175,7 @@ defmodule Level.Spaces do
       join: s in assoc(su, :space),
       join: usu in SpaceUser,
       on: usu.space_id == su.space_id and usu.user_id == ^user.id,
+      where: su.state == "ACTIVE",
       select: %{su | space_name: s.name}
   end
 
@@ -182,6 +183,7 @@ defmodule Level.Spaces do
     from su in SpaceUser,
       join: s in assoc(su, :space),
       where: su.space_id == ^space.id,
+      where: su.state == "ACTIVE",
       select: %{su | space_name: s.name}
   end
 
