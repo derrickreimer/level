@@ -318,4 +318,12 @@ defmodule Level.SpacesTest do
       refute Spaces.can_manage_members?(space_user)
     end
   end
+
+  describe "revoke_access/1" do
+    test "transitions the space user to disabled" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, revoked_user} = Spaces.revoke_access(space_user)
+      assert revoked_user.state == "DISABLED"
+    end
+  end
 end

@@ -812,6 +812,31 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Revoke a user's access to a space.
+  """
+  @spec revoke_space_access(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors()}} | {:error, String.t()}
+  def revoke_space_access(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         :ok <- can_manage_members?(space_user),
+         {:ok, space_user_to_revoke} <- Spaces.get_space_user(user, args.space_user_id),
+         {:ok, revoked_space_user} <- Spaces.revoke_access(space_user_to_revoke) do
+      {:ok, %{success: true, errors: [], space_user: revoked_space_user}}
+    else
+      err ->
+        err
+    end
+  end
+
+  defp can_manage_members?(space_user) do
+    if Spaces.can_manage_members?(space_user) do
+      :ok
+    else
+      {:error, dgettext("errors", "You are not authorized to perform this action.")}
+    end
+  end
+
   defp format_errors(%Ecto.Changeset{errors: errors}) do
     Enum.map(errors, fn {attr, {msg, props}} ->
       message =

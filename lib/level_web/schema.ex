@@ -363,6 +363,14 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.delete_nudge/2
     end
+
+    @desc "Revokes a user's access to a space."
+    field :revoke_space_access, :revoke_space_access_payload do
+      arg :space_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
+
+      resolve &Level.Mutations.revoke_space_access/2
+    end
   end
 
   subscription do

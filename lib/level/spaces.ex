@@ -442,6 +442,16 @@ defmodule Level.Spaces do
     role == "OWNER"
   end
 
+  @doc """
+  Revokes a user's access.
+  """
+  @spec revoke_access(SpaceUser.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
+  def revoke_access(%SpaceUser{} = space_user) do
+    space_user
+    |> Ecto.Changeset.change(state: "DISABLED")
+    |> Repo.update()
+  end
+
   # Internal
 
   defp list_default_groups(%Space{} = space) do
