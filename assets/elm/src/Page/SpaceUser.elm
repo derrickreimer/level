@@ -157,8 +157,6 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "max-w-md mx-auto" ]
             [ detailView model data
-            , viewIf (Space.canManageMembers data.space) <|
-                sidebarView
             ]
         , viewIf model.showRevokeModel <|
             revokeModal model data
@@ -177,25 +175,21 @@ detailView model data =
                 , div [] [ text "View the member list" ]
                 ]
             ]
-        , div [ class "flex" ]
+        , div [ class "flex mb-4 pb-6 border-b" ]
             [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
             , div [ class "flex-grow" ]
                 [ h1 [ class "mb-1 font-extrabold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
                 , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
                 ]
             ]
-        ]
-
-
-sidebarView : Html Msg
-sidebarView =
-    View.SpaceLayout.rightSidebar
-        [ h3 [ class "mb-3 text-base font-extrabold" ] [ text "Actions" ]
-        , button
-            [ class "text-md text-dusty-blue no-underline font-bold"
-            , onClick ToggleRevokeModel
-            ]
-            [ text "Revoke access" ]
+        , viewIf (Space.canManageMembers data.space) <|
+            button
+                [ class "flex items-center text-dusty-blue no-underline font-bold"
+                , onClick ToggleRevokeModel
+                ]
+                [ div [ class "mr-2" ] [ Icons.revokeMember ]
+                , div [] [ text "Revoke access" ]
+                ]
         ]
 
 
