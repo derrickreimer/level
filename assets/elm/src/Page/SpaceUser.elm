@@ -6,8 +6,10 @@ import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import Json.Decode as Decode
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.SpaceUserInit as SpaceUserInit
 import Repo exposing (Repo)
@@ -33,6 +35,7 @@ type alias Model =
     , spaceId : Id
     , bookmarkIds : List Id
     , spaceUserId : Id
+    , showRevokeModel : Bool
     }
 
 
@@ -77,7 +80,7 @@ buildModel : Params -> Globals -> ( Session, SpaceUserInit.Response ) -> ( Globa
 buildModel params globals ( newSession, resp ) =
     let
         model =
-            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserId
+            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserId False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -101,6 +104,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleRevokeModel
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -108,6 +112,9 @@ update msg globals model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        ToggleRevokeModel ->
+            ( ( { model | showRevokeModel = not model.showRevokeModel }, Cmd.none ), globals )
 
 
 
@@ -153,6 +160,8 @@ resolvedView repo maybeCurrentRoute model data =
             , viewIf (Space.canManageMembers data.space) <|
                 sidebarView
             ]
+        , viewIf model.showRevokeModel <|
+            revokeModal model data
         ]
 
 
@@ -184,6 +193,33 @@ sidebarView =
         [ h3 [ class "mb-3 text-base font-extrabold" ] [ text "Actions" ]
         , button
             [ class "text-md text-dusty-blue no-underline font-bold"
+            , onClick ToggleRevokeModel
             ]
             [ text "Revoke access" ]
         ]
+
+
+revokeModal : Model -> Data -> Html Msg
+revokeModal model data =
+    div
+        [ class "fixed pin-l pin-t pin-r pin-b z-50"
+        , style "background-color" "rgba(0,0,0,0.5)"
+        , onClick ToggleRevokeModel
+        ]
+        [ div [ class "mx-auto max-w-md px-8 py-24" ]
+            [ div
+                [ class "px-8 py-6 w-full bg-white rounded shadow-lg leading-normal"
+                , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed NoOp))
+                ]
+                [ h2 [ class "mb-4 font-extrabold text-dusty-blue-darker" ] [ text "Revoke access to this space" ]
+                , p [ class "mb-6" ] [ text "Their existing posts will still be accessible to other members of the space, but they will no longer have access." ]
+                , button [ class "mr-2 btn btn-blue btn-md" ] [ text <| "Remove " ++ SpaceUser.displayName data.spaceUser ]
+                , button [ class "btn btn-grey-outline btn-md", onClick ToggleRevokeModel ] [ text "Cancel" ]
+                ]
+            ]
+        ]
+
+
+alwaysStopPropagation : msg -> ( msg, Bool )
+alwaysStopPropagation msg =
+    ( msg, True )

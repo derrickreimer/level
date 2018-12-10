@@ -52,7 +52,7 @@ fullSidebar : SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
 fullSidebar viewer space bookmarks maybeCurrentRoute =
     div
         [ classList
-            [ ( "fixed bg-grey-lighter border-r w-48 h-full min-h-screen z-50", True )
+            [ ( "fixed bg-grey-lighter border-r w-48 h-full min-h-screen z-40", True )
             ]
         ]
         [ div [ class "p-3" ]
