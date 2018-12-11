@@ -213,11 +213,15 @@ detailView model data =
         , div [ class "flex mb-4 pb-6 border-b" ]
             [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
             , div [ class "flex-grow" ]
-                [ h1 [ class "mb-1 font-extrabold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
+                [ div [ class "flex items-center" ]
+                    [ h1 [ class "mb-1 font-extrabold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
+                    , viewIf (SpaceUser.state data.spaceUser == SpaceUser.Disabled) <|
+                        span [ class "ml-4 px-3 py-1 text-sm border rounded-full text-dusty-blue-dark select-none" ] [ text "Account disabled" ]
+                    ]
                 , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
                 ]
             ]
-        , viewIf (Space.canManageMembers data.space) <|
+        , viewIf (Space.canManageMembers data.space && SpaceUser.state data.spaceUser == SpaceUser.Active) <|
             button
                 [ class "flex items-center text-dusty-blue no-underline font-bold"
                 , onClick ToggleRevokeModel
