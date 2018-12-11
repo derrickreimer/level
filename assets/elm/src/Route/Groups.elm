@@ -1,5 +1,5 @@
 module Route.Groups exposing
-    ( Params(..), State(..)
+    ( Params, State(..)
     , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState
     , parser
     , toString

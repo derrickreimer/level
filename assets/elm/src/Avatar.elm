@@ -10,6 +10,7 @@ type Size
     | Small
     | Medium
     | Large
+    | XLarge
 
 
 type alias Person a =
@@ -35,7 +36,7 @@ texitar : Size -> String -> Html msg
 texitar size body =
     div
         [ classList
-            [ ( "avatar", True )
+            [ ( "avatar font-sans", True )
             , ( sizeClass size, True )
             ]
         ]
@@ -158,3 +159,6 @@ sizeClass size =
 
         Large ->
             "avatar-lg"
+
+        XLarge ->
+            "avatar-xl"

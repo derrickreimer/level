@@ -24,6 +24,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Posts exposing (Params(..))
 import Route.Search
+import Route.SpaceUser
 import Route.SpaceUsers
 import Scroll
 import Session exposing (Session)
@@ -404,7 +405,7 @@ sidebarView space featuredUsers =
                 [ text "Team Members"
                 ]
             ]
-        , div [ class "pb-4" ] <| List.map userItemView featuredUsers
+        , div [ class "pb-4" ] <| List.map (userItemView space) featuredUsers
         , ul [ class "list-reset" ]
             [ li []
                 [ a
@@ -417,9 +418,12 @@ sidebarView space featuredUsers =
         ]
 
 
-userItemView : SpaceUser -> Html Msg
-userItemView user =
-    div [ class "flex items-center pr-4 mb-px" ]
+userItemView : Space -> SpaceUser -> Html Msg
+userItemView space user =
+    a
+        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+        , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
+        ]
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]

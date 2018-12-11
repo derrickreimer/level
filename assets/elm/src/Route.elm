@@ -14,6 +14,7 @@ import Route.Inbox
 import Route.Posts
 import Route.Search
 import Route.Settings
+import Route.SpaceUser
 import Route.SpaceUsers
 import Route.WelcomeTutorial
 import Url exposing (Url)
@@ -32,6 +33,7 @@ type Route
     | Posts Route.Posts.Params
     | Inbox Route.Inbox.Params
     | SpaceUsers Route.SpaceUsers.Params
+    | SpaceUser Route.SpaceUser.Params
     | InviteUsers String
     | Groups Route.Groups.Params
     | Group Route.Group.Params
@@ -54,6 +56,7 @@ parser =
         , Parser.map Posts Route.Posts.parser
         , Parser.map Inbox Route.Inbox.parser
         , Parser.map SpaceUsers Route.SpaceUsers.parser
+        , Parser.map SpaceUser Route.SpaceUser.parser
         , Parser.map InviteUsers (Parser.string </> s "invites")
         , Parser.map Groups Route.Groups.parser
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
@@ -123,6 +126,9 @@ toString page =
 
         Inbox params ->
             Route.Inbox.toString params
+
+        SpaceUser params ->
+            Route.SpaceUser.toString params
 
         SpaceUsers params ->
             Route.SpaceUsers.toString params

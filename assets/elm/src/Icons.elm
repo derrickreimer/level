@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, filter, heart, image, inboxWhite, lock, logOut, logo, open, refresh, reply, search, square, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, filter, heart, image, inboxWhite, lock, logOut, logo, open, refresh, reply, revokeMember, search, square, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -168,6 +168,12 @@ refresh : Html msg
 refresh =
     iconView <|
         svg [ width "19px", height "16px", viewBox "0 0 19 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "refresh-cw", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "16.6000004 0.754545452 16.6000004 5.28181816 12.0727276 5.28181816" ] [], polyline [ id "Shape", points "0 12.8272727 0 8.29999997 4.52727283 8.29999997" ] [], Svg.path [ d "M1.89390913,4.52727271 C2.6717562,2.32913969 4.52294715,0.683782855 6.79716195,0.169213054 C9.07137676,-0.345356747 11.4505602,0.342824506 13.0989094,1.99199999 L16.6000004,5.28181816 M0,8.29999997 L3.50109099,11.5898181 C5.14944021,13.2389936 7.52862362,13.9271749 9.80283843,13.4126051 C12.0770532,12.8980353 13.9282442,11.2526784 14.7060912,9.05454542", id "Shape" ] [] ] ] ]
+
+
+revokeMember : Html msg
+revokeMember =
+    iconView <|
+        svg [ width "24px", height "20px", viewBox "0 0 24 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "user-x", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M15,18 L15,16 C15,13.790861 13.209139,12 11,12 L4,12 C1.790861,12 2.22044605e-16,13.790861 0,16 L0,18", id "Shape" ] [], circle [ id "Oval", cx "7.5", cy "4", r "4" ] [], Svg.path [ d "M17,5 L22,10", id "Shape" ] [], Svg.path [ d "M22,5 L17,10", id "Shape" ] [] ] ] ]
 
 
 search : Html msg

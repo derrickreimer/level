@@ -6,28 +6,34 @@ import Html.Attributes exposing (..)
 import Id exposing (Id)
 import Presence exposing (Presence, PresenceList)
 import Repo exposing (Repo)
+import Route
+import Route.SpaceUser
+import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 
 
-view : Repo -> Id -> PresenceList -> Html msg
-view repo spaceId list =
+view : Repo -> Space -> PresenceList -> Html msg
+view repo space list =
     let
         spaceUsers =
             repo
                 |> Repo.getSpaceUsersByUserId (Presence.getUserIds list)
-                |> List.filter (\spaceUser -> SpaceUser.spaceId spaceUser == spaceId)
+                |> List.filter (\spaceUser -> SpaceUser.spaceId spaceUser == Space.id space)
                 |> List.sortBy SpaceUser.lastName
     in
     if List.isEmpty spaceUsers then
         div [ class "pb-4 text-sm" ] [ text "There is nobody here." ]
 
     else
-        div [ class "pb-4" ] <| List.map itemView spaceUsers
+        div [ class "pb-4" ] <| List.map (itemView space) spaceUsers
 
 
-itemView : SpaceUser -> Html msg
-itemView spaceUser =
-    div [ class "flex items-center pr-4 mb-px" ]
-        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny spaceUser ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName spaceUser ]
+itemView : Space -> SpaceUser -> Html msg
+itemView space user =
+    a
+        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+        , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
+        ]
+        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]

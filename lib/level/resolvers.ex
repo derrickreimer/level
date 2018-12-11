@@ -73,7 +73,7 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches a space membership by space id or slug.
+  Fetches a space user.
   """
   @spec space_user(map(), info()) :: {:ok, SpaceUser.t()} | {:error, String.t()}
   def space_user(%{space_id: id} = _args, %{context: %{current_user: user}} = _info) do
@@ -96,9 +96,13 @@ defmodule Level.Resolvers do
     end
   end
 
+  def space_user(%{id: space_user_id} = _args, %{context: %{current_user: user}} = _info) do
+    Spaces.get_space_user(user, space_user_id)
+  end
+
   def space_user(_args, _info) do
     {:error,
-     dgettext("errors", "You must provide a `space_id` or `space_slug` to lookup a space user.")}
+     dgettext("errors", "You must provide an argument by which to look up the space user.")}
   end
 
   @doc """
@@ -390,6 +394,20 @@ defmodule Level.Resolvers do
     case Spaces.get_space_user(user, space) do
       {:ok, space_user} ->
         {:ok, Spaces.can_update?(space_user)}
+
+      _ ->
+        {:ok, false}
+    end
+  end
+
+  @doc """
+  Determines whether the current user is allowed to manage space members.
+  """
+  @spec can_manage_members?(Space.t(), map(), info()) :: {:ok, boolean()}
+  def can_manage_members?(%Space{} = space, _, %{context: %{current_user: user}}) do
+    case Spaces.get_space_user(user, space) do
+      {:ok, space_user} ->
+        {:ok, Spaces.can_manage_members?(space_user)}
 
       _ ->
         {:ok, false}

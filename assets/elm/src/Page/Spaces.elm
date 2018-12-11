@@ -193,7 +193,7 @@ spaceView : String -> Space -> Html Msg
 spaceView query space =
     a [ href ("/" ++ Space.slug space ++ "/"), class "flex items-center pr-4 pb-1 no-underline text-blue" ]
         [ div [ class "mr-3" ] [ Space.avatar Avatar.Small space ]
-        , h2 [ class "font-normal text-lg" ] [ text <| Space.name space ]
+        , h2 [ class "font-normal font-sans text-lg" ] [ text <| Space.name space ]
         ]
 
 

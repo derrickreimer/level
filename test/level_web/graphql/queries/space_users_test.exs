@@ -4,9 +4,10 @@ defmodule LevelWeb.GraphQL.SpaceUsersTest do
 
   @single_query """
     query GetSpaceUser(
-      $space_id: ID!
+      $id: ID,
+      $space_id: ID
     ) {
-      spaceUser(spaceId: $space_id) {
+      spaceUser(id: $id, spaceId: $space_id) {
         role
         space {
           name
@@ -57,7 +58,7 @@ defmodule LevelWeb.GraphQL.SpaceUsersTest do
     {:ok, %{conn: conn, user: user}}
   end
 
-  test "users can lookup a membership by space id", %{conn: conn, user: user} do
+  test "users can lookup their own membership by space id", %{conn: conn, user: user} do
     {:ok, %{space: space}} = create_space(user, %{name: "Level"})
 
     conn =
@@ -74,6 +75,33 @@ defmodule LevelWeb.GraphQL.SpaceUsersTest do
                  },
                  "firstName" => user.first_name,
                  "lastName" => user.last_name
+               }
+             }
+           }
+  end
+
+  test "users can lookup a membership by id", %{conn: conn, user: user} do
+    {:ok, %{space: space}} = create_space(user, %{name: "Level"})
+
+    {:ok, %{space_user: another_member}} =
+      create_space_member(space, %{first_name: "Jane", last_name: "Doe"})
+
+    variables = %{id: another_member.id}
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @single_query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "spaceUser" => %{
+                 "role" => "MEMBER",
+                 "space" => %{
+                   "name" => "Level"
+                 },
+                 "firstName" => "Jane",
+                 "lastName" => "Doe"
                }
              }
            }

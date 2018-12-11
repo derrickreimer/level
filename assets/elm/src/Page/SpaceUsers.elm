@@ -14,7 +14,8 @@ import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route exposing (Route)
-import Route.SpaceUsers exposing (Params(..))
+import Route.SpaceUser
+import Route.SpaceUsers exposing (Params)
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -63,7 +64,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Directory"
+    "People"
 
 
 
@@ -154,7 +155,7 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold tracking-semi-tight text-3xl" ] [ text "Directory" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold tracking-semi-tight text-3xl" ] [ text "People" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a
                         [ Route.href (Route.InviteUsers (Route.SpaceUsers.getSpaceSlug model.params))
@@ -163,7 +164,7 @@ resolvedView repo maybeCurrentRoute model data =
                         [ text "Invite people" ]
                     ]
                 ]
-            , div [ class "pb-8" ]
+            , div [ class "pb-6" ]
                 [ label [ class "flex items-center p-4 w-full rounded bg-grey-light" ]
                     [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
                     , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
@@ -186,25 +187,29 @@ usersView repo params spaceUserIds =
                 |> partitionUsers []
     in
     div [ class "leading-semi-loose" ]
-        [ div [] <| List.map userPartitionView partitions
+        [ div [] <| List.map (userPartitionView params) partitions
         , paginationView params spaceUserIds
         ]
 
 
-userPartitionView : ( String, List IndexedUser ) -> Html Msg
-userPartitionView ( letter, indexedUsers ) =
+userPartitionView : Params -> ( String, List IndexedUser ) -> Html Msg
+userPartitionView params ( letter, indexedUsers ) =
     div [ class "flex" ]
         [ div [ class "flex-0 flex-no-shrink pt-1 pl-5 w-12 text-sm text-dusty-blue font-bold" ] [ text letter ]
         , div [ class "flex-1" ] <|
-            List.map userView indexedUsers
+            List.map (userView params) indexedUsers
         ]
 
 
-userView : IndexedUser -> Html Msg
-userView ( index, spaceUser ) =
-    div []
-        [ h2 [ class "flex items-center pr-4 pb-1 font-normal text-lg" ]
-            [ div [ class "mr-4" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+userView : Params -> IndexedUser -> Html Msg
+userView params ( index, spaceUser ) =
+    let
+        viewParams =
+            Route.SpaceUser.init (Route.SpaceUsers.getSpaceSlug params) (SpaceUser.id spaceUser)
+    in
+    a [ Route.href <| Route.SpaceUser viewParams, class "no-underline text-dusty-blue-darker" ]
+        [ h2 [ class "flex items-center pr-4 pb-1 font-normal font-sans text-lg" ]
+            [ div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
             , text (SpaceUser.displayName spaceUser)
             ]
         ]

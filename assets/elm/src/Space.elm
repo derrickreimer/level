@@ -1,4 +1,4 @@
-module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, id, name, openInvitationUrl, slug)
+module Space exposing (Space, avatar, avatarUrl, canManageMembers, canUpdate, decoder, fragment, id, name, openInvitationUrl, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -25,6 +25,7 @@ type alias Data =
     , avatarUrl : Maybe String
     , openInvitationUrl : Maybe String
     , canUpdate : Bool
+    , canManageMembers : Bool
     , fetchedAt : Int
     }
 
@@ -40,6 +41,7 @@ fragment =
           avatarUrl
           openInvitationUrl
           canUpdate
+          canManageMembers
           fetchedAt
         }
         """
@@ -85,6 +87,11 @@ canUpdate (Space data) =
     data.canUpdate
 
 
+canManageMembers : Space -> Bool
+canManageMembers (Space data) =
+    data.canManageMembers
+
+
 
 -- DECODERS
 
@@ -92,11 +99,12 @@ canUpdate (Space data) =
 decoder : Decoder Space
 decoder =
     Decode.map Space <|
-        Decode.map7 Data
+        Decode.map8 Data
             (field "id" Id.decoder)
             (field "name" string)
             (field "slug" string)
             (field "avatarUrl" (maybe string))
             (field "openInvitationUrl" (maybe string))
             (field "canUpdate" bool)
+            (field "canManageMembers" bool)
             (field "fetchedAt" int)

@@ -139,6 +139,17 @@ defmodule Level.SpacesTest do
       assert space_user.user_id == user.id
     end
 
+    test "returns an error if the users access is revoked", %{
+      user: user,
+      space: space,
+      space_user: space_user
+    } do
+      {:ok, _} = Spaces.revoke_access(space_user)
+
+      {:error, message} = Spaces.get_space_by_slug(user, space.slug)
+      assert message == "Space not found"
+    end
+
     test "returns an error if user cannot access the space", %{space: space} do
       {:ok, another_user} = create_user()
 
@@ -292,6 +303,38 @@ defmodule Level.SpacesTest do
       {:ok, _} = Spaces.create_member(new_user, space)
       assert Groups.get_user_role(default_group, new_user) == :member
       assert Groups.get_user_state(default_group, new_user) == :subscribed
+    end
+  end
+
+  describe "can_update?/1" do
+    test "is true if user is an owner" do
+      space_user = %SpaceUser{role: "OWNER"}
+      assert Spaces.can_update?(space_user)
+    end
+
+    test "is false if user is an regular member" do
+      space_user = %SpaceUser{role: "MEMBER"}
+      refute Spaces.can_update?(space_user)
+    end
+  end
+
+  describe "can_manage_members?/1" do
+    test "is true if user is an owner" do
+      space_user = %SpaceUser{role: "OWNER"}
+      assert Spaces.can_manage_members?(space_user)
+    end
+
+    test "is false if user is an regular member" do
+      space_user = %SpaceUser{role: "MEMBER"}
+      refute Spaces.can_manage_members?(space_user)
+    end
+  end
+
+  describe "revoke_access/1" do
+    test "transitions the space user to disabled" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, revoked_user} = Spaces.revoke_access(space_user)
+      assert revoked_user.state == "DISABLED"
     end
   end
 end

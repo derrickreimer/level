@@ -1,4 +1,4 @@
-module SpaceUser exposing (Role(..), SpaceUser, avatar, decoder, displayName, firstName, fragment, handle, id, lastName, role, roleDecoder, spaceId, userId)
+module SpaceUser exposing (Role(..), SpaceUser, State(..), avatar, decoder, displayName, firstName, fragment, handle, id, lastName, role, roleDecoder, spaceId, state, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -21,6 +21,7 @@ type alias Data =
     { id : Id
     , userId : Id
     , spaceId : Id
+    , state : State
     , firstName : String
     , lastName : String
     , handle : String
@@ -36,6 +37,11 @@ type Role
     | Owner
 
 
+type State
+    = Active
+    | Disabled
+
+
 fragment : Fragment
 fragment =
     GraphQL.toFragment
@@ -46,6 +52,7 @@ fragment =
           space {
             id
           }
+          state
           firstName
           lastName
           handle
@@ -78,6 +85,11 @@ userId (SpaceUser data) =
 spaceId : SpaceUser -> Id
 spaceId (SpaceUser data) =
     data.spaceId
+
+
+state : SpaceUser -> State
+state (SpaceUser data) =
+    data.state
 
 
 firstName : SpaceUser -> String
@@ -137,6 +149,24 @@ roleDecoder =
     Decode.andThen convert string
 
 
+stateDecoder : Decoder State
+stateDecoder =
+    let
+        convert : String -> Decoder State
+        convert raw =
+            case raw of
+                "ACTIVE" ->
+                    succeed Active
+
+                "DISABLED" ->
+                    succeed Disabled
+
+                _ ->
+                    fail "State not valid"
+    in
+    Decode.andThen convert string
+
+
 decoder : Decoder SpaceUser
 decoder =
     Decode.map SpaceUser
@@ -144,6 +174,7 @@ decoder =
             |> required "id" Id.decoder
             |> required "userId" Id.decoder
             |> required "space" (field "id" Id.decoder)
+            |> required "state" stateDecoder
             |> required "firstName" string
             |> required "lastName" string
             |> required "handle" string

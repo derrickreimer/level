@@ -274,6 +274,11 @@ defmodule LevelWeb.Schema.Objects do
     field :can_update, non_null(:boolean) do
       resolve &Resolvers.can_update?/3
     end
+
+    @desc "Determines whether the current user is allowed to manage members."
+    field :can_manage_members, non_null(:boolean) do
+      resolve &Resolvers.can_manage_members?/3
+    end
   end
 
   @desc "A group is a collection of users within a space."

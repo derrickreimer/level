@@ -26,8 +26,9 @@ defmodule LevelWeb.Schema do
       end)
     end
 
-    @desc "Fetches a space membership by space id."
+    @desc "Fetches a space user."
     field :space_user, :space_user do
+      arg :id, :id
       arg :space_id, :id
       arg :space_slug, :string
       resolve &Level.Resolvers.space_user/2
@@ -361,6 +362,14 @@ defmodule LevelWeb.Schema do
       arg :nudge_id, non_null(:id)
 
       resolve &Level.Mutations.delete_nudge/2
+    end
+
+    @desc "Revokes a user's access to a space."
+    field :revoke_space_access, :revoke_space_access_payload do
+      arg :space_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
+
+      resolve &Level.Mutations.revoke_space_access/2
     end
   end
 

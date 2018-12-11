@@ -26,9 +26,11 @@ import PushStatus exposing (PushStatus)
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
+import Response exposing (Response)
 import Route exposing (Route)
 import Route.Inbox exposing (Params(..))
 import Route.Search
+import Route.SpaceUser
 import Route.SpaceUsers
 import Scroll
 import Session exposing (Session)
@@ -90,33 +92,38 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task Session.Error (Response ( Globals, Model ))
 init params globals =
     globals.session
-        |> InboxInit.request params
+        |> InboxInit.request (InboxInit.variables params)
         |> TaskHelpers.andThenGetCurrentTime
-        |> Task.map (buildModel params globals)
+        |> Task.map (afterInit params globals)
 
 
-buildModel : Params -> Globals -> ( ( Session, InboxInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
-buildModel params globals ( ( newSession, resp ), now ) =
+afterInit : Params -> Globals -> ( ( Session, Response InboxInit.Data ), ( Zone, Posix ) ) -> Response ( Globals, Model )
+afterInit params globals ( ( newSession, resp ), now ) =
+    Response.map (buildModel params globals newSession now) resp
+
+
+buildModel : Params -> Globals -> Session -> ( Zone, Posix ) -> InboxInit.Data -> ( Globals, Model )
+buildModel params globals newSession now data =
     let
         postComps =
-            Connection.map (buildPostComponent params) resp.postWithRepliesIds
+            Connection.map (buildPostComponent params) data.postWithRepliesIds
 
         model =
             Model
                 params
-                resp.viewerId
-                resp.spaceId
-                resp.bookmarkIds
-                resp.featuredUserIds
+                data.viewerId
+                data.spaceId
+                data.bookmarkIds
+                data.featuredUserIds
                 postComps
                 now
                 (FieldEditor.init "search-editor" "")
 
         newRepo =
-            Repo.union resp.repo globals.repo
+            Repo.union data.repo globals.repo
     in
     ( { globals | session = newSession, repo = newRepo }, model )
 
@@ -201,7 +208,7 @@ type Msg
     | DismissPostsClicked
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PushSubscribeClicked
-    | PostsRefreshed (Result Session.Error ( Session, InboxInit.Response ))
+    | PostsRefreshed (Result Session.Error ( Session, Response InboxInit.Data ))
     | ExpandSearchEditor
     | CollapseSearchEditor
     | SearchEditorChanged String
@@ -265,13 +272,13 @@ update msg globals model =
         PushSubscribeClicked ->
             ( ( model, PushManager.subscribe ), globals )
 
-        PostsRefreshed (Ok ( newSession, resp )) ->
+        PostsRefreshed (Ok ( newSession, Response.Found data )) ->
             let
                 newPostComps =
-                    Connection.map (buildPostComponent model.params) resp.postWithRepliesIds
+                    Connection.map (buildPostComponent model.params) data.postWithRepliesIds
 
                 newRepo =
-                    Repo.union resp.repo globals.repo
+                    Repo.union data.repo globals.repo
 
                 ( addedComps, removedComps ) =
                     Connection.diff .id newPostComps model.postComps
@@ -287,6 +294,9 @@ update msg globals model =
               )
             , { globals | session = newSession, repo = newRepo }
             )
+
+        PostsRefreshed (Ok ( newSession, _ )) ->
+            noCmd { globals | session = newSession } model
 
         PostsRefreshed (Err Session.Expired) ->
             redirectToLogin globals model
@@ -348,7 +358,7 @@ redirectToLogin globals model =
 refreshPosts : Params -> Globals -> Cmd Msg
 refreshPosts params globals =
     globals.session
-        |> InboxInit.request params
+        |> InboxInit.request (InboxInit.variables params)
         |> Task.attempt PostsRefreshed
 
 
@@ -564,7 +574,7 @@ sidebarView space featuredUsers pushStatus =
                 [ text "Team Members"
                 ]
             ]
-        , div [ class "pb-4" ] <| List.map userItemView featuredUsers
+        , div [ class "pb-4" ] <| List.map (userItemView space) featuredUsers
         , ul [ class "list-reset" ]
             [ li []
                 [ a
@@ -585,9 +595,12 @@ sidebarView space featuredUsers pushStatus =
         ]
 
 
-userItemView : SpaceUser -> Html Msg
-userItemView user =
-    div [ class "flex items-center pr-4 mb-px" ]
+userItemView : Space -> SpaceUser -> Html Msg
+userItemView space user =
+    a
+        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+        , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
+        ]
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]

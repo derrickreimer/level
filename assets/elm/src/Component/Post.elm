@@ -29,6 +29,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route
 import Route.Group
+import Route.SpaceUser
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -799,13 +800,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
-                [ a
-                    [ Route.href <| Route.Post (Space.slug space) model.postId
-                    , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
-                    , rel "tooltip"
-                    , title "Expand post"
-                    ]
-                    [ span [ class "font-headline font-bold" ] [ text <| Actor.displayName data.author ] ]
+                [ postAuthorName space model.postId data.author
                 , viewIf model.showGroups <|
                     groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
                 , a
@@ -866,6 +861,26 @@ checkableView repo space viewer now spaceUsers model =
 
 
 -- PRIVATE POST VIEW FUNCTIONS
+
+
+postAuthorName : Space -> Id -> Actor -> Html Msg
+postAuthorName space postId author =
+    let
+        route =
+            case author of
+                Actor.User user ->
+                    Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+
+                _ ->
+                    Route.Post (Space.slug space) postId
+    in
+    a
+        [ Route.href route
+        , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
+        , rel "tooltip"
+        , title "Expand post"
+        ]
+        [ span [ class "font-headline font-bold" ] [ text <| Actor.displayName author ] ]
 
 
 groupsLabel : Space -> List Group -> Html Msg
@@ -968,12 +983,12 @@ repliesView repo space post now replyIds mode spaceUsers editors =
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
         div []
             [ viewIf hasPreviousPage actionButton
-            , div [] (List.map (replyView repo now (Space.id space) post mode editors spaceUsers) replies)
+            , div [] (List.map (replyView repo now space post mode editors spaceUsers) replies)
             ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Id -> Post -> Mode -> ReplyEditors -> List SpaceUser -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) spaceId post mode editors spaceUsers reply =
+replyView : Repo -> ( Zone, Posix ) -> Space -> Post -> Mode -> ReplyEditors -> List SpaceUser -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply =
     let
         replyId =
             Reply.id reply
@@ -992,7 +1007,7 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors spaceUsers rep
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ clickToExpandIf (mode == Feed)
-                        [ span [ class "font-headline font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
+                        [ replyAuthorName space author
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             div [ class "inline-block" ]
@@ -1012,13 +1027,27 @@ replyView repo (( zone, posix ) as now) spaceId post mode editors spaceUsers rep
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
-                        replyEditorView spaceId replyId spaceUsers editor
+                        replyEditorView (Space.id space) replyId spaceUsers editor
                     ]
                 ]
 
         Nothing ->
             -- The author was not in the repo as expected, so we can't display the reply
             text ""
+
+
+replyAuthorName : Space -> Actor -> Html Msg
+replyAuthorName space author =
+    case author of
+        Actor.User user ->
+            a
+                [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+                , class "font-headline font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
+                ]
+                [ text <| Actor.displayName author ]
+
+        _ ->
+            span [ class "font-headline font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
 
 
 replyEditorView : Id -> Id -> List SpaceUser -> PostEditor -> Html Msg
