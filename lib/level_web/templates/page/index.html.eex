@@ -137,7 +137,7 @@
 
 <div class="mb-16 px-8">
   <div class="mx-auto max-w-md text-dusty-blue-darker">
-    <h2 class="mb-3 font-black text-4xl sm:text-5xl tracking-tight">FAQs</h2>
+    <h2 class="mb-3 font-black text-4xl sm:text-5xl tracking-tight text-dusty-blue-darkest">FAQs</h2>
 
     <h3 class="mt-6 mb-3 font-black tracking-semi-tight leading-tight text-2xl">Is the payment for an individual account or team account?</h3>
     <p class="mb-4">The payment will be applied toward a team subscription. Similar to GitHub, it&rsquo;s free to have an individual account, but costs money to create a team space on Level.</p>
