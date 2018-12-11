@@ -502,7 +502,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ postView repo spaceUsers model data
-            , sidebarView repo model
+            , sidebarView repo model data
             ]
         ]
 
@@ -581,13 +581,13 @@ postStateButton isChangingState post =
                 [ text "Mark as open" ]
 
 
-sidebarView : Repo -> Model -> Html Msg
-sidebarView repo model =
+sidebarView : Repo -> Model -> Data -> Html Msg
+sidebarView repo model data =
     let
         listView =
             case model.currentViewers of
                 Loaded state ->
-                    View.PresenceList.view repo model.spaceId state
+                    View.PresenceList.view repo data.space state
 
                 NotLoaded ->
                     div [ class "pb-4 text-sm" ] [ text "Loading..." ]

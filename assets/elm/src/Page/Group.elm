@@ -36,6 +36,7 @@ import Route exposing (Route)
 import Route.Group exposing (Params(..))
 import Route.GroupSettings
 import Route.Search
+import Route.SpaceUser
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -803,7 +804,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                 , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
             , postsView repo model.params data.space data.viewer model.now model.postComps spaceUsers
-            , sidebarView model.params data.group data.featuredMembers
+            , sidebarView model.params data.space data.group data.featuredMembers
             ]
         ]
 
@@ -994,8 +995,8 @@ postView repo space currentUser now spaceUsers component =
         ]
 
 
-sidebarView : Params -> Group -> List SpaceUser -> Html Msg
-sidebarView params group featuredMembers =
+sidebarView : Params -> Space -> Group -> List SpaceUser -> Html Msg
+sidebarView params space group featuredMembers =
     let
         settingsParams =
             Route.GroupSettings.init
@@ -1011,7 +1012,7 @@ sidebarView params group featuredMembers =
             , viewIf False <|
                 privacyIcon (Group.isPrivate group)
             ]
-        , memberListView featuredMembers
+        , memberListView space featuredMembers
         , ul [ class "list-reset leading-normal" ]
             [ li []
                 [ subscribeButtonView (Group.membershipState group)
@@ -1027,20 +1028,23 @@ sidebarView params group featuredMembers =
         ]
 
 
-memberListView : List SpaceUser -> Html Msg
-memberListView featuredMembers =
+memberListView : Space -> List SpaceUser -> Html Msg
+memberListView space featuredMembers =
     if List.isEmpty featuredMembers then
         div [ class "pb-4 text-sm text-dusty-blue-darker" ] [ text "Nobody has joined yet." ]
 
     else
-        div [ class "pb-4" ] <| List.map memberItemView featuredMembers
+        div [ class "pb-4" ] <| List.map (memberItemView space) featuredMembers
 
 
-memberItemView : SpaceUser -> Html Msg
-memberItemView member =
-    div [ class "flex items-center pr-4 mb-px" ]
-        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny member ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName member ]
+memberItemView : Space -> SpaceUser -> Html Msg
+memberItemView space user =
+    a
+        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+        , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
+        ]
+        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]
 
 
