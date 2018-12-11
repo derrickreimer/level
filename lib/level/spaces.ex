@@ -175,6 +175,7 @@ defmodule Level.Spaces do
       join: s in assoc(su, :space),
       join: usu in SpaceUser,
       on: usu.space_id == su.space_id and usu.user_id == ^user.id,
+      where: usu.state == "ACTIVE",
       select: %{su | space_name: s.name}
   end
 
@@ -222,7 +223,6 @@ defmodule Level.Spaces do
       user
       |> space_users_base_query()
       |> where([su], su.space_id == ^space_id and su.user_id == ^user_id)
-      |> where([su], su.state == "ACTIVE")
 
     case Repo.one(query) do
       %SpaceUser{} = space_user ->
@@ -238,7 +238,6 @@ defmodule Level.Spaces do
       user
       |> space_users_base_query()
       |> where([su], su.id == ^space_user_id)
-      |> where([su], su.state == "ACTIVE")
 
     case Repo.one(query) do
       %SpaceUser{} = space_user ->
