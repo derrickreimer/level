@@ -221,7 +221,7 @@ detailView model data =
                 , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
                 ]
             ]
-        , viewIf (Space.canManageMembers data.space && SpaceUser.state data.spaceUser == SpaceUser.Active) <|
+        , viewIf (canRevoke model data) <|
             button
                 [ class "flex items-center text-dusty-blue no-underline font-bold"
                 , onClick ToggleRevokeModel
@@ -230,6 +230,15 @@ detailView model data =
                 , div [] [ text "Revoke access" ]
                 ]
         ]
+
+
+canRevoke : Model -> Data -> Bool
+canRevoke model data =
+    Space.canManageMembers data.space
+        && SpaceUser.state data.spaceUser
+        == SpaceUser.Active
+        && model.viewerId
+        /= model.spaceUserId
 
 
 revokeModal : Model -> Data -> Html Msg
