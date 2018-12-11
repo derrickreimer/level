@@ -110,7 +110,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center border-r-4 border-turquoise" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-darkest font-bold"
+                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-darkest font-extrabold"
                     ]
                     [ text title
                     ]
