@@ -1,4 +1,4 @@
-module Query.InboxInit exposing (Response, request)
+module Query.InboxInit exposing (Data, request, variables)
 
 import Component.Post
 import Connection exposing (Connection)
@@ -11,6 +11,7 @@ import Post exposing (Post)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import Response exposing (Response)
 import Route.Inbox exposing (Params(..))
 import Session exposing (Session)
 import Space exposing (Space)
@@ -18,7 +19,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 
 
-type alias Response =
+type alias Data =
     { viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
@@ -28,7 +29,7 @@ type alias Response =
     }
 
 
-type alias Data =
+type alias ResolvedData =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
@@ -92,7 +93,7 @@ document =
         ]
 
 
-variables : Params -> Maybe Encode.Value
+variables : Params -> Encode.Value
 variables params =
     let
         spaceSlug =
@@ -136,7 +137,7 @@ variables params =
                     , ( "lastActivityFilter", Encode.string lastActivityFilter )
                     ]
     in
-    Just (Encode.object values)
+    Encode.object values
 
 
 castInboxState : Route.Inbox.State -> String
@@ -159,60 +160,46 @@ castLastActivity lastActivity =
             "TODAY"
 
 
-decoder : Decoder Data
+decoder : Decoder (Response Data)
 decoder =
-    Decode.at [ "data", "spaceUser" ] <|
-        Decode.map5 Data
-            SpaceUser.decoder
-            (field "space" Space.decoder)
-            (field "bookmarks" (list Group.decoder))
-            (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
-            (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
+    let
+        resolvedDecoder =
+            Decode.at [ "data", "spaceUser" ] <|
+                Decode.map5 ResolvedData
+                    SpaceUser.decoder
+                    (field "space" Space.decoder)
+                    (field "bookmarks" (list Group.decoder))
+                    (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
+                    (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
+    in
+    Decode.oneOf
+        [ Decode.map Response.Found <|
+            Decode.map unresolve resolvedDecoder
+        , Decode.succeed Response.NotFound
+        ]
 
 
-buildResponse : ( Session, Data ) -> ( Session, Response )
-buildResponse ( session, data ) =
+unresolve : ResolvedData -> Data
+unresolve resolvedData =
     let
         repo =
             Repo.empty
-                |> Repo.setSpace data.space
-                |> Repo.setSpaceUser data.viewer
-                |> Repo.setGroups data.bookmarks
-                |> Repo.setSpaceUsers data.featuredUsers
-                |> ResolvedPostWithReplies.addManyToRepo (Connection.toList data.resolvedPosts)
-
-        resp =
-            Response
-                (SpaceUser.id data.viewer)
-                (Space.id data.space)
-                (List.map Group.id data.bookmarks)
-                (List.map SpaceUser.id data.featuredUsers)
-                (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)
-                repo
+                |> Repo.setSpace resolvedData.space
+                |> Repo.setSpaceUser resolvedData.viewer
+                |> Repo.setGroups resolvedData.bookmarks
+                |> Repo.setSpaceUsers resolvedData.featuredUsers
+                |> ResolvedPostWithReplies.addManyToRepo (Connection.toList resolvedData.resolvedPosts)
     in
-    ( session, resp )
+    Data
+        (SpaceUser.id resolvedData.viewer)
+        (Space.id resolvedData.space)
+        (List.map Group.id resolvedData.bookmarks)
+        (List.map SpaceUser.id resolvedData.featuredUsers)
+        (Connection.map ResolvedPostWithReplies.unresolve resolvedData.resolvedPosts)
+        repo
 
 
-request : Params -> Session -> Task Session.Error ( Session, Response )
-request params session =
-    GraphQL.request document (variables params) decoder
+request : Encode.Value -> Session -> Task Session.Error ( Session, Response Data )
+request vars session =
+    GraphQL.request document (Just vars) decoder
         |> Session.request session
-        |> Task.map buildResponse
-
-
-
--- INTERNAL
-
-
-encodeMaybeStrings : List ( String, Maybe String ) -> List ( String, Encode.Value ) -> List ( String, Encode.Value )
-encodeMaybeStrings maybePairs encodeValues =
-    let
-        reducer ( key, maybeValue ) accum =
-            case maybeValue of
-                Just value ->
-                    ( key, Encode.string value ) :: accum
-
-                Nothing ->
-                    accum
-    in
-    List.foldr reducer encodeValues maybePairs

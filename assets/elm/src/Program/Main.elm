@@ -38,6 +38,7 @@ import PushStatus exposing (PushStatus)
 import Query.GetSpaceUserLists as GetSpaceUserLists
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
+import Response exposing (Response)
 import Route exposing (Route)
 import Route.Groups
 import Route.Inbox
@@ -484,7 +485,7 @@ type PageInit
     = SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
-    | InboxInit (Result Session.Error ( Globals, Page.Inbox.Model ))
+    | InboxInit (Result Session.Error (Response ( Globals, Page.Inbox.Model )))
     | SpaceUserInit (Result Session.Error ( Globals, Page.SpaceUser.Model ))
     | SpaceUsersInit (Result Session.Error ( Globals, Page.SpaceUsers.Model ))
     | InviteUsersInit (Result Session.Error ( Globals, Page.InviteUsers.Model ))
@@ -702,12 +703,11 @@ setupPage pageInit model =
         NewSpaceInit (Err _) ->
             ( model, Cmd.none )
 
-        InboxInit (Ok result) ->
-            let
-                ( newGlobals, pageModel ) =
-                    result
-            in
-            perform (Page.Inbox.setup newGlobals) Inbox InboxMsg model result
+        InboxInit (Ok (Response.Found ( newGlobals, pageModel ))) ->
+            perform (Page.Inbox.setup newGlobals) Inbox InboxMsg model ( newGlobals, pageModel )
+
+        InboxInit (Ok Response.NotFound) ->
+            ( { model | page = NotFound }, Cmd.none )
 
         InboxInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -1088,7 +1088,10 @@ pageView repo page pushStatus spaceUserLists =
                 ]
 
         NotFound ->
-            text "404"
+            div [ class "font-sans font-antialised justify-center h-screen w-full text-center pt-24" ]
+                [ h1 [ class "mb-1 text-6xl tracking-semi-tight text-dusty-blue-darker font-black" ] [ text "404" ]
+                , h2 [ class "text-2xl text-dusty-blue-darker font-normal" ] [ text "Page not found" ]
+                ]
 
 
 
