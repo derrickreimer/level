@@ -437,11 +437,9 @@ stepView step model data =
     case step of
         1 ->
             div []
-                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
-                , p [ class "mb-6" ] [ text "Let’s face it—we’ve all been conditioned by chat tools to expect instant responses from our teammates, and we’re hooked on the dopamine hits from compulsively checking our notifications." ]
-                , p [ class "mb-6" ] [ text "As a result, our ability to achieve deep focus is suffering. It’s simply unsustainable." ]
-                , p [ class "mb-6" ] [ text "Chances are you’re here because you recognize the problem and you’re ready to detox. Hooray!" ]
-                , p [ class "mb-6" ] [ text "It’s time to break some bad habits and start embracing asynchronous communication. To get started, join me on quick walk through the fundamental ideas behind Level." ]
+                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level. Let’s face it—our ability to achieve deep focus is suffering and our tools are part of the problem." ]
+                , p [ class "mb-6" ] [ text "Real-time chat is greedy. It demands your attention. It begs you to incessantly clear its notification badges. It punishes you by burying important messages among idle chatter." ]
+                , p [ class "mb-6" ] [ text "I’m so glad you’re here seeking a better way! It’s time to break some bad habits and start embracing a new way. To get started, join me on quick walk through the fundamental ideas behind Level." ]
                 , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
 
                 -- button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
@@ -465,8 +463,8 @@ stepView step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Conversations are always threaded." ]
-                , p [ class "mb-6" ] [ text "You can either create a new post to kick off a conversation, or reply to an existing post to carry on the discussion." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Every conversation is threaded." ]
+                , p [ class "mb-6" ] [ text "Chat timelines are horrible for actually organizing productive discussions. In Level, every conversation is structured as a thread." ]
                 , p [ class "mb-6" ] [ text "Once a conversation is done, you can ", strong [] [ text "mark it as resolved" ], text " to let the rest of the team know it’s finished." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
@@ -475,9 +473,9 @@ stepView step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
-                , p [ class "mb-6" ] [ text "It’s neither possible, nor desirable, for any single person to keep up with every conversation. Such an endeavor is stressful and futile." ]
+                , p [ class "mb-6" ] [ text "It’s neither possible nor desirable to keep up with every conversation." ]
                 , p [ class "mb-6" ] [ text "To combat information overload and prevent important things from slipping through the cracks, Level has an Inbox." ]
-                , p [ class "mb-6" ] [ text "Posts will land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
+                , p [ class "mb-6" ] [ text "Posts land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
                 , p [ class "mb-6" ] [ text "You can safely dismiss posts from your Inbox when you’re done with them—they’ll move back to your Inbox if more activity occurs later." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
@@ -487,7 +485,7 @@ stepView step model data =
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Your Activity Feed keeps you in the loop." ]
                 , p [ class "mb-6" ] [ text "Your Activity Feed is personalized to include all messages posted in groups that you have joined (including the ones that fell in your Inbox)." ]
-                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse posts there to find out what else is happening around the space." ]
+                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse posts there to find out what else is happening around the space—but you shouldn’t feel pressure to follow everything." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
@@ -495,9 +493,8 @@ stepView step model data =
         6 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
-                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. 99% of messages are not so urgent they warrant paying that penalty." ]
-                , p [ class "mb-6" ] [ text "Instead of notifying you every time you get a message, Level batches up your notifications and emails you a digest at preset times of day that are optimal for you." ]
-                , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule:" ]
+                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails you a digest at your desired intervals." ]
+                , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
                 , div [ class "mb-6" ] [ View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone) ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
@@ -505,9 +502,10 @@ stepView step model data =
 
         7 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Level does not track who’s online." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
-                , p [ class "mb-6" ] [ text "It’s most definitely not a good proxy for determining whether someone is slacking off." ]
+                , p [ class "mb-6" ] [ text "And it’s most definitely not a good proxy for determining whether someone is slacking off." ]
+                , p [ class "mb-6" ] [ text "For that reason, Level does not actively track who’s online at any given moment." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
