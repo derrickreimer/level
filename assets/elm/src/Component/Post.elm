@@ -824,11 +824,10 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 bodyView space model.mode data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
                 postEditorView (Space.id space) spaceUsers model.postEditor
-            , div [ class "flex items-center" ]
-                [ div [ class "flex-grow" ]
-                    [ viewIf (Post.state data.post == Post.Open) <|
-                        button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
-                    ]
+            , div [ class "pb-2 flex items-start" ]
+                [ button [ class "inline-block mr-4" ] [ Icons.thumbs ]
+                , viewIf (Post.state data.post == Post.Open) <|
+                    button [ class "inline-block mr-4", style "margin-top" "2px", onClick ExpandReplyComposer ] [ Icons.comment ]
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
