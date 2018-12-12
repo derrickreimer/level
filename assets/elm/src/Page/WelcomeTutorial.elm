@@ -2,6 +2,7 @@ module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, init, setup,
 
 import Browser.Navigation as Nav
 import Clipboard
+import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import Flash
 import Globals exposing (Globals)
@@ -14,8 +15,11 @@ import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CreateGroup as CreateGroup
+import Mutation.CreateNudge as CreateNudge
+import Mutation.DeleteNudge as DeleteNudge
 import Mutation.MarkTutorialComplete as MarkTutorialComplete
 import Mutation.UpdateTutorialStep as UpdateTutorialStep
+import Nudge exposing (Nudge)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -30,6 +34,7 @@ import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, viewIf)
+import View.Nudges
 import View.SpaceLayout
 
 
@@ -43,6 +48,9 @@ type alias Model =
     , spaceId : Id
     , bookmarkIds : List Id
     , selectedGroups : List String
+    , digestSettings : DigestSettings
+    , nudges : List Nudge
+    , timeZone : String
     , isSubmitting : Bool
     }
 
@@ -102,6 +110,9 @@ buildModel params globals ( newSession, resp ) =
                 resp.spaceId
                 resp.bookmarkIds
                 [ "Everyone" ]
+                resp.digestSettings
+                resp.nudges
+                resp.timeZone
                 False
 
         newRepo =
@@ -115,6 +126,7 @@ setup globals model =
     Cmd.batch
         [ updateStep globals model
         , markIfComplete globals model
+        , Scroll.toDocumentTop NoOp
         ]
 
 
@@ -165,6 +177,9 @@ type Msg
     | LinkCopyFailed
     | StepUpdated (Result Session.Error ( Session, UpdateTutorialStep.Response ))
     | MarkedComplete (Result Session.Error ( Session, MarkTutorialComplete.Response ))
+    | NudgeToggled Int
+    | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
+    | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -269,6 +284,52 @@ update msg globals model =
         MarkedComplete _ ->
             ( ( model, Cmd.none ), globals )
 
+        NudgeToggled minute ->
+            let
+                cmd =
+                    case nudgeAt minute model of
+                        Just nudge ->
+                            globals.session
+                                |> DeleteNudge.request (DeleteNudge.variables model.spaceId (Nudge.id nudge))
+                                |> Task.attempt NudgeDeleted
+
+                        Nothing ->
+                            globals.session
+                                |> CreateNudge.request (CreateNudge.variables model.spaceId minute)
+                                |> Task.attempt NudgeCreated
+            in
+            ( ( model, cmd ), globals )
+
+        NudgeCreated (Ok ( newSession, CreateNudge.Success nudge )) ->
+            let
+                newNudges =
+                    nudge :: model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeCreated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeCreated _ ->
+            noCmd globals model
+
+        NudgeDeleted (Ok ( newSession, DeleteNudge.Success nudge )) ->
+            let
+                newNudges =
+                    removeBy Nudge.id nudge model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeDeleted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeDeleted _ ->
+            noCmd globals model
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -322,7 +383,13 @@ resolvedView repo maybeCurrentRoute model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
+        [ div
+            [ classList
+                [ ( "mx-auto leading-normal p-8", True )
+                , ( "max-w-sm", step /= 6 )
+                , ( "max-w-md", step == 6 )
+                ]
+            ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
                 [ headerView step data
                 , stepView step model data
@@ -334,12 +401,12 @@ resolvedView repo maybeCurrentRoute model data =
 headerView : Int -> Data -> Html Msg
 headerView step data =
     if step == 1 then
-        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ]
+        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tighter text-dusty-blue-darkest" ]
             [ text <| "Welcome to Level, " ++ SpaceUser.firstName data.viewer ]
 
     else
         div []
-            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tight text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
+            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
             , progressBarView step
             ]
 
@@ -370,21 +437,20 @@ stepView step model data =
     case step of
         1 ->
             div []
-                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
-                , p [ class "mb-6" ] [ text "Let’s face it—we’ve all been conditioned by real-time chat to expect instant responses from our teammates." ]
-                , p [ class "mb-6" ] [ text "As a result, our ability to achieve deep focus is suffering. It’s simply unsustainable." ]
-                , p [ class "mb-6" ] [ text "I’m so glad you are here pursuing a better way. It’s time to break some bad habits and start embracing asynchronous communication." ]
-                , p [ class "mb-6" ] [ text "To get started, join me on quick walk through the fundamental ideas behind Level." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
-                , button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
-                    [ span [ class "mr-2" ] [ text "Already know Level? Skip the tutorial" ]
-                    , Icons.arrowRight Icons.On
-                    ]
+                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level. Let’s face it—our ability to achieve deep focus is suffering and our tools are part of the problem." ]
+                , p [ class "mb-6" ] [ text "Real-time chat is greedy. It demands your attention. It begs you to incessantly clear its notification badges. It punishes you by burying important messages among idle chatter." ]
+                , p [ class "mb-6" ] [ text "I’m so glad you’re here seeking a better way! It’s time to break some bad habits and start embracing a new way. To get started, join me on quick walk through the fundamental ideas behind Level." ]
+                , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
+
+                -- button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
+                -- [ span [ class "mr-2" ] [ text "Already know Level? Skip to manually set it up" ]
+                -- , Icons.arrowRight Icons.On
+                -- ]
                 ]
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Groups keep your conversations organized." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups keep your conversations organized." ]
                 , p [ class "mb-6" ] [ text "Similar to channels in chat, a group in Level is a place where you can post messages around a particular topic." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
@@ -397,18 +463,19 @@ stepView step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Conversations are always threaded." ]
-                , p [ class "mb-6" ] [ text "You can either create a new post to kick off a conversation, or reply to an existing post to carry on the discussion." ]
-                , p [ class "mb-6" ] [ text "Once a conversation is done, it is best to mark it as resolved to let the rest of the team know." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Every conversation is threaded." ]
+                , p [ class "mb-6" ] [ text "Chat timelines are horrible for actually organizing productive discussions. In Level, every conversation is structured as a thread." ]
+                , p [ class "mb-6" ] [ text "Once a conversation is done, you can ", strong [] [ text "mark it as resolved" ], text " to let the rest of the team know it’s finished." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Inbox is your curated to-do list." ]
-                , p [ class "mb-6" ] [ text "It’s neither possible, nor desirable, for any single person to keep up with every conversation. Such an endeavor is stressful and futile." ]
-                , p [ class "mb-6" ] [ text "Posts will land in your Inbox when someone loops you in with an @-mention or when you’ve already participated in the conversation and there’s new activity." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
+                , p [ class "mb-6" ] [ text "It’s neither possible nor desirable to keep up with every conversation." ]
+                , p [ class "mb-6" ] [ text "To combat information overload and prevent important things from slipping through the cracks, Level has an Inbox." ]
+                , p [ class "mb-6" ] [ text "Posts land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
                 , p [ class "mb-6" ] [ text "You can safely dismiss posts from your Inbox when you’re done with them—they’ll move back to your Inbox if more activity occurs later." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
@@ -416,44 +483,36 @@ stepView step model data =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Activity feed helps you stay in the loop." ]
-                , p [ class "mb-6" ] [ text "Your feed is personalized to only include messages posted in groups that you have joined." ]
-                , p [ class "mb-6" ] [ text "Since posts only land in your Inbox if you have been looped in, it’s a good idea to periodically skim through your Activity feed." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Your Activity Feed keeps you in the loop." ]
+                , p [ class "mb-6" ] [ text "Your Activity Feed is personalized to include all messages posted in groups that you have joined (including the ones that fell in your Inbox)." ]
+                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse posts there to find out what else is happening around the space—but you shouldn’t feel pressure to follow everything." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
         6 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Level will not interrupt you." ]
-                , p [ class "mb-6" ] [ text "On average, it takes 22 minutes to get back into flow after a single interruption. I’m willing to bet that 99% of conversations are not so urgent they warrant paying that penalty." ]
-                , p [ class "mb-6" ] [ text "Level will not send push notifications unless you have a true emergency and flag your message accordingly." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
+                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails you a digest at your desired intervals." ]
+                , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
+                , div [ class "mb-6" ] [ View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone) ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
         7 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Level does not track who’s online." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
-                , p [ class "mb-6" ] [ text "And, it’s most definitely not a good proxy for determining whether someone is slacking off." ]
-                , p [ class "mb-6" ] [ text "There’s just one exception: if two or more people are looking at the same post, Level will let them know who else is there (in case they want to chat)." ]
+                , p [ class "mb-6" ] [ text "And it’s most definitely not a good proxy for determining whether someone is slacking off." ]
+                , p [ class "mb-6" ] [ text "For that reason, Level does not actively track who’s online at any given moment." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
         8 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "You control how often Level nudges you." ]
-                , p [ class "mb-6" ] [ text "Level aims to be as unobtrusive as possible. At a minimum, you’ll receive a Daily Digest email summarizing what’s on your plate in your Level Inbox." ]
-                , p [ class "mb-6" ] [ text "You can also configure Level to send you periodic emails throughout the day to keep you in the know about new activity." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Previous"
-                ]
-
-        9 ->
-            div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "You’re ready to go!" ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
                 , backButton "Previous"
@@ -523,3 +582,14 @@ inviteView maybeUrl =
             div []
                 [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
                 ]
+
+
+
+-- HELPERS
+
+
+nudgeAt : Int -> Model -> Maybe Nudge
+nudgeAt minute model =
+    model.nudges
+        |> List.filter (\nudge -> Nudge.minute nudge == minute)
+        |> List.head

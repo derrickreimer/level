@@ -337,4 +337,24 @@ defmodule Level.SpacesTest do
       assert revoked_user.state == "DISABLED"
     end
   end
+
+  describe "accept_open_invitation/2" do
+    test "creates a new active space user if the user has never been a member" do
+      {:ok, %{open_invitation: invitation}} = create_user_and_space()
+      {:ok, user} = create_user()
+
+      {:ok, space_user} = Spaces.accept_open_invitation(user, invitation)
+      assert space_user.state == "ACTIVE"
+    end
+
+    test "reactivates disabled space user" do
+      {:ok, %{space: space, open_invitation: invitation}} = create_user_and_space()
+      {:ok, %{user: user, space_user: space_user}} = create_space_member(space)
+
+      {:ok, _} = Spaces.revoke_access(space_user)
+
+      {:ok, reactivated_space_user} = Spaces.accept_open_invitation(user, invitation)
+      assert reactivated_space_user.state == "ACTIVE"
+    end
+  end
 end

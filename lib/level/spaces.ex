@@ -356,7 +356,17 @@ defmodule Level.Spaces do
           {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
   def accept_open_invitation(user, invitation) do
     invitation = Repo.preload(invitation, :space)
-    create_member(user, invitation.space)
+
+    case Repo.get_by(SpaceUser, user_id: user.id, space_id: invitation.space_id) do
+      %SpaceUser{state: "DISABLED"} = space_user ->
+        grant_access(space_user)
+
+      %SpaceUser{state: "ACTIVE"} = space_user ->
+        {:ok, space_user}
+
+      _ ->
+        create_member(user, invitation.space)
+    end
   end
 
   @doc """
@@ -450,6 +460,16 @@ defmodule Level.Spaces do
   def revoke_access(%SpaceUser{} = space_user) do
     space_user
     |> Ecto.Changeset.change(state: "DISABLED")
+    |> Repo.update()
+  end
+
+  @doc """
+  Grant a space user access.
+  """
+  @spec grant_access(SpaceUser.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
+  def grant_access(%SpaceUser{} = space_user) do
+    space_user
+    |> Ecto.Changeset.change(state: "ACTIVE")
     |> Repo.update()
   end
 
