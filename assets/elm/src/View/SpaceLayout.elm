@@ -37,7 +37,7 @@ rightSidebar : List (Html msg) -> Html msg
 rightSidebar children =
     div
         [ classList
-            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 border-l min-h-half", True )
+            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 min-h-half", True )
             , ( "hidden md:block md:w-48 lg:w-56", True )
             ]
         ]
