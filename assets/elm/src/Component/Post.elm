@@ -16,6 +16,7 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Markdown
+import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
 import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
@@ -168,7 +169,8 @@ setupScrollPosition mode =
 
 
 type Msg
-    = ExpandReplyComposer
+    = NoOp
+    | ExpandReplyComposer
     | NewReplyBodyChanged String
     | NewReplyFileAdded File
     | NewReplyFileUploadProgress Id Int
@@ -203,12 +205,16 @@ type Msg
     | ReplyEditorFileUploadError Id Id
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
-    | NoOp
+    | PostReactionClicked
+    | PostReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
 
 
 update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg spaceId globals model =
     case msg of
+        NoOp ->
+            noCmd globals model
+
         ExpandReplyComposer ->
             let
                 cmd =
@@ -706,8 +712,30 @@ update msg spaceId globals model =
             in
             ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
 
-        NoOp ->
-            noCmd globals model
+        PostReactionClicked ->
+            let
+                variables =
+                    CreatePostReaction.variables spaceId model.postId
+
+                cmd =
+                    globals.session
+                        |> CreatePostReaction.request variables
+                        |> Task.attempt PostReactionCreated
+            in
+            ( ( model, cmd ), globals )
+
+        PostReactionCreated (Ok ( newSession, CreatePostReaction.Success post )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setPost post globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        PostReactionCreated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostReactionCreated _ ->
+            ( ( model, Cmd.none ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -825,7 +853,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
             , viewIf (PostEditor.isExpanded model.postEditor) <|
                 postEditorView (Space.id space) spaceUsers model.postEditor
             , div [ class "pb-2 flex items-start" ]
-                [ button [ class "inline-block mr-4" ] [ Icons.thumbs ]
+                [ button [ class "inline-block mr-4", onClick PostReactionClicked ] [ Icons.thumbs ]
                 , viewIf (Post.state data.post == Post.Open) <|
                     button [ class "inline-block mr-4", style "margin-top" "2px", onClick ExpandReplyComposer ] [ Icons.comment ]
                 ]
