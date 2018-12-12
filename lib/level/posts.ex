@@ -609,6 +609,20 @@ defmodule Level.Posts do
     end
   end
 
+  @spec reacted?(User.t(), Post.t()) :: boolean()
+  def reacted?(%User{id: user_id}, %Post{id: post_id}) do
+    query =
+      from pr in PostReaction,
+        join: su in assoc(pr, :space_user),
+        on: su.user_id == ^user_id,
+        where: pr.post_id == ^post_id
+
+    case Repo.one(query) do
+      %PostReaction{} -> true
+      _ -> false
+    end
+  end
+
   # Internal
 
   defp update_many_user_states(space_user, posts, params) do

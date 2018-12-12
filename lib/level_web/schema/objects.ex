@@ -409,6 +409,10 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.can_edit_post/3
     end
 
+    field :has_reacted, non_null(:boolean) do
+      resolve &Resolvers.has_reacted/3
+    end
+
     interface :fetch_timeable
 
     @desc "The timestamp representing when the object was fetched."
