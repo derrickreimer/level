@@ -371,6 +371,14 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.revoke_space_access/2
     end
+
+    @desc "Creates a reaction to a post."
+    field :create_post_reaction, :create_post_reaction_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+
+      resolve &Level.Mutations.create_post_reaction/2
+    end
   end
 
   subscription do

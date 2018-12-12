@@ -829,6 +829,25 @@ defmodule Level.Mutations do
     end
   end
 
+  @doc """
+  Creates a post reaction.
+  """
+  @spec create_post_reaction(map(), info()) ::
+          {:ok, %{success: boolean(), errors: validation_errors()}} | {:error, String.t()}
+  def create_post_reaction(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, post} <- Posts.get_post(space_user, args.post_id),
+         {:ok, _} <- Posts.create_post_reaction(space_user, post) do
+      {:ok, %{success: true, errors: [], post: post}}
+    else
+      %Ecto.Changeset{} = changeset ->
+        {:ok, %{success: false, errors: format_errors(changeset), post: nil}}
+
+      err ->
+        err
+    end
+  end
+
   defp can_manage_members?(space_user) do
     if Spaces.can_manage_members?(space_user) do
       :ok
