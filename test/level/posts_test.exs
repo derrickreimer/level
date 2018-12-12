@@ -11,6 +11,7 @@ defmodule Level.PostsTest do
   alias Level.Schemas.Group
   alias Level.Schemas.Notification
   alias Level.Schemas.Post
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.PostVersion
   alias Level.Schemas.PostView
   alias Level.Schemas.Reply
@@ -660,6 +661,27 @@ defmodule Level.PostsTest do
       assert Enum.all?(notifications, fn notification ->
                notification.state == "DISMISSED"
              end)
+    end
+  end
+
+  describe "create_post_reaction/2" do
+    test "creates a reaction and handles duplicates" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      refute Posts.reacted?(space_user, post)
+
+      {:ok, _} = Posts.create_post_reaction(space_user, post)
+
+      assert Posts.reacted?(space_user, post)
+
+      # Duplicate reaction
+      space_user_id = space_user.id
+      post_id = post.id
+
+      assert {:ok, %PostReaction{space_user_id: ^space_user_id, post_id: ^post_id}} =
+               Posts.create_post_reaction(space_user, post)
     end
   end
 end

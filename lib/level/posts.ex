@@ -23,6 +23,7 @@ defmodule Level.Posts do
   alias Level.Schemas.Post
   alias Level.Schemas.PostFile
   alias Level.Schemas.PostLog
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.PostUser
   alias Level.Schemas.PostUserLog
   alias Level.Schemas.PostVersion
@@ -575,6 +576,37 @@ defmodule Level.Posts do
         _ = Notifications.record_post_reopened(subscriber, post)
       end
     end)
+  end
+
+  @doc """
+  Creates a reaction to a post.
+  """
+  @spec create_post_reaction(SpaceUser.t(), Post.t()) ::
+          {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()}
+  def create_post_reaction(%SpaceUser{} = space_user, %Post{} = post) do
+    params = %{
+      space_id: space_user.space_id,
+      space_user_id: space_user.id,
+      post_id: post.id,
+      value: "👍"
+    }
+
+    %PostReaction{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert(on_conflict: :nothing, returning: true)
+  end
+
+  @doc """
+  Determines if a user has reacted to a post.
+  """
+  @spec reacted?(SpaceUser.t(), Post.t()) :: boolean()
+  def reacted?(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
+    params = [space_user_id: space_user_id, post_id: post_id]
+
+    case Repo.get_by(PostReaction, params) do
+      %PostReaction{} -> true
+      _ -> false
+    end
   end
 
   # Internal
