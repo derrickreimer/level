@@ -2,6 +2,7 @@ module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, init, setup,
 
 import Browser.Navigation as Nav
 import Clipboard
+import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import Flash
 import Globals exposing (Globals)
@@ -14,8 +15,11 @@ import Id exposing (Id)
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CreateGroup as CreateGroup
+import Mutation.CreateNudge as CreateNudge
+import Mutation.DeleteNudge as DeleteNudge
 import Mutation.MarkTutorialComplete as MarkTutorialComplete
 import Mutation.UpdateTutorialStep as UpdateTutorialStep
+import Nudge exposing (Nudge)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -30,6 +34,7 @@ import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, viewIf)
+import View.Nudges
 import View.SpaceLayout
 
 
@@ -43,6 +48,9 @@ type alias Model =
     , spaceId : Id
     , bookmarkIds : List Id
     , selectedGroups : List String
+    , digestSettings : DigestSettings
+    , nudges : List Nudge
+    , timeZone : String
     , isSubmitting : Bool
     }
 
@@ -102,6 +110,9 @@ buildModel params globals ( newSession, resp ) =
                 resp.spaceId
                 resp.bookmarkIds
                 [ "Everyone" ]
+                resp.digestSettings
+                resp.nudges
+                resp.timeZone
                 False
 
         newRepo =
@@ -115,6 +126,7 @@ setup globals model =
     Cmd.batch
         [ updateStep globals model
         , markIfComplete globals model
+        , Scroll.toDocumentTop NoOp
         ]
 
 
@@ -165,6 +177,9 @@ type Msg
     | LinkCopyFailed
     | StepUpdated (Result Session.Error ( Session, UpdateTutorialStep.Response ))
     | MarkedComplete (Result Session.Error ( Session, MarkTutorialComplete.Response ))
+    | NudgeToggled Int
+    | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
+    | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -269,6 +284,52 @@ update msg globals model =
         MarkedComplete _ ->
             ( ( model, Cmd.none ), globals )
 
+        NudgeToggled minute ->
+            let
+                cmd =
+                    case nudgeAt minute model of
+                        Just nudge ->
+                            globals.session
+                                |> DeleteNudge.request (DeleteNudge.variables model.spaceId (Nudge.id nudge))
+                                |> Task.attempt NudgeDeleted
+
+                        Nothing ->
+                            globals.session
+                                |> CreateNudge.request (CreateNudge.variables model.spaceId minute)
+                                |> Task.attempt NudgeCreated
+            in
+            ( ( model, cmd ), globals )
+
+        NudgeCreated (Ok ( newSession, CreateNudge.Success nudge )) ->
+            let
+                newNudges =
+                    nudge :: model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeCreated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeCreated _ ->
+            noCmd globals model
+
+        NudgeDeleted (Ok ( newSession, DeleteNudge.Success nudge )) ->
+            let
+                newNudges =
+                    removeBy Nudge.id nudge model.nudges
+            in
+            ( ( { model | nudges = newNudges }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        NudgeDeleted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NudgeDeleted _ ->
+            noCmd globals model
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -322,7 +383,13 @@ resolvedView repo maybeCurrentRoute model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
+        [ div
+            [ classList
+                [ ( "mx-auto leading-normal p-8", True )
+                , ( "max-w-sm", step /= 6 )
+                , ( "max-w-md", step == 6 )
+                ]
+            ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
                 [ headerView step data
                 , stepView step model data
@@ -334,12 +401,12 @@ resolvedView repo maybeCurrentRoute model data =
 headerView : Int -> Data -> Html Msg
 headerView step data =
     if step == 1 then
-        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tight text-dusty-blue-darkest" ]
+        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tighter text-dusty-blue-darkest" ]
             [ text <| "Welcome to Level, " ++ SpaceUser.firstName data.viewer ]
 
     else
         div []
-            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tight text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
+            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
             , progressBarView step
             ]
 
@@ -385,7 +452,7 @@ stepView step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Groups keep your conversations organized." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups keep your conversations organized." ]
                 , p [ class "mb-6" ] [ text "Similar to channels in chat, a group in Level is a place where you can post messages around a particular topic." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
@@ -398,7 +465,7 @@ stepView step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Conversations are always threaded." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Conversations are always threaded." ]
                 , p [ class "mb-6" ] [ text "You can either create a new post to kick off a conversation, or reply to an existing post to carry on the discussion." ]
                 , p [ class "mb-6" ] [ text "Once a conversation is done, you can ", strong [] [ text "mark it as resolved" ], text " to let the rest of the team know it’s finished." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
@@ -407,7 +474,7 @@ stepView step model data =
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "The Inbox is your curated to-do list." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
                 , p [ class "mb-6" ] [ text "It’s neither possible, nor desirable, for any single person to keep up with every conversation. Such an endeavor is stressful and futile." ]
                 , p [ class "mb-6" ] [ text "To combat information overload and prevent important things from slipping through the cracks, Level has an Inbox." ]
                 , p [ class "mb-6" ] [ text "Posts will land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
@@ -418,7 +485,7 @@ stepView step model data =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Your Activity Feed keeps you in the loop." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Your Activity Feed keeps you in the loop." ]
                 , p [ class "mb-6" ] [ text "Your Activity Feed is personalized to include all messages posted in groups that you have joined (including the ones that fell in your Inbox)." ]
                 , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse posts there to find out what else is happening around the space." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
@@ -427,16 +494,18 @@ stepView step model data =
 
         6 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Notifications are batched to minimize distractions." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
                 , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. 99% of messages are not so urgent they warrant paying that penalty." ]
                 , p [ class "mb-6" ] [ text "Instead of notifying you every time you get a message, Level batches up your notifications and emails you a digest at preset times of day that are optimal for you." ]
+                , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule:" ]
+                , div [ class "mb-6" ] [ View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone) ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
         7 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "Level does not track who’s online." ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Level does not track who’s online." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
                 , p [ class "mb-6" ] [ text "It’s most definitely not a good proxy for determining whether someone is slacking off." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
@@ -445,7 +514,7 @@ stepView step model data =
 
         8 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tight" ] [ text "You’re ready to go!" ]
+                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
                 , backButton "Previous"
@@ -515,3 +584,14 @@ inviteView maybeUrl =
             div []
                 [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
                 ]
+
+
+
+-- HELPERS
+
+
+nudgeAt : Int -> Model -> Maybe Nudge
+nudgeAt minute model =
+    model.nudges
+        |> List.filter (\nudge -> Nudge.minute nudge == minute)
+        |> List.head

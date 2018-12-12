@@ -68,6 +68,7 @@ let colors = {
   'green-lightest': '#E3FCEC',
 
   // Greys
+  'grey-dark': '#c6ced2',
   'grey': '#e2e6e8',
   'grey-light': '#f5f6f7',
   'grey-lighter': '#f7f8f8',
@@ -269,7 +270,7 @@ module.exports = {
 
   leading: {
     'none': 1,
-    'tighter': 1.125,
+    'tighter': 1.20,
     'tight': 1.25,
     'normal': 1.5,
     'semi-loose': 1.7,

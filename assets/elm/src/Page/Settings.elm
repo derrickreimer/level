@@ -32,6 +32,7 @@ import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (viewIf)
+import View.Nudges
 import View.SpaceLayout
 
 
@@ -393,39 +394,7 @@ nudgesView model data =
     div [ class "mb-8" ]
         [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Notifications" ]
         , p [ class "mb-4" ] [ text "Configure when Level should notify you about new messages in your Inbox." ]
-        , div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (nudgeTile model) nudgeIntervals)
-        , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ model.timeZone ++ " time zone." ]
-        ]
-
-
-nudgeTile : Model -> Int -> Int -> Html Msg
-nudgeTile model idx minute =
-    let
-        isActive =
-            hasNudgeAt minute model
-    in
-    button
-        [ classList
-            [ ( "mr-1 relative text-center flex-grow rounded h-12 no-outline", True )
-            , ( "bg-grey", not isActive )
-            , ( "bg-blue", isActive )
-            ]
-        , onClick (NudgeToggled minute)
-        ]
-        [ viewIf (modBy 4 idx == 0) <|
-            div
-                [ class "absolute text-xs text-dusty-blue font-bold pin-l-50"
-                , style "bottom" "-20px"
-                , style "transform" "translateX(-50%)"
-                ]
-                [ text (Minutes.toString minute) ]
-        , div
-            [ class "absolute p-2 text-xs font-bold text-white bg-dusty-blue-darker rounded pin-l-50 tooltip"
-            , style "bottom" "-35px"
-            , style "transform" "translateX(-50%)"
-            ]
-            [ text (Minutes.toString minute)
-            ]
+        , View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone)
         ]
 
 
@@ -531,11 +500,6 @@ filterTab label section linkParams currentParams =
 
 
 -- HELPERS
-
-
-hasNudgeAt : Int -> Model -> Bool
-hasNudgeAt minute model =
-    List.any (\nudge -> Nudge.minute nudge == minute) model.nudges
 
 
 nudgeAt : Int -> Model -> Maybe Nudge

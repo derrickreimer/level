@@ -42,7 +42,7 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        query GroupInit(
+        query SettingsInit(
           $spaceSlug: String!
         ) {
           viewer {

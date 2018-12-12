@@ -1,12 +1,14 @@
 module Query.SetupInit exposing (Response, request)
 
 import Connection exposing (Connection)
+import DigestSettings exposing (DigestSettings)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import Nudge exposing (Nudge)
 import Repo exposing (Repo)
 import Session exposing (Session)
 import Space exposing (Space)
@@ -19,6 +21,9 @@ type alias Response =
     , spaceId : Id
     , bookmarkIds : List Id
     , space : Space
+    , digestSettings : DigestSettings
+    , nudges : List Nudge
+    , timeZone : String
     , repo : Repo
     }
 
@@ -27,6 +32,9 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , bookmarks : List Group
+    , digestSettings : DigestSettings
+    , nudges : List Nudge
+    , timeZone : String
     }
 
 
@@ -34,11 +42,20 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        query GroupInit(
+        query SetupInit(
           $spaceSlug: String!
         ) {
+          viewer {
+            timeZone
+          }
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
+            nudges {
+              ...NudgeFields
+            }
+            digestSettings {
+              ...DigestSettingsFields
+            }
             space {
               ...SpaceFields
             }
@@ -51,6 +68,8 @@ document =
         [ Group.fragment
         , SpaceUser.fragment
         , Space.fragment
+        , DigestSettings.fragment
+        , Nudge.fragment
         ]
 
 
@@ -64,11 +83,14 @@ variables spaceSlug =
 
 decoder : Decoder Data
 decoder =
-    Decode.at [ "data", "spaceUser" ] <|
+    Decode.at [ "data" ] <|
         (Decode.succeed Data
-            |> Pipeline.custom SpaceUser.decoder
-            |> Pipeline.custom (Decode.field "space" Space.decoder)
-            |> Pipeline.custom (Decode.field "bookmarks" (Decode.list Group.decoder))
+            |> Pipeline.custom (Decode.field "spaceUser" SpaceUser.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarks" ] (Decode.list Group.decoder))
+            |> Pipeline.custom (Decode.at [ "spaceUser", "digestSettings" ] DigestSettings.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "nudges" ] (Decode.list Nudge.decoder))
+            |> Pipeline.custom (Decode.at [ "viewer", "timeZone" ] Decode.string)
         )
 
 
@@ -87,6 +109,9 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
                 data.space
+                data.digestSettings
+                data.nudges
+                data.timeZone
                 repo
     in
     ( session, resp )
