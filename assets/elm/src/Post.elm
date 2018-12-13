@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit
+    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit
+@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted
 
 
 # GraphQL
@@ -81,6 +81,7 @@ type alias Data =
     , subscriptionState : SubscriptionState
     , inboxState : InboxState
     , canEdit : Bool
+    , hasReacted : Bool
     , fetchedAt : Int
     }
 
@@ -156,6 +157,11 @@ canEdit (Post data) =
     data.canEdit
 
 
+hasReacted : Post -> Bool
+hasReacted (Post data) =
+    data.hasReacted
+
+
 
 -- GRAPHQL
 
@@ -183,6 +189,7 @@ fragment =
                 ...FileFields
               }
               canEdit
+              hasReacted
               fetchedAt
             }
             """
@@ -213,6 +220,7 @@ decoder =
             |> required "subscriptionState" subscriptionStateDecoder
             |> required "inboxState" inboxStateDecoder
             |> required "canEdit" bool
+            |> required "hasReacted" bool
             |> required "fetchedAt" int
         )
 

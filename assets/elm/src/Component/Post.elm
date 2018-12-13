@@ -853,7 +853,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
             , viewIf (PostEditor.isExpanded model.postEditor) <|
                 postEditorView (Space.id space) spaceUsers model.postEditor
             , div [ class "pb-2 flex items-start" ]
-                [ button [ class "inline-block mr-4", onClick PostReactionClicked ] [ Icons.thumbs ]
+                [ postReactionButton data.post
                 , viewIf (Post.state data.post == Post.Open) <|
                     button [ class "inline-block mr-4", style "margin-top" "2px", onClick ExpandReplyComposer ] [ Icons.comment ]
                 ]
@@ -888,6 +888,15 @@ checkableView repo space viewer now spaceUsers model =
 
 
 -- PRIVATE POST VIEW FUNCTIONS
+
+
+postReactionButton : Post -> Html Msg
+postReactionButton post =
+    if Post.hasReacted post then
+        button [ class "inline-block mr-4", onClick PostReactionClicked ] [ Icons.thumbs Icons.On ]
+
+    else
+        button [ class "inline-block mr-4", onClick PostReactionClicked ] [ Icons.thumbs Icons.Off ]
 
 
 postAuthorName : Space -> Id -> Actor -> Html Msg
