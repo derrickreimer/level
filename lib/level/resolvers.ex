@@ -15,6 +15,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
   alias Level.Resolvers.PostConnection
+  alias Level.Resolvers.PostReactionConnection
   alias Level.Resolvers.ReplyConnection
   alias Level.Resolvers.SearchConnection
   alias Level.Resolvers.SpaceUserConnection
@@ -170,6 +171,14 @@ defmodule Level.Resolvers do
   @spec replies(Post.t(), map(), info()) :: paginated_result()
   def replies(%Post{} = post, args, info) do
     ReplyConnection.get(post, struct(ReplyConnection, args), info)
+  end
+
+  @doc """
+  Fetches reactions to a given post.
+  """
+  @spec post_reactions(Post.t(), map(), info()) :: paginated_result()
+  def post_reactions(%Post{} = post, args, info) do
+    PostReactionConnection.get(post, struct(PostReactionConnection, args), info)
   end
 
   @doc """

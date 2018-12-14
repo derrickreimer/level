@@ -12,6 +12,7 @@ defmodule Level.Schemas.Post do
   alias Level.Schemas.PostGroup
   alias Level.Schemas.PostLocator
   alias Level.Schemas.PostLog
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.PostUser
   alias Level.Schemas.Reply
   alias Level.Schemas.Space
@@ -40,6 +41,7 @@ defmodule Level.Schemas.Post do
     has_many :post_files, PostFile
     has_many :files, through: [:post_files, :file]
     has_many :locators, PostLocator
+    has_many :post_reactions, PostReaction
 
     # Used for paginating
     field :last_pinged_at, :naive_datetime, virtual: true

@@ -386,6 +386,15 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.replies/3
     end
 
+    field :reactions, non_null(:post_reaction_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :reply_order
+      resolve &Resolvers.post_reactions/3
+    end
+
     field :files, list_of(:file), resolve: dataloader(:db)
 
     # Viewer-contextual fields
@@ -460,6 +469,11 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp), resolve: fetch_time()
+  end
+
+  object :post_reaction do
+    field :space_user, non_null(:space_user), resolve: dataloader(:db)
+    field :post, non_null(:post), resolve: dataloader(:db)
   end
 
   @desc "A mention represents a when user has @-mentioned another user."
