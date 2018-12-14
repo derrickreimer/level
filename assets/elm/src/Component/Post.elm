@@ -18,7 +18,9 @@ import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Markdown
 import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
+import Mutation.CreateReplyReaction as CreateReplyReaction
 import Mutation.DeletePostReaction as DeletePostReaction
+import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.UpdatePost as UpdatePost
@@ -210,6 +212,10 @@ type Msg
     | DeletePostReactionClicked
     | PostReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
     | PostReactionDeleted (Result Session.Error ( Session, DeletePostReaction.Response ))
+    | CreateReplyReactionClicked Id
+    | DeleteReplyReactionClicked Id
+    | ReplyReactionCreated Id (Result Session.Error ( Session, CreateReplyReaction.Response ))
+    | ReplyReactionDeleted Id (Result Session.Error ( Session, DeleteReplyReaction.Response ))
 
 
 update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -763,6 +769,56 @@ update msg spaceId globals model =
             redirectToLogin globals model
 
         PostReactionDeleted _ ->
+            ( ( model, Cmd.none ), globals )
+
+        CreateReplyReactionClicked replyId ->
+            let
+                variables =
+                    CreateReplyReaction.variables spaceId model.postId replyId
+
+                cmd =
+                    globals.session
+                        |> CreateReplyReaction.request variables
+                        |> Task.attempt (ReplyReactionCreated replyId)
+            in
+            ( ( model, cmd ), globals )
+
+        ReplyReactionCreated _ (Ok ( newSession, CreateReplyReaction.Success reply )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setReply reply globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        ReplyReactionCreated _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyReactionCreated _ _ ->
+            ( ( model, Cmd.none ), globals )
+
+        DeleteReplyReactionClicked replyId ->
+            let
+                variables =
+                    DeleteReplyReaction.variables spaceId model.postId replyId
+
+                cmd =
+                    globals.session
+                        |> DeleteReplyReaction.request variables
+                        |> Task.attempt (ReplyReactionDeleted replyId)
+            in
+            ( ( model, cmd ), globals )
+
+        ReplyReactionDeleted _ (Ok ( newSession, DeleteReplyReaction.Success reply )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setReply reply globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        ReplyReactionDeleted _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyReactionDeleted _ _ ->
             ( ( model, Cmd.none ), globals )
 
 
