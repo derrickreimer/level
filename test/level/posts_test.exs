@@ -12,6 +12,7 @@ defmodule Level.PostsTest do
   alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.PostReaction
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.PostVersion
   alias Level.Schemas.PostView
   alias Level.Schemas.Reply
@@ -707,6 +708,56 @@ defmodule Level.PostsTest do
       refute Posts.reacted?(space_user, post)
 
       {:error, "Reaction not found"} = Posts.delete_post_reaction(space_user, post)
+    end
+  end
+
+  describe "create_reply_reaction/2" do
+    test "creates a reaction and handles duplicates" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, %{reply: reply}} = create_reply(space_user, post)
+
+      refute Posts.reacted?(space_user, reply)
+
+      {:ok, _} = Posts.create_reply_reaction(space_user, reply)
+
+      assert Posts.reacted?(space_user, reply)
+
+      # Duplicate reaction
+      space_user_id = space_user.id
+      reply_id = reply.id
+
+      assert {:ok, %ReplyReaction{space_user_id: ^space_user_id, reply_id: ^reply_id}} =
+               Posts.create_reply_reaction(space_user, reply)
+    end
+  end
+
+  describe "delete_reply_reaction/2" do
+    test "deletes the reaction if one exists" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, %{reply: reply}} = create_reply(space_user, post)
+
+      {:ok, reaction} = Posts.create_reply_reaction(space_user, reply)
+
+      assert Posts.reacted?(space_user, reply)
+
+      {:ok, deleted_reaction} = Posts.delete_reply_reaction(space_user, reply)
+      assert deleted_reaction.id == reaction.id
+      refute Posts.reacted?(space_user, reply)
+    end
+
+    test "returns an error if the user had not reacted" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, %{reply: reply}} = create_reply(space_user, post)
+
+      refute Posts.reacted?(space_user, reply)
+
+      {:error, "Reaction not found"} = Posts.delete_reply_reaction(space_user, reply)
     end
   end
 end

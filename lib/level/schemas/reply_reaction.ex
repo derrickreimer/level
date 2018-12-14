@@ -19,7 +19,7 @@ defmodule Level.Schemas.ReplyReaction do
 
     belongs_to :space, Space
     belongs_to :post, Post
-    belongs_to :reply, Post
+    belongs_to :reply, Reply
     belongs_to :space_user, SpaceUser
 
     timestamps()
