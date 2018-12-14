@@ -1035,7 +1035,7 @@ groupsLabel space groups =
 bodyView : Space -> Mode -> Post -> Html Msg
 bodyView space mode post =
     clickToExpandIf (mode == Feed)
-        [ div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        [ div [ class "markdown mb-1p5" ] [ RenderedHtml.node (Post.bodyHtml post) ]
         , staticFilesView (Post.files post)
         ]
 
@@ -1154,13 +1154,18 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         clickToExpandIf (mode == Feed)
-                            [ div [ class "markdown mb-2" ]
+                            [ div [ class "markdown mb-1p5" ]
                                 [ RenderedHtml.node (Reply.bodyHtml reply)
                                 ]
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
                         replyEditorView (Space.id space) replyId spaceUsers editor
+                    , div [ class "pb-2 flex items-start" ]
+                        [ button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick <| CreateReplyReactionClicked replyId ]
+                            [ Icons.thumbs Icons.Off
+                            ]
+                        ]
                     ]
                 ]
 
