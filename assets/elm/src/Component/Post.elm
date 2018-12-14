@@ -855,7 +855,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
                 , viewIf (Post.state data.post == Post.Open) <|
-                    button [ class "inline-block mr-4", style "margin-top" "2px", onClick ExpandReplyComposer ] [ Icons.comment ]
+                    button [ class "inline-block mr-4", style "margin-top" "4px", onClick ExpandReplyComposer ] [ Icons.comment ]
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
