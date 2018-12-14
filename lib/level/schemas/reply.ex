@@ -9,6 +9,7 @@ defmodule Level.Schemas.Reply do
 
   alias Level.Schemas.Post
   alias Level.Schemas.ReplyFile
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
@@ -29,6 +30,7 @@ defmodule Level.Schemas.Reply do
 
     has_many :reply_files, ReplyFile
     has_many :files, through: [:reply_files, :file]
+    has_many :reply_reactions, ReplyReaction
 
     timestamps()
   end

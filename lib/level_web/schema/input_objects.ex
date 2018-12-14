@@ -57,6 +57,15 @@ defmodule LevelWeb.Schema.InputObjects do
     field :direction, non_null(:order_direction)
   end
 
+  @desc "The field and direction to sort reactions."
+  input_object :reaction_order do
+    @desc "The field by which to sort."
+    field :field, non_null(:reaction_order_field)
+
+    @desc "The sort direction."
+    field :direction, non_null(:order_direction)
+  end
+
   @desc "Filtering criteria for post connections."
   input_object :post_filters do
     @desc """
