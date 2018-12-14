@@ -1,11 +1,11 @@
-module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, files, fragment, hasViewed, id, postId, postedAt)
+module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, files, fragment, hasReacted, hasViewed, id, postId, postedAt, reactionCount)
 
 import Actor exposing (ActorId)
 import File exposing (File)
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
-import Json.Decode.Pipeline as Pipeline exposing (required)
+import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 
@@ -26,6 +26,8 @@ type alias Data =
     , authorId : ActorId
     , files : List File
     , hasViewed : Bool
+    , hasReacted : Bool
+    , reactionCount : Int
     , canEdit : Bool
     , postedAt : Posix
     , fetchedAt : Int
@@ -48,6 +50,10 @@ fragment =
             ...FileFields
           }
           hasViewed
+          hasReacted
+          reactions(first: 1) {
+            totalCount
+          }
           canEdit
           postedAt
           fetchedAt
@@ -97,6 +103,16 @@ hasViewed (Reply data) =
     data.hasViewed
 
 
+hasReacted : Reply -> Bool
+hasReacted (Reply data) =
+    data.hasReacted
+
+
+reactionCount : Reply -> Int
+reactionCount (Reply data) =
+    data.reactionCount
+
+
 canEdit : Reply -> Bool
 canEdit (Reply data) =
     data.canEdit
@@ -122,6 +138,8 @@ decoder =
             |> required "author" Actor.idDecoder
             |> required "files" (Decode.list File.decoder)
             |> required "hasViewed" bool
+            |> required "hasReacted" bool
+            |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> required "canEdit" bool
             |> required "postedAt" dateDecoder
             |> required "fetchedAt" int

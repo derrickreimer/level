@@ -22,11 +22,13 @@ document =
         """
         mutation DeleteReplyReaction(
           $spaceId: ID!,
-          $postId: ID!
+          $postId: ID!,
+          $replyId: ID!
         ) {
           deleteReplyReaction(
             spaceId: $spaceId,
-            postId: $postId
+            postId: $postId,
+            replyId: $replyId
           ) {
             ...ValidationFields
             reply {
@@ -54,7 +56,7 @@ conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "deleteReplyReaction", "post" ] Reply.decoder
+            Decode.at [ "data", "deleteReplyReaction", "reply" ] Reply.decoder
                 |> Decode.map Success
 
         False ->

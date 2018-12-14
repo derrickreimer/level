@@ -979,23 +979,6 @@ checkableView repo space viewer now spaceUsers model =
 -- PRIVATE POST VIEW FUNCTIONS
 
 
-postReactionButton : Post -> Html Msg
-postReactionButton post =
-    if Post.hasReacted post then
-        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick DeletePostReactionClicked ]
-            [ Icons.thumbs Icons.On
-            , viewIf (Post.reactionCount post > 0) <|
-                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
-            ]
-
-    else
-        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick CreatePostReactionClicked ]
-            [ Icons.thumbs Icons.Off
-            , viewIf (Post.reactionCount post > 0) <|
-                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
-            ]
-
-
 postAuthorName : Space -> Id -> Actor -> Html Msg
 postAuthorName space postId author =
     let
@@ -1162,9 +1145,7 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                     , viewIf (PostEditor.isExpanded editor) <|
                         replyEditorView (Space.id space) replyId spaceUsers editor
                     , div [ class "pb-2 flex items-start" ]
-                        [ button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick <| CreateReplyReactionClicked replyId ]
-                            [ Icons.thumbs Icons.Off
-                            ]
+                        [ replyReactionButton reply
                         ]
                     ]
                 ]
@@ -1357,6 +1338,44 @@ staticFileView file =
 
         _ ->
             text ""
+
+
+
+-- REACTIONS
+
+
+postReactionButton : Post -> Html Msg
+postReactionButton post =
+    if Post.hasReacted post then
+        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick DeletePostReactionClicked ]
+            [ Icons.thumbs Icons.On
+            , viewIf (Post.reactionCount post > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+            ]
+
+    else
+        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick CreatePostReactionClicked ]
+            [ Icons.thumbs Icons.Off
+            , viewIf (Post.reactionCount post > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+            ]
+
+
+replyReactionButton : Reply -> Html Msg
+replyReactionButton reply =
+    if Reply.hasReacted reply then
+        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick <| DeleteReplyReactionClicked (Reply.id reply) ]
+            [ Icons.thumbs Icons.On
+            , viewIf (Reply.reactionCount reply > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]
+            ]
+
+    else
+        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick <| CreateReplyReactionClicked (Reply.id reply) ]
+            [ Icons.thumbs Icons.Off
+            , viewIf (Reply.reactionCount reply > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]
+            ]
 
 
 
