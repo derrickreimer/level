@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted
+    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted
+@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount
 
 
 # GraphQL
@@ -36,7 +36,7 @@ import GraphQL exposing (Fragment)
 import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, string, succeed)
-import Json.Decode.Pipeline as Pipeline exposing (required)
+import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import List
 import Reply exposing (Reply)
 import Time exposing (Posix)
@@ -82,6 +82,7 @@ type alias Data =
     , inboxState : InboxState
     , canEdit : Bool
     , hasReacted : Bool
+    , reactionCount : Int
     , fetchedAt : Int
     }
 
@@ -162,6 +163,11 @@ hasReacted (Post data) =
     data.hasReacted
 
 
+reactionCount : Post -> Int
+reactionCount (Post data) =
+    data.reactionCount
+
+
 
 -- GRAPHQL
 
@@ -187,6 +193,9 @@ fragment =
               }
               files {
                 ...FileFields
+              }
+              reactions(first: 1) {
+                totalCount
               }
               canEdit
               hasReacted
@@ -221,6 +230,7 @@ decoder =
             |> required "inboxState" inboxStateDecoder
             |> required "canEdit" bool
             |> required "hasReacted" bool
+            |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> required "fetchedAt" int
         )
 

@@ -893,10 +893,18 @@ checkableView repo space viewer now spaceUsers model =
 postReactionButton : Post -> Html Msg
 postReactionButton post =
     if Post.hasReacted post then
-        button [ class "inline-block mr-4", onClick PostReactionClicked ] [ Icons.thumbs Icons.On ]
+        button [ class "flex items-center mr-4 text-orange font-bold text-sm", onClick PostReactionClicked ]
+            [ Icons.thumbs Icons.On
+            , viewIf (Post.reactionCount post > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+            ]
 
     else
-        button [ class "inline-block mr-4", onClick PostReactionClicked ] [ Icons.thumbs Icons.Off ]
+        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm", onClick PostReactionClicked ]
+            [ Icons.thumbs Icons.Off
+            , viewIf (Post.reactionCount post > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+            ]
 
 
 postAuthorName : Space -> Id -> Actor -> Html Msg
