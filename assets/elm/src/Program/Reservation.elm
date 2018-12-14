@@ -178,9 +178,9 @@ view model =
 
 formView : Model -> Html Msg
 formView model =
-    div [ class "pb-8" ]
+    div []
         [ p [ class "mb-6" ]
-            [ text "Level is under active development and is not yet launched. However, you can claim your little slice of real estate on level.app." ]
+            [ text "Level is currently available by invitation only. However, you can claim your little slice of real estate and get in line to receive your invite." ]
         , p [ class "mb-6" ]
             [ span [] [ text "Join " ]
             , strong [ class "font-bold" ] [ text model.reservationCount ]
@@ -213,7 +213,7 @@ textField : FormField -> List ValidationError -> Html Msg
 textField field errors =
     let
         classes =
-            [ ( "input-field", True )
+            [ ( "input-field border-none shadow-md p-4", True )
             , ( "input-field-error", not (List.isEmpty errors) )
             ]
     in
@@ -238,7 +238,7 @@ handleField : String -> List ValidationError -> Html Msg
 handleField handle errors =
     let
         classes =
-            [ ( "input-field inline-flex items-baseline", True )
+            [ ( "input-field inline-flex items-baseline border-none shadow-md bg-white p-4", True )
             , ( "input-field-error", not (List.isEmpty errors) )
             ]
     in
