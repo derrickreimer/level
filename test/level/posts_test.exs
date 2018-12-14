@@ -684,4 +684,29 @@ defmodule Level.PostsTest do
                Posts.create_post_reaction(space_user, post)
     end
   end
+
+  describe "delete_post_reaction/2" do
+    test "deletes the reaction if one exists" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, reaction} = Posts.create_post_reaction(space_user, post)
+
+      assert Posts.reacted?(space_user, post)
+
+      {:ok, deleted_reaction} = Posts.delete_post_reaction(space_user, post)
+      assert deleted_reaction.id == reaction.id
+      refute Posts.reacted?(space_user, post)
+    end
+
+    test "returns an error if the user had not reacted" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      refute Posts.reacted?(space_user, post)
+
+      {:error, "Reaction not found"} = Posts.delete_post_reaction(space_user, post)
+    end
+  end
 end

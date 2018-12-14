@@ -597,6 +597,27 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Deletes a reaction to a post.
+  """
+  @spec delete_post_reaction(SpaceUser.t(), Post.t()) ::
+          {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()} | {:error, String.t()}
+  def delete_post_reaction(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
+    query =
+      from pr in PostReaction,
+        where: pr.space_user_id == ^space_user_id,
+        where: pr.post_id == ^post_id,
+        where: pr.value == "👍"
+
+    case Repo.one(query) do
+      %PostReaction{} = post_reaction ->
+        Repo.delete(post_reaction)
+
+      _ ->
+        {:error, dgettext("errors", "Reaction not found")}
+    end
+  end
+
+  @doc """
   Determines if a user has reacted to a post.
   """
   @spec reacted?(SpaceUser.t(), Post.t()) :: boolean()
