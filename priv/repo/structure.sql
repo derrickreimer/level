@@ -685,6 +685,22 @@ CREATE TABLE public.reply_files (
 
 
 --
+-- Name: reply_reactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.reply_reactions (
+    id uuid NOT NULL,
+    space_id uuid NOT NULL,
+    space_user_id uuid NOT NULL,
+    post_id uuid NOT NULL,
+    reply_id uuid NOT NULL,
+    value text NOT NULL,
+    inserted_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: reply_versions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1056,6 +1072,14 @@ ALTER TABLE ONLY public.reply_files
 
 
 --
+-- Name: reply_reactions reply_reactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_reactions
+    ADD CONSTRAINT reply_reactions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: reply_versions reply_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1288,6 +1312,13 @@ CREATE INDEX replies_search_vector_index ON public.replies USING gin (search_vec
 --
 
 CREATE INDEX reply_files_reply_id_index ON public.reply_files USING btree (reply_id);
+
+
+--
+-- Name: reply_reactions_space_user_id_reply_id_value_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX reply_reactions_space_user_id_reply_id_value_index ON public.reply_reactions USING btree (space_user_id, reply_id, value);
 
 
 --
@@ -1915,6 +1946,38 @@ ALTER TABLE ONLY public.reply_files
 
 
 --
+-- Name: reply_reactions reply_reactions_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_reactions
+    ADD CONSTRAINT reply_reactions_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: reply_reactions reply_reactions_reply_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_reactions
+    ADD CONSTRAINT reply_reactions_reply_id_fkey FOREIGN KEY (reply_id) REFERENCES public.replies(id);
+
+
+--
+-- Name: reply_reactions reply_reactions_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_reactions
+    ADD CONSTRAINT reply_reactions_space_id_fkey FOREIGN KEY (space_id) REFERENCES public.spaces(id);
+
+
+--
+-- Name: reply_reactions reply_reactions_space_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reply_reactions
+    ADD CONSTRAINT reply_reactions_space_user_id_fkey FOREIGN KEY (space_user_id) REFERENCES public.space_users(id);
+
+
+--
 -- Name: reply_versions reply_versions_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2078,5 +2141,5 @@ ALTER TABLE ONLY public.user_mentions
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328), (20181105203544), (20181112222730), (20181114164623), (20181115205414), (20181126194617), (20181128185401), (20181203180305), (20181212192630);
+INSERT INTO public."schema_migrations" (version) VALUES (20170527220454), (20170528000152), (20170619214118), (20180403181445), (20180404204544), (20180413214033), (20180509143149), (20180510211015), (20180515174533), (20180518203612), (20180531200436), (20180627000743), (20180627231041), (20180724162650), (20180725135511), (20180731205027), (20180803151120), (20180807173948), (20180809201313), (20180810141122), (20180903213417), (20180903215930), (20180903220826), (20180908173406), (20180918182427), (20181003182443), (20181005154158), (20181009210537), (20181010174443), (20181011172259), (20181012200233), (20181012223338), (20181014144651), (20181018210912), (20181019194025), (20181022151255), (20181023175556), (20181029191737), (20181029220713), (20181101221239), (20181103215151), (20181105181343), (20181105195328), (20181105203544), (20181112222730), (20181114164623), (20181115205414), (20181126194617), (20181128185401), (20181203180305), (20181212192630), (20181214045940);
 
