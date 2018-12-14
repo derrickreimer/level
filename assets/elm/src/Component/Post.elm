@@ -883,7 +883,12 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
                 , viewIf (Post.state data.post == Post.Open) <|
-                    button [ class "inline-block mr-4", style "margin-top" "4px", onClick ExpandReplyComposer ] [ Icons.comment ]
+                    button
+                        [ class "flex mr-4 no-outline active:translate-y-1"
+                        , style "margin-top" "4px"
+                        , onClick ExpandReplyComposer
+                        ]
+                        [ Icons.comment ]
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
@@ -921,14 +926,14 @@ checkableView repo space viewer now spaceUsers model =
 postReactionButton : Post -> Html Msg
 postReactionButton post =
     if Post.hasReacted post then
-        button [ class "flex items-center mr-4 text-orange font-bold text-sm", onClick DeletePostReactionClicked ]
+        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick DeletePostReactionClicked ]
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
             ]
 
     else
-        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm", onClick CreatePostReactionClicked ]
+        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick CreatePostReactionClicked ]
             [ Icons.thumbs Icons.Off
             , viewIf (Post.reactionCount post > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]

@@ -558,3 +558,7 @@ post-editor.dragging-over > * {
 .translate-y-1 {
   transform: translateY(1px);
 }
+
+.active\:translate-y-1:active {
+  transform: translateY(1px);
+}
