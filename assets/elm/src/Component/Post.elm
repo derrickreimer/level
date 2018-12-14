@@ -996,7 +996,7 @@ postAuthorName space postId author =
         , rel "tooltip"
         , title "Expand post"
         ]
-        [ span [ class "font-headline font-bold" ] [ text <| Actor.displayName author ] ]
+        [ span [ class "font-bold" ] [ text <| Actor.displayName author ] ]
 
 
 groupsLabel : Space -> List Group -> Html Msg
@@ -1161,12 +1161,12 @@ replyAuthorName space author =
         Actor.User user ->
             a
                 [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
-                , class "font-headline font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
+                , class "font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
                 ]
                 [ text <| Actor.displayName author ]
 
         _ ->
-            span [ class "font-headline font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
+            span [ class "font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
 
 
 replyEditorView : Id -> Id -> List SpaceUser -> PostEditor -> Html Msg
