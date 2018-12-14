@@ -1,20 +1,22 @@
-defmodule LevelWeb.GraphQL.CreatePostReactionTest do
+defmodule LevelWeb.GraphQL.DeleteReplyReactionTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Posts
 
   @query """
-    mutation CreatePostReaction(
+    mutation DeleteReplyReaction(
       $space_id: ID!,
-      $post_id: ID!
+      $post_id: ID!,
+      $reply_id: ID!
     ) {
-      createPostReaction(
+      deleteReplyReaction(
         spaceId: $space_id,
-        postId: $post_id
+        postId: $post_id,
+        replyId: $reply_id
       ) {
         success
-        post {
+        reply {
           id
         }
         errors {
@@ -31,11 +33,14 @@ defmodule LevelWeb.GraphQL.CreatePostReactionTest do
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "creates a reaction", %{conn: conn, space: space, space_user: space_user} do
+  test "deletes a reaction", %{conn: conn, space: space, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: post}} = create_post(space_user, group)
+    {:ok, %{reply: reply}} = create_reply(space_user, post)
 
-    variables = %{space_id: space.id, post_id: post.id}
+    {:ok, _} = Posts.create_reply_reaction(space_user, reply)
+
+    variables = %{space_id: space.id, post_id: post.id, reply_id: reply.id}
 
     conn =
       conn
@@ -44,16 +49,16 @@ defmodule LevelWeb.GraphQL.CreatePostReactionTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "createPostReaction" => %{
+               "deleteReplyReaction" => %{
                  "success" => true,
-                 "post" => %{
-                   "id" => post.id
+                 "reply" => %{
+                   "id" => reply.id
                  },
                  "errors" => []
                }
              }
            }
 
-    assert Posts.reacted?(space_user, post)
+    refute Posts.reacted?(space_user, reply)
   end
 end

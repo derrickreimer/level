@@ -3,12 +3,11 @@ defmodule LevelWeb.GraphQL.DeletePostReactionTest do
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Posts
-  alias Level.Schemas.Post
 
   @query """
     mutation DeletePostReaction(
       $space_id: ID!,
-      $post_id: Int!
+      $post_id: ID!
     ) {
       deletePostReaction(
         spaceId: $space_id,
@@ -34,11 +33,11 @@ defmodule LevelWeb.GraphQL.DeletePostReactionTest do
 
   test "deletes a reaction", %{conn: conn, space: space, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user)
-    {:ok, %{post: %Post{id: post_id} = post}} = create_post(space_user, group)
+    {:ok, %{post: post}} = create_post(space_user, group)
 
     {:ok, _} = Posts.create_post_reaction(space_user, post)
 
-    variables = %{space_id: space.id, post_id: post_id}
+    variables = %{space_id: space.id, post_id: post.id}
 
     conn =
       conn
@@ -50,7 +49,7 @@ defmodule LevelWeb.GraphQL.DeletePostReactionTest do
                "deletePostReaction" => %{
                  "success" => true,
                  "post" => %{
-                   "id" => post_id
+                   "id" => post.id
                  },
                  "errors" => []
                }

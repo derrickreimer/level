@@ -10,6 +10,8 @@ defmodule Level.Mutations do
   alias Level.Nudges
   alias Level.Posts
   alias Level.Schemas.Nudge
+  alias Level.Schemas.PostReaction
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.Tutorial
   alias Level.Schemas.User
   alias Level.Spaces
@@ -24,7 +26,7 @@ defmodule Level.Mutations do
 
   @typedoc "The result of a user mutation"
   @type user_mutation_result ::
-          {:ok, %{success: boolean(), user: Users.User.t() | nil, errors: validation_errors()}}
+          {:ok, %{success: boolean(), user: User.t() | nil, errors: validation_errors()}}
           | {:error, String.t()}
 
   @typedoc "The result of mutating digest settings"
@@ -833,7 +835,14 @@ defmodule Level.Mutations do
   Creates a post reaction.
   """
   @spec create_post_reaction(map(), info()) ::
-          {:ok, %{success: boolean(), errors: validation_errors()}} | {:error, String.t()}
+          {:ok,
+           %{
+             success: boolean(),
+             errors: validation_errors(),
+             post: Post.t() | nil,
+             reaction: PostReaction.t() | nil
+           }}
+          | {:error, String.t()}
   def create_post_reaction(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
@@ -852,7 +861,14 @@ defmodule Level.Mutations do
   Deletes a post reaction.
   """
   @spec delete_post_reaction(map(), info()) ::
-          {:ok, %{success: boolean(), errors: validation_errors()}} | {:error, String.t()}
+          {:ok,
+           %{
+             success: boolean(),
+             errors: validation_errors(),
+             post: Post.t() | nil,
+             reaction: PostReaction.t() | nil
+           }}
+          | {:error, String.t()}
   def delete_post_reaction(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
@@ -860,7 +876,61 @@ defmodule Level.Mutations do
       {:ok, %{success: true, errors: [], post: post, reaction: reaction}}
     else
       %Ecto.Changeset{} = changeset ->
-        {:ok, %{success: false, errors: format_errors(changeset), post: nil, post_reaction: nil}}
+        {:ok, %{success: false, errors: format_errors(changeset), post: nil, reaction: nil}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Creates a reply reaction.
+  """
+  @spec create_reply_reaction(map(), info()) ::
+          {:ok,
+           %{
+             success: boolean(),
+             errors: validation_errors(),
+             reply: Reply.t() | nil,
+             reaction: ReplyReaction.t() | nil
+           }}
+          | {:error, String.t()}
+  def create_reply_reaction(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, post} <- Posts.get_post(space_user, args.post_id),
+         {:ok, reply} <- Posts.get_reply(post, args.reply_id),
+         {:ok, reaction} <- Posts.create_reply_reaction(space_user, reply) do
+      {:ok, %{success: true, errors: [], reply: reply, reaction: reaction}}
+    else
+      %Ecto.Changeset{} = changeset ->
+        {:ok, %{success: false, errors: format_errors(changeset), reply: nil, reaction: nil}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Deletes a reply reaction.
+  """
+  @spec delete_reply_reaction(map(), info()) ::
+          {:ok,
+           %{
+             success: boolean(),
+             errors: validation_errors(),
+             reply: Reply.t() | nil,
+             reaction: ReplyReaction.t() | nil
+           }}
+          | {:error, String.t()}
+  def delete_reply_reaction(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, post} <- Posts.get_post(space_user, args.post_id),
+         {:ok, reply} <- Posts.get_reply(post, args.reply_id),
+         {:ok, reaction} <- Posts.delete_reply_reaction(space_user, reply) do
+      {:ok, %{success: true, errors: [], reply: reply, reaction: reaction}}
+    else
+      %Ecto.Changeset{} = changeset ->
+        {:ok, %{success: false, errors: format_errors(changeset), reply: nil, reaction: nil}}
 
       err ->
         err

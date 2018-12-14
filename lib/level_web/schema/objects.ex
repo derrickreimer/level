@@ -476,6 +476,11 @@ defmodule LevelWeb.Schema.Objects do
     field :post, non_null(:post), resolve: dataloader(:db)
   end
 
+  object :reply_reaction do
+    field :space_user, non_null(:space_user), resolve: dataloader(:db)
+    field :reply, non_null(:reply), resolve: dataloader(:db)
+  end
+
   @desc "A mention represents a when user has @-mentioned another user."
   object :mention do
     field :mentioner, non_null(:space_user), resolve: dataloader(:db)
