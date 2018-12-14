@@ -12,10 +12,10 @@ defmodule Level.PostsTest do
   alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.PostReaction
-  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.PostVersion
   alias Level.Schemas.PostView
   alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
 
