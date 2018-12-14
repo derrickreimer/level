@@ -18,6 +18,7 @@ import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Markdown
 import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
+import Mutation.DeletePostReaction as DeletePostReaction
 import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.UpdatePost as UpdatePost
@@ -205,8 +206,10 @@ type Msg
     | ReplyEditorFileUploadError Id Id
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
-    | PostReactionClicked
+    | CreatePostReactionClicked
+    | DeletePostReactionClicked
     | PostReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
+    | PostReactionDeleted (Result Session.Error ( Session, DeletePostReaction.Response ))
 
 
 update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -712,7 +715,7 @@ update msg spaceId globals model =
             in
             ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
 
-        PostReactionClicked ->
+        CreatePostReactionClicked ->
             let
                 variables =
                     CreatePostReaction.variables spaceId model.postId
@@ -735,6 +738,31 @@ update msg spaceId globals model =
             redirectToLogin globals model
 
         PostReactionCreated _ ->
+            ( ( model, Cmd.none ), globals )
+
+        DeletePostReactionClicked ->
+            let
+                variables =
+                    DeletePostReaction.variables spaceId model.postId
+
+                cmd =
+                    globals.session
+                        |> DeletePostReaction.request variables
+                        |> Task.attempt PostReactionDeleted
+            in
+            ( ( model, cmd ), globals )
+
+        PostReactionDeleted (Ok ( newSession, DeletePostReaction.Success post )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setPost post globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        PostReactionDeleted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostReactionDeleted _ ->
             ( ( model, Cmd.none ), globals )
 
 
@@ -893,14 +921,14 @@ checkableView repo space viewer now spaceUsers model =
 postReactionButton : Post -> Html Msg
 postReactionButton post =
     if Post.hasReacted post then
-        button [ class "flex items-center mr-4 text-orange font-bold text-sm", onClick PostReactionClicked ]
+        button [ class "flex items-center mr-4 text-orange font-bold text-sm", onClick DeletePostReactionClicked ]
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
             ]
 
     else
-        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm", onClick PostReactionClicked ]
+        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm", onClick CreatePostReactionClicked ]
             [ Icons.thumbs Icons.Off
             , viewIf (Post.reactionCount post > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
