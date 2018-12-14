@@ -270,6 +270,7 @@ module.exports = {
 
   leading: {
     'none': 1,
+    'tightest': 1.125,
     'tighter': 1.20,
     'tight': 1.25,
     'normal': 1.5,

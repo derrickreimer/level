@@ -376,7 +376,7 @@ post-editor.dragging-over > * {
 
 @screen sm {
   .marketing-headline {
-    @apply tracking-tight leading-tighter text-6xl;
+    @apply tracking-tight leading-tightest text-6xl;
   }
 }
 
