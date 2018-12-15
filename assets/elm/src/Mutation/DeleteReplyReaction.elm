@@ -28,7 +28,8 @@ document =
           deleteReplyReaction(
             spaceId: $spaceId,
             postId: $postId,
-            replyId: $replyId
+            replyId: $replyId,
+            value: "👍"
           ) {
             ...ValidationFields
             reply {

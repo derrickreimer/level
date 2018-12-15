@@ -28,7 +28,8 @@ document =
           createReplyReaction(
             spaceId: $spaceId,
             postId: $postId,
-            replyId: $replyId
+            replyId: $replyId,
+            value: "👍"
           ) {
             ...ValidationFields
             reply {

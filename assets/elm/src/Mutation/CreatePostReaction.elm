@@ -26,7 +26,8 @@ document =
         ) {
           createPostReaction(
             spaceId: $spaceId,
-            postId: $postId
+            postId: $postId,
+            value: "👍"
           ) {
             ...ValidationFields
             post {

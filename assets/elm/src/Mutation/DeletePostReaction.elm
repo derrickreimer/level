@@ -26,7 +26,8 @@ document =
         ) {
           deletePostReaction(
             spaceId: $spaceId,
-            postId: $postId
+            postId: $postId,
+            value: "👍"
           ) {
             ...ValidationFields
             post {

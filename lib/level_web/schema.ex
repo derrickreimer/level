@@ -376,6 +376,7 @@ defmodule LevelWeb.Schema do
     field :create_post_reaction, :create_post_reaction_payload do
       arg :space_id, non_null(:id)
       arg :post_id, non_null(:id)
+      arg :value, non_null(:string)
 
       resolve &Level.Mutations.create_post_reaction/2
     end
@@ -384,6 +385,7 @@ defmodule LevelWeb.Schema do
     field :delete_post_reaction, :delete_post_reaction_payload do
       arg :space_id, non_null(:id)
       arg :post_id, non_null(:id)
+      arg :value, non_null(:string)
 
       resolve &Level.Mutations.delete_post_reaction/2
     end
@@ -393,6 +395,7 @@ defmodule LevelWeb.Schema do
       arg :space_id, non_null(:id)
       arg :post_id, non_null(:id)
       arg :reply_id, non_null(:id)
+      arg :value, non_null(:string)
 
       resolve &Level.Mutations.create_reply_reaction/2
     end
@@ -402,6 +405,7 @@ defmodule LevelWeb.Schema do
       arg :space_id, non_null(:id)
       arg :post_id, non_null(:id)
       arg :reply_id, non_null(:id)
+      arg :value, non_null(:string)
 
       resolve &Level.Mutations.delete_reply_reaction/2
     end
