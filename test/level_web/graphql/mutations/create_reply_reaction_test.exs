@@ -13,7 +13,8 @@ defmodule LevelWeb.GraphQL.CreateReplyReactionTest do
       createReplyReaction(
         spaceId: $space_id,
         postId: $post_id,
-        replyId: $reply_id
+        replyId: $reply_id,,
+        value: "👍"
       ) {
         success
         reply {

@@ -11,7 +11,8 @@ defmodule LevelWeb.GraphQL.CreatePostReactionTest do
     ) {
       createPostReaction(
         spaceId: $space_id,
-        postId: $post_id
+        postId: $post_id,
+        value: "👍"
       ) {
         success
         post {

@@ -13,7 +13,8 @@ defmodule LevelWeb.GraphQL.DeleteReplyReactionTest do
       deleteReplyReaction(
         spaceId: $space_id,
         postId: $post_id,
-        replyId: $reply_id
+        replyId: $reply_id,
+        value: "👍"
       ) {
         success
         reply {
