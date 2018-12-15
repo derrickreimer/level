@@ -386,6 +386,15 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.replies/3
     end
 
+    field :reactions, non_null(:post_reaction_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :reaction_order
+      resolve &Resolvers.reactions/3
+    end
+
     field :files, list_of(:file), resolve: dataloader(:db)
 
     # Viewer-contextual fields
@@ -407,6 +416,11 @@ defmodule LevelWeb.Schema.Objects do
     @desc "Determines if the viewer is eligible to edit the post."
     field :can_edit, non_null(:boolean) do
       resolve &Resolvers.can_edit_post/3
+    end
+
+    @desc "Determines whether the current viewer has reacted to the reply."
+    field :has_reacted, non_null(:boolean) do
+      resolve &Resolvers.has_reacted/3
     end
 
     interface :fetch_timeable
@@ -438,6 +452,15 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    field :reactions, non_null(:reply_reaction_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :cursor
+      arg :after, :cursor
+      arg :order_by, :reaction_order
+      resolve &Resolvers.reactions/3
+    end
+
     field :files, list_of(:file), resolve: dataloader(:db)
 
     # Viewer-contextual fields
@@ -445,6 +468,11 @@ defmodule LevelWeb.Schema.Objects do
     @desc "Determines whether the current viewer has viewed the reply."
     field :has_viewed, non_null(:boolean) do
       resolve &Resolvers.has_viewed_reply/3
+    end
+
+    @desc "Determines whether the current viewer has reacted to the reply."
+    field :has_reacted, non_null(:boolean) do
+      resolve &Resolvers.has_reacted/3
     end
 
     @desc "Determines if the viewer is eligible to edit the reply."
@@ -456,6 +484,19 @@ defmodule LevelWeb.Schema.Objects do
 
     @desc "The timestamp representing when the object was fetched."
     field :fetched_at, non_null(:timestamp), resolve: fetch_time()
+  end
+
+  @desc "Represents a user's reaction to a post."
+  object :post_reaction do
+    field :space_user, non_null(:space_user), resolve: dataloader(:db)
+    field :post, non_null(:post), resolve: dataloader(:db)
+  end
+
+  @desc "Represents a user's reaction to a reply."
+  object :reply_reaction do
+    field :space_user, non_null(:space_user), resolve: dataloader(:db)
+    field :post, non_null(:post), resolve: dataloader(:db)
+    field :reply, non_null(:reply), resolve: dataloader(:db)
   end
 
   @desc "A mention represents a when user has @-mentioned another user."

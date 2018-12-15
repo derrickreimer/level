@@ -132,6 +132,48 @@ defmodule LevelWeb.Schema.Connections do
     field :total_count, non_null(:integer)
   end
 
+  @desc "An edge in the post reaction connection."
+  object :post_reaction_edge do
+    @desc "The item at the edge of the node."
+    field :node, :post_reaction
+
+    @desc "A cursor for use in pagination."
+    field :cursor, non_null(:cursor)
+  end
+
+  @desc "A list of replies."
+  object :post_reaction_connection do
+    @desc "A list of edges."
+    field :edges, list_of(:post_reaction_edge)
+
+    @desc "Pagination data for the connection."
+    field :page_info, non_null(:page_info)
+
+    @desc "The total count of items in the connection."
+    field :total_count, non_null(:integer)
+  end
+
+  @desc "An edge in the reply reaction connection."
+  object :reply_reaction_edge do
+    @desc "The item at the edge of the node."
+    field :node, :reply_reaction
+
+    @desc "A cursor for use in pagination."
+    field :cursor, non_null(:cursor)
+  end
+
+  @desc "A list of replies."
+  object :reply_reaction_connection do
+    @desc "A list of edges."
+    field :edges, list_of(:reply_reaction_edge)
+
+    @desc "Pagination data for the connection."
+    field :page_info, non_null(:page_info)
+
+    @desc "The total count of items in the connection."
+    field :total_count, non_null(:integer)
+  end
+
   @desc "A list of search results."
   object :search_connection do
     @desc "A list of nodes."

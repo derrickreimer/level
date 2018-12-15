@@ -23,12 +23,14 @@ defmodule Level.Posts do
   alias Level.Schemas.Post
   alias Level.Schemas.PostFile
   alias Level.Schemas.PostLog
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.PostUser
   alias Level.Schemas.PostUserLog
   alias Level.Schemas.PostVersion
   alias Level.Schemas.PostView
   alias Level.Schemas.Reply
   alias Level.Schemas.ReplyFile
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.ReplyView
   alias Level.Schemas.SearchResult
   alias Level.Schemas.SpaceBot
@@ -575,6 +577,175 @@ defmodule Level.Posts do
         _ = Notifications.record_post_reopened(subscriber, post)
       end
     end)
+  end
+
+  @doc """
+  Creates a reaction to a post.
+  """
+  @spec create_post_reaction(SpaceUser.t(), Post.t()) ::
+          {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()}
+  def create_post_reaction(%SpaceUser{} = space_user, %Post{} = post) do
+    params = %{
+      space_id: space_user.space_id,
+      space_user_id: space_user.id,
+      post_id: post.id,
+      value: "👍"
+    }
+
+    %PostReaction{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert(on_conflict: :nothing, returning: true)
+    |> after_create_post_reaction(space_user, post)
+  end
+
+  defp after_create_post_reaction({:ok, reaction}, space_user, post) do
+    _ = PostLog.post_reaction_created(post, space_user)
+    _ = Events.post_reaction_created(post.id, post, reaction)
+    {:ok, reaction}
+  end
+
+  defp after_create_post_reaction(err, _, _), do: err
+
+  @doc """
+  Deletes a reaction to a post.
+  """
+  @spec delete_post_reaction(SpaceUser.t(), Post.t()) ::
+          {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()} | {:error, String.t()}
+  def delete_post_reaction(%SpaceUser{id: space_user_id} = space_user, %Post{id: post_id} = post) do
+    query =
+      from pr in PostReaction,
+        where: pr.space_user_id == ^space_user_id,
+        where: pr.post_id == ^post_id,
+        where: pr.value == "👍"
+
+    case Repo.one(query) do
+      %PostReaction{} = reaction ->
+        reaction
+        |> Repo.delete()
+        |> after_delete_post_reaction(space_user, post)
+
+      _ ->
+        {:error, dgettext("errors", "Reaction not found")}
+    end
+  end
+
+  defp after_delete_post_reaction({:ok, reaction}, _space_user, post) do
+    _ = Events.post_reaction_deleted(post.id, post, reaction)
+    {:ok, reaction}
+  end
+
+  defp after_delete_post_reaction(err, _, _), do: err
+
+  @doc """
+  Creates a reaction to a reply.
+  """
+  @spec create_reply_reaction(SpaceUser.t(), Reply.t()) ::
+          {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()}
+  def create_reply_reaction(%SpaceUser{} = space_user, %Reply{} = reply) do
+    params = %{
+      space_id: space_user.space_id,
+      space_user_id: space_user.id,
+      post_id: reply.post_id,
+      reply_id: reply.id,
+      value: "👍"
+    }
+
+    %ReplyReaction{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert(on_conflict: :nothing, returning: true)
+    |> after_create_reply_reaction(space_user, reply)
+  end
+
+  defp after_create_reply_reaction({:ok, reaction}, space_user, reply) do
+    _ = PostLog.reply_reaction_created(reply, space_user)
+    _ = Events.reply_reaction_created(reply.post_id, reply, reaction)
+    {:ok, reaction}
+  end
+
+  defp after_create_reply_reaction(err, _, _), do: err
+
+  @doc """
+  Deletes a reaction to a reply.
+  """
+  @spec delete_reply_reaction(SpaceUser.t(), Reply.t()) ::
+          {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()} | {:error, String.t()}
+  def delete_reply_reaction(
+        %SpaceUser{id: space_user_id} = space_user,
+        %Reply{id: reply_id} = reply
+      ) do
+    query =
+      from pr in ReplyReaction,
+        where: pr.space_user_id == ^space_user_id,
+        where: pr.reply_id == ^reply_id,
+        where: pr.value == "👍"
+
+    case Repo.one(query) do
+      %ReplyReaction{} = reaction ->
+        reaction
+        |> Repo.delete()
+        |> after_delete_reply_reaction(space_user, reply)
+
+      _ ->
+        {:error, dgettext("errors", "Reaction not found")}
+    end
+  end
+
+  defp after_delete_reply_reaction({:ok, reaction}, _space_user, reply) do
+    _ = Events.reply_reaction_deleted(reply.post_id, reply, reaction)
+    {:ok, reaction}
+  end
+
+  defp after_delete_reply_reaction(err, _, _), do: err
+
+  @doc """
+  Determines if a user has reacted to a post.
+  """
+  @spec reacted?(SpaceUser.t(), Post.t()) :: boolean()
+  def reacted?(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
+    params = [space_user_id: space_user_id, post_id: post_id]
+
+    case Repo.get_by(PostReaction, params) do
+      %PostReaction{} -> true
+      _ -> false
+    end
+  end
+
+  @spec reacted?(User.t(), Post.t()) :: boolean()
+  def reacted?(%User{id: user_id}, %Post{id: post_id}) do
+    query =
+      from pr in PostReaction,
+        join: su in assoc(pr, :space_user),
+        on: su.user_id == ^user_id,
+        where: pr.post_id == ^post_id
+
+    case Repo.one(query) do
+      %PostReaction{} -> true
+      _ -> false
+    end
+  end
+
+  @spec reacted?(SpaceUser.t(), Reply.t()) :: boolean()
+  def reacted?(%SpaceUser{id: space_user_id}, %Reply{id: reply_id}) do
+    params = [space_user_id: space_user_id, reply_id: reply_id]
+
+    case Repo.get_by(ReplyReaction, params) do
+      %ReplyReaction{} -> true
+      _ -> false
+    end
+  end
+
+  @spec reacted?(User.t(), Reply.t()) :: boolean()
+  def reacted?(%User{id: user_id}, %Reply{id: reply_id}) do
+    query =
+      from rr in ReplyReaction,
+        join: su in assoc(rr, :space_user),
+        on: su.user_id == ^user_id,
+        where: rr.reply_id == ^reply_id
+
+    case Repo.one(query) do
+      %ReplyReaction{} -> true
+      _ -> false
+    end
   end
 
   # Internal

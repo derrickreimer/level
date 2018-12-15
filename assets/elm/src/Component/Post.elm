@@ -16,7 +16,11 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Markdown
+import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
+import Mutation.CreateReplyReaction as CreateReplyReaction
+import Mutation.DeletePostReaction as DeletePostReaction
+import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.UpdatePost as UpdatePost
@@ -168,7 +172,8 @@ setupScrollPosition mode =
 
 
 type Msg
-    = ExpandReplyComposer
+    = NoOp
+    | ExpandReplyComposer
     | NewReplyBodyChanged String
     | NewReplyFileAdded File
     | NewReplyFileUploadProgress Id Int
@@ -203,12 +208,22 @@ type Msg
     | ReplyEditorFileUploadError Id Id
     | ReplyEditorSubmitted Id
     | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
-    | NoOp
+    | CreatePostReactionClicked
+    | DeletePostReactionClicked
+    | PostReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
+    | PostReactionDeleted (Result Session.Error ( Session, DeletePostReaction.Response ))
+    | CreateReplyReactionClicked Id
+    | DeleteReplyReactionClicked Id
+    | ReplyReactionCreated Id (Result Session.Error ( Session, CreateReplyReaction.Response ))
+    | ReplyReactionDeleted Id (Result Session.Error ( Session, DeleteReplyReaction.Response ))
 
 
 update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg spaceId globals model =
     case msg of
+        NoOp ->
+            noCmd globals model
+
         ExpandReplyComposer ->
             let
                 cmd =
@@ -706,8 +721,105 @@ update msg spaceId globals model =
             in
             ( ( { model | replyEditors = newReplyEditors }, Cmd.none ), globals )
 
-        NoOp ->
-            noCmd globals model
+        CreatePostReactionClicked ->
+            let
+                variables =
+                    CreatePostReaction.variables spaceId model.postId
+
+                cmd =
+                    globals.session
+                        |> CreatePostReaction.request variables
+                        |> Task.attempt PostReactionCreated
+            in
+            ( ( model, cmd ), globals )
+
+        PostReactionCreated (Ok ( newSession, CreatePostReaction.Success post )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setPost post globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        PostReactionCreated (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostReactionCreated _ ->
+            ( ( model, Cmd.none ), globals )
+
+        DeletePostReactionClicked ->
+            let
+                variables =
+                    DeletePostReaction.variables spaceId model.postId
+
+                cmd =
+                    globals.session
+                        |> DeletePostReaction.request variables
+                        |> Task.attempt PostReactionDeleted
+            in
+            ( ( model, cmd ), globals )
+
+        PostReactionDeleted (Ok ( newSession, DeletePostReaction.Success post )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setPost post globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        PostReactionDeleted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostReactionDeleted _ ->
+            ( ( model, Cmd.none ), globals )
+
+        CreateReplyReactionClicked replyId ->
+            let
+                variables =
+                    CreateReplyReaction.variables spaceId model.postId replyId
+
+                cmd =
+                    globals.session
+                        |> CreateReplyReaction.request variables
+                        |> Task.attempt (ReplyReactionCreated replyId)
+            in
+            ( ( model, cmd ), globals )
+
+        ReplyReactionCreated _ (Ok ( newSession, CreateReplyReaction.Success reply )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setReply reply globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        ReplyReactionCreated _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyReactionCreated _ _ ->
+            ( ( model, Cmd.none ), globals )
+
+        DeleteReplyReactionClicked replyId ->
+            let
+                variables =
+                    DeleteReplyReaction.variables spaceId model.postId replyId
+
+                cmd =
+                    globals.session
+                        |> DeleteReplyReaction.request variables
+                        |> Task.attempt (ReplyReactionDeleted replyId)
+            in
+            ( ( model, cmd ), globals )
+
+        ReplyReactionDeleted _ (Ok ( newSession, DeleteReplyReaction.Success reply )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.setReply reply globals.repo, session = newSession }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        ReplyReactionDeleted _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyReactionDeleted _ _ ->
+            ( ( model, Cmd.none ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -824,11 +936,15 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 bodyView space model.mode data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
                 postEditorView (Space.id space) spaceUsers model.postEditor
-            , div [ class "flex items-center" ]
-                [ div [ class "flex-grow" ]
-                    [ viewIf (Post.state data.post == Post.Open) <|
-                        button [ class "inline-block mr-4", onClick ExpandReplyComposer ] [ Icons.comment ]
-                    ]
+            , div [ class "pb-2 flex items-start" ]
+                [ postReactionButton data.post
+                , viewIf (Post.state data.post == Post.Open) <|
+                    button
+                        [ class "flex mr-4 no-outline active:translate-y-1"
+                        , style "margin-top" "4px"
+                        , onClick ExpandReplyComposer
+                        ]
+                        [ Icons.comment ]
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
@@ -880,7 +996,7 @@ postAuthorName space postId author =
         , rel "tooltip"
         , title "Expand post"
         ]
-        [ span [ class "font-headline font-bold" ] [ text <| Actor.displayName author ] ]
+        [ span [ class "font-bold" ] [ text <| Actor.displayName author ] ]
 
 
 groupsLabel : Space -> List Group -> Html Msg
@@ -902,7 +1018,7 @@ groupsLabel space groups =
 bodyView : Space -> Mode -> Post -> Html Msg
 bodyView space mode post =
     clickToExpandIf (mode == Feed)
-        [ div [ class "markdown mb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        [ div [ class "markdown mb-1p5" ] [ RenderedHtml.node (Post.bodyHtml post) ]
         , staticFilesView (Post.files post)
         ]
 
@@ -1021,13 +1137,16 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         clickToExpandIf (mode == Feed)
-                            [ div [ class "markdown mb-2" ]
+                            [ div [ class "markdown mb-1p5" ]
                                 [ RenderedHtml.node (Reply.bodyHtml reply)
                                 ]
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
                         replyEditorView (Space.id space) replyId spaceUsers editor
+                    , div [ class "pb-2 flex items-start" ]
+                        [ replyReactionButton reply
+                        ]
                     ]
                 ]
 
@@ -1042,12 +1161,12 @@ replyAuthorName space author =
         Actor.User user ->
             a
                 [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
-                , class "font-headline font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
+                , class "font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
                 ]
                 [ text <| Actor.displayName author ]
 
         _ ->
-            span [ class "font-headline font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
+            span [ class "font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
 
 
 replyEditorView : Id -> Id -> List SpaceUser -> PostEditor -> Html Msg
@@ -1219,6 +1338,44 @@ staticFileView file =
 
         _ ->
             text ""
+
+
+
+-- REACTIONS
+
+
+postReactionButton : Post -> Html Msg
+postReactionButton post =
+    if Post.hasReacted post then
+        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick DeletePostReactionClicked ]
+            [ Icons.thumbs Icons.On
+            , viewIf (Post.reactionCount post > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+            ]
+
+    else
+        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick CreatePostReactionClicked ]
+            [ Icons.thumbs Icons.Off
+            , viewIf (Post.reactionCount post > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+            ]
+
+
+replyReactionButton : Reply -> Html Msg
+replyReactionButton reply =
+    if Reply.hasReacted reply then
+        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick <| DeleteReplyReactionClicked (Reply.id reply) ]
+            [ Icons.thumbs Icons.On
+            , viewIf (Reply.reactionCount reply > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]
+            ]
+
+    else
+        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick <| CreateReplyReactionClicked (Reply.id reply) ]
+            [ Icons.thumbs Icons.Off
+            , viewIf (Reply.reactionCount reply > 0) <|
+                div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]
+            ]
 
 
 

@@ -24,6 +24,10 @@ type Event
     | PostUpdated Post
     | PostClosed Post
     | PostReopened Post
+    | PostReactionCreated Post
+    | PostReactionDeleted Post
+    | ReplyReactionCreated Reply
+    | ReplyReactionDeleted Reply
     | PostsSubscribed (List Post)
     | PostsUnsubscribed (List Post)
     | PostsMarkedAsUnread (List Post)
@@ -79,6 +83,10 @@ eventDecoder =
         , Decode.map ReplyUpdated PostSubscription.replyUpdatedDecoder
         , Decode.map PostClosed PostSubscription.postClosedDecoder
         , Decode.map PostReopened PostSubscription.postReopenedDecoder
+        , Decode.map PostReactionCreated PostSubscription.postReactionCreatedDecoder
+        , Decode.map PostReactionDeleted PostSubscription.postReactionDeletedDecoder
+        , Decode.map ReplyReactionCreated PostSubscription.replyReactionCreatedDecoder
+        , Decode.map ReplyReactionDeleted PostSubscription.replyReactionDeletedDecoder
 
         -- SPACE EVENTS
         , Decode.map SpaceUpdated SpaceSubscription.spaceUpdatedDecoder

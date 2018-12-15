@@ -15,6 +15,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.GroupConnection
   alias Level.Resolvers.GroupMembershipConnection
   alias Level.Resolvers.PostConnection
+  alias Level.Resolvers.ReactionConnection
   alias Level.Resolvers.ReplyConnection
   alias Level.Resolvers.SearchConnection
   alias Level.Resolvers.SpaceUserConnection
@@ -170,6 +171,14 @@ defmodule Level.Resolvers do
   @spec replies(Post.t(), map(), info()) :: paginated_result()
   def replies(%Post{} = post, args, info) do
     ReplyConnection.get(post, struct(ReplyConnection, args), info)
+  end
+
+  @doc """
+  Fetches reactions to a given post or reply.
+  """
+  @spec reactions(Post.t() | Reply.t(), map(), info()) :: paginated_result()
+  def reactions(post_or_reply, args, info) do
+    ReactionConnection.get(post_or_reply, struct(ReactionConnection, args), info)
   end
 
   @doc """
@@ -348,6 +357,19 @@ defmodule Level.Resolvers do
 
   defp check_edit_reply_permissions(_, _current_user) do
     {:ok, false}
+  end
+
+  @doc """
+  Determines whether the current user has reacted to the post or reply.
+  """
+  @spec has_reacted(Post.t(), map(), info()) :: {:ok, boolean()}
+  def has_reacted(%Post{} = post, _, %{context: %{current_user: user}}) do
+    {:ok, Posts.reacted?(user, post)}
+  end
+
+  @spec has_reacted(Reply.t(), map(), info()) :: {:ok, boolean()}
+  def has_reacted(%Reply{} = reply, _, %{context: %{current_user: user}}) do
+    {:ok, Posts.reacted?(user, reply)}
   end
 
   @doc """

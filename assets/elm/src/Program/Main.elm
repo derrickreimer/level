@@ -1137,6 +1137,26 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.PostReactionCreated post ->
+            ( { model | repo = Repo.setPost post model.repo }
+            , Cmd.none
+            )
+
+        Event.PostReactionDeleted post ->
+            ( { model | repo = Repo.setPost post model.repo }
+            , Cmd.none
+            )
+
+        Event.ReplyReactionCreated reply ->
+            ( { model | repo = Repo.setReply reply model.repo }
+            , Cmd.none
+            )
+
+        Event.ReplyReactionDeleted reply ->
+            ( { model | repo = Repo.setReply reply model.repo }
+            , Cmd.none
+            )
+
         Event.PostsSubscribed posts ->
             ( { model | repo = Repo.setPosts posts model.repo }
             , Cmd.none

@@ -371,6 +371,44 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.revoke_space_access/2
     end
+
+    @desc "Creates a reaction to a post."
+    field :create_post_reaction, :create_post_reaction_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+      arg :value, non_null(:string)
+
+      resolve &Level.Mutations.create_post_reaction/2
+    end
+
+    @desc "Deletes a reaction to a post."
+    field :delete_post_reaction, :delete_post_reaction_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+      arg :value, non_null(:string)
+
+      resolve &Level.Mutations.delete_post_reaction/2
+    end
+
+    @desc "Creates a reaction to a reply."
+    field :create_reply_reaction, :create_reply_reaction_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+      arg :reply_id, non_null(:id)
+      arg :value, non_null(:string)
+
+      resolve &Level.Mutations.create_reply_reaction/2
+    end
+
+    @desc "Deletes a reaction to a reply."
+    field :delete_reply_reaction, :delete_reply_reaction_payload do
+      arg :space_id, non_null(:id)
+      arg :post_id, non_null(:id)
+      arg :reply_id, non_null(:id)
+      arg :value, non_null(:string)
+
+      resolve &Level.Mutations.delete_reply_reaction/2
+    end
   end
 
   subscription do

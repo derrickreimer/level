@@ -129,6 +129,35 @@ defmodule Level.Schemas.PostLog do
     )
   end
 
+  @spec post_reaction_created(Post.t(), SpaceUser.t(), DateTime.t()) ::
+          {:ok, t()} | {:error, Ecto.Changeset.t()}
+  def post_reaction_created(%Post{} = post, %SpaceUser{} = space_user, now \\ nil) do
+    do_insert(
+      %{
+        event: "POST_REACTION_CREATED",
+        space_id: post.space_id,
+        post_id: post.id,
+        actor_id: space_user.id
+      },
+      now
+    )
+  end
+
+  @spec reply_reaction_created(Reply.t(), SpaceUser.t(), DateTime.t()) ::
+          {:ok, t()} | {:error, Ecto.Changeset.t()}
+  def reply_reaction_created(%Reply{} = reply, %SpaceUser{} = space_user, now \\ nil) do
+    do_insert(
+      %{
+        event: "REPLY_REACTION_CREATED",
+        space_id: reply.space_id,
+        post_id: reply.post_id,
+        reply_id: reply.id,
+        actor_id: space_user.id
+      },
+      now
+    )
+  end
+
   defp do_insert(params, now) do
     %__MODULE__{}
     |> Ecto.Changeset.change(Map.put(params, :occurred_at, now || DateTime.utc_now()))

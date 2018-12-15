@@ -1,4 +1,4 @@
-module Subscription.PostSubscription exposing (postClosedDecoder, postReopenedDecoder, postUpdatedDecoder, replyCreatedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
+module Subscription.PostSubscription exposing (postClosedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, replyCreatedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
 
 import GraphQL exposing (Document)
 import Json.Decode as Decode
@@ -67,6 +67,38 @@ postReopenedDecoder =
         Post.decoder
 
 
+postReactionCreatedDecoder : Decode.Decoder Post
+postReactionCreatedDecoder =
+    Subscription.decoder "post"
+        "PostReactionCreated"
+        "post"
+        Post.decoder
+
+
+postReactionDeletedDecoder : Decode.Decoder Post
+postReactionDeletedDecoder =
+    Subscription.decoder "post"
+        "PostReactionDeleted"
+        "post"
+        Post.decoder
+
+
+replyReactionCreatedDecoder : Decode.Decoder Reply
+replyReactionCreatedDecoder =
+    Subscription.decoder "post"
+        "ReplyReactionCreated"
+        "reply"
+        Reply.decoder
+
+
+replyReactionDeletedDecoder : Decode.Decoder Reply
+replyReactionDeletedDecoder =
+    Subscription.decoder "post"
+        "ReplyReactionDeleted"
+        "reply"
+        Reply.decoder
+
+
 
 -- INTERNAL
 
@@ -108,6 +140,26 @@ document =
             ... on PostReopenedPayload {
               post {
                 ...PostFields
+              }
+            }
+            ... on PostReactionCreatedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on PostReactionDeletedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on ReplyReactionCreatedPayload {
+              reply {
+                ...ReplyFields
+              }
+            }
+            ... on ReplyReactionDeletedPayload {
+              reply {
+                ...ReplyFields
               }
             }
           }

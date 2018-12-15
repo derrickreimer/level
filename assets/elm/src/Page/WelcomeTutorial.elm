@@ -493,7 +493,7 @@ stepView step model data =
         6 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
-                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails you a digest at your desired intervals." ]
+                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails them to you ", em [] [ text "when you want them." ] ]
                 , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
                 , div [ class "mb-6" ] [ View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone) ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]

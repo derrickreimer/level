@@ -6,7 +6,9 @@ defmodule Level.Events do
 
   alias Level.Schemas.Group
   alias Level.Schemas.Post
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
 
@@ -104,6 +106,22 @@ defmodule Level.Events do
 
   def post_reopened(id, %Post{} = post) do
     publish_to_post(id, :post_reopened, %{post: post})
+  end
+
+  def post_reaction_created(id, %Post{} = post, %PostReaction{} = reaction) do
+    publish_to_post(id, :post_reaction_created, %{post: post, reaction: reaction})
+  end
+
+  def post_reaction_deleted(id, %Post{} = post, %PostReaction{} = reaction) do
+    publish_to_post(id, :post_reaction_deleted, %{post: post, reaction: reaction})
+  end
+
+  def reply_reaction_created(id, %Reply{} = reply, %ReplyReaction{} = reaction) do
+    publish_to_post(id, :reply_reaction_created, %{reply: reply, reaction: reaction})
+  end
+
+  def reply_reaction_deleted(id, %Reply{} = reply, %ReplyReaction{} = reaction) do
+    publish_to_post(id, :reply_reaction_deleted, %{reply: reply, reaction: reaction})
   end
 
   # Internal

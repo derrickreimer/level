@@ -270,6 +270,7 @@ module.exports = {
 
   leading: {
     'none': 1,
+    'tightest': 1.125,
     'tighter': 1.20,
     'tight': 1.25,
     'normal': 1.5,
@@ -654,6 +655,7 @@ module.exports = {
     'px': '1px',
     '0': '0',
     '1': '0.25rem',
+    '1p5': '0.4rem',
     '2': '0.5rem',
     '3': '0.75rem',
     '4': '1rem',
