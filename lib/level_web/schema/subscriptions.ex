@@ -48,7 +48,11 @@ defmodule LevelWeb.Schema.Subscriptions do
       :reply_created_payload,
       :reply_updated_payload,
       :post_closed_payload,
-      :post_reopened_payload
+      :post_reopened_payload,
+      :post_reaction_created_payload,
+      :post_reaction_deleted_payload,
+      :reply_reaction_created_payload,
+      :reply_reaction_deleted_payload
     ]
 
     resolve_type &type_resolver/2
@@ -186,6 +190,42 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :user_mentioned_payload do
     @desc "The post."
     field :post, :post
+  end
+
+  @desc "The payload for the post reaction created event."
+  object :post_reaction_created_payload do
+    @desc "The post."
+    field :post, :post
+
+    @desc "The reaction."
+    field :reaction, :post_reaction
+  end
+
+  @desc "The payload for the post reaction deleted event."
+  object :post_reaction_deleted_payload do
+    @desc "The post."
+    field :post, :post
+
+    @desc "The reaction."
+    field :reaction, :post_reaction
+  end
+
+  @desc "The payload for the reply reaction created event."
+  object :reply_reaction_created_payload do
+    @desc "The reply."
+    field :reply, :reply
+
+    @desc "The reaction."
+    field :reaction, :reply_reaction
+  end
+
+  @desc "The payload for the reply reaction deleted event."
+  object :reply_reaction_deleted_payload do
+    @desc "The reply."
+    field :reply, :reply
+
+    @desc "The reaction."
+    field :reaction, :reply_reaction
   end
 
   defp type_resolver(%{type: type}, _) do
