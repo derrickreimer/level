@@ -595,7 +595,15 @@ defmodule Level.Posts do
     %PostReaction{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
+    |> after_create_post_reaction(space_user, post)
   end
+
+  defp after_create_post_reaction({:ok, reaction}, space_user, post) do
+    _ = PostLog.post_reaction_created(post, space_user)
+    {:ok, reaction}
+  end
+
+  defp after_create_post_reaction(err, _, _), do: err
 
   @doc """
   Deletes a reaction to a post.
@@ -635,7 +643,15 @@ defmodule Level.Posts do
     %ReplyReaction{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
+    |> after_create_reply_reaction(space_user, reply)
   end
+
+  defp after_create_reply_reaction({:ok, reaction}, space_user, reply) do
+    _ = PostLog.reply_reaction_created(reply, space_user)
+    {:ok, reaction}
+  end
+
+  defp after_create_reply_reaction(err, _, _), do: err
 
   @doc """
   Deletes a reaction to a reply.

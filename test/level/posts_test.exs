@@ -11,6 +11,7 @@ defmodule Level.PostsTest do
   alias Level.Schemas.Group
   alias Level.Schemas.Notification
   alias Level.Schemas.Post
+  alias Level.Schemas.PostLog
   alias Level.Schemas.PostReaction
   alias Level.Schemas.PostVersion
   alias Level.Schemas.PostView
@@ -677,6 +678,12 @@ defmodule Level.PostsTest do
 
       assert Posts.reacted?(space_user, post)
 
+      assert Repo.get_by(PostLog,
+               actor_id: space_user.id,
+               post_id: post.id,
+               event: "POST_REACTION_CREATED"
+             )
+
       # Duplicate reaction
       space_user_id = space_user.id
       post_id = post.id
@@ -723,6 +730,13 @@ defmodule Level.PostsTest do
       {:ok, _} = Posts.create_reply_reaction(space_user, reply)
 
       assert Posts.reacted?(space_user, reply)
+
+      assert Repo.get_by(PostLog,
+               actor_id: space_user.id,
+               post_id: post.id,
+               reply_id: reply.id,
+               event: "REPLY_REACTION_CREATED"
+             )
 
       # Duplicate reaction
       space_user_id = space_user.id
