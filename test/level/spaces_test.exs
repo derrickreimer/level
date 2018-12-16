@@ -4,6 +4,7 @@ defmodule Level.SpacesTest do
   import Ecto.Query
 
   alias Level.Groups
+  alias Level.Nudges
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -303,6 +304,13 @@ defmodule Level.SpacesTest do
       {:ok, _} = Spaces.create_member(new_user, space)
       assert Groups.get_user_role(default_group, new_user) == :member
       assert Groups.get_user_state(default_group, new_user) == :subscribed
+    end
+
+    test "create default nudges", %{space: space, new_user: new_user} do
+      {:ok, space_user} = Spaces.create_member(new_user, space)
+      nudges = Nudges.list_nudges(space_user)
+      assert Enum.any?(nudges, fn nudge -> nudge.minute == 660 end)
+      assert Enum.any?(nudges, fn nudge -> nudge.minute == 900 end)
     end
   end
 

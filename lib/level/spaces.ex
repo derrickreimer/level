@@ -12,6 +12,7 @@ defmodule Level.Spaces do
   alias Level.Events
   alias Level.Groups
   alias Level.Levelbot
+  alias Level.Nudges
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -280,14 +281,25 @@ defmodule Level.Spaces do
   end
 
   defp after_create_member({:ok, space_user}, space) do
-    space
-    |> list_default_groups()
-    |> Enum.each(fn group -> Groups.subscribe(group, space_user) end)
+    subscribe_to_default_groups(space, space_user)
+    create_default_nudges(space_user)
 
     {:ok, space_user}
   end
 
   defp after_create_member(err, _), do: err
+
+  defp subscribe_to_default_groups(space, space_user) do
+    space
+    |> list_default_groups()
+    |> Enum.each(fn group -> Groups.subscribe(group, space_user) end)
+  end
+
+  def create_default_nudges(space_user) do
+    Enum.each([660, 900], fn minute ->
+      Nudges.create_nudge(space_user, %{minute: minute})
+    end)
+  end
 
   @doc """
   Fetches the active open invitation for a space.

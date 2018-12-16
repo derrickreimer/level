@@ -3,7 +3,6 @@ defmodule LevelWeb.GraphQL.NudgesTest do
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Nudges
-  alias Level.Schemas.Nudge
 
   @query """
     query GetNudges(
@@ -26,7 +25,12 @@ defmodule LevelWeb.GraphQL.NudgesTest do
 
   test "authenticated space user can read their own nudges", %{conn: conn, user: user} do
     {:ok, %{space: space, space_user: space_user}} = create_space(user)
-    {:ok, %Nudge{id: nudge_id}} = Nudges.create_nudge(space_user, %{minute: 660})
+    {:ok, _} = Nudges.create_nudge(space_user, %{minute: 720})
+
+    nudges =
+      space_user
+      |> Nudges.list_nudges()
+      |> Enum.map(fn nudge -> %{"id" => nudge.id, "minute" => nudge.minute} end)
 
     conn =
       conn
@@ -36,12 +40,7 @@ defmodule LevelWeb.GraphQL.NudgesTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "spaceUser" => %{
-                 "nudges" => [
-                   %{
-                     "id" => nudge_id,
-                     "minute" => 660
-                   }
-                 ]
+                 "nudges" => nudges
                }
              }
            }
