@@ -16,6 +16,7 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Markdown
+import Mutation.ClosePost as ClosePost
 import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
 import Mutation.CreateReplyReaction as CreateReplyReaction
@@ -23,6 +24,7 @@ import Mutation.DeletePostReaction as DeletePostReaction
 import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
 import Mutation.RecordReplyViews as RecordReplyViews
+import Mutation.ReopenPost as ReopenPost
 import Mutation.UpdatePost as UpdatePost
 import Mutation.UpdateReply as UpdateReply
 import Post exposing (Post)
@@ -181,6 +183,7 @@ type Msg
     | NewReplyFileUploadError Id
     | NewReplyBlurred
     | NewReplySubmit
+    | NewReplyAndCloseSubmit
     | NewReplyEscaped
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
     | PreviousRepliesRequested
@@ -216,6 +219,10 @@ type Msg
     | DeleteReplyReactionClicked Id
     | ReplyReactionCreated Id (Result Session.Error ( Session, CreateReplyReaction.Response ))
     | ReplyReactionDeleted Id (Result Session.Error ( Session, DeleteReplyReaction.Response ))
+    | ClosePostClicked
+    | ReopenPostClicked
+    | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
+    | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
 
 
 update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -283,6 +290,26 @@ update msg spaceId globals model =
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newModel, cmd ), globals )
+
+        NewReplyAndCloseSubmit ->
+            let
+                newModel =
+                    { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }
+
+                body =
+                    PostEditor.getBody model.replyComposer
+
+                replyCmd =
+                    globals.session
+                        |> CreateReply.request spaceId model.postId body (PostEditor.getUploadIds model.replyComposer)
+                        |> Task.attempt NewReplySubmitted
+
+                closeCmd =
+                    globals.session
+                        |> ClosePost.request spaceId model.postId
+                        |> Task.attempt PostClosed
+            in
+            ( ( newModel, Cmd.batch [ replyCmd, closeCmd ] ), globals )
 
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
@@ -821,6 +848,66 @@ update msg spaceId globals model =
         ReplyReactionDeleted _ _ ->
             ( ( model, Cmd.none ), globals )
 
+        ClosePostClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> ClosePost.request spaceId model.postId
+                        |> Task.attempt PostClosed
+            in
+            ( ( { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }, cmd ), globals )
+
+        ReopenPostClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> ReopenPost.request spaceId model.postId
+                        |> Task.attempt PostReopened
+            in
+            ( ( { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }, cmd ), globals )
+
+        PostClosed (Ok ( newSession, ClosePost.Success post )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setPost post
+            in
+            ( ( { model | replyComposer = PostEditor.setNotSubmitting model.replyComposer }, Cmd.none )
+            , { globals | repo = newRepo, session = newSession }
+            )
+
+        PostClosed (Ok ( newSession, ClosePost.Invalid errors )) ->
+            ( ( { model | replyComposer = PostEditor.setNotSubmitting model.replyComposer }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        PostClosed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostClosed (Err _) ->
+            noCmd globals model
+
+        PostReopened (Ok ( newSession, ReopenPost.Success post )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setPost post
+            in
+            ( ( { model | replyComposer = PostEditor.setNotSubmitting model.replyComposer }, Cmd.none )
+            , { globals | repo = newRepo, session = newSession }
+            )
+
+        PostReopened (Ok ( newSession, ReopenPost.Invalid errors )) ->
+            ( ( { model | replyComposer = PostEditor.setNotSubmitting model.replyComposer }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        PostReopened (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostReopened (Err _) ->
+            noCmd globals model
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -1290,7 +1377,19 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
                             []
                         , PostEditor.filesView editor
                         , div [ class "flex items-baseline justify-end" ]
-                            [ button
+                            [ viewIf (PostEditor.isUnsubmittable editor) <|
+                                button
+                                    [ class "mr-2 btn btn-grey-outline btn-sm"
+                                    , onClick ClosePostClicked
+                                    ]
+                                    [ text "Resolve" ]
+                            , viewUnless (PostEditor.isUnsubmittable editor) <|
+                                button
+                                    [ class "mr-2 btn btn-grey-outline btn-sm"
+                                    , onClick NewReplyAndCloseSubmit
+                                    ]
+                                    [ text "Send & Resolve" ]
+                            , button
                                 [ class "btn btn-blue btn-sm"
                                 , onClick NewReplySubmit
                                 , disabled (PostEditor.isUnsubmittable editor)
@@ -1309,7 +1408,7 @@ replyPromptView currentUser =
     button [ class "flex my-3 items-center", onClick ExpandReplyComposer ]
         [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small currentUser ]
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
-            [ text "Write a reply..."
+            [ text "Reply or resolve..."
             ]
         ]
 
