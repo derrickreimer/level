@@ -126,6 +126,17 @@ defmodule Level.Posts.Query do
   end
 
   @doc """
+  Filters a posts query for posts that the user is following and not subscribed to.
+  """
+  @spec where_is_following_and_not_subscribed(Ecto.Query.t()) :: Ecto.Query.t()
+  def where_is_following_and_not_subscribed(query) do
+    from [p, su, u, g, gu, pu] in query,
+      where: not is_nil(gu.id),
+      where: pu.subscription_state in ["NOT_SUBSCRIBED", "UNSUBSCRIBED"] or is_nil(pu.id),
+      group_by: p.id
+  end
+
+  @doc """
   Filters a posts query for posts that the user is "following".
   """
   @spec where_is_following(Ecto.Query.t()) :: Ecto.Query.t()
