@@ -42,6 +42,7 @@ defmodule Level.DailyDigest do
         join: u in "users",
         on: su.user_id == u.id,
         where: su.is_digest_enabled == true,
+        where: su.state == "ACTIVE",
         select: %DueDigest{
           id: su.id,
           space_id: su.space_id,

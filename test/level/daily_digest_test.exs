@@ -25,6 +25,19 @@ defmodule Level.DailyDigestTest do
       assert [%DueDigest{space_user_id: ^space_user_id}] = Repo.all(query)
     end
 
+    test "does not include revoked users", %{
+      now: now
+    } do
+      {:ok, %{space_user: %SpaceUser{id: space_user_id} = space_user}} =
+        create_user_and_space(%{time_zone: "Etc/UTC"})
+
+      Spaces.revoke_access(space_user)
+
+      query = DailyDigest.due_query(now, now.hour - 1)
+      results = Repo.all(query)
+      refute Enum.any?(results, fn result -> result.space_user_id == space_user_id end)
+    end
+
     test "does not include users that are not yet due", %{now: now} do
       {:ok, %{space_user: _}} = create_user_and_space(%{time_zone: "Etc/UTC"})
 
