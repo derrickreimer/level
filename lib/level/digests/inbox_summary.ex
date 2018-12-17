@@ -31,7 +31,7 @@ defmodule Level.Digests.InboxSummary do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Inbox Highlights",
+        title: "Awaiting response in your Inbox",
         summary: summary,
         summary_html: summary_html,
         link_text: "View my inbox",
@@ -104,8 +104,8 @@ defmodule Level.Digests.InboxSummary do
 
   defp build_summary(unread_count, 0) do
     unread_phrase = pluralize(unread_count, "unread post", "unread posts")
-    text = "You have #{unread_phrase} in your inbox. Here are some highlights."
-    html = "You have <strong>#{unread_phrase}</strong> in your inbox. Here are some highlights."
+    text = "You have #{unread_phrase} in your inbox."
+    html = "You have <strong>#{unread_phrase}</strong> in your inbox."
 
     {text, html}
   end
@@ -129,12 +129,11 @@ defmodule Level.Digests.InboxSummary do
     read_phrase = pluralize(read_count, "post", "posts")
 
     plaintext =
-      "You have #{unread_phrase} and " <>
-        "#{read_phrase} you have already seen in your inbox. Here are some highlights."
+      "You have #{unread_phrase} and " <> "#{read_phrase} you have already seen in your inbox."
 
     html =
       "You have <strong>#{unread_phrase}</strong> and " <>
-        "#{read_phrase} you have already seen in your inbox. Here are some highlights."
+        "#{read_phrase} you have already seen in your inbox."
 
     {plaintext, html}
   end

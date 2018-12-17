@@ -143,7 +143,7 @@ defmodule Level.DailyDigestTest do
       [_inbox_section, activity_section] = digest.sections
 
       assert activity_section.summary =~
-               ~r/Here are some messages from the past day that did not land in your Inbox/
+               ~r/Here are some recent messages posted in groups you've joined/
 
       assert Enum.any?(activity_section.posts, fn section_post ->
                section_post.id == post.id
@@ -162,7 +162,7 @@ defmodule Level.DailyDigestTest do
 
       [_inbox_section, activity_section] = digest.sections
 
-      assert activity_section.summary =~ ~r/There hasn't been any activity in the past day./
+      assert activity_section.summary =~ ~r/There hasn't been any activity in the past day/
       assert Enum.empty?(activity_section.posts)
     end
   end

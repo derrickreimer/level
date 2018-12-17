@@ -34,10 +34,10 @@ defmodule Level.Digests.RecentActivity do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Recent Activity",
+        title: "Recent posts in your groups",
         summary: summary,
         summary_html: summary_html,
-        link_text: "View activity feed",
+        link_text: "View my activity feed",
         link_url: link_url,
         rank: 2
       })
@@ -100,8 +100,11 @@ defmodule Level.Digests.RecentActivity do
   end
 
   defp build_summary(_count) do
-    text = "Here are some messages from the past day that did not land in your Inbox."
-    html = "Here are some messages from the past day that did not land in your Inbox."
+    text =
+      "Here are some recent messages posted in groups you've joined that did not land in your Inbox."
+
+    html =
+      "Here are some recent messages posted in groups you&rsquo;ve joined that did not land in your Inbox."
 
     {text, html}
   end
