@@ -14,6 +14,9 @@ defmodule Level.Digests.InboxSummary do
   alias Level.Schemas
   alias Level.Schemas.SpaceUser
 
+  @doc """
+  Builds a digest section.
+  """
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
   def build(digest, space_user, _opts) do
     unread_count = get_unread_count(space_user)
@@ -28,7 +31,7 @@ defmodule Level.Digests.InboxSummary do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Inbox Highlights",
+        title: "Awaiting response in your Inbox",
         summary: summary,
         summary_html: summary_html,
         link_text: "View my inbox",
@@ -44,6 +47,23 @@ defmodule Level.Digests.InboxSummary do
     Persistence.insert_posts!(digest, section_record, compiled_posts)
     section = Compiler.compile_section(section_record, compiled_posts)
     {:ok, section}
+  end
+
+  @doc """
+  Determines if the section has any interesting data to report.
+  """
+  @spec has_data?(SpaceUser.t(), Options.t()) :: boolean()
+  def has_data?(space_user, _opts) do
+    query =
+      space_user
+      |> Posts.Query.base_query()
+      |> Posts.Query.where_undismissed_in_inbox()
+      |> limit(1)
+
+    case Repo.all(query) do
+      [] -> false
+      _ -> true
+    end
   end
 
   defp get_unread_count(space_user) do
@@ -84,8 +104,8 @@ defmodule Level.Digests.InboxSummary do
 
   defp build_summary(unread_count, 0) do
     unread_phrase = pluralize(unread_count, "unread post", "unread posts")
-    text = "You have #{unread_phrase} in your inbox. Here are some highlights."
-    html = "You have <strong>#{unread_phrase}</strong> in your inbox. Here are some highlights."
+    text = "You have #{unread_phrase} in your inbox."
+    html = "You have <strong>#{unread_phrase}</strong> in your inbox."
 
     {text, html}
   end
@@ -109,12 +129,11 @@ defmodule Level.Digests.InboxSummary do
     read_phrase = pluralize(read_count, "post", "posts")
 
     plaintext =
-      "You have #{unread_phrase} and " <>
-        "#{read_phrase} you have already seen in your inbox. Here are some highlights."
+      "You have #{unread_phrase} and " <> "#{read_phrase} you have already seen in your inbox."
 
     html =
       "You have <strong>#{unread_phrase}</strong> and " <>
-        "#{read_phrase} you have already seen in your inbox. Here are some highlights."
+        "#{read_phrase} you have already seen in your inbox."
 
     {plaintext, html}
   end

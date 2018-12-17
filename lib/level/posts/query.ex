@@ -78,6 +78,15 @@ defmodule Level.Posts.Query do
   end
 
   @doc """
+  Filters a posts query for posts that had activity after a specific point in time.
+  """
+  @spec where_last_active_after(Ecto.Query.t(), DateTime.t()) :: Ecto.Query.t()
+  def where_last_active_after(query, timestamp) do
+    from [p, su, u, g, gu, pu, pl] in query,
+      where: pl.occurred_at >= ^timestamp
+  end
+
+  @doc """
   Filters a posts query for posts that are open.
   """
   @spec where_open(Ecto.Query.t()) :: Ecto.Query.t()
@@ -123,6 +132,17 @@ defmodule Level.Posts.Query do
   @spec where_dismissed_from_inbox(Ecto.Query.t()) :: Ecto.Query.t()
   def where_dismissed_from_inbox(query) do
     where(query, [p, su, u, g, gu, pu], pu.inbox_state == "DISMISSED")
+  end
+
+  @doc """
+  Filters a posts query for posts that the user is following and not subscribed to.
+  """
+  @spec where_is_following_and_not_subscribed(Ecto.Query.t()) :: Ecto.Query.t()
+  def where_is_following_and_not_subscribed(query) do
+    from [p, su, u, g, gu, pu] in query,
+      where: not is_nil(gu.id),
+      where: pu.subscription_state in ["NOT_SUBSCRIBED", "UNSUBSCRIBED"] or is_nil(pu.id),
+      group_by: p.id
   end
 
   @doc """

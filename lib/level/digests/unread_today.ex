@@ -14,6 +14,9 @@ defmodule Level.Digests.UnreadToday do
   alias Level.Schemas
   alias Level.Schemas.SpaceUser
 
+  @doc """
+  Builds a digest section.
+  """
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
   def build(digest, space_user, opts) do
     unread_count = get_unread_count(space_user, opts.now)
@@ -48,6 +51,25 @@ defmodule Level.Digests.UnreadToday do
     Persistence.insert_posts!(digest, section_record, compiled_posts)
     section = Compiler.compile_section(section_record, compiled_posts)
     {:ok, section}
+  end
+
+  @doc """
+  Determines if the section has any interesting data to report.
+  """
+  @spec has_data?(SpaceUser.t(), Options.t()) :: boolean()
+  def has_data?(space_user, opts) do
+    query =
+      space_user
+      |> Posts.Query.base_query()
+      |> Posts.Query.select_last_activity_at()
+      |> Posts.Query.where_unread_in_inbox()
+      |> Posts.Query.where_last_active_today(opts.now)
+      |> limit(1)
+
+    case Repo.all(query) do
+      [] -> false
+      _ -> true
+    end
   end
 
   defp get_unread_count(space_user, now) do

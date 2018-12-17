@@ -49,7 +49,8 @@ defmodule Level.Digests.Builder do
   end
 
   defp reduce_sections(digest, space_user, opts) do
-    Enum.reduce(opts.sections, [], fn builder, sections ->
+    opts.sections
+    |> Enum.reduce([], fn builder, sections ->
       case builder.(digest, space_user, opts) do
         {:ok, section} ->
           [section | sections]
@@ -58,6 +59,7 @@ defmodule Level.Digests.Builder do
           sections
       end
     end)
+    |> Enum.reverse()
   end
 
   defp after_build({:ok, data}, space) do
