@@ -17,8 +17,16 @@ defmodule Level.Digests.RecentActivity do
   @doc """
   Builds a digest section.
   """
-  @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
+  @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()} | :skip
   def build(digest, space_user, opts) do
+    if has_data?(space_user, opts) do
+      do_build(digest, space_user, opts)
+    else
+      :skip
+    end
+  end
+
+  defp do_build(digest, space_user, opts) do
     post_count = get_post_count(space_user, opts.now)
     {summary, summary_html} = build_summary(post_count)
 

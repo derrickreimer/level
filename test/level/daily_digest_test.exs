@@ -95,7 +95,7 @@ defmodule Level.DailyDigestTest do
       due_digest = build_due_digest(space_user)
       [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
 
-      [inbox_section, _activity_section] = digest.sections
+      [inbox_section | _] = digest.sections
       assert inbox_section.summary =~ ~r/You have 1 unread post in your inbox/
 
       assert Enum.any?(inbox_section.posts, fn section_post ->
@@ -150,7 +150,7 @@ defmodule Level.DailyDigestTest do
              end)
     end
 
-    test "summarizes other recent activity when there are no posts" do
+    test "skips recent activity when there are no posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
 
       # Add some inbox activity to prevent the digest from getting skipped
@@ -160,10 +160,7 @@ defmodule Level.DailyDigestTest do
       due_digest = build_due_digest(space_user)
       [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
 
-      [_inbox_section, activity_section] = digest.sections
-
-      assert activity_section.summary =~ ~r/There hasn't been any activity in the past day/
-      assert Enum.empty?(activity_section.posts)
+      assert Enum.count(digest.sections) == 1
     end
   end
 
