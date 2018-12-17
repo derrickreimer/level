@@ -9,7 +9,6 @@ defmodule Level.Nudges do
   alias Ecto.Changeset
   alias Level.Digests
   alias Level.Digests.UnreadToday
-  alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.DueNudge
   alias Level.Schemas.Nudge
@@ -152,9 +151,8 @@ defmodule Level.Nudges do
     due_nudge = Repo.preload(due_nudges, :space_user)
 
     Enum.filter(due_nudge, fn due_nudge ->
-      # Check to see if their is at least one unread post today
-      space_user = due_nudge.space_user
-      get_first_unread_today(space_user, now) != nil
+      opts = digest_options(due_nudge, now)
+      UnreadToday.has_data?(due_nudge.space_user, opts)
     end)
   end
 
@@ -193,17 +191,5 @@ defmodule Level.Nudges do
           {:error, due_nudge}
       end
     end)
-  end
-
-  # Private helpers
-
-  defp get_first_unread_today(space_user, now) do
-    space_user
-    |> Posts.Query.base_query()
-    |> Posts.Query.select_last_activity_at()
-    |> Posts.Query.where_unread_in_inbox()
-    |> Posts.Query.where_last_active_today(now)
-    |> limit(1)
-    |> Repo.one()
   end
 end

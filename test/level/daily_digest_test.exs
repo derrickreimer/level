@@ -95,7 +95,7 @@ defmodule Level.DailyDigestTest do
       due_digest = build_due_digest(space_user)
       [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
 
-      [inbox_section | _] = digest.sections
+      [inbox_section, _activity_section] = digest.sections
       assert inbox_section.summary =~ ~r/You have 1 unread post in your inbox/
 
       assert Enum.any?(inbox_section.posts, fn section_post ->

@@ -1,6 +1,6 @@
-defmodule Level.Digests.UnreadToday do
+defmodule Level.Digests.RecentActivity do
   @moduledoc """
-  Builds an "unread today" section for a digest.
+  Builds a "recent activity" section for a digest.
   """
 
   import Ecto.Query
@@ -19,8 +19,8 @@ defmodule Level.Digests.UnreadToday do
   """
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
   def build(digest, space_user, opts) do
-    unread_count = get_unread_count(space_user, opts.now)
-    {summary, summary_html} = build_summary(unread_count)
+    post_count = get_post_count(space_user, opts.now)
+    {summary, summary_html} = build_summary(post_count)
 
     link_url =
       main_url(
@@ -28,24 +28,23 @@ defmodule Level.Digests.UnreadToday do
         :index,
         [
           space_user.space.slug,
-          "inbox"
-        ],
-        last_activity: "today"
+          "posts"
+        ]
       )
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Unread Today",
+        title: "Recent Activity",
         summary: summary,
         summary_html: summary_html,
-        link_text: "View today's posts",
+        link_text: "View activity feed",
         link_url: link_url,
-        rank: 1
+        rank: 2
       })
 
     compiled_posts =
       space_user
-      |> get_highlighted_inbox_posts(opts.now)
+      |> get_highlighted_posts(opts.now)
       |> Compiler.compile_posts()
 
     Persistence.insert_posts!(digest, section_record, compiled_posts)
@@ -60,10 +59,7 @@ defmodule Level.Digests.UnreadToday do
   def has_data?(space_user, opts) do
     query =
       space_user
-      |> Posts.Query.base_query()
-      |> Posts.Query.select_last_activity_at()
-      |> Posts.Query.where_unread_in_inbox()
-      |> Posts.Query.where_last_active_today(opts.now)
+      |> base_query(opts.now)
       |> limit(1)
 
     case Repo.all(query) do
@@ -72,23 +68,23 @@ defmodule Level.Digests.UnreadToday do
     end
   end
 
-  defp get_unread_count(space_user, now) do
+  defp base_query(space_user, now) do
     space_user
     |> Posts.Query.base_query()
     |> Posts.Query.select_last_activity_at()
-    |> Posts.Query.where_unread_in_inbox()
-    |> Posts.Query.where_last_active_today(now)
+    |> Posts.Query.where_is_following_and_not_subscribed()
+    |> Posts.Query.where_last_active_after(Timex.shift(now, hours: -24))
+  end
+
+  defp get_post_count(space_user, now) do
+    space_user
+    |> base_query(now)
     |> Posts.Query.count()
     |> Repo.one()
   end
 
-  defp get_highlighted_inbox_posts(space_user, now) do
-    inner_query =
-      space_user
-      |> Posts.Query.base_query()
-      |> Posts.Query.select_last_activity_at()
-      |> Posts.Query.where_unread_in_inbox()
-      |> Posts.Query.where_last_active_today(now)
+  defp get_highlighted_posts(space_user, now) do
+    inner_query = base_query(space_user, now)
 
     inner_query
     |> subquery()
@@ -98,24 +94,15 @@ defmodule Level.Digests.UnreadToday do
   end
 
   defp build_summary(0) do
-    text = "You're all caught up! You have no unread posts in your inbox."
-    html = "You&rsquo;re all caught up! You have no unread posts in your inbox."
+    text = "There hasn't been any other activity in the past day."
+    html = "There hasn&rsquo;t been any other activity in the past day."
     {text, html}
   end
 
-  defp build_summary(unread_count) do
-    unread_phrase = pluralize(unread_count, "unread post", "unread posts")
-    text = "You have #{unread_phrase} from today in your inbox."
-    html = "You have <strong>#{unread_phrase}</strong> in your inbox."
+  defp build_summary(_count) do
+    text = "Here are some messages posted in the past day from outside your inbox."
+    html = "Here are some messages posted in the past day from outside your inbox."
 
     {text, html}
-  end
-
-  defp pluralize(count, singular, plural) do
-    if count == 1 do
-      "#{count} #{singular}"
-    else
-      "#{count} #{plural}"
-    end
   end
 end

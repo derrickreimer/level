@@ -52,7 +52,7 @@ defmodule Level.Digests.Builder do
     Enum.reduce(opts.sections, [], fn builder, sections ->
       case builder.(digest, space_user, opts) do
         {:ok, section} ->
-          [section | sections]
+          sections ++ [section]
 
         _ ->
           sections

@@ -8,6 +8,7 @@ defmodule Level.DailyDigest do
   alias Level.Digests
   alias Level.Digests.InboxSummary
   alias Level.Digests.Options
+  alias Level.Digests.RecentActivity
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Digest
@@ -26,7 +27,7 @@ defmodule Level.DailyDigest do
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
       time_zone: time_zone,
-      sections: [&InboxSummary.build/3],
+      sections: [&InboxSummary.build/3, &RecentActivity.build/3],
       now: DateTime.utc_now()
     }
   end
@@ -82,10 +83,9 @@ defmodule Level.DailyDigest do
   def build_and_send(results, now) do
     Enum.map(results, fn result ->
       space_user = Repo.get(SpaceUser, result.id)
+      opts = digest_options(result.digest_key, now, result.time_zone)
 
-      if send?(space_user) do
-        opts = digest_options(result.digest_key, now, result.time_zone)
-
+      if send?(space_user, opts) do
         space_user
         |> Digests.build(opts)
         |> send_after_build(result)
@@ -124,16 +124,8 @@ defmodule Level.DailyDigest do
   @doc """
   Determines if the digest has enough interesting data to actually send.
   """
-  @spec send?(SpaceUser.t()) :: boolean()
-  def send?(space_user) do
-    get_undismissed_inbox_count(space_user) > 0
-  end
-
-  defp get_undismissed_inbox_count(space_user) do
-    space_user
-    |> Posts.Query.base_query()
-    |> Posts.Query.where_undismissed_in_inbox()
-    |> Posts.Query.count()
-    |> Repo.one()
+  @spec send?(SpaceUser.t(), Options.t()) :: boolean()
+  def send?(space_user, opts) do
+    InboxSummary.has_data?(space_user, opts) || RecentActivity.has_data?(space_user, opts)
   end
 end
