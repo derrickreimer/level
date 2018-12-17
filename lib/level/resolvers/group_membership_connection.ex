@@ -34,6 +34,7 @@ defmodule Level.Resolvers.GroupMembershipConnection do
       from gu in GroupUser,
         where: gu.group_id == ^group.id,
         join: su in assoc(gu, :space_user),
+        where: su.state == "ACTIVE",
         select: %{gu | last_name: su.last_name}
 
     wrapped_query = from(gu in subquery(base_query))

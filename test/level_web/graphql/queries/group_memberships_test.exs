@@ -2,6 +2,9 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Groups
+  alias Level.Spaces
+
   @query """
     query GetGroupMemberships(
       $group_id: ID!
@@ -10,8 +13,8 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
         memberships(first: 10) {
           edges {
             node {
-              group {
-                name
+              spaceUser {
+                id
               }
             }
           }
@@ -26,7 +29,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "users can list their group memberships", %{conn: conn, space_user: space_user} do
+  test "groups expose their memberships", %{conn: conn, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
 
     variables = %{group_id: group.id}
@@ -43,8 +46,46 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
                    "edges" => [
                      %{
                        "node" => %{
-                         "group" => %{
-                           "name" => "Cool peeps"
+                         "spaceUser" => %{
+                           "id" => space_user.id
+                         }
+                       }
+                     }
+                   ]
+                 }
+               }
+             }
+           }
+  end
+
+  test "group memberships do not include disabled users", %{
+    conn: conn,
+    space: space,
+    space_user: space_user
+  } do
+    {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
+
+    {:ok, %{space_user: another_user}} = create_space_member(space)
+
+    Groups.subscribe(group, another_user)
+    Spaces.revoke_access(another_user)
+
+    variables = %{group_id: group.id}
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "group" => %{
+                 "memberships" => %{
+                   "edges" => [
+                     %{
+                       "node" => %{
+                         "spaceUser" => %{
+                           "id" => space_user.id
                          }
                        }
                      }
