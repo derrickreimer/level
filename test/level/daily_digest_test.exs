@@ -78,7 +78,7 @@ defmodule Level.DailyDigestTest do
   end
 
   describe "build_and_send/2" do
-    test "summarizes inbox activity when there are no unreads" do
+    test "skips when there is no inbox activity or other recent activity" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
 
       due_digest = build_due_digest(space_user)
@@ -128,6 +128,42 @@ defmodule Level.DailyDigestTest do
 
       [inbox_section | _] = digest.sections
       assert inbox_section.summary =~ ~r/You have 1 post in your inbox/
+    end
+
+    test "summarizes other recent activity when there are posts" do
+      {:ok, %{space_user: space_user, space: space}} = create_user_and_space()
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      {:ok, %{group: group}} = create_group(space_user)
+
+      {:ok, %{post: post}} = create_post(another_user, group)
+
+      due_digest = build_due_digest(space_user)
+      [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
+
+      [_inbox_section, activity_section] = digest.sections
+
+      assert activity_section.summary =~
+               ~r/Here are some messages from the past day that did not land in your Inbox/
+
+      assert Enum.any?(activity_section.posts, fn section_post ->
+               section_post.id == post.id
+             end)
+    end
+
+    test "summarizes other recent activity when there are no posts" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+
+      # Add some inbox activity to prevent the digest from getting skipped
+      {:ok, %{group: group}} = create_group(space_user)
+      _post = create_unread_post(space_user, group)
+
+      due_digest = build_due_digest(space_user)
+      [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
+
+      [_inbox_section, activity_section] = digest.sections
+
+      assert activity_section.summary =~ ~r/There hasn't been any activity in the past day./
+      assert Enum.empty?(activity_section.posts)
     end
   end
 

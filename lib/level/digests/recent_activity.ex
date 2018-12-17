@@ -94,14 +94,14 @@ defmodule Level.Digests.RecentActivity do
   end
 
   defp build_summary(0) do
-    text = "There hasn't been any other activity in the past day."
-    html = "There hasn&rsquo;t been any other activity in the past day."
+    text = "There hasn't been any activity in the past day."
+    html = "There hasn&rsquo;t been any activity in the past day."
     {text, html}
   end
 
   defp build_summary(_count) do
-    text = "Here are some messages posted in the past day from outside your inbox."
-    html = "Here are some messages posted in the past day from outside your inbox."
+    text = "Here are some messages from the past day that did not land in your Inbox."
+    html = "Here are some messages from the past day that did not land in your Inbox."
 
     {text, html}
   end
