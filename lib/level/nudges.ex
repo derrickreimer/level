@@ -26,6 +26,7 @@ defmodule Level.Nudges do
         on: su.id == n.space_user_id,
         inner_join: u in "users",
         on: u.id == su.user_id,
+        where: su.state == "ACTIVE",
         select: %DueNudge{
           id: fragment("?::text", n.id),
           space_id: fragment("?::text", n.space_id),

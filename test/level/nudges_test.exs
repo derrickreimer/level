@@ -10,6 +10,7 @@ defmodule Level.NudgesTest do
   alias Level.Schemas.Nudge
   alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceUser
+  alias Level.Spaces
 
   # Note on time zones: America/Phoenix (-7:00) does not currently observe
   # daylight saving time, which makes it a good zone to use for testing offset logic.
@@ -75,6 +76,17 @@ defmodule Level.NudgesTest do
       # 00:10
       {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 10})
 
+      refute query_includes?(query, nudge.id)
+    end
+
+    test "does not include nudges for revoked users", %{space_user: space_user} do
+      # 3:29 Arizona time
+      query = Nudges.due_query(~N[2018-11-01 10:29:00])
+
+      # 3:00
+      {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 180})
+
+      Spaces.revoke_access(space_user)
       refute query_includes?(query, nudge.id)
     end
   end
