@@ -78,6 +78,15 @@ defmodule Level.Posts.Query do
   end
 
   @doc """
+  Filters a posts query for posts that had activity after a specific point in time.
+  """
+  @spec where_last_active_after(Ecto.Query.t(), DateTime.t()) :: Ecto.Query.t()
+  def where_last_active_after(query, timestamp) do
+    from [p, su, u, g, gu, pu, pl] in query,
+      where: pl.occurred_at >= ^timestamp
+  end
+
+  @doc """
   Filters a posts query for posts that are open.
   """
   @spec where_open(Ecto.Query.t()) :: Ecto.Query.t()

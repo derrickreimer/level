@@ -30,9 +30,7 @@ defmodule Level.Posts.QueryTest do
         |> Posts.Query.select_last_activity_at()
         |> Posts.Query.where_last_active_today(now)
 
-      results = Repo.all(query)
-
-      assert Enum.any?(results, fn result -> result.id == post.id end)
+      assert query_includes?(query, post)
     end
 
     test "excludes posts where activity occurred before today" do
@@ -55,9 +53,49 @@ defmodule Level.Posts.QueryTest do
         |> Posts.Query.select_last_activity_at()
         |> Posts.Query.where_last_active_today(now)
 
-      results = Repo.all(query)
+      refute query_includes?(query, post)
+    end
+  end
 
-      refute Enum.any?(results, fn result -> result.id == post.id end)
+  describe "where_last_active_after/2" do
+    test "includes posts where activity occurred in range" do
+      {:ok, %{space_user: space_user}} = create_user_and_space(%{time_zone: "America/Phoenix"})
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      # Clear out all log entries for the post
+      Repo.delete_all(PostLog)
+
+      # Log some activity
+      {:ok, _} = PostLog.post_edited(post, space_user, ~N[2018-11-01 05:00:00])
+
+      query =
+        space_user
+        |> Posts.Query.base_query()
+        |> Posts.Query.select_last_activity_at()
+        |> Posts.Query.where_last_active_after(~N[2018-11-01 04:00:00])
+
+      assert query_includes?(query, post)
+    end
+
+    test "excludes posts where activity occurred outside range" do
+      {:ok, %{space_user: space_user}} = create_user_and_space(%{time_zone: "America/Phoenix"})
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      # Clear out all log entries for the post
+      Repo.delete_all(PostLog)
+
+      # Log some activity
+      {:ok, _} = PostLog.post_edited(post, space_user, ~N[2018-11-01 03:00:00])
+
+      query =
+        space_user
+        |> Posts.Query.base_query()
+        |> Posts.Query.select_last_activity_at()
+        |> Posts.Query.where_last_active_after(~N[2018-11-01 04:00:00])
+
+      refute query_includes?(query, post)
     end
   end
 
