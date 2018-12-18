@@ -45,7 +45,7 @@ tile config idx minute =
             ]
         , style "transition" "background-color 0.2s ease"
         , onClick (config.toggleMsg minute)
-        , attribute "data-tooltip" (Minutes.toString minute)
+        , attribute "data-tooltip" (Minutes.toLongString minute)
         ]
         [ viewIf (modBy 4 idx == 0) <|
             div
