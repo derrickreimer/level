@@ -1,4 +1,4 @@
-defmodule Level.Digests.RecentActivity do
+defmodule Level.Digests.RecentActivitySection do
   @moduledoc """
   Builds a "recent activity" section for a digest.
   """
@@ -42,7 +42,7 @@ defmodule Level.Digests.RecentActivity do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Recent posts in your groups",
+        title: "Recent activity",
         summary: summary,
         summary_html: summary_html,
         link_text: "View my activity feed",
@@ -108,12 +108,8 @@ defmodule Level.Digests.RecentActivity do
   end
 
   defp build_summary(_count) do
-    text =
-      "Here are some recent messages posted in groups you've joined that did not land in your Inbox."
-
-    html =
-      "Here are some recent messages posted in groups you&rsquo;ve joined that did not land in your Inbox."
-
+    text = "Here are some messages posted recently in your groups."
+    html = "Here are some messages posted recently in your groups."
     {text, html}
   end
 end

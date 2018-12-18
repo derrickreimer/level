@@ -6,10 +6,9 @@ defmodule Level.DailyDigest do
   import Ecto.Query
 
   alias Level.Digests
-  alias Level.Digests.InboxSummary
+  alias Level.Digests.InboxSection
   alias Level.Digests.Options
-  alias Level.Digests.RecentActivity
-  alias Level.Posts
+  alias Level.Digests.RecentActivitySection
   alias Level.Repo
   alias Level.Schemas.Digest
   alias Level.Schemas.DueDigest
@@ -27,7 +26,7 @@ defmodule Level.DailyDigest do
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
       time_zone: time_zone,
-      sections: [&InboxSummary.build/3, &RecentActivity.build/3],
+      sections: [&InboxSection.build/3, &RecentActivitySection.build/3],
       now: DateTime.utc_now()
     }
   end
@@ -126,6 +125,6 @@ defmodule Level.DailyDigest do
   """
   @spec send?(SpaceUser.t(), Options.t()) :: boolean()
   def send?(space_user, opts) do
-    InboxSummary.has_data?(space_user, opts) || RecentActivity.has_data?(space_user, opts)
+    InboxSection.has_data?(space_user, opts) || RecentActivitySection.has_data?(space_user, opts)
   end
 end

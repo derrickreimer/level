@@ -1,4 +1,4 @@
-defmodule Level.Digests.InboxSummary do
+defmodule Level.Digests.InboxSection do
   @moduledoc """
   Builds an inbox summary section for a digest.
   """
@@ -31,7 +31,7 @@ defmodule Level.Digests.InboxSummary do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Awaiting response in your Inbox",
+        title: "Inbox",
         summary: summary,
         summary_html: summary_html,
         link_text: "View my inbox",
