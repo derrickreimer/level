@@ -409,15 +409,111 @@ post-editor.dragging-over > * {
   transform: translateX(-50%);
 }
 
+/**
+ * Tooltips
+ *
+ * Based on This technique: https://chrisbracco.com/a-simple-css-tooltip/
+ */
+
+/* Base styles for the element that has a tooltip */
+[data-tooltip],
 .tooltip {
-  @apply opacity-0 z-50;
-  transition: opacity 0.2s;
-  visibility: hidden;
+  position: relative;
+  cursor: pointer;
 }
 
-:hover > .tooltip {
-  @apply opacity-100;
+/* Base styles for the entire tooltip */
+[data-tooltip]:before,
+[data-tooltip]:after,
+.tooltip:before,
+.tooltip:after {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease-in-out,
+    visibility 0.2s ease-in-out,
+    transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+  transform: translate3d(0, 0, 0);
+  pointer-events: none;
+}
+
+/* Show the entire tooltip on hover and focus */
+[data-tooltip]:hover:after,
+.tooltip:hover:after{
   visibility: visible;
+  opacity: 1;
+}
+
+
+/* Base styles for the tooltip's content area */
+.tooltip:after,
+[data-tooltip]:after {
+  @apply px-2 py-1 z-50 bg-dusty-blue-darker rounded text-xs font-bold text-white leading-normal;
+  width: 100px;
+  content: attr(data-tooltip);
+}
+
+/* Directions */
+
+/* Top (default) */
+[data-tooltip]:after,
+.tooltip:after,
+.tooltip-top:after {
+  bottom: 100%;
+  left: 50%;
+}
+
+/* Horizontally align top/bottom tooltips */
+[data-tooltip]:after,
+.tooltip:after,
+.tooltip-top:after {
+  margin-left: -50px;
+}
+
+[data-tooltip]:hover:after,
+.tooltip:hover:after,
+.tooltip-top:hover:after, {
+  transform: translateY(-10px);
+}
+
+/* Left */
+.tooltip-left:after {
+  right: 100%;
+  bottom: 50%;
+  left: auto;
+}
+
+.tooltip-left:hover:after {
+  transform: translateX(-10px);
+}
+
+/* Bottom */
+.tooltip-bottom:after {
+  top: 100%;
+  bottom: auto;
+  left: 50%;
+}
+
+.tooltip-bottom:hover:after {
+  transform: translateY(10px);
+}
+
+/* Right */
+.tooltip-right:after {
+  bottom: 50%;
+  left: 100%;
+}
+
+.tooltip-right:hover:after {
+  transform: translateX(10px);
+}
+
+/* Vertically center tooltip content for left/right tooltips */
+.tooltip-left:after,
+.tooltip-right:after {
+  margin-left: 0;
+  margin-bottom: -16px;
 }
 
 /**

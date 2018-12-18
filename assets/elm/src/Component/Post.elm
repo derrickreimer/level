@@ -1048,10 +1048,11 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 [ postReactionButton data.post
                 , viewIf (Post.state data.post == Post.Open) <|
                     button
-                        [ class "flex no-outline active:translate-y-1"
+                        [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
                         , style "margin-top" "4px"
                         , style "margin-right" "18px"
                         , onClick ExpandReplyComposer
+                        , attribute "data-tooltip" "Write a reply"
                         ]
                         [ Icons.comment ]
                 , inboxButton data.post
@@ -1094,17 +1095,20 @@ inboxButton post =
     let
         addButton =
             button
-                [ class "flex mr-4 no-outline active:translate-y-1"
+                [ class "flex tooltip tooltip-bottom mr-4 no-outline active:translate-y-1"
                 , style "margin-top" "4px"
                 , onClick MoveToInboxClicked
+                , attribute "data-tooltip" "Move to inbox"
                 ]
-                [ Icons.inbox Icons.Off ]
+                [ Icons.inbox Icons.Off
+                ]
 
         removeButton =
             button
-                [ class "flex mr-4 no-outline active:translate-y-1"
+                [ class "flex tooltip tooltip-bottom mr-4 no-outline active:translate-y-1"
                 , style "margin-top" "4px"
                 , onClick DismissClicked
+                , attribute "data-tooltip" "Dismiss from inbox"
                 ]
                 [ Icons.inbox Icons.On ]
     in
@@ -1502,14 +1506,22 @@ staticFileView file =
 postReactionButton : Post -> Html Msg
 postReactionButton post =
     if Post.hasReacted post then
-        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick DeletePostReactionClicked ]
+        button
+            [ class "flex tooltip tooltip-bottom items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1"
+            , onClick DeletePostReactionClicked
+            , attribute "data-tooltip" "Acknowledge"
+            ]
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
             ]
 
     else
-        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick CreatePostReactionClicked ]
+        button
+            [ class "flex tooltip tooltip-bottom items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
+            , onClick CreatePostReactionClicked
+            , attribute "data-tooltip" "Acknowledge"
+            ]
             [ Icons.thumbs Icons.Off
             , viewIf (Post.reactionCount post > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
@@ -1519,14 +1531,22 @@ postReactionButton post =
 replyReactionButton : Reply -> Html Msg
 replyReactionButton reply =
     if Reply.hasReacted reply then
-        button [ class "flex items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1", onClick <| DeleteReplyReactionClicked (Reply.id reply) ]
+        button
+            [ class "flex tooltip tooltip-bottom items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1"
+            , onClick <| DeleteReplyReactionClicked (Reply.id reply)
+            , attribute "data-tooltip" "Acknowledge"
+            ]
             [ Icons.thumbs Icons.On
             , viewIf (Reply.reactionCount reply > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]
             ]
 
     else
-        button [ class "flex items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1", onClick <| CreateReplyReactionClicked (Reply.id reply) ]
+        button
+            [ class "flex tooltip tooltip-bottom items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
+            , onClick <| CreateReplyReactionClicked (Reply.id reply)
+            , attribute "data-tooltip" "Acknowledge"
+            ]
             [ Icons.thumbs Icons.Off
             , viewIf (Reply.reactionCount reply > 0) <|
                 div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]

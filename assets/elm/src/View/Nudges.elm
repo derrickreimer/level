@@ -39,12 +39,13 @@ tile config idx minute =
     in
     button
         [ classList
-            [ ( "mr-1 relative text-center flex-grow rounded h-12 no-outline", True )
+            [ ( "mr-1 tooltip tooltip-bottom text-center flex-grow rounded h-12 no-outline", True )
             , ( "bg-grey hover:bg-grey-dark", not isActive )
             , ( "bg-blue", isActive )
             ]
         , style "transition" "background-color 0.2s ease"
         , onClick (config.toggleMsg minute)
+        , attribute "data-tooltip" (Minutes.toString minute)
         ]
         [ viewIf (modBy 4 idx == 0) <|
             div
@@ -53,13 +54,6 @@ tile config idx minute =
                 , style "transform" "translateX(-50%)"
                 ]
                 [ text (Minutes.toString minute) ]
-        , div
-            [ class "absolute p-2 text-xs font-bold text-white bg-dusty-blue-darker rounded pin-l-50 tooltip"
-            , style "bottom" "-35px"
-            , style "transform" "translateX(-50%)"
-            ]
-            [ text (Minutes.toString minute)
-            ]
         ]
 
 
