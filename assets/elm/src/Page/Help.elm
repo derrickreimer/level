@@ -180,7 +180,7 @@ resolvedView repo maybeCurrentRoute model data =
                             [ Route.href <| Route.WelcomeTutorial (Route.WelcomeTutorial.init (Route.Help.getSpaceSlug model.params) 1)
                             , class "no-underline"
                             ]
-                            [ h2 [ class "block text-xl text-blue-dark font-extrabold tracking-semi-tight" ] [ text "Welcome to Level" ]
+                            [ h2 [ class "block text-xl text-blue-dark font-extrabold tracking-semi-tight" ] [ text "How Level Works" ]
                             , p [ class "text-dusty-blue-dark text-base" ] [ text "Learn the basics and set your preferences." ]
                             ]
                         ]

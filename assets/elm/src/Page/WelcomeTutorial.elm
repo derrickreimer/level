@@ -86,7 +86,7 @@ stepCount =
 
 title : String
 title =
-    "Welcome to Level"
+    "How Level Works"
 
 
 
@@ -406,7 +406,7 @@ headerView step data =
 
     else
         div []
-            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "Welcome to Level" ]
+            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "How Level Works" ]
             , progressBarView step
             ]
 
@@ -437,10 +437,12 @@ stepView step model data =
     case step of
         1 ->
             div []
-                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level. Let’s face it—our ability to achieve deep focus is suffering and our tools are part of the problem." ]
-                , p [ class "mb-6" ] [ text "Real-time chat is greedy. It demands your attention. It begs you to incessantly clear its notification badges. It punishes you by burying important messages among idle chatter." ]
-                , p [ class "mb-6" ] [ text "I’m so glad you’re here seeking a better way! It’s time to break some bad habits and start embracing a new way. To get started, join me on quick walk through the fundamental ideas behind Level." ]
-                , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
+                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
+                , p [ class "mb-6" ] [ text "Let’s face it—our ability to achieve deep focus at work is suffering and our tools are not helping the problem." ]
+                , p [ class "mb-6" ] [ text "If you’re a maker, you know how costly it is get interrupted. The truth is 99% of message are simply not urgent enough to warrant breaking flow." ]
+                , p [ class "mb-6" ] [ text "If you’re a manager, you want to be notified as soon as someone on your team is blocked. However, it’s too easy to accidentally interrupt your makers when every chat message carries the same weight of urgency." ]
+                , p [ class "mb-6" ] [ text "Level is designed to balance the needs of makers and managers in perfect harmony." ]
+                , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Learn how" ] ]
 
                 -- button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
                 -- [ span [ class "mr-2" ] [ text "Already know Level? Skip to manually set it up" ]
@@ -451,7 +453,7 @@ stepView step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups keep your conversations organized." ]
-                , p [ class "mb-6" ] [ text "Similar to channels in chat, a group in Level is a place where you can post messages around a particular topic." ]
+                , p [ class "mb-6" ] [ text "Similar to channels, Groups are where you can post messages to a team or around a particular topic." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
                     div []
@@ -464,7 +466,7 @@ stepView step model data =
         3 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Every conversation is threaded." ]
-                , p [ class "mb-6" ] [ text "Chat timelines are horrible for actually organizing productive discussions. In Level, every conversation is structured as a thread." ]
+                , p [ class "mb-6" ] [ text "Chat timelines are terrible for organizing productive discourse. In Level, every conversation is structured as a thread." ]
                 , p [ class "mb-6" ] [ text "Once a conversation is done, you can ", strong [] [ text "mark it as resolved" ], text " to let the rest of the team know it’s finished." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
@@ -473,9 +475,9 @@ stepView step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
-                , p [ class "mb-6" ] [ text "It’s neither possible nor desirable to keep up with every conversation." ]
-                , p [ class "mb-6" ] [ text "To combat information overload and prevent important things from slipping through the cracks, Level has an Inbox." ]
-                , p [ class "mb-6" ] [ text "Posts land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
+                , p [ class "mb-6" ] [ text "Once your team grows large enough, it’s impossible to keep up with every conversation." ]
+                , p [ class "mb-6" ] [ text "To combat information overload, everyone has their own curated Inbox designed to prevent important discussions from slipping through the cracks." ]
+                , p [ class "mb-6" ] [ text "Posts will land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
                 , p [ class "mb-6" ] [ text "You can safely dismiss posts from your Inbox when you’re done with them—they’ll move back to your Inbox if more activity occurs later." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
@@ -484,8 +486,8 @@ stepView step model data =
         5 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Your Activity Feed keeps you in the loop." ]
-                , p [ class "mb-6" ] [ text "Your Activity Feed is personalized to include all messages posted in groups that you have joined (including the ones that fell in your Inbox)." ]
-                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse posts there to find out what else is happening around the space—but you shouldn’t feel pressure to follow everything." ]
+                , p [ class "mb-6" ] [ text "Your Activity Feed includes all messages posted in groups that you have joined." ]
+                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse your feed to find out what else is happening around the space—but you shouldn’t feel pressure to follow everything." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
@@ -538,7 +540,7 @@ inboxRoute params =
 createGroupsView : Model -> Html Msg
 createGroupsView model =
     div []
-        [ p [ class "mb-6" ] [ text "To kick things off, let’s create some groups. Here are a few common ones to choose from. Of course, you can always create more later." ]
+        [ p [ class "mb-6" ] [ text "To kick things off, let’s create some Groups now. Here are a few common ones to choose from. Of course, you can always create more later." ]
         , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
         , div [ class "mb-4 pb-6 border-b" ]
             [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next step" ]
