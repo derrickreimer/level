@@ -1046,11 +1046,11 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 postEditorView (Space.id space) spaceUsers model.postEditor
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
-                , viewIf (Post.state data.post == Post.Open) <|
+                , viewIf (Post.state data.post == Post.Open && Connection.isEmpty model.replyIds) <|
                     button
                         [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
                         , style "margin-top" "4px"
-                        , style "margin-right" "18px"
+                        , style "margin-right" "26px"
                         , onClick ExpandReplyComposer
                         , attribute "data-tooltip" "Write a reply"
                         ]
@@ -1507,7 +1507,7 @@ postReactionButton : Post -> Html Msg
 postReactionButton post =
     if Post.hasReacted post then
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex tooltip tooltip-bottom items-center mr-6 text-green font-bold text-sm no-outline active:translate-y-1"
             , onClick DeletePostReactionClicked
             , attribute "data-tooltip" "Acknowledge"
             ]
@@ -1518,7 +1518,7 @@ postReactionButton post =
 
     else
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex tooltip tooltip-bottom items-center mr-6 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
             , onClick CreatePostReactionClicked
             , attribute "data-tooltip" "Acknowledge"
             ]
