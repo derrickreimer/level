@@ -23,6 +23,7 @@ import Mutation.CreateReplyReaction as CreateReplyReaction
 import Mutation.DeletePostReaction as DeletePostReaction
 import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
+import Mutation.MarkAsUnread as MarkAsUnread
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
 import Mutation.UpdatePost as UpdatePost
@@ -192,6 +193,8 @@ type Msg
     | SelectionToggled
     | DismissClicked
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
+    | MoveToInboxClicked
+    | PostMovedToInbox (Result Session.Error ( Session, MarkAsUnread.Response ))
     | ClickedToExpand
     | ExpandPostEditor
     | CollapsePostEditor
@@ -441,6 +444,24 @@ update msg spaceId globals model =
             redirectToLogin globals model
 
         Dismissed (Err _) ->
+            noCmd globals model
+
+        MoveToInboxClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> MarkAsUnread.request spaceId [ model.postId ]
+                        |> Task.attempt PostMovedToInbox
+            in
+            ( ( model, cmd ), globals )
+
+        PostMovedToInbox (Ok ( newSession, _ )) ->
+            ( ( model, Cmd.none ), { globals | session = newSession } )
+
+        PostMovedToInbox (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostMovedToInbox (Err _) ->
             noCmd globals model
 
         ClickedToExpand ->
@@ -1027,11 +1048,13 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 [ postReactionButton data.post
                 , viewIf (Post.state data.post == Post.Open) <|
                     button
-                        [ class "flex mr-4 no-outline active:translate-y-1"
+                        [ class "flex no-outline active:translate-y-1"
                         , style "margin-top" "4px"
+                        , style "margin-right" "18px"
                         , onClick ExpandReplyComposer
                         ]
                         [ Icons.comment ]
+                , inboxButton data.post
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
@@ -1064,6 +1087,39 @@ checkableView repo space viewer now spaceUsers model =
 
 
 -- PRIVATE POST VIEW FUNCTIONS
+
+
+inboxButton : Post -> Html Msg
+inboxButton post =
+    let
+        addButton =
+            button
+                [ class "flex mr-4 no-outline active:translate-y-1"
+                , style "margin-top" "4px"
+                , onClick MoveToInboxClicked
+                ]
+                [ Icons.inbox Icons.Off ]
+
+        removeButton =
+            button
+                [ class "flex mr-4 no-outline active:translate-y-1"
+                , style "margin-top" "4px"
+                , onClick DismissClicked
+                ]
+                [ Icons.inbox Icons.On ]
+    in
+    case Post.inboxState post of
+        Post.Excluded ->
+            addButton
+
+        Post.Dismissed ->
+            addButton
+
+        Post.Read ->
+            removeButton
+
+        Post.Unread ->
+            removeButton
 
 
 postAuthorName : Space -> Id -> Actor -> Html Msg

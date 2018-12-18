@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, filter, heart, image, inboxWhite, lock, logOut, logo, open, refresh, reply, revokeMember, search, square, thumbs, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, open, refresh, reply, revokeMember, search, square, thumbs, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -110,7 +110,22 @@ image strokeColor =
 inboxWhite : Html msg
 inboxWhite =
     iconView <|
-        svg [ width "17px", height "14px", viewBox "0 0 17 14", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(1.000000, 1.000000)", stroke "#FFFFFF", strokeWidth "2" ] [ polyline [ id "Shape", points "15 6 10.5 6 9 8.25 6 8.25 4.5 6 0 6" ] [], Svg.path [ d "M2.5875,0.8325 L0,6 L0,10.5 C0,11.3284271 0.671572875,12 1.5,12 L13.5,12 C14.3284271,12 15,11.3284271 15,10.5 L15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 Z", id "Shape" ] [] ] ] ]
+        svg [ width "17px", height "14px", viewBox "0 0 17 14", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(1.000000, 1.000000)", stroke "#fff", strokeWidth "2" ] [ Svg.path [ d "M15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 L0,6", id "Shape" ] [], Svg.path [ d "M10.5,6 L15,6 L15,10.5 C15,11.3284271 14.3284271,12 13.5,12 L1.5,12 C0.671572875,12 0,11.3284271 0,10.5 L0,6 L4.5,6 L6,8.25 L9,8.25 L10.5,6 Z", id "Combined-Shape", fill "#fff" ] [] ] ] ]
+
+
+inbox : Toggle -> Html msg
+inbox toggle =
+    let
+        color =
+            case toggle of
+                On ->
+                    "#38C172"
+
+                Off ->
+                    "#c6ced2"
+    in
+    iconView <|
+        svg [ width "17px", height "14px", viewBox "0 0 17 14", version "1.1" ] [ desc [] [ text "Created with Sketch." ], defs [] [], g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(1.000000, 1.000000)", stroke color, strokeWidth "2" ] [ Svg.path [ d "M15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 L0,6", id "Shape" ] [], Svg.path [ d "M10.5,6 L15,6 L15,10.5 C15,11.3284271 14.3284271,12 13.5,12 L1.5,12 C0.671572875,12 0,11.3284271 0,10.5 L0,6 L4.5,6 L6,8.25 L9,8.25 L10.5,6 Z", id "Combined-Shape", fill color ] [] ] ] ]
 
 
 logOut : Html msg
