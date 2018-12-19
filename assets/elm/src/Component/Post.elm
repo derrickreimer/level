@@ -913,8 +913,16 @@ update msg spaceId globals model =
                 newRepo =
                     globals.repo
                         |> Repo.setPost post
+
+                newReplyComposer =
+                    model.replyComposer
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.expand
+
+                cmd =
+                    setFocus (PostEditor.getTextareaId newReplyComposer) NoOp
             in
-            ( ( { model | replyComposer = PostEditor.setNotSubmitting model.replyComposer }, Cmd.none )
+            ( ( { model | replyComposer = newReplyComposer }, cmd )
             , { globals | repo = newRepo, session = newSession }
             )
 
@@ -1370,13 +1378,18 @@ replyComposerView spaceId currentUser post spaceUsers model =
             [ div [ class "flex items-center my-3" ]
                 [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
                 , div [ class "flex-grow leading-semi-loose" ]
-                    [ span [ class "mr-3 text-dusty-blue-dark" ] [ text "This post is resolved" ]
+                    [ span [ class "mr-3 text-dusty-blue-dark" ] [ text "Resolved" ]
                     , viewIf (Post.inboxState post == Post.Read || Post.inboxState post == Post.Unread) <|
                         button
-                            [ class "btn btn-grey-outline btn-sm"
+                            [ class "mr-2 btn btn-grey-outline btn-sm"
                             , onClick DismissClicked
                             ]
-                            [ text "Dismiss from my inbox" ]
+                            [ text "Dismiss from inbox" ]
+                    , button
+                        [ class "btn btn-grey-outline btn-sm"
+                        , onClick ReopenPostClicked
+                        ]
+                        [ text "Reopen" ]
                     ]
                 ]
             ]
