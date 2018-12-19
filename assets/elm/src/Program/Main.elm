@@ -182,7 +182,16 @@ setup { currentUser, spaceIds, spaceUserIds } model =
 
 buildGlobals : Model -> Globals
 buildGlobals model =
-    Globals model.session model.repo model.navKey model.timeZone model.flash
+    { session = model.session
+    , repo = model.repo
+    , navKey = model.navKey
+    , timeZone = model.timeZone
+    , flash = model.flash
+    , device = model.device
+    , pushStatus = model.pushStatus
+    , currentRoute = routeFor model.page
+    , spaceUserLists = model.spaceUserLists
+    }
 
 
 
@@ -998,92 +1007,92 @@ routeFor page =
             Nothing
 
 
-pageView : Repo -> Page -> PushStatus -> SpaceUserLists -> Html Msg
-pageView repo page pushStatus spaceUserLists =
+pageView : Globals -> Page -> Html Msg
+pageView globals page =
     case page of
         Spaces pageModel ->
             pageModel
-                |> Page.Spaces.view repo
+                |> Page.Spaces.view globals.repo
                 |> Html.map SpacesMsg
 
         NewSpace pageModel ->
             pageModel
-                |> Page.NewSpace.view repo
+                |> Page.NewSpace.view globals.repo
                 |> Html.map NewSpaceMsg
 
         Posts pageModel ->
             pageModel
-                |> Page.Posts.view repo (routeFor page) spaceUserLists
+                |> Page.Posts.view globals.repo (routeFor page) globals.spaceUserLists
                 |> Html.map PostsMsg
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.view repo (routeFor page) pushStatus spaceUserLists
+                |> Page.Inbox.view globals
                 |> Html.map InboxMsg
 
         SpaceUser pageModel ->
             pageModel
-                |> Page.SpaceUser.view repo (routeFor page)
+                |> Page.SpaceUser.view globals.repo (routeFor page)
                 |> Html.map SpaceUserMsg
 
         SpaceUsers pageModel ->
             pageModel
-                |> Page.SpaceUsers.view repo (routeFor page)
+                |> Page.SpaceUsers.view globals.repo (routeFor page)
                 |> Html.map SpaceUsersMsg
 
         InviteUsers pageModel ->
             pageModel
-                |> Page.InviteUsers.view repo (routeFor page)
+                |> Page.InviteUsers.view globals.repo (routeFor page)
                 |> Html.map InviteUsersMsg
 
         Groups pageModel ->
             pageModel
-                |> Page.Groups.view repo (routeFor page)
+                |> Page.Groups.view globals.repo (routeFor page)
                 |> Html.map GroupsMsg
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view repo (routeFor page) spaceUserLists
+                |> Page.Group.view globals.repo (routeFor page) globals.spaceUserLists
                 |> Html.map GroupMsg
 
         NewGroup pageModel ->
             pageModel
-                |> Page.NewGroup.view repo (routeFor page)
+                |> Page.NewGroup.view globals.repo (routeFor page)
                 |> Html.map NewGroupMsg
 
         GroupSettings pageModel ->
             pageModel
-                |> Page.GroupSettings.view repo (routeFor page)
+                |> Page.GroupSettings.view globals.repo (routeFor page)
                 |> Html.map GroupSettingsMsg
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view repo (routeFor page) spaceUserLists
+                |> Page.Post.view globals.repo (routeFor page) globals.spaceUserLists
                 |> Html.map PostMsg
 
         UserSettings pageModel ->
             pageModel
-                |> Page.UserSettings.view repo
+                |> Page.UserSettings.view globals.repo
                 |> Html.map UserSettingsMsg
 
         SpaceSettings pageModel ->
             pageModel
-                |> Page.Settings.view repo (routeFor page)
+                |> Page.Settings.view globals.repo (routeFor page)
                 |> Html.map SpaceSettingsMsg
 
         Search pageModel ->
             pageModel
-                |> Page.Search.view repo (routeFor page)
+                |> Page.Search.view globals.repo (routeFor page)
                 |> Html.map SearchMsg
 
         WelcomeTutorial pageModel ->
             pageModel
-                |> Page.WelcomeTutorial.view repo (routeFor page)
+                |> Page.WelcomeTutorial.view globals.repo (routeFor page)
                 |> Html.map WelcomeTutorialMsg
 
         Help pageModel ->
             pageModel
-                |> Page.Help.view repo (routeFor page)
+                |> Page.Help.view globals.repo (routeFor page)
                 |> Html.map HelpMsg
 
         Blank ->
@@ -1368,7 +1377,7 @@ subscriptions model =
 view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
-        [ pageView model.repo model.page model.pushStatus model.spaceUserLists
+        [ pageView (buildGlobals model) model.page
         , centerNoticeView model
         , Flash.view model.flash
         ]

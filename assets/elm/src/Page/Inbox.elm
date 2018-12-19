@@ -419,27 +419,27 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> PushStatus -> SpaceUserLists -> Model -> Html Msg
-view repo maybeCurrentRoute pushStatus spaceUserLists model =
+view : Globals -> Model -> Html Msg
+view globals model =
     let
         spaceUsers =
-            SpaceUserLists.resolveList repo model.spaceId spaceUserLists
+            SpaceUserLists.resolveList globals.repo model.spaceId globals.spaceUserLists
     in
-    case resolveData repo model of
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute pushStatus spaceUsers model data
+            resolvedView globals spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> PushStatus -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute pushStatus spaceUsers model data =
+resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView globals spaceUsers model data =
     View.SpaceLayout.layout
         data.viewer
         data.space
         data.bookmarks
-        maybeCurrentRoute
+        globals.currentRoute
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "trans-border-b-grey" ]
@@ -453,9 +453,9 @@ resolvedView repo maybeCurrentRoute pushStatus spaceUsers model data =
                         ]
                     ]
                 ]
-            , filterNoticeView repo model data
-            , postsView repo spaceUsers model data
-            , sidebarView data.space data.featuredUsers pushStatus
+            , filterNoticeView globals.repo model data
+            , postsView globals.repo spaceUsers model data
+            , sidebarView data.space data.featuredUsers globals.pushStatus
             ]
         ]
 
