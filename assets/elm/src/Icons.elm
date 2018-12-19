@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, open, refresh, reply, revokeMember, search, square, thumbs, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, open, refresh, reply, revokeMember, search, square, thumbs, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -138,6 +138,12 @@ logOut : Html msg
 logOut =
     iconView <|
         svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "log-out", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M6,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L6,0", id "Shape" ] [], polyline [ id "Shape", points "13 14 18 9 13 4" ] [], Svg.path [ d "M18,9 L6,9", id "Shape" ] [] ] ] ]
+
+
+menu : Html msg
+menu =
+    iconView <|
+        svg [ width "16px", height "12px", viewBox "0 0 16 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "menu", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M0,5 L14,5", id "Shape" ] [], Svg.path [ d "M0,0 L14,0", id "Shape" ] [], Svg.path [ d "M0,10 L14,10", id "Shape" ] [] ] ] ]
 
 
 {-| Using the `circle` feather icon.

@@ -464,8 +464,8 @@ resolvedDesktopView globals spaceUsers model data =
                         , controlsView model data
                         ]
                     , div [ class "flex items-baseline" ]
-                        [ filterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
-                        , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
+                        [ desktopFilterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                        , desktopFilterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
                     ]
                 ]
@@ -515,11 +515,11 @@ resolvedMobileView globals spaceUsers model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "mb-3 pt-3 bg-white z-50" ]
+            [ div [ class "mb-3 pt-2 bg-white z-50" ]
                 [ div [ class "px-3 trans-border-b-grey" ]
-                    [ div [ class "flex items-baseline" ]
-                        [ filterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
-                        , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
+                    [ div [ class "flex justify-center items-baseline" ]
+                        [ mobileFilterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                        , mobileFilterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
                     ]
                 ]
@@ -529,8 +529,8 @@ resolvedMobileView globals spaceUsers model data =
         ]
 
 
-filterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
-filterTab label state linkParams currentParams =
+desktopFilterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
+desktopFilterTab label state linkParams currentParams =
     let
         isCurrent =
             Route.Inbox.getState currentParams == state
@@ -542,6 +542,24 @@ filterTab label state linkParams currentParams =
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             ]
+        ]
+        [ text label ]
+
+
+mobileFilterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
+mobileFilterTab label state linkParams currentParams =
+    let
+        isCurrent =
+            Route.Inbox.getState currentParams == state
+    in
+    a
+        [ Route.href (Route.Inbox linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        , style "min-width" "100px"
         ]
         [ text label ]
 
