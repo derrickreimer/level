@@ -1378,8 +1378,9 @@ view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
         [ pageView (buildGlobals model) model.page
-        , centerNoticeView model
-        , Flash.view model.flash
+
+        -- , centerNoticeView model
+        -- , Flash.view model.flash
         ]
 
 

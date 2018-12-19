@@ -1,11 +1,10 @@
-module Layout.SpaceDesktop exposing (layout, rightSidebar)
+module Layout.SpaceDesktop exposing (Config, layout, rightSidebar)
 
 import Avatar exposing (personAvatar, thingAvatar)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
-import Layout.SpaceConfig exposing (SpaceConfig)
 import Lazy exposing (Lazy(..))
 import Route exposing (Route)
 import Route.Group
@@ -22,10 +21,22 @@ import View.Helpers exposing (viewIf)
 
 
 
+-- TYPES
+
+
+type alias Config =
+    { space : Space
+    , spaceUser : SpaceUser
+    , bookmarks : List Group
+    , currentRoute : Maybe Route
+    }
+
+
+
 -- API
 
 
-layout : SpaceConfig -> List (Html msg) -> Html msg
+layout : Config -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
         [ fullSidebar config
@@ -49,7 +60,7 @@ rightSidebar children =
 -- PRIVATE
 
 
-fullSidebar : SpaceConfig -> Html msg
+fullSidebar : Config -> Html msg
 fullSidebar config =
     div
         [ classList
@@ -87,7 +98,7 @@ fullSidebar config =
         ]
 
 
-bookmarkList : SpaceConfig -> Html msg
+bookmarkList : Config -> Html msg
 bookmarkList config =
     let
         slug =

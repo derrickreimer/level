@@ -22,6 +22,7 @@ import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
 import * as Background from "./background";
 import * as Honeybadger from "honeybadger-js";
+import { isMobile } from "./device_detection";
 import "./custom_elements/rendered_html";
 import "./custom_elements/clipboard_button";
 import "./custom_elements/post_editor";
@@ -70,4 +71,9 @@ if (hbApiKey) {
     apiKey: hbApiKey,
     environment: env
   });
+}
+
+// Initialize Beacon
+if (!isMobile()) {
+  Beacon('init', '907003e9-12d8-4d63-ac3b-34356b2faec0');
 }

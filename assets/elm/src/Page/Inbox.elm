@@ -3,6 +3,7 @@ module Page.Inbox exposing (Model, Msg(..), consumeEvent, init, setup, subscript
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
+import Device exposing (Device)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
 import Flash
@@ -17,6 +18,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
@@ -44,7 +46,6 @@ import Time exposing (Posix, Zone, every)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
-import View.SpaceLayout
 
 
 
@@ -436,6 +437,16 @@ view globals model =
 
 resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
 resolvedView globals spaceUsers model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals spaceUsers model data
+
+        Device.Mobile ->
+            resolvedMobileView globals spaceUsers model data
+
+
+resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedDesktopView globals spaceUsers model data =
     let
         config =
             { space = data.space
@@ -459,8 +470,61 @@ resolvedView globals spaceUsers model data =
                     ]
                 ]
             , filterNoticeView globals.repo model data
-            , postsView globals.repo spaceUsers model data
-            , sidebarView data.space data.featuredUsers globals.pushStatus
+            , desktopPostsView globals.repo spaceUsers model data
+            , Layout.SpaceDesktop.rightSidebar
+                [ h3 [ class "mb-2 text-base font-extrabold" ]
+                    [ a
+                        [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug data.space))
+                        , class "flex items-center text-dusty-blue-darkest no-underline"
+                        ]
+                        [ text "Team Members"
+                        ]
+                    ]
+                , div [ class "pb-4" ] <| List.map (userItemView data.space) data.featuredUsers
+                , ul [ class "list-reset" ]
+                    [ li []
+                        [ a
+                            [ Route.href (Route.InviteUsers (Space.slug data.space))
+                            , class "text-md text-dusty-blue no-underline font-bold"
+                            ]
+                            [ text "Invite people" ]
+                        ]
+                    , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
+                        li []
+                            [ button
+                                [ class "text-md text-dusty-blue no-underline font-bold"
+                                , onClick PushSubscribeClicked
+                                ]
+                                [ text "Enable notifications" ]
+                            ]
+                    ]
+                ]
+            ]
+        ]
+
+
+resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedMobileView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "mx-auto leading-normal" ]
+            [ div [ class "mb-3 pt-3 bg-white z-50" ]
+                [ div [ class "px-3 trans-border-b-grey" ]
+                    [ div [ class "flex items-baseline" ]
+                        [ filterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                        , filterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
+                        ]
+                    ]
+                ]
+            , filterNoticeView globals.repo model data
+            , mobilePostsView globals.repo spaceUsers model data
             ]
         ]
 
@@ -548,19 +612,19 @@ filterNoticeView repo model data =
         text ""
 
 
-postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
-postsView repo spaceUsers model data =
+desktopPostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+desktopPostsView repo spaceUsers model data =
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
             [ text "You’re all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (postView repo spaceUsers model data) model.postComps
+            Connection.mapList (desktopPostView repo spaceUsers model data) model.postComps
 
 
-postView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-postView repo spaceUsers model data component =
+desktopPostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+desktopPostView repo spaceUsers model data component =
     div [ class "py-4" ]
         [ component
             |> Component.Post.checkableView repo data.space data.viewer model.now spaceUsers
@@ -568,35 +632,23 @@ postView repo spaceUsers model data component =
         ]
 
 
-sidebarView : Space -> List SpaceUser -> PushStatus -> Html Msg
-sidebarView space featuredUsers pushStatus =
-    View.SpaceLayout.rightSidebar
-        [ h3 [ class "mb-2 text-base font-extrabold" ]
-            [ a
-                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
-                , class "flex items-center text-dusty-blue-darkest no-underline"
-                ]
-                [ text "Team Members"
-                ]
-            ]
-        , div [ class "pb-4" ] <| List.map (userItemView space) featuredUsers
-        , ul [ class "list-reset" ]
-            [ li []
-                [ a
-                    [ Route.href (Route.InviteUsers (Space.slug space))
-                    , class "text-md text-dusty-blue no-underline font-bold"
-                    ]
-                    [ text "Invite people" ]
-                ]
-            , viewUnless (PushStatus.getIsSubscribed pushStatus |> Maybe.withDefault True) <|
-                li []
-                    [ button
-                        [ class "text-md text-dusty-blue no-underline font-bold"
-                        , onClick PushSubscribeClicked
-                        ]
-                        [ text "Enable notifications" ]
-                    ]
-            ]
+mobilePostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+mobilePostsView repo spaceUsers model data =
+    if Connection.isEmptyAndExpanded model.postComps then
+        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+            [ text "You’re all caught up!" ]
+
+    else
+        div [ class "px-3" ] <|
+            Connection.mapList (mobilePostView repo spaceUsers model data) model.postComps
+
+
+mobilePostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+mobilePostView repo spaceUsers model data component =
+    div [ class "py-4" ]
+        [ component
+            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
+            |> Html.map (PostComponentMsg component.id)
         ]
 
 

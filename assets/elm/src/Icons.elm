@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, open, refresh, reply, revokeMember, search, square, thumbs, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, open, refresh, reply, revokeMember, search, square, thumbs, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -87,6 +87,12 @@ closedAvatar : Html msg
 closedAvatar =
     iconView <|
         svg [ width "36px", height "36px", viewBox "0 0 36 36", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "closed-avatar-2" ] [ circle [ id "Oval-2", fill "#8A98A5", cx "18", cy "18", r "18" ] [], g [ id "check", transform "translate(10.000000, 13.000000)", stroke "#FFFFFF", strokeLinecap "round", strokeLinejoin "round", strokeWidth "2" ] [ polyline [ id "Shape", points "16 0 5 11 0 6" ] [] ] ] ] ]
+
+
+edit : Html msg
+edit =
+    iconView <|
+        svg [ width "17px", height "17px", viewBox "0 0 17 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "edit", transform "translate(1.000000, 1.000000)", stroke "#c6ced2", strokeWidth "2" ] [ Svg.path [ d "M14.4,8.128 L14.4,13.4 C14.4,14.2836556 13.6836556,15 12.8,15 L1.6,15 C0.7163444,15 0,14.2836556 0,13.4 L0,2.2 C-1.77635684e-16,1.3163444 0.7163444,0.6 1.6,0.6 L5.872,0.6", id "Path" ] [], polygon [ id "Path", fill "#c6ced2", points "14 2.98431373 6.78431373 10.2 4.8 10.2 4.8 8.21568627 12.0156863 1" ] [] ] ] ]
 
 
 file : Color -> Html msg

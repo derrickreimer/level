@@ -1038,15 +1038,6 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                     , title "Expand post"
                     ]
                     [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
-                , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
-                    div [ class "inline-block" ]
-                        [ span [ class "mx-2 text-sm text-dusty-blue" ] [ text "·" ]
-                        , button
-                            [ class "text-sm text-dusty-blue"
-                            , onClick ExpandPostEditor
-                            ]
-                            [ text "Edit" ]
-                        ]
                 ]
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView space model.mode data.post
@@ -1064,6 +1055,15 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                         ]
                         [ Icons.comment ]
                 , inboxButton data.post
+                , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
+                    button
+                        [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
+                        , style "margin-top" "3px"
+                        , style "margin-right" "26px"
+                        , onClick ExpandPostEditor
+                        , attribute "data-tooltip" "Edit post"
+                        ]
+                        [ Icons.edit ]
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
@@ -1105,6 +1105,7 @@ inboxButton post =
             button
                 [ class "flex tooltip tooltip-bottom mr-4 no-outline active:translate-y-1"
                 , style "margin-top" "4px"
+                , style "margin-right" "27px"
                 , onClick MoveToInboxClicked
                 , attribute "data-tooltip" "Move to inbox"
                 ]
@@ -1115,6 +1116,7 @@ inboxButton post =
             button
                 [ class "flex tooltip tooltip-bottom mr-4 no-outline active:translate-y-1"
                 , style "margin-top" "4px"
+                , style "margin-right" "27px"
                 , onClick DismissClicked
                 , attribute "data-tooltip" "Dismiss from inbox"
                 ]
@@ -1280,15 +1282,6 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                     [ clickToExpandIf (mode == Feed)
                         [ replyAuthorName space author
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
-                        , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
-                            div [ class "inline-block" ]
-                                [ span [ class "mx-2 text-sm text-dusty-blue" ] [ text "·" ]
-                                , button
-                                    [ class "text-sm text-dusty-blue"
-                                    , onClick (ExpandReplyEditor replyId)
-                                    ]
-                                    [ text "Edit" ]
-                                ]
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         clickToExpandIf (mode == Feed)
@@ -1301,6 +1294,15 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                         replyEditorView (Space.id space) replyId spaceUsers editor
                     , div [ class "pb-2 flex items-start" ]
                         [ replyReactionButton reply
+                        , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
+                            button
+                                [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
+                                , style "margin-top" "3px"
+                                , style "margin-right" "26px"
+                                , onClick (ExpandReplyEditor replyId)
+                                , attribute "data-tooltip" "Edit reply"
+                                ]
+                                [ Icons.edit ]
                         ]
                     ]
                 ]
@@ -1384,7 +1386,7 @@ replyComposerView spaceId currentUser post spaceUsers model =
                             [ class "mr-2 btn btn-grey-outline btn-sm"
                             , onClick DismissClicked
                             ]
-                            [ text "Dismiss from inbox" ]
+                            [ text "Dismiss" ]
                     , button
                         [ class "btn btn-grey-outline btn-sm"
                         , onClick ReopenPostClicked
@@ -1545,7 +1547,7 @@ replyReactionButton : Reply -> Html Msg
 replyReactionButton reply =
     if Reply.hasReacted reply then
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-4 text-green font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex tooltip tooltip-bottom items-center mr-6 text-green font-bold text-sm no-outline active:translate-y-1"
             , onClick <| DeleteReplyReactionClicked (Reply.id reply)
             , attribute "data-tooltip" "Acknowledge"
             ]
@@ -1556,7 +1558,7 @@ replyReactionButton reply =
 
     else
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-4 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex tooltip tooltip-bottom items-center mr-6 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
             , onClick <| CreateReplyReactionClicked (Reply.id reply)
             , attribute "data-tooltip" "Acknowledge"
             ]

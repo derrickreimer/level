@@ -1,4 +1,4 @@
-module Layout.SpaceDesktop exposing (layout, rightSidebar)
+module Layout.SpaceMobile exposing (Config, layout, rightSidebar)
 
 import Avatar exposing (personAvatar, thingAvatar)
 import Group exposing (Group)
@@ -21,15 +21,36 @@ import View.Helpers exposing (viewIf)
 
 
 
+-- TYPES
+
+
+type alias Config =
+    { space : Space
+    , spaceUser : SpaceUser
+    , bookmarks : List Group
+    , currentRoute : Maybe Route
+    }
+
+
+
 -- API
 
 
-layout : SpaceUser -> Space -> List Group -> Maybe Route -> List (Html msg) -> Html msg
-layout viewer space bookmarks maybeCurrentRoute children =
-    div [ class "font-sans font-antialised" ]
-        [ fullSidebar viewer space bookmarks maybeCurrentRoute
-        , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
-        , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
+layout : Config -> List (Html msg) -> Html msg
+layout config children =
+    div [ class "font-sans font-antialised", style "padding-top" "60px" ]
+        [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-grey-lighter z-50" ]
+            [ a [ Route.href Route.Spaces, class "block flex-no-shrink no-underline" ]
+                [ Space.avatar Avatar.Small config.space ]
+            , div [ class "mx-2 flex-grow" ]
+                [ h1 [ class "font-headline font-extrabold text-lg text-center" ]
+                    [ text "Inbox" ]
+                ]
+            , div []
+                [ button [ class "w-9 h-9" ] []
+                ]
+            ]
+        , div [] children
         ]
 
 
@@ -48,8 +69,8 @@ rightSidebar children =
 -- PRIVATE
 
 
-fullSidebar : SpaceUser -> Space -> List Group -> Maybe Route -> Html msg
-fullSidebar viewer space bookmarks maybeCurrentRoute =
+fullSidebar : Config -> Html msg
+fullSidebar config =
     div
         [ classList
             [ ( "fixed bg-grey-lighter border-r w-48 h-full min-h-screen z-40", True )
@@ -57,46 +78,46 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
         ]
         [ div [ class "p-3" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
-                [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
-                , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
+                [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
+                , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                 ]
             ]
         , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px" ]
             [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ navLink space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug space))) maybeCurrentRoute
-                , navLink space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug space))) maybeCurrentRoute
+                [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
+                , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
                 ]
-            , groupLinks space bookmarks maybeCurrentRoute
+            , bookmarkList config
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ navLink space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug space))) maybeCurrentRoute
-                , navLink space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug space))) maybeCurrentRoute
-                , navLink space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug space) Route.Settings.Preferences)) maybeCurrentRoute
-                , navLink space "Help" (Just <| Route.Help (Route.Help.init (Space.slug space))) maybeCurrentRoute
+                [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
+                , navLink config.space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
+                , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
+                , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
                 ]
             ]
         , div [ class "absolute pin-b w-full" ]
             [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
-                [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small viewer ]
+                [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small config.spaceUser ]
                 , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
                     [ div [] [ text "Signed in as" ]
-                    , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName viewer) ]
+                    , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName config.spaceUser) ]
                     ]
                 ]
             ]
         ]
 
 
-groupLinks : Space -> List Group -> Maybe Route -> Html msg
-groupLinks space groups maybeCurrentRoute =
+bookmarkList : Config -> Html msg
+bookmarkList config =
     let
         slug =
-            Space.slug space
+            Space.slug config.space
 
         linkify group =
-            navLink space (Group.name group) (Just <| Route.Group (Route.Group.init slug (Group.id group))) maybeCurrentRoute
+            navLink config.space (Group.name group) (Just <| Route.Group (Route.Group.init slug (Group.id group))) config.currentRoute
 
         links =
-            groups
+            config.bookmarks
                 |> List.sortBy Group.name
                 |> List.map linkify
     in
