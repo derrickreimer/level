@@ -975,8 +975,8 @@ postsView repo params space currentUser now connection spaceUsers =
     if Connection.isEmptyAndExpanded connection then
         case Route.Group.getState params of
             Route.Group.Open ->
-                div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
-                    [ text "Be the first one to post here!" ]
+                div [ class "pt-12 pb-12 font-headline text-center text-lg" ]
+                    [ text "There are no posts to see here!" ]
 
             Route.Group.Closed ->
                 div [ class "pt-8 pb-8 text-center text-lg" ]

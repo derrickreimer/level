@@ -546,8 +546,8 @@ filterNoticeView repo model data =
 postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
 postsView repo spaceUsers model data =
     if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
-            [ text "You're all caught up!" ]
+        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+            [ text "You’re all caught up!" ]
 
     else
         div [] <|
