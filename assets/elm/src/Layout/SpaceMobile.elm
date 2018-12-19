@@ -8,7 +8,9 @@ import Flash exposing (Flash)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
+import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
 import Route exposing (Route)
 import Route.Group
@@ -28,12 +30,16 @@ import View.Helpers exposing (viewIf)
 -- TYPES
 
 
-type alias Config =
+type alias Config msg =
     { space : Space
     , spaceUser : SpaceUser
     , bookmarks : List Group
     , currentRoute : Maybe Route
     , flash : Flash
+    , title : String
+    , showNav : Bool
+    , onNavToggled : msg
+    , onNoOp : msg
     }
 
 
@@ -41,22 +47,57 @@ type alias Config =
 -- API
 
 
-layout : Config -> List (Html msg) -> Html msg
+layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised", style "padding-top" "60px" ]
-        [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-grey-lighter z-50" ]
+        [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-grey-lighter z-40" ]
             [ div [ class "flex-no-shrink" ]
-                [ button [ class "flex" ] [ Space.avatar Avatar.Small config.space ]
+                [ button [ class "flex", onClick config.onNavToggled ] [ Space.avatar Avatar.Small config.space ]
                 ]
             , div [ class "mx-2 flex-grow" ]
-                [ h1 [ class "font-headline font-extrabold text-lg text-center" ]
-                    [ text "Inbox" ]
+                [ h1 [ class "font-headline font-extrabold text-lg text-center" ] [ text config.title ]
                 ]
             , div [ class "flex-no-shrink" ]
                 [ button [ class "flex items-center justify-center w-9 h-9" ] [ Icons.menu ]
                 ]
             ]
         , div [] children
+        , viewIf config.showNav <|
+            div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)", onClick config.onNavToggled ]
+                [ div
+                    [ class "absolute w-48 pin-t pin-l pin-b shadow-lg bg-grey-lighter"
+                    , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed config.onNoOp))
+                    ]
+                    [ div [ class "p-4" ]
+                        [ a [ Route.href Route.Spaces, class "block no-underline" ]
+                            [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
+                            , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
+                            ]
+                        ]
+                    , div [ class "absolute w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]
+                        [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+                            [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
+                            , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
+                            ]
+                        , bookmarkList config
+                        , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+                            [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
+                            , navLink config.space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
+                            , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
+                            , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
+                            ]
+                        ]
+                    , div [ class "absolute pin-b w-full" ]
+                        [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
+                            [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small config.spaceUser ]
+                            , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
+                                [ div [] [ text "Signed in as" ]
+                                , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName config.spaceUser) ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
         ]
 
 
@@ -75,45 +116,7 @@ rightSidebar children =
 -- PRIVATE
 
 
-fullSidebar : Config -> Html msg
-fullSidebar config =
-    div
-        [ classList
-            [ ( "fixed bg-grey-lighter border-r w-48 h-full min-h-screen z-40", True )
-            ]
-        ]
-        [ div [ class "p-3" ]
-            [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
-                [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
-                ]
-            ]
-        , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px" ]
-            [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
-                ]
-            , bookmarkList config
-            , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
-                , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
-                ]
-            ]
-        , div [ class "absolute pin-b w-full" ]
-            [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
-                [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small config.spaceUser ]
-                , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
-                    [ div [] [ text "Signed in as" ]
-                    , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName config.spaceUser) ]
-                    ]
-                ]
-            ]
-        ]
-
-
-bookmarkList : Config -> Html msg
+bookmarkList : Config msg -> Html msg
 bookmarkList config =
     let
         slug =
@@ -137,7 +140,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center border-r-4 border-turquoise" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-darkest font-extrabold"
+                    , class "block w-full ml-4 mr-2 no-underline truncate text-dusty-blue-darkest font-extrabold"
                     ]
                     [ text title
                     ]
@@ -147,7 +150,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full ml-4 mr-2 no-underline truncate text-dusty-blue-dark"
                     ]
                     [ text title ]
                 ]
@@ -187,3 +190,8 @@ navLink space title maybeRoute maybeCurrentRoute =
                     ]
                     [ text title ]
                 ]
+
+
+alwaysStopPropagation : msg -> ( msg, Bool )
+alwaysStopPropagation msg =
+    ( msg, True )

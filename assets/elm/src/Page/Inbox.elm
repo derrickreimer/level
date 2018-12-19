@@ -61,6 +61,9 @@ type alias Model =
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
     , searchEditor : FieldEditor String
+
+    -- MOBILE
+    , showNav : Bool
     }
 
 
@@ -123,6 +126,7 @@ buildModel params globals newSession now data =
                 postComps
                 now
                 (FieldEditor.init "search-editor" "")
+                False
 
         newRepo =
             Repo.union data.repo globals.repo
@@ -203,7 +207,8 @@ markPostsAsRead globals model =
 
 
 type Msg
-    = Tick Posix
+    = NoOp
+    | Tick Posix
     | SetCurrentTime Posix Zone
     | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
     | PostComponentMsg String Component.Post.Msg
@@ -215,12 +220,15 @@ type Msg
     | CollapseSearchEditor
     | SearchEditorChanged String
     | SearchSubmitted
-    | NoOp
+    | NavToggled
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
+        NoOp ->
+            noCmd globals model
+
         Tick posix ->
             ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
@@ -343,8 +351,8 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
-        NoOp ->
-            noCmd globals model
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -513,6 +521,10 @@ resolvedMobileView globals spaceUsers model data =
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
+            , title = "Inbox"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onNoOp = NoOp
             }
     in
     Layout.SpaceMobile.layout config
