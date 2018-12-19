@@ -127,19 +127,19 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Model -> Html Msg
-view repo model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Model -> Data -> Html Msg
-resolvedView repo model data =
-    View.UserLayout.layout data.viewer <|
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    View.UserLayout.layout data.viewer globals.flash <|
         div [ class "mx-auto max-w-sm" ]
             [ div [ class "flex items-center pb-6" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold tracking-semi-tight text-3xl" ] [ text "My Spaces" ]
@@ -161,7 +161,7 @@ resolvedView repo model data =
                         []
                     ]
                 ]
-            , spacesView repo model.query model.spaceIds
+            , spacesView globals.repo model.query model.spaceIds
             ]
 
 

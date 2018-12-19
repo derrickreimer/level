@@ -1,6 +1,7 @@
 module View.UserLayout exposing (layout)
 
 import Avatar exposing (personAvatar, thingAvatar)
+import Flash exposing (Flash)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -20,8 +21,8 @@ import User exposing (User)
 -- VIEWS
 
 
-layout : User -> Html msg -> Html msg
-layout user bodyView =
+layout : User -> Flash -> Html msg -> Html msg
+layout user flash bodyView =
     div
         [ class "container mx-auto p-6 font-sans font-antialised"
         ]
@@ -40,6 +41,7 @@ layout user bodyView =
                 ]
             ]
         , bodyView
+        , Flash.view flash
         ]
 
 

@@ -1012,12 +1012,12 @@ pageView globals page =
     case page of
         Spaces pageModel ->
             pageModel
-                |> Page.Spaces.view globals.repo
+                |> Page.Spaces.view globals
                 |> Html.map SpacesMsg
 
         NewSpace pageModel ->
             pageModel
-                |> Page.NewSpace.view globals.repo
+                |> Page.NewSpace.view globals
                 |> Html.map NewSpaceMsg
 
         Posts pageModel ->
@@ -1072,7 +1072,7 @@ pageView globals page =
 
         UserSettings pageModel ->
             pageModel
-                |> Page.UserSettings.view globals.repo
+                |> Page.UserSettings.view globals
                 |> Html.map UserSettingsMsg
 
         SpaceSettings pageModel ->
@@ -1378,18 +1378,16 @@ view : Model -> Document Msg
 view model =
     Document (pageTitle model.repo model.page)
         [ pageView (buildGlobals model) model.page
-
-        -- , centerNoticeView model
-        -- , Flash.view model.flash
+        , centerNoticeView model
         ]
 
 
 centerNoticeView : Model -> Html Msg
 centerNoticeView model =
-    div [ class "font-sans font-antialised fixed px-3 pin-t pin-l-50 z-50", style "transform" "translateX(-50%)" ]
-        [ viewIf (model.socketState == SocketState.Closed) <|
-            div [ class "relative px-5 py-4 border-b-3 border-red bg-red-lightest text-sm text-red" ]
+    viewIf (model.socketState == SocketState.Closed) <|
+        div [ class "font-sans font-antialised fixed px-3 pin-t pin-l-50 z-50", style "transform" "translateX(-50%)" ]
+            [ div [ class "relative px-5 py-4 border-b-3 border-red bg-red-lightest text-sm text-red" ]
                 [ h2 [ class "pb-2 font-extrabold text-lg" ] [ text "Attempting to reconnect..." ]
                 , p [ class "text-sm" ] [ text "If the problem persists, try refreshing the page." ]
                 ]
-        ]
+            ]

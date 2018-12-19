@@ -453,6 +453,7 @@ resolvedDesktopView globals spaceUsers model data =
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
+            , flash = globals.flash
             }
     in
     Layout.SpaceDesktop.layout config
@@ -511,6 +512,7 @@ resolvedMobileView globals spaceUsers model data =
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
+            , flash = globals.flash
             }
     in
     Layout.SpaceMobile.layout config

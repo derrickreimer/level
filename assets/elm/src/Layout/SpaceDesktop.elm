@@ -1,6 +1,7 @@
 module Layout.SpaceDesktop exposing (Config, layout, rightSidebar)
 
 import Avatar exposing (personAvatar, thingAvatar)
+import Flash exposing (Flash)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -29,6 +30,7 @@ type alias Config =
     , spaceUser : SpaceUser
     , bookmarks : List Group
     , currentRoute : Maybe Route
+    , flash : Flash
     }
 
 
@@ -42,6 +44,7 @@ layout config children =
         [ fullSidebar config
         , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
+        , Flash.view config.flash
         ]
 
 

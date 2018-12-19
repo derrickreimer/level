@@ -200,19 +200,19 @@ type alias FormField =
     }
 
 
-view : Repo -> Model -> Html Msg
-view repo model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Model -> Data -> Html Msg
-resolvedView model data =
-    View.UserLayout.layout data.viewer <|
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    View.UserLayout.layout data.viewer globals.flash <|
         div
             [ classList
                 [ ( "mx-auto max-w-sm leading-normal pb-8", True )

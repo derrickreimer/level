@@ -1,6 +1,10 @@
 module Layout.SpaceMobile exposing (Config, layout, rightSidebar)
 
+-- TODO:
+-- - Figure out how to render flash notices
+
 import Avatar exposing (personAvatar, thingAvatar)
+import Flash exposing (Flash)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -29,6 +33,7 @@ type alias Config =
     , spaceUser : SpaceUser
     , bookmarks : List Group
     , currentRoute : Maybe Route
+    , flash : Flash
     }
 
 
