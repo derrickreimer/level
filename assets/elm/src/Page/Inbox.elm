@@ -16,6 +16,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
@@ -435,11 +436,15 @@ view globals model =
 
 resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
 resolvedView globals spaceUsers model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        globals.currentRoute
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-90 leading-normal" ]
             [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "trans-border-b-grey" ]
