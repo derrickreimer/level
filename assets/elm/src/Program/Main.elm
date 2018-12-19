@@ -4,6 +4,7 @@ import Avatar exposing (personAvatar, thingAvatar)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Connection
+import Device exposing (Device)
 import Event exposing (Event)
 import Flash exposing (Flash)
 import Globals exposing (Globals)
@@ -78,6 +79,7 @@ main =
 type alias Model =
     { navKey : Nav.Key
     , session : Session
+    , device : Device
     , repo : Repo
     , page : Page
     , isTransitioning : Bool
@@ -94,6 +96,7 @@ type alias Flags =
     { apiToken : String
     , supportsNotifications : Bool
     , timeZone : String
+    , device : String
     }
 
 
@@ -127,6 +130,7 @@ buildModel flags navKey =
     Model
         navKey
         (Session.init flags.apiToken)
+        (Device.parse flags.device)
         Repo.empty
         Blank
         True
