@@ -979,7 +979,7 @@ postsView repo params space currentUser now connection spaceUsers =
                     [ text "There are no posts to see here!" ]
 
             Route.Group.Closed ->
-                div [ class "pt-8 pb-8 text-center text-lg" ]
+                div [ class "pt-12 pb-12 font-headline text-center text-lg" ]
                     [ text "There are no closed posts to show here!" ]
 
     else

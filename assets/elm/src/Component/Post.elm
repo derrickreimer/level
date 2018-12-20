@@ -1243,13 +1243,13 @@ repliesView repo space post now replyIds mode spaceUsers editors =
                 Feed ->
                     a
                         [ Route.href (Route.Post (Space.slug space) (Post.id post))
-                        , class "mb-2 text-dusty-blue no-underline whitespace-no-wrap"
+                        , class "block mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
                         ]
-                        [ text "Show more..." ]
+                        [ text "Expand thread..." ]
 
                 FullPage ->
                     button
-                        [ class "mb-2 text-dusty-blue no-underline whitespace-no-wrap"
+                        [ class "mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
                         , onClick PreviousRepliesRequested
                         ]
                         [ text "Load more..." ]
@@ -1380,7 +1380,7 @@ replyComposerView spaceId currentUser post spaceUsers model =
     if Post.state post == Post.Closed then
         clickToExpandIf (model.mode == Feed)
             [ div [ class "flex items-center my-3" ]
-                [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
+                [ div [ class "flex-no-shrink mr-3 text-base text-dusty-blue-dark" ] [ text "Marked resolved" ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ button
                         [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
