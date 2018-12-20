@@ -1055,15 +1055,16 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                         ]
                         [ Icons.comment ]
                 , inboxButton data.post
-                , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
-                    button
-                        [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
-                        , style "margin-top" "3px"
-                        , style "margin-right" "26px"
-                        , onClick ExpandPostEditor
-                        , attribute "data-tooltip" "Edit post"
-                        ]
-                        [ Icons.edit ]
+
+                -- , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
+                --     button
+                --         [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
+                --         , style "margin-top" "3px"
+                --         , style "margin-right" "26px"
+                --         , onClick ExpandPostEditor
+                --         , attribute "data-tooltip" "Edit post"
+                --         ]
+                --         [ Icons.edit ]
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
@@ -1292,18 +1293,19 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
                         replyEditorView (Space.id space) replyId spaceUsers editor
-                    , div [ class "pb-2 flex items-start" ]
-                        [ replyReactionButton reply
-                        , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
-                            button
-                                [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
-                                , style "margin-top" "3px"
-                                , style "margin-right" "26px"
-                                , onClick (ExpandReplyEditor replyId)
-                                , attribute "data-tooltip" "Edit reply"
-                                ]
-                                [ Icons.edit ]
-                        ]
+                    , viewIf False <|
+                        div [ class "pb-2 flex items-start" ]
+                            [ replyReactionButton reply
+                            , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
+                                button
+                                    [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
+                                    , style "margin-top" "3px"
+                                    , style "margin-right" "26px"
+                                    , onClick (ExpandReplyEditor replyId)
+                                    , attribute "data-tooltip" "Edit reply"
+                                    ]
+                                    [ Icons.edit ]
+                            ]
                     ]
                 ]
 
@@ -1380,18 +1382,17 @@ replyComposerView spaceId currentUser post spaceUsers model =
             [ div [ class "flex items-center my-3" ]
                 [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
                 , div [ class "flex-grow leading-semi-loose" ]
-                    [ span [ class "mr-3 text-dusty-blue-dark" ] [ text "Resolved" ]
-                    , viewIf (Post.inboxState post == Post.Read || Post.inboxState post == Post.Unread) <|
-                        button
-                            [ class "mr-2 btn btn-grey-outline btn-sm"
-                            , onClick DismissClicked
-                            ]
-                            [ text "Dismiss" ]
-                    , button
-                        [ class "btn btn-grey-outline btn-sm"
+                    [ button
+                        [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
                         , onClick ReopenPostClicked
                         ]
                         [ text "Reopen" ]
+                    , viewIf (Post.inboxState post == Post.Read || Post.inboxState post == Post.Unread) <|
+                        button
+                            [ class "my-1 btn btn-grey-outline btn-sm"
+                            , onClick DismissClicked
+                            ]
+                            [ text "Dismiss from inbox" ]
                     ]
                 ]
             ]

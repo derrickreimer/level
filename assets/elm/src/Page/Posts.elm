@@ -314,7 +314,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
+        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "sticky pin-t trans-border-b-grey mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Activity" ]

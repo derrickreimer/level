@@ -500,7 +500,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
         data.space
         data.bookmarks
         maybeCurrentRoute
-        [ div [ class "mx-auto max-w-90 leading-normal" ]
+        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ postView repo spaceUsers model data
             , sidebarView repo model data
             ]
