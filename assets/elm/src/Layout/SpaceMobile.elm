@@ -39,7 +39,10 @@ type alias Config msg =
     , title : String
     , showNav : Bool
     , onNavToggled : msg
+    , onSidebarToggled : msg
+    , onScrollTopClicked : msg
     , onNoOp : msg
+    , actionButton : Html msg
     }
 
 
@@ -54,11 +57,11 @@ layout config children =
             [ div [ class "flex-no-shrink" ]
                 [ button [ class "flex", onClick config.onNavToggled ] [ Space.avatar Avatar.Small config.space ]
                 ]
-            , div [ class "mx-2 flex-grow" ]
+            , div [ class "mx-2 flex-grow", onClick config.onScrollTopClicked ]
                 [ h1 [ class "font-headline font-extrabold text-lg text-center" ] [ text config.title ]
                 ]
             , div [ class "flex-no-shrink" ]
-                [ button [ class "flex items-center justify-center w-9 h-9" ] [ Icons.menu ]
+                [ config.actionButton
                 ]
             ]
         , div [] children
@@ -101,15 +104,15 @@ layout config children =
         ]
 
 
-rightSidebar : List (Html msg) -> Html msg
-rightSidebar children =
-    div
-        [ classList
-            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 min-h-half", True )
-            , ( "hidden md:block md:w-48 lg:w-56", True )
+rightSidebar : Config msg -> List (Html msg) -> Html msg
+rightSidebar config children =
+    div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)", onClick config.onSidebarToggled ]
+        [ div
+            [ class "absolute w-56 pin-t pin-r pin-b shadow-lg bg-grey-lighter"
+            , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed config.onNoOp))
             ]
+            children
         ]
-        children
 
 
 

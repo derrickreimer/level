@@ -64,6 +64,7 @@ type alias Model =
 
     -- MOBILE
     , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -126,6 +127,7 @@ buildModel params globals newSession now data =
                 postComps
                 now
                 (FieldEditor.init "search-editor" "")
+                False
                 False
 
         newRepo =
@@ -221,6 +223,8 @@ type Msg
     | SearchEditorChanged String
     | SearchSubmitted
     | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -354,6 +358,12 @@ update msg globals model =
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -453,6 +463,10 @@ resolvedView globals spaceUsers model data =
             resolvedMobileView globals spaceUsers model data
 
 
+
+-- DESKTOP
+
+
 resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
 resolvedDesktopView globals spaceUsers model data =
     let
@@ -512,37 +526,6 @@ resolvedDesktopView globals spaceUsers model data =
         ]
 
 
-resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedMobileView globals spaceUsers model data =
-    let
-        config =
-            { space = data.space
-            , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
-            , title = "Inbox"
-            , showNav = model.showNav
-            , onNavToggled = NavToggled
-            , onNoOp = NoOp
-            }
-    in
-    Layout.SpaceMobile.layout config
-        [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "mb-3 pt-2 bg-white z-50" ]
-                [ div [ class "px-3 trans-border-b-grey" ]
-                    [ div [ class "flex justify-center items-baseline" ]
-                        [ mobileFilterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
-                        , mobileFilterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
-                        ]
-                    ]
-                ]
-            , filterNoticeView globals.repo model data
-            , mobilePostsView globals.repo spaceUsers model data
-            ]
-        ]
-
-
 desktopFilterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
 desktopFilterTab label state linkParams currentParams =
     let
@@ -560,22 +543,24 @@ desktopFilterTab label state linkParams currentParams =
         [ text label ]
 
 
-mobileFilterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
-mobileFilterTab label state linkParams currentParams =
-    let
-        isCurrent =
-            Route.Inbox.getState currentParams == state
-    in
-    a
-        [ Route.href (Route.Inbox linkParams)
-        , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
-            , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            ]
-        , style "min-width" "100px"
+desktopPostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+desktopPostsView repo spaceUsers model data =
+    if Connection.isEmptyAndExpanded model.postComps then
+        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+            [ text "You’re all caught up!" ]
+
+    else
+        div [] <|
+            Connection.mapList (desktopPostView repo spaceUsers model data) model.postComps
+
+
+desktopPostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+desktopPostView repo spaceUsers model data component =
+    div [ class "py-4" ]
+        [ component
+            |> Component.Post.checkableView repo data.space data.viewer model.now spaceUsers
+            |> Html.map (PostComponentMsg component.id)
         ]
-        [ text label ]
 
 
 controlsView : Model -> Data -> Html Msg
@@ -614,54 +599,100 @@ searchEditorView editor =
         }
 
 
-paginationView : Params -> Connection a -> Html Msg
-paginationView params connection =
-    Pagination.view connection
-        (\beforeCursor -> Route.Inbox (Route.Inbox.setCursors (Just beforeCursor) Nothing params))
-        (\afterCursor -> Route.Inbox (Route.Inbox.setCursors Nothing (Just afterCursor) params))
+
+-- MOBILE
 
 
-filterNoticeView : Repo -> Model -> Data -> Html Msg
-filterNoticeView repo model data =
-    if Route.Inbox.getLastActivity model.params == Route.Inbox.Today then
-        let
-            resetParams =
-                model.params
-                    |> Route.Inbox.setLastActivity Route.Inbox.All
-                    |> Route.Inbox.setCursors Nothing Nothing
-        in
-        div [ class "flex items-center mb-3 py-2 pl-4 pr-2 rounded-full bg-blue text-white text-sm font-extrabold" ]
-            [ div [ class "mr-2 flex-no-shrink" ] [ Icons.filter ]
-            , div [ class "flex-grow" ] [ text "Showing activity from today only" ]
-            , a
-                [ Route.href <| Route.Inbox resetParams
-                , class "btn btn-flex btn-xs btn-blue-inverse no-underline flex-no-shrink"
+resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedMobileView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Inbox"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , actionButton =
+                button
+                    [ class "flex items-center justify-center w-9 h-9"
+                    , onClick SidebarToggled
+                    ]
+                    [ Icons.menu ]
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "mx-auto leading-normal" ]
+            [ div [ class "mb-3 pt-2 bg-white z-50" ]
+                [ div [ class "px-3 trans-border-b-grey" ]
+                    [ div [ class "flex justify-center items-baseline" ]
+                        [ mobileFilterTab "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
+                        , mobileFilterTab "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
+                        ]
+                    ]
                 ]
-                [ text "Clear this filter" ]
+            , filterNoticeView globals.repo model data
+            , mobilePostsView globals.repo spaceUsers model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "flex justify-center p-8 pb-16" ]
+                    [ paginationView model.params model.postComps
+                    ]
+            , viewIf model.showSidebar <|
+                Layout.SpaceMobile.rightSidebar config
+                    [ div [ class "p-4" ]
+                        [ h3 [ class "mb-2 text-base font-extrabold" ]
+                            [ a
+                                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug data.space))
+                                , class "flex items-center text-dusty-blue-darkest no-underline"
+                                ]
+                                [ text "Team Members"
+                                ]
+                            ]
+                        , div [ class "pb-4" ] <| List.map (userItemView data.space) data.featuredUsers
+                        , ul [ class "list-reset" ]
+                            [ li []
+                                [ a
+                                    [ Route.href (Route.InviteUsers (Space.slug data.space))
+                                    , class "text-md text-dusty-blue no-underline font-bold"
+                                    ]
+                                    [ text "Invite people" ]
+                                ]
+                            , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
+                                li []
+                                    [ button
+                                        [ class "text-md text-dusty-blue no-underline font-bold"
+                                        , onClick PushSubscribeClicked
+                                        ]
+                                        [ text "Enable notifications" ]
+                                    ]
+                            ]
+                        ]
+                    ]
             ]
-
-    else
-        text ""
-
-
-desktopPostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
-desktopPostsView repo spaceUsers model data =
-    if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
-            [ text "You’re all caught up!" ]
-
-    else
-        div [] <|
-            Connection.mapList (desktopPostView repo spaceUsers model data) model.postComps
-
-
-desktopPostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-desktopPostView repo spaceUsers model data component =
-    div [ class "py-4" ]
-        [ component
-            |> Component.Post.checkableView repo data.space data.viewer model.now spaceUsers
-            |> Html.map (PostComponentMsg component.id)
         ]
+
+
+mobileFilterTab : String -> Route.Inbox.State -> Params -> Params -> Html Msg
+mobileFilterTab label state linkParams currentParams =
+    let
+        isCurrent =
+            Route.Inbox.getState currentParams == state
+    in
+    a
+        [ Route.href (Route.Inbox linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        , style "min-width" "100px"
+        ]
+        [ text label ]
 
 
 mobilePostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
@@ -682,6 +713,40 @@ mobilePostView repo spaceUsers model data component =
             |> Component.Post.view repo data.space data.viewer model.now spaceUsers
             |> Html.map (PostComponentMsg component.id)
         ]
+
+
+
+-- SHARED
+
+
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
+    Pagination.view connection
+        (\beforeCursor -> Route.Inbox (Route.Inbox.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Inbox (Route.Inbox.setCursors Nothing (Just afterCursor) params))
+
+
+filterNoticeView : Repo -> Model -> Data -> Html Msg
+filterNoticeView repo model data =
+    if Route.Inbox.getLastActivity model.params == Route.Inbox.Today then
+        let
+            resetParams =
+                model.params
+                    |> Route.Inbox.setLastActivity Route.Inbox.All
+                    |> Route.Inbox.setCursors Nothing Nothing
+        in
+        div [ class "flex items-center mb-3 py-2 pl-4 pr-2 sm:rounded-full bg-blue text-white text-sm font-extrabold" ]
+            [ div [ class "mr-2 flex-no-shrink" ] [ Icons.filter ]
+            , div [ class "flex-grow" ] [ text "Showing activity from today only" ]
+            , a
+                [ Route.href <| Route.Inbox resetParams
+                , class "btn btn-flex btn-xs btn-blue-inverse no-underline flex-no-shrink"
+                ]
+                [ text "Clear this filter" ]
+            ]
+
+    else
+        text ""
 
 
 userItemView : Space -> SpaceUser -> Html Msg
