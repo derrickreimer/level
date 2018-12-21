@@ -67,16 +67,16 @@ fullSidebar : Config -> Html msg
 fullSidebar config =
     div
         [ classList
-            [ ( "fixed bg-grey-lighter border-r w-48 h-full min-h-screen z-40", True )
+            [ ( "fixed w-48 h-full min-h-screen z-40", True )
             ]
         ]
-        [ div [ class "p-3" ]
+        [ div [ class "p-4 pt-4" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
                 , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                 ]
             ]
-        , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px" ]
+        , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]
             [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
                 , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
@@ -122,10 +122,10 @@ navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
 navLink space title maybeRoute maybeCurrentRoute =
     let
         currentItem route =
-            li [ class "flex items-center border-r-4 border-turquoise" ]
+            li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-darkest font-extrabold"
+                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-darkest font-bold bg-grey border-turquoise rounded"
                     ]
                     [ text title
                     ]
@@ -135,7 +135,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full pl-3 pr-2 no-underline truncate text-dusty-blue-dark"
                     ]
                     [ text title ]
                 ]
