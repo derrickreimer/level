@@ -1239,9 +1239,11 @@ repliesView repo space post now replyIds mode spaceUsers editors =
                 Feed ->
                     a
                         [ Route.href (Route.Post (Space.slug space) (Post.id post))
-                        , class "block mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
+                        , class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
                         ]
-                        [ text "Expand thread..." ]
+                        [ div [ class "mr-2" ] [ Icons.more ]
+                        , text "More replies"
+                        ]
 
                 FullPage ->
                     button
@@ -1376,7 +1378,8 @@ replyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> Model -> Html M
 replyComposerView spaceId currentUser post spaceUsers model =
     if Post.state post == Post.Closed then
         div [ class "flex items-center my-3" ]
-            [ div [ class "flex-no-shrink mr-3 text-base text-dusty-blue" ] [ text "Marked as resolved" ]
+            [ div [ class "flex-no-shrink mr-2" ] [ Icons.check ]
+            , div [ class "flex-no-shrink mr-3 text-base text-dusty-blue-dark" ] [ text "Resolved" ]
             , div [ class "flex-grow leading-semi-loose" ]
                 [ button
                     [ class "mr-2 my-1 btn btn-grey-outline btn-sm"

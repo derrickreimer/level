@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, open, refresh, reply, revokeMember, search, square, thumbs, thumbsSmall, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, square, thumbs, thumbsSmall, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -74,7 +74,7 @@ bookmark toggle =
 check : Html msg
 check =
     iconView <|
-        svg [ width "18px", height "13px", viewBox "0 0 18 13", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "check", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "16 0 5 11 0 6" ] [] ] ] ]
+        svg [ width "19px", height "14px", viewBox "0 0 19 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "check", transform "translate(2.000000, 2.000000)", stroke "#38C172", strokeWidth "3" ] [ polyline [ id "Shape", points "15 0 4.6875 10 0 5.45454545" ] [] ] ] ]
 
 
 checkSquare : Html msg
@@ -144,6 +144,12 @@ menu : Html msg
 menu =
     iconView <|
         svg [ width "16px", height "12px", viewBox "0 0 16 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "menu", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M0,5 L14,5", id "Shape" ] [], Svg.path [ d "M0,0 L14,0", id "Shape" ] [], Svg.path [ d "M0,10 L14,10", id "Shape" ] [] ] ] ]
+
+
+more : Html msg
+more =
+    iconView <|
+        svg [ width "18px", height "4px", viewBox "0 0 18 4", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "more-horizontal", transform "translate(1.000000, 1.000000)", stroke "#C6CED2", strokeWidth "2" ] [ circle [ id "Oval", cx "8", cy "1", r "1" ] [], circle [ id "Oval", cx "15", cy "1", r "1" ] [], circle [ id "Oval", cx "1", cy "1", r "1" ] [] ] ] ]
 
 
 {-| Using the `circle` feather icon.
