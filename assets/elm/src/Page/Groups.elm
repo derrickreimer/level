@@ -9,6 +9,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
 import Id exposing (Id)
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Pagination
 import Query.GroupsInit as GroupsInit
@@ -23,7 +24,6 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
 import View.Helpers exposing (setFocus, viewIf, viewUnless)
-import View.SpaceLayout
 
 
 
@@ -141,23 +141,28 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "flex items-center pb-4" ]
                 [ h1 [ class "flex-1 mx-4 font-bold tracking-semi-tight text-3xl" ] [ text "Groups" ]
@@ -169,7 +174,7 @@ resolvedView repo maybeCurrentRoute model data =
                 [ filterTab "Open" Route.Groups.Open (openParams model.params) model.params
                 , filterTab "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
-            , groupsView repo model.params data.space model.groupIds
+            , groupsView globals.repo model.params data.space model.groupIds
             ]
         ]
 

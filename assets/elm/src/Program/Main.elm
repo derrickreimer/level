@@ -1047,7 +1047,7 @@ pageView globals page =
 
         Groups pageModel ->
             pageModel
-                |> Page.Groups.view globals.repo (routeFor page)
+                |> Page.Groups.view globals
                 |> Html.map GroupsMsg
 
         Group pageModel ->
