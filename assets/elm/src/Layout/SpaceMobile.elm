@@ -53,7 +53,7 @@ type alias Config msg =
 layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised", style "padding-top" "60px" ]
-        [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-grey-lighter z-40" ]
+        [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-white z-40" ]
             [ div [ class "flex-no-shrink" ]
                 [ button [ class "flex", onClick config.onNavToggled ] [ Space.avatar Avatar.Small config.space ]
                 ]
@@ -108,7 +108,7 @@ rightSidebar : Config msg -> List (Html msg) -> Html msg
 rightSidebar config children =
     div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)", onClick config.onSidebarToggled ]
         [ div
-            [ class "absolute w-56 pin-t pin-r pin-b shadow-lg bg-grey-lighter"
+            [ class "absolute w-56 pin-t pin-r pin-b shadow-lg bg-white"
             , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed config.onNoOp))
             ]
             children
@@ -140,10 +140,10 @@ navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
 navLink space title maybeRoute maybeCurrentRoute =
     let
         currentItem route =
-            li [ class "flex items-center border-r-4 border-turquoise" ]
+            li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full px-6 no-underline truncate text-dusty-blue-darkest font-bold text-lg bg-grey"
+                    , class "block w-full mx-3 px-3 no-underline truncate text-dusty-blue-darkest text-lg font-bold bg-grey border-turquoise rounded"
                     ]
                     [ text title
                     ]
