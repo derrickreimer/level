@@ -76,7 +76,7 @@ fullSidebar config =
                 , div [ class "mb-2 font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                 ]
             ]
-        , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]
+        , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "70px" ]
             [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
                 , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
@@ -89,8 +89,8 @@ fullSidebar config =
                 , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
                 ]
             ]
-        , div [ class "absolute pin-b w-full" ]
-            [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
+        , div [ class "absolute w-full", style "bottom" "0.75rem", style "left" "0.75rem" ]
+            [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey rounded transition-bg" ]
                 [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small config.spaceUser ]
                 , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
                     [ div [] [ text "Signed in as" ]
@@ -125,7 +125,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-darkest font-bold bg-grey border-turquoise rounded"
+                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-darkest font-bold bg-grey transition-bg rounded"
                     ]
                     [ text title
                     ]
@@ -135,7 +135,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full pl-3 pr-2 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-dark bg-white transition-bg hover:bg-grey-light rounded"
                     ]
                     [ text title ]
                 ]
