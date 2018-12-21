@@ -1367,10 +1367,10 @@ replyEditorView spaceId replyId spaceUsers editor =
 replyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> Model -> Html Msg
 replyComposerView spaceId currentUser post spaceUsers model =
     if Post.state post == Post.Closed then
-        div [ class "flex items-center my-3" ]
-            [ div [ class "flex-no-shrink mr-2" ] [ Icons.check ]
-            , div [ class "flex-no-shrink mr-3 text-base text-dusty-blue-dark" ] [ text "Resolved" ]
-            , div [ class "flex-grow leading-semi-loose" ]
+        div [ class "flex flex-wrap items-center my-3" ]
+            [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
+            , div [ class "flex-no-shrink mr-3 text-base text-green font-bold" ] [ text "Resolved" ]
+            , div [ class "flex-no-shrink leading-semi-loose" ]
                 [ button
                     [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
                     , onClick ReopenPostClicked

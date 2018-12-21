@@ -86,7 +86,7 @@ checkSquare =
 closedAvatar : Html msg
 closedAvatar =
     iconView <|
-        svg [ width "36px", height "36px", viewBox "0 0 36 36", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "closed-avatar-2" ] [ circle [ id "Oval-2", fill "#8A98A5", cx "18", cy "18", r "18" ] [], g [ id "check", transform "translate(10.000000, 13.000000)", stroke "#FFFFFF", strokeLinecap "round", strokeLinejoin "round", strokeWidth "2" ] [ polyline [ id "Shape", points "16 0 5 11 0 6" ] [] ] ] ] ]
+        svg [ width "36px", height "36px", viewBox "0 0 36 36", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "closed-avatar-2" ] [ circle [ id "Oval-2", fill "#38C172", cx "18", cy "18", r "18" ] [], g [ id "check", transform "translate(10.000000, 13.000000)", stroke "#FFFFFF", strokeLinecap "round", strokeLinejoin "round", strokeWidth "2" ] [ polyline [ id "Shape", points "16 0 5 11 0 6" ] [] ] ] ] ]
 
 
 edit : Html msg
