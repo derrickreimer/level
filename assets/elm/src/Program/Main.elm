@@ -1052,7 +1052,7 @@ pageView globals page =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.view globals.repo (routeFor page) globals.spaceUserLists
+                |> Page.Group.view globals
                 |> Html.map GroupMsg
 
         NewGroup pageModel ->

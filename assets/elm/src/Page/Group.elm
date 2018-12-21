@@ -16,6 +16,7 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
 import KeyboardShortcuts
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CloseGroup as CloseGroup
@@ -50,7 +51,6 @@ import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
-import View.SpaceLayout
 
 
 
@@ -760,27 +760,32 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> SpaceUserLists -> Model -> Html Msg
-view repo maybeCurrentRoute spaceUserLists model =
+view : Globals -> Model -> Html Msg
+view globals model =
     let
         spaceUsers =
-            SpaceUserLists.resolveList repo model.spaceId spaceUserLists
+            SpaceUserLists.resolveList globals.repo model.spaceId globals.spaceUserLists
     in
-    case resolveData repo model of
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute spaceUsers model data
+            resolvedView globals spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute spaceUsers model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-4 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
@@ -803,7 +808,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                 [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
-            , postsView repo model.params data.space data.viewer model.now model.postComps spaceUsers
+            , postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers
             , sidebarView model.params data.space data.group data.featuredMembers
             ]
         ]
@@ -1004,7 +1009,7 @@ sidebarView params space group featuredMembers =
                 (Route.Group.getGroupId params)
                 Route.GroupSettings.General
     in
-    View.SpaceLayout.rightSidebar
+    Layout.SpaceDesktop.rightSidebar
         [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
             [ text "Group Members"
 
