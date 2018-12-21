@@ -1062,7 +1062,7 @@ pageView globals page =
 
         GroupSettings pageModel ->
             pageModel
-                |> Page.GroupSettings.view globals.repo (routeFor page)
+                |> Page.GroupSettings.view globals
                 |> Html.map GroupSettingsMsg
 
         Post pageModel ->

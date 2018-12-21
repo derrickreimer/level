@@ -11,6 +11,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CloseGroup as CloseGroup
 import Mutation.ReopenGroup as ReopenGroup
@@ -28,7 +29,6 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import Tuple
 import View.Helpers exposing (viewIf)
-import View.SpaceLayout
 
 
 
@@ -258,29 +258,33 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute model data =
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
     let
         groupParams =
             Route.Group.init
                 (Route.GroupSettings.getSpaceSlug model.params)
                 (Route.GroupSettings.getGroupId model.params)
+
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
     in
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-4" ]
                 [ nav [ class "text-xl font-headline font-bold leading-tight" ]
