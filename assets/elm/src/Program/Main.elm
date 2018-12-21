@@ -1092,7 +1092,7 @@ pageView globals page =
 
         Help pageModel ->
             pageModel
-                |> Page.Help.view globals.repo (routeFor page)
+                |> Page.Help.view globals
                 |> Html.map HelpMsg
 
         Blank ->
