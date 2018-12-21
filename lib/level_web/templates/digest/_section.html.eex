@@ -1,7 +1,7 @@
 <table class="w-full cell-0 border-b-grey last--border-none" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td class="py-20px">
-      <h2 class="mb-3 font-extrabold text-dusty-blue-darkest text-lg"><%= @section.title %></h2>
+      <h2 class="mb-3 font-bold text-dusty-blue-darkest text-lg"><%= @section.title %></h2>
       <p><%= raw(@section.summary_html) %></p>
 
       <!-- Posts -->

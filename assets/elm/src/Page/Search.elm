@@ -244,7 +244,7 @@ resolvedView repo maybeCurrentRoute model data =
             [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "pb-4 border-b" ]
                     [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Search" ]
+                        [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Search" ]
                         , controlsView model data
                         ]
                     ]

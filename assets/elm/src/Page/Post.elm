@@ -593,6 +593,6 @@ sidebarView repo model data =
                     div [ class "pb-4 text-sm" ] [ text "Loading..." ]
     in
     View.SpaceLayout.rightSidebar
-        [ h3 [ class "mb-2 text-base font-extrabold" ] [ text "Who’s Here" ]
+        [ h3 [ class "mb-2 text-base font-bold" ] [ text "Who’s Here" ]
         , listView
         ]

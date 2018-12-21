@@ -58,7 +58,7 @@ fullSidebar viewer space bookmarks maybeCurrentRoute =
         [ div [ class "p-3" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small space ]
-                , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
+                , div [ class "mb-2 font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name space) ]
                 ]
             ]
         , div [ class "absolute pl-2 w-full overflow-y-auto", style "top" "100px", style "bottom" "60px" ]
@@ -110,7 +110,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center border-r-4 border-turquoise" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-darkest font-extrabold"
+                    , class "block w-full ml-3 mr-2 no-underline truncate text-dusty-blue-darkest font-bold"
                     ]
                     [ text title
                     ]

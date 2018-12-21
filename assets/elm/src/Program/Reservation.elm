@@ -167,7 +167,7 @@ view model =
                 , a
                     [ href "https://twitter.com/share?text=I%20just%20reserved%20my%20handle%20on%20Level%2C%20a%20calmer%20alternative%20to%20real-time%20chat.&url=https%3A%2F%2Flevel.app"
                     , target "_blank"
-                    , class "text-blue font-extrabold no-underline"
+                    , class "text-blue font-bold no-underline"
                     ]
                     [ text "Share on Twitter" ]
                 ]
@@ -199,7 +199,7 @@ formView model =
             ]
         , button
             [ type_ "submit"
-            , class "btn btn-blue font-extrabold mb-4"
+            , class "btn btn-blue font-bold mb-4"
             , onClick Submit
             , disabled (model.formState == Submitting)
             ]

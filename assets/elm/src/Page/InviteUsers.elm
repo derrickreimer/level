@@ -170,7 +170,7 @@ resolvedView maybeCurrentRoute model data =
         data.bookmarks
         maybeCurrentRoute
         [ div [ class "mx-auto px-8 py-24 max-w-sm leading-normal" ]
-            [ h2 [ class "mb-6 font-extrabold tracking-semi-tight text-3xl" ] [ text "Invite people to join" ]
+            [ h2 [ class "mb-6 font-bold tracking-semi-tight text-3xl" ] [ text "Invite people to join" ]
             , bodyView (Space.openInvitationUrl data.space)
             ]
         ]

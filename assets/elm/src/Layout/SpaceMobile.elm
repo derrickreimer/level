@@ -58,7 +58,7 @@ layout config children =
                 [ button [ class "flex", onClick config.onNavToggled ] [ Space.avatar Avatar.Small config.space ]
                 ]
             , div [ class "mx-2 flex-grow", onClick config.onScrollTopClicked ]
-                [ h1 [ class "font-headline font-extrabold text-lg text-center" ] [ text config.title ]
+                [ h1 [ class "font-headline font-bold text-lg text-center" ] [ text config.title ]
                 ]
             , div [ class "flex-no-shrink" ]
                 [ config.actionButton
@@ -74,7 +74,7 @@ layout config children =
                     [ div [ class "px-6 py-4" ]
                         [ a [ Route.href Route.Spaces, class "block no-underline" ]
                             [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                            , div [ class "mb-2 font-headline font-extrabold text-xl text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
+                            , div [ class "mb-2 font-headline font-bold text-xl text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                             ]
                         ]
                     , div [ class "absolute w-full overflow-y-auto", style "top" "120px", style "bottom" "60px" ]
@@ -143,7 +143,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center border-r-4 border-turquoise" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full px-6 no-underline truncate text-dusty-blue-darkest font-extrabold text-lg bg-grey"
+                    , class "block w-full px-6 no-underline truncate text-dusty-blue-darkest font-bold text-lg bg-grey"
                     ]
                     [ text title
                     ]

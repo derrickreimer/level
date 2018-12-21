@@ -242,7 +242,7 @@
       font-weight: 600;
     }
 
-    .font-extrabold {
+    .font-bold {
       font-weight: 800;
     }
 

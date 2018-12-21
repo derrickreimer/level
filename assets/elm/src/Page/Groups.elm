@@ -160,7 +160,7 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "flex items-center pb-4" ]
-                [ h1 [ class "flex-1 mx-4 font-extrabold tracking-semi-tight text-3xl" ] [ text "Groups" ]
+                [ h1 [ class "flex-1 mx-4 font-bold tracking-semi-tight text-3xl" ] [ text "Groups" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a [ Route.href (Route.NewGroup (Space.slug data.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
                     ]

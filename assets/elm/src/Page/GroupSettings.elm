@@ -283,14 +283,14 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-4" ]
-                [ nav [ class "text-xl font-headline font-extrabold leading-tight" ]
+                [ nav [ class "text-xl font-headline font-bold leading-tight" ]
                     [ a
                         [ Route.href (Route.Group groupParams)
                         , class "no-underline text-dusty-blue-dark"
                         ]
                         [ text <| Group.name data.group ]
                     ]
-                , h1 [ class "flex-1 font-extrabold tracking-semi-tight text-3xl" ] [ text "Group Settings" ]
+                , h1 [ class "flex-1 font-bold tracking-semi-tight text-3xl" ] [ text "Group Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params

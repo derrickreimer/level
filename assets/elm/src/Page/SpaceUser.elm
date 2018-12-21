@@ -214,7 +214,7 @@ detailView model data =
             [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
             , div [ class "flex-grow" ]
                 [ div [ class "flex items-center" ]
-                    [ h1 [ class "mb-1 font-extrabold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
+                    [ h1 [ class "mb-1 font-bold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
                     , viewIf (SpaceUser.state data.spaceUser == SpaceUser.Disabled) <|
                         span [ class "ml-4 px-3 py-1 text-sm border rounded-full text-dusty-blue-dark select-none" ] [ text "Account disabled" ]
                     ]
@@ -253,7 +253,7 @@ revokeModal model data =
                 [ class "px-8 py-6 w-full bg-white rounded shadow-lg leading-normal"
                 , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed NoOp))
                 ]
-                [ h2 [ class "mb-4 font-extrabold text-dusty-blue-darker" ] [ text "Revoke access to this space" ]
+                [ h2 [ class "mb-4 font-bold text-dusty-blue-darker" ] [ text "Revoke access to this space" ]
                 , p [ class "mb-6" ] [ text "Their existing posts will still be accessible to other members of the space, but they will no longer have access." ]
                 , button [ class "mr-2 btn btn-blue btn-md", onClick RevokeAccess ] [ text <| "Remove " ++ SpaceUser.displayName data.spaceUser ]
                 , button [ class "btn btn-grey-outline btn-md", onClick ToggleRevokeModel ] [ text "Cancel" ]

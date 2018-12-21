@@ -73,7 +73,7 @@ fullSidebar config =
         [ div [ class "p-4 pt-4" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
+                , div [ class "mb-2 font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                 ]
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]

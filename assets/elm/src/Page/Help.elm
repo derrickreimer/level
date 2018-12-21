@@ -172,7 +172,7 @@ resolvedView repo maybeCurrentRoute model data =
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ div [ class "mb-6" ]
-                    [ h1 [ class "mb-4 font-extrabold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Help" ]
+                    [ h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Help" ]
                     ]
                 , ul [ class "mb-4 pb-6 border-b list-reset" ]
                     [ li []
@@ -180,7 +180,7 @@ resolvedView repo maybeCurrentRoute model data =
                             [ Route.href <| Route.WelcomeTutorial (Route.WelcomeTutorial.init (Route.Help.getSpaceSlug model.params) 1)
                             , class "no-underline"
                             ]
-                            [ h2 [ class "block text-xl text-blue-dark font-extrabold tracking-semi-tight" ] [ text "How Level Works" ]
+                            [ h2 [ class "block text-xl text-blue-dark font-bold tracking-semi-tight" ] [ text "How Level Works" ]
                             , p [ class "text-dusty-blue-dark text-base" ] [ text "Learn the basics and set your preferences." ]
                             ]
                         ]

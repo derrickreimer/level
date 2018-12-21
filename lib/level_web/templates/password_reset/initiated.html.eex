@@ -16,7 +16,7 @@
       </div>
 
       <div class="px-8 sm:px-12 py-8 bg-white rounded-lg border">
-        <h1 class="text-center text-2xl font-extrabold text-dusty-blue-darkest pb-8">Reset my password</h1>
+        <h1 class="text-center text-2xl font-bold text-dusty-blue-darkest pb-8">Reset my password</h1>
         <p class="text-center">Check your email for instructions 👍</p>
       </div>
 

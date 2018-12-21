@@ -401,12 +401,12 @@ resolvedView repo maybeCurrentRoute model data =
 headerView : Int -> Data -> Html Msg
 headerView step data =
     if step == 1 then
-        h1 [ class "mt-16 mb-6 font-extrabold tracking-semi-tight text-4xl leading-tighter text-dusty-blue-darkest" ]
+        h1 [ class "mt-16 mb-6 font-bold tracking-semi-tight text-4xl leading-tighter text-dusty-blue-darkest" ]
             [ text <| "Welcome to Level, " ++ SpaceUser.firstName data.viewer ]
 
     else
         div []
-            [ h1 [ class "mb-3 font-extrabold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "How Level Works" ]
+            [ h1 [ class "mb-3 font-bold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "How Level Works" ]
             , progressBarView step
             ]
 
@@ -452,7 +452,7 @@ stepView step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups keep your conversations organized." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups keep your conversations organized." ]
                 , p [ class "mb-6" ] [ text "Similar to channels, Groups are where you can post messages to a team or around a particular topic." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
@@ -465,7 +465,7 @@ stepView step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Every conversation is threaded." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Every conversation is threaded." ]
                 , p [ class "mb-6" ] [ text "Chat timelines are terrible for organizing productive discourse. In Level, every conversation is structured as a thread." ]
                 , p [ class "mb-6" ] [ text "Once a conversation is done, you can ", strong [] [ text "mark it as resolved" ], text " to let the rest of the team know it’s finished." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
@@ -474,7 +474,7 @@ stepView step model data =
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
                 , p [ class "mb-6" ] [ text "Once your team grows large enough, it’s impossible to keep up with every conversation." ]
                 , p [ class "mb-6" ] [ text "To combat information overload, everyone has their own curated Inbox designed to prevent important discussions from slipping through the cracks." ]
                 , p [ class "mb-6" ] [ text "Posts will land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
@@ -485,7 +485,7 @@ stepView step model data =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Your Activity Feed keeps you in the loop." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Your Activity Feed keeps you in the loop." ]
                 , p [ class "mb-6" ] [ text "Your Activity Feed includes all messages posted in groups that you have joined." ]
                 , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse your feed to find out what else is happening around the space—but you shouldn’t feel pressure to follow everything." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
@@ -494,7 +494,7 @@ stepView step model data =
 
         6 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
                 , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails them to you ", em [] [ text "when you want them." ] ]
                 , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
                 , div [ class "mb-6" ] [ View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone) ]
@@ -504,7 +504,7 @@ stepView step model data =
 
         7 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
                 , p [ class "mb-6" ] [ text "And it’s most definitely not a good proxy for determining whether someone is slacking off." ]
                 , p [ class "mb-6" ] [ text "For that reason, Level does not actively track who’s online at any given moment." ]
@@ -514,7 +514,7 @@ stepView step model data =
 
         8 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-extrabold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
                 , backButton "Previous"

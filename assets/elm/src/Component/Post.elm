@@ -1517,7 +1517,7 @@ postReactionButton post =
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-green font-extrabold"
+                    [ class "absolute pin-t ml-1 px-1 text-green font-bold"
                     , style "left" "68%"
                     , style "font-size" "11px"
                     ]
@@ -1533,7 +1533,7 @@ postReactionButton post =
             [ Icons.thumbs Icons.Off
             , viewIf (Post.reactionCount post > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-extrabold"
+                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-bold"
                     , style "left" "68%"
                     , style "font-size" "11px"
                     ]
@@ -1552,7 +1552,7 @@ replyReactionButton reply =
             [ Icons.thumbs Icons.On
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-green font-extrabold"
+                    [ class "absolute pin-t ml-1 px-1 text-green font-bold"
                     , style "left" "68%"
                     , style "font-size" "11px"
                     ]
@@ -1568,7 +1568,7 @@ replyReactionButton reply =
             [ Icons.thumbs Icons.Off
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-extrabold"
+                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-bold"
                     , style "left" "68%"
                     , style "font-size" "11px"
                     ]

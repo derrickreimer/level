@@ -793,7 +793,7 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
             , viewIf (Group.state data.group == Group.Open) <|
                 newPostView model.spaceId model.postComposer data.viewer spaceUsers
             , viewIf (Group.state data.group == Group.Closed) <|
-                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-extrabold" ]
+                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
                     [ div [ class "flex-grow" ] [ text "This group is closed." ]
                     , div [ class "flex-no-shrink" ]
                         [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
@@ -833,7 +833,7 @@ nameView group editor =
             h2 [ class "flex-no-shrink" ]
                 [ span
                     [ onClick NameClicked
-                    , class "font-extrabold text-2xl cursor-pointer"
+                    , class "font-bold text-2xl cursor-pointer"
                     ]
                     [ text (Group.name group) ]
                 ]
@@ -844,7 +844,7 @@ nameView group editor =
                     [ type_ "text"
                     , id (FieldEditor.getNodeId editor)
                     , classList
-                        [ ( "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
+                        [ ( "-ml-2 px-2 bg-grey-light font-bold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
                         , ( "shake", not <| List.isEmpty (FieldEditor.getErrors editor) )
                         ]
                     , value (FieldEditor.getValue editor)
@@ -862,7 +862,7 @@ nameView group editor =
             h2 [ class "flex-no-shrink" ]
                 [ input
                     [ type_ "text"
-                    , class "-ml-2 px-2 bg-grey-light font-extrabold text-2xl text-dusty-blue-darkest rounded no-outline"
+                    , class "-ml-2 px-2 bg-grey-light font-bold text-2xl text-dusty-blue-darkest rounded no-outline"
                     , value (FieldEditor.getValue editor)
                     , disabled True
                     ]
@@ -1005,7 +1005,7 @@ sidebarView params space group featuredMembers =
                 Route.GroupSettings.General
     in
     View.SpaceLayout.rightSidebar
-        [ h3 [ class "flex items-center mb-2 text-base font-extrabold" ]
+        [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
             [ text "Group Members"
 
             -- Hide this for now while private groups are disabled

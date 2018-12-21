@@ -265,7 +265,7 @@ resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
     View.UserLayout.layout data.viewer globals.flash <|
         div [ class "mx-auto max-w-md leading-normal" ]
-            [ h1 [ class "pb-8 font-extrabold tracking-semi-tight text-4xl" ] [ text "User Settings" ]
+            [ h1 [ class "pb-8 font-bold tracking-semi-tight text-4xl" ] [ text "User Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
                     [ div [ class "pb-6" ]
@@ -314,7 +314,7 @@ resolvedView globals model data =
                             ]
                             [ label
                                 [ for "handle"
-                                , class "mr-1 flex-none text-dusty-blue-darker select-none font-extrabold"
+                                , class "mr-1 flex-none text-dusty-blue-darker select-none font-bold"
                                 ]
                                 [ text "@" ]
                             , div [ class "flex-1" ]

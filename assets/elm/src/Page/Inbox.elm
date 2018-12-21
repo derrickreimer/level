@@ -483,7 +483,7 @@ resolvedDesktopView globals spaceUsers model data =
             [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "trans-border-b-grey" ]
                     [ div [ class "flex items-center" ]
-                        [ h2 [ class "flex-no-shrink font-extrabold text-2xl" ] [ text "Inbox" ]
+                        [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Inbox" ]
                         , controlsView model data
                         ]
                     , div [ class "flex items-baseline" ]
@@ -681,7 +681,7 @@ filterNoticeView repo model data =
                     |> Route.Inbox.setLastActivity Route.Inbox.All
                     |> Route.Inbox.setCursors Nothing Nothing
         in
-        div [ class "flex items-center mb-3 py-2 pl-4 pr-2 sm:rounded-full bg-blue text-white text-sm font-extrabold" ]
+        div [ class "flex items-center mb-3 py-2 pl-4 pr-2 sm:rounded-full bg-blue text-white text-sm font-bold" ]
             [ div [ class "mr-2 flex-no-shrink" ] [ Icons.filter ]
             , div [ class "flex-grow" ] [ text "Showing activity from today only" ]
             , a
@@ -697,7 +697,7 @@ filterNoticeView repo model data =
 
 sidebarView : Globals -> Space -> List SpaceUser -> List (Html Msg)
 sidebarView globals space featuredUsers =
-    [ h3 [ class "mb-2 text-base font-extrabold" ]
+    [ h3 [ class "mb-2 text-base font-bold" ]
         [ a
             [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
             , class "flex items-center text-dusty-blue-darkest no-underline"

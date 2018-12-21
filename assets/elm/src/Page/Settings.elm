@@ -366,7 +366,7 @@ resolvedView maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
             [ div [ class "pb-4" ]
-                [ h1 [ class "font-extrabold tracking-semi-tight text-3xl" ] [ text "Settings" ]
+                [ h1 [ class "font-bold tracking-semi-tight text-3xl" ] [ text "Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
@@ -392,7 +392,7 @@ preferencesView model data =
 nudgesView : Model -> Data -> Html Msg
 nudgesView model data =
     div [ class "mb-8" ]
-        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Notifications" ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Notifications" ]
         , p [ class "mb-4" ] [ text "Configure when Level should notify you about new messages in your Inbox." ]
         , View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone)
         ]
@@ -401,7 +401,7 @@ nudgesView model data =
 digestsView : Model -> Data -> Html Msg
 digestsView model data =
     div []
-        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-extrabold" ] [ text "Daily Summary" ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Daily Summary" ]
         , p [ class "mb-6" ] [ text "The Daily Summary reminds you what's waiting in your Inbox and summarizes other conversations that might be of interest to you." ]
         , label [ class "control checkbox pb-6" ]
             [ input

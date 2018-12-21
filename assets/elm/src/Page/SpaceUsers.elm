@@ -155,7 +155,7 @@ resolvedView repo maybeCurrentRoute model data =
         maybeCurrentRoute
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-extrabold tracking-semi-tight text-3xl" ] [ text "People" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-bold tracking-semi-tight text-3xl" ] [ text "People" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a
                         [ Route.href (Route.InviteUsers (Route.SpaceUsers.getSpaceSlug model.params))
