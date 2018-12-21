@@ -12,6 +12,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
 import Json.Decode as Decode
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Minutes
 import Mutation.CreateNudge as CreateNudge
@@ -33,7 +34,6 @@ import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNo
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (viewIf)
 import View.Nudges
-import View.SpaceLayout
 
 
 
@@ -347,23 +347,28 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView maybeCurrentRoute model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Maybe Route -> Model -> Data -> Html Msg
-resolvedView maybeCurrentRoute model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-md leading-normal p-8" ]
             [ div [ class "pb-4" ]
                 [ h1 [ class "font-bold tracking-semi-tight text-3xl" ] [ text "Settings" ]

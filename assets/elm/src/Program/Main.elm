@@ -1077,7 +1077,7 @@ pageView globals page =
 
         SpaceSettings pageModel ->
             pageModel
-                |> Page.Settings.view globals.repo (routeFor page)
+                |> Page.Settings.view globals
                 |> Html.map SpaceSettingsMsg
 
         Search pageModel ->
