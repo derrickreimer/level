@@ -10,6 +10,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick)
 import Id exposing (Id)
 import Json.Decode as Decode
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
@@ -19,7 +20,6 @@ import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
-import View.SpaceLayout
 
 
 
@@ -152,23 +152,28 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView maybeCurrentRoute model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Maybe Route -> Model -> Data -> Html Msg
-resolvedView maybeCurrentRoute model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 py-24 max-w-sm leading-normal" ]
             [ h2 [ class "mb-6 font-bold tracking-semi-tight text-3xl" ] [ text "Invite people to join" ]
             , bodyView (Space.openInvitationUrl data.space)

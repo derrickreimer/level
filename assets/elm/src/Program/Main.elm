@@ -1042,7 +1042,7 @@ pageView globals page =
 
         InviteUsers pageModel ->
             pageModel
-                |> Page.InviteUsers.view globals.repo (routeFor page)
+                |> Page.InviteUsers.view globals
                 |> Html.map InviteUsersMsg
 
         Groups pageModel ->
