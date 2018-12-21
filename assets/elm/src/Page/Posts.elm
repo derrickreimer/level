@@ -3,6 +3,7 @@ module Page.Posts exposing (Model, Msg(..), consumeEvent, init, setup, subscript
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
+import Device exposing (Device)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
 import Globals exposing (Globals)
@@ -15,6 +16,8 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts
+import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Pagination
 import Post exposing (Post)
@@ -34,7 +37,7 @@ import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import View.Helpers exposing (setFocus, smartFormatTime, viewIf)
+import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
 import View.SpaceLayout
 
@@ -52,6 +55,10 @@ type alias Model =
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
     , searchEditor : FieldEditor String
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -109,6 +116,8 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 postComps
                 now
                 (FieldEditor.init "search-editor" "")
+                False
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -158,19 +167,25 @@ teardown model =
 
 
 type Msg
-    = Tick Posix
+    = NoOp
+    | Tick Posix
     | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
     | ExpandSearchEditor
     | CollapseSearchEditor
     | SearchEditorChanged String
     | SearchSubmitted
-    | NoOp
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
+        NoOp ->
+            noCmd globals model
+
         Tick posix ->
             ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
@@ -231,8 +246,14 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
-        NoOp ->
-            noCmd globals model
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -293,27 +314,46 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> SpaceUserLists -> Model -> Html Msg
-view repo maybeCurrentRoute spaceUserLists model =
+view : Globals -> Model -> Html Msg
+view globals model =
     let
         spaceUsers =
-            SpaceUserLists.resolveList repo model.spaceId spaceUserLists
+            SpaceUserLists.resolveList globals.repo model.spaceId globals.spaceUserLists
     in
-    case resolveData repo model of
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute spaceUsers model data
+            resolvedView globals spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute spaceUsers model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView globals spaceUsers model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals spaceUsers model data
+
+        Device.Mobile ->
+            resolvedMobileView globals spaceUsers model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedDesktopView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "sticky pin-t trans-border-b-grey mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
@@ -321,18 +361,18 @@ resolvedView repo maybeCurrentRoute spaceUsers model data =
                     , controlsView model
                     ]
                 , div [ class "flex items-baseline" ]
-                    [ filterTab "Open" Route.Posts.Open (openParams model.params) model.params
-                    , filterTab "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                    [ desktopFilterTab "Open" Route.Posts.Open (openParams model.params) model.params
+                    , desktopFilterTab "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
-            , postsView repo spaceUsers model data
-            , sidebarView data.space data.featuredUsers
+            , desktopPostsView globals.repo spaceUsers model data
+            , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
         ]
 
 
-filterTab : String -> Route.Posts.State -> Params -> Params -> Html Msg
-filterTab label state linkParams currentParams =
+desktopFilterTab : String -> Route.Posts.State -> Params -> Params -> Html Msg
+desktopFilterTab label state linkParams currentParams =
     let
         isCurrent =
             Route.Posts.getState currentParams == state
@@ -367,26 +407,19 @@ searchEditorView editor =
         }
 
 
-paginationView : Params -> Connection a -> Html Msg
-paginationView params connection =
-    Pagination.view connection
-        (\beforeCursor -> Route.Posts (Route.Posts.setCursors (Just beforeCursor) Nothing params))
-        (\afterCursor -> Route.Posts (Route.Posts.setCursors Nothing (Just afterCursor) params))
-
-
-postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
-postsView repo spaceUsers model data =
+desktopPostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+desktopPostsView repo spaceUsers model data =
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (postView repo spaceUsers model data) model.postComps
+            Connection.mapList (desktopPostView repo spaceUsers model data) model.postComps
 
 
-postView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-postView repo spaceUsers model data component =
+desktopPostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+desktopPostView repo spaceUsers model data component =
     div [ class "py-4" ]
         [ component
             |> Component.Post.view repo data.space data.viewer model.now spaceUsers
@@ -394,28 +427,126 @@ postView repo spaceUsers model data component =
         ]
 
 
-sidebarView : Space -> List SpaceUser -> Html Msg
-sidebarView space featuredUsers =
-    View.SpaceLayout.rightSidebar
-        [ h3 [ class "mb-2 text-base font-extrabold" ]
-            [ a
-                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
-                , class "flex items-center text-dusty-blue-darkest no-underline"
-                ]
-                [ text "Team Members"
-                ]
-            ]
-        , div [ class "pb-4" ] <| List.map (userItemView space) featuredUsers
-        , ul [ class "list-reset" ]
-            [ li []
-                [ a
-                    [ Route.href (Route.InviteUsers (Space.slug space))
-                    , class "text-md text-dusty-blue no-underline font-bold"
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedMobileView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Activity"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , actionButton =
+                button
+                    [ class "flex items-center justify-center w-9 h-9"
+                    , onClick SidebarToggled
                     ]
-                    [ text "Invite people" ]
+                    [ Icons.menu ]
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "mx-auto leading-normal" ]
+            [ div [ class "mb-3 pt-2 bg-white z-50" ]
+                [ div [ class "px-3 trans-border-b-grey" ]
+                    [ div [ class "flex justify-center items-baseline" ]
+                        [ mobileFilterTab "Open" Route.Posts.Open (openParams model.params) model.params
+                        , mobileFilterTab "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                        ]
+                    ]
                 ]
+            , mobilePostsView globals.repo spaceUsers model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "flex justify-center p-8 pb-16" ]
+                    [ paginationView model.params model.postComps
+                    ]
+            , viewIf model.showSidebar <|
+                Layout.SpaceMobile.rightSidebar config
+                    [ div [ class "p-4" ] (sidebarView data.space data.featuredUsers)
+                    ]
             ]
         ]
+
+
+mobileFilterTab : String -> Route.Posts.State -> Params -> Params -> Html Msg
+mobileFilterTab label state linkParams currentParams =
+    let
+        isCurrent =
+            Route.Posts.getState currentParams == state
+    in
+    a
+        [ Route.href (Route.Posts linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        , style "min-width" "100px"
+        ]
+        [ text label ]
+
+
+mobilePostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+mobilePostsView repo spaceUsers model data =
+    if Connection.isEmptyAndExpanded model.postComps then
+        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+            [ text "You’re all caught up!" ]
+
+    else
+        div [ class "px-3" ] <|
+            Connection.mapList (mobilePostView repo spaceUsers model data) model.postComps
+
+
+mobilePostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+mobilePostView repo spaceUsers model data component =
+    div [ class "py-4" ]
+        [ component
+            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
+            |> Html.map (PostComponentMsg component.id)
+        ]
+
+
+
+-- SHARED
+
+
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
+    Pagination.view connection
+        (\beforeCursor -> Route.Posts (Route.Posts.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Posts (Route.Posts.setCursors Nothing (Just afterCursor) params))
+
+
+sidebarView : Space -> List SpaceUser -> List (Html Msg)
+sidebarView space featuredUsers =
+    [ h3 [ class "mb-2 text-base font-extrabold" ]
+        [ a
+            [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
+            , class "flex items-center text-dusty-blue-darkest no-underline"
+            ]
+            [ text "Team Members"
+            ]
+        ]
+    , div [ class "pb-4" ] <| List.map (userItemView space) featuredUsers
+    , ul [ class "list-reset" ]
+        [ li []
+            [ a
+                [ Route.href (Route.InviteUsers (Space.slug space))
+                , class "text-md text-dusty-blue no-underline font-bold"
+                ]
+                [ text "Invite people" ]
+            ]
+        ]
+    ]
 
 
 userItemView : Space -> SpaceUser -> Html Msg

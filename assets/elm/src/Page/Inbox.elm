@@ -494,34 +494,7 @@ resolvedDesktopView globals spaceUsers model data =
                 ]
             , filterNoticeView globals.repo model data
             , desktopPostsView globals.repo spaceUsers model data
-            , Layout.SpaceDesktop.rightSidebar
-                [ h3 [ class "mb-2 text-base font-extrabold" ]
-                    [ a
-                        [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug data.space))
-                        , class "flex items-center text-dusty-blue-darkest no-underline"
-                        ]
-                        [ text "Team Members"
-                        ]
-                    ]
-                , div [ class "pb-4" ] <| List.map (userItemView data.space) data.featuredUsers
-                , ul [ class "list-reset" ]
-                    [ li []
-                        [ a
-                            [ Route.href (Route.InviteUsers (Space.slug data.space))
-                            , class "text-md text-dusty-blue no-underline font-bold"
-                            ]
-                            [ text "Invite people" ]
-                        ]
-                    , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
-                        li []
-                            [ button
-                                [ class "text-md text-dusty-blue no-underline font-bold"
-                                , onClick PushSubscribeClicked
-                                ]
-                                [ text "Enable notifications" ]
-                            ]
-                    ]
-                ]
+            , Layout.SpaceDesktop.rightSidebar (sidebarView globals data.space data.featuredUsers)
             ]
         ]
 
@@ -644,34 +617,7 @@ resolvedMobileView globals spaceUsers model data =
                     ]
             , viewIf model.showSidebar <|
                 Layout.SpaceMobile.rightSidebar config
-                    [ div [ class "p-4" ]
-                        [ h3 [ class "mb-2 text-base font-extrabold" ]
-                            [ a
-                                [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug data.space))
-                                , class "flex items-center text-dusty-blue-darkest no-underline"
-                                ]
-                                [ text "Team Members"
-                                ]
-                            ]
-                        , div [ class "pb-4" ] <| List.map (userItemView data.space) data.featuredUsers
-                        , ul [ class "list-reset" ]
-                            [ li []
-                                [ a
-                                    [ Route.href (Route.InviteUsers (Space.slug data.space))
-                                    , class "text-md text-dusty-blue no-underline font-bold"
-                                    ]
-                                    [ text "Invite people" ]
-                                ]
-                            , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
-                                li []
-                                    [ button
-                                        [ class "text-md text-dusty-blue no-underline font-bold"
-                                        , onClick PushSubscribeClicked
-                                        ]
-                                        [ text "Enable notifications" ]
-                                    ]
-                            ]
-                        ]
+                    [ div [ class "p-4" ] (sidebarView globals data.space data.featuredUsers)
                     ]
             ]
         ]
@@ -747,6 +693,37 @@ filterNoticeView repo model data =
 
     else
         text ""
+
+
+sidebarView : Globals -> Space -> List SpaceUser -> List (Html Msg)
+sidebarView globals space featuredUsers =
+    [ h3 [ class "mb-2 text-base font-extrabold" ]
+        [ a
+            [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
+            , class "flex items-center text-dusty-blue-darkest no-underline"
+            ]
+            [ text "Team Members"
+            ]
+        ]
+    , div [ class "pb-4" ] <| List.map (userItemView space) featuredUsers
+    , ul [ class "list-reset" ]
+        [ li []
+            [ a
+                [ Route.href (Route.InviteUsers (Space.slug space))
+                , class "text-md text-dusty-blue no-underline font-bold"
+                ]
+                [ text "Invite people" ]
+            ]
+        , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
+            li []
+                [ button
+                    [ class "text-md text-dusty-blue no-underline font-bold"
+                    , onClick PushSubscribeClicked
+                    ]
+                    [ text "Enable notifications" ]
+                ]
+        ]
+    ]
 
 
 userItemView : Space -> SpaceUser -> Html Msg

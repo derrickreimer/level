@@ -1022,7 +1022,7 @@ pageView globals page =
 
         Posts pageModel ->
             pageModel
-                |> Page.Posts.view globals.repo (routeFor page) globals.spaceUserLists
+                |> Page.Posts.view globals
                 |> Html.map PostsMsg
 
         Inbox pageModel ->
