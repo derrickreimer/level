@@ -195,7 +195,6 @@ type Msg
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | MoveToInboxClicked
     | PostMovedToInbox (Result Session.Error ( Session, MarkAsUnread.Response ))
-    | ClickedToExpand
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
@@ -463,9 +462,6 @@ update msg spaceId globals model =
 
         PostMovedToInbox (Err _) ->
             noCmd globals model
-
-        ClickedToExpand ->
-            ( ( model, Route.pushUrl globals.navKey (Route.Post model.spaceSlug model.postId) ), globals )
 
         ExpandPostEditor ->
             case resolveData globals.repo model of
@@ -1175,7 +1171,7 @@ groupsLabel space groups =
 
 bodyView : Space -> Mode -> Post -> Html Msg
 bodyView space mode post =
-    clickToExpandIf (mode == Feed)
+    div []
         [ div [ class "markdown mb-1p5" ] [ RenderedHtml.node (Post.bodyHtml post) ]
         , staticFilesView (Post.files post)
         ]
@@ -1281,14 +1277,12 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ div [ class "flex items-baseline" ]
-                        [ clickToExpandIf (mode == Feed)
-                            [ replyAuthorName space author
-                            , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
-                            ]
+                        [ replyAuthorName space author
+                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , replyReactionButton reply
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
-                        clickToExpandIf (mode == Feed)
+                        div []
                             [ div [ class "markdown mb-1p5" ]
                                 [ RenderedHtml.node (Reply.bodyHtml reply)
                                 ]
@@ -1381,22 +1375,20 @@ replyEditorView spaceId replyId spaceUsers editor =
 replyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> Model -> Html Msg
 replyComposerView spaceId currentUser post spaceUsers model =
     if Post.state post == Post.Closed then
-        clickToExpandIf (model.mode == Feed)
-            [ div [ class "flex items-center my-3" ]
-                [ div [ class "flex-no-shrink mr-3 text-base text-dusty-blue" ] [ text "Marked as resolved" ]
-                , div [ class "flex-grow leading-semi-loose" ]
-                    [ button
-                        [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
-                        , onClick ReopenPostClicked
-                        ]
-                        [ text "Reopen" ]
-                    , viewIf (Post.inboxState post == Post.Read || Post.inboxState post == Post.Unread) <|
-                        button
-                            [ class "my-1 btn btn-grey-outline btn-sm"
-                            , onClick DismissClicked
-                            ]
-                            [ text "Dismiss from inbox" ]
+        div [ class "flex items-center my-3" ]
+            [ div [ class "flex-no-shrink mr-3 text-base text-dusty-blue" ] [ text "Marked as resolved" ]
+            , div [ class "flex-grow leading-semi-loose" ]
+                [ button
+                    [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
+                    , onClick ReopenPostClicked
                     ]
+                    [ text "Reopen" ]
+                , viewIf (Post.inboxState post == Post.Read || Post.inboxState post == Post.Unread) <|
+                    button
+                        [ class "my-1 btn btn-grey-outline btn-sm"
+                        , onClick DismissClicked
+                        ]
+                        [ text "Dismiss from inbox" ]
                 ]
             ]
 
@@ -1631,12 +1623,3 @@ getReplyEditor : Id -> ReplyEditors -> PostEditor
 getReplyEditor replyId editors =
     Dict.get replyId editors
         |> Maybe.withDefault (PostEditor.init replyId)
-
-
-clickToExpandIf : Bool -> List (Html Msg) -> Html Msg
-clickToExpandIf truth children =
-    if truth then
-        div [ class "cursor-pointer select-none", onPassiveClick ClickedToExpand ] children
-
-    else
-        div [] children
