@@ -1067,7 +1067,7 @@ pageView globals page =
 
         Post pageModel ->
             pageModel
-                |> Page.Post.view globals.repo (routeFor page) globals.spaceUserLists
+                |> Page.Post.view globals
                 |> Html.map PostMsg
 
         UserSettings pageModel ->

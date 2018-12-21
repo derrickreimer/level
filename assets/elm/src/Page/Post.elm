@@ -11,6 +11,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Id exposing (Id)
 import Json.Decode as Decode
+import Layout.SpaceDesktop
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
@@ -35,7 +36,6 @@ import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import View.PresenceList
-import View.SpaceLayout
 
 
 
@@ -479,30 +479,35 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> SpaceUserLists -> Model -> Html Msg
-view repo maybeCurrentRoute spaceUserLists model =
+view : Globals -> Model -> Html Msg
+view globals model =
     let
         spaceUsers =
-            SpaceUserLists.resolveList repo model.spaceId spaceUserLists
+            SpaceUserLists.resolveList globals.repo model.spaceId globals.spaceUserLists
     in
-    case resolveData repo model of
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute spaceUsers model data
+            resolvedView globals spaceUsers model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute spaceUsers model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ postView repo spaceUsers model data
-            , sidebarView repo model data
+            [ postView globals.repo spaceUsers model data
+            , sidebarView globals.repo model data
             ]
         ]
 
@@ -592,7 +597,7 @@ sidebarView repo model data =
                 NotLoaded ->
                     div [ class "pb-4 text-sm" ] [ text "Loading..." ]
     in
-    View.SpaceLayout.rightSidebar
+    Layout.SpaceDesktop.rightSidebar
         [ h3 [ class "mb-2 text-base font-bold" ] [ text "Who’s Here" ]
         , listView
         ]
