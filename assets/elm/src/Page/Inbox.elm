@@ -617,7 +617,7 @@ resolvedMobileView globals spaceUsers model data =
                     ]
             , viewIf model.showSidebar <|
                 Layout.SpaceMobile.rightSidebar config
-                    [ div [ class "p-4" ] (sidebarView globals data.space data.featuredUsers)
+                    [ div [ class "p-6" ] (sidebarView globals data.space data.featuredUsers)
                     ]
             ]
         ]

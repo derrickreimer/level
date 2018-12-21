@@ -68,22 +68,22 @@ layout config children =
         , viewIf config.showNav <|
             div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)", onClick config.onNavToggled ]
                 [ div
-                    [ class "absolute w-48 pin-t pin-l pin-b shadow-lg bg-grey-lighter"
+                    [ class "absolute w-56 pin-t pin-l pin-b shadow-lg bg-grey-lighter"
                     , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed config.onNoOp))
                     ]
-                    [ div [ class "p-4" ]
+                    [ div [ class "px-6 py-4" ]
                         [ a [ Route.href Route.Spaces, class "block no-underline" ]
                             [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                            , div [ class "mb-2 font-headline font-extrabold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
+                            , div [ class "mb-2 font-headline font-extrabold text-xl text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                             ]
                         ]
-                    , div [ class "absolute w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]
-                        [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+                    , div [ class "absolute w-full overflow-y-auto", style "top" "120px", style "bottom" "60px" ]
+                        [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
                             , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
                             ]
                         , bookmarkList config
-                        , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+                        , ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
                             , navLink config.space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
                             , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
@@ -91,9 +91,9 @@ layout config children =
                             ]
                         ]
                     , div [ class "absolute pin-b w-full" ]
-                        [ a [ Route.href Route.UserSettings, class "flex p-3 no-underline border-turquoise hover:bg-grey transition-bg" ]
+                        [ a [ Route.href Route.UserSettings, class "flex items-center p-4 no-underline border-turquoise hover:bg-grey transition-bg" ]
                             [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small config.spaceUser ]
-                            , div [ class "flex-grow ml-2 -mt-1 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
+                            , div [ class "flex-grow ml-3 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
                                 [ div [] [ text "Signed in as" ]
                                 , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName config.spaceUser) ]
                                 ]
@@ -143,7 +143,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center border-r-4 border-turquoise" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-4 mr-2 no-underline truncate text-dusty-blue-darkest font-extrabold"
+                    , class "block w-full px-6 no-underline truncate text-dusty-blue-darkest font-extrabold text-lg bg-grey"
                     ]
                     [ text title
                     ]
@@ -153,7 +153,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full ml-4 mr-2 no-underline truncate text-dusty-blue-dark"
+                    , class "block w-full px-6 no-underline truncate text-dusty-blue-dark text-lg"
                     ]
                     [ text title ]
                 ]
