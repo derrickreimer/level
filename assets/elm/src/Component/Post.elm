@@ -1033,7 +1033,13 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                     , rel "tooltip"
                     , title "Expand post"
                     ]
-                    [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "ml-3 text-sm text-dusty-blue" ] ]
+                    [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "mr-3 text-sm text-dusty-blue" ] ]
+                , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
+                    button
+                        [ class "text-sm text-dusty-blue"
+                        , onClick ExpandPostEditor
+                        ]
+                        [ text "Edit" ]
                 ]
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView space model.mode data.post
@@ -1041,26 +1047,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 postEditorView (Space.id space) spaceUsers model.postEditor
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
-                , viewIf (Post.state data.post == Post.Open && Connection.isEmpty model.replyIds) <|
-                    button
-                        [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
-                        , style "margin-top" "4px"
-                        , style "margin-right" "26px"
-                        , onClick ExpandReplyComposer
-                        , attribute "data-tooltip" "Write a reply"
-                        ]
-                        [ Icons.comment ]
                 , inboxButton data.post
-
-                -- , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
-                --     button
-                --         [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
-                --         , style "margin-top" "3px"
-                --         , style "margin-right" "26px"
-                --         , onClick ExpandPostEditor
-                --         , attribute "data-tooltip" "Edit post"
-                --         ]
-                --         [ Icons.edit ]
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
@@ -1146,9 +1133,7 @@ postAuthorName space postId author =
     in
     a
         [ Route.href route
-        , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
-        , rel "tooltip"
-        , title "Expand post"
+        , class "mr-3 no-underline text-dusty-blue-darkest whitespace-no-wrap"
         ]
         [ span [ class "font-bold" ] [ text <| Actor.displayName author ] ]
 
@@ -1157,7 +1142,7 @@ groupsLabel : Space -> List Group -> Html Msg
 groupsLabel space groups =
     case groups of
         [ group ] ->
-            span [ class "ml-3 text-sm text-dusty-blue" ]
+            span [ class "mr-3 text-sm text-dusty-blue" ]
                 [ a
                     [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
                     , class "no-underline text-dusty-blue font-bold whitespace-no-wrap"
@@ -1280,8 +1265,13 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ div [ class "flex items-baseline" ]
                         [ replyAuthorName space author
-                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
-                        , replyReactionButton reply
+                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                        , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
+                            button
+                                [ class "text-sm text-dusty-blue"
+                                , onClick (ExpandReplyEditor replyId)
+                                ]
+                                [ text "Edit" ]
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
@@ -1292,7 +1282,7 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
                         replyEditorView (Space.id space) replyId spaceUsers editor
-                    , viewIf False <|
+                    , viewIf True <|
                         div [ class "pb-2 flex items-start" ]
                             [ replyReactionButton reply
                             , viewIf (False && (not (PostEditor.isExpanded editor) && Reply.canEdit reply)) <|
@@ -1319,12 +1309,12 @@ replyAuthorName space author =
         Actor.User user ->
             a
                 [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
-                , class "font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
+                , class "mr-3 font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
                 ]
                 [ text <| Actor.displayName author ]
 
         _ ->
-            span [ class "font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
+            span [ class "mr-3 font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
 
 
 replyEditorView : Id -> Id -> List SpaceUser -> PostEditor -> Html Msg
@@ -1399,8 +1389,7 @@ replyComposerView spaceId currentUser post spaceUsers model =
         expandedReplyComposerView spaceId currentUser post spaceUsers model.replyComposer
 
     else
-        viewUnless (Connection.isEmpty model.replyIds) <|
-            replyPromptView currentUser
+        replyPromptView currentUser
 
 
 expandedReplyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> PostEditor -> Html Msg
@@ -1556,11 +1545,11 @@ replyReactionButton : Reply -> Html Msg
 replyReactionButton reply =
     if Reply.hasReacted reply then
         button
-            [ class "flex relative tooltip tooltip-bottom items-center ml-3 mr-6 text-green font-bold text-sm no-outline"
+            [ class "flex relative tooltip tooltip-bottom items-center mr-6 text-green font-bold no-outline"
             , onClick <| DeleteReplyReactionClicked (Reply.id reply)
             , attribute "data-tooltip" "Acknowledge"
             ]
-            [ Icons.thumbsSmall Icons.On
+            [ Icons.thumbs Icons.On
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
                     [ class "absolute pin-t ml-1 px-1 text-green font-extrabold"
@@ -1572,11 +1561,11 @@ replyReactionButton reply =
 
     else
         button
-            [ class "flex relative tooltip tooltip-bottom items-center ml-3 mr-6 text-dusty-blue font-bold text-sm no-outline"
+            [ class "flex relative tooltip tooltip-bottom items-center mr-6 text-dusty-blue font-bold no-outline"
             , onClick <| CreateReplyReactionClicked (Reply.id reply)
             , attribute "data-tooltip" "Acknowledge"
             ]
-            [ Icons.thumbsSmall Icons.Off
+            [ Icons.thumbs Icons.Off
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
                     [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-extrabold"
