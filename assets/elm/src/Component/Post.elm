@@ -1104,7 +1104,7 @@ inboxButton post =
     let
         addButton =
             button
-                [ class "flex tooltip tooltip-bottom mr-4 no-outline active:translate-y-1"
+                [ class "flex tooltip tooltip-bottom mr-4 no-outline"
                 , style "margin-top" "4px"
                 , style "margin-right" "27px"
                 , onClick MoveToInboxClicked
@@ -1115,7 +1115,7 @@ inboxButton post =
 
         removeButton =
             button
-                [ class "flex tooltip tooltip-bottom mr-4 no-outline active:translate-y-1"
+                [ class "flex tooltip tooltip-bottom mr-4 no-outline"
                 , style "margin-top" "4px"
                 , style "margin-right" "27px"
                 , onClick DismissClicked
@@ -1274,7 +1274,7 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
         Just author ->
             div
                 [ id (replyNodeId replyId)
-                , classList [ ( "flex mt-3 relative", True ) ]
+                , classList [ ( "flex mt-4 relative", True ) ]
                 ]
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 rounded pin-t pin-b bg-turquoise flex-no-shrink" ] []
@@ -1296,7 +1296,7 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                     , viewIf False <|
                         div [ class "pb-2 flex items-start" ]
                             [ replyReactionButton reply
-                            , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
+                            , viewIf (False && (not (PostEditor.isExpanded editor) && Reply.canEdit reply)) <|
                                 button
                                     [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
                                     , style "margin-top" "3px"
@@ -1380,7 +1380,7 @@ replyComposerView spaceId currentUser post spaceUsers model =
     if Post.state post == Post.Closed then
         clickToExpandIf (model.mode == Feed)
             [ div [ class "flex items-center my-3" ]
-                [ div [ class "flex-no-shrink mr-3 text-base text-dusty-blue-dark" ] [ text "Marked resolved" ]
+                [ div [ class "flex-no-shrink mr-3 text-base text-dusty-blue" ] [ text "Marked as resolved" ]
                 , div [ class "flex-grow leading-semi-loose" ]
                     [ button
                         [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
@@ -1481,7 +1481,7 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
 
 replyPromptView : SpaceUser -> Html Msg
 replyPromptView currentUser =
-    button [ class "flex my-3 items-center", onClick ExpandReplyComposer ]
+    button [ class "flex my-4 items-center", onClick ExpandReplyComposer ]
         [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small currentUser ]
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
             [ text "Reply or resolve..."
@@ -1523,24 +1523,34 @@ postReactionButton : Post -> Html Msg
 postReactionButton post =
     if Post.hasReacted post then
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-6 text-green font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex relative tooltip tooltip-bottom items-center mr-6 no-outline"
             , onClick DeletePostReactionClicked
             , attribute "data-tooltip" "Acknowledge"
             ]
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
-                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+                div
+                    [ class "absolute pin-t ml-1 px-1 text-green font-extrabold"
+                    , style "left" "68%"
+                    , style "font-size" "11px"
+                    ]
+                    [ text <| String.fromInt (Post.reactionCount post) ]
             ]
 
     else
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-6 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex relative tooltip tooltip-bottom items-center mr-6 no-outline"
             , onClick CreatePostReactionClicked
             , attribute "data-tooltip" "Acknowledge"
             ]
             [ Icons.thumbs Icons.Off
             , viewIf (Post.reactionCount post > 0) <|
-                div [ class "ml-1" ] [ text <| String.fromInt (Post.reactionCount post) ]
+                div
+                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-extrabold"
+                    , style "left" "68%"
+                    , style "font-size" "11px"
+                    ]
+                    [ text <| String.fromInt (Post.reactionCount post) ]
             ]
 
 
