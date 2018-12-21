@@ -39,7 +39,6 @@ import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
-import View.SpaceLayout
 
 
 

@@ -13,6 +13,7 @@ import Html.Events exposing (onClick, onInput)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import OffsetConnection exposing (OffsetConnection)
 import OffsetPagination
@@ -41,7 +42,6 @@ import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNo
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (onPassiveClick)
 import View.SearchBox
-import View.SpaceLayout
 
 
 
@@ -223,23 +223,28 @@ subscriptions =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
                 [ div [ class "pb-4 border-b" ]
@@ -249,7 +254,7 @@ resolvedView repo maybeCurrentRoute model data =
                         ]
                     ]
                 ]
-            , resultsView repo model.params model.now data.resolvedSearchResults
+            , resultsView globals.repo model.params model.now data.resolvedSearchResults
             ]
         ]
 

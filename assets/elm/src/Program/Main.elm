@@ -1082,7 +1082,7 @@ pageView globals page =
 
         Search pageModel ->
             pageModel
-                |> Page.Search.view globals.repo (routeFor page)
+                |> Page.Search.view globals
                 |> Html.map SearchMsg
 
         WelcomeTutorial pageModel ->
