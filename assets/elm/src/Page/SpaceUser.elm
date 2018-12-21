@@ -11,6 +11,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
+import Layout.SpaceDesktop
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RevokeSpaceAccess as RevokeSpaceAccess
 import Query.SpaceUserInit as SpaceUserInit
@@ -24,7 +25,6 @@ import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import View.Helpers exposing (viewIf)
-import View.SpaceLayout
 
 
 
@@ -173,23 +173,28 @@ consumeEvent event model =
 -- VIEW
 
 
-view : Repo -> Maybe Route -> Model -> Html Msg
-view repo maybeCurrentRoute model =
-    case resolveData repo model of
+view : Globals -> Model -> Html Msg
+view globals model =
+    case resolveData globals.repo model of
         Just data ->
-            resolvedView repo maybeCurrentRoute model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Maybe Route -> Model -> Data -> Html Msg
-resolvedView repo maybeCurrentRoute model data =
-    View.SpaceLayout.layout
-        data.viewer
-        data.space
-        data.bookmarks
-        maybeCurrentRoute
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            }
+    in
+    Layout.SpaceDesktop.layout config
         [ div [ class "max-w-md mx-auto" ]
             [ detailView model data
             ]

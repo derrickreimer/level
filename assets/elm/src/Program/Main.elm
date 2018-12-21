@@ -1032,12 +1032,12 @@ pageView globals page =
 
         SpaceUser pageModel ->
             pageModel
-                |> Page.SpaceUser.view globals.repo (routeFor page)
+                |> Page.SpaceUser.view globals
                 |> Html.map SpaceUserMsg
 
         SpaceUsers pageModel ->
             pageModel
-                |> Page.SpaceUsers.view globals.repo (routeFor page)
+                |> Page.SpaceUsers.view globals
                 |> Html.map SpaceUsersMsg
 
         InviteUsers pageModel ->
@@ -1087,7 +1087,7 @@ pageView globals page =
 
         WelcomeTutorial pageModel ->
             pageModel
-                |> Page.WelcomeTutorial.view globals.repo (routeFor page)
+                |> Page.WelcomeTutorial.view globals
                 |> Html.map WelcomeTutorialMsg
 
         Help pageModel ->
