@@ -1280,9 +1280,12 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                     div [ class "mr-2 -ml-3 w-1 rounded pin-t pin-b bg-turquoise flex-no-shrink" ] []
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-semi-loose" ]
-                    [ clickToExpandIf (mode == Feed)
-                        [ replyAuthorName space author
-                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                    [ div [ class "flex items-baseline" ]
+                        [ clickToExpandIf (mode == Feed)
+                            [ replyAuthorName space author
+                            , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "ml-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                            ]
+                        , replyReactionButton reply
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         clickToExpandIf (mode == Feed)
@@ -1558,24 +1561,34 @@ replyReactionButton : Reply -> Html Msg
 replyReactionButton reply =
     if Reply.hasReacted reply then
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-6 text-green font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex relative tooltip tooltip-bottom items-center ml-3 mr-6 text-green font-bold text-sm no-outline"
             , onClick <| DeleteReplyReactionClicked (Reply.id reply)
             , attribute "data-tooltip" "Acknowledge"
             ]
-            [ Icons.thumbs Icons.On
+            [ Icons.thumbsSmall Icons.On
             , viewIf (Reply.reactionCount reply > 0) <|
-                div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]
+                div
+                    [ class "absolute pin-t ml-1 px-1 text-green font-extrabold"
+                    , style "left" "68%"
+                    , style "font-size" "11px"
+                    ]
+                    [ text <| String.fromInt (Reply.reactionCount reply) ]
             ]
 
     else
         button
-            [ class "flex tooltip tooltip-bottom items-center mr-6 text-dusty-blue font-bold text-sm no-outline active:translate-y-1"
+            [ class "flex relative tooltip tooltip-bottom items-center ml-3 mr-6 text-dusty-blue font-bold text-sm no-outline"
             , onClick <| CreateReplyReactionClicked (Reply.id reply)
             , attribute "data-tooltip" "Acknowledge"
             ]
-            [ Icons.thumbs Icons.Off
+            [ Icons.thumbsSmall Icons.Off
             , viewIf (Reply.reactionCount reply > 0) <|
-                div [ class "ml-1" ] [ text <| String.fromInt (Reply.reactionCount reply) ]
+                div
+                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-extrabold"
+                    , style "left" "68%"
+                    , style "font-size" "11px"
+                    ]
+                    [ text <| String.fromInt (Reply.reactionCount reply) ]
             ]
 
 
