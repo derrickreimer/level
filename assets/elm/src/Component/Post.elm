@@ -1040,7 +1040,7 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                             ]
                             [ text "Edit" ]
                     ]
-                , div [ class "-mt-1 mr-3" ] [ inboxButton data.post ]
+                , inboxButton data.post
                 ]
             , viewIf model.showGroups <|
                 groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
@@ -1089,9 +1089,7 @@ inboxButton post =
     let
         addButton =
             button
-                [ class "flex tooltip tooltip-bottom mr-4 no-outline"
-                , style "margin-top" "4px"
-                , style "margin-right" "27px"
+                [ class "flex tooltip tooltip-bottom no-outline"
                 , onClick MoveToInboxClicked
                 , attribute "data-tooltip" "Move to inbox"
                 ]
@@ -1100,9 +1098,7 @@ inboxButton post =
 
         removeButton =
             button
-                [ class "flex tooltip tooltip-bottom mr-4 no-outline"
-                , style "margin-top" "4px"
-                , style "margin-right" "27px"
+                [ class "flex tooltip tooltip-bottom no-outline"
                 , onClick DismissClicked
                 , attribute "data-tooltip" "Dismiss from inbox"
                 ]

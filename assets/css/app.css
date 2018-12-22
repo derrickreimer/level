@@ -639,6 +639,11 @@ post-editor.dragging-over > * {
   left: -50%;
 }
 
+/* Pin right below the mobile top bar */
+.pin-t-mobile {
+  top: 62px;
+}
+
 .outline-grey {
   box-shadow: 0 0 0 1px config('colors.grey');
 }

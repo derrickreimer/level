@@ -75,6 +75,7 @@ type alias Model =
     -- MOBILE
     , showNav : Bool
     , showSidebar : Bool
+    , showPostComposer : Bool
     }
 
 
@@ -142,6 +143,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 (FieldEditor.init "name-editor" "")
                 (PostEditor.init ("post-composer-" ++ resp.groupId))
                 (FieldEditor.init "search-editor" "")
+                False
                 False
                 False
 
@@ -243,9 +245,11 @@ type Msg
     | Closed (Result Session.Error ( Session, CloseGroup.Response ))
     | ReopenClicked
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
+      -- MOBILE
     | NavToggled
     | SidebarToggled
     | ScrollTopClicked
+    | PostComposerToggled
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -673,6 +677,9 @@ update msg globals model =
         ScrollTopClicked ->
             ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
+        PostComposerToggled ->
+            ( ( { model | showPostComposer = not model.showPostComposer }, Cmd.none ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -830,7 +837,7 @@ resolvedDesktopView globals spaceUsers model data =
                     ]
                 ]
             , viewIf (Group.state data.group == Group.Open) <|
-                newPostView model.spaceId model.postComposer data.viewer spaceUsers
+                desktopPostComposerView model.spaceId model.postComposer data.viewer spaceUsers
             , viewIf (Group.state data.group == Group.Closed) <|
                 p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
                     [ div [ class "flex-grow" ] [ text "This group is closed." ]
@@ -862,81 +869,6 @@ filterTab label state linkParams currentParams =
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             ]
-        ]
-        [ text label ]
-
-
-
--- MOBILE
-
-
-resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedMobileView globals spaceUsers model data =
-    let
-        config =
-            { space = data.space
-            , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
-            , title = Group.name data.group
-            , showNav = model.showNav
-            , onNavToggled = NavToggled
-            , onSidebarToggled = SidebarToggled
-            , onScrollTopClicked = ScrollTopClicked
-            , onNoOp = NoOp
-            , actionButton =
-                button
-                    [ class "flex items-center justify-center w-9 h-9"
-                    , onClick SidebarToggled
-                    ]
-                    [ Icons.menu ]
-            }
-    in
-    Layout.SpaceMobile.layout config
-        [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "mb-3 pt-2 bg-white z-50" ]
-                [ div [ class "px-3 trans-border-b-grey" ]
-                    [ div [ class "flex justify-center items-baseline" ]
-                        [ mobileFilterTab "Open" Route.Group.Open (openParams model.params) model.params
-                        , mobileFilterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
-                        ]
-                    ]
-                ]
-            , viewIf (Group.state data.group == Group.Closed) <|
-                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
-                    [ div [ class "flex-grow" ] [ text "This group is closed." ]
-                    , div [ class "flex-no-shrink" ]
-                        [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
-                        ]
-                    ]
-            , div [ class "px-3" ]
-                [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
-            , sidebarView model.params data.space data.group data.featuredMembers
-            , button
-                [ class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
-                , style "bottom" "25px"
-                , style "right" "25px"
-                ]
-                [ Icons.commentWhite ]
-            ]
-        ]
-
-
-mobileFilterTab : String -> Route.Group.State -> Params -> Params -> Html Msg
-mobileFilterTab label state linkParams currentParams =
-    let
-        isCurrent =
-            Route.Group.getState currentParams == state
-    in
-    a
-        [ Route.href (Route.Group linkParams)
-        , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
-            , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            ]
-        , style "min-width" "100px"
         ]
         [ text label ]
 
@@ -1023,26 +955,8 @@ searchEditorView editor =
         }
 
 
-paginationView : Params -> Connection a -> Html Msg
-paginationView params connection =
-    Pagination.view connection
-        (\beforeCursor -> Route.Group (Route.Group.setCursors (Just beforeCursor) Nothing params))
-        (\afterCursor -> Route.Group (Route.Group.setCursors Nothing (Just afterCursor) params))
-
-
-bookmarkButtonView : Bool -> Html Msg
-bookmarkButtonView isBookmarked =
-    if isBookmarked == True then
-        button [ class "ml-3", onClick Unbookmark ]
-            [ Icons.bookmark Icons.On ]
-
-    else
-        button [ class "ml-3", onClick Bookmark ]
-            [ Icons.bookmark Icons.Off ]
-
-
-newPostView : Id -> PostEditor -> SpaceUser -> List SpaceUser -> Html Msg
-newPostView spaceId editor currentUser spaceUsers =
+desktopPostComposerView : Id -> PostEditor -> SpaceUser -> List SpaceUser -> Html Msg
+desktopPostComposerView spaceId editor currentUser spaceUsers =
     let
         config =
             { editor = editor
@@ -1083,6 +997,178 @@ newPostView spaceId editor currentUser spaceUsers =
                 ]
             ]
         ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedMobileView globals spaceUsers model data =
+    if model.showPostComposer then
+        mobilePostComposerView globals spaceUsers model data
+
+    else
+        mainMobileView globals spaceUsers model data
+
+
+mainMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+mainMobileView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = Group.name data.group
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , actionButton =
+                button
+                    [ class "flex items-center justify-center w-9 h-9"
+                    , onClick SidebarToggled
+                    ]
+                    [ Icons.menu ]
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "mx-auto leading-normal" ]
+            [ div [ class "mb-3 pt-2 bg-white z-50" ]
+                [ div [ class "px-3 trans-border-b-grey" ]
+                    [ div [ class "flex justify-center items-baseline" ]
+                        [ mobileFilterTab "Open" Route.Group.Open (openParams model.params) model.params
+                        , mobileFilterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
+                        ]
+                    ]
+                ]
+            , viewIf (Group.state data.group == Group.Closed) <|
+                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
+                    [ div [ class "flex-grow" ] [ text "This group is closed." ]
+                    , div [ class "flex-no-shrink" ]
+                        [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
+                        ]
+                    ]
+            , div [ class "px-3" ]
+                [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
+            , button
+                [ class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
+                , style "bottom" "25px"
+                , style "right" "25px"
+                , onClick PostComposerToggled
+                ]
+                [ Icons.commentWhite ]
+            ]
+        ]
+
+
+mobileFilterTab : String -> Route.Group.State -> Params -> Params -> Html Msg
+mobileFilterTab label state linkParams currentParams =
+    let
+        isCurrent =
+            Route.Group.getState currentParams == state
+    in
+    a
+        [ Route.href (Route.Group linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        , style "min-width" "100px"
+        ]
+        [ text label ]
+
+
+mobilePostComposerView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+mobilePostComposerView globals spaceUsers model data =
+    let
+        layoutConfig =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Post to " ++ Group.name data.group
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , actionButton =
+                button
+                    [ class "flex items-center justify-center w-9 h-9"
+                    , onClick SidebarToggled
+                    ]
+                    [ Icons.menu ]
+            }
+
+        editor =
+            model.postComposer
+
+        composerConfig =
+            { editor = editor
+            , spaceId = model.spaceId
+            , spaceUsers = spaceUsers
+            , onFileAdded = NewPostFileAdded
+            , onFileUploadProgress = NewPostFileUploadProgress
+            , onFileUploaded = NewPostFileUploaded
+            , onFileUploadError = NewPostFileUploadError
+            , classList = [ ( "absolute w-full pin-t-mobile pin-b", True ) ]
+            }
+    in
+    Layout.SpaceMobile.layout layoutConfig
+        [ div [ class "mx-auto leading-normal" ]
+            [ PostEditor.wrapper composerConfig
+                [ textarea
+                    [ id (PostEditor.getTextareaId editor)
+                    , class "absolute pin-t w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
+                    , style "bottom" "62px"
+                    , placeholder "Compose a new post..."
+                    , onInput NewPostBodyChanged
+                    , readonly (PostEditor.isSubmitting editor)
+                    , value (PostEditor.getBody editor)
+                    ]
+                    []
+                , div [ class "absolute w-full pin-b p-4" ]
+                    [ PostEditor.filesView editor
+                    , div [ class "flex items-baseline justify-end" ]
+                        [ button
+                            [ class "btn btn-blue btn-md"
+                            , onClick NewPostSubmit
+                            , disabled (PostEditor.isUnsubmittable editor)
+                            ]
+                            [ text "Send" ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+
+
+-- SHARED
+
+
+paginationView : Params -> Connection a -> Html Msg
+paginationView params connection =
+    Pagination.view connection
+        (\beforeCursor -> Route.Group (Route.Group.setCursors (Just beforeCursor) Nothing params))
+        (\afterCursor -> Route.Group (Route.Group.setCursors Nothing (Just afterCursor) params))
+
+
+bookmarkButtonView : Bool -> Html Msg
+bookmarkButtonView isBookmarked =
+    if isBookmarked == True then
+        button [ class "ml-3", onClick Unbookmark ]
+            [ Icons.bookmark Icons.On ]
+
+    else
+        button [ class "ml-3", onClick Bookmark ]
+            [ Icons.bookmark Icons.Off ]
 
 
 postsView : Repo -> Params -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> List SpaceUser -> Html Msg
