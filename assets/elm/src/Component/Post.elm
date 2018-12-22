@@ -1023,23 +1023,26 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
-            [ div []
-                [ postAuthorName space model.postId data.author
-                , viewIf model.showGroups <|
-                    groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
-                , a
-                    [ Route.href <| Route.Post (Space.slug space) model.postId
-                    , class "no-underline whitespace-no-wrap"
-                    , rel "tooltip"
-                    , title "Expand post"
-                    ]
-                    [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "mr-3 text-sm text-dusty-blue" ] ]
-                , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
-                    button
-                        [ class "text-sm text-dusty-blue"
-                        , onClick ExpandPostEditor
+            [ div [ class "flex items-center flex-wrap" ]
+                [ div []
+                    [ postAuthorName space model.postId data.author
+                    , viewIf model.showGroups <|
+                        groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
+                    , a
+                        [ Route.href <| Route.Post (Space.slug space) model.postId
+                        , class "no-underline whitespace-no-wrap"
+                        , rel "tooltip"
+                        , title "Expand post"
                         ]
-                        [ text "Edit" ]
+                        [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "mr-3 text-sm text-dusty-blue" ] ]
+                    , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
+                        button
+                            [ class "mr-3 text-sm text-dusty-blue"
+                            , onClick ExpandPostEditor
+                            ]
+                            [ text "Edit" ]
+                    ]
+                , div [ class "-mt-1 mr-3" ] [ inboxButton data.post ]
                 ]
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView space model.mode data.post
@@ -1047,7 +1050,6 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 postEditorView (Space.id space) spaceUsers model.postEditor
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
-                , inboxButton data.post
                 ]
             , div [ class "relative" ]
                 [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
@@ -1227,7 +1229,7 @@ repliesView repo space post now replyIds mode spaceUsers editors =
                         , class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
                         ]
                         [ div [ class "mr-2" ] [ Icons.more ]
-                        , text "More replies"
+                        , text "Load more"
                         ]
 
                 FullPage ->
@@ -1235,7 +1237,9 @@ repliesView repo space post now replyIds mode spaceUsers editors =
                         [ class "mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
                         , onClick PreviousRepliesRequested
                         ]
-                        [ text "Load more..." ]
+                        [ div [ class "mr-2" ] [ Icons.more ]
+                        , text "Load more..."
+                        ]
     in
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
         div []
@@ -1517,9 +1521,7 @@ postReactionButton post =
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-green font-bold"
-                    , style "left" "68%"
-                    , style "font-size" "11px"
+                    [ class "ml-1 px-1 text-green font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Post.reactionCount post) ]
             ]
@@ -1533,9 +1535,7 @@ postReactionButton post =
             [ Icons.thumbs Icons.Off
             , viewIf (Post.reactionCount post > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-bold"
-                    , style "left" "68%"
-                    , style "font-size" "11px"
+                    [ class "ml-1 text-dusty-blue font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Post.reactionCount post) ]
             ]
@@ -1552,9 +1552,7 @@ replyReactionButton reply =
             [ Icons.thumbs Icons.On
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-green font-bold"
-                    , style "left" "68%"
-                    , style "font-size" "11px"
+                    [ class "ml-1 text-green font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Reply.reactionCount reply) ]
             ]
@@ -1568,9 +1566,7 @@ replyReactionButton reply =
             [ Icons.thumbs Icons.Off
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
-                    [ class "absolute pin-t ml-1 px-1 text-dusty-blue font-bold"
-                    , style "left" "68%"
-                    , style "font-size" "11px"
+                    [ class "ml-1 text-dusty-blue font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Reply.reactionCount reply) ]
             ]

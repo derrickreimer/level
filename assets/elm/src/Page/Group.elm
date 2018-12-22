@@ -3,6 +3,7 @@ module Page.Group exposing (Model, Msg(..), consumeEvent, init, setup, subscript
 import Avatar exposing (personAvatar)
 import Component.Post
 import Connection exposing (Connection)
+import Device exposing (Device)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
 import File exposing (File)
@@ -17,6 +18,7 @@ import Id exposing (Id)
 import Json.Decode as Decode
 import KeyboardShortcuts
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CloseGroup as CloseGroup
@@ -69,6 +71,10 @@ type alias Model =
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
     , searchEditor : FieldEditor String
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -136,6 +142,8 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 (FieldEditor.init "name-editor" "")
                 (PostEditor.init ("post-composer-" ++ resp.groupId))
                 (FieldEditor.init "search-editor" "")
+                False
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -235,6 +243,9 @@ type Msg
     | Closed (Result Session.Error ( Session, CloseGroup.Response ))
     | ReopenClicked
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -653,6 +664,15 @@ update msg globals model =
         Reopened (Err _) ->
             noCmd globals model
 
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -776,6 +796,20 @@ view globals model =
 
 resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
 resolvedView globals spaceUsers model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals spaceUsers model data
+
+        Device.Mobile ->
+            resolvedMobileView globals spaceUsers model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedDesktopView globals spaceUsers model data =
     let
         config =
             { space = data.space
@@ -808,7 +842,8 @@ resolvedView globals spaceUsers model data =
                 [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
-            , postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers
+            , div [ class "px-4" ]
+                [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
             , sidebarView model.params data.space data.group data.featuredMembers
             ]
         ]
@@ -827,6 +862,76 @@ filterTab label state linkParams currentParams =
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             ]
+        ]
+        [ text label ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedMobileView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = Group.name data.group
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , actionButton =
+                button
+                    [ class "flex items-center justify-center w-9 h-9"
+                    , onClick SidebarToggled
+                    ]
+                    [ Icons.menu ]
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "mx-auto leading-normal" ]
+            [ div [ class "mb-3 pt-2 bg-white z-50" ]
+                [ div [ class "px-3 trans-border-b-grey" ]
+                    [ div [ class "flex justify-center items-baseline" ]
+                        [ mobileFilterTab "Open" Route.Group.Open (openParams model.params) model.params
+                        , mobileFilterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
+                        ]
+                    ]
+                ]
+            , viewIf (Group.state data.group == Group.Closed) <|
+                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
+                    [ div [ class "flex-grow" ] [ text "This group is closed." ]
+                    , div [ class "flex-no-shrink" ]
+                        [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
+                        ]
+                    ]
+            , div [ class "px-3" ]
+                [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
+            , sidebarView model.params data.space data.group data.featuredMembers
+            , button [ class "fixed w-16 h-16 bg-turquoise rounded-full shadow-md", style "bottom" "25px", style "right" "25px" ] []
+            ]
+        ]
+
+
+mobileFilterTab : String -> Route.Group.State -> Params -> Params -> Html Msg
+mobileFilterTab label state linkParams currentParams =
+    let
+        isCurrent =
+            Route.Group.getState currentParams == state
+    in
+    a
+        [ Route.href (Route.Group linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        , style "min-width" "100px"
         ]
         [ text label ]
 
@@ -994,7 +1099,7 @@ postsView repo params space currentUser now connection spaceUsers =
 
 postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Component.Post.Model -> Html Msg
 postView repo space currentUser now spaceUsers component =
-    div [ class "p-4" ]
+    div [ class "py-4" ]
         [ Component.Post.view repo space currentUser now spaceUsers component
             |> Html.map (PostComponentMsg component.id)
         ]

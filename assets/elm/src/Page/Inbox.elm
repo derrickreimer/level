@@ -610,7 +610,7 @@ resolvedMobileView globals spaceUsers model data =
                     ]
                 ]
             , filterNoticeView globals.repo model data
-            , mobilePostsView globals.repo spaceUsers model data
+            , div [ class "px-3" ] [ mobilePostsView globals.repo spaceUsers model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]
                     [ paginationView model.params model.postComps
@@ -648,7 +648,7 @@ mobilePostsView repo spaceUsers model data =
             [ text "You’re all caught up!" ]
 
     else
-        div [ class "px-3" ] <|
+        div [] <|
             Connection.mapList (mobilePostView repo spaceUsers model data) model.postComps
 
 

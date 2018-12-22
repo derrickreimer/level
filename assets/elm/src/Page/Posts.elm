@@ -364,7 +364,7 @@ resolvedDesktopView globals spaceUsers model data =
                     , desktopFilterTab "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
-            , desktopPostsView globals.repo spaceUsers model data
+            , postsView globals.repo spaceUsers model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
         ]
@@ -406,26 +406,6 @@ searchEditorView editor =
         }
 
 
-desktopPostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
-desktopPostsView repo spaceUsers model data =
-    if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
-            [ text "You're all caught up!" ]
-
-    else
-        div [] <|
-            Connection.mapList (desktopPostView repo spaceUsers model data) model.postComps
-
-
-desktopPostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-desktopPostView repo spaceUsers model data component =
-    div [ class "py-4" ]
-        [ component
-            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
-            |> Html.map (PostComponentMsg component.id)
-        ]
-
-
 
 -- MOBILE
 
@@ -463,7 +443,7 @@ resolvedMobileView globals spaceUsers model data =
                         ]
                     ]
                 ]
-            , mobilePostsView globals.repo spaceUsers model data
+            , div [ class "px-4" ] [ postsView globals.repo spaceUsers model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]
                     [ paginationView model.params model.postComps
@@ -494,28 +474,28 @@ mobileFilterTab label state linkParams currentParams =
         [ text label ]
 
 
-mobilePostsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
-mobilePostsView repo spaceUsers model data =
+
+-- SHARED
+
+
+postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
+postsView repo spaceUsers model data =
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
-            [ text "You’re all caught up!" ]
+            [ text "You're all caught up!" ]
 
     else
-        div [ class "px-3" ] <|
-            Connection.mapList (mobilePostView repo spaceUsers model data) model.postComps
+        div [] <|
+            Connection.mapList (postView repo spaceUsers model data) model.postComps
 
 
-mobilePostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-mobilePostView repo spaceUsers model data component =
+postView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+postView repo spaceUsers model data component =
     div [ class "py-4" ]
         [ component
             |> Component.Post.view repo data.space data.viewer model.now spaceUsers
             |> Html.map (PostComponentMsg component.id)
         ]
-
-
-
--- SHARED
 
 
 paginationView : Params -> Connection a -> Html Msg
