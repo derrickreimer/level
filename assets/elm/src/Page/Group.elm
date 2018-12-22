@@ -913,7 +913,12 @@ resolvedMobileView globals spaceUsers model data =
             , div [ class "px-3" ]
                 [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
             , sidebarView model.params data.space data.group data.featuredMembers
-            , button [ class "fixed w-16 h-16 bg-turquoise rounded-full shadow-md", style "bottom" "25px", style "right" "25px" ] []
+            , button
+                [ class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow-sm"
+                , style "bottom" "25px"
+                , style "right" "25px"
+                ]
+                [ Icons.commentWhite ]
             ]
         ]
 

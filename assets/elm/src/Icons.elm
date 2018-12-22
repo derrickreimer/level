@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, square, thumbs, thumbsSmall, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, square, thumbs, thumbsSmall, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -169,6 +169,12 @@ comment : Html msg
 comment =
     iconView <|
         svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "message-square-copy", transform "translate(1.000000, 1.000000)", fill "#c6ced2", stroke "#c6ced2", strokeWidth "2" ] [ Svg.path [ d "M14,9.33333333 C14,10.1924429 13.3035541,10.8888889 12.4444444,10.8888889 L3.11111111,10.8888889 L0,14 L0,1.55555556 C0,0.696445945 0.696445945,0 1.55555556,0 L12.4444444,0 C13.3035541,0 14,0.696445945 14,1.55555556 L14,9.33333333 Z", id "Shape" ] [] ] ] ]
+
+
+commentWhite : Html msg
+commentWhite =
+    iconView <|
+        svg [ width "26px", height "26px", viewBox "0 0 26 26", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "message-square-copy", transform "translate(1.000000, 1.000000)", fill "#FFFFFF", stroke "#FFFFFF", strokeWidth "2" ] [ Svg.path [ d "M24,16 C24,17.4727593 22.8060927,18.6666667 21.3333333,18.6666667 L5.33333333,18.6666667 L0,24 L0,2.66666667 C0,1.19390733 1.19390733,0 2.66666667,0 L21.3333333,0 C22.8060927,0 24,1.19390733 24,2.66666667 L24,16 Z", id "Shape" ] [] ] ] ]
 
 
 heart : Html msg
