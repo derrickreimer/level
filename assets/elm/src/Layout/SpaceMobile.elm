@@ -143,7 +143,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full mx-3 px-3 no-underline truncate text-dusty-blue-darkest text-lg font-bold bg-grey border-turquoise rounded"
+                    , class "block w-full mx-3 px-3 no-underline truncate text-dusty-blue-darkest text-lg font-bold bg-grey border-turquoise rounded-full"
                     ]
                     [ text title
                     ]

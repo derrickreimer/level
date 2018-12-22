@@ -1518,7 +1518,7 @@ postReactionButton post =
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
                 div
-                    [ class "ml-1 px-1 text-green font-bold text-sm"
+                    [ class "ml-1 text-green font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Post.reactionCount post) ]
             ]

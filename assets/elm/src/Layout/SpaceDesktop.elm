@@ -125,7 +125,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-darkest font-bold bg-grey transition-bg rounded"
+                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-darkest font-bold bg-grey transition-bg rounded-full"
                     ]
                     [ text title
                     ]
@@ -135,7 +135,7 @@ navLink space title maybeRoute maybeCurrentRoute =
             li [ class "flex items-center" ]
                 [ a
                     [ Route.href route
-                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-dark bg-white transition-bg hover:bg-grey-light rounded"
+                    , class "block w-full pl-3 pr-2 mr-2 no-underline truncate text-dusty-blue-dark bg-white transition-bg hover:bg-grey-light rounded-full"
                     ]
                     [ text title ]
                 ]
