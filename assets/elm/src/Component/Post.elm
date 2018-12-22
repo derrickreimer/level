@@ -1026,8 +1026,6 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
             [ div [ class "flex items-center flex-wrap" ]
                 [ div []
                     [ postAuthorName space model.postId data.author
-                    , viewIf model.showGroups <|
-                        groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
                     , a
                         [ Route.href <| Route.Post (Space.slug space) model.postId
                         , class "no-underline whitespace-no-wrap"
@@ -1044,6 +1042,8 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                     ]
                 , div [ class "-mt-1 mr-3" ] [ inboxButton data.post ]
                 ]
+            , viewIf model.showGroups <|
+                groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView space model.mode data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
@@ -1144,10 +1144,11 @@ groupsLabel : Space -> List Group -> Html Msg
 groupsLabel space groups =
     case groups of
         [ group ] ->
-            span [ class "mr-3 text-sm text-dusty-blue" ]
-                [ a
+            div [ class "mb-1 mr-3 text-sm text-dusty-blue-dark" ]
+                [ text "Posted to "
+                , a
                     [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
-                    , class "no-underline text-dusty-blue font-bold whitespace-no-wrap"
+                    , class "no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
                     ]
                     [ text (Group.name group) ]
                 ]
