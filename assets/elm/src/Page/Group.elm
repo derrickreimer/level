@@ -335,7 +335,7 @@ update msg globals model =
                     model.postComposer
                         |> PostEditor.reset
             in
-            ( ( { model | postComposer = newPostComposer }, cmd )
+            ( ( { model | postComposer = newPostComposer, showPostComposer = False }, cmd )
             , { globals | session = newSession }
             )
 
