@@ -1,4 +1,4 @@
-module Layout.SpaceMobile exposing (Config, layout, rightSidebar)
+module Layout.SpaceMobile exposing (Config, Control(..), layout, rightSidebar)
 
 -- TODO:
 -- - Figure out how to render flash notices
@@ -30,6 +30,14 @@ import View.Helpers exposing (viewIf)
 -- TYPES
 
 
+type Control msg
+    = Back Route
+    | ShowNav
+    | ShowSidebar
+    | Custom (Html msg)
+    | NoControl
+
+
 type alias Config msg =
     { space : Space
     , spaceUser : SpaceUser
@@ -42,7 +50,8 @@ type alias Config msg =
     , onSidebarToggled : msg
     , onScrollTopClicked : msg
     , onNoOp : msg
-    , actionButton : Html msg
+    , leftControl : Control msg
+    , rightControl : Control msg
     }
 
 
@@ -55,13 +64,13 @@ layout config children =
     div [ class "font-sans font-antialised", style "padding-top" "60px" ]
         [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-white z-40" ]
             [ div [ class "flex-no-shrink" ]
-                [ button [ class "flex", onClick config.onNavToggled ] [ Space.avatar Avatar.Small config.space ]
+                [ controlView config config.leftControl
                 ]
             , div [ class "mx-2 flex-grow", onClick config.onScrollTopClicked ]
                 [ h1 [ class "font-headline font-bold text-lg text-center" ] [ text config.title ]
                 ]
             , div [ class "flex-no-shrink" ]
-                [ config.actionButton
+                [ controlView config config.rightControl
                 ]
             ]
         , div [] children
@@ -117,6 +126,34 @@ rightSidebar config children =
 
 
 -- PRIVATE
+
+
+controlView : Config msg -> Control msg -> Html msg
+controlView config control =
+    case control of
+        ShowNav ->
+            button [ class "flex", onClick config.onNavToggled ]
+                [ Space.avatar Avatar.Small config.space ]
+
+        ShowSidebar ->
+            button
+                [ class "flex items-center justify-center w-9 h-9"
+                , onClick config.onSidebarToggled
+                ]
+                [ Icons.menu ]
+
+        Back route ->
+            a
+                [ Route.href route
+                , class "flex items-center justify-center w-9 h-9"
+                ]
+                [ Icons.arrowLeft Icons.On ]
+
+        Custom button ->
+            button
+
+        NoControl ->
+            text ""
 
 
 bookmarkList : Config msg -> Html msg

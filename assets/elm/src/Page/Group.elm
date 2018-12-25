@@ -1027,12 +1027,8 @@ mainMobileView globals spaceUsers model data =
             , onSidebarToggled = SidebarToggled
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
-            , actionButton =
-                button
-                    [ class "flex items-center justify-center w-9 h-9"
-                    , onClick SidebarToggled
-                    ]
-                    [ Icons.menu ]
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl = Layout.SpaceMobile.ShowSidebar
             }
     in
     Layout.SpaceMobile.layout config
@@ -1098,12 +1094,8 @@ mobilePostComposerView globals spaceUsers model data =
             , onSidebarToggled = SidebarToggled
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
-            , actionButton =
-                button
-                    [ class "flex items-center justify-center w-9 h-9"
-                    , onClick SidebarToggled
-                    ]
-                    [ Icons.menu ]
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl = Layout.SpaceMobile.ShowSidebar
             }
 
         editor =
