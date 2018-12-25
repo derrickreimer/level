@@ -3,6 +3,7 @@ module Page.Post exposing (Model, Msg(..), consumeEvent, init, receivePresence, 
 import Browser.Navigation as Nav
 import Component.Post
 import Connection
+import Device exposing (Device)
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -12,6 +13,7 @@ import Html.Events exposing (..)
 import Id exposing (Id)
 import Json.Decode as Decode
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
@@ -28,6 +30,7 @@ import Query.PostInit as PostInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -35,6 +38,7 @@ import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import View.Helpers exposing (viewIf)
 import View.PresenceList
 
 
@@ -53,6 +57,10 @@ type alias Model =
     , currentViewers : Lazy PresenceList
     , isChangingState : Bool
     , isChangingInboxState : Bool
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -123,6 +131,8 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
                 postComp
                 now
                 NotLoaded
+                False
+                False
                 False
                 False
 
@@ -209,6 +219,10 @@ type Msg
     | MoveToInboxClicked
     | PostMovedToInbox (Result Session.Error ( Session, MarkAsUnread.Response ))
     | BackClicked
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -381,6 +395,15 @@ update msg globals model =
         BackClicked ->
             ( ( model, Nav.back globals.navKey 1 ), globals )
 
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -495,6 +518,20 @@ view globals model =
 
 resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
 resolvedView globals spaceUsers model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals spaceUsers model data
+
+        Device.Mobile ->
+            resolvedMobileView globals spaceUsers model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedDesktopView globals spaceUsers model data =
     let
         config =
             { space = data.space
@@ -506,10 +543,66 @@ resolvedView globals spaceUsers model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ postView globals.repo spaceUsers model data
-            , sidebarView globals.repo model data
+            [ div []
+                [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
+                    [ button
+                        [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                        , onClick BackClicked
+                        ]
+                        [ text "Back" ]
+                    , inboxStateButton model.isChangingInboxState data.post
+                    , postStateButton model.isChangingState data.post
+                    ]
+                , model.postComp
+                    |> Component.Post.view globals.repo data.space data.viewer model.now spaceUsers
+                    |> Html.map PostComponentMsg
+                ]
+            , Layout.SpaceDesktop.rightSidebar <|
+                sidebarView globals.repo model data
             ]
         ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+resolvedMobileView globals spaceUsers model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Post"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl = Layout.SpaceMobile.ShowSidebar
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "mx-auto leading-normal" ]
+            [ div [ class "px-3 pt-3" ]
+                [ model.postComp
+                    |> Component.Post.view globals.repo data.space data.viewer model.now spaceUsers
+                    |> Html.map PostComponentMsg
+                ]
+            , viewIf model.showSidebar <|
+                Layout.SpaceMobile.rightSidebar config
+                    [ div [ class "p-6" ] (sidebarView globals.repo model data)
+                    ]
+            ]
+        ]
+
+
+
+-- SHARED
 
 
 postView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
@@ -586,7 +679,7 @@ postStateButton isChangingState post =
                 [ text "Mark as open" ]
 
 
-sidebarView : Repo -> Model -> Data -> Html Msg
+sidebarView : Repo -> Model -> Data -> List (Html Msg)
 sidebarView repo model data =
     let
         listView =
@@ -597,7 +690,6 @@ sidebarView repo model data =
                 NotLoaded ->
                     div [ class "pb-4 text-sm" ] [ text "Loading..." ]
     in
-    Layout.SpaceDesktop.rightSidebar
-        [ h3 [ class "mb-2 text-base font-bold" ] [ text "Who’s Here" ]
-        , listView
-        ]
+    [ h3 [ class "mb-2 text-base font-bold" ] [ text "Who’s Here" ]
+    , listView
+    ]

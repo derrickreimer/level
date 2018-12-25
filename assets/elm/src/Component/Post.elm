@@ -1410,7 +1410,7 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
     div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
         [ PostEditor.wrapper config
             [ div [ class "composer p-0" ]
-                [ viewIf (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read) <|
+                [ viewIf (False && (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read)) <|
                     div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
                         [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
                             [ span [ class "mr-2 inline-block" ] [ Icons.inboxWhite ]
