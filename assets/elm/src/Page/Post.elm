@@ -588,7 +588,7 @@ resolvedMobileView globals spaceUsers model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "px-3 pt-3" ]
+            [ div [ class "px-3 pt-5" ]
                 [ model.postComp
                     |> Component.Post.view globals.repo data.space data.viewer model.now spaceUsers
                     |> Html.map PostComponentMsg
