@@ -1134,7 +1134,7 @@ pageView globals page =
 
         Blank ->
             div [ class "font-sans font-antialised flex items-center justify-center h-screen w-full bg-turquoise" ]
-                [ h1 [ class "text-3xl tracking-semi-tight text-white font-black" ] [ text "Loading..." ]
+                [ h1 [ class "text-3xl tracking-semi-tight text-white font-bold" ] [ text "Loading..." ]
                 ]
 
         NotFound ->

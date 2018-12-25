@@ -1,5 +1,5 @@
 <article class="mx-auto max-w-md">
-  <h1 class="pb-6 font-black leading-tight text-5xl text-dusty-blue-darkest tracking-semi-tight">Convert SVG to Elm</h1>
+  <h1 class="marketing-headline">Convert SVG to Elm</h1>
   <p class="pb-6">A free little utility for converting raw SVGs into <a href="https://package.elm-lang.org/packages/elm/svg/1.0.0/" class="text-blue no-underline">elm/svg</a> code.</p>
 
   <%= form_for @conn, svg_to_elm_path(@conn, :create), [as: :converter], fn f -> %>

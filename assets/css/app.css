@@ -371,7 +371,7 @@ post-editor.dragging-over > * {
  */
 
 .marketing-headline {
-  @apply mb-8 font-black tracking-tight leading-tight text-4xl text-dusty-blue-darkest;
+  @apply mb-8 font-bold tracking-tight leading-tight text-4xl text-dusty-blue-darkest;
 }
 
 @screen sm {
@@ -381,7 +381,7 @@ post-editor.dragging-over > * {
 }
 
 .marketing-sub-head {
-  @apply mt-8 mb-6 tracking-semi-tight font-black leading-tight text-dusty-blue-darkest;
+  @apply mt-8 mb-6 tracking-semi-tight font-bold leading-tight text-dusty-blue-darkest;
 }
 
 .marketing-screenshot {
