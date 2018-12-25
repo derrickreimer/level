@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, square, thumbs, thumbsSmall, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, square, thumbs, thumbsSmall, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -216,6 +216,12 @@ search : Html msg
 search =
     iconView <|
         svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "search", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ circle [ id "Oval", cx "6.22222222", cy "6.22222222", r "6.22222222" ] [], Svg.path [ d "M14,14 L10.6166667,10.6166667", id "Shape" ] [] ] ] ]
+
+
+sendWhite : Html msg
+sendWhite =
+    iconView <|
+        svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "send", transform "translate(0.000000, -5.000000)", fill "#FFFFFF", fillRule "nonzero" ] [ Svg.path [ d "M3.30681649,3.30681649 L19.3068165,11.3068165 L3.30681649,19.3068165 L3.30681649,3.30681649 Z M3.30681649,9.70681649 L3.30681649,12.9068165 L11.3068165,11.3068165 L3.30681649,9.70681649 Z", id "Shape", transform "translate(11.306816, 11.306816) rotate(-43.000000) translate(-11.306816, -11.306816) " ] [] ] ] ]
 
 
 square : Html msg

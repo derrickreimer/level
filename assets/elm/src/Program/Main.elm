@@ -23,6 +23,7 @@ import Page.Help
 import Page.Inbox
 import Page.InviteUsers
 import Page.NewGroup
+import Page.NewGroupPost
 import Page.NewSpace
 import Page.Post
 import Page.Posts
@@ -215,6 +216,7 @@ type Msg
     | InviteUsersMsg Page.InviteUsers.Msg
     | GroupsMsg Page.Groups.Msg
     | GroupMsg Page.Group.Msg
+    | NewGroupPostMsg Page.NewGroupPost.Msg
     | NewGroupMsg Page.NewGroup.Msg
     | GroupSettingsMsg Page.GroupSettings.Msg
     | PostMsg Page.Post.Msg
@@ -369,6 +371,11 @@ update msg model =
                 |> Page.Group.update pageMsg globals
                 |> updatePageWithGlobals Group GroupMsg model
 
+        ( NewGroupPostMsg pageMsg, NewGroupPost pageModel ) ->
+            pageModel
+                |> Page.NewGroupPost.update pageMsg globals
+                |> updatePageWithGlobals NewGroupPost NewGroupPostMsg model
+
         ( NewGroupMsg pageMsg, NewGroup pageModel ) ->
             pageModel
                 |> Page.NewGroup.update pageMsg globals model.navKey
@@ -484,6 +491,7 @@ type Page
     | InviteUsers Page.InviteUsers.Model
     | Groups Page.Groups.Model
     | Group Page.Group.Model
+    | NewGroupPost Page.NewGroupPost.Model
     | NewGroup Page.NewGroup.Model
     | GroupSettings Page.GroupSettings.Model
     | Post Page.Post.Model
@@ -504,6 +512,7 @@ type PageInit
     | InviteUsersInit (Result Session.Error ( Globals, Page.InviteUsers.Model ))
     | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
+    | NewGroupPostInit (Result Session.Error ( Globals, Page.NewGroupPost.Model ))
     | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
@@ -582,6 +591,11 @@ navigateTo maybeRoute model =
                 |> Page.Group.init params
                 |> transition model GroupInit
 
+        Just (Route.NewGroupPost params) ->
+            globals
+                |> Page.NewGroupPost.init params
+                |> transition model NewGroupPostInit
+
         Just (Route.NewGroup spaceSlug) ->
             globals
                 |> Page.NewGroup.init spaceSlug
@@ -649,6 +663,9 @@ pageTitle repo page =
 
         Groups _ ->
             Page.Groups.title
+
+        NewGroupPost pageModel ->
+            Page.NewGroupPost.title repo pageModel
 
         NewGroup _ ->
             Page.NewGroup.title
@@ -782,6 +799,15 @@ setupPage pageInit model =
         GroupInit (Err _) ->
             ( model, Cmd.none )
 
+        NewGroupPostInit (Ok result) ->
+            perform Page.NewGroupPost.setup NewGroupPost NewGroupPostMsg model result
+
+        NewGroupPostInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        NewGroupPostInit (Err _) ->
+            ( model, Cmd.none )
+
         NewGroupInit (Ok result) ->
             perform Page.NewGroup.setup NewGroup NewGroupMsg model result
 
@@ -884,6 +910,9 @@ teardownPage page =
         Group pageModel ->
             Cmd.map GroupMsg (Page.Group.teardown pageModel)
 
+        NewGroupPost pageModel ->
+            Cmd.map NewGroupPostMsg (Page.NewGroupPost.teardown pageModel)
+
         GroupSettings pageModel ->
             Cmd.map GroupSettingsMsg (Page.GroupSettings.teardown pageModel)
 
@@ -976,6 +1005,9 @@ routeFor page =
         Group { params } ->
             Just <| Route.Group params
 
+        NewGroupPost { params } ->
+            Just <| Route.NewGroupPost params
+
         NewGroup { spaceSlug } ->
             Just <| Route.NewGroup spaceSlug
 
@@ -1054,6 +1086,11 @@ pageView globals page =
             pageModel
                 |> Page.Group.view globals
                 |> Html.map GroupMsg
+
+        NewGroupPost pageModel ->
+            pageModel
+                |> Page.NewGroupPost.view globals
+                |> Html.map NewGroupPostMsg
 
         NewGroup pageModel ->
             pageModel
@@ -1296,6 +1333,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.Group.consumeEvent event model.session
                 |> updatePage Group GroupMsg model
+
+        NewGroupPost pageModel ->
+            pageModel
+                |> Page.NewGroupPost.consumeEvent event model.session
+                |> updatePage NewGroupPost NewGroupPostMsg model
 
         NewGroup pageModel ->
             pageModel

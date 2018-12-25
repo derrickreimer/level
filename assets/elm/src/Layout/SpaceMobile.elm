@@ -145,7 +145,7 @@ controlView config control =
         Back route ->
             a
                 [ Route.href route
-                , class "flex items-center justify-center w-9 h-9"
+                , class "flex items-center pl-1 w-9 h-9"
                 ]
                 [ Icons.arrowLeft Icons.On ]
 

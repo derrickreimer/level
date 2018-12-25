@@ -11,6 +11,7 @@ import Route.GroupSettings
 import Route.Groups
 import Route.Help
 import Route.Inbox
+import Route.NewGroupPost
 import Route.Posts
 import Route.Search
 import Route.Settings
@@ -37,6 +38,7 @@ type Route
     | InviteUsers String
     | Groups Route.Groups.Params
     | Group Route.Group.Params
+    | NewGroupPost Route.NewGroupPost.Params
     | NewGroup String
     | GroupSettings Route.GroupSettings.Params
     | Post String String
@@ -62,6 +64,7 @@ parser =
         , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
         , Parser.map GroupSettings Route.GroupSettings.parser
         , Parser.map Group Route.Group.parser
+        , Parser.map NewGroupPost Route.NewGroupPost.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map Settings Route.Settings.parser
@@ -141,6 +144,9 @@ toString page =
 
         Group params ->
             Route.Group.toString params
+
+        NewGroupPost params ->
+            Route.NewGroupPost.toString params
 
         NewGroup slug ->
             absolute [ slug, "groups", "new" ] []

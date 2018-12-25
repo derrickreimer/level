@@ -38,6 +38,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
 import Route.GroupSettings
+import Route.NewGroupPost
 import Route.Search
 import Route.SpaceUser
 import Scroll
@@ -75,7 +76,6 @@ type alias Model =
     -- MOBILE
     , showNav : Bool
     , showSidebar : Bool
-    , showPostComposer : Bool
     }
 
 
@@ -143,7 +143,6 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 (FieldEditor.init "name-editor" "")
                 (PostEditor.init ("post-composer-" ++ resp.groupId))
                 (FieldEditor.init "search-editor" "")
-                False
                 False
                 False
 
@@ -249,7 +248,6 @@ type Msg
     | NavToggled
     | SidebarToggled
     | ScrollTopClicked
-    | PostComposerToggled
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -335,7 +333,7 @@ update msg globals model =
                     model.postComposer
                         |> PostEditor.reset
             in
-            ( ( { model | postComposer = newPostComposer, showPostComposer = False }, cmd )
+            ( ( { model | postComposer = newPostComposer }, cmd )
             , { globals | session = newSession }
             )
 
@@ -677,9 +675,6 @@ update msg globals model =
         ScrollTopClicked ->
             ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
-        PostComposerToggled ->
-            ( ( { model | showPostComposer = not model.showPostComposer }, Cmd.none ), globals )
-
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -1005,15 +1000,6 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
 
 resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
 resolvedMobileView globals spaceUsers model data =
-    if model.showPostComposer then
-        mobilePostComposerView globals spaceUsers model data
-
-    else
-        mainMobileView globals spaceUsers model data
-
-
-mainMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-mainMobileView globals spaceUsers model data =
     let
         config =
             { space = data.space
@@ -1050,11 +1036,11 @@ mainMobileView globals spaceUsers model data =
                     ]
             , div [ class "px-3" ]
                 [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
-            , button
-                [ class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
+            , a
+                [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupId model.params))
+                , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
                 , style "bottom" "25px"
                 , style "right" "25px"
-                , onClick PostComposerToggled
                 ]
                 [ Icons.commentWhite ]
             , viewIf model.showSidebar <|
@@ -1081,68 +1067,6 @@ mobileFilterTab label state linkParams currentParams =
         , style "min-width" "100px"
         ]
         [ text label ]
-
-
-mobilePostComposerView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-mobilePostComposerView globals spaceUsers model data =
-    let
-        layoutConfig =
-            { space = data.space
-            , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
-            , title = "Post to " ++ Group.name data.group
-            , showNav = model.showNav
-            , onNavToggled = NavToggled
-            , onSidebarToggled = SidebarToggled
-            , onScrollTopClicked = ScrollTopClicked
-            , onNoOp = NoOp
-            , leftControl = Layout.SpaceMobile.ShowNav
-            , rightControl = Layout.SpaceMobile.ShowSidebar
-            }
-
-        editor =
-            model.postComposer
-
-        composerConfig =
-            { editor = editor
-            , spaceId = model.spaceId
-            , spaceUsers = spaceUsers
-            , onFileAdded = NewPostFileAdded
-            , onFileUploadProgress = NewPostFileUploadProgress
-            , onFileUploaded = NewPostFileUploaded
-            , onFileUploadError = NewPostFileUploadError
-            , classList = [ ( "absolute w-full pin-t-mobile pin-b", True ) ]
-            }
-    in
-    Layout.SpaceMobile.layout layoutConfig
-        [ div [ class "mx-auto leading-normal" ]
-            [ PostEditor.wrapper composerConfig
-                [ textarea
-                    [ id (PostEditor.getTextareaId editor)
-                    , class "absolute pin-t w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
-                    , style "bottom" "62px"
-                    , placeholder "Compose a new post..."
-                    , onInput NewPostBodyChanged
-                    , readonly (PostEditor.isSubmitting editor)
-                    , value (PostEditor.getBody editor)
-                    ]
-                    []
-                , div [ class "absolute w-full pin-b p-4" ]
-                    [ PostEditor.filesView editor
-                    , div [ class "flex items-baseline justify-end" ]
-                        [ button
-                            [ class "btn btn-blue btn-md"
-                            , onClick NewPostSubmit
-                            , disabled (PostEditor.isUnsubmittable editor)
-                            ]
-                            [ text "Send" ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
 
 
 
