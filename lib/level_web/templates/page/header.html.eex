@@ -1,12 +1,12 @@
 <div class="container mx-auto pt-8 px-8">
-  <div class="flex pb-16 sm:pb-24 items-center text-lg font-bold leading-normal">
+  <div class="flex pb-16 sm:pb-24 items-center text-lg leading-normal">
     <%= link to: page_path(@conn, :index), class: "logo logo-md" do %>
       <%= img_tag(static_url(@conn, "/images/logo-md.svg"), alt: "Level", class: "block") %>
     <% end %>
 
-    <div class="flex flex-grow justify-start sm:justify-end font-headline">
-      <%= link "Journal", to: "https://leveljournal.com", class: "flex-0 ml-6 text-blue no-underline" %>
-      <%= link "Sign In", to: session_path(@conn, :new), class: "flex-0 ml-6 text-blue no-underline" %>
+    <div class="flex flex-grow justify-end font-headline">
+      <%= link "Journal", to: "https://leveljournal.com", class: "flex-0 ml-6 text-turquoise-dark no-underline" %>
+      <%= link "Sign In", to: session_path(@conn, :new), class: "flex-0 ml-6 text-turquoise-dark no-underline" %>
     </div>
   </div>
 </div>
