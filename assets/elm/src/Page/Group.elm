@@ -851,7 +851,7 @@ resolvedDesktopView globals spaceUsers model data =
                 ]
             , div [ class "px-4" ]
                 [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
-            , sidebarView model.params data.space data.group data.featuredMembers
+            , Layout.SpaceDesktop.rightSidebar (sidebarView model.params data.space data.group data.featuredMembers)
             ]
         ]
 
@@ -1057,6 +1057,10 @@ mainMobileView globals spaceUsers model data =
                 , onClick PostComposerToggled
                 ]
                 [ Icons.commentWhite ]
+            , viewIf model.showSidebar <|
+                Layout.SpaceMobile.rightSidebar config
+                    [ div [ class "p-6" ] (sidebarView model.params data.space data.group data.featuredMembers)
+                    ]
             ]
         ]
 
@@ -1188,7 +1192,7 @@ postView repo space currentUser now spaceUsers component =
         ]
 
 
-sidebarView : Params -> Space -> Group -> List SpaceUser -> Html Msg
+sidebarView : Params -> Space -> Group -> List SpaceUser -> List (Html Msg)
 sidebarView params space group featuredMembers =
     let
         settingsParams =
@@ -1197,28 +1201,27 @@ sidebarView params space group featuredMembers =
                 (Route.Group.getGroupId params)
                 Route.GroupSettings.General
     in
-    Layout.SpaceDesktop.rightSidebar
-        [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
-            [ text "Group Members"
+    [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
+        [ text "Group Members"
 
-            -- Hide this for now while private groups are disabled
-            , viewIf False <|
-                privacyIcon (Group.isPrivate group)
+        -- Hide this for now while private groups are disabled
+        , viewIf False <|
+            privacyIcon (Group.isPrivate group)
+        ]
+    , memberListView space featuredMembers
+    , ul [ class "list-reset leading-normal" ]
+        [ li []
+            [ subscribeButtonView (Group.membershipState group)
             ]
-        , memberListView space featuredMembers
-        , ul [ class "list-reset leading-normal" ]
-            [ li []
-                [ subscribeButtonView (Group.membershipState group)
+        , li []
+            [ a
+                [ Route.href (Route.GroupSettings settingsParams)
+                , class "text-md text-dusty-blue no-underline font-bold"
                 ]
-            , li []
-                [ a
-                    [ Route.href (Route.GroupSettings settingsParams)
-                    , class "text-md text-dusty-blue no-underline font-bold"
-                    ]
-                    [ text "Settings" ]
-                ]
+                [ text "Settings" ]
             ]
         ]
+    ]
 
 
 memberListView : Space -> List SpaceUser -> Html Msg
