@@ -415,24 +415,15 @@ resolvedMobileView globals spaceUsers model data =
             [ PostEditor.wrapper composerConfig
                 [ textarea
                     [ id (PostEditor.getTextareaId editor)
-                    , class "absolute pin-t w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
-                    , style "bottom" "62px"
+                    , class "w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
                     , placeholder "Compose a new post..."
                     , onInput NewPostBodyChanged
                     , readonly (PostEditor.isSubmitting editor)
                     , value (PostEditor.getBody editor)
                     ]
                     []
-                , div [ class "absolute w-full pin-b p-4" ]
+                , div [ class "p-4" ]
                     [ PostEditor.filesView editor
-                    , div [ class "flex items-baseline justify-end" ]
-                        [ button
-                            [ class "btn btn-blue btn-md"
-                            , onClick NewPostSubmit
-                            , disabled (PostEditor.isUnsubmittable editor)
-                            ]
-                            [ text "Send" ]
-                        ]
                     ]
                 ]
             ]
