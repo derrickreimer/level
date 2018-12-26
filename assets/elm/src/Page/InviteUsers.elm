@@ -1,6 +1,7 @@
 module Page.InviteUsers exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Clipboard
+import Device exposing (Device)
 import Event exposing (Event)
 import Flash
 import Globals exposing (Globals)
@@ -11,10 +12,12 @@ import Html.Events exposing (on, onClick)
 import Id exposing (Id)
 import Json.Decode as Decode
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.SpaceUsers
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -103,6 +106,7 @@ type Msg
     = NoOp
     | LinkCopied
     | LinkCopyFailed
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -124,6 +128,9 @@ update msg globals model =
                     { globals | flash = Flash.set Flash.Alert "Hmm, something went wrong" 3000 globals.flash }
             in
             ( ( model, Cmd.none ), newGlobals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
 
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -164,6 +171,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -179,6 +200,40 @@ resolvedView globals model data =
             , bodyView (Space.openInvitationUrl data.space)
             ]
         ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Invite people"
+            , showNav = False
+            , onNavToggled = NoOp
+            , onSidebarToggled = NoOp
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.Back (Route.SpaceUsers (Route.SpaceUsers.init model.spaceSlug))
+            , rightControl = Layout.SpaceMobile.NoControl
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "p-4 leading-normal" ]
+            [ bodyView (Space.openInvitationUrl data.space)
+            ]
+        ]
+
+
+
+-- SHARED
 
 
 bodyView : Maybe String -> Html Msg
