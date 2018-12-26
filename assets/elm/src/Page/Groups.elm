@@ -211,29 +211,12 @@ resolvedDesktopView globals model data =
                     ]
                 ]
             , div [ class "flex items-baseline mx-4 mb-4 border-b" ]
-                [ desktopFilterTab "Open" Route.Groups.Open (openParams model.params) model.params
-                , desktopFilterTab "Closed" Route.Groups.Closed (closedParams model.params) model.params
+                [ filterTab "Open" Route.Groups.Open (openParams model.params) model.params
+                , filterTab "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
             , groupsView globals.repo model.params data.space model.groupIds
             ]
         ]
-
-
-desktopFilterTab : String -> Route.Groups.State -> Params -> Params -> Html Msg
-desktopFilterTab label state linkParams currentParams =
-    let
-        isCurrent =
-            Route.Groups.getState currentParams == state
-    in
-    a
-        [ Route.href (Route.Groups linkParams)
-        , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
-            , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            ]
-        ]
-        [ text label ]
 
 
 
@@ -267,21 +250,21 @@ resolvedMobileView globals model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "mb-3 pt-2 bg-white z-50" ]
-                [ div [ class "px-3 trans-border-b-grey" ]
-                    [ div [ class "flex justify-center items-baseline" ]
-                        [ mobileFilterTab "Open" Route.Groups.Open (openParams model.params) model.params
-                        , mobileFilterTab "Closed" Route.Groups.Closed (closedParams model.params) model.params
-                        ]
-                    ]
+            [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
+                [ filterTab "Open" Route.Groups.Open (openParams model.params) model.params
+                , filterTab "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
             , div [ class "p-2" ] [ groupsView globals.repo model.params data.space model.groupIds ]
             ]
         ]
 
 
-mobileFilterTab : String -> Route.Groups.State -> Params -> Params -> Html Msg
-mobileFilterTab label state linkParams currentParams =
+
+-- SHARED
+
+
+filterTab : String -> Route.Groups.State -> Params -> Params -> Html Msg
+filterTab label state linkParams currentParams =
     let
         isCurrent =
             Route.Groups.getState currentParams == state
@@ -289,17 +272,13 @@ mobileFilterTab label state linkParams currentParams =
     a
         [ Route.href (Route.Groups linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            , ( "text-center min-w-100px", True )
             ]
-        , style "min-width" "100px"
         ]
         [ text label ]
-
-
-
--- SHARED
 
 
 groupsView : Repo -> Params -> Space -> Connection Id -> Html Msg

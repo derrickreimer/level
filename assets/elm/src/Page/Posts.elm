@@ -360,8 +360,8 @@ resolvedDesktopView globals spaceUsers model data =
                     , controlsView model
                     ]
                 , div [ class "flex items-baseline" ]
-                    [ desktopFilterTab "Open" Route.Posts.Open (openParams model.params) model.params
-                    , desktopFilterTab "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                    [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
+                    , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
             , postsView globals.repo spaceUsers model data
@@ -431,13 +431,9 @@ resolvedMobileView globals spaceUsers model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "mb-3 pt-2 bg-white z-50" ]
-                [ div [ class "px-3 trans-border-b-grey" ]
-                    [ div [ class "flex justify-center items-baseline" ]
-                        [ mobileFilterTab "Open" Route.Posts.Open (openParams model.params) model.params
-                        , mobileFilterTab "Resolved" Route.Posts.Closed (closedParams model.params) model.params
-                        ]
-                    ]
+            [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
+                [ filterTab Device.Mobile "Open" Route.Posts.Open (openParams model.params) model.params
+                , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                 ]
             , div [ class "px-4" ] [ postsView globals.repo spaceUsers model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
@@ -452,8 +448,12 @@ resolvedMobileView globals spaceUsers model data =
         ]
 
 
-mobileFilterTab : String -> Route.Posts.State -> Params -> Params -> Html Msg
-mobileFilterTab label state linkParams currentParams =
+
+-- SHARED
+
+
+filterTab : Device -> String -> Route.Posts.State -> Params -> Params -> Html Msg
+filterTab device label state linkParams currentParams =
     let
         isCurrent =
             Route.Posts.getState currentParams == state
@@ -461,17 +461,13 @@ mobileFilterTab label state linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            , ( "text-center min-w-100px", device == Device.Mobile )
             ]
-        , style "min-width" "100px"
         ]
         [ text label ]
-
-
-
--- SHARED
 
 
 postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg

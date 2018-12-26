@@ -554,6 +554,14 @@ post-editor.dragging-over > * {
   background-color: #73f1ff;
 }
 
+.min-w-100px {
+  min-width: 100px;
+}
+
+.min-w-120px {
+  min-width: 120px;
+}
+
 .max-w-400px {
   max-width: 400px;
 }

@@ -352,23 +352,6 @@ resolvedDesktopView globals model data =
         ]
 
 
-filterTab : String -> Route.GroupSettings.Section -> Params -> Params -> Html Msg
-filterTab label section linkParams currentParams =
-    let
-        isCurrent =
-            Route.GroupSettings.getSection currentParams == section
-    in
-    a
-        [ Route.href (Route.GroupSettings linkParams)
-        , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
-            , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            ]
-        ]
-        [ text label ]
-
-
 
 -- MOBILE
 
@@ -399,12 +382,8 @@ resolvedMobileView globals model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "mb-3 pt-2 bg-white z-50" ]
-                [ div [ class "px-3 trans-border-b-grey" ]
-                    [ div [ class "flex justify-center items-baseline" ]
-                        [ mobileFilterTab "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
-                        ]
-                    ]
+            [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
+                [ filterTab "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
                 ]
             , div [ class "p-4" ]
                 [ viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.General) <|
@@ -426,8 +405,12 @@ resolvedMobileView globals model data =
         ]
 
 
-mobileFilterTab : String -> Route.GroupSettings.Section -> Params -> Params -> Html Msg
-mobileFilterTab label section linkParams currentParams =
+
+-- SHARED
+
+
+filterTab : String -> Route.GroupSettings.Section -> Params -> Params -> Html Msg
+filterTab label section linkParams currentParams =
     let
         isCurrent =
             Route.GroupSettings.getSection currentParams == section
@@ -435,17 +418,13 @@ mobileFilterTab label section linkParams currentParams =
     a
         [ Route.href (Route.GroupSettings linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            , ( "text-center min-w-100px", True )
             ]
-        , style "min-width" "100px"
         ]
         [ text label ]
-
-
-
--- SHARED
 
 
 generalView : Model -> Data -> Html Msg
