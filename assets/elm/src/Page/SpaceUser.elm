@@ -1,6 +1,7 @@
 module Page.SpaceUser exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Avatar
+import Device exposing (Device)
 import Event exposing (Event)
 import Flash
 import Globals exposing (Globals)
@@ -12,6 +13,7 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RevokeSpaceAccess as RevokeSpaceAccess
 import Query.SpaceUserInit as SpaceUserInit
@@ -82,7 +84,13 @@ buildModel : Params -> Globals -> ( Session, SpaceUserInit.Response ) -> ( Globa
 buildModel params globals ( newSession, resp ) =
     let
         model =
-            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserId False
+            Model
+                params
+                resp.viewerId
+                resp.spaceId
+                resp.bookmarkIds
+                resp.spaceUserId
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -109,6 +117,7 @@ type Msg
     | ToggleRevokeModel
     | RevokeAccess
     | AccessRevoked (Result Session.Error ( Session, RevokeSpaceAccess.Response ))
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -151,6 +160,9 @@ update msg globals model =
         AccessRevoked (Err _) ->
             ( ( model, Cmd.none ), globals )
 
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 
 -- EVENTS
@@ -185,6 +197,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -196,6 +222,49 @@ resolvedView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "max-w-md mx-auto" ]
+            [ div [ class "px-8" ]
+                [ div [ class "pb-4 mb-6 border-b" ]
+                    [ a
+                        [ Route.href <| Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params))
+                        , class "flex items-center font-bold text-dusty-blue no-underline"
+                        ]
+                        [ div [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
+                        , div [] [ text "View the member list" ]
+                        ]
+                    ]
+                ]
+            , detailView model data
+            ]
+        , viewIf model.showRevokeModel <|
+            revokeModal model data
+        ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "People"
+            , showNav = False
+            , onNavToggled = NoOp
+            , onSidebarToggled = NoOp
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.Back (Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params)))
+            , rightControl = Layout.SpaceMobile.NoControl
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div []
             [ detailView model data
             ]
         , viewIf model.showRevokeModel <|
@@ -203,19 +272,14 @@ resolvedView globals model data =
         ]
 
 
+
+-- SHARED
+
+
 detailView : Model -> Data -> Html Msg
 detailView model data =
     div [ class "px-8 py-6" ]
-        [ div [ class "pb-4 mb-6 border-b" ]
-            [ a
-                [ Route.href <| Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params))
-                , class "flex items-center font-bold text-dusty-blue no-underline"
-                ]
-                [ div [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
-                , div [] [ text "View the member list" ]
-                ]
-            ]
-        , div [ class "flex mb-4 pb-6 border-b" ]
+        [ div [ class "flex mb-4 pb-6 border-b" ]
             [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
             , div [ class "flex-grow" ]
                 [ div [ class "flex items-center" ]
