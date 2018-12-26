@@ -1,4 +1,4 @@
-module View.Nudges exposing (Config, view)
+module View.Nudges exposing (Config, desktopView, mobileView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -23,16 +23,25 @@ type alias Config msg =
 -- VIEW
 
 
-view : Config msg -> Html msg
-view config =
+desktopView : Config msg -> Html msg
+desktopView config =
     div []
-        [ div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (tile config) intervals)
+        [ div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (tile config 4) morningIntervals ++ List.indexedMap (tile config 4) afternoonIntervals)
         , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ config.timeZone ++ " time zone." ]
         ]
 
 
-tile : Config msg -> Int -> Int -> Html msg
-tile config idx minute =
+mobileView : Config msg -> Html msg
+mobileView config =
+    div [ style "max-width" "300px" ]
+        [ div [ class "my-8 mb-16 flex" ] (List.indexedMap (tile config 2) morningIntervals)
+        , div [ class "my-8 flex" ] (List.indexedMap (tile config 2) afternoonIntervals)
+        , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ config.timeZone ++ " time zone." ]
+        ]
+
+
+tile : Config msg -> Int -> Int -> Int -> Html msg
+tile config labelEvery idx minute =
     let
         isActive =
             hasNudgeAt minute config
@@ -47,7 +56,7 @@ tile config idx minute =
         , onClick (config.toggleMsg minute)
         , attribute "data-tooltip" (Minutes.toLongString minute)
         ]
-        [ viewIf (modBy 4 idx == 0) <|
+        [ viewIf (modBy labelEvery idx == 0) <|
             div
                 [ class "absolute text-xs text-dusty-blue font-bold pin-l-50"
                 , style "bottom" "-20px"
@@ -61,9 +70,15 @@ tile config idx minute =
 -- PRIVATE
 
 
-intervals : List Int
-intervals =
-    List.range 12 36
+morningIntervals : List Int
+morningIntervals =
+    List.range 12 23
+        |> List.map ((*) 30)
+
+
+afternoonIntervals : List Int
+afternoonIntervals =
+    List.range 24 35
         |> List.map ((*) 30)
 
 

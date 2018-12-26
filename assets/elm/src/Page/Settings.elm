@@ -1,6 +1,7 @@
 module Page.Settings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
+import Device exposing (Device)
 import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import File exposing (File)
@@ -13,6 +14,7 @@ import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
 import Json.Decode as Decode
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Minutes
 import Mutation.CreateNudge as CreateNudge
@@ -54,6 +56,9 @@ type alias Model =
     , errors : List ValidationError
     , isSubmitting : Bool
     , newAvatar : Maybe File
+
+    -- MOBILE
+    , showNav : Bool
     }
 
 
@@ -116,6 +121,7 @@ buildModel params globals ( newSession, resp ) =
                 []
                 False
                 Nothing
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -151,6 +157,9 @@ type Msg
     | NudgeToggled Int
     | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
     | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
+      -- MOBILE
+    | NavToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -306,6 +315,12 @@ update msg globals model =
         NudgeDeleted _ ->
             noCmd globals model
 
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -359,6 +374,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -379,27 +408,76 @@ resolvedView globals model data =
                     filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
             , viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
-                preferencesView model data
+                preferencesView Device.Desktop model data
             , viewIf (Route.Settings.getSection model.params == Route.Settings.Space) <|
                 spaceSettingsView model data
             ]
         ]
 
 
-preferencesView : Model -> Data -> Html Msg
-preferencesView model data =
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Settings"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = NoOp
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl = Layout.SpaceMobile.NoControl
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "leading-normal" ]
+            [ div [ class "flex justify-center items-baseline mb-3 pt-2 border-b" ]
+                [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
+                , viewIf (Space.canUpdate data.space) <|
+                    filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
+                ]
+            , div [ class "p-4" ]
+                [ viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
+                    preferencesView Device.Mobile model data
+                , viewIf (Route.Settings.getSection model.params == Route.Settings.Space) <|
+                    spaceSettingsView model data
+                ]
+            ]
+        ]
+
+
+
+-- SHARED
+
+
+preferencesView : Device -> Model -> Data -> Html Msg
+preferencesView device model data =
     div []
-        [ nudgesView model data
+        [ nudgesView device model data
         , digestsView model data
         ]
 
 
-nudgesView : Model -> Data -> Html Msg
-nudgesView model data =
+nudgesView : Device -> Model -> Data -> Html Msg
+nudgesView device model data =
+    let
+        config =
+            View.Nudges.Config NudgeToggled model.nudges model.timeZone
+    in
     div [ class "mb-8" ]
         [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Notifications" ]
         , p [ class "mb-4" ] [ text "Configure when Level should notify you about new messages in your Inbox." ]
-        , View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone)
+        , viewIf (device == Device.Desktop) (View.Nudges.desktopView config)
+        , viewIf (device == Device.Mobile) (View.Nudges.mobileView config)
         ]
 
 

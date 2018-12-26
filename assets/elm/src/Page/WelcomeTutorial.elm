@@ -2,6 +2,7 @@ module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, init, setup,
 
 import Browser.Navigation as Nav
 import Clipboard
+import Device exposing (Device)
 import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import Flash
@@ -396,7 +397,7 @@ resolvedView globals model data =
             ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
                 [ headerView step data
-                , stepView step model data
+                , stepView globals.device step model data
                 ]
             ]
         ]
@@ -436,8 +437,8 @@ progressBarView step =
         ]
 
 
-stepView : Int -> Model -> Data -> Html Msg
-stepView step model data =
+stepView : Device -> Int -> Model -> Data -> Html Msg
+stepView device step model data =
     case step of
         1 ->
             div []
@@ -497,11 +498,18 @@ stepView step model data =
                 ]
 
         6 ->
+            let
+                nudgesConfig =
+                    View.Nudges.Config NudgeToggled model.nudges model.timeZone
+            in
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
                 , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails them to you ", em [] [ text "when you want them." ] ]
                 , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
-                , div [ class "mb-6" ] [ View.Nudges.view (View.Nudges.Config NudgeToggled model.nudges model.timeZone) ]
+                , div [ class "mb-6" ]
+                    [ viewIf (device == Device.Desktop) (View.Nudges.desktopView nudgesConfig)
+                    , viewIf (device == Device.Mobile) (View.Nudges.mobileView nudgesConfig)
+                    ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
