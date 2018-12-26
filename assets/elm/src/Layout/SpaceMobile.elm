@@ -153,7 +153,7 @@ controlView config control =
             button
 
         NoControl ->
-            text ""
+            div [ class "w-9" ] []
 
 
 bookmarkList : Config msg -> Html msg

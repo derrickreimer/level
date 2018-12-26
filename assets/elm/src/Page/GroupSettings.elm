@@ -2,6 +2,7 @@ module Page.GroupSettings exposing (Model, Msg(..), consumeEvent, init, setup, t
 
 import Avatar
 import Connection exposing (Connection)
+import Device exposing (Device)
 import Event exposing (Event)
 import Flash
 import Globals exposing (Globals)
@@ -12,6 +13,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CloseGroup as CloseGroup
 import Mutation.ReopenGroup as ReopenGroup
@@ -45,6 +47,10 @@ type alias Model =
     , spaceUserIds : Connection Id
     , selectedIds : List Id
     , isSubmitting : Bool
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -99,6 +105,8 @@ buildModel params globals ( newSession, resp ) =
                 resp.spaceUserIds
                 []
                 False
+                False
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -129,6 +137,10 @@ type Msg
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | DefaultToggled
     | GroupUpdated (Result Session.Error ( Session, UpdateGroup.Response ))
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -231,6 +243,15 @@ update msg globals model =
         GroupUpdated (Err _) ->
             ( ( { model | isSubmitting = False }, Cmd.none ), globals )
 
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 redirectToLogin globals model =
@@ -270,6 +291,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         groupParams =
             Route.Group.init
@@ -332,6 +367,85 @@ filterTab label section linkParams currentParams =
             ]
         ]
         [ text label ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        groupParams =
+            Route.Group.init
+                (Route.GroupSettings.getSpaceSlug model.params)
+                (Route.GroupSettings.getGroupId model.params)
+
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Group Settings"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.Back (Route.Group groupParams)
+            , rightControl = Layout.SpaceMobile.NoControl
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "mx-auto leading-normal" ]
+            [ div [ class "mb-3 pt-2 bg-white z-50" ]
+                [ div [ class "px-3 trans-border-b-grey" ]
+                    [ div [ class "flex justify-center items-baseline" ]
+                        [ mobileFilterTab "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
+                        ]
+                    ]
+                ]
+            , div [ class "p-4" ]
+                [ viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.General) <|
+                    generalView model data
+                , viewIf (Group.state data.group == Group.Open) <|
+                    button
+                        [ class "text-md text-dusty-blue no-underline font-bold"
+                        , onClick CloseClicked
+                        ]
+                        [ text "Close this group" ]
+                , viewIf (Group.state data.group == Group.Closed) <|
+                    button
+                        [ class "text-md text-dusty-blue no-underline font-bold"
+                        , onClick ReopenClicked
+                        ]
+                        [ text "Reopen this group" ]
+                ]
+            ]
+        ]
+
+
+mobileFilterTab : String -> Route.GroupSettings.Section -> Params -> Params -> Html Msg
+mobileFilterTab label section linkParams currentParams =
+    let
+        isCurrent =
+            Route.GroupSettings.getSection currentParams == section
+    in
+    a
+        [ Route.href (Route.GroupSettings linkParams)
+        , classList
+            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold text-center", True )
+            , ( "text-dusty-blue", not isCurrent )
+            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            ]
+        , style "min-width" "100px"
+        ]
+        [ text label ]
+
+
+
+-- SHARED
 
 
 generalView : Model -> Data -> Html Msg
