@@ -2,6 +2,7 @@ module Page.SpaceUsers exposing (Model, Msg(..), consumeEvent, init, setup, tear
 
 import Avatar
 import Connection exposing (Connection)
+import Device exposing (Device)
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -10,6 +11,7 @@ import Html.Attributes exposing (..)
 import Icons
 import Id exposing (Id)
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
@@ -36,6 +38,10 @@ type alias Model =
     , spaceId : Id
     , bookmarkIds : List Id
     , spaceUserIds : Connection Id
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -82,7 +88,7 @@ buildModel : Params -> Globals -> ( Session, SpaceUsersInit.Response ) -> ( Glob
 buildModel params globals ( newSession, resp ) =
     let
         model =
-            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserIds
+            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserIds False False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -106,6 +112,10 @@ teardown model =
 
 type Msg
     = NoOp
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -113,6 +123,15 @@ update msg globals model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
 
 
@@ -148,6 +167,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -178,6 +211,46 @@ resolvedView globals model data =
             , usersView globals.repo model.params model.spaceUserIds
             ]
         ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "People"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl =
+                Layout.SpaceMobile.Custom <|
+                    a
+                        [ class "btn btn-blue btn-md no-underline"
+                        , Route.href (Route.InviteUsers (Route.SpaceUsers.getSpaceSlug model.params))
+                        ]
+                        [ text "Invite" ]
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "px-2 py-4 leading-normal" ]
+            [ usersView globals.repo model.params model.spaceUserIds
+            ]
+        ]
+
+
+
+-- SHARED
 
 
 usersView : Repo -> Params -> Connection Id -> Html Msg
