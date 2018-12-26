@@ -3,6 +3,7 @@ module Page.Help exposing (Model, Msg(..), consumeEvent, init, setup, teardown, 
 import Beacon
 import Browser.Navigation as Nav
 import Clipboard
+import Device exposing (Device)
 import Event exposing (Event)
 import Flash
 import Globals exposing (Globals)
@@ -13,6 +14,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
@@ -38,6 +40,10 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -85,6 +91,8 @@ buildModel params globals ( newSession, resp ) =
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
+                False
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -109,6 +117,10 @@ teardown model =
 type Msg
     = NoOp
     | OpenBeacon
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -119,6 +131,15 @@ update msg globals model =
 
         OpenBeacon ->
             ( ( model, Beacon.open ), globals )
+
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -164,6 +185,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -180,6 +215,52 @@ resolvedView globals model data =
                     [ h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Help" ]
                     ]
                 , ul [ class "mb-4 pb-6 border-b list-reset" ]
+                    [ li []
+                        [ a
+                            [ Route.href <| Route.WelcomeTutorial (Route.WelcomeTutorial.init (Route.Help.getSpaceSlug model.params) 1)
+                            , class "no-underline"
+                            ]
+                            [ h2 [ class "block text-xl text-blue-dark font-bold tracking-semi-tight" ] [ text "How Level Works" ]
+                            , p [ class "text-dusty-blue-dark text-base" ] [ text "Learn the basics and set your preferences." ]
+                            ]
+                        ]
+                    ]
+                , button [ class "flex items-center text-base text-dusty-blue font-bold", onClick OpenBeacon ]
+                    [ span [ class "mr-2" ] [ Icons.search ]
+                    , text "Search the docs"
+                    ]
+                ]
+            ]
+        ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "Help"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl = Layout.SpaceMobile.NoControl
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "p-4 leading-normal" ]
+            [ div [ class "pb-6 text-dusty-blue-darker" ]
+                [ ul [ class "mb-4 pb-6 border-b list-reset" ]
                     [ li []
                         [ a
                             [ Route.href <| Route.WelcomeTutorial (Route.WelcomeTutorial.init (Route.Help.getSpaceSlug model.params) 1)
