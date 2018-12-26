@@ -258,15 +258,15 @@ h6 {
 }
 
 .markdown h1 {
-  @apply text-2xl mb-4;
+  @apply font-sans text-2xl mb-4 font-bold;
 }
 
 .markdown h2 {
-  @apply text-xl mb-4 mt-6;
+  @apply font-sans text-xl mb-4 mt-6 font-bold;
 }
 
 .markdown h3 {
-  @apply text-lg mb-4 mt-6;
+  @apply font-sans text-lg mb-4 mt-6 font-bold;
 }
 
 .markdown p {

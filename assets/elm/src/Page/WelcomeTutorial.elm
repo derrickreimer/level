@@ -14,6 +14,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BulkCreateGroups as BulkCreateGroups
 import Mutation.CreateGroup as CreateGroup
@@ -26,6 +27,7 @@ import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
+import Route.Help
 import Route.Inbox
 import Route.WelcomeTutorial exposing (Params)
 import Scroll
@@ -53,6 +55,9 @@ type alias Model =
     , nudges : List Nudge
     , timeZone : String
     , isSubmitting : Bool
+
+    -- MOBILE
+    , showNav : Bool
     }
 
 
@@ -114,6 +119,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.digestSettings
                 resp.nudges
                 resp.timeZone
+                False
                 False
 
         newRepo =
@@ -181,6 +187,9 @@ type Msg
     | NudgeToggled Int
     | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
     | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
+      -- MOBILE
+    | NavToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -331,6 +340,12 @@ update msg globals model =
         NudgeDeleted _ ->
             noCmd globals model
 
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -375,6 +390,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         step =
             Route.WelcomeTutorial.getStep model.params
@@ -397,10 +426,48 @@ resolvedView globals model data =
             ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
                 [ headerView step data
-                , stepView globals.device step model data
+                , stepView Device.Desktop step model data
                 ]
             ]
         ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        step =
+            Route.WelcomeTutorial.getStep model.params
+
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , title = "How Level Works"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = NoOp
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.Back (Route.Help <| Route.Help.init (Route.WelcomeTutorial.getSpaceSlug model.params))
+            , rightControl = Layout.SpaceMobile.NoControl
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "p-4 text-lg leading-normal" ]
+            [ progressBarView step
+            , stepView Device.Mobile step model data
+            ]
+        ]
+
+
+
+-- SHARED
 
 
 headerView : Int -> Data -> Html Msg
@@ -412,7 +479,7 @@ headerView step data =
     else
         div []
             [ h1 [ class "mb-3 font-bold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "How Level Works" ]
-            , progressBarView step
+            , div [ class "w-32" ] [ progressBarView step ]
             ]
 
 
@@ -425,15 +492,13 @@ progressBarView step =
                 |> round
                 |> String.fromInt
     in
-    div [ class "mb-8 flex items-center" ]
-        [ div [ class "flex-no-shrink mr-2 w-32 rounded-full bg-grey" ]
-            [ div
-                [ class "h-1 rounded-full bg-turquoise"
-                , style "width" (percentage ++ "%")
-                , style "transition" "width 0.5s ease"
-                ]
-                []
+    div [ class "mb-8 rounded-full bg-grey" ]
+        [ div
+            [ class "h-1 rounded-full bg-turquoise"
+            , style "width" (percentage ++ "%")
+            , style "transition" "width 0.5s ease"
             ]
+            []
         ]
 
 
