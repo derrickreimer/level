@@ -160,20 +160,8 @@ teardown ({ postComp } as model) =
 
 recordView : Session -> Model -> Cmd Msg
 recordView session model =
-    let
-        { nodes } =
-            Connection.last 1 model.postComp.replyIds
-
-        maybeReplyId =
-            case nodes of
-                [ lastReplyId ] ->
-                    Just lastReplyId
-
-                _ ->
-                    Nothing
-    in
     session
-        |> RecordPostView.request model.spaceId model.postComp.id maybeReplyId
+        |> RecordPostView.request model.spaceId model.postComp.id Nothing
         |> Task.attempt ViewRecorded
 
 

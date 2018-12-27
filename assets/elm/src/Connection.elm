@@ -4,6 +4,7 @@ import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
 import ListHelpers exposing (getBy, memberBy, updateBy)
 import Set
+import Vendor.SelectList as SelectList exposing (SelectList)
 
 
 type alias PageInfo =
@@ -19,16 +20,21 @@ type Connection a
 
 
 type alias Data a =
-    { nodes : List a
+    { nodes : Nodes a
     , pageInfo : PageInfo
     }
 
 
 type alias Subset a =
-    { nodes : List a
+    { nodes : Nodes a
     , hasPreviousPage : Bool
     , hasNextPage : Bool
     }
+
+
+type Nodes a
+    = NonEmpty (SelectList a)
+    | Empty
 
 
 
@@ -73,12 +79,19 @@ fragment name nodeFragment =
 
 map : (a -> b) -> Connection a -> Connection b
 map f (Connection data) =
-    Connection (Data (List.map f data.nodes) data.pageInfo)
+    Connection (Data (mapNodes f data.nodes) data.pageInfo)
 
 
 filterMap : (a -> Maybe b) -> Connection a -> Connection b
 filterMap f (Connection data) =
-    Connection (Data (List.filterMap f data.nodes) data.pageInfo)
+    let
+        unfilteredNodes =
+            nodesToList data.nodes
+
+        filteredNodes =
+            List.filterMap f unfilteredNodes
+    in
+    Connection (Data (listToNodes filteredNodes) data.pageInfo)
 
 
 
@@ -87,7 +100,7 @@ filterMap f (Connection data) =
 
 toList : Connection a -> List a
 toList (Connection { nodes }) =
-    nodes
+    nodesToList nodes
 
 
 mapList : (a -> b) -> Connection a -> List b
@@ -96,10 +109,8 @@ mapList f connection =
 
 
 isEmpty : Connection a -> Bool
-isEmpty connection =
-    connection
-        |> toList
-        |> List.isEmpty
+isEmpty (Connection data) =
+    data.nodes == Empty
 
 
 isExpandable : Connection a -> Bool
@@ -142,17 +153,23 @@ endCursor (Connection { pageInfo }) =
 
 head : Connection a -> Maybe a
 head (Connection { nodes }) =
-    List.head nodes
+    nodes
+        |> nodesToList
+        |> List.head
 
 
 first : Int -> Connection a -> Subset a
 first n (Connection { nodes, pageInfo }) =
     let
+        nodeList =
+            nodesToList nodes
+
         subsetHasNextPage =
-            List.length nodes > n || pageInfo.hasNextPage
+            List.length nodeList > n || pageInfo.hasNextPage
 
         partialNodes =
-            List.take n nodes
+            List.take n nodeList
+                |> listToNodes
     in
     Subset partialNodes pageInfo.hasPreviousPage subsetHasNextPage
 
@@ -160,11 +177,15 @@ first n (Connection { nodes, pageInfo }) =
 last : Int -> Connection a -> Subset a
 last n (Connection { nodes, pageInfo }) =
     let
+        nodeList =
+            nodesToList nodes
+
         subsetHasPreviousPage =
-            List.length nodes > n || pageInfo.hasPreviousPage
+            List.length nodeList > n || pageInfo.hasPreviousPage
 
         partialNodes =
-            ListHelpers.takeLast n nodes
+            ListHelpers.takeLast n nodeList
+                |> listToNodes
     in
     Subset partialNodes subsetHasPreviousPage pageInfo.hasNextPage
 
@@ -177,7 +198,7 @@ decoder : Decoder a -> Decoder (Connection a)
 decoder nodeDecoder =
     Decode.map Connection <|
         Decode.map2 Data
-            (field "edges" (list (field "node" nodeDecoder)))
+            (field "edges" (Decode.map listToNodes (list (field "node" nodeDecoder))))
             (field "pageInfo" pageInfoDecoder)
 
 
@@ -200,60 +221,86 @@ get comparator comparable connection =
 
 
 update : (a -> comparable) -> a -> Connection a -> Connection a
-update comparator node connection =
+update comparator newNode (Connection data) =
     let
+        replacer currentNode =
+            if comparator currentNode == comparator newNode then
+                newNode
+
+            else
+                currentNode
+
         newNodes =
-            updateBy comparator node (toList connection)
+            case data.nodes of
+                Empty ->
+                    Empty
+
+                NonEmpty slist ->
+                    NonEmpty (SelectList.map replacer slist)
     in
-    replaceNodes newNodes connection
+    Connection { data | nodes = newNodes }
 
 
 prepend : (a -> comparable) -> a -> Connection a -> Connection a
-prepend comparator node connection =
+prepend comparator node (Connection data) =
     let
-        oldNodes =
-            toList connection
-
         newNodes =
-            if memberBy comparator node oldNodes then
-                oldNodes
+            case data.nodes of
+                Empty ->
+                    listToNodes [ node ]
 
-            else
-                node :: oldNodes
+                NonEmpty slist ->
+                    if memberBy comparator node (SelectList.toList slist) then
+                        NonEmpty slist
+
+                    else
+                        NonEmpty (SelectList.prepend [ node ] slist)
     in
-    replaceNodes newNodes connection
+    Connection { data | nodes = newNodes }
 
 
 append : (a -> comparable) -> a -> Connection a -> Connection a
-append comparator node connection =
+append comparator node (Connection data) =
     let
-        oldNodes =
-            toList connection
-
         newNodes =
-            if memberBy comparator node oldNodes then
-                oldNodes
+            case data.nodes of
+                Empty ->
+                    listToNodes [ node ]
 
-            else
-                List.append oldNodes [ node ]
+                NonEmpty slist ->
+                    if memberBy comparator node (SelectList.toList slist) then
+                        NonEmpty slist
+
+                    else
+                        NonEmpty (SelectList.append [ node ] slist)
     in
-    replaceNodes newNodes connection
+    Connection { data | nodes = newNodes }
 
 
 prependConnection : Connection a -> Connection a -> Connection a
 prependConnection (Connection extension) (Connection original) =
-    let
-        nodes =
-            extension.nodes ++ original.nodes
+    case original.nodes of
+        Empty ->
+            Connection extension
 
-        pageInfo =
-            PageInfo
-                extension.pageInfo.hasPreviousPage
-                original.pageInfo.hasNextPage
-                extension.pageInfo.startCursor
-                original.pageInfo.endCursor
-    in
-    Connection (Data nodes pageInfo)
+        NonEmpty originalNodes ->
+            let
+                nodes =
+                    NonEmpty <|
+                        SelectList.prepend (nodesToList extension.nodes) originalNodes
+
+                pageInfo =
+                    PageInfo
+                        extension.pageInfo.hasPreviousPage
+                        original.pageInfo.hasNextPage
+                        extension.pageInfo.startCursor
+                        original.pageInfo.endCursor
+            in
+            Connection (Data nodes pageInfo)
+
+
+
+-- TODO: fix this to auto-adjust the selected item properly
 
 
 remove : (a -> comparable) -> comparable -> Connection a -> Connection a
@@ -264,6 +311,7 @@ remove comparator comparable connection =
     in
     toList connection
         |> List.filter (\node -> not (comparator node == comparable))
+        |> listToNodes
         |> flippedReplaceNodes connection
 
 
@@ -314,6 +362,36 @@ diff comparator newConn oldConn =
 -- INTERNAL
 
 
-replaceNodes : List a -> Connection a -> Connection a
+replaceNodes : Nodes a -> Connection a -> Connection a
 replaceNodes newNodes (Connection data) =
     Connection { data | nodes = newNodes }
+
+
+listToNodes : List a -> Nodes a
+listToNodes list =
+    case list of
+        [] ->
+            Empty
+
+        hd :: tl ->
+            NonEmpty (SelectList.fromLists [] hd tl)
+
+
+nodesToList : Nodes a -> List a
+nodesToList nodes =
+    case nodes of
+        Empty ->
+            []
+
+        NonEmpty slist ->
+            SelectList.toList slist
+
+
+mapNodes : (a -> b) -> Nodes a -> Nodes b
+mapNodes fn nodes =
+    case nodes of
+        Empty ->
+            Empty
+
+        NonEmpty slist ->
+            NonEmpty (SelectList.map fn slist)
