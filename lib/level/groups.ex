@@ -131,7 +131,10 @@ defmodule Level.Groups do
   def list_featured_memberships(group) do
     base_query =
       from gu in GroupUser,
-        where: gu.group_id == ^group.id and gu.state == "SUBSCRIBED",
+        join: su in assoc(gu, :space_user),
+        where: su.state == "ACTIVE",
+        where: gu.group_id == ^group.id,
+        where: gu.state == "SUBSCRIBED",
         join: u in assoc(gu, :user),
         select: %{gu | last_name: u.last_name}
 
