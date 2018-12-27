@@ -1,4 +1,4 @@
-module Component.Post exposing (Mode(..), Model, Msg(..), ViewConfig, checkableView, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
+module Component.Post exposing (Model, Msg(..), ViewConfig, checkableView, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -55,7 +55,6 @@ import View.Helpers exposing (onPassiveClick, setFocus, smartFormatTime, unsetFo
 
 type alias Model =
     { id : String
-    , mode : Mode
     , spaceSlug : String
     , postId : Id
     , replyIds : Connection Id
@@ -64,11 +63,6 @@ type alias Model =
     , replyEditors : ReplyEditors
     , isChecked : Bool
     }
-
-
-type Mode
-    = Feed
-    | FullPage
 
 
 type alias Data =
@@ -101,28 +95,14 @@ resolveData repo model =
 -- LIFECYCLE
 
 
-init : Mode -> String -> Id -> Connection Id -> Model
-init mode spaceSlug postId replyIds =
-    let
-        replyComposer =
-            case mode of
-                Feed ->
-                    postId
-                        |> PostEditor.init
-                        |> PostEditor.collapse
-
-                FullPage ->
-                    postId
-                        |> PostEditor.init
-                        |> PostEditor.expand
-    in
+init : String -> Id -> Connection Id -> Model
+init spaceSlug postId replyIds =
     Model
         postId
-        mode
         spaceSlug
         postId
         replyIds
-        replyComposer
+        (PostEditor.init postId)
         (PostEditor.init postId)
         Dict.empty
         False
@@ -130,42 +110,12 @@ init mode spaceSlug postId replyIds =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.batch
-        [ PostSubscription.subscribe model.postId
-        , setupReplyComposer model.postId model.replyComposer
-        , setupScrollPosition model.mode
-        ]
+    PostSubscription.subscribe model.postId
 
 
 teardown : Model -> Cmd Msg
 teardown model =
     PostSubscription.unsubscribe model.postId
-
-
-setupReplyComposer : String -> PostEditor -> Cmd Msg
-setupReplyComposer postId replyComposer =
-    if PostEditor.isExpanded replyComposer then
-        let
-            composerId =
-                PostEditor.getTextareaId replyComposer
-        in
-        Cmd.batch
-            [ setFocus composerId NoOp
-            , PostEditor.fetchLocal replyComposer
-            ]
-
-    else
-        Cmd.none
-
-
-setupScrollPosition : Mode -> Cmd Msg
-setupScrollPosition mode =
-    case mode of
-        FullPage ->
-            Scroll.toBottom Scroll.Document
-
-        _ ->
-            Cmd.none
 
 
 
@@ -336,7 +286,7 @@ update msg spaceId globals model =
             noCmd globals model
 
         NewReplyEscaped ->
-            if PostEditor.getBody model.replyComposer == "" && model.mode == Feed then
+            if PostEditor.getBody model.replyComposer == "" then
                 ( ( { model | replyComposer = PostEditor.collapse model.replyComposer }
                   , unsetFocus (PostEditor.getTextareaId model.replyComposer) NoOp
                   )
@@ -946,7 +896,7 @@ markVisibleRepliesAsViewed : Globals -> Id -> Model -> Cmd Msg
 markVisibleRepliesAsViewed globals spaceId model =
     let
         ( replies, _ ) =
-            visibleReplies globals.repo model.mode model.replyIds
+            visibleReplies globals.repo model.replyIds
 
         unviewedReplyIds =
             replies
@@ -968,17 +918,8 @@ markVisibleRepliesAsViewed globals spaceId model =
 
 handleReplyCreated : Reply -> Model -> ( Model, Cmd Msg )
 handleReplyCreated reply model =
-    let
-        cmd =
-            case model.mode of
-                FullPage ->
-                    Scroll.toBottom Scroll.Document
-
-                _ ->
-                    Cmd.none
-    in
     if Reply.postId reply == model.postId then
-        ( { model | replyIds = Connection.append identity (Reply.id reply) model.replyIds }, cmd )
+        ( { model | replyIds = Connection.append identity (Reply.id reply) model.replyIds }, Cmd.none )
 
     else
         ( model, Cmd.none )
@@ -1057,7 +998,7 @@ resolvedView config model data =
             , viewIf config.showGroups <|
                 groupsLabel config.space (Repo.getGroups (Post.groupIds data.post) config.globals.repo)
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
-                bodyView config.space model.mode data.post
+                bodyView config.space data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
                 postEditorView (Space.id config.space) config.spaceUsers model.postEditor
             , div [ class "pb-2 flex items-start" ]
@@ -1070,7 +1011,6 @@ resolvedView config model data =
                     data.post
                     config.now
                     model.replyIds
-                    model.mode
                     config.spaceUsers
                     model.replyEditors
                 , replyComposerView (Space.id config.space) config.currentUser data.post config.spaceUsers model
@@ -1173,8 +1113,8 @@ groupsLabel space groups =
             text ""
 
 
-bodyView : Space -> Mode -> Post -> Html Msg
-bodyView space mode post =
+bodyView : Space -> Post -> Html Msg
+bodyView space post =
     div []
         [ div [ class "markdown mb-1p5" ] [ RenderedHtml.node (Post.bodyHtml post) ]
         , staticFilesView (Post.files post)
@@ -1232,41 +1172,27 @@ postEditorView spaceId spaceUsers editor =
 -- PRIVATE REPLY VIEW FUNCTIONS
 
 
-repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> Mode -> List SpaceUser -> ReplyEditors -> Html Msg
-repliesView repo space post now replyIds mode spaceUsers editors =
+repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> List SpaceUser -> ReplyEditors -> Html Msg
+repliesView repo space post now replyIds spaceUsers editors =
     let
         ( replies, hasPreviousPage ) =
-            visibleReplies repo mode replyIds
-
-        actionButton =
-            case mode of
-                Feed ->
-                    a
-                        [ Route.href (Route.Post (Space.slug space) (Post.id post))
-                        , class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
-                        ]
-                        [ div [ class "mr-2" ] [ Icons.more ]
-                        , text "Load more"
-                        ]
-
-                FullPage ->
-                    button
-                        [ class "mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
-                        , onClick PreviousRepliesRequested
-                        ]
-                        [ div [ class "mr-2" ] [ Icons.more ]
-                        , text "Load more..."
-                        ]
+            visibleReplies repo replyIds
     in
     viewUnless (Connection.isEmptyAndExpanded replyIds) <|
         div []
-            [ viewIf hasPreviousPage actionButton
-            , div [] (List.map (replyView repo now space post mode editors spaceUsers) replies)
+            [ viewIf hasPreviousPage <|
+                button
+                    [ class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
+                    , onClick PreviousRepliesRequested
+                    ]
+                    [ text "Load more..."
+                    ]
+            , div [] (List.map (replyView repo now space post editors spaceUsers) replies)
             ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Space -> Post -> Mode -> ReplyEditors -> List SpaceUser -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply =
+replyView : Repo -> ( Zone, Posix ) -> Space -> Post -> ReplyEditors -> List SpaceUser -> Reply -> Html Msg
+replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
     let
         replyId =
             Reply.id reply
@@ -1303,19 +1229,7 @@ replyView repo (( zone, posix ) as now) space post mode editors spaceUsers reply
                             ]
                     , viewIf (PostEditor.isExpanded editor) <|
                         replyEditorView (Space.id space) replyId spaceUsers editor
-                    , viewIf True <|
-                        div [ class "pb-2 flex items-start" ]
-                            [ replyReactionButton reply
-                            , viewIf (False && (not (PostEditor.isExpanded editor) && Reply.canEdit reply)) <|
-                                button
-                                    [ class "flex tooltip tooltip-bottom no-outline active:translate-y-1"
-                                    , style "margin-top" "3px"
-                                    , style "margin-right" "26px"
-                                    , onClick (ExpandReplyEditor replyId)
-                                    , attribute "data-tooltip" "Edit reply"
-                                    ]
-                                    [ Icons.edit ]
-                            ]
+                    , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply ]
                     ]
                 ]
 
@@ -1603,25 +1517,16 @@ replyComposerId postId =
     "reply-composer-" ++ postId
 
 
-visibleReplies : Repo -> Mode -> Connection Id -> ( List Reply, Bool )
-visibleReplies repo mode replyIds =
-    case mode of
-        Feed ->
-            let
-                { nodes, hasPreviousPage } =
-                    Connection.last 10 replyIds
-            in
-            ( Repo.getReplies nodes repo, hasPreviousPage )
+visibleReplies : Repo -> Connection Id -> ( List Reply, Bool )
+visibleReplies repo replyIds =
+    let
+        replies =
+            Repo.getReplies (Connection.toList replyIds) repo
 
-        FullPage ->
-            let
-                replies =
-                    Repo.getReplies (Connection.toList replyIds) repo
-
-                hasPreviousPage =
-                    Connection.hasPreviousPage replyIds
-            in
-            ( replies, hasPreviousPage )
+        hasPreviousPage =
+            Connection.hasPreviousPage replyIds
+    in
+    ( replies, hasPreviousPage )
 
 
 getReplyEditor : Id -> ReplyEditors -> PostEditor

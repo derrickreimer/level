@@ -127,7 +127,6 @@ buildModel params globals ( ( newSession, resp ), now ) =
 buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent params ( postId, replyIds ) =
     Component.Post.init
-        Component.Post.Feed
         (Route.Posts.getSpaceSlug params)
         postId
         replyIds

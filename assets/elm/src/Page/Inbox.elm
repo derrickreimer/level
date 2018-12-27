@@ -138,7 +138,7 @@ buildModel params globals newSession now data =
 
 buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent params ( postId, replyIds ) =
-    Component.Post.init Component.Post.Feed (Route.Inbox.getSpaceSlug params) postId replyIds
+    Component.Post.init (Route.Inbox.getSpaceSlug params) postId replyIds
 
 
 setup : Globals -> Model -> Cmd Msg

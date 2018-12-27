@@ -154,7 +154,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
 
 buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent params ( postId, replyIds ) =
-    Component.Post.init Component.Post.Feed (Route.Group.getSpaceSlug params) postId replyIds
+    Component.Post.init (Route.Group.getSpaceSlug params) postId replyIds
 
 
 setup : Model -> Cmd Msg
@@ -723,7 +723,6 @@ consumeEvent event session model =
             let
                 postComp =
                     Component.Post.init
-                        Component.Post.Feed
                         (Route.Group.getSpaceSlug model.params)
                         (Post.id post)
                         (Connection.map Reply.id replies)

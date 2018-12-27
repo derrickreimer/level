@@ -115,7 +115,6 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
 
         postComp =
             Component.Post.init
-                Component.Post.FullPage
                 spaceSlug
                 postId
                 replyIds
@@ -436,9 +435,12 @@ consumeEvent globals event model =
                     globals.session
                         |> RecordReplyViews.request model.spaceId [ Reply.id reply ]
                         |> Task.attempt ReplyViewsRecorded
+
+                scrollCmd =
+                    Scroll.toBottom Scroll.Document
             in
             ( { model | postComp = newPostComp }
-            , Cmd.batch [ Cmd.map PostComponentMsg cmd, viewCmd ]
+            , Cmd.batch [ Cmd.map PostComponentMsg cmd, viewCmd, scrollCmd ]
             )
 
         _ ->
