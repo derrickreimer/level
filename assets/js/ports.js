@@ -155,28 +155,28 @@ export const attachPorts = app => {
     logEvent("presenceOut")(arg);
   });
 
-  app.ports.scrollTo.subscribe(arg => {
-    const { containerId, anchorId, offset } = arg;
-
-    requestAnimationFrame(() => {
-      if (containerId === "DOCUMENT") {
-        let container = document.documentElement;
-        let anchor = document.getElementById(anchorId);
-        if (!anchor) return;
-
-        let rect = anchor.getBoundingClientRect();
-        container.scrollTop = container.scrollTop + rect.top - offset;
-      } else {
-        let container = document.getElementById(containerId);
-        let anchor = document.getElementById(anchorId);
-        if (!(container && anchor)) return;
-
-        container.scrollTop = anchor.offsetTop + offset;
-      }
-
-      logEvent("scrollTo")(arg);
-    });
-  });
+  // app.ports.scrollTo.subscribe(arg => {
+  //   const { containerId, anchorId, offset } = arg;
+  //
+  //   requestAnimationFrame(() => {
+  //     if (containerId === "DOCUMENT") {
+  //       let container = document.documentElement;
+  //       let anchor = document.getElementById(anchorId);
+  //       if (!anchor) return;
+  //
+  //       let rect = anchor.getBoundingClientRect();
+  //       container.scrollTop = container.scrollTop + rect.top - offset;
+  //     } else {
+  //       let container = document.getElementById(containerId);
+  //       let anchor = document.getElementById(anchorId);
+  //       if (!(container && anchor)) return;
+  //
+  //       container.scrollTop = anchor.offsetTop + offset;
+  //     }
+  //
+  //     logEvent("scrollTo")(arg);
+  //   });
+  // });
 
   app.ports.scrollToBottom.subscribe(arg => {
     const { containerId } = arg;

@@ -332,16 +332,8 @@ update msg spaceId globals model =
 
                 viewCmd =
                     markVisibleRepliesAsViewed newGlobals spaceId newModel
-
-                scrollCmd =
-                    case maybeFirstReplyId of
-                        Just firstReplyId ->
-                            Scroll.toAnchor Scroll.Document (replyNodeId firstReplyId) 200
-
-                        Nothing ->
-                            Cmd.none
             in
-            ( ( newModel, Cmd.batch [ scrollCmd, viewCmd ] ), newGlobals )
+            ( ( newModel, Cmd.batch [ viewCmd ] ), newGlobals )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin globals model
