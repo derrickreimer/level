@@ -223,7 +223,7 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "max-w-md mx-auto" ]
             [ div [ class "px-8" ]
-                [ div [ class "pb-4 mb-6 border-b" ]
+                [ div [ class "pb-4 pt-6 border-b" ]
                     [ a
                         [ Route.href <| Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params))
                         , class "flex items-center font-bold text-dusty-blue no-underline"
