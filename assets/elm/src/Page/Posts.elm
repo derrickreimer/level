@@ -364,7 +364,7 @@ resolvedDesktopView globals spaceUsers model data =
                     , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
-            , postsView globals.repo spaceUsers model data
+            , postsView globals spaceUsers model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
         ]
@@ -435,7 +435,7 @@ resolvedMobileView globals spaceUsers model data =
                 [ filterTab Device.Mobile "Open" Route.Posts.Open (openParams model.params) model.params
                 , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                 ]
-            , div [ class "px-4" ] [ postsView globals.repo spaceUsers model data ]
+            , div [ class "px-4" ] [ postsView globals spaceUsers model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]
                     [ paginationView model.params model.postComps
@@ -470,22 +470,31 @@ filterTab device label state linkParams currentParams =
         [ text label ]
 
 
-postsView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
-postsView repo spaceUsers model data =
+postsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+postsView globals spaceUsers model data =
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (postView repo spaceUsers model data) model.postComps
+            Connection.mapList (postView globals spaceUsers model data) model.postComps
 
 
-postView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-postView repo spaceUsers model data component =
+postView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+postView globals spaceUsers model data component =
+    let
+        config =
+            { globals = globals
+            , space = data.space
+            , currentUser = data.viewer
+            , now = model.now
+            , spaceUsers = spaceUsers
+            }
+    in
     div [ class "py-4" ]
         [ component
-            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
+            |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
         ]
 

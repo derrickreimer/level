@@ -845,7 +845,7 @@ resolvedDesktopView globals spaceUsers model data =
                 , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
             , div [ class "px-4" ]
-                [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
+                [ postsView globals model.params data.space data.viewer model.now model.postComps spaceUsers ]
             , Layout.SpaceDesktop.rightSidebar (sidebarView model.params data.space data.group data.featuredMembers)
             ]
         ]
@@ -1014,7 +1014,7 @@ resolvedMobileView globals spaceUsers model data =
                         ]
                     ]
             , div [ class "px-3" ]
-                [ postsView globals.repo model.params data.space data.viewer model.now model.postComps spaceUsers ]
+                [ postsView globals model.params data.space data.viewer model.now model.postComps spaceUsers ]
             , a
                 [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupId model.params))
                 , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
@@ -1070,8 +1070,8 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-postsView : Repo -> Params -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> List SpaceUser -> Html Msg
-postsView repo params space currentUser now connection spaceUsers =
+postsView : Globals -> Params -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> List SpaceUser -> Html Msg
+postsView globals params space currentUser now connection spaceUsers =
     if Connection.isEmptyAndExpanded connection then
         case Route.Group.getState params of
             Route.Group.Open ->
@@ -1084,13 +1084,22 @@ postsView repo params space currentUser now connection spaceUsers =
 
     else
         div [] <|
-            Connection.mapList (postView repo space currentUser now spaceUsers) connection
+            Connection.mapList (postView globals space currentUser now spaceUsers) connection
 
 
-postView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Component.Post.Model -> Html Msg
-postView repo space currentUser now spaceUsers component =
+postView : Globals -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Component.Post.Model -> Html Msg
+postView globals space currentUser now spaceUsers component =
+    let
+        config =
+            { globals = globals
+            , space = space
+            , currentUser = currentUser
+            , now = now
+            , spaceUsers = spaceUsers
+            }
+    in
     div [ class "py-4" ]
-        [ Component.Post.view repo space currentUser now spaceUsers component
+        [ Component.Post.view config component
             |> Html.map (PostComponentMsg component.id)
         ]
 

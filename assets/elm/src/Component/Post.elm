@@ -1,4 +1,4 @@
-module Component.Post exposing (Mode(..), Model, Msg(..), checkableView, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
+module Component.Post exposing (Mode(..), Model, Msg(..), ViewConfig, checkableView, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -1008,31 +1008,44 @@ handleEditorEventReceived value model =
 -- VIEWS
 
 
-view : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Model -> Html Msg
-view repo space currentUser now spaceUsers model =
-    case resolveData repo model of
+type alias ViewConfig =
+    { globals : Globals
+    , space : Space
+    , currentUser : SpaceUser
+    , now : ( Zone, Posix )
+    , spaceUsers : List SpaceUser
+    }
+
+
+view : ViewConfig -> Model -> Html Msg
+view config model =
+    case resolveData config.globals.repo model of
         Just data ->
-            resolvedView repo space currentUser now spaceUsers model data
+            resolvedView config model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model data =
+resolvedView : ViewConfig -> Model -> Data -> Html Msg
+resolvedView config model data =
+    let
+        ( zone, posix ) =
+            config.now
+    in
     div [ class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div [ class "flex items-center flex-wrap" ]
                 [ div []
-                    [ postAuthorName space model.postId data.author
+                    [ postAuthorName config.space model.postId data.author
                     , a
-                        [ Route.href <| Route.Post (Space.slug space) model.postId
+                        [ Route.href <| Route.Post (Space.slug config.space) model.postId
                         , class "no-underline whitespace-no-wrap"
                         , rel "tooltip"
                         , title "Expand post"
                         ]
-                        [ View.Helpers.time now ( zone, Post.postedAt data.post ) [ class "mr-3 text-sm text-dusty-blue" ] ]
+                        [ View.Helpers.time config.now ( zone, Post.postedAt data.post ) [ class "mr-3 text-sm text-dusty-blue" ] ]
                     , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
                         button
                             [ class "mr-3 text-sm text-dusty-blue"
@@ -1043,24 +1056,32 @@ resolvedView repo space currentUser (( zone, posix ) as now) spaceUsers model da
                 , inboxButton data.post
                 ]
             , viewIf model.showGroups <|
-                groupsLabel space (Repo.getGroups (Post.groupIds data.post) repo)
+                groupsLabel config.space (Repo.getGroups (Post.groupIds data.post) config.globals.repo)
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
-                bodyView space model.mode data.post
+                bodyView config.space model.mode data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
-                postEditorView (Space.id space) spaceUsers model.postEditor
+                postEditorView (Space.id config.space) config.spaceUsers model.postEditor
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
                 ]
             , div [ class "relative" ]
-                [ repliesView repo space data.post now model.replyIds model.mode spaceUsers model.replyEditors
-                , replyComposerView (Space.id space) currentUser data.post spaceUsers model
+                [ repliesView
+                    config.globals.repo
+                    config.space
+                    data.post
+                    config.now
+                    model.replyIds
+                    model.mode
+                    config.spaceUsers
+                    model.replyEditors
+                , replyComposerView (Space.id config.space) config.currentUser data.post config.spaceUsers model
                 ]
             ]
         ]
 
 
-checkableView : Repo -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Model -> Html Msg
-checkableView repo space viewer now spaceUsers model =
+checkableView : ViewConfig -> Model -> Html Msg
+checkableView config model =
     div [ class "flex" ]
         [ div [ class "mr-1 py-3 flex-0" ]
             [ label [ class "control checkbox" ]
@@ -1075,7 +1096,7 @@ checkableView repo space viewer now spaceUsers model =
                 ]
             ]
         , div [ class "flex-1" ]
-            [ view repo space viewer now spaceUsers model
+            [ view config model
             ]
         ]
 

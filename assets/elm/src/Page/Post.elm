@@ -540,6 +540,14 @@ resolvedDesktopView globals spaceUsers model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             }
+
+        postConfig =
+            { globals = globals
+            , space = data.space
+            , currentUser = data.viewer
+            , now = model.now
+            , spaceUsers = spaceUsers
+            }
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
@@ -554,7 +562,7 @@ resolvedDesktopView globals spaceUsers model data =
                     , postStateButton model.isChangingState data.post
                     ]
                 , model.postComp
-                    |> Component.Post.view globals.repo data.space data.viewer model.now spaceUsers
+                    |> Component.Post.view postConfig
                     |> Html.map PostComponentMsg
                 ]
             , Layout.SpaceDesktop.rightSidebar <|
@@ -585,12 +593,20 @@ resolvedMobileView globals spaceUsers model data =
             , leftControl = Layout.SpaceMobile.ShowNav
             , rightControl = Layout.SpaceMobile.ShowSidebar
             }
+
+        postConfig =
+            { globals = globals
+            , space = data.space
+            , currentUser = data.viewer
+            , now = model.now
+            , spaceUsers = spaceUsers
+            }
     in
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "px-3 pt-5" ]
                 [ model.postComp
-                    |> Component.Post.view globals.repo data.space data.viewer model.now spaceUsers
+                    |> Component.Post.view postConfig
                     |> Html.map PostComponentMsg
                 ]
             , viewIf model.showSidebar <|
@@ -603,24 +619,6 @@ resolvedMobileView globals spaceUsers model data =
 
 
 -- SHARED
-
-
-postView : Repo -> List SpaceUser -> Model -> Data -> Html Msg
-postView repo spaceUsers model data =
-    div []
-        [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
-            [ button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
-                , onClick BackClicked
-                ]
-                [ text "Back" ]
-            , inboxStateButton model.isChangingInboxState data.post
-            , postStateButton model.isChangingState data.post
-            ]
-        , model.postComp
-            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
-            |> Html.map PostComponentMsg
-        ]
 
 
 inboxStateButton : Bool -> Post -> Html Msg
