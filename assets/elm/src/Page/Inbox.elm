@@ -514,7 +514,7 @@ desktopPostView : Repo -> List SpaceUser -> Model -> Data -> Component.Post.Mode
 desktopPostView repo spaceUsers model data component =
     div [ class "py-4" ]
         [ component
-            |> Component.Post.checkableView repo data.space data.viewer model.now spaceUsers
+            |> Component.Post.view repo data.space data.viewer model.now spaceUsers
             |> Html.map (PostComponentMsg component.id)
         ]
 
