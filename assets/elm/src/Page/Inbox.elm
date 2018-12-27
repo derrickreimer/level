@@ -138,7 +138,7 @@ buildModel params globals newSession now data =
 
 buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent params ( postId, replyIds ) =
-    Component.Post.init Component.Post.Feed True (Route.Inbox.getSpaceSlug params) postId replyIds
+    Component.Post.init Component.Post.Feed (Route.Inbox.getSpaceSlug params) postId replyIds
 
 
 setup : Globals -> Model -> Cmd Msg
@@ -519,6 +519,7 @@ desktopPostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
+            , showGroups = True
             }
     in
     div [ class "py-4" ]
@@ -627,6 +628,7 @@ mobilePostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
+            , showGroups = True
             }
     in
     div [ class "py-4" ]

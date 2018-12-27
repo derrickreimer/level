@@ -154,7 +154,7 @@ buildModel params globals ( ( newSession, resp ), now ) =
 
 buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent params ( postId, replyIds ) =
-    Component.Post.init Component.Post.Feed False (Route.Group.getSpaceSlug params) postId replyIds
+    Component.Post.init Component.Post.Feed (Route.Group.getSpaceSlug params) postId replyIds
 
 
 setup : Model -> Cmd Msg
@@ -724,7 +724,6 @@ consumeEvent event session model =
                 postComp =
                     Component.Post.init
                         Component.Post.Feed
-                        False
                         (Route.Group.getSpaceSlug model.params)
                         (Post.id post)
                         (Connection.map Reply.id replies)
@@ -1096,6 +1095,7 @@ postView globals space currentUser now spaceUsers component =
             , currentUser = currentUser
             , now = now
             , spaceUsers = spaceUsers
+            , showGroups = False
             }
     in
     div [ class "py-4" ]

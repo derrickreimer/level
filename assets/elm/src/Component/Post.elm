@@ -56,7 +56,6 @@ import View.Helpers exposing (onPassiveClick, setFocus, smartFormatTime, unsetFo
 type alias Model =
     { id : String
     , mode : Mode
-    , showGroups : Bool
     , spaceSlug : String
     , postId : Id
     , replyIds : Connection Id
@@ -102,8 +101,8 @@ resolveData repo model =
 -- LIFECYCLE
 
 
-init : Mode -> Bool -> String -> Id -> Connection Id -> Model
-init mode showGroups spaceSlug postId replyIds =
+init : Mode -> String -> Id -> Connection Id -> Model
+init mode spaceSlug postId replyIds =
     let
         replyComposer =
             case mode of
@@ -120,7 +119,6 @@ init mode showGroups spaceSlug postId replyIds =
     Model
         postId
         mode
-        showGroups
         spaceSlug
         postId
         replyIds
@@ -1014,6 +1012,7 @@ type alias ViewConfig =
     , currentUser : SpaceUser
     , now : ( Zone, Posix )
     , spaceUsers : List SpaceUser
+    , showGroups : Bool
     }
 
 
@@ -1055,7 +1054,7 @@ resolvedView config model data =
                     ]
                 , inboxButton data.post
                 ]
-            , viewIf model.showGroups <|
+            , viewIf config.showGroups <|
                 groupsLabel config.space (Repo.getGroups (Post.groupIds data.post) config.globals.repo)
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView config.space model.mode data.post

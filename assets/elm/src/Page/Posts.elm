@@ -128,7 +128,6 @@ buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
 buildPostComponent params ( postId, replyIds ) =
     Component.Post.init
         Component.Post.Feed
-        True
         (Route.Posts.getSpaceSlug params)
         postId
         replyIds
@@ -490,6 +489,7 @@ postView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
+            , showGroups = True
             }
     in
     div [ class "py-4" ]
