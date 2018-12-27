@@ -480,7 +480,7 @@ resolvedDesktopView globals spaceUsers model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
+            [ div [ class "sticky pin-t mb-3 pt-4 px-4 bg-white z-50" ]
                 [ div [ class "trans-border-b-grey" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Inbox" ]
@@ -521,8 +521,18 @@ desktopPostView globals spaceUsers model data component =
             , spaceUsers = spaceUsers
             , showGroups = True
             }
+
+        isSelected =
+            Connection.selected model.postComps == Just component
     in
-    div [ class "py-4" ]
+    div
+        [ classList
+            [ ( "py-4", True )
+            , ( "border-l pl-3", True )
+            , ( "border-transparent", not isSelected )
+            , ( "border-turquoise", isSelected )
+            ]
+        ]
         [ component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)

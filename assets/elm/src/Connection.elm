@@ -1,4 +1,4 @@
-module Connection exposing (Connection, Subset, append, decoder, diff, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, startCursor, toList, update)
+module Connection exposing (Connection, Subset, append, decoder, diff, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selected, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
@@ -356,6 +356,16 @@ diff comparator newConn oldConn =
                 |> List.filter (\node -> List.member (comparator node) removedComparables)
     in
     ( addedNodes, removedNodes )
+
+
+selected : Connection a -> Maybe a
+selected (Connection data) =
+    case data.nodes of
+        Empty ->
+            Nothing
+
+        NonEmpty slist ->
+            Just (SelectList.selected slist)
 
 
 
