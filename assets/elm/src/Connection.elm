@@ -299,20 +299,41 @@ prependConnection (Connection extension) (Connection original) =
             Connection (Data nodes pageInfo)
 
 
-
--- TODO: fix this to auto-adjust the selected item properly
-
-
 remove : (a -> comparable) -> comparable -> Connection a -> Connection a
-remove comparator comparable connection =
+remove comparator comparable (Connection data) =
     let
-        flippedReplaceNodes conn list =
-            replaceNodes list conn
+        newNodes =
+            case data.nodes of
+                Empty ->
+                    Empty
+
+                NonEmpty slist ->
+                    if comparator (SelectList.selected slist) == comparable then
+                        case ( List.reverse (SelectList.before slist), SelectList.after slist ) of
+                            ( [], [] ) ->
+                                Empty
+
+                            ( hd :: tl, [] ) ->
+                                NonEmpty (SelectList.fromLists (List.reverse tl) hd [])
+
+                            ( before, hd :: tl ) ->
+                                NonEmpty (SelectList.fromLists before hd tl)
+
+                    else
+                        let
+                            before =
+                                slist
+                                    |> SelectList.before
+                                    |> List.filter (\node -> not (comparator node == comparable))
+
+                            after =
+                                slist
+                                    |> SelectList.after
+                                    |> List.filter (\node -> not (comparator node == comparable))
+                        in
+                        NonEmpty (SelectList.fromLists before (SelectList.selected slist) after)
     in
-    toList connection
-        |> List.filter (\node -> not (comparator node == comparable))
-        |> listToNodes
-        |> flippedReplaceNodes connection
+    Connection { data | nodes = newNodes }
 
 
 diff : (a -> comparable) -> Connection a -> Connection a -> ( List a, List a )
