@@ -362,10 +362,34 @@ update msg globals model =
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
         SelectPrevPost ->
-            ( ( { model | postComps = Connection.selectPrev model.postComps }, Cmd.none ), globals )
+            let
+                newPostComps =
+                    Connection.selectPrev model.postComps
+
+                cmd =
+                    case Connection.selected newPostComps of
+                        Just currentPost ->
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( { model | postComps = newPostComps }, cmd ), globals )
 
         SelectNextPost ->
-            ( ( { model | postComps = Connection.selectNext model.postComps }, Cmd.none ), globals )
+            let
+                newPostComps =
+                    Connection.selectNext model.postComps
+
+                cmd =
+                    case Connection.selected newPostComps of
+                        Just currentPost ->
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( { model | postComps = newPostComps }, cmd ), globals )
 
         DismissCurrentPost ->
             case Connection.selected model.postComps of

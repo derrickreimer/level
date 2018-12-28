@@ -1,4 +1,4 @@
-module Scroll exposing (Container(..), toBottom, toDocumentTop)
+module Scroll exposing (Container(..), toAnchor, toBottom, toDocumentTop)
 
 import Browser.Dom as Dom
 import Ports
@@ -20,12 +20,12 @@ type Container
 
 
 
--- This function (and the scrollTo port in JS) are commented out because they
--- are not currently being used. If the port remains uncommented, it errors out.
---
--- toAnchor : Container -> Id -> Int -> Cmd msg
--- toAnchor container anchorId offset =
---     Ports.scrollTo <| AnchorParams (containerId container) anchorId offset
+-- API
+
+
+toAnchor : Container -> Id -> Int -> Cmd msg
+toAnchor container anchorId offset =
+    Ports.scrollTo <| AnchorParams (containerId container) anchorId offset
 
 
 toBottom : Container -> Cmd msg

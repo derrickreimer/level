@@ -1,4 +1,4 @@
-module Component.Post exposing (Model, Msg(..), ViewConfig, checkableView, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
+module Component.Post exposing (Model, Msg(..), ViewConfig, checkableView, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, postNodeId, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -970,7 +970,7 @@ resolvedView config model data =
         ( zone, posix ) =
             config.now
     in
-    div [ class "flex" ]
+    div [ id (postNodeId model.postId), class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div [ class "flex items-center flex-wrap" ]
@@ -1502,6 +1502,11 @@ replyReactionButton reply =
 
 
 -- UTILS
+
+
+postNodeId : String -> String
+postNodeId postId =
+    "post-" ++ postId
 
 
 replyNodeId : String -> String
