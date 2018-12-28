@@ -1,4 +1,4 @@
-module Connection exposing (Connection, Subset, append, decoder, diff, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selected, startCursor, toList, update)
+module Connection exposing (Connection, Subset, append, decoder, diff, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selectNext, selectPrev, selected, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
@@ -366,6 +366,52 @@ selected (Connection data) =
 
         NonEmpty slist ->
             Just (SelectList.selected slist)
+
+
+selectPrev : Connection a -> Connection a
+selectPrev (Connection data) =
+    let
+        newNodes =
+            case data.nodes of
+                Empty ->
+                    Empty
+
+                NonEmpty slist ->
+                    case List.reverse (SelectList.before slist) of
+                        [] ->
+                            NonEmpty slist
+
+                        newSelected :: newBeforeReversed ->
+                            NonEmpty <|
+                                SelectList.fromLists
+                                    (List.reverse newBeforeReversed)
+                                    newSelected
+                                    (SelectList.selected slist :: SelectList.after slist)
+    in
+    Connection { data | nodes = newNodes }
+
+
+selectNext : Connection a -> Connection a
+selectNext (Connection data) =
+    let
+        newNodes =
+            case data.nodes of
+                Empty ->
+                    Empty
+
+                NonEmpty slist ->
+                    case SelectList.after slist of
+                        [] ->
+                            NonEmpty slist
+
+                        newSelected :: newAfter ->
+                            NonEmpty <|
+                                SelectList.fromLists
+                                    (SelectList.before slist ++ [ SelectList.selected slist ])
+                                    newSelected
+                                    newAfter
+    in
+    Connection { data | nodes = newNodes }
 
 
 

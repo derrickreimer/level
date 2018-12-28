@@ -222,6 +222,11 @@ type Msg
     | CollapseSearchEditor
     | SearchEditorChanged String
     | SearchSubmitted
+      -- KEYBOARD SHORTCUTS
+    | SelectPrevPost
+    | SelectNextPost
+    | DismissCurrentPost
+      -- MOBILE
     | NavToggled
     | SidebarToggled
     | ScrollTopClicked
@@ -355,6 +360,15 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
+        SelectPrevPost ->
+            ( ( { model | postComps = Connection.selectPrev model.postComps }, Cmd.none ), globals )
+
+        SelectNextPost ->
+            ( ( { model | postComps = Connection.selectNext model.postComps }, Cmd.none ), globals )
+
+        DismissCurrentPost ->
+            ( ( model, Cmd.none ), globals )
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -431,6 +445,9 @@ subscriptions =
         , KeyboardShortcuts.subscribe
             [ ( "y", DismissPostsClicked )
             , ( "/", ExpandSearchEditor )
+            , ( "j", SelectNextPost )
+            , ( "k", SelectPrevPost )
+            , ( "e", DismissCurrentPost )
             ]
         ]
 
@@ -528,7 +545,7 @@ desktopPostView globals spaceUsers model data component =
     div
         [ classList
             [ ( "py-4", True )
-            , ( "border-l pl-3", True )
+            , ( "border-l-3 pl-3", True )
             , ( "border-transparent", not isSelected )
             , ( "border-turquoise", isSelected )
             ]
