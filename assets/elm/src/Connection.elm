@@ -308,30 +308,36 @@ remove comparator comparable (Connection data) =
                     Empty
 
                 NonEmpty slist ->
-                    if comparator (SelectList.selected slist) == comparable then
-                        case ( List.reverse (SelectList.before slist), SelectList.after slist ) of
+                    let
+                        before =
+                            SelectList.before slist
+
+                        after =
+                            SelectList.after slist
+
+                        currentNode =
+                            SelectList.selected slist
+                    in
+                    if comparator currentNode == comparable then
+                        case ( List.reverse before, after ) of
                             ( [], [] ) ->
                                 Empty
 
                             ( hd :: tl, [] ) ->
                                 NonEmpty (SelectList.fromLists (List.reverse tl) hd [])
 
-                            ( before, hd :: tl ) ->
+                            ( _, hd :: tl ) ->
                                 NonEmpty (SelectList.fromLists before hd tl)
 
                     else
                         let
-                            before =
-                                slist
-                                    |> SelectList.before
-                                    |> List.filter (\node -> not (comparator node == comparable))
+                            newBefore =
+                                List.filter (\node -> not (comparator node == comparable)) before
 
-                            after =
-                                slist
-                                    |> SelectList.after
-                                    |> List.filter (\node -> not (comparator node == comparable))
+                            newAfter =
+                                List.filter (\node -> not (comparator node == comparable)) after
                         in
-                        NonEmpty (SelectList.fromLists before (SelectList.selected slist) after)
+                        NonEmpty (SelectList.fromLists newBefore currentNode newAfter)
     in
     Connection { data | nodes = newNodes }
 
