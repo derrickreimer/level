@@ -459,7 +459,11 @@ consumeEvent event globals model =
                     ( model, Cmd.none )
 
         Event.PostsDismissed posts ->
-            List.foldr handlePostDismissed ( model, Cmd.none ) posts
+            if Route.Inbox.getState model.params == Route.Inbox.Undismissed then
+                List.foldr handlePostDismissed ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
