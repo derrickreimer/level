@@ -1,4 +1,4 @@
-module Component.Post exposing (Model, Msg(..), ViewConfig, checkableView, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
+module Component.Post exposing (Model, Msg(..), ViewConfig, checkableView, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -182,17 +182,7 @@ update msg spaceId globals model =
             noCmd globals model
 
         ExpandReplyComposer ->
-            let
-                cmd =
-                    Cmd.batch
-                        [ setFocus (PostEditor.getTextareaId model.replyComposer) NoOp
-                        , markVisibleRepliesAsViewed globals spaceId model
-                        ]
-
-                newModel =
-                    { model | replyComposer = PostEditor.expand model.replyComposer }
-            in
-            ( ( newModel, cmd ), globals )
+            expandReplyComposer globals spaceId model
 
         NewReplyBodyChanged val ->
             let
@@ -902,6 +892,21 @@ markVisibleRepliesAsViewed globals spaceId model =
 
     else
         Cmd.none
+
+
+expandReplyComposer : Globals -> Id -> Model -> ( ( Model, Cmd Msg ), Globals )
+expandReplyComposer globals spaceId model =
+    let
+        cmd =
+            Cmd.batch
+                [ setFocus (PostEditor.getTextareaId model.replyComposer) NoOp
+                , markVisibleRepliesAsViewed globals spaceId model
+                ]
+
+        newModel =
+            { model | replyComposer = PostEditor.expand model.replyComposer }
+    in
+    ( ( newModel, cmd ), globals )
 
 
 

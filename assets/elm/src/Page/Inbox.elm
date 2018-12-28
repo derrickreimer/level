@@ -226,6 +226,7 @@ type Msg
     | SelectPrevPost
     | SelectNextPost
     | DismissCurrentPost
+    | ExpandReplyComposer
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -380,6 +381,25 @@ update msg globals model =
                 Nothing ->
                     ( ( model, Cmd.none ), globals )
 
+        ExpandReplyComposer ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        ( ( newCurrentPost, compCmd ), newGlobals ) =
+                            Component.Post.expandReplyComposer globals model.spaceId currentPost
+
+                        newPostComps =
+                            Connection.update .id newCurrentPost model.postComps
+                    in
+                    ( ( { model | postComps = newPostComps }
+                      , Cmd.map (PostComponentMsg currentPost.id) compCmd
+                      )
+                    , globals
+                    )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -480,6 +500,8 @@ subscriptions =
             , ( "j", SelectNextPost )
             , ( "k", SelectPrevPost )
             , ( "e", DismissCurrentPost )
+            , ( "r", ExpandReplyComposer )
+            , ( "Enter", ExpandReplyComposer )
             ]
         ]
 
