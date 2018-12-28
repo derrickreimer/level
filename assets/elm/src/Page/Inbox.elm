@@ -367,7 +367,18 @@ update msg globals model =
             ( ( { model | postComps = Connection.selectNext model.postComps }, Cmd.none ), globals )
 
         DismissCurrentPost ->
-            ( ( model, Cmd.none ), globals )
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        cmd =
+                            globals.session
+                                |> DismissPosts.request model.spaceId [ currentPost.postId ]
+                                |> Task.attempt PostsDismissed
+                    in
+                    ( ( model, cmd ), globals )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -428,10 +439,31 @@ consumeEvent event globals model =
                     ( model, Cmd.none )
 
         Event.PostsDismissed posts ->
-            ( model, refreshPosts model.params globals )
+            List.foldr handlePostDismissed ( model, Cmd.none ) posts
 
         _ ->
             ( model, Cmd.none )
+
+
+handlePostDismissed : Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+handlePostDismissed post ( model, cmd ) =
+    case Connection.get .id (Post.id post) model.postComps of
+        Just postComp ->
+            let
+                newPostComps =
+                    Connection.remove .id (Post.id post) model.postComps
+
+                teardownCmd =
+                    Cmd.map (PostComponentMsg postComp.id)
+                        (Component.Post.teardown postComp)
+
+                newCmd =
+                    Cmd.batch [ cmd, teardownCmd ]
+            in
+            ( { model | postComps = newPostComps }, newCmd )
+
+        Nothing ->
+            ( model, cmd )
 
 
 
