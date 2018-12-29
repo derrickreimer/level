@@ -1338,7 +1338,7 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
             , classList = [ ( "tribute-pin-t", True ) ]
             }
     in
-    div [ class "-ml-3 py-3 sticky pin-b bg-white" ]
+    div [ class "-ml-3 pt-3 sticky pin-b bg-white" ]
         [ PostEditor.wrapper config
             [ div [ class "composer p-0" ]
                 [ viewIf (False && (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read)) <|
@@ -1400,7 +1400,7 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
 
 replyPromptView : SpaceUser -> Html Msg
 replyPromptView currentUser =
-    button [ class "flex my-4 items-center", onClick ExpandReplyComposer ]
+    button [ class "flex mt-4 items-center", onClick ExpandReplyComposer ]
         [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small currentUser ]
         , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
             [ text "Reply or resolve..."
