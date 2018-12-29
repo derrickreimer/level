@@ -26,6 +26,10 @@ import { isMobile } from "./device_detection";
 import "./custom_elements/rendered_html";
 import "./custom_elements/clipboard_button";
 import "./custom_elements/post_editor";
+import smoothscroll from 'smoothscroll-polyfill';
+
+// Initialize the smoothscroll polyfill
+smoothscroll.polyfill();
 
 // Initialize service worker
 Background.registerWorker();

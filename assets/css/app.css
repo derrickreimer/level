@@ -36,10 +36,6 @@
  * @import "components/forms";
  */
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   @apply .text-dusty-blue-darkest;
 }

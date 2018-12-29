@@ -13,6 +13,7 @@
     "jstz": "^2.1.1",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
+    "smoothscroll-polyfill": "^0.4.3",
     "stretchy": "^1.0.0",
     "tributejs": "^3.3.5"
   },

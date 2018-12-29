@@ -165,7 +165,8 @@ export const attachPorts = app => {
         if (!anchor) return;
 
         let rect = anchor.getBoundingClientRect();
-        container.scrollTop = container.scrollTop + rect.top - offset;
+        let scrollTop = container.scrollTop + rect.top - offset;
+        window.scroll({top: scrollTop, left: 0, behavior: "smooth" });
       } else {
         let container = document.getElementById(containerId);
         let anchor = document.getElementById(anchorId);
