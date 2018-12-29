@@ -6,6 +6,7 @@ import Connection exposing (Connection)
 import Device exposing (Device)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
+import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
@@ -19,6 +20,7 @@ import KeyboardShortcuts
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.DismissPosts as DismissPosts
 import Pagination
 import Post exposing (Post)
 import Query.PostsInit as PostsInit
@@ -172,6 +174,13 @@ type Msg
     | CollapseSearchEditor
     | SearchEditorChanged String
     | SearchSubmitted
+    | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
+      -- KEYBOARD SHORTCUTS
+    | SelectPrevPost
+    | SelectNextPost
+    | DismissCurrentPost
+    | ExpandReplyComposer
+      -- MOBILE
     | NavToggled
     | SidebarToggled
     | ScrollTopClicked
@@ -243,6 +252,72 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
+        PostsDismissed _ ->
+            noCmd { globals | flash = Flash.set Flash.Notice "Posts dismissed" 3000 globals.flash } model
+
+        SelectPrevPost ->
+            let
+                newPostComps =
+                    Connection.selectPrev model.postComps
+
+                cmd =
+                    case Connection.selected newPostComps of
+                        Just currentPost ->
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( { model | postComps = newPostComps }, cmd ), globals )
+
+        SelectNextPost ->
+            let
+                newPostComps =
+                    Connection.selectNext model.postComps
+
+                cmd =
+                    case Connection.selected newPostComps of
+                        Just currentPost ->
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( { model | postComps = newPostComps }, cmd ), globals )
+
+        DismissCurrentPost ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        cmd =
+                            globals.session
+                                |> DismissPosts.request model.spaceId [ currentPost.postId ]
+                                |> Task.attempt PostsDismissed
+                    in
+                    ( ( model, cmd ), globals )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
+        ExpandReplyComposer ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        ( ( newCurrentPost, compCmd ), newGlobals ) =
+                            Component.Post.expandReplyComposer globals model.spaceId currentPost
+
+                        newPostComps =
+                            Connection.update .id newCurrentPost model.postComps
+                    in
+                    ( ( { model | postComps = newPostComps }
+                      , Cmd.map (PostComponentMsg currentPost.id) compCmd
+                      )
+                    , globals
+                    )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -303,6 +378,11 @@ subscriptions =
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
             [ ( "/", ExpandSearchEditor )
+            , ( "j", SelectNextPost )
+            , ( "k", SelectPrevPost )
+            , ( "e", DismissCurrentPost )
+            , ( "r", ExpandReplyComposer )
+            , ( "Enter", ExpandReplyComposer )
             ]
         ]
 
@@ -362,7 +442,7 @@ resolvedDesktopView globals spaceUsers model data =
                     , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
-            , postsView globals spaceUsers model data
+            , desktopPostsView globals spaceUsers model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
         ]
@@ -404,6 +484,44 @@ searchEditorView editor =
         }
 
 
+desktopPostsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+desktopPostsView globals spaceUsers model data =
+    if Connection.isEmptyAndExpanded model.postComps then
+        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+            [ text "You're all caught up!" ]
+
+    else
+        div [] <|
+            Connection.mapList (desktopPostView globals spaceUsers model data) model.postComps
+
+
+desktopPostView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+desktopPostView globals spaceUsers model data component =
+    let
+        config =
+            { globals = globals
+            , space = data.space
+            , currentUser = data.viewer
+            , now = model.now
+            , spaceUsers = spaceUsers
+            , showGroups = True
+            }
+
+        isSelected =
+            Connection.selected model.postComps == Just component
+    in
+    div
+        [ classList
+            [ ( "mb-3 py-4 px-3 border-l-3", True )
+            , ( "border-transparent", not isSelected )
+            ]
+        ]
+        [ component
+            |> Component.Post.view config
+            |> Html.map (PostComponentMsg component.id)
+        ]
+
+
 
 -- MOBILE
 
@@ -433,7 +551,7 @@ resolvedMobileView globals spaceUsers model data =
                 [ filterTab Device.Mobile "Open" Route.Posts.Open (openParams model.params) model.params
                 , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                 ]
-            , div [ class "px-4" ] [ postsView globals spaceUsers model data ]
+            , div [ class "px-4" ] [ mobilePostsView globals spaceUsers model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]
                     [ paginationView model.params model.postComps
@@ -443,6 +561,36 @@ resolvedMobileView globals spaceUsers model data =
                     [ div [ class "p-6" ] (sidebarView data.space data.featuredUsers)
                     ]
             ]
+        ]
+
+
+mobilePostsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
+mobilePostsView globals spaceUsers model data =
+    if Connection.isEmptyAndExpanded model.postComps then
+        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+            [ text "You’re all caught up!" ]
+
+    else
+        div [] <|
+            Connection.mapList (mobilePostView globals spaceUsers model data) model.postComps
+
+
+mobilePostView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
+mobilePostView globals spaceUsers model data component =
+    let
+        config =
+            { globals = globals
+            , space = data.space
+            , currentUser = data.viewer
+            , now = model.now
+            , spaceUsers = spaceUsers
+            , showGroups = True
+            }
+    in
+    div [ class "py-4" ]
+        [ component
+            |> Component.Post.view config
+            |> Html.map (PostComponentMsg component.id)
         ]
 
 
@@ -466,36 +614,6 @@ filterTab device label state linkParams currentParams =
             ]
         ]
         [ text label ]
-
-
-postsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-postsView globals spaceUsers model data =
-    if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
-            [ text "You're all caught up!" ]
-
-    else
-        div [] <|
-            Connection.mapList (postView globals spaceUsers model data) model.postComps
-
-
-postView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-postView globals spaceUsers model data component =
-    let
-        config =
-            { globals = globals
-            , space = data.space
-            , currentUser = data.viewer
-            , now = model.now
-            , spaceUsers = spaceUsers
-            , showGroups = True
-            }
-    in
-    div [ class "py-4" ]
-        [ component
-            |> Component.Post.view config
-            |> Html.map (PostComponentMsg component.id)
-        ]
 
 
 paginationView : Params -> Connection a -> Html Msg
