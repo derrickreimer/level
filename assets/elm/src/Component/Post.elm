@@ -1363,6 +1363,7 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
                             , onInput NewReplyBodyChanged
                             , onKeydown preventDefault
                                 [ ( [ Meta ], enter, \event -> NewReplySubmit )
+                                , ( [ Shift, Meta ], enter, \event -> NewReplyAndCloseSubmit )
                                 , ( [], esc, \event -> NewReplyEscaped )
                                 ]
                             , onBlur NewReplyBlurred
