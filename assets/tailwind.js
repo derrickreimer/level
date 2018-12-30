@@ -273,7 +273,7 @@ module.exports = {
     'tightest': 1.125,
     'tighter': 1.20,
     'tight': 1.25,
-    'normal': 1.5,
+    'normal': 1.45,
     'semi-loose': 1.7,
     'loose': 2,
   },

@@ -691,7 +691,7 @@ update msg globals model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 100
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
 
                         Nothing ->
                             Cmd.none
@@ -706,7 +706,7 @@ update msg globals model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 100
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
 
                         Nothing ->
                             Cmd.none

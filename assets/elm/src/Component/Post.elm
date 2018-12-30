@@ -1097,7 +1097,7 @@ groupsLabel : Space -> List Group -> Html Msg
 groupsLabel space groups =
     case groups of
         [ group ] ->
-            div [ class "mb-1 mr-3 text-sm text-dusty-blue-dark" ]
+            div [ class "mb-1p5 mr-3 text-sm text-dusty-blue-dark" ]
                 [ text "Posted to "
                 , a
                     [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
@@ -1113,7 +1113,7 @@ groupsLabel space groups =
 bodyView : Space -> Post -> Html Msg
 bodyView space post =
     div []
-        [ div [ class "markdown mb-1p5" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        [ div [ class "markdown mb-1" ] [ RenderedHtml.node (Post.bodyHtml post) ]
         , staticFilesView (Post.files post)
         ]
 
@@ -1219,7 +1219,7 @@ replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
-                            [ div [ class "markdown mb-1p5" ]
+                            [ div [ class "markdown mb-1" ]
                                 [ RenderedHtml.node (Reply.bodyHtml reply)
                                 ]
                             , staticFilesView (Reply.files reply)
