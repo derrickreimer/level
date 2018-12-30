@@ -602,7 +602,7 @@ resolvedDesktopView globals spaceUsers model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
+            [ div [ class "sticky pin-t mb-3 px-4 pt-4 bg-white z-50" ]
                 [ div [ class "trans-border-b-grey" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Inbox" ]
@@ -649,8 +649,9 @@ desktopPostView globals spaceUsers model data component =
     in
     div
         [ classList
-            [ ( "mb-3 py-4 px-3 border-l-3", True )
+            [ ( "mb-3 py-4 px-3 border-l", True )
             , ( "border-transparent", not isSelected )
+            , ( "border-turquoise", isSelected )
             ]
         ]
         [ component

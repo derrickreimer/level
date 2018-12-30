@@ -972,7 +972,7 @@ resolvedView config model data =
     in
     div [ id (postNodeId model.postId), class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
-        , div [ class "flex-grow min-w-0 leading-semi-loose" ]
+        , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "flex items-center flex-wrap" ]
                 [ div []
                     [ postAuthorName config.space model.postId data.author
@@ -1206,7 +1206,7 @@ replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 rounded pin-t pin-b bg-turquoise flex-no-shrink" ] []
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
-                , div [ class "flex-grow leading-semi-loose" ]
+                , div [ class "flex-grow leading-normal" ]
                     [ div [ class "flex items-baseline" ]
                         [ replyAuthorName space author
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]

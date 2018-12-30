@@ -942,7 +942,7 @@ resolvedDesktopView globals spaceUsers model data =
                         [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
                         ]
                     ]
-            , div [ class "sticky flex items-baseline mb-4 border-b" ]
+            , div [ class "sticky flex items-baseline mb-4 mx-4 border-b" ]
                 [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
@@ -1098,7 +1098,7 @@ desktopPostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
-            , showGroups = True
+            , showGroups = False
             }
 
         isSelected =
@@ -1106,8 +1106,9 @@ desktopPostView globals spaceUsers model data component =
     in
     div
         [ classList
-            [ ( "mb-3 py-4 px-3 border-l-3", True )
+            [ ( "mb-3 py-4 px-3 border-l", True )
             , ( "border-transparent", not isSelected )
+            , ( "border-turquoise", isSelected )
             ]
         ]
         [ component
@@ -1189,7 +1190,7 @@ mobilePostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
-            , showGroups = True
+            , showGroups = False
             }
     in
     div [ class "py-4" ]
