@@ -16,7 +16,7 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import KeyboardShortcuts
+import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
@@ -43,7 +43,7 @@ import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
-import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
 
@@ -226,6 +226,7 @@ type Msg
     | SelectPrevPost
     | SelectNextPost
     | DismissCurrentPost
+    | MarkCurrentPostAsRead
     | ExpandReplyComposer
       -- MOBILE
     | NavToggled
@@ -247,7 +248,14 @@ update msg globals model =
                 |> noCmd globals
 
         PostsMarkedAsRead (Ok ( newSession, _ )) ->
-            ( ( model, Cmd.none ), { globals | session = newSession } )
+            let
+                newGlobals =
+                    { globals
+                        | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash
+                        , session = newSession
+                    }
+            in
+            ( ( model, Cmd.none ), newGlobals )
 
         PostsMarkedAsRead _ ->
             noCmd globals model
@@ -287,7 +295,7 @@ update msg globals model =
                 ( ( model, cmd ), globals )
 
         PostsDismissed _ ->
-            noCmd { globals | flash = Flash.set Flash.Notice "Posts dismissed" 3000 globals.flash } model
+            noCmd { globals | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash } model
 
         PushSubscribeClicked ->
             ( ( model, PushManager.subscribe ), globals )
@@ -399,6 +407,20 @@ update msg globals model =
                             globals.session
                                 |> DismissPosts.request model.spaceId [ currentPost.postId ]
                                 |> Task.attempt PostsDismissed
+                    in
+                    ( ( model, cmd ), globals )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
+        MarkCurrentPostAsRead ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        cmd =
+                            globals.session
+                                |> MarkAsRead.request model.spaceId [ currentPost.postId ]
+                                |> Task.attempt PostsMarkedAsRead
                     in
                     ( ( model, cmd ), globals )
 
@@ -523,13 +545,14 @@ subscriptions =
     Sub.batch
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
-            [ ( "y", DismissPostsClicked )
-            , ( "/", ExpandSearchEditor )
-            , ( "j", SelectNextPost )
-            , ( "k", SelectPrevPost )
-            , ( "e", DismissCurrentPost )
-            , ( "r", ExpandReplyComposer )
-            , ( "Enter", ExpandReplyComposer )
+            [ ( "y", [], DismissPostsClicked )
+            , ( "/", [], ExpandSearchEditor )
+            , ( "j", [], SelectNextPost )
+            , ( "k", [], SelectPrevPost )
+            , ( "e", [], DismissCurrentPost )
+            , ( "e", [ Meta ], MarkCurrentPostAsRead )
+            , ( "r", [], ExpandReplyComposer )
+            , ( "Enter", [], ExpandReplyComposer )
             ]
         ]
 

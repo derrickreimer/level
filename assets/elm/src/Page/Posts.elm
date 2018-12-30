@@ -16,11 +16,12 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import KeyboardShortcuts
+import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.DismissPosts as DismissPosts
+import Mutation.MarkAsRead as MarkAsRead
 import Pagination
 import Post exposing (Post)
 import Query.PostsInit as PostsInit
@@ -175,10 +176,12 @@ type Msg
     | SearchEditorChanged String
     | SearchSubmitted
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
+    | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
       -- KEYBOARD SHORTCUTS
     | SelectPrevPost
     | SelectNextPost
     | DismissCurrentPost
+    | MarkCurrentPostAsRead
     | ExpandReplyComposer
       -- MOBILE
     | NavToggled
@@ -253,7 +256,10 @@ update msg globals model =
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
         PostsDismissed _ ->
-            noCmd { globals | flash = Flash.set Flash.Notice "Posts dismissed" 3000 globals.flash } model
+            noCmd { globals | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash } model
+
+        PostsMarkedAsRead _ ->
+            noCmd { globals | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash } model
 
         SelectPrevPost ->
             let
@@ -293,6 +299,20 @@ update msg globals model =
                             globals.session
                                 |> DismissPosts.request model.spaceId [ currentPost.postId ]
                                 |> Task.attempt PostsDismissed
+                    in
+                    ( ( model, cmd ), globals )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
+        MarkCurrentPostAsRead ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        cmd =
+                            globals.session
+                                |> MarkAsRead.request model.spaceId [ currentPost.postId ]
+                                |> Task.attempt PostsMarkedAsRead
                     in
                     ( ( model, cmd ), globals )
 
@@ -377,12 +397,13 @@ subscriptions =
     Sub.batch
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
-            [ ( "/", ExpandSearchEditor )
-            , ( "j", SelectNextPost )
-            , ( "k", SelectPrevPost )
-            , ( "e", DismissCurrentPost )
-            , ( "r", ExpandReplyComposer )
-            , ( "Enter", ExpandReplyComposer )
+            [ ( "/", [], ExpandSearchEditor )
+            , ( "j", [], SelectNextPost )
+            , ( "k", [], SelectPrevPost )
+            , ( "e", [], DismissCurrentPost )
+            , ( "e", [ Meta ], MarkCurrentPostAsRead )
+            , ( "r", [], ExpandReplyComposer )
+            , ( "Enter", [], ExpandReplyComposer )
             ]
         ]
 

@@ -17,7 +17,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
-import KeyboardShortcuts
+import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
@@ -25,6 +25,7 @@ import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CloseGroup as CloseGroup
 import Mutation.CreatePost as CreatePost
 import Mutation.DismissPosts as DismissPosts
+import Mutation.MarkAsRead as MarkAsRead
 import Mutation.ReopenGroup as ReopenGroup
 import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
@@ -53,7 +54,7 @@ import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
 import ValidationError exposing (ValidationError)
-import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
 
@@ -246,10 +247,12 @@ type Msg
     | ReopenClicked
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
+    | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
       -- KEYBOARD SHORTCUTS
     | SelectPrevPost
     | SelectNextPost
     | DismissCurrentPost
+    | MarkCurrentPostAsRead
     | ExpandReplyComposer
     | FocusOnComposer
       -- MOBILE
@@ -675,7 +678,10 @@ update msg globals model =
             noCmd globals model
 
         PostsDismissed _ ->
-            noCmd { globals | flash = Flash.set Flash.Notice "Posts dismissed" 3000 globals.flash } model
+            noCmd { globals | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash } model
+
+        PostsMarkedAsRead _ ->
+            noCmd { globals | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash } model
 
         SelectPrevPost ->
             let
@@ -715,6 +721,20 @@ update msg globals model =
                             globals.session
                                 |> DismissPosts.request model.spaceId [ currentPost.postId ]
                                 |> Task.attempt PostsDismissed
+                    in
+                    ( ( model, cmd ), globals )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
+        MarkCurrentPostAsRead ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        cmd =
+                            globals.session
+                                |> MarkAsRead.request model.spaceId [ currentPost.postId ]
+                                |> Task.attempt PostsMarkedAsRead
                     in
                     ( ( model, cmd ), globals )
 
@@ -847,13 +867,14 @@ subscriptions =
     Sub.batch
         [ every 1000 Tick
         , KeyboardShortcuts.subscribe
-            [ ( "/", ExpandSearchEditor )
-            , ( "j", SelectNextPost )
-            , ( "k", SelectPrevPost )
-            , ( "e", DismissCurrentPost )
-            , ( "r", ExpandReplyComposer )
-            , ( "Enter", ExpandReplyComposer )
-            , ( "c", FocusOnComposer )
+            [ ( "/", [], ExpandSearchEditor )
+            , ( "j", [], SelectNextPost )
+            , ( "k", [], SelectPrevPost )
+            , ( "e", [], DismissCurrentPost )
+            , ( "e", [ Meta ], MarkCurrentPostAsRead )
+            , ( "r", [], ExpandReplyComposer )
+            , ( "Enter", [], ExpandReplyComposer )
+            , ( "c", [], FocusOnComposer )
             ]
         , PostEditor.receive PostEditorEventReceived
         ]
@@ -1037,7 +1058,7 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
                         , class "w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
-                        , onKeydown preventDefault [ ( [ Meta ], enter, \event -> NewPostSubmit ) ]
+                        , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]
                         , readonly (PostEditor.isSubmitting editor)
                         , value (PostEditor.getBody editor)
                         ]
