@@ -190,12 +190,12 @@
     }
 
     .text-xl {
-      font-size: 34px;
+      font-size: 30px;
       line-height: 1.2;
     }
 
     .text-lg {
-      font-size: 22px;
+      font-size: 20px;
     }
 
     .text-base {
@@ -270,8 +270,16 @@
       padding: 0;
     }
 
+    .p-25px {
+      padding: 25px;
+    }
+
     .pb-0 {
       padding-bottom: 0;
+    }
+
+    .pb-15px {
+      padding-bottom: 15px;
     }
 
     .pb-35px {
@@ -299,10 +307,6 @@
 
     .p-24x30 {
       padding: 24px 30px;
-    }
-
-    .p-25px {
-      padding: 25px;
     }
 
     .w-32px {
@@ -384,9 +388,9 @@
               <td>
                 <table class="container-570" width="570" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td class="p-25px">
+                    <td class="p-25px pb-15px">
                       <a href="https://level.app/">
-                        <img src="<%= static_url(LevelWeb.Endpoint, "/images/logo-200.png") %>" alt="Level" style="width: 100px; height: 22px;">
+                        <img src="<%= static_url(LevelWeb.Endpoint, "/images/logo-stripes.png") %>" alt="Level" style="width: 30px; height: 18px;">
                       </a>
                     </td>
                   </tr>
