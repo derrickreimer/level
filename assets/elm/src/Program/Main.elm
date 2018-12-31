@@ -971,6 +971,9 @@ pageSubscription page =
         Search _ ->
             Sub.map SearchMsg Page.Search.subscriptions
 
+        WelcomeTutorial _ ->
+            Sub.map WelcomeTutorialMsg Page.WelcomeTutorial.subscriptions
+
         _ ->
             Sub.none
 

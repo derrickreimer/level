@@ -1,4 +1,4 @@
-module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
+module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Browser.Navigation as Nav
 import Clipboard
@@ -13,6 +13,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import KeyboardShortcuts
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
@@ -83,7 +84,7 @@ defaultGroups =
 
 stepCount : Int
 stepCount =
-    9
+    7
 
 
 
@@ -199,26 +200,34 @@ update msg globals model =
             noCmd globals model
 
         BackUp ->
-            let
-                newParams =
-                    model.params
-                        |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params - 1)
+            if Route.WelcomeTutorial.getStep model.params > 1 then
+                let
+                    newParams =
+                        model.params
+                            |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params - 1)
 
-                cmd =
-                    Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
-            in
-            ( ( model, cmd ), globals )
+                    cmd =
+                        Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
+                in
+                ( ( model, cmd ), globals )
+
+            else
+                ( ( model, Cmd.none ), globals )
 
         Advance ->
-            let
-                newParams =
-                    model.params
-                        |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params + 1)
+            if Route.WelcomeTutorial.getStep model.params < stepCount then
+                let
+                    newParams =
+                        model.params
+                            |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params + 1)
 
-                cmd =
-                    Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
-            in
-            ( ( model, cmd ), globals )
+                    cmd =
+                        Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
+                in
+                ( ( model, cmd ), globals )
+
+            else
+                ( ( model, Cmd.none ), globals )
 
         SkipClicked ->
             let
@@ -375,6 +384,20 @@ consumeEvent event model =
 
 
 
+-- SUBSCRIPTIONS
+
+
+subscriptions : Sub Msg
+subscriptions =
+    Sub.batch
+        [ KeyboardShortcuts.subscribe
+            [ ( "ArrowLeft", [], BackUp )
+            , ( "ArrowRight", [], Advance )
+            ]
+        ]
+
+
+
 -- VIEW
 
 
@@ -419,9 +442,7 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div
             [ classList
-                [ ( "mx-auto leading-normal p-8", True )
-                , ( "max-w-sm", step /= 6 )
-                , ( "max-w-md", step == 6 )
+                [ ( "mx-auto leading-normal p-8 max-w-sm", True )
                 ]
             ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
@@ -474,7 +495,9 @@ headerView : Int -> Data -> Html Msg
 headerView step data =
     if step == 1 then
         h1 [ class "mt-16 mb-6 font-bold tracking-semi-tight text-4xl leading-tighter text-dusty-blue-darkest" ]
-            [ text <| "Welcome to Level, " ++ SpaceUser.firstName data.viewer ]
+            [ div [] [ text "Welcome to Level," ]
+            , div [] [ text <| SpaceUser.firstName data.viewer ]
+            ]
 
     else
         div []
@@ -522,8 +545,8 @@ stepView device step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups keep your conversations organized." ]
-                , p [ class "mb-6" ] [ text "Similar to channels, Groups are where you can post messages to a team or around a particular topic." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups organize your conversations." ]
+                , p [ class "mb-6" ] [ text "Groups are used to organize conversations around teams, projects, or other topics. We recommend starting with team-based Groups and adding more later as needs arise." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
                     div []
@@ -535,34 +558,25 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Every conversation is threaded." ]
-                , p [ class "mb-6" ] [ text "Chat timelines are terrible for organizing productive discourse. In Level, every conversation is structured as a thread." ]
-                , p [ class "mb-6" ] [ text "Once a conversation is done, you can ", strong [] [ text "mark it as resolved" ], text " to let the rest of the team know it’s finished." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your to-do list." ]
+                , p [ class "mb-6" ] [ text "In reality, it’s impossible to follow every conversation in your organization." ]
+                , p [ class "mb-6" ] [ text "The Inbox is designed combat information overload and prevent important discussions from slipping through the cracks." ]
+                , p [ class "mb-6" ] [ text "Posts move into your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
+                , p [ class "mb-6" ] [ text "When you’re finished with a post, you can dismiss it from your Inbox—it’ll automatically move back in if more activity occurs later." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
-                , p [ class "mb-6" ] [ text "Once your team grows large enough, it’s impossible to keep up with every conversation." ]
-                , p [ class "mb-6" ] [ text "To combat information overload, everyone has their own curated Inbox designed to prevent important discussions from slipping through the cracks." ]
-                , p [ class "mb-6" ] [ text "Posts will land in your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
-                , p [ class "mb-6" ] [ text "You can safely dismiss posts from your Inbox when you’re done with them—they’ll move back to your Inbox if more activity occurs later." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed keeps you in the loop." ]
+                , p [ class "mb-6" ] [ text "Your personalized Feed includes all messages posted in groups that you have joined." ]
+                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse the Feed to find out what else is happening around the space (but you shouldn’t feel pressure to follow everything)." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
         5 ->
-            div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Your Activity Feed keeps you in the loop." ]
-                , p [ class "mb-6" ] [ text "Your Activity Feed includes all messages posted in groups that you have joined." ]
-                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse your feed to find out what else is happening around the space—but you shouldn’t feel pressure to follow everything." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Previous"
-                ]
-
-        6 ->
             let
                 nudgesConfig =
                     View.Nudges.Config NudgeToggled model.nudges model.timeZone
@@ -579,7 +593,7 @@ stepView device step model data =
                 , backButton "Previous"
                 ]
 
-        7 ->
+        6 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
@@ -589,7 +603,7 @@ stepView device step model data =
                 , backButton "Previous"
                 ]
 
-        8 ->
+        7 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
@@ -617,7 +631,7 @@ inboxRoute params =
 createGroupsView : Model -> Html Msg
 createGroupsView model =
     div []
-        [ p [ class "mb-6" ] [ text "To kick things off, let’s create some Groups now. Here are a few common ones to choose from. Of course, you can always create more later." ]
+        [ p [ class "mb-6" ] [ text "To kick things off, let’s create some Groups now. Here are a few common ones to choose from." ]
         , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
         , div [ class "mb-4 pb-6 border-b" ]
             [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next step" ]
