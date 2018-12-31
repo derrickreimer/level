@@ -211,8 +211,8 @@ resolvedDesktopView globals model data =
                     ]
                 ]
             , div [ class "flex items-baseline mx-4 mb-4 border-b" ]
-                [ filterTab "Open" Route.Groups.Open (openParams model.params) model.params
-                , filterTab "Closed" Route.Groups.Closed (closedParams model.params) model.params
+                [ filterTab Device.Desktop "Open" Route.Groups.Open (openParams model.params) model.params
+                , filterTab Device.Desktop "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
             , groupsView globals.repo model.params data.space model.groupIds
             ]
@@ -251,8 +251,8 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab "Open" Route.Groups.Open (openParams model.params) model.params
-                , filterTab "Closed" Route.Groups.Closed (closedParams model.params) model.params
+                [ filterTab Device.Mobile "Open" Route.Groups.Open (openParams model.params) model.params
+                , filterTab Device.Mobile "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
             , div [ class "p-2" ] [ groupsView globals.repo model.params data.space model.groupIds ]
             ]
@@ -263,8 +263,8 @@ resolvedMobileView globals model data =
 -- SHARED
 
 
-filterTab : String -> Route.Groups.State -> Params -> Params -> Html Msg
-filterTab label state linkParams currentParams =
+filterTab : Device -> String -> Route.Groups.State -> Params -> Params -> Html Msg
+filterTab device label state linkParams currentParams =
     let
         isCurrent =
             Route.Groups.getState currentParams == state
@@ -275,7 +275,7 @@ filterTab label state linkParams currentParams =
             [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            , ( "text-center min-w-100px", True )
+            , ( "text-center min-w-100px", device == Device.Mobile )
             ]
         ]
         [ text label ]

@@ -943,8 +943,8 @@ resolvedDesktopView globals spaceUsers model data =
                         ]
                     ]
             , div [ class "sticky flex items-baseline mb-4 mx-4 border-b" ]
-                [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
-                , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
+                [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
+                , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
             , desktopPostsView globals spaceUsers model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView model.params data.space data.group data.featuredMembers)
@@ -1143,8 +1143,8 @@ resolvedMobileView globals spaceUsers model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab "Open" Route.Group.Open (openParams model.params) model.params
-                , filterTab "Resolved" Route.Group.Closed (closedParams model.params) model.params
+                [ filterTab Device.Mobile "Open" Route.Group.Open (openParams model.params) model.params
+                , filterTab Device.Mobile "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
             , viewIf (Group.state data.group == Group.Closed) <|
                 p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
@@ -1204,8 +1204,8 @@ mobilePostView globals spaceUsers model data component =
 -- SHARED
 
 
-filterTab : String -> Route.Group.State -> Params -> Params -> Html Msg
-filterTab label state linkParams currentParams =
+filterTab : Device -> String -> Route.Group.State -> Params -> Params -> Html Msg
+filterTab device label state linkParams currentParams =
     let
         isCurrent =
             Route.Group.getState currentParams == state
@@ -1216,7 +1216,7 @@ filterTab label state linkParams currentParams =
             [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            , ( "text-center min-w-100px", True )
+            , ( "text-center min-w-100px", device == Device.Mobile )
             ]
         ]
         [ text label ]

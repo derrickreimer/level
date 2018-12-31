@@ -403,9 +403,9 @@ resolvedDesktopView globals model data =
                 [ h1 [ class "font-bold tracking-semi-tight text-3xl" ] [ text "Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
-                [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
+                [ filterTab Device.Desktop "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
                 , viewIf (Space.canUpdate data.space) <|
-                    filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
+                    filterTab Device.Desktop "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
             , viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
                 preferencesView Device.Desktop model data
@@ -441,9 +441,9 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 pt-2 border-b" ]
-                [ filterTab "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
+                [ filterTab Device.Mobile "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
                 , viewIf (Space.canUpdate data.space) <|
-                    filterTab "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
+                    filterTab Device.Mobile "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
             , div [ class "p-4" ]
                 [ viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
@@ -564,8 +564,8 @@ spaceSettingsView model data =
         ]
 
 
-filterTab : String -> Route.Settings.Section -> Params -> Params -> Html Msg
-filterTab label section linkParams currentParams =
+filterTab : Device -> String -> Route.Settings.Section -> Params -> Params -> Html Msg
+filterTab device label section linkParams currentParams =
     let
         isCurrent =
             Route.Settings.getSection currentParams == section
@@ -576,7 +576,7 @@ filterTab label section linkParams currentParams =
             [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            , ( "text-center min-w-120px", True )
+            , ( "text-center min-w-120px", device == Device.Mobile )
             ]
         ]
         [ text label ]
