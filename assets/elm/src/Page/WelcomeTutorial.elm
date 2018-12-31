@@ -1,4 +1,4 @@
-module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Browser.Navigation as Nav
 import Clipboard
@@ -188,7 +188,6 @@ type Msg
     | NudgeToggled Int
     | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
     | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
-    | KeyPressed KeyboardShortcuts.Event
       -- MOBILE
     | NavToggled
     | ScrollTopClicked
@@ -326,17 +325,6 @@ update msg globals model =
         NudgeDeleted _ ->
             noCmd globals model
 
-        KeyPressed { key, modifiers } ->
-            case ( key, modifiers ) of
-                ( "ArrowLeft", [] ) ->
-                    backUp globals model
-
-                ( "ArrowRight", [] ) ->
-                    advance globals model
-
-                _ ->
-                    ( ( model, Cmd.none ), globals )
-
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -405,15 +393,26 @@ consumeEvent event model =
             ( model, Cmd.none )
 
 
+consumeKeyboardEvent : Globals -> KeyboardShortcuts.Event -> Model -> ( ( Model, Cmd Msg ), Globals )
+consumeKeyboardEvent globals event model =
+    case ( event.key, event.modifiers ) of
+        ( "ArrowLeft", [] ) ->
+            backUp globals model
+
+        ( "ArrowRight", [] ) ->
+            advance globals model
+
+        _ ->
+            ( ( model, Cmd.none ), globals )
+
+
 
 -- SUBSCRIPTIONS
 
 
 subscriptions : Sub Msg
 subscriptions =
-    Sub.batch
-        [ KeyboardShortcuts.subscribe KeyPressed
-        ]
+    Sub.none
 
 
 

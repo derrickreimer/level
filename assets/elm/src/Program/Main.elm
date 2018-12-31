@@ -12,6 +12,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (decodeString)
+import KeyboardShortcuts exposing (Modifier(..))
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
@@ -230,6 +231,7 @@ type Msg
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
     | PresenceIn Decode.Value
     | FlashExpired Flash.Key
+    | KeyPressed KeyboardShortcuts.Event
 
 
 updatePage : (a -> Page) -> (b -> Msg) -> Model -> ( a, Cmd b ) -> ( Model, Cmd Msg )
@@ -469,6 +471,14 @@ update msg model =
                     Flash.expire key model.flash
             in
             ( { model | flash = newFlash }, Cmd.none )
+
+        ( KeyPressed event, _ ) ->
+            case ( event.key, event.modifiers ) of
+                ( "g", [] ) ->
+                    ( model, Cmd.none )
+
+                _ ->
+                    sendKeyboardEventToPage globals event model
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
@@ -1389,6 +1399,33 @@ sendEventToPage globals event model =
             ( model, Cmd.none )
 
 
+sendKeyboardEventToPage : Globals -> KeyboardShortcuts.Event -> Model -> ( Model, Cmd Msg )
+sendKeyboardEventToPage globals event model =
+    case model.page of
+        Inbox pageModel ->
+            pageModel
+                |> Page.Inbox.consumeKeyboardEvent globals event
+                |> updatePageWithGlobals Inbox InboxMsg model
+
+        Posts pageModel ->
+            pageModel
+                |> Page.Posts.consumeKeyboardEvent globals event
+                |> updatePageWithGlobals Posts PostsMsg model
+
+        Group pageModel ->
+            pageModel
+                |> Page.Group.consumeKeyboardEvent globals event
+                |> updatePageWithGlobals Group GroupMsg model
+
+        WelcomeTutorial pageModel ->
+            pageModel
+                |> Page.WelcomeTutorial.consumeKeyboardEvent globals event
+                |> updatePageWithGlobals WelcomeTutorial WelcomeTutorialMsg model
+
+        _ ->
+            ( model, Cmd.none )
+
+
 sendPresenceToPage : Presence.Event -> Model -> ( Model, Cmd Msg )
 sendPresenceToPage event model =
     case model.page of
@@ -1411,6 +1448,7 @@ subscriptions model =
         [ Socket.receive SocketIn
         , PushManager.receive PushManagerIn
         , Presence.receive PresenceIn
+        , KeyboardShortcuts.subscribe KeyPressed
         , pageSubscription model.page
         ]
 
