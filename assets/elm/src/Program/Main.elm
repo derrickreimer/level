@@ -498,6 +498,15 @@ update msg model =
                     else
                         sendKeyboardEventToPage globals event { model | going = False }
 
+                ( "f", [], Just spaceSlug ) ->
+                    if model.going then
+                        ( { model | going = False }
+                        , Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug)
+                        )
+
+                    else
+                        sendKeyboardEventToPage globals event { model | going = False }
+
                 _ ->
                     sendKeyboardEventToPage globals event { model | going = False }
 
