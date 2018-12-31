@@ -43,8 +43,18 @@ import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Response exposing (Response)
 import Route exposing (Route)
+import Route.Group
+import Route.GroupSettings
 import Route.Groups
+import Route.Help
 import Route.Inbox
+import Route.NewGroupPost
+import Route.Posts
+import Route.Search
+import Route.Settings
+import Route.SpaceUser
+import Route.SpaceUsers
+import Route.WelcomeTutorial
 import Session exposing (Session)
 import Socket
 import SocketState exposing (SocketState(..))
@@ -91,6 +101,7 @@ type alias Model =
     , currentUser : Lazy User
     , timeZone : String
     , flash : Flash
+    , going : Bool
     }
 
 
@@ -142,6 +153,7 @@ buildModel flags navKey =
         NotLoaded
         flags.timeZone
         Flash.init
+        False
 
 
 setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
@@ -473,12 +485,21 @@ update msg model =
             ( { model | flash = newFlash }, Cmd.none )
 
         ( KeyPressed event, _ ) ->
-            case ( event.key, event.modifiers ) of
-                ( "g", [] ) ->
-                    ( model, Cmd.none )
+            case ( event.key, event.modifiers, getSpaceSlug model.page ) of
+                ( "g", [], _ ) ->
+                    ( { model | going = True }, Cmd.none )
+
+                ( "i", [], Just spaceSlug ) ->
+                    if model.going then
+                        ( { model | going = False }
+                        , Route.pushUrl model.navKey (Route.Inbox <| Route.Inbox.init spaceSlug)
+                        )
+
+                    else
+                        sendKeyboardEventToPage globals event { model | going = False }
 
                 _ ->
-                    sendKeyboardEventToPage globals event model
+                    sendKeyboardEventToPage globals event { model | going = False }
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
@@ -1044,6 +1065,70 @@ routeFor page =
 
         Help { params } ->
             Just <| Route.Help params
+
+        Blank ->
+            Nothing
+
+        NotFound ->
+            Nothing
+
+
+getSpaceSlug : Page -> Maybe String
+getSpaceSlug page =
+    case page of
+        Spaces _ ->
+            Nothing
+
+        NewSpace _ ->
+            Nothing
+
+        Posts { params } ->
+            Just <| Route.Posts.getSpaceSlug params
+
+        Inbox { params } ->
+            Just <| Route.Inbox.getSpaceSlug params
+
+        SpaceUser { params } ->
+            Just <| Route.SpaceUser.getSpaceSlug params
+
+        SpaceUsers { params } ->
+            Just <| Route.SpaceUsers.getSpaceSlug params
+
+        InviteUsers { spaceSlug } ->
+            Just spaceSlug
+
+        Groups { params } ->
+            Just <| Route.Groups.getSpaceSlug params
+
+        Group { params } ->
+            Just <| Route.Group.getSpaceSlug params
+
+        NewGroupPost { params } ->
+            Just <| Route.NewGroupPost.getSpaceSlug params
+
+        NewGroup { spaceSlug } ->
+            Just spaceSlug
+
+        GroupSettings { params } ->
+            Just <| Route.GroupSettings.getSpaceSlug params
+
+        Post { spaceSlug, postComp } ->
+            Just spaceSlug
+
+        UserSettings _ ->
+            Nothing
+
+        SpaceSettings { params } ->
+            Just <| Route.Settings.getSpaceSlug params
+
+        Search { params } ->
+            Just <| Route.Search.getSpaceSlug params
+
+        WelcomeTutorial { params } ->
+            Just <| Route.WelcomeTutorial.getSpaceSlug params
+
+        Help { params } ->
+            Just <| Route.Help.getSpaceSlug params
 
         Blank ->
             Nothing
