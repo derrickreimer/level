@@ -458,7 +458,7 @@ resolvedDesktopView globals spaceUsers model data =
                     [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
                     , controlsView model
                     ]
-                , div [ class "flex items-baseline trans-border-b-grey" ]
+                , div [ class "flex items-baseline trans-border-b-grey relative -pin-b-1px" ]
                     [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
                     , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
@@ -533,12 +533,12 @@ desktopPostView globals spaceUsers model data component =
     in
     div
         [ classList
-            [ ( "mb-3 py-4 px-3 border-l", True )
-            , ( "border-transparent", not isSelected )
-            , ( "border-turquoise", isSelected )
+            [ ( "relative mb-3 p-4", True )
             ]
         ]
-        [ component
+        [ viewIf isSelected <|
+            div [ class "absolute w-1 rounded-full pin-t pin-b pin-l bg-dusty-blue" ] []
+        , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
         ]

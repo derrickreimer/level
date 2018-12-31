@@ -1106,12 +1106,12 @@ desktopPostView globals spaceUsers model data component =
     in
     div
         [ classList
-            [ ( "mb-3 py-4 px-3 border-l", True )
-            , ( "border-transparent", not isSelected )
-            , ( "border-turquoise", isSelected )
+            [ ( "relative mb-3 p-4", True )
             ]
         ]
-        [ component
+        [ viewIf isSelected <|
+            div [ class "absolute w-1 rounded-full pin-t pin-b pin-l bg-dusty-blue" ] []
+        , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
         ]

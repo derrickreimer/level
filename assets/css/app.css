@@ -652,6 +652,10 @@ post-editor.dragging-over > * {
   top: 62px;
 }
 
+.-pin-b-1px {
+  bottom: -1px;
+}
+
 .outline-grey {
   box-shadow: 0 0 0 1px config('colors.grey');
 }
