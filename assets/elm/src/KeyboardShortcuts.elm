@@ -1,4 +1,4 @@
-module KeyboardShortcuts exposing (Modifier(..), subscribe)
+module KeyboardShortcuts exposing (Event, Modifier(..), subscribe)
 
 import Browser.Events
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, string, succeed)
@@ -8,7 +8,7 @@ type alias Shortcuts msg =
     List ( String, List Modifier, msg )
 
 
-type alias KeyboardEvent =
+type alias Event =
     { key : String
     , modifiers : List Modifier
     }
@@ -25,23 +25,23 @@ type Modifier
 -- API
 
 
-subscribe : Shortcuts msg -> Sub msg
-subscribe shortcuts =
-    Browser.Events.onKeyDown (decoder shortcuts)
+subscribe : (Event -> msg) -> Sub msg
+subscribe toMsg =
+    Browser.Events.onKeyDown (decoder toMsg)
 
 
 
 -- INTERNAL
 
 
-decoder : Shortcuts msg -> Decoder msg
-decoder shortcuts =
+decoder : (Event -> msg) -> Decoder msg
+decoder toMsg =
     Decode.at [ "target", "nodeName" ] Decode.string
-        |> Decode.andThen (filterByTag shortcuts)
+        |> Decode.andThen (filterByTag toMsg)
 
 
-filterByTag : Shortcuts msg -> String -> Decoder msg
-filterByTag shortcuts tag =
+filterByTag : (Event -> msg) -> String -> Decoder msg
+filterByTag toMsg tag =
     case tag of
         "TEXTAREA" ->
             ignoredTag "TEXTAREA"
@@ -53,24 +53,7 @@ filterByTag shortcuts tag =
             ignoredTag "SELECT"
 
         _ ->
-            eventDecoder
-                |> Decode.andThen (msgDecoder shortcuts)
-
-
-msgDecoder : Shortcuts msg -> KeyboardEvent -> Decoder msg
-msgDecoder shortcuts event =
-    let
-        shortcut =
-            shortcuts
-                |> List.filter (\( key, modifiers, _ ) -> event.key == key && modifiers == event.modifiers)
-                |> List.head
-    in
-    case shortcut of
-        Just ( _, _, msg ) ->
-            succeed msg
-
-        Nothing ->
-            unrecognizedKey event.key
+            Decode.map toMsg eventDecoder
 
 
 ignoredTag : String -> Decoder msg
@@ -78,14 +61,9 @@ ignoredTag tag =
     fail ("shortcut keys ignored in " ++ tag)
 
 
-unrecognizedKey : String -> Decoder msg
-unrecognizedKey key =
-    fail ("'" ++ key ++ "' is not a shortcut")
-
-
-eventDecoder : Decoder KeyboardEvent
+eventDecoder : Decoder Event
 eventDecoder =
-    Decode.map2 KeyboardEvent
+    Decode.map2 Event
         (field "key" string)
         modifierDecoder
 

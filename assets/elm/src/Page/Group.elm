@@ -248,13 +248,8 @@ type Msg
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
-      -- KEYBOARD SHORTCUTS
-    | SelectPrevPost
-    | SelectNextPost
-    | DismissCurrentPost
-    | MarkCurrentPostAsRead
-    | ExpandReplyComposer
     | FocusOnComposer
+    | KeyPressed KeyboardShortcuts.Event
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -595,11 +590,7 @@ update msg globals model =
             noCmd globals model
 
         ExpandSearchEditor ->
-            ( ( { model | searchEditor = FieldEditor.expand model.searchEditor }
-              , setFocus (FieldEditor.getNodeId model.searchEditor) NoOp
-              )
-            , globals
-            )
+            expandSearchEditor globals model
 
         CollapseSearchEditor ->
             ( ( { model | searchEditor = FieldEditor.collapse model.searchEditor }
@@ -683,81 +674,89 @@ update msg globals model =
         PostsMarkedAsRead _ ->
             noCmd { globals | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash } model
 
-        SelectPrevPost ->
-            let
-                newPostComps =
-                    Connection.selectPrev model.postComps
+        KeyPressed { key, modifiers } ->
+            case ( key, modifiers ) of
+                ( "/", [] ) ->
+                    expandSearchEditor globals model
 
-                cmd =
-                    case Connection.selected newPostComps of
-                        Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
-
-                        Nothing ->
-                            Cmd.none
-            in
-            ( ( { model | postComps = newPostComps }, cmd ), globals )
-
-        SelectNextPost ->
-            let
-                newPostComps =
-                    Connection.selectNext model.postComps
-
-                cmd =
-                    case Connection.selected newPostComps of
-                        Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
-
-                        Nothing ->
-                            Cmd.none
-            in
-            ( ( { model | postComps = newPostComps }, cmd ), globals )
-
-        DismissCurrentPost ->
-            case Connection.selected model.postComps of
-                Just currentPost ->
+                ( "k", [] ) ->
                     let
-                        cmd =
-                            globals.session
-                                |> DismissPosts.request model.spaceId [ currentPost.postId ]
-                                |> Task.attempt PostsDismissed
-                    in
-                    ( ( model, cmd ), globals )
-
-                Nothing ->
-                    ( ( model, Cmd.none ), globals )
-
-        MarkCurrentPostAsRead ->
-            case Connection.selected model.postComps of
-                Just currentPost ->
-                    let
-                        cmd =
-                            globals.session
-                                |> MarkAsRead.request model.spaceId [ currentPost.postId ]
-                                |> Task.attempt PostsMarkedAsRead
-                    in
-                    ( ( model, cmd ), globals )
-
-                Nothing ->
-                    ( ( model, Cmd.none ), globals )
-
-        ExpandReplyComposer ->
-            case Connection.selected model.postComps of
-                Just currentPost ->
-                    let
-                        ( ( newCurrentPost, compCmd ), newGlobals ) =
-                            Component.Post.expandReplyComposer globals model.spaceId currentPost
-
                         newPostComps =
-                            Connection.update .id newCurrentPost model.postComps
-                    in
-                    ( ( { model | postComps = newPostComps }
-                      , Cmd.map (PostComponentMsg currentPost.id) compCmd
-                      )
-                    , globals
-                    )
+                            Connection.selectPrev model.postComps
 
-                Nothing ->
+                        cmd =
+                            case Connection.selected newPostComps of
+                                Just currentPost ->
+                                    Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
+
+                                Nothing ->
+                                    Cmd.none
+                    in
+                    ( ( { model | postComps = newPostComps }, cmd ), globals )
+
+                ( "j", [] ) ->
+                    let
+                        newPostComps =
+                            Connection.selectNext model.postComps
+
+                        cmd =
+                            case Connection.selected newPostComps of
+                                Just currentPost ->
+                                    Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
+
+                                Nothing ->
+                                    Cmd.none
+                    in
+                    ( ( { model | postComps = newPostComps }, cmd ), globals )
+
+                ( "e", [] ) ->
+                    case Connection.selected model.postComps of
+                        Just currentPost ->
+                            let
+                                cmd =
+                                    globals.session
+                                        |> DismissPosts.request model.spaceId [ currentPost.postId ]
+                                        |> Task.attempt PostsDismissed
+                            in
+                            ( ( model, cmd ), globals )
+
+                        Nothing ->
+                            ( ( model, Cmd.none ), globals )
+
+                ( "e", [ Meta ] ) ->
+                    case Connection.selected model.postComps of
+                        Just currentPost ->
+                            let
+                                cmd =
+                                    globals.session
+                                        |> MarkAsRead.request model.spaceId [ currentPost.postId ]
+                                        |> Task.attempt PostsMarkedAsRead
+                            in
+                            ( ( model, cmd ), globals )
+
+                        Nothing ->
+                            ( ( model, Cmd.none ), globals )
+
+                ( "r", [] ) ->
+                    case Connection.selected model.postComps of
+                        Just currentPost ->
+                            let
+                                ( ( newCurrentPost, compCmd ), newGlobals ) =
+                                    Component.Post.expandReplyComposer globals model.spaceId currentPost
+
+                                newPostComps =
+                                    Connection.update .id newCurrentPost model.postComps
+                            in
+                            ( ( { model | postComps = newPostComps }
+                              , Cmd.map (PostComponentMsg currentPost.id) compCmd
+                              )
+                            , globals
+                            )
+
+                        Nothing ->
+                            ( ( model, Cmd.none ), globals )
+
+                _ ->
                     ( ( model, Cmd.none ), globals )
 
         FocusOnComposer ->
@@ -781,6 +780,15 @@ noCmd globals model =
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 redirectToLogin globals model =
     ( ( model, Route.toLogin ), globals )
+
+
+expandSearchEditor : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+expandSearchEditor globals model =
+    ( ( { model | searchEditor = FieldEditor.expand model.searchEditor }
+      , setFocus (FieldEditor.getNodeId model.searchEditor) NoOp
+      )
+    , globals
+    )
 
 
 
@@ -866,16 +874,7 @@ subscriptions : Sub Msg
 subscriptions =
     Sub.batch
         [ every 1000 Tick
-        , KeyboardShortcuts.subscribe
-            [ ( "/", [], ExpandSearchEditor )
-            , ( "j", [], SelectNextPost )
-            , ( "k", [], SelectPrevPost )
-            , ( "e", [], DismissCurrentPost )
-            , ( "e", [ Meta ], MarkCurrentPostAsRead )
-            , ( "r", [], ExpandReplyComposer )
-            , ( "Enter", [], ExpandReplyComposer )
-            , ( "c", [], FocusOnComposer )
-            ]
+        , KeyboardShortcuts.subscribe KeyPressed
         , PostEditor.receive PostEditorEventReceived
         ]
 

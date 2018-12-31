@@ -188,6 +188,7 @@ type Msg
     | NudgeToggled Int
     | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
     | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
+    | KeyPressed KeyboardShortcuts.Event
       -- MOBILE
     | NavToggled
     | ScrollTopClicked
@@ -200,34 +201,10 @@ update msg globals model =
             noCmd globals model
 
         BackUp ->
-            if Route.WelcomeTutorial.getStep model.params > 1 then
-                let
-                    newParams =
-                        model.params
-                            |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params - 1)
-
-                    cmd =
-                        Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
-                in
-                ( ( model, cmd ), globals )
-
-            else
-                ( ( model, Cmd.none ), globals )
+            backUp globals model
 
         Advance ->
-            if Route.WelcomeTutorial.getStep model.params < stepCount then
-                let
-                    newParams =
-                        model.params
-                            |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params + 1)
-
-                    cmd =
-                        Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
-                in
-                ( ( model, cmd ), globals )
-
-            else
-                ( ( model, Cmd.none ), globals )
+            advance globals model
 
         SkipClicked ->
             let
@@ -349,6 +326,17 @@ update msg globals model =
         NudgeDeleted _ ->
             noCmd globals model
 
+        KeyPressed { key, modifiers } ->
+            case ( key, modifiers ) of
+                ( "ArrowLeft", [] ) ->
+                    backUp globals model
+
+                ( "ArrowRight", [] ) ->
+                    advance globals model
+
+                _ ->
+                    ( ( model, Cmd.none ), globals )
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -364,6 +352,40 @@ noCmd globals model =
 redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 redirectToLogin globals model =
     ( ( model, Route.toLogin ), globals )
+
+
+backUp : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+backUp globals model =
+    if Route.WelcomeTutorial.getStep model.params > 1 then
+        let
+            newParams =
+                model.params
+                    |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params - 1)
+
+            cmd =
+                Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
+        in
+        ( ( model, cmd ), globals )
+
+    else
+        ( ( model, Cmd.none ), globals )
+
+
+advance : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+advance globals model =
+    if Route.WelcomeTutorial.getStep model.params < stepCount then
+        let
+            newParams =
+                model.params
+                    |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params + 1)
+
+            cmd =
+                Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
+        in
+        ( ( model, cmd ), globals )
+
+    else
+        ( ( model, Cmd.none ), globals )
 
 
 
@@ -390,10 +412,7 @@ consumeEvent event model =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ KeyboardShortcuts.subscribe
-            [ ( "ArrowLeft", [], BackUp )
-            , ( "ArrowRight", [], Advance )
-            ]
+        [ KeyboardShortcuts.subscribe KeyPressed
         ]
 
 
