@@ -15,7 +15,7 @@ defmodule LevelWeb.DigestControllerTest do
         conn
         |> get("/digests/#{space.id}/#{digest_id}")
 
-      assert html_response(conn, 200) =~ "Your Daily Digest"
+      assert html_response(conn, 200) =~ "Daily Digest"
     end
 
     test "renders 404 if not found", %{conn: conn} do

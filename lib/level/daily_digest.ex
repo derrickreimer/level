@@ -20,8 +20,8 @@ defmodule Level.DailyDigest do
   @spec digest_options(String.t(), DateTime.t(), String.t()) :: Options.t()
   def digest_options(key, end_at, time_zone) do
     %Options{
-      title: "Your Daily Digest",
-      subject: "Your Daily Digest",
+      title: "Daily Digest",
+      subject: "Daily Digest",
       key: key,
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
