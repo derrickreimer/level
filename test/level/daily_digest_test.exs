@@ -6,6 +6,7 @@ defmodule Level.DailyDigestTest do
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.DueDigest
+  alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceUser
   alias Level.Spaces
 
@@ -160,6 +161,28 @@ defmodule Level.DailyDigestTest do
       [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
 
       assert Enum.count(digest.sections) == 1
+    end
+
+    test "skips when there is no recent inbox activity or feed activity" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      # Mark the post as unread
+      {:ok, _} = Posts.mark_as_unread(space_user, [post])
+
+      # Clear out all log entries for the post
+      Repo.delete_all(PostLog)
+
+      # 3:00 local time
+      now = ~N[2018-11-01 10:00:00] |> DateTime.from_naive!("Etc/UTC")
+
+      # Log some activity > 24 hours ago (outside the range for the inbox section)
+      {:ok, _} = PostLog.post_edited(post, space_user, Timex.shift(now, hours: -25))
+
+      due_digest = build_due_digest(space_user)
+
+      assert [{:skip, ^due_digest}] = DailyDigest.build_and_send([due_digest], now)
     end
   end
 

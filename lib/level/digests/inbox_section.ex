@@ -58,11 +58,13 @@ defmodule Level.Digests.InboxSection do
   """
   @impl Section
   @spec has_data?(SpaceUser.t(), Options.t()) :: boolean()
-  def has_data?(space_user, _opts) do
+  def has_data?(space_user, opts) do
     query =
       space_user
       |> Posts.Query.base_query()
+      |> Posts.Query.select_last_activity_at()
       |> Posts.Query.where_undismissed_in_inbox()
+      |> Posts.Query.where_last_active_after(Timex.shift(opts.now, hours: -24))
       |> limit(1)
 
     case Repo.all(query) do
