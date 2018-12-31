@@ -564,7 +564,7 @@ stepView device step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups organize your conversations." ]
-                , p [ class "mb-6" ] [ text "Groups are used to organize conversations around teams, projects, or other topics. We recommend starting with team-based Groups and adding more later as needs arise." ]
+                , p [ class "mb-6" ] [ text "Groups are used to organize conversations around teams, projects, or other topics. We recommend starting with team-based Groups and adding more later as needed." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
                     div []
@@ -576,11 +576,11 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your to-do list." ]
-                , p [ class "mb-6" ] [ text "In reality, it’s impossible to follow every conversation in your organization." ]
-                , p [ class "mb-6" ] [ text "The Inbox is designed combat information overload and prevent important discussions from slipping through the cracks." ]
-                , p [ class "mb-6" ] [ text "Posts move into your Inbox when someone @-mentions you, or when there’s new activity on a post you've interacted with in the past." ]
-                , p [ class "mb-6" ] [ text "When you’re finished with a post, you can dismiss it from your Inbox—it’ll automatically move back in if more activity occurs later." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
+                , p [ class "mb-6" ] [ text "Let’s face it—it’s impossible to keep up with every conversation." ]
+                , p [ class "mb-6" ] [ text "The Inbox is designed combat information overload while preventing important discussions from slipping through the cracks." ]
+                , p [ class "mb-6" ] [ text "It’s pretty simple: posts will move into your Inbox when you are @-mentioned, or when there’s new activity on a post you've interacted with in the past." ]
+                , p [ class "mb-6" ] [ text "Like a to-do list, you should dismiss items from your Inbox when you’re finished with them. If more activity occurs later, they’ll automatically move back in to your Inbox." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
@@ -588,8 +588,9 @@ stepView device step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed keeps you in the loop." ]
-                , p [ class "mb-6" ] [ text "Your personalized Feed includes all messages posted in groups that you have joined." ]
-                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse the Feed to find out what else is happening around the space (but you shouldn’t feel pressure to follow everything)." ]
+                , p [ class "mb-6" ] [ text "This is the spot where you can get a bird’s eye view of what’s happening around your space." ]
+                , p [ class "mb-6" ] [ text "When you join a Group, all messages posted there will appear in your Feed." ]
+                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse your Feed to find out what else is happening around the space—but there’s no pressure to see everything!" ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
@@ -601,7 +602,8 @@ stepView device step model data =
             in
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
-                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted. Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails them to you ", em [] [ text "when you want them." ] ]
+                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted." ]
+                , p [ class "mb-6" ] [ text "Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails them to you when you want them." ]
                 , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
                 , div [ class "mb-6" ]
                     [ viewIf (device == Device.Desktop) (View.Nudges.desktopView nudgesConfig)
@@ -614,9 +616,8 @@ stepView device step model data =
         6 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
-                , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to communicate." ]
-                , p [ class "mb-6" ] [ text "And it’s most definitely not a good proxy for determining whether someone is slacking off." ]
-                , p [ class "mb-6" ] [ text "For that reason, Level does not actively track who’s online at any given moment." ]
+                , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to talk." ]
+                , p [ class "mb-6" ] [ text "For that reason, Level does not track who’s online at any given moment." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
