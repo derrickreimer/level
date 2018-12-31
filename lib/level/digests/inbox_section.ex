@@ -1,6 +1,6 @@
 defmodule Level.Digests.InboxSection do
   @moduledoc """
-  Builds an inbox summary section for a digest.
+  Builds an Inbox Highlights section for a digest.
   """
 
   import Ecto.Query
@@ -31,10 +31,10 @@ defmodule Level.Digests.InboxSection do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Inbox",
+        title: "Inbox Highlights",
         summary: summary,
         summary_html: summary_html,
-        link_text: "View my inbox",
+        link_text: "View my Inbox",
         link_url: link_url,
         rank: 1
       })

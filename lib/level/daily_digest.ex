@@ -8,7 +8,7 @@ defmodule Level.DailyDigest do
   alias Level.Digests
   alias Level.Digests.InboxSection
   alias Level.Digests.Options
-  alias Level.Digests.RecentActivitySection
+  alias Level.Digests.FeedSection
   alias Level.Repo
   alias Level.Schemas.Digest
   alias Level.Schemas.DueDigest
@@ -26,7 +26,7 @@ defmodule Level.DailyDigest do
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
       time_zone: time_zone,
-      sections: [&InboxSection.build/3, &RecentActivitySection.build/3],
+      sections: [&InboxSection.build/3, &FeedSection.build/3],
       now: DateTime.utc_now()
     }
   end
@@ -125,6 +125,6 @@ defmodule Level.DailyDigest do
   """
   @spec send?(SpaceUser.t(), Options.t()) :: boolean()
   def send?(space_user, opts) do
-    InboxSection.has_data?(space_user, opts) || RecentActivitySection.has_data?(space_user, opts)
+    InboxSection.has_data?(space_user, opts) || FeedSection.has_data?(space_user, opts)
   end
 end

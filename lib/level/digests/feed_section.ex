@@ -1,6 +1,6 @@
-defmodule Level.Digests.RecentActivitySection do
+defmodule Level.Digests.FeedSection do
   @moduledoc """
-  Builds a "recent activity" section for a digest.
+  Builds a Feed Highlights section for a digest.
   """
 
   import Ecto.Query
@@ -42,10 +42,10 @@ defmodule Level.Digests.RecentActivitySection do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Recent activity",
+        title: "Feed Highlights",
         summary: summary,
         summary_html: summary_html,
-        link_text: "View my activity feed",
+        link_text: "View my Feed",
         link_url: link_url,
         rank: 2
       })
@@ -102,14 +102,14 @@ defmodule Level.Digests.RecentActivitySection do
   end
 
   defp build_summary(0) do
-    text = "There hasn't been any activity in the past day."
-    html = "There hasn&rsquo;t been any activity in the past day."
+    text = "There hasn't been any feed activity in the past day."
+    html = "There hasn&rsquo;t been any feed activity in the past day."
     {text, html}
   end
 
   defp build_summary(_count) do
-    text = "Here are some messages posted recently in your groups."
-    html = "Here are some messages posted recently in your groups."
+    text = "Here are some recent messages from your Feed."
+    html = "Here are some recent messages from your Feed."
     {text, html}
   end
 end

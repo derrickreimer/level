@@ -142,7 +142,7 @@ defmodule Level.DailyDigestTest do
 
       [_inbox_section, activity_section] = digest.sections
 
-      assert activity_section.summary =~ ~r/Here are some messages posted recently in your groups/
+      assert activity_section.summary =~ ~r/Here are some recent messages from your Feed/
 
       assert Enum.any?(activity_section.posts, fn section_post ->
                section_post.id == post.id
