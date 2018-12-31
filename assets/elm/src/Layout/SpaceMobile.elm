@@ -89,7 +89,7 @@ layout config children =
                     , div [ class "absolute w-full overflow-y-auto", style "top" "120px", style "bottom" "60px" ]
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
-                            , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
+                            , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
                             ]
                         , bookmarkList config
                         , ul [ class "mb-6 list-reset leading-semi-loose select-none" ]

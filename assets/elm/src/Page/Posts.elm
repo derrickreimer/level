@@ -87,7 +87,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Activity"
+    "Feed"
 
 
 
@@ -455,7 +455,7 @@ resolvedDesktopView globals spaceUsers model data =
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "sticky pin-t mb-3 px-4 pt-4 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
-                    [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Activity" ]
+                    [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
                     , controlsView model
                     ]
                 , div [ class "flex items-baseline trans-border-b-grey" ]
@@ -557,7 +557,7 @@ resolvedMobileView globals spaceUsers model data =
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
-            , title = "Activity"
+            , title = "Feed"
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled

@@ -79,7 +79,7 @@ fullSidebar config =
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "70px" ]
             [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Activity" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
+                , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
                 ]
             , bookmarkList config
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
