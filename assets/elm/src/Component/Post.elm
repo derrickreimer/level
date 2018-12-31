@@ -1097,8 +1097,8 @@ groupsLabel : Space -> List Group -> Html Msg
 groupsLabel space groups =
     case groups of
         [ group ] ->
-            div [ class "mb-1p5 mr-3 text-sm text-dusty-blue-dark" ]
-                [ text "Posted to "
+            div [ class "mt-1 mb-1p5 mr-3 text-sm text-dusty-blue-dark" ]
+                [ text "Posted in "
                 , a
                     [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
                     , class "no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
