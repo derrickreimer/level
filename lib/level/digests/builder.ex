@@ -8,17 +8,17 @@ defmodule Level.Digests.Builder do
   alias Level.Schemas
   alias Level.Schemas.SpaceUser
 
-  def build(%SpaceUser{} = space_user, %Options{} = opts) do
+  def build(%SpaceUser{} = space_user, section_modules, %Options{} = opts) do
     space_user
     |> Repo.preload(:space)
     |> Repo.preload(:user)
-    |> perform_build(opts)
+    |> perform_build(section_modules, opts)
   end
 
-  defp perform_build(space_user, opts) do
+  defp perform_build(space_user, section_modules, opts) do
     Multi.new()
     |> persist_digest(space_user.space, space_user, opts)
-    |> persist_sections(space_user, opts)
+    |> persist_sections(space_user, section_modules, opts)
     |> Repo.transaction()
     |> after_build(space_user.space)
   end
@@ -42,16 +42,16 @@ defmodule Level.Digests.Builder do
     Multi.insert(multi, :digest, changeset)
   end
 
-  defp persist_sections(multi, space_user, opts) do
+  defp persist_sections(multi, space_user, section_modules, opts) do
     Multi.run(multi, :sections, fn %{digest: digest} ->
-      {:ok, reduce_sections(digest, space_user, opts)}
+      {:ok, reduce_sections(digest, space_user, section_modules, opts)}
     end)
   end
 
-  defp reduce_sections(digest, space_user, opts) do
-    opts.sections
-    |> Enum.reduce([], fn builder, sections ->
-      case builder.(digest, space_user, opts) do
+  defp reduce_sections(digest, space_user, section_modules, opts) do
+    section_modules
+    |> Enum.reduce([], fn section_module, sections ->
+      case section_module.build(digest, space_user, opts) do
         {:ok, section} ->
           [section | sections]
 

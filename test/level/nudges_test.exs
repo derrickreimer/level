@@ -55,15 +55,14 @@ defmodule Level.NudgesTest do
       {:ok, nudge} = Nudges.create_nudge(space_user, %{minute: 180})
 
       {:ok, _digest} =
-        Digests.build(space_user, %Digests.Options{
+        Digests.build(space_user, [], %Digests.Options{
           title: "Recent activity",
           subject: "Recent activity",
           key: "nudge:#{nudge.id}:2018-11-01",
           start_at: ~N[2018-11-01 09:01:00],
           end_at: ~N[2018-11-01 10:01:00],
           now: ~N[2018-11-01 10:01:00] |> DateTime.from_naive!("Etc/UTC"),
-          time_zone: "America/Phoenix",
-          sections: []
+          time_zone: "America/Phoenix"
         })
 
       refute query_includes?(query, nudge.id)

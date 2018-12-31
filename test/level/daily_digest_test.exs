@@ -57,7 +57,7 @@ defmodule Level.DailyDigestTest do
 
       # Build the digest
       opts = DailyDigest.digest_options(digest_key, DateTime.utc_now(), "Etc/UTC")
-      {:ok, _} = Digests.build(space_user, opts)
+      {:ok, _} = Digests.build(space_user, [], opts)
 
       # Verify that the user no longer appears in the results
       query = DailyDigest.due_query(now, now.hour)
@@ -140,7 +140,7 @@ defmodule Level.DailyDigestTest do
       due_digest = build_due_digest(space_user)
       [{:ok, digest}] = DailyDigest.build_and_send([due_digest], ~N[2018-11-01 10:00:00])
 
-      [_inbox_section, activity_section] = digest.sections
+      [activity_section] = digest.sections
 
       assert activity_section.summary =~ ~r/Here are some recent messages from your Feed/
 

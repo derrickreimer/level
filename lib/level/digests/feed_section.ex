@@ -7,6 +7,7 @@ defmodule Level.Digests.FeedSection do
   import LevelWeb.Router.Helpers
 
   alias Level.Digests.Compiler
+  alias Level.Digests.Options
   alias Level.Digests.Persistence
   alias Level.Digests.Section
   alias Level.Posts
@@ -14,9 +15,12 @@ defmodule Level.Digests.FeedSection do
   alias Level.Schemas
   alias Level.Schemas.SpaceUser
 
+  @behaviour Section
+
   @doc """
   Builds a digest section.
   """
+  @impl Section
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()} | :skip
   def build(digest, space_user, opts) do
     if has_data?(space_user, opts) do
@@ -63,6 +67,7 @@ defmodule Level.Digests.FeedSection do
   @doc """
   Determines if the section has any interesting data to report.
   """
+  @impl Section
   @spec has_data?(SpaceUser.t(), Options.t()) :: boolean()
   def has_data?(space_user, opts) do
     query =

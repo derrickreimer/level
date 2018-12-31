@@ -3,7 +3,10 @@ defmodule Level.Digests.Section do
   A section in a digest.
   """
 
+  alias Level.Digests.Options
   alias Level.Digests.Post
+  alias Level.Schemas
+  alias Level.Schemas.SpaceUser
 
   defstruct [:title, :summary, :summary_html, :link_text, :link_url, :posts]
 
@@ -15,4 +18,14 @@ defmodule Level.Digests.Section do
           link_url: String.t(),
           posts: [Post.t()]
         }
+
+  @doc """
+  Builds a section.
+  """
+  @callback build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, t()} | :skip
+
+  @doc """
+  Determines whether the section has any data to show.
+  """
+  @callback has_data?(SpaceUser.t(), Options.t()) :: boolean()
 end

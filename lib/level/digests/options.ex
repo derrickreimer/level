@@ -3,8 +3,8 @@ defmodule Level.Digests.Options do
   Options for generating a digest.
   """
 
-  @enforce_keys [:title, :subject, :key, :start_at, :end_at, :now, :time_zone, :sections]
-  defstruct [:title, :subject, :key, :start_at, :end_at, :now, :time_zone, :sections]
+  @enforce_keys [:title, :subject, :key, :start_at, :end_at, :now, :time_zone]
+  defstruct [:title, :subject, :key, :start_at, :end_at, :now, :time_zone]
 
   @type t :: %__MODULE__{
           title: String.t(),
@@ -13,7 +13,6 @@ defmodule Level.Digests.Options do
           start_at: NaiveDateTime.t(),
           end_at: NaiveDateTime.t(),
           now: DateTime.t(),
-          time_zone: String.t(),
-          sections: [fun()]
+          time_zone: String.t()
         }
 end

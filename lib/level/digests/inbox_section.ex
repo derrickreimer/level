@@ -7,6 +7,7 @@ defmodule Level.Digests.InboxSection do
   import LevelWeb.Router.Helpers
 
   alias Level.Digests.Compiler
+  alias Level.Digests.Options
   alias Level.Digests.Persistence
   alias Level.Digests.Section
   alias Level.Posts
@@ -14,9 +15,12 @@ defmodule Level.Digests.InboxSection do
   alias Level.Schemas
   alias Level.Schemas.SpaceUser
 
+  @behaviour Section
+
   @doc """
   Builds a digest section.
   """
+  @impl Section
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
   def build(digest, space_user, _opts) do
     unread_count = get_unread_count(space_user)
@@ -52,6 +56,7 @@ defmodule Level.Digests.InboxSection do
   @doc """
   Determines if the section has any interesting data to report.
   """
+  @impl Section
   @spec has_data?(SpaceUser.t(), Options.t()) :: boolean()
   def has_data?(space_user, _opts) do
     query =

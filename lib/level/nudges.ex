@@ -8,7 +8,7 @@ defmodule Level.Nudges do
 
   alias Ecto.Changeset
   alias Level.Digests
-  alias Level.Digests.UnreadToday
+  alias Level.Digests.UnreadTodaySection
   alias Level.Repo
   alias Level.Schemas.DueNudge
   alias Level.Schemas.Nudge
@@ -125,8 +125,7 @@ defmodule Level.Nudges do
       start_at: now,
       end_at: now,
       now: now,
-      time_zone: due_nudge.time_zone,
-      sections: [&UnreadToday.build/3]
+      time_zone: due_nudge.time_zone
     }
   end
 
@@ -152,7 +151,7 @@ defmodule Level.Nudges do
 
     Enum.filter(due_nudge, fn due_nudge ->
       opts = digest_options(due_nudge, now)
-      UnreadToday.has_data?(due_nudge.space_user, opts)
+      UnreadTodaySection.has_data?(due_nudge.space_user, opts)
     end)
   end
 
@@ -163,7 +162,7 @@ defmodule Level.Nudges do
   def build_digest(due_nudge, now) do
     due_nudge = Repo.preload(due_nudge, :space_user)
     opts = digest_options(due_nudge, now)
-    Digests.build(due_nudge.space_user, opts)
+    Digests.build(due_nudge.space_user, [UnreadTodaySection], opts)
   end
 
   @doc """

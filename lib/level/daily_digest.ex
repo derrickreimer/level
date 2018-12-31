@@ -26,7 +26,6 @@ defmodule Level.DailyDigest do
       start_at: Timex.shift(end_at, hours: -24),
       end_at: end_at,
       time_zone: time_zone,
-      sections: [&InboxSection.build/3, &FeedSection.build/3],
       now: DateTime.utc_now()
     }
   end
@@ -83,10 +82,11 @@ defmodule Level.DailyDigest do
     Enum.map(results, fn result ->
       space_user = Repo.get(SpaceUser, result.id)
       opts = digest_options(result.digest_key, now, result.time_zone)
+      section_modules = filter_section_modules(space_user, opts)
 
-      if send?(space_user, opts) do
+      if Enum.any?(section_modules) do
         space_user
-        |> Digests.build(opts)
+        |> Digests.build(section_modules, opts)
         |> send_after_build(result)
       else
         {:skip, result}
@@ -126,5 +126,11 @@ defmodule Level.DailyDigest do
   @spec send?(SpaceUser.t(), Options.t()) :: boolean()
   def send?(space_user, opts) do
     InboxSection.has_data?(space_user, opts) || FeedSection.has_data?(space_user, opts)
+  end
+
+  defp filter_section_modules(space_user, opts) do
+    Enum.filter([InboxSection, FeedSection], fn section ->
+      section.has_data?(space_user, opts)
+    end)
   end
 end

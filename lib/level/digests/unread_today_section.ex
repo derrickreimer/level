@@ -1,4 +1,4 @@
-defmodule Level.Digests.UnreadToday do
+defmodule Level.Digests.UnreadTodaySection do
   @moduledoc """
   Builds an "unread today" section for a digest.
   """
@@ -7,6 +7,7 @@ defmodule Level.Digests.UnreadToday do
   import LevelWeb.Router.Helpers
 
   alias Level.Digests.Compiler
+  alias Level.Digests.Options
   alias Level.Digests.Persistence
   alias Level.Digests.Section
   alias Level.Posts
@@ -14,9 +15,12 @@ defmodule Level.Digests.UnreadToday do
   alias Level.Schemas
   alias Level.Schemas.SpaceUser
 
+  @behaviour Section
+
   @doc """
   Builds a digest section.
   """
+  @impl Section
   @spec build(Schemas.Digest.t(), SpaceUser.t(), Options.t()) :: {:ok, Section.t()}
   def build(digest, space_user, opts) do
     unread_count = get_unread_count(space_user, opts.now)
@@ -35,7 +39,7 @@ defmodule Level.Digests.UnreadToday do
 
     section_record =
       Persistence.insert_section!(digest, %{
-        title: "Unread Today",
+        title: "Unread In Your inbox",
         summary: summary,
         summary_html: summary_html,
         link_text: "View today's posts",
@@ -56,6 +60,7 @@ defmodule Level.Digests.UnreadToday do
   @doc """
   Determines if the section has any interesting data to report.
   """
+  @impl Section
   @spec has_data?(SpaceUser.t(), Options.t()) :: boolean()
   def has_data?(space_user, opts) do
     query =
