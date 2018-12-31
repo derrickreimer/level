@@ -6,9 +6,9 @@ defmodule Level.DailyDigest do
   import Ecto.Query
 
   alias Level.Digests
+  alias Level.Digests.FeedSection
   alias Level.Digests.InboxSection
   alias Level.Digests.Options
-  alias Level.Digests.FeedSection
   alias Level.Repo
   alias Level.Schemas.Digest
   alias Level.Schemas.DueDigest
