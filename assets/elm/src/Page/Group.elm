@@ -863,6 +863,9 @@ consumeKeyboardEvent globals event model =
                 Nothing ->
                     ( ( model, Cmd.none ), globals )
 
+        ( "c", [] ) ->
+            ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
+
         _ ->
             ( ( model, Cmd.none ), globals )
 
