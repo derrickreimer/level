@@ -22,7 +22,7 @@ defmodule Level.DailyDigestTest do
       {:ok, %{space_user: %SpaceUser{id: space_user_id}}} =
         create_user_and_space(%{time_zone: "Etc/UTC"})
 
-      query = DailyDigest.due_query(now, now.hour - 1)
+      query = DailyDigest.due_query(now, now.hour)
       assert [%DueDigest{space_user_id: ^space_user_id}] = Repo.all(query)
     end
 
@@ -34,7 +34,7 @@ defmodule Level.DailyDigestTest do
 
       Spaces.revoke_access(space_user)
 
-      query = DailyDigest.due_query(now, now.hour - 1)
+      query = DailyDigest.due_query(now, now.hour)
       results = Repo.all(query)
       refute Enum.any?(results, fn result -> result.space_user_id == space_user_id end)
     end
@@ -73,7 +73,7 @@ defmodule Level.DailyDigestTest do
       # Disable the digest
       Spaces.update_space_user(space_user, %{is_digest_enabled: false})
 
-      query = DailyDigest.due_query(now, now.hour - 1)
+      query = DailyDigest.due_query(now, now.hour)
       assert [] = Repo.all(query)
     end
   end

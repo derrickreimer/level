@@ -59,7 +59,7 @@ defmodule Level.DailyDigest do
     from r in subquery(inner_query),
       left_join: d in Digest,
       on: d.space_user_id == r.space_user_id and d.key == r.digest_key,
-      where: is_nil(d.id) and r.hour >= ^hour_of_day,
+      where: is_nil(d.id) and r.hour == ^hour_of_day,
       select: %DueDigest{
         id: fragment("?::text", r.id),
         space_id: fragment("?::text", r.space_id),
