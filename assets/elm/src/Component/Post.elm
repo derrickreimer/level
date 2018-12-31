@@ -973,7 +973,7 @@ resolvedView config model data =
     div [ id (postNodeId model.postId), class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
-            [ div [ class "flex items-center flex-wrap" ]
+            [ div [ class "pb-1 flex items-center flex-wrap" ]
                 [ div []
                     [ postAuthorName config.space model.postId data.author
                     , a
@@ -1097,7 +1097,7 @@ groupsLabel : Space -> List Group -> Html Msg
 groupsLabel space groups =
     case groups of
         [ group ] ->
-            div [ class "mt-1 mb-1p5 mr-3 text-sm text-dusty-blue-dark" ]
+            div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
                 [ text "Posted in "
                 , a
                     [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
@@ -1113,7 +1113,7 @@ groupsLabel space groups =
 bodyView : Space -> Post -> Html Msg
 bodyView space post =
     div []
-        [ div [ class "markdown mb-1" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        [ div [ class "markdown pb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
         , staticFilesView (Post.files post)
         ]
 
@@ -1207,7 +1207,7 @@ replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
                     div [ class "mr-2 -ml-3 w-1 rounded pin-t pin-b bg-turquoise flex-no-shrink" ] []
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-normal" ]
-                    [ div [ class "flex items-baseline" ]
+                    [ div [ class "pb-1 flex items-baseline" ]
                         [ replyAuthorName space author
                         , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
@@ -1219,7 +1219,7 @@ replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
-                            [ div [ class "markdown mb-1" ]
+                            [ div [ class "markdown pb-2" ]
                                 [ RenderedHtml.node (Reply.bodyHtml reply)
                                 ]
                             , staticFilesView (Reply.files reply)
