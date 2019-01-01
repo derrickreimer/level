@@ -311,11 +311,7 @@ groupsView repo params space groupIds =
 
 groupPartitionView : Space -> ( String, List IndexedGroup ) -> Html Msg
 groupPartitionView space ( letter, indexedGroups ) =
-    div [ class "flex" ]
-        [ div [ class "flex-0 flex-no-shrink pt-1 pl-5 w-12 text-sm text-dusty-blue font-bold" ] [ text letter ]
-        , div [ class "flex-1" ] <|
-            List.map (groupView space) indexedGroups
-        ]
+    div [ class "ml-4" ] (List.map (groupView space) indexedGroups)
 
 
 groupView : Space -> IndexedGroup -> Html Msg

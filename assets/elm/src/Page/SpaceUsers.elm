@@ -272,11 +272,7 @@ usersView repo params spaceUserIds =
 
 userPartitionView : Params -> ( String, List IndexedUser ) -> Html Msg
 userPartitionView params ( letter, indexedUsers ) =
-    div [ class "flex" ]
-        [ div [ class "flex-0 flex-no-shrink flex items-center h-9 leading-none pl-5 w-12 text-sm text-dusty-blue font-bold select-none" ] [ text letter ]
-        , div [ class "flex-1" ] <|
-            List.map (userView params) indexedUsers
-        ]
+    div [ class "ml-4" ] (List.map (userView params) indexedUsers)
 
 
 userView : Params -> IndexedUser -> Html Msg
