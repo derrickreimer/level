@@ -580,7 +580,6 @@ stepView device step model data =
                 , p [ class "mb-6" ] [ text "It’s impossible to keep up with every conversation in your organization." ]
                 , p [ class "mb-6" ] [ text "The Inbox is designed prevent important discussions from slipping through the cracks and combat information overload." ]
                 , p [ class "mb-6" ] [ text "It’s pretty simple: posts will move into your Inbox when you are @-mentioned, or when there’s new activity on a post you've interacted with in the past." ]
-                , p [ class "mb-6" ] [ text "Level encourages you to be explicit about who needs to participate. If you need a particular person to respond, just @-mention them to kick it into their Inbox." ]
                 , p [ class "mb-6" ] [ text "Like a to-do list, you should dismiss items from your Inbox when you’re finished with them. If more activity occurs later, they’ll automatically move back in to your Inbox." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
