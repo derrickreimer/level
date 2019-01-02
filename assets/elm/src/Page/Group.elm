@@ -1235,11 +1235,19 @@ paginationView params connection =
 bookmarkButtonView : Bool -> Html Msg
 bookmarkButtonView isBookmarked =
     if isBookmarked == True then
-        button [ class "ml-3", onClick Unbookmark ]
+        button
+            [ class "ml-3 tooltip tooltip-bottom"
+            , onClick Unbookmark
+            , attribute "data-tooltip" "Unbookmark"
+            ]
             [ Icons.bookmark Icons.On ]
 
     else
-        button [ class "ml-3", onClick Bookmark ]
+        button
+            [ class "ml-3 tooltip tooltip-bottom"
+            , onClick Bookmark
+            , attribute "data-tooltip" "Bookmark"
+            ]
             [ Icons.bookmark Icons.Off ]
 
 
