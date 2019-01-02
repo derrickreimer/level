@@ -193,8 +193,8 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
-            [ div [ class "flex items-center pb-5" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-bold tracking-semi-tight text-3xl" ] [ text "People" ]
+            [ div [ class "flex items-center mb-6 pb-5 border-b" ]
+                [ h1 [ class "flex-1 mr-4 font-bold tracking-semi-tight text-3xl" ] [ text "People" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a
                         [ Route.href (Route.InviteUsers (Route.SpaceUsers.getSpaceSlug model.params))
@@ -203,12 +203,13 @@ resolvedDesktopView globals model data =
                         [ text "Invite people" ]
                     ]
                 ]
-            , div [ class "pb-6" ]
-                [ label [ class "flex items-center p-4 w-full rounded bg-grey-light" ]
-                    [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
-                    , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
-                    ]
-                ]
+
+            -- , div [ class "pb-6" ]
+            --     [ label [ class "flex items-center p-4 w-full rounded bg-grey-light" ]
+            --         [ div [ class "flex-0 flex-no-shrink pr-3" ] [ Icons.search ]
+            --         , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
+            --         ]
+            --     ]
             , usersView globals.repo model.params model.spaceUserIds
             ]
         ]
@@ -273,7 +274,7 @@ usersView repo params spaceUserIds =
 
 userPartitionView : Params -> ( String, List IndexedUser ) -> Html Msg
 userPartitionView params ( letter, indexedUsers ) =
-    div [ class "ml-4" ] (List.map (userView params) indexedUsers)
+    div [] (List.map (userView params) indexedUsers)
 
 
 userView : Params -> IndexedUser -> Html Msg

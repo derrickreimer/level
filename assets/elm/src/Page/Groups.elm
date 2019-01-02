@@ -206,12 +206,12 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "flex items-center pb-4" ]
-                [ h1 [ class "flex-1 mx-4 font-bold tracking-semi-tight text-3xl" ] [ text "Groups" ]
+                [ h1 [ class "flex-1 font-bold tracking-semi-tight text-3xl" ] [ text "Groups" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a [ Route.href (Route.NewGroup (Space.slug data.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
                     ]
                 ]
-            , div [ class "flex items-baseline mx-4 mb-4 border-b" ]
+            , div [ class "flex items-baseline mb-4 border-b" ]
                 [ filterTab Device.Desktop "Open" Route.Groups.Open (openParams model.params) model.params
                 , filterTab Device.Desktop "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
@@ -312,7 +312,7 @@ groupsView repo params space groupIds =
 
 groupPartitionView : Space -> ( String, List IndexedGroup ) -> Html Msg
 groupPartitionView space ( letter, indexedGroups ) =
-    div [ class "ml-4" ] (List.map (groupView space) indexedGroups)
+    div [] (List.map (groupView space) indexedGroups)
 
 
 groupView : Space -> IndexedGroup -> Html Msg
