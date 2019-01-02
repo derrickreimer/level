@@ -21,4 +21,5 @@ type alias Globals =
     , pushStatus : PushStatus
     , currentRoute : Maybe Route
     , spaceUserLists : SpaceUserLists
+    , showKeyboardCommands : Bool
     }

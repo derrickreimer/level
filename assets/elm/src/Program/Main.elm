@@ -102,6 +102,7 @@ type alias Model =
     , timeZone : String
     , flash : Flash
     , going : Bool
+    , showKeyboardCommands : Bool
     }
 
 
@@ -154,6 +155,7 @@ buildModel flags navKey =
         flags.timeZone
         Flash.init
         False
+        False
 
 
 setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
@@ -205,6 +207,7 @@ buildGlobals model =
     , pushStatus = model.pushStatus
     , currentRoute = routeFor model.page
     , spaceUserLists = model.spaceUserLists
+    , showKeyboardCommands = model.showKeyboardCommands
     }
 
 
@@ -506,6 +509,16 @@ update msg model =
 
                     else
                         sendKeyboardEventToPage globals event { model | going = False }
+
+                ( "?", [ Shift ], _ ) ->
+                    ( { model | showKeyboardCommands = True }, Cmd.none )
+
+                ( "Escape", [], _ ) ->
+                    let
+                        newModel =
+                            { model | showKeyboardCommands = False }
+                    in
+                    sendKeyboardEventToPage globals event newModel
 
                 _ ->
                     sendKeyboardEventToPage globals event { model | going = False }

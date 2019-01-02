@@ -31,6 +31,7 @@ type alias Config =
     , bookmarks : List Group
     , currentRoute : Maybe Route
     , flash : Flash
+    , showKeyboardCommands : Bool
     }
 
 
@@ -45,7 +46,7 @@ layout config children =
         , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         , Flash.view config.flash
-        , keyboardCommandReference
+        , viewIf config.showKeyboardCommands keyboardCommandReference
         ]
 
 

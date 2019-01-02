@@ -242,6 +242,7 @@ resolvedView globals model data =
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
+            , showKeyboardCommands = globals.showKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config
