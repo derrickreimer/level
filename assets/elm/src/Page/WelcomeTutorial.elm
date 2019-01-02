@@ -601,7 +601,7 @@ stepView device step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed keeps you in the loop." ]
-                , p [ class "mb-6" ] [ text "Unlike the Inbox, The Feed gives you a bird’s eye view of all the discussions happening in the Groups you’ve joined." ]
+                , p [ class "mb-6" ] [ text "The Feed gives you a bird’s eye view of all the discussions happening in the Groups you’ve joined." ]
                 , p [ class "mb-6" ] [ text "It’s a good idea to periodically skim through it, but don’t feel like you have to keep up with every post there!" ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
