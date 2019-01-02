@@ -564,8 +564,7 @@ stepView device step model data =
         1 ->
             div []
                 [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
-                , p [ class "mb-6" ] [ text "Most communication tools today are optimized for engagement. They drip out notifications and flash up red dots to beckon you back. They are structured so that asynchronous conversations are not really feasible." ]
-                , p [ class "mb-6" ] [ text "Imagine how work would feel if your tools weren’t constantly vying for your attention?" ]
+                , p [ class "mb-6" ] [ text "Imagine how work would feel if your communication tools weren’t constantly vying for your attention?" ]
                 , p [ class "mb-6" ] [ text "Level is designed to help you transition from harried workdays, filled with constant interruptions, to productive workdays, punctuated by moments of thoughtful conversation with your teammates." ]
                 , p [ class "mb-6" ] [ text "It won’t always be easy—after all, the dopamine hits supplied by real-time chat are highly addictive—but I promise kicking the habit is a worthwhile endeavor." ]
                 , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
@@ -793,9 +792,9 @@ keyboardTutorialStepView step =
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Close the reply composer" ]
                 , p [ class "mb-6" ]
-                    [ text "If have no more replies to send, press "
+                    [ text "If you have no more replies to send, press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "esc" ]
-                    , text " to hide the reply editor."
+                    , text " to close the reply editor."
                     ]
                 ]
 
