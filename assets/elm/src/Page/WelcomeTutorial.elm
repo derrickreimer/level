@@ -473,7 +473,9 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div
             [ classList
-                [ ( "mx-auto leading-normal p-8 max-w-sm", True )
+                [ ( "mx-auto leading-normal p-8", True )
+                , ( "max-w-xl", step == 6 )
+                , ( "max-w-sm", step /= 6 )
                 ]
             ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
@@ -626,11 +628,15 @@ stepView device step model data =
 
         6 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
-                , p [ class "mb-6" ] [ text "Follow the prompts below to learn the most essential keyboard commands." ]
-                , keyboardTutorialStepView model.keyboardTutorialStep
-                , viewIf (model.keyboardTutorialStep >= 7) <|
-                    div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
+                [ h2 [ class "mb-6 max-w-sm text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
+                , div [ class "xl:flex mb-4 border-b" ]
+                    [ div [ class "pb-6 mr-16 max-w-sm" ]
+                        [ p [ class "mb-6" ] [ text "Follow the prompts below to learn the most essential keyboard commands." ]
+                        , keyboardTutorialStepView model.keyboardTutorialStep
+                        ]
+                    , div [ class "pb-6 max-w-sm" ]
+                        [ keyboardTutorialGraphicView model.keyboardTutorialStep ]
+                    ]
                 , backButton "Previous"
                 ]
 
@@ -750,9 +756,6 @@ keyboardTutorialStepView step =
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "j" ]
                     , text " to select the next post in the list."
                     ]
-                , div [ class "mb-6" ]
-                    [ Graphics.keyboardTutorial 1
-                    ]
                 ]
 
         2 ->
@@ -764,47 +767,35 @@ keyboardTutorialStepView step =
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "k" ]
                     , text " to select the previous post."
                     ]
-                , div [ class "mb-6" ]
-                    [ Graphics.keyboardTutorial 2
-                    ]
                 ]
 
         3 ->
             div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Expand the reply composer" ]
                 , p [ class "mb-6" ]
                     [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "r" ]
                     , text " to start replying to the selected post."
                     ]
-                , div [ class "mb-6" ]
-                    [ Graphics.keyboardTutorial 1
-                    ]
                 ]
 
         4 ->
             div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Submit a reply" ]
                 , p [ class "mb-6" ]
-                    [ text "When you're ready, press "
+                    [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "⌘ + Enter" ]
                     , text " to send the reply."
-                    ]
-                , div [ class "mb-6" ]
-                    [ Graphics.keyboardTutorial 3
                     ]
                 ]
 
         5 ->
             div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Close the reply composer" ]
                 , p [ class "mb-6" ]
                     [ text "If have no more replies to send, press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "esc" ]
                     , text " to hide the reply editor."
-                    ]
-                , div [ class "mb-6" ]
-                    [ Graphics.keyboardTutorial 4
                     ]
                 ]
 
@@ -821,9 +812,6 @@ keyboardTutorialStepView step =
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "e" ]
                     , text " to dismiss the selected post."
                     ]
-                , div [ class "mb-6" ]
-                    [ Graphics.keyboardTutorial 5
-                    ]
                 ]
 
         7 ->
@@ -834,13 +822,39 @@ keyboardTutorialStepView step =
                     ]
                 , p [ class "mb-6" ]
                     [ text "Press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "?" ]
+                    , code [ class "mx-1 px-3 py-1 rounded bg-grey font-bold" ] [ text "?" ]
                     , text " any time to see all the shortcuts."
                     ]
-                , div [ class "mb-6" ]
-                    [ Graphics.keyboardTutorial 6
-                    ]
+                , div [] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 ]
+
+        _ ->
+            text ""
+
+
+keyboardTutorialGraphicView : Int -> Html Msg
+keyboardTutorialGraphicView step =
+    case step of
+        1 ->
+            Graphics.keyboardTutorial 1
+
+        2 ->
+            Graphics.keyboardTutorial 2
+
+        3 ->
+            Graphics.keyboardTutorial 1
+
+        4 ->
+            Graphics.keyboardTutorial 3
+
+        5 ->
+            Graphics.keyboardTutorial 4
+
+        6 ->
+            Graphics.keyboardTutorial 5
+
+        7 ->
+            Graphics.keyboardTutorial 6
 
         _ ->
             text ""
