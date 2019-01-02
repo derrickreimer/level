@@ -87,7 +87,7 @@ defaultGroups =
 
 stepCount : Int
 stepCount =
-    7
+    8
 
 
 
@@ -563,7 +563,7 @@ stepView device step model data =
             div []
                 [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
                 , p [ class "mb-6" ] [ text "Let’s face it—our ability to achieve deep focus at work is suffering and our tools are not helping the problem." ]
-                , p [ class "mb-6" ] [ text "If you’re a maker, you know how costly it is get interrupted. The truth is 99% of message are simply not urgent enough to warrant breaking flow." ]
+                , p [ class "mb-6" ] [ text "If you’re a maker, you know how costly it is to get interrupted. The truth is 99% of messages are simply not urgent enough to warrant breaking flow." ]
                 , p [ class "mb-6" ] [ text "If you’re a manager, you want to be notified as soon as someone on your team is blocked. However, it’s too easy to accidentally interrupt your makers when every chat message carries the same weight of urgency." ]
                 , p [ class "mb-6" ] [ text "Level is designed to balance the needs of makers and managers in perfect harmony." ]
                 , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Learn how" ] ]
@@ -577,7 +577,6 @@ stepView device step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups organize your conversations." ]
-                , p [ class "mb-6" ] [ text "Groups help you organize discussions around teams, projects, or other topics. We recommend starting with team-based Groups and adding more later as needed." ]
                 , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
                 , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
                     div []
@@ -591,9 +590,9 @@ stepView device step model data =
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
                 , p [ class "mb-6" ] [ text "It’s impossible to keep up with every conversation in your organization." ]
-                , p [ class "mb-6" ] [ text "The Inbox is designed prevent important discussions from slipping through the cracks and combat information overload." ]
+                , p [ class "mb-6" ] [ text "The Inbox is designed to prevent important discussions from slipping through the cracks and combat information overload." ]
                 , p [ class "mb-6" ] [ text "It’s pretty simple: posts will move into your Inbox when you are @-mentioned, or when there’s new activity on a post you've interacted with in the past." ]
-                , p [ class "mb-6" ] [ text "Like a to-do list, you should dismiss items from your Inbox when you’re finished with them. If more activity occurs later, they’ll automatically move back in to your Inbox." ]
+                , p [ class "mb-6" ] [ text "Like a to-do list, you should dismiss items from your Inbox when you’re finished with them—they’ll automatically move back in to your Inbox if more activity occurs later." ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
@@ -601,9 +600,8 @@ stepView device step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed keeps you in the loop." ]
-                , p [ class "mb-6" ] [ text "The Feed is where you can get a bird’s eye view of what’s happening around your space (and not just in your Inbox)." ]
-                , p [ class "mb-6" ] [ text "When you join a Group, all messages posted there will appear in your Feed." ]
-                , p [ class "mb-6" ] [ text "It’s a good idea to periodically skim through it, but you shouldn’t feel pressured to see everything there!" ]
+                , p [ class "mb-6" ] [ text "Unlike the Inbox, The Feed gives you a bird’s eye view of all the discussions happening in the Groups you’ve joined." ]
+                , p [ class "mb-6" ] [ text "It’s a good idea to periodically skim through it, but don’t feel like you have to keep up with every post there!" ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
@@ -629,9 +627,10 @@ stepView device step model data =
         6 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
-                , p [ class "mb-6" ] [ text "Follow the prompts in this interactive tutorial to learn the handiest keyboard commands." ]
+                , p [ class "mb-6" ] [ text "Follow the prompts below to learn the most essential keyboard commands." ]
                 , keyboardTutorialStepView model.keyboardTutorialStep
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance, disabled True ] [ text "Next step" ] ]
+                , viewIf (model.keyboardTutorialStep >= 7) <|
+                    div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
@@ -671,7 +670,7 @@ inboxRoute params =
 createGroupsView : Model -> Html Msg
 createGroupsView model =
     div []
-        [ p [ class "mb-6" ] [ text "Let’s create your first Groups now! Here are a few common ones to choose from. You can always add more later." ]
+        [ p [ class "mb-6" ] [ text "I recommend starting out by creating a Group for each team within your organization. Here are a few common ones to choose from. Of course, you can always add more later." ]
         , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
         , div [ class "mb-4 pb-6 border-b" ]
             [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next step" ]
@@ -787,7 +786,7 @@ keyboardTutorialStepView step =
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
                 , p [ class "mb-6" ]
-                    [ text "Then, press "
+                    [ text "When you're ready, press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "⌘ + Enter" ]
                     , text " to send the reply."
                     ]
@@ -800,9 +799,9 @@ keyboardTutorialStepView step =
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
                 , p [ class "mb-6" ]
-                    [ text "One you are finished, press "
+                    [ text "If have no more replies to send, press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "esc" ]
-                    , text " to close the reply composer."
+                    , text " to hide the reply editor."
                     ]
                 , div [ class "mb-6" ]
                     [ Graphics.keyboardTutorial 4
@@ -815,7 +814,7 @@ keyboardTutorialStepView step =
                 , p [ class "mb-6" ]
                     [ text "When the "
                     , span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ]
-                    , text " symbol is highlighted in green, that means the post is in your Inbox. It's best to dismiss posts from your Inbox once you are finished following up."
+                    , text " symbol is highlighted in green, that indicates the post is in your Inbox. It's best to dismiss posts from your Inbox once you are finished following up."
                     ]
                 , p [ class "mb-6" ]
                     [ text "Press "
@@ -824,6 +823,22 @@ keyboardTutorialStepView step =
                     ]
                 , div [ class "mb-6" ]
                     [ Graphics.keyboardTutorial 5
+                    ]
+                ]
+
+        7 ->
+            div []
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Learn as you go" ]
+                , p [ class "mb-6" ]
+                    [ text "There are even more keyboard commands to help you smoothly navigate around Level!"
+                    ]
+                , p [ class "mb-6" ]
+                    [ text "Press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "?" ]
+                    , text " any time to see all the shortcuts."
+                    ]
+                , div [ class "mb-6" ]
+                    [ Graphics.keyboardTutorial 6
                     ]
                 ]
 
