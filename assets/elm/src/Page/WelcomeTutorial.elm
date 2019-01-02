@@ -3,17 +3,19 @@ module Page.WelcomeTutorial exposing (Model, Msg(..), consumeEvent, consumeKeybo
 import Browser.Navigation as Nav
 import Clipboard
 import Device exposing (Device)
+import Dict exposing (Dict)
 import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
 import Flash
 import Globals exposing (Globals)
+import Graphics
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
-import KeyboardShortcuts
+import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
@@ -37,7 +39,7 @@ import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
-import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (enter, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, viewIf)
 import View.Nudges
 
@@ -56,6 +58,7 @@ type alias Model =
     , nudges : List Nudge
     , timeZone : String
     , isSubmitting : Bool
+    , keyboardTutorialStep : Int
 
     -- MOBILE
     , showNav : Bool
@@ -121,6 +124,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.nudges
                 resp.timeZone
                 False
+                1
                 False
 
         newRepo =
@@ -403,7 +407,16 @@ consumeKeyboardEvent globals event model =
             advance globals model
 
         _ ->
-            ( ( model, Cmd.none ), globals )
+            if
+                Route.WelcomeTutorial.getStep model.params
+                    == 6
+                    && ( event.key, event.modifiers )
+                    == keyboardTutorialCommand model.keyboardTutorialStep
+            then
+                ( ( { model | keyboardTutorialStep = model.keyboardTutorialStep + 1 }, Cmd.none ), globals )
+
+            else
+                ( ( model, Cmd.none ), globals )
 
 
 
@@ -615,13 +628,22 @@ stepView device step model data =
 
         6 ->
             div []
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
+                , p [ class "mb-6" ] [ text "Follow the prompts in this interactive tutorial to learn the handiest keyboard commands." ]
+                , keyboardTutorialStepView model.keyboardTutorialStep
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance, disabled True ] [ text "Next step" ] ]
+                , backButton "Previous"
+                ]
+
+        7 ->
+            div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to talk. For that reason, Level does not track who’s currently “online.”" ]
                 , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 , backButton "Previous"
                 ]
 
-        7 ->
+        8 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
                 , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
@@ -693,6 +715,120 @@ inviteView maybeUrl =
             div []
                 [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
                 ]
+
+
+
+-- KEYBOARD TUTORIAL
+
+
+keyboardTutorialCommands : Dict Int ( String, List Modifier )
+keyboardTutorialCommands =
+    Dict.fromList
+        [ ( 1, ( "j", [] ) )
+        , ( 2, ( "k", [] ) )
+        , ( 3, ( "r", [] ) )
+        , ( 4, ( "Enter", [ Meta ] ) )
+        , ( 5, ( "Escape", [] ) )
+        , ( 6, ( "e", [] ) )
+        ]
+
+
+keyboardTutorialCommand : Int -> ( String, List Modifier )
+keyboardTutorialCommand step =
+    Dict.get step keyboardTutorialCommands
+        |> Maybe.withDefault ( "", [] )
+
+
+keyboardTutorialStepView : Int -> Html Msg
+keyboardTutorialStepView step =
+    case step of
+        1 ->
+            div []
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Navigate through posts" ]
+                , p [ class "mb-6" ] [ text "The grey bar on the left indicates which post is currently selected." ]
+                , p [ class "mb-6" ]
+                    [ text "Press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "j" ]
+                    , text " to select the next post in the list."
+                    ]
+                , div [ class "mb-6" ]
+                    [ Graphics.keyboardTutorial 1
+                    ]
+                ]
+
+        2 ->
+            div []
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Navigate through posts" ]
+                , p [ class "mb-6" ] [ text "The grey bar on the left indicates which post is currently selected." ]
+                , p [ class "mb-6" ]
+                    [ text "Press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "k" ]
+                    , text " to select the previous post."
+                    ]
+                , div [ class "mb-6" ]
+                    [ Graphics.keyboardTutorial 2
+                    ]
+                ]
+
+        3 ->
+            div []
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
+                , p [ class "mb-6" ]
+                    [ text "Press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "r" ]
+                    , text " to start replying to the selected post."
+                    ]
+                , div [ class "mb-6" ]
+                    [ Graphics.keyboardTutorial 1
+                    ]
+                ]
+
+        4 ->
+            div []
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
+                , p [ class "mb-6" ]
+                    [ text "Then, press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "⌘ + Enter" ]
+                    , text " to send the reply."
+                    ]
+                , div [ class "mb-6" ]
+                    [ Graphics.keyboardTutorial 3
+                    ]
+                ]
+
+        5 ->
+            div []
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Reply to a post" ]
+                , p [ class "mb-6" ]
+                    [ text "One you are finished, press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "esc" ]
+                    , text " to close the reply composer."
+                    ]
+                , div [ class "mb-6" ]
+                    [ Graphics.keyboardTutorial 4
+                    ]
+                ]
+
+        6 ->
+            div []
+                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Dismiss posts from your Inbox" ]
+                , p [ class "mb-6" ]
+                    [ text "When the "
+                    , span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ]
+                    , text " symbol is highlighted in green, that means the post is in your Inbox. It's best to dismiss posts from your Inbox once you are finished following up."
+                    ]
+                , p [ class "mb-6" ]
+                    [ text "Press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "e" ]
+                    , text " to dismiss the selected post."
+                    ]
+                , div [ class "mb-6" ]
+                    [ Graphics.keyboardTutorial 5
+                    ]
+                ]
+
+        _ ->
+            text ""
 
 
 
