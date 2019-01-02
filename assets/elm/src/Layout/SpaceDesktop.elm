@@ -45,6 +45,7 @@ layout config children =
         , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         , Flash.view config.flash
+        , keyboardCommandReference
         ]
 
 
@@ -57,6 +58,57 @@ rightSidebar children =
             ]
         ]
         children
+
+
+keyboardCommandReference : Html msg
+keyboardCommandReference =
+    div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)" ]
+        [ div [ class "absolute overflow-y-auto pin-t pin-r pin-b w-80 bg-white p-6 shadow-lg" ]
+            [ h2 [ class "pb-3 text-base text-dusty-blue-darkest" ] [ text "Keyboard Commands" ]
+            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Actions" ]
+            , keyboardCommandItem "Shortcuts" [ "?" ]
+            , keyboardCommandItem "Search" [ "/" ]
+            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Navigation" ]
+            , keyboardCommandItem "Next / Previous Post" [ "J", "K" ]
+            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Groups" ]
+            , keyboardCommandItem "Compose a Post" [ "C" ]
+            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Posts" ]
+            , keyboardCommandItem "Dismiss from Inbox" [ "E" ]
+            , keyboardCommandItem "Move to Inbox" [ "⌘", "E" ]
+            , keyboardCommandItem "Reply" [ "R" ]
+            , keyboardCommandItem "Send" [ "⌘", "enter" ]
+            , keyboardCommandItem "Send + Resolve" [ "⌘", "shift", "enter" ]
+            , keyboardCommandItem "Close Reply Editor" [ "esc" ]
+            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Pages" ]
+            , keyboardCommandJumpItem "Jump to Inbox" "i"
+            , keyboardCommandJumpItem "Jump to Feed" "F"
+            ]
+        ]
+
+
+keyboardCommandItem : String -> List String -> Html msg
+keyboardCommandItem name keys =
+    div [ class "mb-1 flex text-sm" ]
+        [ div [ class "flex-no-shrink w-40" ] [ text name ]
+        , div [ class "flex flex-grow text-xs font-bold text-grey-light", style "line-height" "18px" ] (List.map keyView keys)
+        ]
+
+
+keyboardCommandJumpItem : String -> String -> Html msg
+keyboardCommandJumpItem name key =
+    div [ class "mb-1 flex text-sm" ]
+        [ div [ class "flex-no-shrink w-40" ] [ text name ]
+        , div [ class "flex flex-grow text-xs font-bold text-grey-light", style "line-height" "18px" ]
+            [ keyView "G"
+            , div [ class "mr-1 text-dusty-blue" ] [ text "+" ]
+            , keyView key
+            ]
+        ]
+
+
+keyView : String -> Html msg
+keyView value =
+    div [ class "mr-1 px-1 bg-dusty-blue-dark text-center rounded", style "min-width" "18px" ] [ text value ]
 
 
 
