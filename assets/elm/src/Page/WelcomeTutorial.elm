@@ -564,11 +564,11 @@ stepView device step model data =
         1 ->
             div []
                 [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
-                , p [ class "mb-6" ] [ text "Let’s face it—our ability to achieve deep focus at work is suffering and our tools are not helping the problem." ]
-                , p [ class "mb-6" ] [ text "If you’re a maker, you know how costly it is to get interrupted. The truth is 99% of messages are simply not urgent enough to warrant breaking flow." ]
-                , p [ class "mb-6" ] [ text "If you’re a manager, you want to be notified as soon as someone on your team is blocked. However, it’s too easy to accidentally interrupt your makers when every chat message carries the same weight of urgency." ]
-                , p [ class "mb-6" ] [ text "Level is designed to balance the needs of makers and managers in perfect harmony." ]
-                , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Learn how" ] ]
+                , p [ class "mb-6" ] [ text "Most communication tools today are optimized for engagement. They drip out notifications and flash up red dots to beckon you back. They are structured so that asynchronous conversations are not really feasible." ]
+                , p [ class "mb-6" ] [ text "Imagine how work would feel if your tools weren’t constantly vying for your attention?" ]
+                , p [ class "mb-6" ] [ text "Level is designed to help you transition from harried workdays, filled with constant interruptions, to productive workdays, punctuated by moments of thoughtful conversation with your teammates." ]
+                , p [ class "mb-6" ] [ text "It won’t always be easy—after all, the dopamine hits supplied by real-time chat are highly addictive—but I promise kicking the habit is a worthwhile endeavor." ]
+                , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
 
                 -- button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
                 -- [ span [ class "mr-2" ] [ text "Already know Level? Skip to manually set it up" ]
