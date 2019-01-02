@@ -27,4 +27,9 @@ export function initialize() {
       });
     }
   }, 3000);
+
+  // Initialize Beacon
+  if (!isMobile()) {
+    Beacon('init', '907003e9-12d8-4d63-ac3b-34356b2faec0');
+  }
 }
