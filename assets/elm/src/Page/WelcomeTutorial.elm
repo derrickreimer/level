@@ -616,7 +616,7 @@ stepView device step model data =
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
                 , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted." ]
                 , p [ class "mb-6" ] [ text "Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails them to you when you want them." ]
-                , p [ class "mb-6" ] [ text "We’ve chosen some sane defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
+                , p [ class "mb-6" ] [ text "I’ve chosen some defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
                 , div [ class "mb-6" ]
                     [ viewIf (device == Device.Desktop) (View.Nudges.desktopView nudgesConfig)
                     , viewIf (device == Device.Mobile) (View.Nudges.mobileView nudgesConfig)
