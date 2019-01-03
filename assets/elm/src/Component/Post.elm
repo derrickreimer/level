@@ -23,7 +23,7 @@ import Mutation.CreateReplyReaction as CreateReplyReaction
 import Mutation.DeletePostReaction as DeletePostReaction
 import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
-import Mutation.MarkAsUnread as MarkAsUnread
+import Mutation.MarkAsRead as MarkAsRead
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
 import Mutation.UpdatePost as UpdatePost
@@ -142,7 +142,7 @@ type Msg
     | DismissClicked
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | MoveToInboxClicked
-    | PostMovedToInbox (Result Session.Error ( Session, MarkAsUnread.Response ))
+    | PostMovedToInbox (Result Session.Error ( Session, MarkAsRead.Response ))
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
@@ -364,7 +364,7 @@ update msg spaceId globals model =
                 newGlobals =
                     { globals
                         | session = newSession
-                        , flash = Flash.set Flash.Notice "Post dismissed" 3000 globals.flash
+                        , flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
                     }
             in
             ( ( model, setFocus nodeId NoOp ), newGlobals )
@@ -379,13 +379,18 @@ update msg spaceId globals model =
             let
                 cmd =
                     globals.session
-                        |> MarkAsUnread.request spaceId [ model.postId ]
+                        |> MarkAsRead.request spaceId [ model.postId ]
                         |> Task.attempt PostMovedToInbox
             in
             ( ( model, cmd ), globals )
 
         PostMovedToInbox (Ok ( newSession, _ )) ->
-            ( ( model, Cmd.none ), { globals | session = newSession } )
+            ( ( model, Cmd.none )
+            , { globals
+                | session = newSession
+                , flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash
+              }
+            )
 
         PostMovedToInbox (Err Session.Expired) ->
             redirectToLogin globals model
