@@ -474,9 +474,10 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div
             [ classList
-                [ ( "mx-auto leading-normal p-8", True )
-                , ( "max-w-xl", step == 6 )
-                , ( "max-w-sm", step /= 6 )
+                [ ( "mx-auto leading-normal p-8 max-w-sm", True )
+
+                -- , ( "max-w-xl", step == 7 )
+                -- , ( "max-w-sm", step /= 7 )
                 ]
             ]
             [ div [ class "pb-6 text-lg text-dusty-blue-darker" ]
@@ -527,17 +528,17 @@ resolvedMobileView globals model data =
 
 headerView : Int -> Data -> Html Msg
 headerView step data =
-    if step == 1 then
-        h1 [ class "mt-16 mb-6 font-bold tracking-semi-tight text-4xl leading-tighter text-dusty-blue-darkest" ]
-            [ div [] [ text "Welcome to Level," ]
-            , div [] [ text <| SpaceUser.firstName data.viewer ]
-            ]
-
-    else
-        div []
-            [ h1 [ class "mb-3 font-bold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "How Level Works" ]
-            , div [ class "w-32" ] [ progressBarView step ]
-            ]
+    -- if step == 1 then
+    --     h1 [ class "mt-16 mb-6 font-bold tracking-semi-tight text-4xl leading-tighter text-dusty-blue-darkest" ]
+    --         [ div [] [ text "Welcome to Level," ]
+    --         , div [] [ text <| SpaceUser.firstName data.viewer, text "!" ]
+    --         ]
+    --
+    -- else
+    div []
+        [ h1 [ class "mb-3 font-bold tracking-semi-tight text-xl leading-tighter text-dusty-blue-darkest" ] [ text "How Level Works" ]
+        , div [ class "w-32" ] [ progressBarView step ]
+        ]
 
 
 progressBarView : Int -> Html Msg
@@ -564,96 +565,114 @@ stepView device step model data =
     case step of
         1 ->
             div []
-                [ p [ class "mb-6" ] [ text "Hi 👋 I’m Derrick, the creator of Level." ]
-                , p [ class "mb-6" ] [ text "Imagine how work would feel if your communication tools weren’t constantly vying for your attention?" ]
-                , p [ class "mb-6" ] [ text "Level is designed to help you transition from harried workdays, filled with constant interruptions, to productive workdays, punctuated by moments of thoughtful conversation with your teammates." ]
-                , p [ class "mb-6" ] [ text "It won’t always be easy—after all, the dopamine hits supplied by real-time chat are highly addictive—but I promise kicking the habit is a worthwhile endeavor." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ]
+                    [ div [] [ text "Welcome to Level," ]
+                    , div [] [ text <| SpaceUser.firstName data.viewer, text "!" ]
+                    ]
+                , p [ class "mb-6" ] [ text "If you value deep work and hate getting distracted all the time, I think Level will be a great fit for you!" ]
+                , p [ class "mb-6" ] [ text "Before diving into the app, this quick tutorial will walk you through the basic concepts you need to know." ]
                 , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
 
-                -- button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
-                -- [ span [ class "mr-2" ] [ text "Already know Level? Skip to manually set it up" ]
-                -- , Icons.arrowRight Icons.On
-                -- ]
+                -- , button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
+                --     [ span [ class "mr-2" ] [ text "Already know Level? Skip to manually set it up" ]
+                --     , Icons.arrowRight Icons.On
+                --     ]
                 ]
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups organize your conversations." ]
-                , viewIf (SpaceUser.role data.viewer == SpaceUser.Owner) (createGroupsView model)
-                , viewIf (SpaceUser.role data.viewer /= SpaceUser.Owner) <|
-                    div []
-                        [ p [ class "mb-6" ] [ text "After this tutorial, click on “Groups” in the left sidebar to explore them." ]
-                        , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                        ]
-                , backButton "Previous"
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups are where conversations happen." ]
+                , p [ class "mb-6" ] [ text "A Group is akin to channel in real-time chat. Once this tutorial is finished, click on “Groups” in the sidebar to join the ones that interest you and create new ones." ]
+                , div []
+                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
+                    ]
                 ]
 
         3 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your curated to-do list." ]
-                , p [ class "mb-6" ] [ text "It’s impossible to keep up with every conversation in your organization." ]
-                , p [ class "mb-6" ] [ text "The Inbox is designed to prevent important discussions from slipping through the cracks and combat information overload." ]
-                , p [ class "mb-6" ] [ text "It’s pretty simple: posts will move into your Inbox when you are @-mentioned, or when there’s new activity on a post you've interacted with in the past." ]
-                , p [ class "mb-6" ] [ text "Like a to-do list, you should dismiss items from your Inbox when you’re finished with them—they’ll automatically move back in to your Inbox if more activity occurs later." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Previous"
+                , p [ class "mb-6" ] [ text "Posts land in your Inbox when:" ]
+                , ul [ class "mb-6" ]
+                    [ li [] [ text "You get @-mentioned, or" ]
+                    , li [] [ text "You are already subscribed to them and new activity occurs." ]
+                    ]
+                , p [ class "mb-6" ] [ text "When looking at a post, a green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon indicates that it’s in your Inbox. Click that icon to dismiss it from your Inbox once you are finished with it." ]
+                , div []
+                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
+                    ]
                 ]
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed keeps you in the loop." ]
-                , p [ class "mb-6" ] [ text "The Feed gives you a bird’s eye view of all the discussions happening in the Groups you’ve joined." ]
-                , p [ class "mb-6" ] [ text "It’s a good idea to periodically skim through it, but don’t feel like you have to keep up with every post there!" ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Previous"
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed aggregates posts from your groups." ]
+                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse the Feed, but don’t feel like you have to keep up with every post there!" ]
+                , div []
+                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
+                    ]
                 ]
 
         5 ->
-            let
-                nudgesConfig =
-                    View.Nudges.Config NudgeToggled model.nudges model.timeZone
-            in
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
-                , p [ class "mb-6" ] [ text "On average, it takes 23 minutes to get back to a task after being interrupted." ]
-                , p [ class "mb-6" ] [ text "Since 99% of messages are not so urgent they warrant paying that penalty, Level batches up your notifications and emails them to you when you want them." ]
-                , p [ class "mb-6" ] [ text "I’ve chosen some defaults for you, but feel free to toggle times below to fit your schedule. You can always adjust this later in your Settings." ]
-                , div [ class "mb-6" ]
-                    [ viewIf (device == Device.Desktop) (View.Nudges.desktopView nudgesConfig)
-                    , viewIf (device == Device.Mobile) (View.Nudges.mobileView nudgesConfig)
+                , p [ class "mb-6" ] [ text "Instead of constantly interrupting you with push notifications, Level batches up your notifications and emails them to you at customizable times of the day." ]
+                , div []
+                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
                     ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Previous"
                 ]
 
         6 ->
             div []
-                [ h2 [ class "mb-6 max-w-sm text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
-                , div [ class "xl:flex mb-4 border-b" ]
-                    [ div [ class "pb-6 mr-16 max-w-sm" ]
-                        [ p [ class "mb-6" ] [ text "Follow the prompts below to learn the most essential keyboard commands." ]
-                        , keyboardTutorialStepView model.keyboardTutorialStep
-                        ]
-                    , div [ class "pb-6 max-w-sm" ]
-                        [ keyboardTutorialGraphicView model.keyboardTutorialStep ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
+                , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to talk. For that reason, Level does not track who’s currently “online.”" ]
+                , div []
+                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
                     ]
-                , backButton "Previous"
                 ]
 
         7 ->
+            -- div []
+            --     [ div [ class "xl:flex mb-4" ]
+            --         [ div [ class "pb-6 mr-16 max-w-sm" ]
+            --             [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
+            --             , p [ class "mb-6" ] [ text "Follow the prompts below to get a preview of the most essential keyboard commands." ]
+            --             , keyboardTutorialStepView model.keyboardTutorialStep
+            --             ]
+            --         , div [ class "pt-12 pb-6 max-w-sm" ]
+            --             [ keyboardTutorialGraphicView model.keyboardTutorialStep ]
+            --         ]
+            --     , div [ class "pt-4 border-t" ]
+            --         [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+            --         , button [ class "btn btn-blue", onClick Advance, disabled (model.keyboardTutorialStep < 7) ] [ text "Next" ]
+            --         ]
+            --     ]
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
-                , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to talk. For that reason, Level does not track who’s currently “online.”" ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
-                , backButton "Previous"
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
+                , p [ class "mb-6" ] [ text "Power users rejoice! Level comes loaded with many of the powerful keyboard shortcuts you already know and love. " ]
+                , p [ class "mb-6" ]
+                    [ text "Press "
+                    , code [ class "mx-1 px-3 py-1 rounded bg-grey font-bold" ] [ text "?" ]
+                    , text " any time to see all the shortcuts."
+                    ]
+                , div []
+                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
+                    ]
                 ]
 
         8 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
-                , p [ class "mb-6" ] [ text "If you have any questions, please don’t hesitate to reach out to support. You can always revisit this tutorial later by heading to the Help section in the left sidebar." ]
-                , div [ class "mb-4 pb-6 border-b" ] [ a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ] ]
-                , backButton "Previous"
+                , p [ class "mb-6" ] [ text "If run into trouble, don’t hesitate to reach out!" ]
+                , p [ class "mb-6" ] [ text "To access the knowledgebase or contact support, just click Help in the left sidebar." ]
+                , div []
+                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
+                    , a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ]
+                    ]
                 ]
 
         _ ->
@@ -676,7 +695,7 @@ inboxRoute params =
 createGroupsView : Model -> Html Msg
 createGroupsView model =
     div []
-        [ p [ class "mb-6" ] [ text "I recommend starting out by creating a Group for each team within your organization. Here are a few common ones to choose from. Of course, you can always add more later." ]
+        [ p [ class "mb-6" ] [ text "Let's create your first groups now. You can always add more later." ]
         , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
         , div [ class "mb-4 pb-6 border-b" ]
             [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next step" ]
@@ -751,7 +770,7 @@ keyboardTutorialStepView step =
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Navigate through posts" ]
                 , p [ class "mb-6" ] [ text "The grey bar on the left indicates which post is currently selected." ]
-                , p [ class "mb-6" ]
+                , p [ class "mb-6 font-bold" ]
                     [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "j" ]
                     , text " to select the next post in the list."
@@ -762,7 +781,7 @@ keyboardTutorialStepView step =
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Navigate through posts" ]
                 , p [ class "mb-6" ] [ text "The grey bar on the left indicates which post is currently selected." ]
-                , p [ class "mb-6" ]
+                , p [ class "mb-6 font-bold" ]
                     [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "k" ]
                     , text " to select the previous post."
@@ -772,7 +791,7 @@ keyboardTutorialStepView step =
         3 ->
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Expand the reply composer" ]
-                , p [ class "mb-6" ]
+                , p [ class "mb-6 font-bold" ]
                     [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "r" ]
                     , text " to start replying to the selected post."
@@ -782,7 +801,7 @@ keyboardTutorialStepView step =
         4 ->
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Submit a reply" ]
-                , p [ class "mb-6" ]
+                , p [ class "mb-6 font-bold" ]
                     [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "⌘ + Enter" ]
                     , text " to send the reply."
@@ -793,9 +812,12 @@ keyboardTutorialStepView step =
             div []
                 [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Close the reply composer" ]
                 , p [ class "mb-6" ]
-                    [ text "If you have no more replies to send, press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "esc" ]
-                    , text " to close the reply editor."
+                    [ text "Once you are finished replying to a thread, "
+                    , span [ class "font-bold" ]
+                        [ text "press "
+                        , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "esc" ]
+                        , text " to close the reply editor."
+                        ]
                     ]
                 ]
 
@@ -807,7 +829,7 @@ keyboardTutorialStepView step =
                     , span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ]
                     , text " symbol is highlighted in green, that indicates the post is in your Inbox. It's best to dismiss posts from your Inbox once you are finished following up."
                     ]
-                , p [ class "mb-6" ]
+                , p [ class "mb-6 font-bold" ]
                     [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "e" ]
                     , text " to dismiss the selected post."
@@ -825,7 +847,6 @@ keyboardTutorialStepView step =
                     , code [ class "mx-1 px-3 py-1 rounded bg-grey font-bold" ] [ text "?" ]
                     , text " any time to see all the shortcuts."
                     ]
-                , div [] [ button [ class "btn btn-blue", onClick Advance ] [ text "Next step" ] ]
                 ]
 
         _ ->
