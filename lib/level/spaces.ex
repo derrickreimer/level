@@ -10,9 +10,7 @@ defmodule Level.Spaces do
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Events
-  alias Level.Groups
   alias Level.Levelbot
-  alias Level.Nudges
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -20,6 +18,7 @@ defmodule Level.Spaces do
   alias Level.Schemas.SpaceSetupStep
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
+  alias Level.Spaces.JoinSpace
 
   @typedoc "The result of creating a space"
   @type create_space_result ::
@@ -254,7 +253,7 @@ defmodule Level.Spaces do
   """
   @spec create_owner(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
   def create_owner(user, space) do
-    create_member_with_role(user, space, "OWNER")
+    JoinSpace.perform(user, space, "OWNER")
   end
 
   @doc """
@@ -262,43 +261,7 @@ defmodule Level.Spaces do
   """
   @spec create_member(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
   def create_member(user, space) do
-    create_member_with_role(user, space, "MEMBER")
-  end
-
-  defp create_member_with_role(user, space, role) do
-    %SpaceUser{}
-    |> SpaceUser.create_changeset(%{
-      user_id: user.id,
-      space_id: space.id,
-      role: role,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      handle: user.handle,
-      avatar: user.avatar
-    })
-    |> Repo.insert()
-    |> after_create_member(space)
-  end
-
-  defp after_create_member({:ok, space_user}, space) do
-    subscribe_to_default_groups(space, space_user)
-    create_default_nudges(space_user)
-
-    {:ok, space_user}
-  end
-
-  defp after_create_member(err, _), do: err
-
-  defp subscribe_to_default_groups(space, space_user) do
-    space
-    |> list_default_groups()
-    |> Enum.each(fn group -> Groups.subscribe(group, space_user) end)
-  end
-
-  def create_default_nudges(space_user) do
-    Enum.each([660, 900], fn minute ->
-      Nudges.create_nudge(space_user, %{minute: minute})
-    end)
+    JoinSpace.perform(user, space, "MEMBER")
   end
 
   @doc """
@@ -483,14 +446,5 @@ defmodule Level.Spaces do
     space_user
     |> Ecto.Changeset.change(state: "ACTIVE")
     |> Repo.update()
-  end
-
-  # Internal
-
-  defp list_default_groups(%Space{} = space) do
-    space
-    |> Ecto.assoc(:groups)
-    |> where([g], g.is_default == true)
-    |> Repo.all()
   end
 end
