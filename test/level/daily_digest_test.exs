@@ -91,6 +91,7 @@ defmodule Level.DailyDigestTest do
     test "summarizes inbox activity when there are unread posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
+      dismiss_all_from_inbox(space_user)
       post = create_unread_post(space_user, group)
 
       due_digest = build_due_digest(space_user)
@@ -107,6 +108,7 @@ defmodule Level.DailyDigestTest do
     test "summarizes inbox activity when there are unread and read posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
+      dismiss_all_from_inbox(space_user)
       create_unread_post(space_user, group)
       create_read_post(space_user, group)
 
@@ -122,6 +124,7 @@ defmodule Level.DailyDigestTest do
     test "summarizes inbox activity when there are only read posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
+      dismiss_all_from_inbox(space_user)
       create_read_post(space_user, group)
 
       due_digest = build_due_digest(space_user)
@@ -135,6 +138,7 @@ defmodule Level.DailyDigestTest do
       {:ok, %{space_user: space_user, space: space}} = create_user_and_space()
       {:ok, %{space_user: another_user}} = create_space_member(space)
       {:ok, %{group: group}} = create_group(space_user)
+      dismiss_all_from_inbox(space_user)
 
       {:ok, %{post: post}} = create_post(another_user, group)
 
@@ -152,6 +156,7 @@ defmodule Level.DailyDigestTest do
 
     test "skips recent activity when there are no posts" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
+      dismiss_all_from_inbox(space_user)
 
       # Add some inbox activity to prevent the digest from getting skipped
       {:ok, %{group: group}} = create_group(space_user)
@@ -167,6 +172,7 @@ defmodule Level.DailyDigestTest do
       {:ok, %{space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
+      dismiss_all_from_inbox(space_user)
 
       # Mark the post as unread
       {:ok, _} = Posts.mark_as_unread(space_user, [post])

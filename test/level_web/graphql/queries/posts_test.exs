@@ -66,16 +66,19 @@ defmodule LevelWeb.GraphQL.PostsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [],
-                   "total_count" => 0
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm just opining..."
+           end)
   end
 
   test "filtering by unread", %{conn: conn, space_user: space_user} do
@@ -96,22 +99,23 @@ defmodule LevelWeb.GraphQL.PostsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "body" => "I'm just opining..."
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm just opining..."
+           end)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "Hey peeps"
+           end)
   end
 
   test "filtering by undismissed", %{conn: conn, space_user: space_user} do
@@ -134,27 +138,27 @@ defmodule LevelWeb.GraphQL.PostsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "body" => "Hey peeps"
-                       }
-                     },
-                     %{
-                       "node" => %{
-                         "body" => "I'm just opining..."
-                       }
-                     }
-                   ],
-                   "total_count" => 2
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm just opining..."
+           end)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "Hey peeps"
+           end)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm dismissed"
+           end)
   end
 
   test "filtering by dismissed", %{conn: conn, space_user: space_user} do
@@ -177,22 +181,27 @@ defmodule LevelWeb.GraphQL.PostsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "body" => "I'm dismissed"
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm just opining..."
+           end)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "Hey peeps"
+           end)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm dismissed"
+           end)
   end
 
   test "filtering by open", %{conn: conn, space_user: space_user} do
@@ -212,22 +221,23 @@ defmodule LevelWeb.GraphQL.PostsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "body" => "I'm open"
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm closed"
+           end)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm open"
+           end)
   end
 
   test "filtering by closed", %{conn: conn, space_user: space_user} do
@@ -247,21 +257,22 @@ defmodule LevelWeb.GraphQL.PostsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "posts" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "body" => "I'm closed"
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm closed"
+           end)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm open"
+           end)
   end
 end

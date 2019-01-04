@@ -5,7 +5,9 @@ defmodule Level.Spaces.JoinSpace do
 
   alias Ecto.Changeset
   alias Level.Groups
+  alias Level.Levelbot
   alias Level.Nudges
+  alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
@@ -35,6 +37,7 @@ defmodule Level.Spaces.JoinSpace do
   defp after_create({:ok, space_user}, space) do
     _ = subscribe_to_default_groups(space, space_user)
     _ = create_default_nudges(space_user)
+    _ = create_bot_welcome_message(space, space_user)
 
     {:ok, space_user}
   end
@@ -58,5 +61,27 @@ defmodule Level.Spaces.JoinSpace do
     |> Ecto.assoc(:groups)
     |> where([g], g.is_default == true)
     |> Repo.all()
+  end
+
+  defp create_bot_welcome_message(space, space_user) do
+    levelbot = Levelbot.get_space_bot!(space)
+
+    body = """
+    Hey #{space_user.first_name} 👋 this is what a post looks like.
+
+    Posts are lightweight. At a minimum, all you need is some text. But, you can also:
+
+    - Use [Markdown](https://daringfireball.net/projects/markdown/syntax) to add formatting to your posts
+    - **@-mention** people to ensure the post lands in their Inbox
+    - Drag-and-drop images and file attachments
+
+    A green tray icon at the top of post indicates it is currently in your Inbox.
+
+    When you are finished with a post, you can dismiss it from your Inbox by **clicking on the green icon** or pressing the `e` keyboard shortcut.
+    """
+
+    {:ok, %{post: post}} = Posts.create_post(levelbot, space_user, %{body: body})
+    {:ok, [post]} = Posts.mark_as_unread(space_user, [post])
+    {:ok, post}
   end
 end

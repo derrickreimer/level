@@ -596,7 +596,7 @@ stepView device step model data =
                     [ li [] [ text "You get @-mentioned, or" ]
                     , li [] [ text "You are already subscribed to them and new activity occurs." ]
                     ]
-                , p [ class "mb-6" ] [ text "When looking at a post, a green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon indicates that it’s in your Inbox. Click that icon to dismiss it from your Inbox once you are finished with it." ]
+                , p [ class "mb-6" ] [ text "A green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon at the top of a post indicates that it’s in your Inbox. Once you are finished with a post, click that icon to dismiss it from your Inbox." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]

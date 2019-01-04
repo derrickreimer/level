@@ -4,7 +4,9 @@ defmodule Level.SpacesTest do
   import Ecto.Query
 
   alias Level.Groups
+  alias Level.Levelbot
   alias Level.Nudges
+  alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -311,6 +313,21 @@ defmodule Level.SpacesTest do
       nudges = Nudges.list_nudges(space_user)
       assert Enum.any?(nudges, fn nudge -> nudge.minute == 660 end)
       assert Enum.any?(nudges, fn nudge -> nudge.minute == 900 end)
+    end
+
+    test "creates a welcome bot message", %{space: space, new_user: new_user} do
+      {:ok, space_user} = Spaces.create_member(new_user, space)
+
+      posts =
+        space_user
+        |> Posts.Query.base_query()
+        |> Posts.Query.where_undismissed_in_inbox()
+        |> Repo.all()
+
+      assert Enum.any?(posts, fn post ->
+               post.body =~ ~r/Hey #{space_user.first_name}/ &&
+                 post.space_bot_id == Levelbot.get_space_bot!(space).id
+             end)
     end
   end
 

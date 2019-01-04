@@ -148,6 +148,16 @@ defmodule Level.TestHelpers do
     |> Repo.insert()
   end
 
+  def dismiss_all_from_inbox(space_user) do
+    undismissed_posts =
+      space_user
+      |> Posts.Query.base_query()
+      |> Posts.Query.where_undismissed_in_inbox()
+      |> Repo.all()
+
+    Posts.dismiss(space_user, undismissed_posts)
+  end
+
   defp random_string do
     8
     |> :crypto.strong_rand_bytes()

@@ -104,9 +104,9 @@ defmodule Level.Spaces do
   def create_space(user, params) do
     Multi.new()
     |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
+    |> Multi.run(:levelbot, fn %{space: space} -> install_levelbot(space) end)
     |> Multi.run(:space_user, fn %{space: space} -> create_owner(user, space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
-    |> Multi.run(:levelbot, fn %{space: space} -> install_levelbot(space) end)
     |> Repo.transaction()
   end
 
