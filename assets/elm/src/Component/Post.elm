@@ -357,17 +357,12 @@ update msg spaceId globals model =
             ( ( model, cmd ), globals )
 
         Dismissed (Ok ( newSession, _ )) ->
-            let
-                nodeId =
-                    replyComposerId model.postId
-
-                newGlobals =
-                    { globals
-                        | session = newSession
-                        , flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
-                    }
-            in
-            ( ( model, setFocus nodeId NoOp ), newGlobals )
+            ( ( model, Cmd.none )
+            , { globals
+                | session = newSession
+                , flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
+              }
+            )
 
         Dismissed (Err Session.Expired) ->
             redirectToLogin globals model

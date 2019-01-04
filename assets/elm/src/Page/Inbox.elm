@@ -285,8 +285,23 @@ update msg globals model =
             else
                 ( ( model, cmd ), globals )
 
+        PostsDismissed (Ok ( newSession, DismissPosts.Success posts )) ->
+            let
+                ( newModel, cmd ) =
+                    if Route.Inbox.getState model.params == Route.Inbox.Undismissed then
+                        List.foldr removePost ( model, Cmd.none ) posts
+
+                    else
+                        ( model, Cmd.none )
+            in
+            ( ( newModel, cmd )
+            , { globals
+                | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
+              }
+            )
+
         PostsDismissed _ ->
-            noCmd { globals | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash } model
+            noCmd globals model
 
         PushSubscribeClicked ->
             ( ( model, PushManager.subscribe ), globals )
@@ -392,6 +407,27 @@ expandSearchEditor globals model =
     )
 
 
+removePost : Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+removePost post ( model, cmd ) =
+    case Connection.get .id (Post.id post) model.postComps of
+        Just postComp ->
+            let
+                newPostComps =
+                    Connection.remove .id (Post.id post) model.postComps
+
+                teardownCmd =
+                    Cmd.map (PostComponentMsg postComp.id)
+                        (Component.Post.teardown postComp)
+
+                newCmd =
+                    Cmd.batch [ cmd, teardownCmd ]
+            in
+            ( { model | postComps = newPostComps }, newCmd )
+
+        Nothing ->
+            ( model, cmd )
+
+
 
 -- EVENTS
 
@@ -425,34 +461,13 @@ consumeEvent event globals model =
 
         Event.PostsDismissed posts ->
             if Route.Inbox.getState model.params == Route.Inbox.Undismissed then
-                List.foldr handlePostDismissed ( model, Cmd.none ) posts
+                List.foldr removePost ( model, Cmd.none ) posts
 
             else
                 ( model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
-
-
-handlePostDismissed : Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-handlePostDismissed post ( model, cmd ) =
-    case Connection.get .id (Post.id post) model.postComps of
-        Just postComp ->
-            let
-                newPostComps =
-                    Connection.remove .id (Post.id post) model.postComps
-
-                teardownCmd =
-                    Cmd.map (PostComponentMsg postComp.id)
-                        (Component.Post.teardown postComp)
-
-                newCmd =
-                    Cmd.batch [ cmd, teardownCmd ]
-            in
-            ( { model | postComps = newPostComps }, newCmd )
-
-        Nothing ->
-            ( model, cmd )
 
 
 consumeKeyboardEvent : Globals -> KeyboardShortcuts.Event -> Model -> ( ( Model, Cmd Msg ), Globals )

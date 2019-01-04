@@ -3,6 +3,7 @@ module Mutation.DismissPosts exposing (Response(..), request)
 import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import Post exposing (Post)
 import Session exposing (Session)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError)
@@ -10,7 +11,7 @@ import ValidationFields
 
 
 type Response
-    = Success
+    = Success (List Post)
     | Invalid (List ValidationError)
 
 
@@ -27,10 +28,14 @@ document =
             postIds: $postIds
           ) {
             ...ValidationFields
+            posts {
+              ...PostFields
+            }
           }
         }
         """
         [ ValidationFields.fragment
+        , Post.fragment
         ]
 
 
@@ -47,11 +52,12 @@ conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.succeed Success
+            Decode.map Success <|
+                Decode.at [ "data", "dismissPosts", "posts" ] (Decode.list Post.decoder)
 
         False ->
-            Decode.at [ "data", "dismissPosts", "errors" ] (Decode.list ValidationError.decoder)
-                |> Decode.map Invalid
+            Decode.map Invalid <|
+                Decode.at [ "data", "dismissPosts", "errors" ] (Decode.list ValidationError.decoder)
 
 
 decoder : Decoder Response
