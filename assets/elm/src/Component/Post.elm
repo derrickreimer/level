@@ -1060,11 +1060,13 @@ inboxButton post =
 
         removeButton =
             button
-                [ class "flex tooltip tooltip-bottom no-outline"
+                [ class "flex tooltip tooltip-bottom no-outline text-sm text-green font-bold"
                 , onClick DismissClicked
                 , attribute "data-tooltip" "Dismiss from inbox"
                 ]
-                [ Icons.inbox Icons.On ]
+                [ span [ class "inline-block" ] [ Icons.inbox Icons.On ]
+                , span [ class "ml-1 hidden sm:inline" ] [ text "Inboxed" ]
+                ]
     in
     case Post.inboxState post of
         Post.Excluded ->
