@@ -77,11 +77,7 @@ defmodule Level.Spaces.JoinSpace do
     - **@-mention** someone to place the post in their Inbox
     - Drag-and-drop images and other file attachments
 
-    You can think of your **Inbox** as a to-do list for conversations. When you are finished responding to a post that's in your Inbox, **click the tray icon at the top to dismiss it**—it's best to keep your Inbox empty as often as possible.
-
-    Now that you're here, head over the **Groups** area to explore the existing groups or create new ones. When you join a group, messages posted there will show up in your **Feed**.
-
-    Oh, and be sure to dismiss this post when you're done 😉
+    You can think of your **Inbox** as a to-do list for conversations. When you are finished with a post, **click the tray icon at the top to dismiss it**—it's best to keep your Inbox empty as often as possible.
     """
 
     create_bot_post(levelbot, space_user, body)

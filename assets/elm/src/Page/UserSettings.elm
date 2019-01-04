@@ -62,7 +62,7 @@ resolveData repo model =
 
 title : String
 title =
-    "User Settings"
+    "My User Settings"
 
 
 
@@ -265,7 +265,7 @@ resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
     View.UserLayout.layout data.viewer globals.flash <|
         div [ class "mx-auto max-w-md leading-normal" ]
-            [ h1 [ class "pb-8 font-bold tracking-semi-tight text-4xl" ] [ text "User Settings" ]
+            [ h1 [ class "pb-8 font-bold tracking-semi-tight text-4xl" ] [ text "My User Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
                     [ div [ class "pb-6" ]

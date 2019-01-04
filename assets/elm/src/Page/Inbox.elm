@@ -244,10 +244,7 @@ update msg globals model =
         PostsMarkedAsRead (Ok ( newSession, _ )) ->
             let
                 newGlobals =
-                    { globals
-                        | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash
-                        , session = newSession
-                    }
+                    { globals | session = newSession }
             in
             ( ( model, Cmd.none ), newGlobals )
 

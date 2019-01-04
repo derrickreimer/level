@@ -89,7 +89,7 @@ nudgeIntervals =
 
 title : String
 title =
-    "Space Settings"
+    "Settings"
 
 
 
@@ -406,7 +406,7 @@ resolvedDesktopView globals model data =
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab Device.Desktop "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
                 , viewIf (Space.canUpdate data.space) <|
-                    filterTab Device.Desktop "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
+                    filterTab Device.Desktop "Team Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
                 ]
             , viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
                 preferencesView Device.Desktop model data
@@ -506,7 +506,7 @@ spaceSettingsView : Model -> Data -> Html Msg
 spaceSettingsView model data =
     div []
         [ div [ class "pb-6" ]
-            [ label [ for "name", class "input-label" ] [ text "Space Name" ]
+            [ label [ for "name", class "input-label" ] [ text "Team Name" ]
             , input
                 [ id "name"
                 , type_ "text"
@@ -552,7 +552,7 @@ spaceSettingsView model data =
             , errorView "slug" model.errors
             ]
         , div [ class "pb-6" ]
-            [ label [ for "avatar", class "input-label" ] [ text "Logo" ]
+            [ label [ for "avatar", class "input-label" ] [ text "Team Logo" ]
             , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
             ]
         , button

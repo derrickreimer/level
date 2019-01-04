@@ -48,7 +48,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Spaces"
+    "Teams"
 
 
 
@@ -142,10 +142,10 @@ resolvedView globals model data =
     View.UserLayout.layout data.viewer globals.flash <|
         div [ class "mx-auto max-w-sm" ]
             [ div [ class "flex items-center pb-6" ]
-                [ h1 [ class "flex-1 ml-4 mr-4 font-bold tracking-semi-tight text-3xl" ] [ text "My Spaces" ]
+                [ h1 [ class "flex-1 ml-4 mr-4 font-bold tracking-semi-tight text-3xl" ] [ text "My Teams" ]
                 , div [ class "flex-0 flex-no-shrink" ]
                     [ a [ Route.href Route.NewSpace, class "btn btn-blue btn-md no-underline" ]
-                        [ text "New space" ]
+                        [ text "Create a team" ]
                     ]
                 ]
             , div [ class "pb-6" ]
@@ -177,7 +177,7 @@ spacesView repo query spaceIds =
                     |> filter query
         in
         if List.isEmpty filteredSpaces then
-            div [ class "ml-4 py-2 text-base" ] [ text "No spaces match your search." ]
+            div [ class "ml-4 py-2 text-base" ] [ text "No teams match your search." ]
 
         else
             div [ class "ml-4" ] <|
@@ -186,7 +186,7 @@ spacesView repo query spaceIds =
 
 blankSlateView : Html Msg
 blankSlateView =
-    div [ class "py-2 text-center text-lg" ] [ text "You aren't a member of any spaces yet!" ]
+    div [ class "py-2 text-center text-lg" ] [ text "You aren't a member of any teams yet!" ]
 
 
 spaceView : String -> Space -> Html Msg

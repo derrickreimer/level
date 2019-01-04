@@ -2,15 +2,15 @@
   <div class="px-4 py-4 bg-red text-white text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
 <% end %>
 
-<div class="container mx-auto px-8">
+<div class="container mx-auto">
   <%= render LevelWeb.PageView, "header.html", assigns %>
 
-  <div class="mx-auto max-w-400px pb-16">
+  <div class="mx-auto max-w-400px px-8 pb-16">
     <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
       <div class="pb-4 max-w-xs <%= error_shake(@changeset) %>">
         <h1 class="mb-6 text-3xl tracking-semi-tight font-bold">Sign up for Level</h1>
 
-        <p class="mb-6 leading-normal">Once you create your free Level account, you can join other spaces or create your own.</p>
+        <p class="mb-6 leading-normal">Once you create your free Level account, you can create your own team or join other teams.</p>
 
         <div class="pb-6">
           <%= label f, :email, gettext("Email address"), class: "input-label" %>

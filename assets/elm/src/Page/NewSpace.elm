@@ -60,7 +60,7 @@ resolveData repo model =
 
 title : String
 title =
-    "New Space"
+    "Create a Team"
 
 
 
@@ -215,16 +215,16 @@ resolvedView globals model data =
     View.UserLayout.layout data.viewer globals.flash <|
         div
             [ classList
-                [ ( "mx-auto max-w-sm leading-normal pb-8", True )
+                [ ( "mx-auto max-w-xs leading-normal pb-8", True )
                 , ( "shake", not (List.isEmpty model.errors) )
                 ]
             ]
             [ div [ class "pb-6" ]
-                [ h1 [ class "pb-4 font-bold tracking-semi-tight text-3xl" ] [ text "Create a space" ]
-                , p [] [ text "Spaces represent companies or organizations. Once you create your space, you can invite your colleagues to join." ]
+                [ h1 [ class "pb-4 font-bold tracking-semi-tight text-3xl" ] [ text "Create a team" ]
+                , p [] [ text "A team in Level can represent a company or an organization. Once you create your team, you can invite your teammates to join." ]
                 ]
             , div [ class "pb-6" ]
-                [ label [ for "name", class "input-label" ] [ text "Name your space" ]
+                [ label [ for "name", class "input-label" ] [ text "Name your team" ]
                 , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
                 ]
             , div [ class "pb-6" ]
@@ -237,7 +237,7 @@ resolvedView globals model data =
                 , onClick Submit
                 , disabled (model.formState == Submitting)
                 ]
-                [ text "Let's get started" ]
+                [ text "Create my team" ]
             ]
 
 
