@@ -569,13 +569,11 @@ stepView device step model data =
                     [ div [] [ text "Welcome to Level," ]
                     , div [] [ text <| SpaceUser.firstName data.viewer, text "!" ]
                     ]
-                , p [ class "mb-6" ] [ text "Before diving into the app, this quick tutorial will walk you through the fundamental concepts you need to know to get the most out of Level." ]
-                , div [ class "mb-4 pb-6" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
-
-                -- , button [ onClick SkipClicked, class "flex items-center text-base text-dusty-blue font-bold no-underline" ]
-                --     [ span [ class "mr-2" ] [ text "Already know Level? Skip to manually set it up" ]
-                --     , Icons.arrowRight Icons.On
-                --     ]
+                , p [ class "mb-6" ] [ text "This quick tutorial will walk you through key concepts you need to know before diving into Level." ]
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let’s get started" ] ]
+                , button [ onClick SkipClicked, class "flex items-center text-sm text-dusty-blue no-underline" ]
+                    [ span [ class "mr-2" ] [ text "Already know Level? Skip the tutorial" ]
+                    ]
                 ]
 
         2 ->
