@@ -69,15 +69,15 @@ defmodule Level.Spaces.JoinSpace do
     body = """
     Hey #{space_user.first_name} 👋
 
-    This is what a post looks like!
-
-    A few tips for writing posts:
+    This is what a post looks like! Here are a few writing tips:
 
     - Use [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax for formatting
     - **@-mention** anyone that you would like to follow-up
     - Drag-and-drop files on the editor to attach them
 
-    It’s a good idea to keep your Inbox empty whenever possible. When you are finished with a post, click the green icon to dismiss it from your Inbox.
+    It’s a good idea to keep your Inbox empty whenever possible. 
+
+    When you are finished with a post, click the green icon to dismiss it.
     """
 
     create_bot_post(levelbot, space_user, body)
