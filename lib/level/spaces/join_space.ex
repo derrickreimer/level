@@ -35,9 +35,11 @@ defmodule Level.Spaces.JoinSpace do
   end
 
   defp after_create({:ok, space_user}, space) do
+    levelbot = Levelbot.get_space_bot!(space)
+
     _ = subscribe_to_default_groups(space, space_user)
     _ = create_default_nudges(space_user)
-    _ = create_bot_welcome_message(space, space_user)
+    _ = create_welcome_message(levelbot, space_user)
 
     {:ok, space_user}
   end
@@ -63,23 +65,29 @@ defmodule Level.Spaces.JoinSpace do
     |> Repo.all()
   end
 
-  defp create_bot_welcome_message(space, space_user) do
-    levelbot = Levelbot.get_space_bot!(space)
-
+  defp create_welcome_message(levelbot, space_user) do
     body = """
-    Hey #{space_user.first_name} 👋 this is what a post looks like.
+    Hey #{space_user.first_name} 👋
 
-    Posts are lightweight. At a minimum, all you need is some text. But, you can also:
+    This is what a post looks like!
 
-    - Use [Markdown](https://daringfireball.net/projects/markdown/syntax) to add formatting to your posts
-    - **@-mention** people to ensure the post lands in their Inbox
-    - Drag-and-drop images and file attachments
+    Here are a few things you can do when writing one:
 
-    A green tray icon at the top of post indicates it is currently in your Inbox.
+    - Use [Markdown](https://daringfireball.net/projects/markdown/syntax) for formatting
+    - **@-mention** someone to place the post in their Inbox
+    - Drag-and-drop images and other file attachments
 
-    When you are finished with a post, you can dismiss it from your Inbox by **clicking on the green icon** or pressing the `e` keyboard shortcut.
+    You can think of your **Inbox** as a to-do list for conversations. When you are finished responding to a post that's in your Inbox, **click the tray icon at the top to dismiss it**—it's best to keep your Inbox empty as often as possible.
+
+    Now that you're here, head over the **Groups** area to explore the existing groups or create new ones. When you join a group, messages posted there will show up in your **Feed**.
+
+    Oh, and be sure to dismiss this post when you're done 😉
     """
 
+    create_bot_post(levelbot, space_user, body)
+  end
+
+  defp create_bot_post(levelbot, space_user, body) do
     {:ok, %{post: post}} = Posts.create_post(levelbot, space_user, %{body: body})
     {:ok, [post]} = Posts.mark_as_unread(space_user, [post])
     {:ok, post}

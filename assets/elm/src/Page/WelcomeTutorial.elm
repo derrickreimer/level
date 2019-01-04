@@ -579,7 +579,7 @@ stepView device step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups are where conversations happen." ]
-                , p [ class "mb-6" ] [ text "A Group is akin to channel in real-time chat. Once this tutorial is finished, click on “Groups” in the sidebar to join the ones that interest you and create new ones." ]
+                , p [ class "mb-6" ] [ text "A Group is akin to channel in real-time chat." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
