@@ -155,11 +155,17 @@ defmodule LevelWeb.Schema.Objects do
     field :handle, non_null(:string)
 
     field :avatar_url, :string do
-      resolve fn space_user, _, _ ->
-        if space_user.avatar do
-          {:ok, AssetStore.avatar_url(space_user.avatar)}
-        else
-          {:ok, nil}
+      resolve fn space_bot, _, _ ->
+        cond do
+          space_bot.handle == "levelbot" ->
+            {:ok,
+             LevelWeb.Router.Helpers.static_url(LevelWeb.Endpoint, "/images/avatar-light.png")}
+
+          space_bot.avatar ->
+            {:ok, AssetStore.avatar_url(space_bot.avatar)}
+
+          true ->
+            {:ok, nil}
         end
       end
     end
