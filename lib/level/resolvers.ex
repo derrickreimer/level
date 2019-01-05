@@ -426,7 +426,7 @@ defmodule Level.Resolvers do
   Determines whether a space user is allowed to manage members.
   """
   @spec can_manage_members?(SpaceUser.t(), map(), info()) :: {:ok, boolean()}
-  def can_manage_members?(%SpaceUser{} = space_user, _, %{context: %{current_user: user}}) do
+  def can_manage_members?(%SpaceUser{} = space_user, _, %{context: %{current_user: _user}}) do
     {:ok, Spaces.can_manage_members?(space_user)}
   end
 
@@ -434,7 +434,7 @@ defmodule Level.Resolvers do
   Determines whether a space user is allowed to manage owners.
   """
   @spec can_manage_owners?(SpaceUser.t(), map(), info()) :: {:ok, boolean()}
-  def can_manage_owners?(%SpaceUser{} = space_user, _, %{context: %{current_user: user}}) do
+  def can_manage_owners?(%SpaceUser{} = space_user, _, %{context: %{current_user: _user}}) do
     {:ok, Spaces.can_manage_owners?(space_user)}
   end
 

@@ -337,6 +337,11 @@ defmodule Level.SpacesTest do
       assert Spaces.can_update?(space_user)
     end
 
+    test "is true if user is an admin" do
+      space_user = %SpaceUser{role: "ADMIN"}
+      assert Spaces.can_update?(space_user)
+    end
+
     test "is false if user is an regular member" do
       space_user = %SpaceUser{role: "MEMBER"}
       refute Spaces.can_update?(space_user)

@@ -446,7 +446,7 @@ defmodule Level.Spaces do
   """
   @spec can_update?(SpaceUser.t()) :: boolean()
   def can_update?(%SpaceUser{role: role}) do
-    role == "OWNER"
+    role == "OWNER" || role == "ADMIN"
   end
 
   @doc """
