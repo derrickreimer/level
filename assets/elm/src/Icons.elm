@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, square, thumbs, thumbsSmall, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -224,6 +224,12 @@ sendWhite =
         svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "send", transform "translate(0.000000, -5.000000)", fill "#FFFFFF", fillRule "nonzero" ] [ Svg.path [ d "M3.30681649,3.30681649 L19.3068165,11.3068165 L3.30681649,19.3068165 L3.30681649,3.30681649 Z M3.30681649,9.70681649 L3.30681649,12.9068165 L11.3068165,11.3068165 L3.30681649,9.70681649 Z", id "Shape", transform "translate(11.306816, 11.306816) rotate(-43.000000) translate(-11.306816, -11.306816) " ] [] ] ] ]
 
 
+shield : Html msg
+shield =
+    iconView <|
+        svg [ width "18px", height "22px", viewBox "0 0 18 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "shield", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M8,20 C8,20 16,16 16,10 L16,3 L8,0 L0,3 L0,10 C0,16 8,20 8,20 Z", id "Path" ] [] ] ] ]
+
+
 square : Html msg
 square =
     iconView <|
@@ -267,3 +273,9 @@ unlock : Html msg
 unlock =
     iconView <|
         svg [ width "16px", height "20px", viewBox "0 0 16 20", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "unlock", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ rect [ id "Rectangle-path", x "0", y "8.12030075", width "14", height "8.93233083", rx "2" ] [], Svg.path [ d "M3.11110911,8.12030075 L3.11111111,4.87218045 C3.10910319,2.7862656 4.62135513,1.03813725 6.60916974,0.828505399 C8.59698434,0.61887355 10.4135331,2.01595173 10.8111111,4.06015038", id "Shape" ] [] ] ] ]
+
+
+ex : Html msg
+ex =
+    iconView <|
+        svg [ width "14px", height "14px", viewBox "0 0 14 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "x", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M12,0 L0,12", id "Path" ] [], Svg.path [ d "M0,0 L12,12", id "Path" ] [] ] ] ]

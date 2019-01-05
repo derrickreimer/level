@@ -229,8 +229,7 @@ resolvedDesktopView globals model data =
                         [ Route.href <| Route.SpaceUsers (Route.SpaceUsers.init (Route.SpaceUser.getSpaceSlug model.params))
                         , class "flex items-center font-bold text-dusty-blue no-underline"
                         ]
-                        [ div [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
-                        , div [] [ text "View the member list" ]
+                        [ text "View the member list"
                         ]
                     ]
                 ]
@@ -280,7 +279,7 @@ resolvedMobileView globals model data =
 detailView : Model -> Data -> Html Msg
 detailView model data =
     div [ class "px-8 py-6" ]
-        [ div [ class "flex mb-4 pb-6 border-b" ]
+        [ div [ class "flex mb-4 pb-6" ]
             [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
             , div [ class "flex-grow" ]
                 [ div [ class "flex items-center" ]
@@ -290,15 +289,17 @@ detailView model data =
                     ]
                 , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
                 ]
+            , div [ class "flex-no-shrink ml-4" ]
+                [ viewIf (canManageAccess model data) <|
+                    button
+                        [ class "flex tooltip tooltip-bottom items-center text-dusty-blue no-underline font-bold no-outline"
+                        , onClick ToggleRevokeModel
+                        , attribute "data-tooltip" "Permissions"
+                        ]
+                        [ div [] [ Icons.shield ]
+                        ]
+                ]
             ]
-        , viewIf (canRevoke model data) <|
-            button
-                [ class "flex items-center text-dusty-blue no-underline font-bold"
-                , onClick ToggleRevokeModel
-                ]
-                [ div [ class "mr-2" ] [ Icons.revokeMember ]
-                , div [] [ text "Revoke access" ]
-                ]
         ]
 
 
@@ -311,6 +312,13 @@ canRevoke model data =
         /= model.spaceUserId
 
 
+canManageAccess : Model -> Data -> Bool
+canManageAccess model data =
+    Space.canManageMembers data.space
+        && SpaceUser.state data.spaceUser
+        == SpaceUser.Active
+
+
 revokeModal : Model -> Data -> Html Msg
 revokeModal model data =
     div
@@ -318,15 +326,69 @@ revokeModal model data =
         , style "background-color" "rgba(0,0,0,0.5)"
         , onClick ToggleRevokeModel
         ]
-        [ div [ class "mx-auto max-w-md px-8 py-24" ]
+        [ div [ class "mx-auto max-w-md md:max-w-lg px-8 py-24" ]
             [ div
-                [ class "px-8 py-6 w-full bg-white rounded shadow-lg leading-normal"
+                [ class "w-full bg-white rounded shadow-lg leading-normal"
                 , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed NoOp))
                 ]
-                [ h2 [ class "mb-4 font-bold text-dusty-blue-darker" ] [ text "Revoke access to this space" ]
-                , p [ class "mb-6" ] [ text "Their existing posts will still be accessible to other members of the space, but they will no longer have access." ]
-                , button [ class "mr-2 btn btn-blue btn-md", onClick RevokeAccess ] [ text <| "Remove " ++ SpaceUser.displayName data.spaceUser ]
-                , button [ class "btn btn-grey-outline btn-md", onClick ToggleRevokeModel ] [ text "Cancel" ]
+                [ div [ class "flex px-8 md:px-12 py-6 rounded-t bg-grey-lighter" ]
+                    [ div [ class "flex-grow" ]
+                        [ h2 [ class "mb-3 font-normal text-dusty-blue-darkest tracking-semi-tight text-3xl" ] [ text "Permissions" ]
+                        , p [ class "text-dusty-blue-dark" ] [ text <| "Designate " ++ SpaceUser.firstName data.spaceUser ++ "'s role on the " ++ Space.name data.space ++ " team." ]
+                        ]
+                    , div [ class "flex-no-shrink" ]
+                        [ button [ onClick ToggleRevokeModel ] [ Icons.ex ]
+                        ]
+                    ]
+                , div [ class "px-8 md:px-12 py-2" ]
+                    [ label [ class "control radio items-start my-6" ]
+                        [ input
+                            [ type_ "radio"
+                            , class "radio"
+                            , name "role"
+                            , checked (SpaceUser.role data.spaceUser == SpaceUser.Member)
+                            ]
+                            []
+                        , span [ class "control-indicator" ] []
+                        , div []
+                            [ h3 [ class "mb-1 text-lg text-dusty-blue-darker font-sans" ] [ text "Regular Member" ]
+                            , p [ class "text-dusty-blue-dark" ] [ text "The default role for team members." ]
+                            ]
+                        ]
+                    , label [ class "control radio items-start my-6" ]
+                        [ input
+                            [ type_ "radio"
+                            , class "radio"
+                            , name "role"
+                            , checked (SpaceUser.role data.spaceUser == SpaceUser.Admin)
+                            ]
+                            []
+                        , span [ class "control-indicator" ] []
+                        , div []
+                            [ h3 [ class "mb-1 text-lg text-dusty-blue-darker font-sans" ] [ text "Administrator" ]
+                            , p [ class "text-dusty-blue-dark" ] [ text "Allow the member to manage billing and permissions." ]
+                            ]
+                        ]
+                    , label [ class "control radio items-start my-6" ]
+                        [ input
+                            [ type_ "radio"
+                            , class "radio"
+                            , name "role"
+                            , checked (SpaceUser.role data.spaceUser == SpaceUser.Owner)
+                            ]
+                            []
+                        , span [ class "control-indicator" ] []
+                        , div []
+                            [ h3 [ class "mb-1 text-lg text-dusty-blue-darker font-sans" ] [ text "Team Owner" ]
+                            , p [ class "text-dusty-blue-dark" ] [ text "Grant full authority to the member." ]
+                            ]
+                        ]
+                    ]
+                , div [ class "px-8 md:px-12 py-6 border-t rounded-b" ]
+                    [ h3 [ class "mb-1 text-red text-lg font-sans" ] [ text "Remove from the team" ]
+                    , p [ class "mb-3 text-dusty-blue-dark" ] [ text "Their posts will remain visible, but they will no longer have access." ]
+                    , button [ class "mr-2 btn btn-red btn-sm", onClick RevokeAccess ] [ text "Revoke access" ]
+                    ]
                 ]
             ]
         ]

@@ -34,6 +34,7 @@ type alias Data =
 
 type Role
     = Member
+    | Admin
     | Owner
 
 
@@ -139,6 +140,9 @@ roleDecoder =
             case raw of
                 "MEMBER" ->
                     succeed Member
+
+                "ADMIN" ->
+                    succeed Admin
 
                 "OWNER" ->
                     succeed Owner
