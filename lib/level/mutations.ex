@@ -818,7 +818,9 @@ defmodule Level.Mutations do
   Revoke a user's access to a space.
   """
   @spec revoke_space_access(map(), info()) ::
-          {:ok, %{success: boolean(), errors: validation_errors()}} | {:error, String.t()}
+          {:ok,
+           %{success: boolean(), space_user: SpaceUser.t() | nil, errors: validation_errors()}}
+          | {:error, String.t()}
   def revoke_space_access(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          :ok <- can_manage_members?(space_user),
@@ -826,6 +828,27 @@ defmodule Level.Mutations do
          {:ok, revoked_space_user} <- Spaces.revoke_access(space_user_to_revoke) do
       {:ok, %{success: true, errors: [], space_user: revoked_space_user}}
     else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Updates a space user's role.
+  """
+  @spec update_role(map(), info()) ::
+          {:ok,
+           %{success: boolean(), space_user: SpaceUser.t() | nil, errors: validation_errors()}}
+          | {:error, String.t()}
+  def update_role(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: updater}} <- Spaces.get_space(user, args.space_id),
+         {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
+         {:ok, updated_space_user} <- Spaces.update_role(updater, space_user, args.role) do
+      {:ok, %{success: true, errors: [], space_user: updated_space_user}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset)}}
+
       err ->
         err
     end

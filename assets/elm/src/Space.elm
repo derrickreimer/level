@@ -1,10 +1,11 @@
-module Space exposing (Space, avatar, avatarUrl, canManageMembers, canUpdate, decoder, fragment, id, name, openInvitationUrl, slug)
+module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, id, name, openInvitationUrl, slug)
 
 import Avatar
 import GraphQL exposing (Fragment)
 import Html exposing (Html)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, field, int, maybe, string)
+import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import Json.Encode as Encode
 import Route exposing (Route)
 import Route.Inbox
@@ -25,7 +26,6 @@ type alias Data =
     , avatarUrl : Maybe String
     , openInvitationUrl : Maybe String
     , canUpdate : Bool
-    , canManageMembers : Bool
     , fetchedAt : Int
     }
 
@@ -41,7 +41,6 @@ fragment =
           avatarUrl
           openInvitationUrl
           canUpdate
-          canManageMembers
           fetchedAt
         }
         """
@@ -87,11 +86,6 @@ canUpdate (Space data) =
     data.canUpdate
 
 
-canManageMembers : Space -> Bool
-canManageMembers (Space data) =
-    data.canManageMembers
-
-
 
 -- DECODERS
 
@@ -99,12 +93,12 @@ canManageMembers (Space data) =
 decoder : Decoder Space
 decoder =
     Decode.map Space <|
-        Decode.map8 Data
-            (field "id" Id.decoder)
-            (field "name" string)
-            (field "slug" string)
-            (field "avatarUrl" (maybe string))
-            (field "openInvitationUrl" (maybe string))
-            (field "canUpdate" bool)
-            (field "canManageMembers" bool)
-            (field "fetchedAt" int)
+        (Decode.succeed Data
+            |> required "id" Id.decoder
+            |> required "name" string
+            |> required "slug" string
+            |> required "avatarUrl" (maybe string)
+            |> required "openInvitationUrl" (maybe string)
+            |> required "canUpdate" bool
+            |> required "fetchedAt" int
+        )

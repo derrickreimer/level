@@ -349,9 +349,31 @@ defmodule Level.SpacesTest do
       assert Spaces.can_manage_members?(space_user)
     end
 
+    test "is true if user is an admin" do
+      space_user = %SpaceUser{role: "ADMIN"}
+      assert Spaces.can_manage_members?(space_user)
+    end
+
     test "is false if user is an regular member" do
       space_user = %SpaceUser{role: "MEMBER"}
       refute Spaces.can_manage_members?(space_user)
+    end
+  end
+
+  describe "can_manage_owners?/1" do
+    test "is true if user is an owner" do
+      space_user = %SpaceUser{role: "OWNER"}
+      assert Spaces.can_manage_owners?(space_user)
+    end
+
+    test "is false if user is an regular member" do
+      space_user = %SpaceUser{role: "MEMBER"}
+      refute Spaces.can_manage_owners?(space_user)
+    end
+
+    test "is false if user is an admin" do
+      space_user = %SpaceUser{role: "ADMIN"}
+      refute Spaces.can_manage_owners?(space_user)
     end
   end
 
@@ -380,6 +402,57 @@ defmodule Level.SpacesTest do
 
       {:ok, reactivated_space_user} = Spaces.accept_open_invitation(user, invitation)
       assert reactivated_space_user.state == "ACTIVE"
+    end
+  end
+
+  describe "update_role/3" do
+    test "admins can promote members to admin" do
+      {:ok, %{space: space, space_user: actor}} = create_user_and_space()
+      {:ok, %{space_user: member}} = create_space_member(space)
+
+      {:ok, actor} = Spaces.update_space_user(actor, %{role: "ADMIN"})
+      {:ok, member} = Spaces.update_space_user(member, %{role: "MEMBER"})
+
+      {:ok, updated_member} = Spaces.update_role(actor, member, "ADMIN")
+      assert updated_member.role == "ADMIN"
+    end
+
+    test "admins cannot promote anyone to owner" do
+      {:ok, %{space: space, space_user: actor}} = create_user_and_space()
+      {:ok, %{space_user: member}} = create_space_member(space)
+
+      {:ok, actor} = Spaces.update_space_user(actor, %{role: "ADMIN"})
+      {:ok, member} = Spaces.update_space_user(member, %{role: "MEMBER"})
+
+      assert {:error, "You are not allowed to perform this action."} =
+               Spaces.update_role(actor, member, "OWNER")
+    end
+
+    test "owners can promote anyone to owner" do
+      {:ok, %{space: space, space_user: actor}} = create_user_and_space()
+      {:ok, %{space_user: member}} = create_space_member(space)
+
+      {:ok, actor} = Spaces.update_space_user(actor, %{role: "OWNER"})
+      {:ok, member} = Spaces.update_space_user(member, %{role: "MEMBER"})
+
+      {:ok, updated_member} = Spaces.update_role(actor, member, "OWNER")
+      assert updated_member.role == "OWNER"
+    end
+
+    test "members cannot change roles" do
+      {:ok, %{space: space, space_user: actor}} = create_user_and_space()
+      {:ok, %{space_user: member}} = create_space_member(space)
+
+      {:ok, actor} = Spaces.update_space_user(actor, %{role: "MEMBER"})
+      {:ok, member} = Spaces.update_space_user(member, %{role: "MEMBER"})
+
+      assert {:error, "You are not allowed to perform this action."} =
+               Spaces.update_role(actor, member, "ADMIN")
+
+      {:ok, member} = Spaces.update_space_user(member, %{role: "ADMIN"})
+
+      assert {:error, "You are not allowed to perform this action."} =
+               Spaces.update_role(actor, member, "MEMBER")
     end
   end
 end

@@ -413,6 +413,35 @@ defmodule Level.Spaces do
   defp handle_space_user_update(err), do: err
 
   @doc """
+  Updates a space user's role.
+  """
+  @spec update_role(SpaceUser.t(), SpaceUser.t(), atom()) ::
+          {:ok, SpaceUser.t()} | {:error, String.t()} | {:error, Ecto.Changeset.t()}
+  def update_role(updater, space_user, "ADMIN") do
+    if can_manage_members?(updater) do
+      update_space_user(space_user, %{role: "ADMIN"})
+    else
+      {:error, "You are not allowed to perform this action."}
+    end
+  end
+
+  def update_role(updater, space_user, "MEMBER") do
+    if can_manage_members?(updater) do
+      update_space_user(space_user, %{role: "MEMBER"})
+    else
+      {:error, "You are not allowed to perform this action."}
+    end
+  end
+
+  def update_role(updater, space_user, "OWNER") do
+    if can_manage_owners?(updater) do
+      update_space_user(space_user, %{role: "OWNER"})
+    else
+      {:error, dgettext("errors", "You are not allowed to perform this action.")}
+    end
+  end
+
+  @doc """
   Determines if a user is allowed to update a space.
   """
   @spec can_update?(SpaceUser.t()) :: boolean()
@@ -425,6 +454,14 @@ defmodule Level.Spaces do
   """
   @spec can_manage_members?(SpaceUser.t()) :: boolean()
   def can_manage_members?(%SpaceUser{role: role}) do
+    role == "OWNER" || role == "ADMIN"
+  end
+
+  @doc """
+  Determines if a user is allowed to manage members.
+  """
+  @spec can_manage_owners?(SpaceUser.t()) :: boolean()
+  def can_manage_owners?(%SpaceUser{role: role}) do
     role == "OWNER"
   end
 

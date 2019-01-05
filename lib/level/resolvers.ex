@@ -423,17 +423,19 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Determines whether the current user is allowed to manage space members.
+  Determines whether a space user is allowed to manage members.
   """
-  @spec can_manage_members?(Space.t(), map(), info()) :: {:ok, boolean()}
-  def can_manage_members?(%Space{} = space, _, %{context: %{current_user: user}}) do
-    case Spaces.get_space_user(user, space) do
-      {:ok, space_user} ->
-        {:ok, Spaces.can_manage_members?(space_user)}
+  @spec can_manage_members?(SpaceUser.t(), map(), info()) :: {:ok, boolean()}
+  def can_manage_members?(%SpaceUser{} = space_user, _, %{context: %{current_user: user}}) do
+    {:ok, Spaces.can_manage_members?(space_user)}
+  end
 
-      _ ->
-        {:ok, false}
-    end
+  @doc """
+  Determines whether a space user is allowed to manage owners.
+  """
+  @spec can_manage_owners?(SpaceUser.t(), map(), info()) :: {:ok, boolean()}
+  def can_manage_owners?(%SpaceUser{} = space_user, _, %{context: %{current_user: user}}) do
+    {:ok, Spaces.can_manage_owners?(space_user)}
   end
 
   @doc """

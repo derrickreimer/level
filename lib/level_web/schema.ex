@@ -372,6 +372,15 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.revoke_space_access/2
     end
 
+    @desc "Update a user's role."
+    field :update_role, :update_role_payload do
+      arg :space_id, non_null(:id)
+      arg :space_user_id, non_null(:id)
+      arg :role, non_null(:space_user_role)
+
+      resolve &Level.Mutations.update_role/2
+    end
+
     @desc "Creates a reaction to a post."
     field :create_post_reaction, :create_post_reaction_payload do
       arg :space_id, non_null(:id)
