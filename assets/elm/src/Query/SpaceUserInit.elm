@@ -19,6 +19,7 @@ type alias Response =
     , spaceId : Id
     , bookmarkIds : List Id
     , spaceUserId : Id
+    , role : SpaceUser.Role
     , repo : Repo
     }
 
@@ -95,6 +96,7 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
                 (SpaceUser.id data.spaceUser)
+                (SpaceUser.role data.spaceUser)
                 repo
     in
     ( session, resp )

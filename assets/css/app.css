@@ -245,6 +245,11 @@ h6 {
   @apply bg-blue-dark text-white border-blue-dark;
 }
 
+/* Disabled */
+.control input:disabled ~ .control-indicator {
+  @apply opacity-50;
+}
+
 /* Checkbox modifiers */
 .checkbox .control-indicator {
   @apply rounded;

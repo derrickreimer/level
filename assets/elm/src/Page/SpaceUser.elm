@@ -16,6 +16,7 @@ import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RevokeSpaceAccess as RevokeSpaceAccess
+import Mutation.UpdateRole as UpdateRole
 import Query.SpaceUserInit as SpaceUserInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -39,7 +40,9 @@ type alias Model =
     , spaceId : Id
     , bookmarkIds : List Id
     , spaceUserId : Id
-    , showRevokeModel : Bool
+    , role : SpaceUser.Role
+    , showPermissionsModal : Bool
+    , isSubmitting : Bool
     }
 
 
@@ -90,6 +93,8 @@ buildModel params globals ( newSession, resp ) =
                 resp.spaceId
                 resp.bookmarkIds
                 resp.spaceUserId
+                resp.role
+                False
                 False
 
         newRepo =
@@ -114,10 +119,14 @@ teardown model =
 
 type Msg
     = NoOp
-    | ToggleRevokeModel
+    | TogglePermissionsModal
     | RevokeAccess
     | AccessRevoked (Result Session.Error ( Session, RevokeSpaceAccess.Response ))
     | ScrollTopClicked
+    | SetMemberRole
+    | SetAdminRole
+    | SetOwnerRole
+    | RoleUpdated (Result Session.Error ( Session, UpdateRole.Response ))
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -126,8 +135,26 @@ update msg globals model =
         NoOp ->
             ( ( model, Cmd.none ), globals )
 
-        ToggleRevokeModel ->
-            ( ( { model | showRevokeModel = not model.showRevokeModel }, Cmd.none ), globals )
+        TogglePermissionsModal ->
+            case resolveData globals.repo model of
+                Just data ->
+                    ( ( { model
+                            | showPermissionsModal = not model.showPermissionsModal
+                            , role = SpaceUser.role data.spaceUser
+                        }
+                      , Cmd.none
+                      )
+                    , globals
+                    )
+
+                Nothing ->
+                    ( ( { model
+                            | showPermissionsModal = not model.showPermissionsModal
+                        }
+                      , Cmd.none
+                      )
+                    , globals
+                    )
 
         RevokeAccess ->
             let
@@ -162,6 +189,59 @@ update msg globals model =
 
         ScrollTopClicked ->
             ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
+        SetMemberRole ->
+            let
+                variables =
+                    UpdateRole.variables model.spaceId model.spaceUserId SpaceUser.Member
+
+                cmd =
+                    globals.session
+                        |> UpdateRole.request variables
+                        |> Task.attempt RoleUpdated
+            in
+            ( ( { model | role = SpaceUser.Member, isSubmitting = True }, cmd ), globals )
+
+        SetAdminRole ->
+            let
+                variables =
+                    UpdateRole.variables model.spaceId model.spaceUserId SpaceUser.Admin
+
+                cmd =
+                    globals.session
+                        |> UpdateRole.request variables
+                        |> Task.attempt RoleUpdated
+            in
+            ( ( { model | role = SpaceUser.Admin, isSubmitting = True }, cmd ), globals )
+
+        SetOwnerRole ->
+            let
+                variables =
+                    UpdateRole.variables model.spaceId model.spaceUserId SpaceUser.Owner
+
+                cmd =
+                    globals.session
+                        |> UpdateRole.request variables
+                        |> Task.attempt RoleUpdated
+            in
+            ( ( { model | role = SpaceUser.Owner, isSubmitting = True }, cmd ), globals )
+
+        RoleUpdated (Ok ( newSession, UpdateRole.Success newSpaceUser )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setSpaceUser newSpaceUser
+
+                newGlobals =
+                    { globals | session = newSession, repo = newRepo }
+            in
+            ( ( { model | isSubmitting = False }, Cmd.none ), newGlobals )
+
+        RoleUpdated (Err Session.Expired) ->
+            ( ( { model | isSubmitting = False }, Route.toLogin ), globals )
+
+        RoleUpdated _ ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
 
 
 
@@ -235,8 +315,8 @@ resolvedDesktopView globals model data =
                 ]
             , detailView model data
             ]
-        , viewIf model.showRevokeModel <|
-            revokeModal model data
+        , viewIf model.showPermissionsModal <|
+            permissionsModal model data
         ]
 
 
@@ -267,8 +347,8 @@ resolvedMobileView globals model data =
         [ div []
             [ detailView model data
             ]
-        , viewIf model.showRevokeModel <|
-            revokeModal model data
+        , viewIf model.showPermissionsModal <|
+            permissionsModal model data
         ]
 
 
@@ -293,7 +373,7 @@ detailView model data =
                 [ viewIf (canManageAccess model data) <|
                     button
                         [ class "flex tooltip tooltip-bottom items-center text-dusty-blue no-underline font-bold no-outline"
-                        , onClick ToggleRevokeModel
+                        , onClick TogglePermissionsModal
                         , attribute "data-tooltip" "Permissions"
                         ]
                         [ div [] [ Icons.shield ]
@@ -319,12 +399,12 @@ canManageAccess model data =
         == SpaceUser.Active
 
 
-revokeModal : Model -> Data -> Html Msg
-revokeModal model data =
+permissionsModal : Model -> Data -> Html Msg
+permissionsModal model data =
     div
         [ class "fixed pin-l pin-t pin-r pin-b z-50"
         , style "background-color" "rgba(0,0,0,0.5)"
-        , onClick ToggleRevokeModel
+        , onClick TogglePermissionsModal
         ]
         [ div [ class "mx-auto max-w-md md:max-w-lg px-8 py-24" ]
             [ div
@@ -337,44 +417,52 @@ revokeModal model data =
                         , p [ class "text-dusty-blue-dark" ] [ text <| "Designate " ++ SpaceUser.firstName data.spaceUser ++ "'s role on the " ++ Space.name data.space ++ " team." ]
                         ]
                     , div [ class "flex-no-shrink" ]
-                        [ button [ onClick ToggleRevokeModel ] [ Icons.ex ]
+                        [ button [ onClick TogglePermissionsModal ] [ Icons.ex ]
                         ]
                     ]
                 , div [ class "px-8 md:px-12 py-2" ]
-                    [ label [ class "control radio items-start my-6" ]
-                        [ input
-                            [ type_ "radio"
-                            , class "radio"
-                            , name "role"
-                            , checked (SpaceUser.role data.spaceUser == SpaceUser.Member)
+                    [ viewIf (SpaceUser.canManageOwners data.viewer || not (model.role == SpaceUser.Owner)) <|
+                        label [ class "control radio items-start my-6" ]
+                            [ input
+                                [ type_ "radio"
+                                , class "radio"
+                                , name "role"
+                                , checked (model.role == SpaceUser.Member)
+                                , disabled (model.isSubmitting || not (SpaceUser.canManageMembers data.viewer))
+                                , onClick SetMemberRole
+                                ]
+                                []
+                            , span [ class "control-indicator" ] []
+                            , div []
+                                [ h3 [ class "mb-1 text-lg text-dusty-blue-darker font-sans" ] [ text "Regular Member" ]
+                                , p [ class "text-dusty-blue-dark" ] [ text "The default role for team members." ]
+                                ]
                             ]
-                            []
-                        , span [ class "control-indicator" ] []
-                        , div []
-                            [ h3 [ class "mb-1 text-lg text-dusty-blue-darker font-sans" ] [ text "Regular Member" ]
-                            , p [ class "text-dusty-blue-dark" ] [ text "The default role for team members." ]
+                    , viewIf (SpaceUser.canManageOwners data.viewer || not (model.role == SpaceUser.Owner)) <|
+                        label [ class "control radio items-start my-6" ]
+                            [ input
+                                [ type_ "radio"
+                                , class "radio"
+                                , name "role"
+                                , checked (model.role == SpaceUser.Admin)
+                                , disabled (model.isSubmitting || not (SpaceUser.canManageMembers data.viewer))
+                                , onClick SetAdminRole
+                                ]
+                                []
+                            , span [ class "control-indicator" ] []
+                            , div []
+                                [ h3 [ class "mb-1 text-lg text-dusty-blue-darker font-sans" ] [ text "Administrator" ]
+                                , p [ class "text-dusty-blue-dark" ] [ text "Allow them to configure team settings and manage member permissions." ]
+                                ]
                             ]
-                        ]
                     , label [ class "control radio items-start my-6" ]
                         [ input
                             [ type_ "radio"
                             , class "radio"
                             , name "role"
-                            , checked (SpaceUser.role data.spaceUser == SpaceUser.Admin)
-                            ]
-                            []
-                        , span [ class "control-indicator" ] []
-                        , div []
-                            [ h3 [ class "mb-1 text-lg text-dusty-blue-darker font-sans" ] [ text "Administrator" ]
-                            , p [ class "text-dusty-blue-dark" ] [ text "Allow them to configure team settings and manage member permissions." ]
-                            ]
-                        ]
-                    , label [ class "control radio items-start my-6" ]
-                        [ input
-                            [ type_ "radio"
-                            , class "radio"
-                            , name "role"
-                            , checked (SpaceUser.role data.spaceUser == SpaceUser.Owner)
+                            , checked (model.role == SpaceUser.Owner)
+                            , disabled (model.isSubmitting || not (SpaceUser.canManageOwners data.viewer))
+                            , onClick SetOwnerRole
                             ]
                             []
                         , span [ class "control-indicator" ] []

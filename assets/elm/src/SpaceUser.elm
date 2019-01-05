@@ -1,4 +1,4 @@
-module SpaceUser exposing (Role(..), SpaceUser, State(..), avatar, canManageMembers, canManageOwners, decoder, displayName, firstName, fragment, handle, id, lastName, role, roleDecoder, spaceId, state, userId)
+module SpaceUser exposing (Role(..), SpaceUser, State(..), avatar, canManageMembers, canManageOwners, decoder, displayName, firstName, fragment, handle, id, lastName, role, roleDecoder, roleEncoder, spaceId, state, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -6,6 +6,7 @@ import Html exposing (Html)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, maybe, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (required)
+import Json.Encode as Encode
 import Tutorial exposing (Tutorial)
 
 
@@ -203,3 +204,20 @@ decoder =
             |> required "canManageOwners" bool
             |> required "fetchedAt" int
         )
+
+
+
+-- ENCODING
+
+
+roleEncoder : Role -> Encode.Value
+roleEncoder value =
+    case value of
+        Member ->
+            Encode.string "MEMBER"
+
+        Admin ->
+            Encode.string "ADMIN"
+
+        Owner ->
+            Encode.string "OWNER"
