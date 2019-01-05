@@ -386,8 +386,7 @@ detailView model data =
 canRevoke : Model -> Data -> Bool
 canRevoke model data =
     SpaceUser.canManageMembers data.viewer
-        && SpaceUser.state data.spaceUser
-        == SpaceUser.Active
+        && (not (model.role == SpaceUser.Owner) || SpaceUser.canManageOwners data.viewer)
         && model.viewerId
         /= model.spaceUserId
 
@@ -472,11 +471,12 @@ permissionsModal model data =
                             ]
                         ]
                     ]
-                , div [ class "px-8 md:px-12 py-6 border-t rounded-b" ]
-                    [ h3 [ class "mb-1 text-red text-lg font-sans" ] [ text "Remove from the team" ]
-                    , p [ class "mb-3 text-dusty-blue-dark" ] [ text "Their posts will remain visible, but they will no longer have access." ]
-                    , button [ class "mr-2 btn btn-red btn-sm", onClick RevokeAccess ] [ text "Revoke access" ]
-                    ]
+                , viewIf (canRevoke model data) <|
+                    div [ class "px-8 md:px-12 py-6 border-t rounded-b" ]
+                        [ h3 [ class "mb-1 text-red text-lg font-sans" ] [ text "Remove from the team" ]
+                        , p [ class "mb-3 text-dusty-blue-dark" ] [ text "Their posts will remain visible, but they will no longer have access." ]
+                        , button [ class "mr-2 btn btn-red btn-sm", onClick RevokeAccess ] [ text "Revoke access" ]
+                        ]
                 ]
             ]
         ]
