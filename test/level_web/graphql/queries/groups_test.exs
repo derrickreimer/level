@@ -13,24 +13,6 @@ defmodule LevelWeb.GraphQL.GroupsTest do
           edges {
             node {
               name
-              isBookmarked
-            }
-          }
-          total_count
-        }
-      }
-    }
-  """
-
-  @closed_query """
-    query Groups(
-      $space_id: ID!
-    ) {
-      space(id: $space_id) {
-        groups(first: 2, state: CLOSED) {
-          edges {
-            node {
-              name
             }
           }
           total_count
@@ -46,7 +28,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   end
 
   test "spaces have a paginated groups field", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{group: _group}} = create_group(space_user, %{name: "Cool Kids"})
     variables = %{space_id: space_user.space_id}
 
     conn =
@@ -54,81 +36,66 @@ defmodule LevelWeb.GraphQL.GroupsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @edge_query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "groups" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "name" => group.name,
-                         "isBookmarked" => true
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "space" => %{
+          "groups" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["name"] == "Cool Kids"
+           end)
   end
 
   test "filtering groups by state", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: _open_group}} = create_group(space_user)
-    {:ok, %{group: group}} = create_group(space_user)
-    {:ok, closed_group} = Groups.close_group(group)
+    {:ok, %{group: _open_group}} = create_group(space_user, %{name: "Open Group"})
+    {:ok, %{group: group}} = create_group(space_user, %{name: "Closed Group"})
+    {:ok, _closed_group} = Groups.close_group(group)
+
+    query = """
+      query Groups(
+        $space_id: ID!
+      ) {
+        space(id: $space_id) {
+          groups(first: 2, state: CLOSED) {
+            edges {
+              node {
+                name
+              }
+            }
+            total_count
+          }
+        }
+      }
+    """
 
     variables = %{space_id: space_user.space_id}
 
     conn =
       conn
       |> put_graphql_headers()
-      |> post("/graphql", %{query: @closed_query, variables: variables})
+      |> post("/graphql", %{query: query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "groups" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "name" => closed_group.name
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
-  end
+    %{
+      "data" => %{
+        "space" => %{
+          "groups" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
 
-  test "can represent unbookmarked groups", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user)
-    Groups.unbookmark_group(group, space_user)
-    variables = %{space_id: space_user.space_id}
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["name"] == "Closed Group"
+           end)
 
-    conn =
-      conn
-      |> put_graphql_headers()
-      |> post("/graphql", %{query: @edge_query, variables: variables})
-
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "groups" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "name" => group.name,
-                         "isBookmarked" => false
-                       }
-                     }
-                   ],
-                   "total_count" => 1
-                 }
-               }
-             }
-           }
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["name"] == "Open Group"
+           end)
   end
 end

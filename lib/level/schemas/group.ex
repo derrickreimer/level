@@ -6,7 +6,6 @@ defmodule Level.Schemas.Group do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Ecto.Changeset
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.PostGroup
@@ -38,7 +37,6 @@ defmodule Level.Schemas.Group do
     group
     |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_private, :is_default])
     |> validate()
-    |> autodetect_default()
   end
 
   @doc false
@@ -54,10 +52,4 @@ defmodule Level.Schemas.Group do
     |> validate_required([:name])
     |> unique_constraint(:name, name: :groups_unique_names_when_undeleted)
   end
-
-  defp autodetect_default(%Changeset{changes: %{name: "Everyone"}} = changeset) do
-    put_change(changeset, :is_default, true)
-  end
-
-  defp autodetect_default(changeset), do: changeset
 end

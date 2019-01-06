@@ -10,6 +10,7 @@ defmodule Level.Spaces do
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Events
+  alias Level.Groups
   alias Level.Levelbot
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
@@ -27,10 +28,14 @@ defmodule Level.Spaces do
              space: Space.t(),
              space_user: SpaceUser.t(),
              open_invitation: OpenInvitation.t(),
-             levelbot: SpaceBot.t()
+             levelbot: SpaceBot.t(),
+             default_group: Group.t()
            }}
-          | {:error, :space | :space_user | :open_invitation | :levelbot, any(),
-             %{optional(:space | :space_user | :open_invitation | :levelbot) => any()}}
+          | {:error, :space | :space_user | :open_invitation | :levelbot | :default_group, any(),
+             %{
+               optional(:space | :space_user | :open_invitation | :levelbot | :default_group) =>
+                 any()
+             }}
 
   @typedoc "The result of getting a space"
   @type get_space_result ::
@@ -107,6 +112,9 @@ defmodule Level.Spaces do
     |> Multi.run(:levelbot, fn %{space: space} -> install_levelbot(space) end)
     |> Multi.run(:space_user, fn %{space: space} -> create_owner(user, space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
+    |> Multi.run(:default_group, fn %{space_user: space_user} ->
+      create_everyone_group(space_user)
+    end)
     |> Repo.transaction()
   end
 
@@ -124,6 +132,16 @@ defmodule Level.Spaces do
     %SpaceBot{}
     |> Changeset.change(params)
     |> Repo.insert()
+  end
+
+  defp create_everyone_group(space_user) do
+    case Groups.create_group(space_user, %{name: "Everyone", is_default: true}) do
+      {:ok, %{group: group}} ->
+        {:ok, group}
+
+      err ->
+        err
+    end
   end
 
   @doc """

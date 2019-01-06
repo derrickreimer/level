@@ -36,22 +36,18 @@ defmodule LevelWeb.GraphQL.UserGroupMembershipsTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: variables})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "viewer" => %{
-                 "groupMemberships" => %{
-                   "edges" => [
-                     %{
-                       "node" => %{
-                         "group" => %{
-                           "name" => "Cool peeps"
-                         }
-                       }
-                     }
-                   ]
-                 }
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "viewer" => %{
+          "groupMemberships" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["group"]["name"] == "Cool peeps"
+           end)
   end
 end

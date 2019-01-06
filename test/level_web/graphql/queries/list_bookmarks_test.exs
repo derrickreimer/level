@@ -32,16 +32,14 @@ defmodule LevelWeb.GraphQL.ListBookmarksTest do
       |> put_graphql_headers()
       |> post("/graphql", %{query: @query, variables: %{space_id: space.id}})
 
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "spaceUser" => %{
-                 "bookmarks" => [
-                   %{
-                     "name" => "Engineering"
-                   }
-                 ]
-               }
-             }
-           }
+    %{
+      "data" => %{
+        "spaceUser" => %{
+          "bookmarks" => bookmarks
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(bookmarks, fn bookmark -> bookmark["name"] == "Engineering" end)
   end
 end

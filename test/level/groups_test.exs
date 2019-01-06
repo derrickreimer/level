@@ -154,16 +154,6 @@ defmodule Level.GroupsTest do
       assert Groups.is_bookmarked(user, group)
     end
 
-    test "sets groups named 'Everyone' to be default", %{space_user: space_user} do
-      params =
-        valid_group_params()
-        |> Map.put(:is_default, false)
-        |> Map.put(:name, "Everyone")
-
-      {:ok, %{group: group}} = Groups.create_group(space_user, params)
-      assert group.is_default
-    end
-
     test "returns errors given invalid data", %{space_user: space_user} do
       params = Map.put(valid_group_params(), :name, "")
       {:error, changeset} = Groups.create_group(space_user, params)
