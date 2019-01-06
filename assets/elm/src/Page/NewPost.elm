@@ -308,7 +308,7 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
                 , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
-                        , class "w-full h-16 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "What's on your mind?"
                         , onInput NewPostBodyChanged
 
@@ -319,19 +319,6 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
                         ]
                         []
                     , PostEditor.filesView editor
-                    , div [ class "flex flex-wrap" ]
-                        [ div [ class "mb-2 mr-2 pl-2 text-sm font-bold bg-turquoise rounded text-white" ]
-                            [ text "Engineers"
-                            , button [ class "mx-1 px-1 font-bold text-sm text-white rounded opacity-75" ] [ text "×" ]
-                            ]
-                        , div [ class "flex-grow relative" ]
-                            [ input [ type_ "text", class "mb-2 w-full block text-sm no-outline text-dusty-blue-darkest bg-transparent", placeholder "Which group?", tabindex 2 ] []
-                            , div [ class "absolute py-1 pin-l w-32 bg-white rounded shadow-md z-20", style "top" "100%" ]
-                                [ button [ class "px-2 py-1 text-sm text-left font-bold bg-grey text-dusty-blue-darker w-full" ] [ text "Everyone" ]
-                                , button [ class "px-2 py-1 text-sm text-left font-normal text-dusty-blue-darker w-full" ] [ text "Engineering" ]
-                                ]
-                            ]
-                        ]
                     , div [ class "flex items-baseline justify-end" ]
                         [ button
                             [ class "btn btn-blue btn-md"
