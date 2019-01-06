@@ -25,6 +25,7 @@ import Page.Inbox
 import Page.InviteUsers
 import Page.NewGroup
 import Page.NewGroupPost
+import Page.NewPost
 import Page.NewSpace
 import Page.Post
 import Page.Posts
@@ -48,6 +49,7 @@ import Route.Groups
 import Route.Help
 import Route.Inbox
 import Route.NewGroupPost
+import Route.NewPost
 import Route.Posts
 import Route.Search
 import Route.Settings
@@ -224,6 +226,7 @@ type Msg
     | NewGroupMsg Page.NewGroup.Msg
     | GroupSettingsMsg Page.GroupSettings.Msg
     | PostMsg Page.Post.Msg
+    | NewPostMsg Page.NewPost.Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.Settings.Msg
     | SearchMsg Page.Search.Msg
@@ -382,6 +385,11 @@ update msg model =
                 |> Page.Post.update pageMsg globals
                 |> updatePageWithGlobals Post PostMsg model
 
+        ( NewPostMsg pageMsg, NewPost pageModel ) ->
+            pageModel
+                |> Page.NewPost.update pageMsg globals
+                |> updatePageWithGlobals NewPost NewPostMsg model
+
         ( UserSettingsMsg pageMsg, UserSettings pageModel ) ->
             pageModel
                 |> Page.UserSettings.update pageMsg globals
@@ -522,6 +530,7 @@ type Page
     | NewGroup Page.NewGroup.Model
     | GroupSettings Page.GroupSettings.Model
     | Post Page.Post.Model
+    | NewPost Page.NewPost.Model
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.Settings.Model
     | Search Page.Search.Model
@@ -543,6 +552,7 @@ type PageInit
     | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
+    | NewPostInit (Result Session.Error ( Globals, Page.NewPost.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
@@ -638,6 +648,11 @@ navigateTo maybeRoute model =
                 |> Page.Post.init spaceSlug postId
                 |> transition model (PostInit postId)
 
+        Just (Route.NewPost params) ->
+            globals
+                |> Page.NewPost.init params
+                |> transition model NewPostInit
+
         Just (Route.Settings spaceSlug) ->
             globals
                 |> Page.Settings.init spaceSlug
@@ -702,6 +717,9 @@ pageTitle repo page =
 
         Post pageModel ->
             Page.Post.title pageModel
+
+        NewPost pageModel ->
+            Page.NewPost.title pageModel
 
         SpaceSettings _ ->
             Page.Settings.title
@@ -866,6 +884,15 @@ setupPage pageInit model =
         PostInit _ (Err _) ->
             ( model, Cmd.none )
 
+        NewPostInit (Ok result) ->
+            perform Page.NewPost.setup NewPost NewPostMsg model result
+
+        NewPostInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        NewPostInit (Err _) ->
+            ( model, Cmd.none )
+
         UserSettingsInit (Ok result) ->
             perform Page.UserSettings.setup UserSettings UserSettingsMsg model result
 
@@ -954,6 +981,9 @@ teardownPage page =
 
         Post pageModel ->
             Cmd.map PostMsg (Page.Post.teardown pageModel)
+
+        NewPost pageModel ->
+            Cmd.map NewPostMsg (Page.NewPost.teardown pageModel)
 
         Search pageModel ->
             Cmd.map SearchMsg (Page.Search.teardown pageModel)
@@ -1047,6 +1077,9 @@ routeFor page =
         Post { spaceSlug, postComp } ->
             Just <| Route.Post spaceSlug postComp.id
 
+        NewPost { params } ->
+            Just <| Route.NewPost params
+
         UserSettings _ ->
             Just <| Route.UserSettings
 
@@ -1110,6 +1143,9 @@ getSpaceSlug page =
 
         Post { spaceSlug, postComp } ->
             Just spaceSlug
+
+        NewPost { params } ->
+            Just <| Route.NewPost.getSpaceSlug params
 
         UserSettings _ ->
             Nothing
@@ -1200,6 +1236,11 @@ pageView globals page =
             pageModel
                 |> Page.Post.view globals
                 |> Html.map PostMsg
+
+        NewPost pageModel ->
+            pageModel
+                |> Page.NewPost.view globals
+                |> Html.map NewPostMsg
 
         UserSettings pageModel ->
             pageModel
@@ -1447,6 +1488,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.Post.consumeEvent globals event
                 |> updatePage Post PostMsg model
+
+        NewPost pageModel ->
+            pageModel
+                |> Page.NewPost.consumeEvent globals event
+                |> updatePage NewPost NewPostMsg model
 
         UserSettings pageModel ->
             pageModel
