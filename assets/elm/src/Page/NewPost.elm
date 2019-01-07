@@ -113,7 +113,7 @@ buildModel params globals ( newSession, resp ) =
 setup : Model -> Cmd Msg
 setup model =
     Cmd.batch
-        [ setFocus "name" NoOp
+        [ setFocus (PostEditor.getTextareaId model.postComposer) NoOp
         , Scroll.toDocumentTop NoOp
         ]
 
