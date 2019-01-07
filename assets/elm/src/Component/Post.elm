@@ -1097,19 +1097,21 @@ postAuthorName space postId author =
 
 groupsLabel : Space -> List Group -> Html Msg
 groupsLabel space groups =
-    case groups of
-        [ group ] ->
-            div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
-                [ text "Posted to "
-                , a
-                    [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
-                    , class "no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
-                    ]
-                    [ text ("#" ++ Group.name group) ]
+    let
+        groupLink group =
+            a
+                [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
+                , class "mr-1 no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
                 ]
+                [ text ("#" ++ Group.name group) ]
 
-        _ ->
-            text ""
+        groupLinks =
+            List.map groupLink groups
+    in
+    div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
+        [ text "Posted to "
+        , span [] groupLinks
+        ]
 
 
 bodyView : Space -> Post -> Html Msg
