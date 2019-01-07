@@ -86,15 +86,17 @@ layout config children =
                             , div [ class "mb-2 font-headline font-bold text-xl text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                             ]
                         ]
-                    , div [ class "absolute w-full overflow-y-auto", style "top" "120px", style "bottom" "60px" ]
+                    , div [ class "absolute w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
                             , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
                             ]
+                        , h3 [ class "mb-2 pl-6 font-sans text-base" ]
+                            [ a [ Route.href (Route.Groups (Route.Groups.init (Space.slug config.space))), class "text-dusty-blue no-underline" ] [ text "Channels" ]
+                            ]
                         , bookmarkList config
                         , ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
-                            , navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
                             , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
                             , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
                             ]

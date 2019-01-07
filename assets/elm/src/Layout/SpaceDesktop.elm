@@ -130,14 +130,16 @@ fullSidebar config =
                 ]
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "70px" ]
-            [ ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
+            [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                 [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
                 , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
+                ]
+            , h3 [ class "mb-1p5 pl-3 font-sans text-sm" ]
+                [ a [ Route.href (Route.Groups (Route.Groups.init (Space.slug config.space))), class "text-dusty-blue no-underline" ] [ text "Channels" ]
                 ]
             , bookmarkList config
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
                 , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
                 , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
                 ]
@@ -168,7 +170,7 @@ bookmarkList config =
                 |> List.sortBy Group.name
                 |> List.map linkify
     in
-    ul [ class "mb-4 list-reset leading-semi-loose select-none" ] links
+    ul [ class "mb-6 list-reset leading-semi-loose select-none" ] links
 
 
 navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
