@@ -468,7 +468,7 @@ post-editor.dragging-over > * {
 /* Base styles for the tooltip's content area */
 .tooltip:after,
 [data-tooltip]:after {
-  @apply px-2 py-1 z-50 bg-dusty-blue-darker rounded text-xs font-bold text-white leading-normal;
+  @apply px-2 py-1 z-50 bg-dusty-blue-darker rounded text-xs font-bold text-white text-center leading-normal;
   width: 100px;
   content: attr(data-tooltip);
 }

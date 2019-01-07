@@ -132,6 +132,10 @@ type Msg
     | ToggleMembership Group
     | SubscribedToGroup (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribedFromGroup (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
+    | Bookmark Group
+    | Unbookmark Group
+    | Bookmarked (Result Session.Error ( Session, BookmarkGroup.Response ))
+    | Unbookmarked (Result Session.Error ( Session, UnbookmarkGroup.Response ))
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -202,6 +206,68 @@ update msg globals model =
             redirectToLogin globals model
 
         SubscribedToGroup _ ->
+            ( ( model, Cmd.none ), globals )
+
+        Bookmark group ->
+            let
+                cmd =
+                    globals.session
+                        |> BookmarkGroup.request model.spaceId (Group.id group)
+                        |> Task.attempt Bookmarked
+
+                newGroups =
+                    Connection.update Group.id (Group.setIsBookmarked True group) model.groups
+            in
+            ( ( { model | groups = newGroups }, cmd ), globals )
+
+        Bookmarked (Ok ( newSession, BookmarkGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+
+                newGroups =
+                    Connection.update Group.id group model.groups
+            in
+            ( ( { model | groups = newGroups }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
+
+        Bookmarked (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Bookmarked _ ->
+            ( ( model, Cmd.none ), globals )
+
+        Unbookmark group ->
+            let
+                cmd =
+                    globals.session
+                        |> UnbookmarkGroup.request model.spaceId (Group.id group)
+                        |> Task.attempt Unbookmarked
+
+                newGroups =
+                    Connection.update Group.id (Group.setIsBookmarked False group) model.groups
+            in
+            ( ( { model | groups = newGroups }, cmd ), globals )
+
+        Unbookmarked (Ok ( newSession, UnbookmarkGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+
+                newGroups =
+                    Connection.update Group.id group model.groups
+            in
+            ( ( { model | groups = newGroups }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
+
+        Unbookmarked (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Unbookmarked _ ->
             ( ( model, Cmd.none ), globals )
 
         NavToggled ->
@@ -379,9 +445,19 @@ groupView space group =
     let
         groupRoute =
             Route.Group (Route.Group.init (Space.slug space) (Group.id group))
+
+        checkboxTooltip =
+            if Group.membershipState group == Subscribed then
+                "Unsubscribe from channel"
+
+            else
+                "Subscribe to channel"
     in
     li [ class "flex items-center font-normal font-sans text-lg" ]
-        [ label [ class "control checkbox" ]
+        [ label
+            [ class "tooltip tooltip-bottom control checkbox"
+            , attribute "data-tooltip" checkboxTooltip
+            ]
             [ input
                 [ type_ "checkbox"
                 , class "checkbox"
@@ -393,12 +469,22 @@ groupView space group =
             ]
         , a [ Route.href groupRoute, class "flex-1 px-2 text-blue no-underline hover:bg-grey-lighter rounded" ]
             [ text <| "#" ++ Group.name group ]
-        , button [ class "ml-2 flex-0" ]
-            [ viewIf (Group.isBookmarked group) <|
-                Icons.bookmark Icons.On
-            , viewUnless (Group.isBookmarked group) <|
-                Icons.bookmark Icons.Off
-            ]
+        , viewIf (Group.isBookmarked group) <|
+            button
+                [ class "tooltip tooltip-bottom ml-2 flex-0 no-outline"
+                , attribute "data-tooltip" "Remove shortcut"
+                , onClick (Unbookmark group)
+                ]
+                [ Icons.bookmark Icons.On
+                ]
+        , viewUnless (Group.isBookmarked group) <|
+            button
+                [ class "tooltip tooltip-bottom ml-2 flex-0 no-outline"
+                , attribute "data-tooltip" "Add shortcut"
+                , onClick (Bookmark group)
+                ]
+                [ Icons.bookmark Icons.Off
+                ]
         ]
 
 
