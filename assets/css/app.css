@@ -330,7 +330,7 @@ h6 {
 }
 
 .tagged-group {
-  @apply text-turquoise-dark font-bold;
+  @apply font-bold;
 }
 
 post-editor {
