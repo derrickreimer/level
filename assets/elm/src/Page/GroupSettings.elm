@@ -328,7 +328,7 @@ resolvedDesktopView globals model data =
                         [ Route.href (Route.Group groupParams)
                         , class "no-underline text-dusty-blue-dark"
                         ]
-                        [ text <| Group.name data.group ]
+                        [ text <| "#" ++ Group.name data.group ]
                     ]
                 , h1 [ class "flex-1 font-bold tracking-semi-tight text-3xl" ] [ text "Channel Settings" ]
                 ]

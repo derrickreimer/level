@@ -1303,7 +1303,7 @@ sidebarView params space group featuredMembers =
                 Route.GroupSettings.General
     in
     [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
-        [ text "Followers"
+        [ text "Subscribers"
 
         -- Hide this for now while private groups are disabled
         , viewIf False <|
@@ -1328,7 +1328,7 @@ sidebarView params space group featuredMembers =
 memberListView : Space -> List SpaceUser -> Html Msg
 memberListView space featuredMembers =
     if List.isEmpty featuredMembers then
-        div [ class "pb-4 text-sm text-dusty-blue-darker" ] [ text "Nobody is following." ]
+        div [ class "pb-4 text-sm text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
 
     else
         div [ class "pb-4" ] <| List.map (memberItemView space) featuredMembers
@@ -1353,14 +1353,14 @@ subscribeButtonView state =
                 [ class "text-md text-dusty-blue no-underline font-bold"
                 , onClick SubscribeClicked
                 ]
-                [ text "Follow" ]
+                [ text "Subscribe" ]
 
         GroupMembership.Subscribed ->
             button
                 [ class "text-md text-dusty-blue no-underline font-bold"
                 , onClick UnsubscribeClicked
                 ]
-                [ text "Unfollow" ]
+                [ text "Unsubscribe" ]
 
 
 
