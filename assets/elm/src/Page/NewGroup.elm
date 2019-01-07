@@ -141,7 +141,13 @@ update msg globals navKey model =
             noCmd globals model
 
         NameChanged val ->
-            noCmd globals { model | name = val }
+            let
+                newName =
+                    val
+                        |> String.toLower
+                        |> String.replace " " "-"
+            in
+            noCmd globals { model | name = newName }
 
         Submit ->
             let
