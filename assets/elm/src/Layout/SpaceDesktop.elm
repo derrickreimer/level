@@ -132,7 +132,7 @@ fullSidebar config =
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "70px" ]
             [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ navLink config.space "Write" (Just <| Route.NewPost (Route.NewPost.init (Space.slug config.space))) config.currentRoute
+                [ navLink config.space "Compose" (Just <| Route.NewPost (Route.NewPost.init (Space.slug config.space))) config.currentRoute
                 , navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
                 , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
                 ]
