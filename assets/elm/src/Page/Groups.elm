@@ -85,7 +85,7 @@ title =
 init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
-        |> GroupsInit.request params 20
+        |> GroupsInit.request params 100
         |> Task.map (buildModel params globals)
 
 
