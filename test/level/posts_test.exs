@@ -247,6 +247,19 @@ defmodule Level.PostsTest do
       assert locator.key == group.id
     end
 
+    test "adds to tagged groups", %{space_user: space_user, group: group} do
+      {:ok, %{group: another_group}} = create_group(space_user, %{name: "my-group"})
+
+      params =
+        valid_post_params()
+        |> Map.put(:body, "Hello #my-group")
+
+      {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
+
+      post = Repo.preload(post, :groups)
+      assert Enum.any?(post.groups, fn group -> group.id == another_group.id end)
+    end
+
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
       params = valid_post_params() |> Map.merge(%{body: nil})
       {:error, :post, changeset, _} = Posts.create_post(space_user, group, params)

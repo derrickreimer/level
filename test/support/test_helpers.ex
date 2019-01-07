@@ -39,7 +39,7 @@ defmodule Level.TestHelpers do
 
   def valid_group_params do
     %{
-      name: "Group#{random_string()}",
+      name: "group#{random_string()}",
       description: "Some description",
       is_private: false
     }

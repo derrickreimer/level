@@ -16,6 +16,7 @@ defmodule Level.Posts.CreatePost do
   alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
+  alias Level.TaggedGroups
 
   # TODO: make this more specific
   @type result :: {:ok, map()} | {:error, any(), any(), map()}
@@ -29,6 +30,7 @@ defmodule Level.Posts.CreatePost do
     |> insert_post(build_params(author, params))
     |> save_locator(params)
     |> associate_with_group(group)
+    |> detect_tagged_groups(author)
     |> record_mentions()
     |> attach_files(author, params)
     |> log(group, author)
@@ -88,6 +90,23 @@ defmodule Level.Posts.CreatePost do
       %PostGroup{}
       |> Changeset.change(build_post_group_params(post, group))
       |> Repo.insert()
+    end)
+  end
+
+  defp detect_tagged_groups(multi, author) do
+    Multi.run(multi, :tagged_groups, fn %{post: post} ->
+      groups =
+        author
+        |> TaggedGroups.get_tagged_groups(post.body)
+        |> Enum.map(fn group ->
+          %PostGroup{}
+          |> Changeset.change(build_post_group_params(post, group))
+          |> Repo.insert()
+
+          group
+        end)
+
+      {:ok, groups}
     end)
   end
 
