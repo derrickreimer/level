@@ -109,7 +109,7 @@ title : Repo -> Model -> String
 title repo model =
     case Repo.getGroup model.groupId repo of
         Just group ->
-            Group.name group
+            "#" ++ Group.name group
 
         Nothing ->
             "Group"
@@ -427,9 +427,14 @@ update msg globals model =
 
         NameEditorChanged val ->
             let
+                newValue =
+                    val
+                        |> String.toLower
+                        |> String.replace " " "-"
+
                 newNameEditor =
                     model.nameEditor
-                        |> FieldEditor.setValue val
+                        |> FieldEditor.setValue newValue
             in
             noCmd globals { model | nameEditor = newNameEditor }
 
@@ -960,7 +965,8 @@ nameView group editor =
     case ( FieldEditor.isExpanded editor, FieldEditor.isSubmitting editor ) of
         ( False, _ ) ->
             h2 [ class "flex-no-shrink" ]
-                [ span
+                [ span [ class "text-2xl font-normal text-dusty-blue-dark" ] [ text "#" ]
+                , span
                     [ onClick NameClicked
                     , class "font-bold text-2xl cursor-pointer"
                     ]
@@ -968,12 +974,13 @@ nameView group editor =
                 ]
 
         ( True, False ) ->
-            h2 [ class "flex-no-shrink" ]
-                [ input
+            h2 [ class "flex flex-no-shrink" ]
+                [ div [ class "mr-1 text-2xl font-normal text-dusty-blue-dark" ] [ text "#" ]
+                , input
                     [ type_ "text"
                     , id (FieldEditor.getNodeId editor)
                     , classList
-                        [ ( "-ml-2 px-2 bg-grey-light font-bold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
+                        [ ( "px-2 bg-grey-light font-bold text-2xl text-dusty-blue-darkest rounded no-outline js-stretchy", True )
                         , ( "shake", not <| List.isEmpty (FieldEditor.getErrors editor) )
                         ]
                     , value (FieldEditor.getValue editor)
