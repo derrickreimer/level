@@ -5,6 +5,7 @@ defmodule Level.Markdown do
 
   alias Earmark.Options
   alias Level.Mentions
+  alias Level.TaggedGroups
 
   @url_regex ~r/\bhttps?:\/\/
     [a-zA-Z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;=%]+
@@ -61,6 +62,7 @@ defmodule Level.Markdown do
     text
     |> autolink()
     |> highlight_mentions()
+    |> highlight_hashtags()
   end
 
   defp autolink(text) do
@@ -72,6 +74,12 @@ defmodule Level.Markdown do
   defp highlight_mentions(text) do
     Regex.replace(Mentions.mention_pattern(), text, fn match, handle ->
       String.replace(match, "@#{handle}", ~s(<strong class="user-mention">@#{handle}</strong>))
+    end)
+  end
+
+  defp highlight_hashtags(text) do
+    Regex.replace(TaggedGroups.hashtag_pattern(), text, fn match, handle ->
+      String.replace(match, "##{handle}", ~s(<span class="tagged-group">##{handle}</span>))
     end)
   end
 end

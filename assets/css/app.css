@@ -329,6 +329,10 @@ h6 {
   @apply pl-3 mb-4 border-l-3 border-grey text-dusty-blue-dark;
 }
 
+.tagged-group {
+  @apply text-turquoise-dark font-bold;
+}
+
 post-editor {
   @apply block relative;
 }
