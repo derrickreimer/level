@@ -6,6 +6,7 @@ defmodule Level.Schemas.Group do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Level.Handles
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.PostGroup
@@ -50,6 +51,7 @@ defmodule Level.Schemas.Group do
   def validate(changeset) do
     changeset
     |> validate_required([:name])
+    |> Handles.validate_format(:name)
     |> unique_constraint(:name, name: :groups_unique_names_when_undeleted)
   end
 end
