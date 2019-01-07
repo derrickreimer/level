@@ -18,7 +18,7 @@ type alias Response =
     { viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
-    , groupIds : Connection Id
+    , groups : Connection Group
     , repo : Repo
     }
 
@@ -138,7 +138,7 @@ buildResponse ( session, data ) =
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
                 (List.map Group.id data.bookmarks)
-                (Connection.map Group.id data.groups)
+                data.groups
                 repo
     in
     ( session, resp )

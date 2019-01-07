@@ -8,11 +8,16 @@ import Group exposing (Group)
 import GroupMembership exposing (GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.BookmarkGroup as BookmarkGroup
+import Mutation.SubscribeToGroup as SubscribeToGroup
+import Mutation.UnbookmarkGroup as UnbookmarkGroup
+import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
 import Pagination
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
@@ -37,7 +42,7 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , bookmarkIds : List Id
-    , groupIds : Connection Id
+    , groups : Connection Group
 
     -- MOBILE
     , showNav : Bool
@@ -93,7 +98,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
-                resp.groupIds
+                resp.groups
                 False
                 False
 
@@ -124,6 +129,9 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleMembership Group
+    | SubscribedToGroup (Result Session.Error ( Session, SubscribeToGroup.Response ))
+    | UnsubscribedFromGroup (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -136,6 +144,66 @@ update msg globals model =
         NoOp ->
             ( ( model, Cmd.none ), globals )
 
+        ToggleMembership group ->
+            let
+                ( newGroup, cmd ) =
+                    if Group.membershipState group == Subscribed then
+                        ( Group.setMembershipState NotSubscribed group
+                        , globals.session
+                            |> UnsubscribeFromGroup.request model.spaceId (Group.id group)
+                            |> Task.attempt UnsubscribedFromGroup
+                        )
+
+                    else
+                        ( Group.setMembershipState Subscribed group
+                        , globals.session
+                            |> SubscribeToGroup.request model.spaceId (Group.id group)
+                            |> Task.attempt SubscribedToGroup
+                        )
+
+                newGroups =
+                    Connection.update Group.id newGroup model.groups
+            in
+            ( ( { model | groups = newGroups }, cmd ), globals )
+
+        UnsubscribedFromGroup (Ok ( newSession, UnsubscribeFromGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+
+                newGroups =
+                    Connection.update Group.id group model.groups
+            in
+            ( ( { model | groups = newGroups }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
+
+        UnsubscribedFromGroup (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        UnsubscribedFromGroup _ ->
+            ( ( model, Cmd.none ), globals )
+
+        SubscribedToGroup (Ok ( newSession, SubscribeToGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+
+                newGroups =
+                    Connection.update Group.id group model.groups
+            in
+            ( ( { model | groups = newGroups }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
+
+        SubscribedToGroup (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        SubscribedToGroup _ ->
+            ( ( model, Cmd.none ), globals )
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -144,6 +212,11 @@ update msg globals model =
 
         ScrollTopClicked ->
             ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
+
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 
@@ -215,7 +288,7 @@ resolvedDesktopView globals model data =
                 [ filterTab Device.Desktop "Open" Route.Groups.Open (openParams model.params) model.params
                 , filterTab Device.Desktop "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
-            , groupsView globals.repo model.params data.space model.groupIds
+            , groupsView globals.repo model.params data.space model.groups
             ]
         ]
 
@@ -255,7 +328,7 @@ resolvedMobileView globals model data =
                 [ filterTab Device.Mobile "Open" Route.Groups.Open (openParams model.params) model.params
                 , filterTab Device.Mobile "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
-            , div [ class "p-2" ] [ groupsView globals.repo model.params data.space model.groupIds ]
+            , div [ class "p-2" ] [ groupsView globals.repo model.params data.space model.groups ]
             ]
         ]
 
@@ -282,18 +355,9 @@ filterTab device label state linkParams currentParams =
         [ text label ]
 
 
-groupsView : Repo -> Params -> Space -> Connection Id -> Html Msg
-groupsView repo params space groupIds =
-    let
-        groups =
-            Repo.getGroups (Connection.toList groupIds) repo
-
-        partitions =
-            groups
-                |> List.indexedMap Tuple.pair
-                |> partitionGroups []
-    in
-    if List.isEmpty partitions then
+groupsView : Repo -> Params -> Space -> Connection Group -> Html Msg
+groupsView repo params space groups =
+    if Connection.isEmpty groups then
         case Route.Groups.getState params of
             Route.Groups.Open ->
                 div [ class "p-2 text-center" ]
@@ -305,23 +369,31 @@ groupsView repo params space groupIds =
 
     else
         div [ class "leading-semi-loose" ]
-            [ div [] <| List.map (groupPartitionView space) partitions
-            , div [ class "py-4" ] [ paginationView params groupIds ]
+            [ ul [ class "list-reset" ] (Connection.mapList (groupView space) groups)
+            , div [ class "py-4" ] [ paginationView params groups ]
             ]
 
 
-groupPartitionView : Space -> ( String, List IndexedGroup ) -> Html Msg
-groupPartitionView space ( letter, indexedGroups ) =
-    div [] (List.map (groupView space) indexedGroups)
-
-
-groupView : Space -> IndexedGroup -> Html Msg
-groupView space ( index, group ) =
-    h2 [ class "flex items-center pr-4 font-normal font-sans text-lg" ]
-        [ a [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group))), class "flex-1 text-blue no-underline" ] [ text <| "#" ++ Group.name group ]
-        , viewIf (Group.membershipState group == Subscribed) <|
-            div [ class "flex-0 mr-4 text-sm text-dusty-blue" ] [ text "Member" ]
-        , div [ class "flex-0" ]
+groupView : Space -> Group -> Html Msg
+groupView space group =
+    let
+        groupRoute =
+            Route.Group (Route.Group.init (Space.slug space) (Group.id group))
+    in
+    li [ class "flex items-center font-normal font-sans text-lg" ]
+        [ label [ class "control checkbox" ]
+            [ input
+                [ type_ "checkbox"
+                , class "checkbox"
+                , checked (Group.membershipState group == Subscribed)
+                , onClick (ToggleMembership group)
+                ]
+                []
+            , span [ class "control-indicator mr-1" ] []
+            ]
+        , a [ Route.href groupRoute, class "flex-1 px-2 text-blue no-underline hover:bg-grey-lighter rounded" ]
+            [ text <| "#" ++ Group.name group ]
+        , button [ class "ml-2 flex-0" ]
             [ viewIf (Group.isBookmarked group) <|
                 Icons.bookmark Icons.On
             , viewUnless (Group.isBookmarked group) <|
@@ -339,41 +411,6 @@ paginationView params connection =
 
 
 -- HELPERS
-
-
-partitionGroups : List ( String, List IndexedGroup ) -> List IndexedGroup -> List ( String, List IndexedGroup )
-partitionGroups partitions groups =
-    case groups of
-        hd :: tl ->
-            let
-                letter =
-                    firstLetter (Tuple.second hd)
-
-                ( matches, remaining ) =
-                    List.partition (startsWith letter) groups
-            in
-            partitionGroups (( letter, matches ) :: partitions) remaining
-
-        _ ->
-            List.reverse partitions
-
-
-firstLetter : Group -> String
-firstLetter group =
-    group
-        |> Group.name
-        |> String.left 1
-        |> String.toUpper
-
-
-startsWith : String -> IndexedGroup -> Bool
-startsWith letter ( _, group ) =
-    firstLetter group == letter
-
-
-isEven : Int -> Bool
-isEven number =
-    remainderBy 2 number == 0
 
 
 openParams : Params -> Params
