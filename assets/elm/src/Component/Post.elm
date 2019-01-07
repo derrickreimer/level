@@ -1100,12 +1100,12 @@ groupsLabel space groups =
     case groups of
         [ group ] ->
             div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
-                [ text "Posted in "
+                [ text "Posted to "
                 , a
                     [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
                     , class "no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
                     ]
-                    [ text (Group.name group) ]
+                    [ text ("#" ++ Group.name group) ]
                 ]
 
         _ ->
