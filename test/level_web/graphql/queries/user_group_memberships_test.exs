@@ -27,7 +27,7 @@ defmodule LevelWeb.GraphQL.UserGroupMembershipsTest do
   end
 
   test "users can list their group memberships", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: _group}} = create_group(space_user, %{name: "Cool peeps"})
+    {:ok, %{group: _group}} = create_group(space_user, %{name: "cool-peeps"})
 
     variables = %{space_id: space_user.space_id}
 
@@ -47,7 +47,7 @@ defmodule LevelWeb.GraphQL.UserGroupMembershipsTest do
     } = json_response(conn, 200)
 
     assert Enum.any?(edges, fn edge ->
-             edge["node"]["group"]["name"] == "Cool peeps"
+             edge["node"]["group"]["name"] == "cool-peeps"
            end)
   end
 end

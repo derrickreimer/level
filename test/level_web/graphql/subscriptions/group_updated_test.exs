@@ -30,7 +30,7 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
     ref = push_subscription(socket, @operation, %{"id" => group.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, group} = Groups.update_group(group, %{name: "New name"})
+    {:ok, group} = Groups.update_group(group, %{name: "new-name"})
 
     push_data = %{
       result: %{
@@ -39,7 +39,7 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
             "__typename" => "GroupUpdatedPayload",
             "group" => %{
               "id" => group.id,
-              "name" => "New name"
+              "name" => "new-name"
             }
           }
         }

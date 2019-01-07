@@ -30,7 +30,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
   end
 
   test "groups expose their memberships", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
+    {:ok, %{group: group}} = create_group(space_user)
 
     variables = %{group_id: group.id}
 
@@ -63,7 +63,7 @@ defmodule LevelWeb.GraphQL.GroupMembershipsTest do
     space: space,
     space_user: space_user
   } do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
+    {:ok, %{group: group}} = create_group(space_user)
 
     {:ok, %{space_user: another_user}} = create_space_member(space)
 

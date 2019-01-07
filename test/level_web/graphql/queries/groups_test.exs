@@ -28,7 +28,7 @@ defmodule LevelWeb.GraphQL.GroupsTest do
   end
 
   test "spaces have a paginated groups field", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: _group}} = create_group(space_user, %{name: "Cool Kids"})
+    {:ok, %{group: _group}} = create_group(space_user, %{name: "cool-kids"})
     variables = %{space_id: space_user.space_id}
 
     conn =
@@ -47,13 +47,13 @@ defmodule LevelWeb.GraphQL.GroupsTest do
     } = json_response(conn, 200)
 
     assert Enum.any?(edges, fn edge ->
-             edge["node"]["name"] == "Cool Kids"
+             edge["node"]["name"] == "cool-kids"
            end)
   end
 
   test "filtering groups by state", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: _open_group}} = create_group(space_user, %{name: "Open Group"})
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Closed Group"})
+    {:ok, %{group: _open_group}} = create_group(space_user, %{name: "open-group"})
+    {:ok, %{group: group}} = create_group(space_user, %{name: "closed-group"})
     {:ok, _closed_group} = Groups.close_group(group)
 
     query = """
@@ -91,11 +91,11 @@ defmodule LevelWeb.GraphQL.GroupsTest do
     } = json_response(conn, 200)
 
     assert Enum.any?(edges, fn edge ->
-             edge["node"]["name"] == "Closed Group"
+             edge["node"]["name"] == "closed-group"
            end)
 
     refute Enum.any?(edges, fn edge ->
-             edge["node"]["name"] == "Open Group"
+             edge["node"]["name"] == "open-group"
            end)
   end
 end

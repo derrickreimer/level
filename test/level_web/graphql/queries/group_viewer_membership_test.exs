@@ -28,7 +28,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
   end
 
   test "groups expose the current viewer's membership", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
+    {:ok, %{group: group}} = create_group(space_user)
     Groups.subscribe(group, space_user)
     variables = %{group_id: group.id}
 
@@ -55,7 +55,7 @@ defmodule LevelWeb.GraphQL.GroupViewerMembershipTest do
     conn: conn,
     space_user: space_user
   } do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Cool peeps"})
+    {:ok, %{group: group}} = create_group(space_user)
 
     Repo.delete_all(
       from gu in GroupUser, where: gu.space_user_id == ^space_user.id and gu.group_id == ^group.id

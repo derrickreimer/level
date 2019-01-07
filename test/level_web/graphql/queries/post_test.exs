@@ -32,7 +32,7 @@ defmodule LevelWeb.GraphQL.PostTest do
   end
 
   test "spaces expose their posts", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
+    {:ok, %{group: group}} = create_group(space_user, %{name: "engineers"})
     {:ok, %{post: post}} = create_post(space_user, group, %{body: "Hello"})
 
     variables = %{
@@ -63,7 +63,7 @@ defmodule LevelWeb.GraphQL.PostTest do
     space_user: space_user
   } do
     {:ok, %{space_user: another_user}} = create_space_member(space)
-    {:ok, %{group: group}} = create_group(another_user, %{name: "Top Secret", is_private: true})
+    {:ok, %{group: group}} = create_group(another_user, %{name: "top-secret", is_private: true})
     {:ok, %{post: post}} = create_post(another_user, group, %{body: "Hello"})
 
     variables = %{
@@ -89,7 +89,7 @@ defmodule LevelWeb.GraphQL.PostTest do
   end
 
   test "posts expose mentions", %{conn: conn, space: space, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
+    {:ok, %{group: group}} = create_group(space_user, %{name: "engineers"})
     {:ok, %{post: post}} = create_post(space_user, group, %{body: "Hello"})
 
     {:ok, %{space_user: another_user}} = create_space_member(space)
@@ -129,7 +129,7 @@ defmodule LevelWeb.GraphQL.PostTest do
   end
 
   test "users can edit their own posts", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
+    {:ok, %{group: group}} = create_group(space_user, %{name: "engineers"})
     {:ok, %{post: post}} = create_post(space_user, group, %{body: "Hello"})
 
     query = """
@@ -172,7 +172,7 @@ defmodule LevelWeb.GraphQL.PostTest do
     space_user: space_user
   } do
     {:ok, %{space_user: another_user}} = create_space_member(space)
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Engineers"})
+    {:ok, %{group: group}} = create_group(space_user, %{name: "engineers"})
     {:ok, %{post: post}} = create_post(another_user, group, %{body: "Hello"})
 
     query = """

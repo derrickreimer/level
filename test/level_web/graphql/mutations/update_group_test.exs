@@ -36,8 +36,8 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
   end
 
   test "updates a group given valid data", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Old name"})
-    variables = %{space_id: group.space_id, group_id: group.id, name: "New name"}
+    {:ok, %{group: group}} = create_group(space_user, %{name: "old-name"})
+    variables = %{space_id: group.space_id, group_id: group.id, name: "new-name"}
 
     conn =
       conn
@@ -58,7 +58,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
   end
 
   test "returns validation errors given invalid data", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "Old name"})
+    {:ok, %{group: group}} = create_group(space_user, %{name: "old-name"})
     variables = %{space_id: group.space_id, group_id: group.id, name: ""}
 
     conn =
@@ -83,7 +83,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
   end
 
   test "returns top-level error out if group does not exist", %{conn: conn, space: space} do
-    variables = %{space_id: space.id, group_id: Ecto.UUID.generate(), name: "New name"}
+    variables = %{space_id: space.id, group_id: Ecto.UUID.generate(), name: "new-name"}
 
     conn =
       conn
