@@ -61,7 +61,7 @@ parser =
         , Parser.map SpaceUser Route.SpaceUser.parser
         , Parser.map InviteUsers (Parser.string </> s "invites")
         , Parser.map Groups Route.Groups.parser
-        , Parser.map NewGroup (Parser.string </> s "groups" </> s "new")
+        , Parser.map NewGroup (Parser.string </> s "channels" </> s "new")
         , Parser.map GroupSettings Route.GroupSettings.parser
         , Parser.map Group Route.Group.parser
         , Parser.map NewGroupPost Route.NewGroupPost.parser
@@ -149,7 +149,7 @@ toString page =
             Route.NewGroupPost.toString params
 
         NewGroup slug ->
-            absolute [ slug, "groups", "new" ] []
+            absolute [ slug, "channels", "new" ] []
 
         GroupSettings params ->
             Route.GroupSettings.toString params

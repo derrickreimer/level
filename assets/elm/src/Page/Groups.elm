@@ -70,7 +70,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Groups"
+    "Channels"
 
 
 
@@ -206,9 +206,9 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "flex items-center pb-4" ]
-                [ h1 [ class "flex-1 font-bold tracking-semi-tight text-3xl" ] [ text "Groups" ]
+                [ h1 [ class "flex-1 font-bold tracking-semi-tight text-3xl" ] [ text "Channels" ]
                 , div [ class "flex-0 flex-no-shrink" ]
-                    [ a [ Route.href (Route.NewGroup (Space.slug data.space)), class "btn btn-blue btn-md no-underline" ] [ text "New group" ]
+                    [ a [ Route.href (Route.NewGroup (Space.slug data.space)), class "btn btn-blue btn-md no-underline" ] [ text "New channel" ]
                     ]
                 ]
             , div [ class "flex items-baseline mb-4 border-b" ]

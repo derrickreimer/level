@@ -109,7 +109,7 @@ setState newState (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "groups" </> string <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
+        map Internal (string </> s "channels" </> string <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
 
 
 
@@ -118,7 +118,7 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "groups", internal.groupId ] (buildQuery internal)
+    absolute [ internal.spaceSlug, "channels", internal.groupId ] (buildQuery internal)
 
 
 

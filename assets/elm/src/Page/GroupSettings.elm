@@ -77,7 +77,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Group Settings"
+    "Channel Settings"
 
 
 
@@ -330,7 +330,7 @@ resolvedDesktopView globals model data =
                         ]
                         [ text <| Group.name data.group ]
                     ]
-                , h1 [ class "flex-1 font-bold tracking-semi-tight text-3xl" ] [ text "Group Settings" ]
+                , h1 [ class "flex-1 font-bold tracking-semi-tight text-3xl" ] [ text "Channel Settings" ]
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab Device.Desktop "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
@@ -342,13 +342,13 @@ resolvedDesktopView globals model data =
                     [ class "text-md text-dusty-blue no-underline font-bold"
                     , onClick CloseClicked
                     ]
-                    [ text "Close this group" ]
+                    [ text "Close this channel" ]
             , viewIf (Group.state data.group == Group.Closed) <|
                 button
                     [ class "text-md text-dusty-blue no-underline font-bold"
                     , onClick ReopenClicked
                     ]
-                    [ text "Reopen this group" ]
+                    [ text "Reopen this channel" ]
             ]
         ]
 
@@ -394,13 +394,13 @@ resolvedMobileView globals model data =
                         [ class "text-md text-dusty-blue no-underline font-bold"
                         , onClick CloseClicked
                         ]
-                        [ text "Close this group" ]
+                        [ text "Close this channel" ]
                 , viewIf (Group.state data.group == Group.Closed) <|
                     button
                         [ class "text-md text-dusty-blue no-underline font-bold"
                         , onClick ReopenClicked
                         ]
-                        [ text "Reopen this group" ]
+                        [ text "Reopen this channel" ]
                 ]
             ]
         ]
@@ -441,7 +441,7 @@ generalView model data =
                 ]
                 []
             , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Add new members to this group by default" ]
+            , span [ class "select-none" ] [ text "Add people to this channel by default" ]
             ]
         ]
 
@@ -451,7 +451,7 @@ permissionsView repo model =
     div []
         [ div [ class "pb-6" ]
             [ p [ class "text-base" ]
-                [ text "Manage who is allowed in the group and appoint other owners to help admininstrate it."
+                [ text "Manage who is allowed in the channel and appoint other owners to help admininstrate it."
                 ]
             ]
         , usersView repo model

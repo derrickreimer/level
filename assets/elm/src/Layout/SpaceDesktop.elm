@@ -71,7 +71,7 @@ keyboardCommandReference =
             , keyboardCommandItem "Search" [ "/" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Navigation" ]
             , keyboardCommandItem "Next / Previous Post" [ "J", "K" ]
-            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Groups" ]
+            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Channels" ]
             , keyboardCommandItem "Compose a Post" [ "C" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Posts" ]
             , keyboardCommandItem "Dismiss from Inbox" [ "E" ]
@@ -137,7 +137,7 @@ fullSidebar config =
             , bookmarkList config
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
+                , navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
                 , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
                 , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
                 ]

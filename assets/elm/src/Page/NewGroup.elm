@@ -69,7 +69,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Create a group"
+    "Create a channel"
 
 
 
@@ -253,7 +253,7 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
             [ div [ class "pb-6" ]
-                [ h1 [ class "pb-4 font-bold tracking-semi-tight text-3xl" ] [ text "Create a group" ]
+                [ h1 [ class "pb-4 font-bold tracking-semi-tight text-3xl" ] [ text "Create a channel" ]
                 , p [] [ text subheading ]
                 ]
             , fieldsView model
@@ -263,7 +263,7 @@ resolvedDesktopView globals model data =
                 , onClick Submit
                 , disabled model.isSubmitting
                 ]
-                [ text "Create group" ]
+                [ text "Create channel" ]
             ]
         ]
 
@@ -312,20 +312,20 @@ resolvedMobileView globals model data =
 
 subheading : String
 subheading =
-    "Groups are useful for organizing teams within your organization or specific projects that will have ongoing dialogue."
+    "Channels represent topics, such as teams within your organization or projects you are working on."
 
 
 fieldsView : Model -> Html Msg
 fieldsView model =
     div []
         [ div [ class "pb-6" ]
-            [ label [ for "name", class "input-label" ] [ text "Name of this group" ]
+            [ label [ for "name", class "input-label" ] [ text "Name of this channel" ]
             , input
                 [ id "name"
                 , type_ "text"
                 , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
                 , name "name"
-                , placeholder "e.g. Engineering"
+                , placeholder "e.g. engineering"
                 , value model.name
                 , onInput NameChanged
                 , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
@@ -346,6 +346,6 @@ fieldsView model =
                     ]
                     []
                 , span [ class "control-indicator" ] []
-                , span [ class "select-none" ] [ text "Make this group private (invite only)" ]
+                , span [ class "select-none" ] [ text "Make this channel private (invite only)" ]
                 ]
         ]

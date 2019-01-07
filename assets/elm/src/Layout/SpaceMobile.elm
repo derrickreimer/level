@@ -94,7 +94,7 @@ layout config children =
                         , bookmarkList config
                         , ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
-                            , navLink config.space "Groups" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
+                            , navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init (Space.slug config.space))) config.currentRoute
                             , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
                             , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
                             ]

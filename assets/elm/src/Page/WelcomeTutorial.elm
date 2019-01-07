@@ -87,7 +87,7 @@ defaultGroups =
 
 stepCount : Int
 stepCount =
-    8
+    7
 
 
 
@@ -578,8 +578,9 @@ stepView device step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Groups are where conversations happen." ]
-                , p [ class "mb-6" ] [ text "A Group is akin to channel in real-time chat." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Channels organize your conversations." ]
+                , p [ class "mb-6" ] [ text "Use the #-sign (just like a hashtag) to tag one or more Channels in your post." ]
+                , p [ class "mb-6" ] [ text "Your Feed includes all posts from the Channels you follow. It’s a good idea to periodically peruse the Feed, but don’t feel like you have to keep up with every post there!" ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -603,16 +604,6 @@ stepView device step model data =
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed aggregates posts from your groups." ]
-                , p [ class "mb-6" ] [ text "It’s a good idea to periodically peruse the Feed, but don’t feel like you have to keep up with every post there!" ]
-                , div []
-                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
-                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
-                    ]
-                ]
-
-        5 ->
-            div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
                 , p [ class "mb-6" ] [ text "Instead of constantly interrupting you with push notifications, Level batches up your notifications and emails them to you at customizable times of the day." ]
                 , div []
@@ -621,7 +612,7 @@ stepView device step model data =
                     ]
                 ]
 
-        6 ->
+        5 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
                 , p [ class "mb-6" ] [ text "Being signed in to a communication tool is not a good indicator of whether someone’s actually available to talk. For that reason, Level does not track who’s currently “online.”" ]
@@ -631,7 +622,7 @@ stepView device step model data =
                     ]
                 ]
 
-        7 ->
+        6 ->
             -- div []
             --     [ div [ class "xl:flex mb-4" ]
             --         [ div [ class "pb-6 mr-16 max-w-sm" ]
@@ -661,7 +652,7 @@ stepView device step model data =
                     ]
                 ]
 
-        8 ->
+        7 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "You’re ready to go!" ]
                 , p [ class "mb-6" ] [ text "If run into trouble, don’t hesitate to reach out!" ]
