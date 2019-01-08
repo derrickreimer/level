@@ -1006,6 +1006,9 @@ pageSubscription page =
         Post _ ->
             Sub.map PostMsg Page.Post.subscriptions
 
+        NewPost _ ->
+            Sub.map NewPostMsg Page.NewPost.subscriptions
+
         UserSettings _ ->
             Sub.map UserSettingsMsg Page.UserSettings.subscriptions
 

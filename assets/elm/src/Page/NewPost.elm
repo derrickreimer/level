@@ -1,4 +1,4 @@
-module Page.NewPost exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, teardown, title, update, view)
+module Page.NewPost exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
 import Browser.Navigation as Nav
@@ -99,7 +99,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
-                (PostEditor.init "post-composer")
+                (PostEditor.init "global-post-composer")
                 False
                 []
                 False
@@ -116,6 +116,7 @@ setup model =
     Cmd.batch
         [ setFocus (PostEditor.getTextareaId model.postComposer) NoOp
         , Scroll.toDocumentTop NoOp
+        , PostEditor.fetchLocal model.postComposer
         ]
 
 
@@ -303,6 +304,15 @@ consumeKeyboardEvent globals event model =
 
         _ ->
             ( ( model, Cmd.none ), globals )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Sub Msg
+subscriptions =
+    PostEditor.receive PostEditorEventReceived
 
 
 
