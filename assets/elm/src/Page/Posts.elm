@@ -423,24 +423,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
-    let
-        spaceUsers =
-            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
-    in
     case globals.device of
         Device.Desktop ->
-            resolvedDesktopView globals spaceUsers model data
+            resolvedDesktopView globals model data
 
         Device.Mobile ->
-            resolvedMobileView globals spaceUsers model data
+            resolvedMobileView globals model data
 
 
 
 -- DESKTOP
 
 
-resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedDesktopView globals spaceUsers model data =
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -463,7 +459,7 @@ resolvedDesktopView globals spaceUsers model data =
                     , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
-            , desktopPostsView globals spaceUsers model data
+            , desktopPostsView globals model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
         ]
@@ -505,19 +501,26 @@ searchEditorView editor =
         }
 
 
-desktopPostsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-desktopPostsView globals spaceUsers model data =
+desktopPostsView : Globals -> Model -> Data -> Html Msg
+desktopPostsView globals model data =
+    let
+        spaceUsers =
+            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+
+        groups =
+            Repo.getGroups (Space.groupIds data.space) globals.repo
+    in
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
             [ text "You're all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (desktopPostView globals spaceUsers model data) model.postComps
+            Connection.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
 
 
-desktopPostView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-desktopPostView globals spaceUsers model data component =
+desktopPostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
+desktopPostView globals spaceUsers groups model data component =
     let
         config =
             { globals = globals
@@ -525,6 +528,7 @@ desktopPostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
+            , groups = groups
             , showGroups = True
             }
 
@@ -548,8 +552,8 @@ desktopPostView globals spaceUsers model data component =
 -- MOBILE
 
 
-resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedMobileView globals spaceUsers model data =
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
     let
         config =
             { space = data.space
@@ -573,7 +577,7 @@ resolvedMobileView globals spaceUsers model data =
                 [ filterTab Device.Mobile "Open" Route.Posts.Open (openParams model.params) model.params
                 , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                 ]
-            , div [ class "px-4" ] [ mobilePostsView globals spaceUsers model data ]
+            , div [ class "px-4" ] [ mobilePostsView globals model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]
                     [ paginationView model.params model.postComps
@@ -586,19 +590,26 @@ resolvedMobileView globals spaceUsers model data =
         ]
 
 
-mobilePostsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-mobilePostsView globals spaceUsers model data =
+mobilePostsView : Globals -> Model -> Data -> Html Msg
+mobilePostsView globals model data =
+    let
+        spaceUsers =
+            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+
+        groups =
+            Repo.getGroups (Space.groupIds data.space) globals.repo
+    in
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
             [ text "You’re all caught up!" ]
 
     else
         div [] <|
-            Connection.mapList (mobilePostView globals spaceUsers model data) model.postComps
+            Connection.mapList (mobilePostView globals spaceUsers groups model data) model.postComps
 
 
-mobilePostView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-mobilePostView globals spaceUsers model data component =
+mobilePostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
+mobilePostView globals spaceUsers groups model data component =
     let
         config =
             { globals = globals
@@ -606,6 +617,7 @@ mobilePostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
+            , groups = groups
             , showGroups = True
             }
     in

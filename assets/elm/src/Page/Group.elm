@@ -1049,6 +1049,7 @@ desktopPostComposerView globals model data =
             { editor = editor
             , spaceId = Space.id data.space
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+            , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , onFileAdded = NewPostFileAdded
             , onFileUploadProgress = NewPostFileUploadProgress
             , onFileUploaded = NewPostFileUploaded
@@ -1091,6 +1092,9 @@ desktopPostsView globals model data =
     let
         spaceUsers =
             Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+
+        groups =
+            Repo.getGroups (Space.groupIds data.space) globals.repo
     in
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
@@ -1098,11 +1102,11 @@ desktopPostsView globals model data =
 
     else
         div [] <|
-            Connection.mapList (desktopPostView globals spaceUsers model data) model.postComps
+            Connection.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
 
 
-desktopPostView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-desktopPostView globals spaceUsers model data component =
+desktopPostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
+desktopPostView globals spaceUsers groups model data component =
     let
         config =
             { globals = globals
@@ -1110,6 +1114,7 @@ desktopPostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
+            , groups = groups
             , showGroups = False
             }
 
@@ -1187,6 +1192,9 @@ mobilePostsView globals model data =
     let
         spaceUsers =
             Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+
+        groups =
+            Repo.getGroups (Space.groupIds data.space) globals.repo
     in
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
@@ -1194,11 +1202,11 @@ mobilePostsView globals model data =
 
     else
         div [] <|
-            Connection.mapList (mobilePostView globals spaceUsers model data) model.postComps
+            Connection.mapList (mobilePostView globals spaceUsers groups model data) model.postComps
 
 
-mobilePostView : Globals -> List SpaceUser -> Model -> Data -> Component.Post.Model -> Html Msg
-mobilePostView globals spaceUsers model data component =
+mobilePostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
+mobilePostView globals spaceUsers groups model data component =
     let
         config =
             { globals = globals
@@ -1206,6 +1214,7 @@ mobilePostView globals spaceUsers model data component =
             , currentUser = data.viewer
             , now = model.now
             , spaceUsers = spaceUsers
+            , groups = groups
             , showGroups = False
             }
     in
@@ -1262,41 +1271,6 @@ bookmarkButtonView isBookmarked =
             , attribute "data-tooltip" "Bookmark"
             ]
             [ Icons.bookmark Icons.Off ]
-
-
-postsView : Globals -> Params -> Space -> SpaceUser -> ( Zone, Posix ) -> Connection Component.Post.Model -> List SpaceUser -> Html Msg
-postsView globals params space currentUser now connection spaceUsers =
-    if Connection.isEmptyAndExpanded connection then
-        case Route.Group.getState params of
-            Route.Group.Open ->
-                div [ class "pt-12 pb-12 font-headline text-center text-lg" ]
-                    [ text "There are no posts to see here!" ]
-
-            Route.Group.Closed ->
-                div [ class "pt-12 pb-12 font-headline text-center text-lg" ]
-                    [ text "There are no closed posts to show here!" ]
-
-    else
-        div [] <|
-            Connection.mapList (postView globals space currentUser now spaceUsers) connection
-
-
-postView : Globals -> Space -> SpaceUser -> ( Zone, Posix ) -> List SpaceUser -> Component.Post.Model -> Html Msg
-postView globals space currentUser now spaceUsers component =
-    let
-        config =
-            { globals = globals
-            , space = space
-            , currentUser = currentUser
-            , now = now
-            , spaceUsers = spaceUsers
-            , showGroups = False
-            }
-    in
-    div [ class "py-4" ]
-        [ Component.Post.view config component
-            |> Html.map (PostComponentMsg component.id)
-        ]
 
 
 sidebarView : Params -> Space -> Group -> List SpaceUser -> List (Html Msg)

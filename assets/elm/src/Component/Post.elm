@@ -1,4 +1,4 @@
-module Component.Post exposing (Model, Msg(..), ViewConfig, checkableView, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, postNodeId, setup, teardown, update, view)
+module Component.Post exposing (Model, Msg(..), ViewConfig, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, postNodeId, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -950,6 +950,7 @@ type alias ViewConfig =
     , currentUser : SpaceUser
     , now : ( Zone, Posix )
     , spaceUsers : List SpaceUser
+    , groups : List Group
     , showGroups : Bool
     }
 
@@ -997,42 +998,14 @@ resolvedView config model data =
             , viewUnless (PostEditor.isExpanded model.postEditor) <|
                 bodyView config.space data.post
             , viewIf (PostEditor.isExpanded model.postEditor) <|
-                postEditorView (Space.id config.space) config.spaceUsers model.postEditor
+                postEditorView config model.postEditor
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
                 ]
             , div [ class "relative" ]
-                [ repliesView
-                    config.globals.repo
-                    config.space
-                    data.post
-                    config.now
-                    model.replyIds
-                    config.spaceUsers
-                    model.replyEditors
-                , replyComposerView (Space.id config.space) config.currentUser data.post config.spaceUsers model
+                [ repliesView config model data
+                , replyComposerView config model data
                 ]
-            ]
-        ]
-
-
-checkableView : ViewConfig -> Model -> Html Msg
-checkableView config model =
-    div [ class "flex" ]
-        [ div [ class "mr-1 py-3 flex-0" ]
-            [ label [ class "control checkbox" ]
-                [ input
-                    [ type_ "checkbox"
-                    , class "checkbox"
-                    , checked model.isChecked
-                    , onClick SelectionToggled
-                    ]
-                    []
-                , span [ class "control-indicator border-dusty-blue" ] []
-                ]
-            ]
-        , div [ class "flex-1" ]
-            [ view config model
             ]
         ]
 
@@ -1122,13 +1095,14 @@ bodyView space post =
         ]
 
 
-postEditorView : Id -> List SpaceUser -> PostEditor -> Html Msg
-postEditorView spaceId spaceUsers editor =
+postEditorView : ViewConfig -> PostEditor -> Html Msg
+postEditorView viewConfig editor =
     let
         config =
             { editor = editor
-            , spaceId = spaceId
-            , spaceUsers = spaceUsers
+            , spaceId = Space.id viewConfig.space
+            , spaceUsers = viewConfig.spaceUsers
+            , groups = viewConfig.groups
             , onFileAdded = PostEditorFileAdded
             , onFileUploadProgress = PostEditorFileUploadProgress
             , onFileUploaded = PostEditorFileUploaded
@@ -1173,13 +1147,13 @@ postEditorView spaceId spaceUsers editor =
 -- PRIVATE REPLY VIEW FUNCTIONS
 
 
-repliesView : Repo -> Space -> Post -> ( Zone, Posix ) -> Connection String -> List SpaceUser -> ReplyEditors -> Html Msg
-repliesView repo space post now replyIds spaceUsers editors =
+repliesView : ViewConfig -> Model -> Data -> Html Msg
+repliesView config model data =
     let
         ( replies, hasPreviousPage ) =
-            visibleReplies repo replyIds
+            visibleReplies config.globals.repo model.replyIds
     in
-    viewUnless (Connection.isEmptyAndExpanded replyIds) <|
+    viewUnless (Connection.isEmptyAndExpanded model.replyIds) <|
         div []
             [ viewIf hasPreviousPage <|
                 button
@@ -1188,20 +1162,23 @@ repliesView repo space post now replyIds spaceUsers editors =
                     ]
                     [ text "Load more..."
                     ]
-            , div [] (List.map (replyView repo now space post editors spaceUsers) replies)
+            , div [] (List.map (replyView config model data) replies)
             ]
 
 
-replyView : Repo -> ( Zone, Posix ) -> Space -> Post -> ReplyEditors -> List SpaceUser -> Reply -> Html Msg
-replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
+replyView : ViewConfig -> Model -> Data -> Reply -> Html Msg
+replyView config model data reply =
     let
+        ( zone, _ ) =
+            config.now
+
         replyId =
             Reply.id reply
 
         editor =
-            getReplyEditor replyId editors
+            getReplyEditor replyId model.replyEditors
     in
-    case Repo.getActor (Reply.authorId reply) repo of
+    case Repo.getActor (Reply.authorId reply) config.globals.repo of
         Just author ->
             div
                 [ id (replyNodeId replyId)
@@ -1212,8 +1189,8 @@ replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-normal" ]
                     [ div [ class "pb-1 flex items-baseline" ]
-                        [ replyAuthorName space author
-                        , View.Helpers.time now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                        [ replyAuthorName config.space author
+                        , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             button
                                 [ class "text-sm text-dusty-blue"
@@ -1228,8 +1205,7 @@ replyView repo (( zone, posix ) as now) space post editors spaceUsers reply =
                                 ]
                             , staticFilesView (Reply.files reply)
                             ]
-                    , viewIf (PostEditor.isExpanded editor) <|
-                        replyEditorView (Space.id space) replyId spaceUsers editor
+                    , viewIf (PostEditor.isExpanded editor) <| replyEditorView config replyId editor
                     , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply ]
                     ]
                 ]
@@ -1253,13 +1229,14 @@ replyAuthorName space author =
             span [ class "mr-3 font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
 
 
-replyEditorView : Id -> Id -> List SpaceUser -> PostEditor -> Html Msg
-replyEditorView spaceId replyId spaceUsers editor =
+replyEditorView : ViewConfig -> Id -> PostEditor -> Html Msg
+replyEditorView viewConfig replyId editor =
     let
         config =
             { editor = editor
-            , spaceId = spaceId
-            , spaceUsers = spaceUsers
+            , spaceId = Space.id viewConfig.space
+            , spaceUsers = viewConfig.spaceUsers
+            , groups = viewConfig.groups
             , onFileAdded = ReplyEditorFileAdded replyId
             , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
             , onFileUploaded = ReplyEditorFileUploaded replyId
@@ -1300,8 +1277,12 @@ replyEditorView spaceId replyId spaceUsers editor =
         ]
 
 
-replyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> Model -> Html Msg
-replyComposerView spaceId currentUser post spaceUsers model =
+replyComposerView : ViewConfig -> Model -> Data -> Html Msg
+replyComposerView viewConfig model data =
+    let
+        post =
+            data.post
+    in
     if Post.state post == Post.Closed then
         div [ class "flex flex-wrap items-center my-3" ]
             [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
@@ -1322,19 +1303,20 @@ replyComposerView spaceId currentUser post spaceUsers model =
             ]
 
     else if PostEditor.isExpanded model.replyComposer then
-        expandedReplyComposerView spaceId currentUser post spaceUsers model.replyComposer
+        expandedReplyComposerView viewConfig model.replyComposer
 
     else
-        replyPromptView currentUser
+        replyPromptView viewConfig.currentUser
 
 
-expandedReplyComposerView : Id -> SpaceUser -> Post -> List SpaceUser -> PostEditor -> Html Msg
-expandedReplyComposerView spaceId currentUser post spaceUsers editor =
+expandedReplyComposerView : ViewConfig -> PostEditor -> Html Msg
+expandedReplyComposerView viewConfig editor =
     let
         config =
             { editor = editor
-            , spaceId = spaceId
-            , spaceUsers = spaceUsers
+            , spaceId = Space.id viewConfig.space
+            , spaceUsers = viewConfig.spaceUsers
+            , groups = viewConfig.groups
             , onFileAdded = NewReplyFileAdded
             , onFileUploadProgress = NewReplyFileUploadProgress
             , onFileUploaded = NewReplyFileUploaded
@@ -1345,20 +1327,8 @@ expandedReplyComposerView spaceId currentUser post spaceUsers editor =
     div [ class "-ml-3 pt-3 sticky pin-b bg-white" ]
         [ PostEditor.wrapper config
             [ div [ class "composer p-0" ]
-                [ viewIf (False && (Post.inboxState post == Post.Unread || Post.inboxState post == Post.Read)) <|
-                    div [ class "flex rounded-t-lg bg-turquoise border-b border-white px-3 py-2" ]
-                        [ span [ class "flex-grow mr-3 text-sm text-white font-bold" ]
-                            [ span [ class "mr-2 inline-block" ] [ Icons.inboxWhite ]
-                            , text "This post is currently in your inbox."
-                            ]
-                        , button
-                            [ class "flex-no-shrink btn btn-xs btn-turquoise-inverse"
-                            , onClick DismissClicked
-                            ]
-                            [ text "Dismiss from my inbox" ]
-                        ]
-                , label [ class "flex p-3" ]
-                    [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small currentUser ]
+                [ label [ class "flex p-3" ]
+                    [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small viewConfig.currentUser ]
                     , div [ class "flex-grow" ]
                         [ textarea
                             [ id (PostEditor.getTextareaId editor)

@@ -49,6 +49,7 @@ module PostEditor exposing
 
 import Color exposing (Color)
 import File exposing (File)
+import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on)
@@ -367,6 +368,7 @@ type alias ViewConfig msg =
     { editor : PostEditor
     , spaceId : Id
     , spaceUsers : List SpaceUser
+    , groups : List Group
     , onFileAdded : File -> msg
     , onFileUploadProgress : Id -> Int -> msg
     , onFileUploaded : Id -> Id -> String -> msg

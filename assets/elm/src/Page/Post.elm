@@ -502,24 +502,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
-    let
-        spaceUsers =
-            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
-    in
     case globals.device of
         Device.Desktop ->
-            resolvedDesktopView globals spaceUsers model data
+            resolvedDesktopView globals model data
 
         Device.Mobile ->
-            resolvedMobileView globals spaceUsers model data
+            resolvedMobileView globals model data
 
 
 
 -- DESKTOP
 
 
-resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedDesktopView globals spaceUsers model data =
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -535,7 +531,8 @@ resolvedDesktopView globals spaceUsers model data =
             , space = data.space
             , currentUser = data.viewer
             , now = model.now
-            , spaceUsers = spaceUsers
+            , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+            , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
             }
     in
@@ -565,8 +562,8 @@ resolvedDesktopView globals spaceUsers model data =
 -- MOBILE
 
 
-resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedMobileView globals spaceUsers model data =
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
     let
         config =
             { space = data.space
@@ -589,7 +586,8 @@ resolvedMobileView globals spaceUsers model data =
             , space = data.space
             , currentUser = data.viewer
             , now = model.now
-            , spaceUsers = spaceUsers
+            , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+            , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
             }
     in
