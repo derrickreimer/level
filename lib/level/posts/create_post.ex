@@ -29,13 +29,13 @@ defmodule Level.Posts.CreatePost do
     Multi.new()
     |> insert_post(build_params(author, params))
     |> save_locator(params)
-    |> associate_with_group(group)
+    |> set_primary_group(group)
     |> detect_tagged_groups(author)
     |> record_mentions()
     |> attach_files(author, params)
-    |> log(group, author)
+    |> log(author)
     |> Repo.transaction()
-    |> after_user_post(author, group)
+    |> after_user_post(author)
   end
 
   def perform(%SpaceBot{} = author, %SpaceUser{} = recipient, params) do
@@ -44,6 +44,19 @@ defmodule Level.Posts.CreatePost do
     |> save_locator(params)
     |> Repo.transaction()
     |> after_bot_post(recipient)
+  end
+
+  @spec perform(Posts.author(), map()) :: result()
+  def perform(%SpaceUser{} = author, params) do
+    Multi.new()
+    |> insert_post(build_params(author, params))
+    |> save_locator(params)
+    |> detect_tagged_groups(author)
+    |> record_mentions()
+    |> attach_files(author, params)
+    |> log(author)
+    |> Repo.transaction()
+    |> after_user_post(author)
   end
 
   # Internal
@@ -85,11 +98,13 @@ defmodule Level.Posts.CreatePost do
 
   defp save_locator(multi, _), do: multi
 
-  defp associate_with_group(multi, group) do
-    Multi.run(multi, :post_group, fn %{post: post} ->
+  defp set_primary_group(multi, group) do
+    Multi.run(multi, :primary_group, fn %{post: post} ->
       %PostGroup{}
       |> Changeset.change(build_post_group_params(post, group))
       |> Repo.insert()
+
+      {:ok, group}
     end)
   end
 
@@ -127,21 +142,34 @@ defmodule Level.Posts.CreatePost do
     Multi.run(multi, :files, fn _ -> {:ok, []} end)
   end
 
-  defp log(multi, group, author) do
+  defp log(multi, author) do
     Multi.run(multi, :log, fn %{post: post} ->
-      PostLog.post_created(post, group, author)
+      PostLog.post_created(post, author)
     end)
   end
 
-  defp after_user_post({:ok, result}, author, group) do
+  defp after_user_post({:ok, result}, author) do
     _ = Posts.subscribe(author, [result.post])
     _ = subscribe_mentioned(result.post, result)
-    _ = send_events(result.post, group)
+
+    result
+    |> gather_groups()
+    |> Enum.each(fn group ->
+      _ = send_events(result.post, group)
+    end)
 
     {:ok, result}
   end
 
-  defp after_user_post(err, _, _), do: err
+  defp after_user_post(err, _), do: err
+
+  defp gather_groups(%{primary_group: primary_group, tagged_groups: tagged_groups}) do
+    [primary_group | tagged_groups] |> Enum.uniq_by(fn group -> group.id end)
+  end
+
+  defp gather_groups(%{tagged_groups: tagged_groups}) do
+    tagged_groups |> Enum.uniq_by(fn group -> group.id end)
+  end
 
   # This is not very efficient, but assuming that posts will not have too
   # many @-mentions, I'm not going to worry about the performance penalty

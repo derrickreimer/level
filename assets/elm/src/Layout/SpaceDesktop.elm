@@ -12,13 +12,14 @@ import Route.Group
 import Route.Groups
 import Route.Help
 import Route.Inbox
+import Route.NewPost
 import Route.Posts
 import Route.Settings
 import Route.SpaceUsers
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
-import View.Helpers exposing (viewIf)
+import View.Helpers exposing (viewIf, viewUnless)
 
 
 
@@ -69,20 +70,19 @@ keyboardCommandReference =
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Actions" ]
             , keyboardCommandItem "Shortcuts" [ "?" ]
             , keyboardCommandItem "Search" [ "/" ]
+            , keyboardCommandItem "Compose a Post" [ "C" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Navigation" ]
             , keyboardCommandItem "Next / Previous Post" [ "J", "K" ]
-            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Channels" ]
-            , keyboardCommandItem "Compose a Post" [ "C" ]
+            , keyboardCommandItem "Go to Inbox" [ "i" ]
+            , keyboardCommandItem "Go to Feed" [ "F" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Posts" ]
             , keyboardCommandItem "Dismiss from Inbox" [ "E" ]
             , keyboardCommandItem "Move to Inbox" [ "⌘", "E" ]
+            , keyboardCommandItem "Resolve" [ "Y" ]
             , keyboardCommandItem "Reply" [ "R" ]
             , keyboardCommandItem "Send" [ "⌘", "enter" ]
             , keyboardCommandItem "Send + Resolve" [ "⌘", "shift", "enter" ]
             , keyboardCommandItem "Close Reply Editor" [ "esc" ]
-            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Pages" ]
-            , keyboardCommandJumpItem "Jump to Inbox" "i"
-            , keyboardCommandJumpItem "Jump to Feed" "F"
             ]
         ]
 
@@ -118,6 +118,10 @@ keyView value =
 
 fullSidebar : Config -> Html msg
 fullSidebar config =
+    let
+        spaceSlug =
+            Space.slug config.space
+    in
     div
         [ classList
             [ ( "fixed w-48 h-full min-h-screen z-40", True )
@@ -131,17 +135,22 @@ fullSidebar config =
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "70px" ]
             [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
+                [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
+                , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                , navLink config.space "New" (Just <| Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
                 ]
-            , h3 [ class "mb-1p5 pl-3 font-sans text-sm" ]
-                [ a [ Route.href (Route.Groups (Route.Groups.init (Space.slug config.space))), class "text-dusty-blue no-underline" ] [ text "Channels" ]
-                ]
-            , bookmarkList config
+            , viewUnless (List.isEmpty config.bookmarks) <|
+                div []
+                    [ h3 [ class "mb-1p5 pl-3 font-sans text-sm" ]
+                        [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue-dark no-underline" ] [ text "Channels" ] ]
+                    , bookmarkList config
+                    ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
-                , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
-                , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
+                [ viewIf (List.isEmpty config.bookmarks) <|
+                    navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
+                , navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
+                , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
+                , navLink config.space "Help" (Just <| Route.Help (Route.Help.init spaceSlug)) config.currentRoute
                 ]
             ]
         , div [ class "absolute w-full", style "bottom" "0.75rem", style "left" "0.75rem" ]

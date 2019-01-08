@@ -20,6 +20,7 @@ import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.ClosePost as ClosePost
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
 import Pagination
@@ -221,6 +222,7 @@ type Msg
     | CollapseSearchEditor
     | SearchEditorChanged String
     | SearchSubmitted
+    | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -369,6 +371,9 @@ update msg globals model =
                     Route.pushUrl globals.navKey (Route.Search searchParams)
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
+
+        PostClosed _ ->
+            noCmd { globals | flash = Flash.set Flash.Notice "Marked as resolved" 3000 globals.flash } model
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -527,6 +532,20 @@ consumeKeyboardEvent globals event model =
                             globals.session
                                 |> MarkAsRead.request model.spaceId [ currentPost.postId ]
                                 |> Task.attempt PostsMarkedAsRead
+                    in
+                    ( ( model, cmd ), globals )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
+        ( "y", [] ) ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        cmd =
+                            globals.session
+                                |> ClosePost.request model.spaceId currentPost.postId
+                                |> Task.attempt PostClosed
                     in
                     ( ( model, cmd ), globals )
 

@@ -1,15 +1,12 @@
-module Page.NewGroupPost exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.NewPost exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
 
-import Avatar exposing (personAvatar)
-import Component.Post
-import Connection exposing (Connection)
+import Avatar
+import Browser.Navigation as Nav
 import Device exposing (Device)
 import Event exposing (Event)
-import FieldEditor exposing (FieldEditor)
 import File exposing (File)
 import Globals exposing (Globals)
 import Group exposing (Group)
-import GroupMembership exposing (GroupMembership, GroupMembershipState(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -20,39 +17,23 @@ import KeyboardShortcuts
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.BookmarkGroup as BookmarkGroup
-import Mutation.CloseGroup as CloseGroup
 import Mutation.CreatePost as CreatePost
-import Mutation.ReopenGroup as ReopenGroup
-import Mutation.SubscribeToGroup as SubscribeToGroup
-import Mutation.UnbookmarkGroup as UnbookmarkGroup
-import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
-import Mutation.UpdateGroup as UpdateGroup
-import Pagination
-import Post exposing (Post)
 import PostEditor exposing (PostEditor)
-import Query.FeaturedMemberships as FeaturedMemberships
-import Query.NewGroupPostInit as NewGroupPostInit
-import Reply exposing (Reply)
+import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
-import Route.GroupSettings
-import Route.NewGroupPost exposing (Params(..))
-import Route.Search
-import Route.SpaceUser
+import Route.Groups
+import Route.NewPost exposing (Params)
+import Route.Posts
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
-import Subscription.GroupSubscription as GroupSubscription
 import Task exposing (Task)
-import TaskHelpers
-import Time exposing (Posix, Zone, every)
-import ValidationError exposing (ValidationError)
+import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
-import View.SearchBox
+import View.Helpers exposing (setFocus, viewIf)
 
 
 
@@ -63,9 +44,10 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , groupId : Id
-    , now : ( Zone, Posix )
+    , bookmarkIds : List Id
     , postComposer : PostEditor
+    , isSubmitting : Bool
+    , errors : List ValidationError
 
     -- MOBILE
     , showNav : Bool
@@ -76,7 +58,7 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , group : Group
+    , bookmarks : List Group
     }
 
 
@@ -85,21 +67,16 @@ resolveData repo model =
     Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Repo.getGroup model.groupId repo)
+        (Just <| Repo.getGroups model.bookmarkIds repo)
 
 
 
 -- PAGE PROPERTIES
 
 
-title : Repo -> Model -> String
-title repo model =
-    case Repo.getGroup model.groupId repo of
-        Just group ->
-            "Post to " ++ Group.name group
-
-        Nothing ->
-            "Post to Group"
+title : Model -> String
+title model =
+    "New Post"
 
 
 
@@ -109,22 +86,22 @@ title repo model =
 init : Params -> Globals -> Task Session.Error ( Globals, Model )
 init params globals =
     globals.session
-        |> NewGroupPostInit.request params 10
-        |> TaskHelpers.andThenGetCurrentTime
+        |> SetupInit.request (Route.NewPost.getSpaceSlug params)
         |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> Globals -> ( ( Session, NewGroupPostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
-buildModel params globals ( ( newSession, resp ), now ) =
+buildModel : Params -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
+buildModel params globals ( newSession, resp ) =
     let
         model =
             Model
                 params
                 resp.viewerId
                 resp.spaceId
-                resp.groupId
-                now
-                (PostEditor.init ("post-composer-" ++ resp.groupId))
+                resp.bookmarkIds
+                (PostEditor.init "global-post-composer")
+                False
+                []
                 False
                 False
 
@@ -136,37 +113,16 @@ buildModel params globals ( ( newSession, resp ), now ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    let
-        pageCmd =
-            Cmd.batch
-                [ setFocus (PostEditor.getTextareaId model.postComposer) NoOp
-                , setupSockets model.groupId
-                , PostEditor.fetchLocal model.postComposer
-                ]
-    in
     Cmd.batch
-        [ pageCmd
+        [ setFocus (PostEditor.getTextareaId model.postComposer) NoOp
         , Scroll.toDocumentTop NoOp
+        , PostEditor.fetchLocal model.postComposer
         ]
 
 
 teardown : Model -> Cmd Msg
 teardown model =
-    let
-        pageCmd =
-            teardownSockets model.groupId
-    in
-    Cmd.batch [ pageCmd ]
-
-
-setupSockets : Id -> Cmd Msg
-setupSockets groupId =
-    GroupSubscription.subscribe groupId
-
-
-teardownSockets : Id -> Cmd Msg
-teardownSockets groupId =
-    GroupSubscription.unsubscribe groupId
+    Cmd.none
 
 
 
@@ -175,8 +131,6 @@ teardownSockets groupId =
 
 type Msg
     = NoOp
-    | Tick Posix
-    | SetCurrentTime Posix Zone
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -185,6 +139,7 @@ type Msg
     | NewPostFileUploadError Id
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
+    | EscapePressed
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -196,12 +151,6 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
-
-        Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
-
-        SetCurrentTime posix zone ->
-            noCmd globals { model | now = ( zone, posix ) }
 
         PostEditorEventReceived value ->
             case PostEditor.decodeEvent value of
@@ -252,16 +201,12 @@ update msg globals model =
             in
             ( ( { model | postComposer = newPostComposer }, cmd ), globals )
 
-        NewPostFileUploadError clientId ->
-            noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
-
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
                 let
                     variables =
-                        CreatePost.variablesWithGroup
+                        CreatePost.variablesWithoutGroup
                             model.spaceId
-                            model.groupId
                             (PostEditor.getBody model.postComposer)
                             (PostEditor.getUploadIds model.postComposer)
 
@@ -277,13 +222,14 @@ update msg globals model =
 
         NewPostSubmitted (Ok ( newSession, response )) ->
             let
-                redirectTo =
-                    Route.Group <|
-                        Route.Group.init
-                            (Route.NewGroupPost.getSpaceSlug model.params)
-                            (Route.NewGroupPost.getGroupId model.params)
+                ( newPostComposer, postCmd ) =
+                    model.postComposer
+                        |> PostEditor.reset
+
+                redirectCmd =
+                    Route.pushUrl globals.navKey (Route.Posts (Route.Posts.init (Route.NewPost.getSpaceSlug model.params)))
             in
-            ( ( model, Route.pushUrl globals.navKey redirectTo )
+            ( ( { model | postComposer = newPostComposer }, Cmd.batch [ postCmd, redirectCmd ] )
             , { globals | session = newSession }
             )
 
@@ -293,6 +239,12 @@ update msg globals model =
         NewPostSubmitted (Err _) ->
             { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
                 |> noCmd globals
+
+        NewPostFileUploadError clientId ->
+            noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
+
+        EscapePressed ->
+            handleEscapePressed globals model
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -314,22 +266,53 @@ redirectToLogin globals model =
     ( ( model, Route.toLogin ), globals )
 
 
+handleEscapePressed : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+handleEscapePressed globals model =
+    let
+        cmd =
+            if PostEditor.getBody model.postComposer == "" then
+                Route.pushUrl globals.navKey (Route.Posts (Route.Posts.init (Route.NewPost.getSpaceSlug model.params)))
+
+            else
+                Cmd.none
+    in
+    ( ( model, cmd ), globals )
+
+
 
 -- EVENTS
 
 
-consumeEvent : Event -> Session -> Model -> ( Model, Cmd Msg )
-consumeEvent event session model =
-    ( model, Cmd.none )
+consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
+consumeEvent globals event model =
+    case event of
+        Event.GroupBookmarked group ->
+            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
+
+        Event.GroupUnbookmarked group ->
+            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+consumeKeyboardEvent : Globals -> KeyboardShortcuts.Event -> Model -> ( ( Model, Cmd Msg ), Globals )
+consumeKeyboardEvent globals event model =
+    case ( event.key, event.modifiers ) of
+        ( "Escape", [] ) ->
+            handleEscapePressed globals model
+
+        _ ->
+            ( ( model, Cmd.none ), globals )
 
 
 
--- SUBSCRIPTION
+-- SUBSCRIPTIONS
 
 
 subscriptions : Sub Msg
 subscriptions =
-    Sub.none
+    PostEditor.receive PostEditorEventReceived
 
 
 
@@ -362,7 +345,78 @@ resolvedView globals model data =
 
 resolvedDesktopView : Globals -> Model -> Data -> Html Msg
 resolvedDesktopView globals model data =
-    text ""
+    let
+        config =
+            { space = data.space
+            , spaceUser = data.viewer
+            , bookmarks = data.bookmarks
+            , currentRoute = globals.currentRoute
+            , flash = globals.flash
+            , showKeyboardCommands = globals.showKeyboardCommands
+            }
+    in
+    Layout.SpaceDesktop.layout config
+        [ div [ class "mx-auto px-8 py-6 max-w-lg leading-normal" ]
+            [ desktopPostComposerView globals model data
+            , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
+                [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+                , text "Hashtag the Channels where you'd like to post your message."
+                ]
+            ]
+        ]
+
+
+desktopPostComposerView : Globals -> Model -> Data -> Html Msg
+desktopPostComposerView globals model data =
+    let
+        editor =
+            model.postComposer
+
+        config =
+            { editor = editor
+            , spaceId = Space.id data.space
+            , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+            , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
+            , onFileAdded = NewPostFileAdded
+            , onFileUploadProgress = NewPostFileUploadProgress
+            , onFileUploaded = NewPostFileUploaded
+            , onFileUploadError = NewPostFileUploadError
+            , classList = []
+            }
+    in
+    PostEditor.wrapper config
+        [ label [ class "composer mb-4" ]
+            [ div [ class "flex" ]
+                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow pl-2 pt-2" ]
+                    [ textarea
+                        [ id (PostEditor.getTextareaId editor)
+                        , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , placeholder "Compose a new post..."
+                        , onInput NewPostBodyChanged
+                        , onKeydown preventDefault
+                            [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
+                            , ( [], esc, \event -> EscapePressed )
+                            ]
+                        , readonly (PostEditor.isSubmitting editor)
+                        , value (PostEditor.getBody editor)
+                        , tabindex 1
+                        ]
+                        []
+                    , PostEditor.filesView editor
+                    , div [ class "flex items-baseline justify-end" ]
+                        [ button
+                            [ class "btn btn-blue btn-md"
+                            , onClick NewPostSubmit
+                            , disabled (PostEditor.isUnsubmittable editor)
+                            , tabindex 3
+                            ]
+                            [ text "Send" ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
 
 
@@ -372,22 +426,19 @@ resolvedDesktopView globals model data =
 resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
-        groupRoute =
-            Route.Group <| Route.Group.init (Route.NewGroupPost.getSpaceSlug model.params) (Route.NewGroupPost.getGroupId model.params)
-
         layoutConfig =
             { space = data.space
             , spaceUser = data.viewer
             , bookmarks = []
             , currentRoute = globals.currentRoute
             , flash = globals.flash
-            , title = "Post to " ++ Group.name data.group
+            , title = "New Post"
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
-            , leftControl = Layout.SpaceMobile.Back groupRoute
+            , leftControl = Layout.SpaceMobile.ShowNav
             , rightControl =
                 Layout.SpaceMobile.Custom <|
                     button
@@ -428,6 +479,10 @@ resolvedMobileView globals model data =
                 , div [ class "p-4" ]
                     [ PostEditor.filesView editor
                     ]
+                ]
+            , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
+                [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+                , text "Hashtag the Channels where you'd like to post your message."
                 ]
             ]
         ]

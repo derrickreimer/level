@@ -12,6 +12,7 @@ import Route.Groups
 import Route.Help
 import Route.Inbox
 import Route.NewGroupPost
+import Route.NewPost
 import Route.Posts
 import Route.Search
 import Route.Settings
@@ -42,6 +43,7 @@ type Route
     | NewGroup String
     | GroupSettings Route.GroupSettings.Params
     | Post String String
+    | NewPost Route.NewPost.Params
     | UserSettings
     | Settings Route.Settings.Params
     | Search Route.Search.Params
@@ -65,6 +67,7 @@ parser =
         , Parser.map GroupSettings Route.GroupSettings.parser
         , Parser.map Group Route.Group.parser
         , Parser.map NewGroupPost Route.NewGroupPost.parser
+        , Parser.map NewPost Route.NewPost.parser
         , Parser.map Post (Parser.string </> s "posts" </> Parser.string)
         , Parser.map UserSettings (s "user" </> s "settings")
         , Parser.map Settings Route.Settings.parser
@@ -156,6 +159,9 @@ toString page =
 
         Post slug id ->
             absolute [ slug, "posts", id ] []
+
+        NewPost params ->
+            Route.NewPost.toString params
 
         UserSettings ->
             absolute [ "user", "settings" ] []

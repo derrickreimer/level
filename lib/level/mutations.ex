@@ -460,10 +460,23 @@ defmodule Level.Mutations do
   Posts a message to a group.
   """
   @spec create_post(map(), info()) :: post_mutation_result()
-  def create_post(args, %{context: %{current_user: user}}) do
+  def create_post(%{group_id: _} = args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
          {:ok, %{post: post}} <- Posts.create_post(space_user, group, args) do
+      {:ok, %{success: true, post: post, errors: []}}
+    else
+      {:error, :post, changeset, _} ->
+        {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  def create_post(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, %{post: post}} <- Posts.create_post(space_user, args) do
       {:ok, %{success: true, post: post, errors: []}}
     else
       {:error, :post, changeset, _} ->

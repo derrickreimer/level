@@ -25,6 +25,7 @@ import Page.Inbox
 import Page.InviteUsers
 import Page.NewGroup
 import Page.NewGroupPost
+import Page.NewPost
 import Page.NewSpace
 import Page.Post
 import Page.Posts
@@ -48,6 +49,7 @@ import Route.Groups
 import Route.Help
 import Route.Inbox
 import Route.NewGroupPost
+import Route.NewPost
 import Route.Posts
 import Route.Search
 import Route.Settings
@@ -224,6 +226,7 @@ type Msg
     | NewGroupMsg Page.NewGroup.Msg
     | GroupSettingsMsg Page.GroupSettings.Msg
     | PostMsg Page.Post.Msg
+    | NewPostMsg Page.NewPost.Msg
     | UserSettingsMsg Page.UserSettings.Msg
     | SpaceSettingsMsg Page.Settings.Msg
     | SearchMsg Page.Search.Msg
@@ -382,6 +385,11 @@ update msg model =
                 |> Page.Post.update pageMsg globals
                 |> updatePageWithGlobals Post PostMsg model
 
+        ( NewPostMsg pageMsg, NewPost pageModel ) ->
+            pageModel
+                |> Page.NewPost.update pageMsg globals
+                |> updatePageWithGlobals NewPost NewPostMsg model
+
         ( UserSettingsMsg pageMsg, UserSettings pageModel ) ->
             pageModel
                 |> Page.UserSettings.update pageMsg globals
@@ -466,33 +474,25 @@ update msg model =
                 ( "g", [], _ ) ->
                     ( { model | going = True }, Cmd.none )
 
-                ( "i", [], Just spaceSlug ) ->
-                    if model.going then
-                        ( { model | going = False }
-                        , Route.pushUrl model.navKey (Route.Inbox <| Route.Inbox.init spaceSlug)
-                        )
+                ( "c", [], Just spaceSlug ) ->
+                    case model.page of
+                        Group _ ->
+                            sendKeyboardEventToPage globals event { model | going = False }
 
-                    else
-                        sendKeyboardEventToPage globals event { model | going = False }
+                        _ ->
+                            ( { model | going = False }, Route.pushUrl model.navKey (Route.NewPost <| Route.NewPost.init spaceSlug) )
+
+                ( "i", [], Just spaceSlug ) ->
+                    ( { model | going = False }, Route.pushUrl model.navKey (Route.Inbox <| Route.Inbox.init spaceSlug) )
 
                 ( "f", [], Just spaceSlug ) ->
-                    if model.going then
-                        ( { model | going = False }
-                        , Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug)
-                        )
-
-                    else
-                        sendKeyboardEventToPage globals event { model | going = False }
+                    ( { model | going = False }, Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug) )
 
                 ( "?", [ Shift ], _ ) ->
-                    ( { model | showKeyboardCommands = True }, Cmd.none )
+                    ( { model | going = False, showKeyboardCommands = True }, Cmd.none )
 
                 ( "Escape", [], _ ) ->
-                    let
-                        newModel =
-                            { model | showKeyboardCommands = False }
-                    in
-                    sendKeyboardEventToPage globals event newModel
+                    sendKeyboardEventToPage globals event { model | going = False, showKeyboardCommands = False }
 
                 _ ->
                     sendKeyboardEventToPage globals event { model | going = False }
@@ -522,6 +522,7 @@ type Page
     | NewGroup Page.NewGroup.Model
     | GroupSettings Page.GroupSettings.Model
     | Post Page.Post.Model
+    | NewPost Page.NewPost.Model
     | UserSettings Page.UserSettings.Model
     | SpaceSettings Page.Settings.Model
     | Search Page.Search.Model
@@ -543,6 +544,7 @@ type PageInit
     | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
+    | NewPostInit (Result Session.Error ( Globals, Page.NewPost.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
@@ -638,6 +640,11 @@ navigateTo maybeRoute model =
                 |> Page.Post.init spaceSlug postId
                 |> transition model (PostInit postId)
 
+        Just (Route.NewPost params) ->
+            globals
+                |> Page.NewPost.init params
+                |> transition model NewPostInit
+
         Just (Route.Settings spaceSlug) ->
             globals
                 |> Page.Settings.init spaceSlug
@@ -702,6 +709,9 @@ pageTitle repo page =
 
         Post pageModel ->
             Page.Post.title pageModel
+
+        NewPost pageModel ->
+            Page.NewPost.title pageModel
 
         SpaceSettings _ ->
             Page.Settings.title
@@ -866,6 +876,15 @@ setupPage pageInit model =
         PostInit _ (Err _) ->
             ( model, Cmd.none )
 
+        NewPostInit (Ok result) ->
+            perform Page.NewPost.setup NewPost NewPostMsg model result
+
+        NewPostInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        NewPostInit (Err _) ->
+            ( model, Cmd.none )
+
         UserSettingsInit (Ok result) ->
             perform Page.UserSettings.setup UserSettings UserSettingsMsg model result
 
@@ -955,6 +974,9 @@ teardownPage page =
         Post pageModel ->
             Cmd.map PostMsg (Page.Post.teardown pageModel)
 
+        NewPost pageModel ->
+            Cmd.map NewPostMsg (Page.NewPost.teardown pageModel)
+
         Search pageModel ->
             Cmd.map SearchMsg (Page.Search.teardown pageModel)
 
@@ -988,6 +1010,9 @@ pageSubscription page =
 
         Post _ ->
             Sub.map PostMsg Page.Post.subscriptions
+
+        NewPost _ ->
+            Sub.map NewPostMsg Page.NewPost.subscriptions
 
         UserSettings _ ->
             Sub.map UserSettingsMsg Page.UserSettings.subscriptions
@@ -1046,6 +1071,9 @@ routeFor page =
 
         Post { spaceSlug, postComp } ->
             Just <| Route.Post spaceSlug postComp.id
+
+        NewPost { params } ->
+            Just <| Route.NewPost params
 
         UserSettings _ ->
             Just <| Route.UserSettings
@@ -1110,6 +1138,9 @@ getSpaceSlug page =
 
         Post { spaceSlug, postComp } ->
             Just spaceSlug
+
+        NewPost { params } ->
+            Just <| Route.NewPost.getSpaceSlug params
 
         UserSettings _ ->
             Nothing
@@ -1200,6 +1231,11 @@ pageView globals page =
             pageModel
                 |> Page.Post.view globals
                 |> Html.map PostMsg
+
+        NewPost pageModel ->
+            pageModel
+                |> Page.NewPost.view globals
+                |> Html.map NewPostMsg
 
         UserSettings pageModel ->
             pageModel
@@ -1448,6 +1484,11 @@ sendEventToPage globals event model =
                 |> Page.Post.consumeEvent globals event
                 |> updatePage Post PostMsg model
 
+        NewPost pageModel ->
+            pageModel
+                |> Page.NewPost.consumeEvent globals event
+                |> updatePage NewPost NewPostMsg model
+
         UserSettings pageModel ->
             pageModel
                 |> Page.UserSettings.consumeEvent event
@@ -1492,6 +1533,11 @@ sendKeyboardEventToPage globals event model =
             pageModel
                 |> Page.Posts.consumeKeyboardEvent globals event
                 |> updatePageWithGlobals Posts PostsMsg model
+
+        NewPost pageModel ->
+            pageModel
+                |> Page.NewPost.consumeKeyboardEvent globals event
+                |> updatePageWithGlobals NewPost NewPostMsg model
 
         Group pageModel ->
             pageModel

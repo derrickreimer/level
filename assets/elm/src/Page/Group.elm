@@ -23,6 +23,7 @@ import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CloseGroup as CloseGroup
+import Mutation.ClosePost as ClosePost
 import Mutation.CreatePost as CreatePost
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
@@ -247,6 +248,7 @@ type Msg
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
+    | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
     | FocusOnComposer
       -- MOBILE
     | NavToggled
@@ -321,9 +323,16 @@ update msg globals model =
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
                 let
+                    variables =
+                        CreatePost.variablesWithGroup
+                            model.spaceId
+                            model.groupId
+                            (PostEditor.getBody model.postComposer)
+                            (PostEditor.getUploadIds model.postComposer)
+
                     cmd =
                         globals.session
-                            |> CreatePost.request model.spaceId model.groupId (PostEditor.getBody model.postComposer) (PostEditor.getUploadIds model.postComposer)
+                            |> CreatePost.request variables
                             |> Task.attempt NewPostSubmitted
                 in
                 ( ( { model | postComposer = PostEditor.setToSubmitting model.postComposer }, cmd ), globals )
@@ -677,6 +686,9 @@ update msg globals model =
         PostsMarkedAsRead _ ->
             noCmd { globals | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash } model
 
+        PostClosed _ ->
+            noCmd { globals | flash = Flash.set Flash.Notice "Marked as resolved" 3000 globals.flash } model
+
         FocusOnComposer ->
             ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
 
@@ -848,6 +860,20 @@ consumeKeyboardEvent globals event model =
                 Nothing ->
                     ( ( model, Cmd.none ), globals )
 
+        ( "y", [] ) ->
+            case Connection.selected model.postComps of
+                Just currentPost ->
+                    let
+                        cmd =
+                            globals.session
+                                |> ClosePost.request model.spaceId currentPost.postId
+                                |> Task.attempt PostClosed
+                    in
+                    ( ( model, cmd ), globals )
+
+                Nothing ->
+                    ( ( model, Cmd.none ), globals )
+
         ( "r", [] ) ->
             case Connection.selected model.postComps of
                 Just currentPost ->
@@ -931,7 +957,7 @@ resolvedDesktopView globals model data =
             [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-4 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ nameView data.group model.nameEditor
-                    , bookmarkButtonView (Group.isBookmarked data.group)
+                    , viewIf False <| bookmarkButtonView (Group.isBookmarked data.group)
                     , nameErrors model.nameEditor
                     , controlsView model
                     ]

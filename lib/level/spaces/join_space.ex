@@ -71,13 +71,14 @@ defmodule Level.Spaces.JoinSpace do
 
     This is what a post looks like! Here are a few writing tips:
 
-    - Use [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax for formatting
-    - **@-mention** anyone that you would like to follow-up
+    - You can use [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax for formatting
+    - **@-mention** the people that you would like to follow-up
+    - **#-tag** one or more channels where the post should appear
     - Drag-and-drop files on the editor to attach them
 
-    It’s a good idea to keep your Inbox empty whenever possible. 
+    It’s a good idea to keep your Inbox empty whenever possible.
 
-    When you are finished with a post, click the green icon to dismiss it.
+    When you are finished reading this post, click the green button at the top to dismiss it from your Inbox.
     """
 
     create_bot_post(levelbot, space_user, body)
