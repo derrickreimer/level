@@ -8,7 +8,6 @@ import PushStatus exposing (PushStatus)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
-import SpaceUserLists exposing (SpaceUserLists)
 
 
 type alias Globals =
@@ -20,6 +19,5 @@ type alias Globals =
     , device : Device
     , pushStatus : PushStatus
     , currentRoute : Maybe Route
-    , spaceUserLists : SpaceUserLists
     , showKeyboardCommands : Bool
     }

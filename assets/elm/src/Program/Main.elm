@@ -38,7 +38,6 @@ import Page.WelcomeTutorial
 import Presence exposing (PresenceList)
 import PushManager
 import PushStatus exposing (PushStatus)
-import Query.GetSpaceUserLists as GetSpaceUserLists
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Response exposing (Response)
@@ -59,7 +58,6 @@ import Session exposing (Session)
 import Socket
 import SocketState exposing (SocketState(..))
 import Space exposing (Space)
-import SpaceUserLists exposing (SpaceUserLists)
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Task exposing (Task)
@@ -97,7 +95,6 @@ type alias Model =
     , isTransitioning : Bool
     , pushStatus : PushStatus
     , socketState : SocketState
-    , spaceUserLists : SpaceUserLists
     , currentUser : Lazy User
     , timeZone : String
     , flash : Flash
@@ -150,7 +147,6 @@ buildModel flags navKey =
         True
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
-        SpaceUserLists.init
         NotLoaded
         flags.timeZone
         Flash.init
@@ -169,11 +165,6 @@ setup { currentUser, spaceIds, spaceUserIds } model =
             Cmd.batch <|
                 List.map SpaceUserSubscription.subscribe spaceUserIds
 
-        getSpaceUserLists =
-            model.session
-                |> GetSpaceUserLists.request
-                |> Task.attempt SpaceUserListsLoaded
-
         updateTimeZone =
             -- Note: It would be better to present the user with a notice that their
             -- time zone on file differs from the one currently detected in their browser,
@@ -190,7 +181,6 @@ setup { currentUser, spaceIds, spaceUserIds } model =
     , Cmd.batch
         [ subscribeToSpaces
         , subscribeToSpaceUsers
-        , getSpaceUserLists
         , updateTimeZone
         ]
     )
@@ -206,7 +196,6 @@ buildGlobals model =
     , device = model.device
     , pushStatus = model.pushStatus
     , currentRoute = routeFor model.page
-    , spaceUserLists = model.spaceUserLists
     , showKeyboardCommands = model.showKeyboardCommands
     }
 
@@ -220,7 +209,6 @@ type Msg
     | UrlRequest UrlRequest
     | AppInitialized (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
-    | SpaceUserListsLoaded (Result Session.Error ( Session, GetSpaceUserLists.Response ))
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
     | SpacesMsg Page.Spaces.Msg
@@ -319,20 +307,6 @@ update msg model =
 
         ( SessionRefreshed (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
-
-        ( SpaceUserListsLoaded (Ok ( newSession, resp )), _ ) ->
-            ( { model
-                | spaceUserLists = resp.spaceUserLists
-                , repo = Repo.union resp.repo model.repo
-              }
-            , Cmd.none
-            )
-
-        ( SpaceUserListsLoaded (Err Session.Expired), _ ) ->
-            ( model, Route.toLogin )
-
-        ( SpaceUserListsLoaded (Err _), _ ) ->
-            ( model, Cmd.none )
 
         ( TimeZoneUpdated (Ok ( newSession, UpdateUser.Success newUser )), _ ) ->
             ( { model | currentUser = Loaded newUser, session = newSession }, Cmd.none )

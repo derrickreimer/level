@@ -1,4 +1,4 @@
-module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, id, name, openInvitationUrl, slug)
+module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, groupIds, id, name, openInvitationUrl, slug, spaceUserIds)
 
 import Avatar
 import Connection exposing (Connection)
@@ -92,6 +92,16 @@ avatar size (Space data) =
 openInvitationUrl : Space -> Maybe String
 openInvitationUrl (Space data) =
     data.openInvitationUrl
+
+
+spaceUserIds : Space -> List Id
+spaceUserIds (Space data) =
+    data.spaceUserIds
+
+
+groupIds : Space -> List Id
+groupIds (Space data) =
+    data.groupIds
 
 
 canUpdate : Space -> Bool

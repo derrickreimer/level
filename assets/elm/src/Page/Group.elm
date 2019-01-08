@@ -48,7 +48,6 @@ import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
-import SpaceUserLists exposing (SpaceUserLists)
 import Subscription.GroupSubscription as GroupSubscription
 import Task exposing (Task)
 import TaskHelpers
@@ -893,34 +892,30 @@ subscriptions =
 
 view : Globals -> Model -> Html Msg
 view globals model =
-    let
-        spaceUsers =
-            SpaceUserLists.resolveList globals.repo model.spaceId globals.spaceUserLists
-    in
     case resolveData globals.repo model of
         Just data ->
-            resolvedView globals spaceUsers model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView globals spaceUsers model data =
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
     case globals.device of
         Device.Desktop ->
-            resolvedDesktopView globals spaceUsers model data
+            resolvedDesktopView globals model data
 
         Device.Mobile ->
-            resolvedMobileView globals spaceUsers model data
+            resolvedMobileView globals model data
 
 
 
 -- DESKTOP
 
 
-resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedDesktopView globals spaceUsers model data =
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -942,7 +937,7 @@ resolvedDesktopView globals spaceUsers model data =
                     ]
                 ]
             , viewIf (Group.state data.group == Group.Open) <|
-                desktopPostComposerView model.spaceId model.postComposer data.viewer spaceUsers
+                desktopPostComposerView globals model data
             , viewIf (Group.state data.group == Group.Closed) <|
                 p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
                     [ div [ class "flex-grow" ] [ text "This group is closed." ]
@@ -954,7 +949,7 @@ resolvedDesktopView globals spaceUsers model data =
                 [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
-            , desktopPostsView globals spaceUsers model data
+            , desktopPostsView globals model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView model.params data.space data.group data.featuredMembers)
             ]
         ]
@@ -1044,13 +1039,16 @@ searchEditorView editor =
         }
 
 
-desktopPostComposerView : Id -> PostEditor -> SpaceUser -> List SpaceUser -> Html Msg
-desktopPostComposerView spaceId editor currentUser spaceUsers =
+desktopPostComposerView : Globals -> Model -> Data -> Html Msg
+desktopPostComposerView globals model data =
     let
+        editor =
+            model.postComposer
+
         config =
             { editor = editor
-            , spaceId = spaceId
-            , spaceUsers = spaceUsers
+            , spaceId = Space.id data.space
+            , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , onFileAdded = NewPostFileAdded
             , onFileUploadProgress = NewPostFileUploadProgress
             , onFileUploaded = NewPostFileUploaded
@@ -1061,7 +1059,7 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
     PostEditor.wrapper config
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
+                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
@@ -1088,8 +1086,12 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
         ]
 
 
-desktopPostsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-desktopPostsView globals spaceUsers model data =
+desktopPostsView : Globals -> Model -> Data -> Html Msg
+desktopPostsView globals model data =
+    let
+        spaceUsers =
+            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+    in
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
             [ text "You're all caught up!" ]
@@ -1131,8 +1133,8 @@ desktopPostView globals spaceUsers model data component =
 -- MOBILE
 
 
-resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedMobileView globals spaceUsers model data =
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
     let
         config =
             { space = data.space
@@ -1164,7 +1166,7 @@ resolvedMobileView globals spaceUsers model data =
                         ]
                     ]
             , div [ class "px-3" ]
-                [ mobilePostsView globals spaceUsers model data ]
+                [ mobilePostsView globals model data ]
             , a
                 [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupId model.params))
                 , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
@@ -1180,8 +1182,12 @@ resolvedMobileView globals spaceUsers model data =
         ]
 
 
-mobilePostsView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-mobilePostsView globals spaceUsers model data =
+mobilePostsView : Globals -> Model -> Data -> Html Msg
+mobilePostsView globals model data =
+    let
+        spaceUsers =
+            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+    in
     if Connection.isEmptyAndExpanded model.postComps then
         div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
             [ text "You’re all caught up!" ]

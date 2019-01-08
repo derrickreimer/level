@@ -36,7 +36,6 @@ import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
-import SpaceUserLists exposing (SpaceUserLists)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
@@ -414,20 +413,20 @@ subscriptions =
 
 view : Globals -> Model -> Html Msg
 view globals model =
-    let
-        spaceUsers =
-            SpaceUserLists.resolveList globals.repo model.spaceId globals.spaceUserLists
-    in
     case resolveData globals.repo model of
         Just data ->
-            resolvedView globals spaceUsers model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView globals spaceUsers model data =
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
+    let
+        spaceUsers =
+            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+    in
     case globals.device of
         Device.Desktop ->
             resolvedDesktopView globals spaceUsers model data
