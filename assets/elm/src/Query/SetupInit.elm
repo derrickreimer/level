@@ -109,6 +109,7 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.groups
+                |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setGroups data.bookmarks
 
         resp =

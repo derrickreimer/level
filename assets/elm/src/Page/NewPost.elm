@@ -28,7 +28,6 @@ import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
-import SpaceUserLists
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
@@ -242,34 +241,30 @@ consumeEvent globals event model =
 
 view : Globals -> Model -> Html Msg
 view globals model =
-    let
-        spaceUsers =
-            SpaceUserLists.resolveList globals.repo model.spaceId globals.spaceUserLists
-    in
     case resolveData globals.repo model of
         Just data ->
-            resolvedView globals spaceUsers model data
+            resolvedView globals model data
 
         Nothing ->
             text "Something went wrong."
 
 
-resolvedView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedView globals spaceUsers model data =
+resolvedView : Globals -> Model -> Data -> Html Msg
+resolvedView globals model data =
     case globals.device of
         Device.Desktop ->
-            resolvedDesktopView globals spaceUsers model data
+            resolvedDesktopView globals model data
 
         Device.Mobile ->
-            resolvedMobileView globals spaceUsers model data
+            resolvedMobileView globals model data
 
 
 
 -- DESKTOP
 
 
-resolvedDesktopView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedDesktopView globals spaceUsers model data =
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { space = data.space
@@ -282,18 +277,22 @@ resolvedDesktopView globals spaceUsers model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 py-6 max-w-lg leading-normal" ]
-            [ desktopPostComposerView model.spaceId model.postComposer data.viewer spaceUsers
+            [ desktopPostComposerView globals model data
             ]
         ]
 
 
-desktopPostComposerView : Id -> PostEditor -> SpaceUser -> List SpaceUser -> Html Msg
-desktopPostComposerView spaceId editor currentUser spaceUsers =
+desktopPostComposerView : Globals -> Model -> Data -> Html Msg
+desktopPostComposerView globals model data =
     let
+        editor =
+            model.postComposer
+
         config =
             { editor = editor
-            , spaceId = spaceId
-            , spaceUsers = spaceUsers
+            , spaceId = Space.id data.space
+            , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+            , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , onFileAdded = NewPostFileAdded
             , onFileUploadProgress = NewPostFileUploadProgress
             , onFileUploaded = NewPostFileUploaded
@@ -304,7 +303,7 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
     PostEditor.wrapper config
         [ label [ class "composer mb-4" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium currentUser ]
+                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
@@ -339,8 +338,8 @@ desktopPostComposerView spaceId editor currentUser spaceUsers =
 -- MOBILE
 
 
-resolvedMobileView : Globals -> List SpaceUser -> Model -> Data -> Html Msg
-resolvedMobileView globals spaceUsers model data =
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
     let
         config =
             { space = data.space
