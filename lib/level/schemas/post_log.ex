@@ -29,14 +29,13 @@ defmodule Level.Schemas.PostLog do
     timestamps(inserted_at: false, updated_at: false)
   end
 
-  @spec post_created(Post.t(), Group.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec post_created(Post.t(), SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def post_created(%Post{} = post, %Group{} = group, %SpaceUser{} = space_user, now \\ nil) do
+  def post_created(%Post{} = post, %SpaceUser{} = space_user, now \\ nil) do
     do_insert(
       %{
         event: "POST_CREATED",
         space_id: post.space_id,
-        group_id: group.id,
         post_id: post.id,
         actor_id: space_user.id
       },

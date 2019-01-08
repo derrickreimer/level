@@ -16,7 +16,7 @@ import Json.Decode as Decode
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.CreateGroup as CreateGroup
+import Mutation.CreatePost as CreatePost
 import PostEditor exposing (PostEditor)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
@@ -24,6 +24,7 @@ import Route exposing (Route)
 import Route.Group
 import Route.Groups
 import Route.NewPost exposing (Params)
+import Route.Posts
 import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
@@ -134,6 +135,8 @@ type Msg
     | NewPostFileUploadProgress Id Int
     | NewPostFileUploaded Id Id String
     | NewPostFileUploadError Id
+    | NewPostSubmit
+    | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -194,6 +197,45 @@ update msg globals model =
                         |> PostEditor.insertFileLink fileId
             in
             ( ( { model | postComposer = newPostComposer }, cmd ), globals )
+
+        NewPostSubmit ->
+            if PostEditor.isSubmittable model.postComposer then
+                let
+                    variables =
+                        CreatePost.variablesWithoutGroup
+                            model.spaceId
+                            (PostEditor.getBody model.postComposer)
+                            (PostEditor.getUploadIds model.postComposer)
+
+                    cmd =
+                        globals.session
+                            |> CreatePost.request variables
+                            |> Task.attempt NewPostSubmitted
+                in
+                ( ( { model | postComposer = PostEditor.setToSubmitting model.postComposer }, cmd ), globals )
+
+            else
+                noCmd globals model
+
+        NewPostSubmitted (Ok ( newSession, response )) ->
+            let
+                ( newPostComposer, postCmd ) =
+                    model.postComposer
+                        |> PostEditor.reset
+
+                redirectCmd =
+                    Route.pushUrl globals.navKey (Route.Posts (Route.Posts.init (Route.NewPost.getSpaceSlug model.params)))
+            in
+            ( ( { model | postComposer = newPostComposer }, Cmd.batch [ postCmd, redirectCmd ] )
+            , { globals | session = newSession }
+            )
+
+        NewPostSubmitted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NewPostSubmitted (Err _) ->
+            { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
+                |> noCmd globals
 
         NewPostFileUploadError clientId ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
@@ -310,8 +352,7 @@ desktopPostComposerView globals model data =
                         , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
-
-                        -- , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]
+                        , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]
                         , readonly (PostEditor.isSubmitting editor)
                         , value (PostEditor.getBody editor)
                         , tabindex 1
@@ -321,8 +362,7 @@ desktopPostComposerView globals model data =
                     , div [ class "flex items-baseline justify-end" ]
                         [ button
                             [ class "btn btn-blue btn-md"
-
-                            -- , onClick NewPostSubmit
+                            , onClick NewPostSubmit
                             , disabled (PostEditor.isUnsubmittable editor)
                             , tabindex 3
                             ]

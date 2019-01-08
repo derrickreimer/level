@@ -1081,10 +1081,14 @@ groupsLabel space groups =
         groupLinks =
             List.map groupLink groups
     in
-    div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
-        [ text "Posted to "
-        , span [] groupLinks
-        ]
+    if List.isEmpty groups then
+        text ""
+
+    else
+        div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
+            [ text "Posted to "
+            , span [] groupLinks
+            ]
 
 
 bodyView : Space -> Post -> Html Msg

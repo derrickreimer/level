@@ -223,6 +223,14 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Posts a message with recipients inferred from the body.
+  """
+  @spec create_post(author(), map()) :: create_post_result()
+  def create_post(author, params) do
+    CreatePost.perform(author, params)
+  end
+
+  @doc """
   Adds a reply to a post.
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()

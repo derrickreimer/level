@@ -224,7 +224,7 @@ defmodule LevelWeb.Schema do
     @desc "Posts a message to a group."
     field :create_post, type: :create_post_payload do
       arg :space_id, non_null(:id)
-      arg :group_id, non_null(:id)
+      arg :group_id, :id
       arg :body, non_null(:string)
       arg :file_ids, list_of(:id)
 

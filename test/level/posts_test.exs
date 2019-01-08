@@ -182,7 +182,6 @@ defmodule Level.PostsTest do
       {:ok, %{post: post, log: log}} = Posts.create_post(space_user, group, params)
       assert log.event == "POST_CREATED"
       assert log.actor_id == space_user.id
-      assert log.group_id == group.id
       assert log.post_id == post.id
     end
 

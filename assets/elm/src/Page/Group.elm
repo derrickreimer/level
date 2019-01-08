@@ -321,9 +321,16 @@ update msg globals model =
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
                 let
+                    variables =
+                        CreatePost.variablesWithGroup
+                            model.spaceId
+                            model.groupId
+                            (PostEditor.getBody model.postComposer)
+                            (PostEditor.getUploadIds model.postComposer)
+
                     cmd =
                         globals.session
-                            |> CreatePost.request model.spaceId model.groupId (PostEditor.getBody model.postComposer) (PostEditor.getUploadIds model.postComposer)
+                            |> CreatePost.request variables
                             |> Task.attempt NewPostSubmitted
                 in
                 ( ( { model | postComposer = PostEditor.setToSubmitting model.postComposer }, cmd ), globals )
