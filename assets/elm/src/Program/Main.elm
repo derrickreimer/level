@@ -474,33 +474,20 @@ update msg model =
                 ( "g", [], _ ) ->
                     ( { model | going = True }, Cmd.none )
 
-                ( "i", [], Just spaceSlug ) ->
-                    if model.going then
-                        ( { model | going = False }
-                        , Route.pushUrl model.navKey (Route.Inbox <| Route.Inbox.init spaceSlug)
-                        )
+                ( "c", [], Just spaceSlug ) ->
+                    ( { model | going = False }, Route.pushUrl model.navKey (Route.NewPost <| Route.NewPost.init spaceSlug) )
 
-                    else
-                        sendKeyboardEventToPage globals event { model | going = False }
+                ( "i", [], Just spaceSlug ) ->
+                    ( { model | going = False }, Route.pushUrl model.navKey (Route.Inbox <| Route.Inbox.init spaceSlug) )
 
                 ( "f", [], Just spaceSlug ) ->
-                    if model.going then
-                        ( { model | going = False }
-                        , Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug)
-                        )
-
-                    else
-                        sendKeyboardEventToPage globals event { model | going = False }
+                    ( { model | going = False }, Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug) )
 
                 ( "?", [ Shift ], _ ) ->
-                    ( { model | showKeyboardCommands = True }, Cmd.none )
+                    ( { model | going = False, showKeyboardCommands = True }, Cmd.none )
 
                 ( "Escape", [], _ ) ->
-                    let
-                        newModel =
-                            { model | showKeyboardCommands = False }
-                    in
-                    sendKeyboardEventToPage globals event newModel
+                    sendKeyboardEventToPage globals event { model | going = False, showKeyboardCommands = False }
 
                 _ ->
                     sendKeyboardEventToPage globals event { model | going = False }
@@ -1538,6 +1525,11 @@ sendKeyboardEventToPage globals event model =
             pageModel
                 |> Page.Posts.consumeKeyboardEvent globals event
                 |> updatePageWithGlobals Posts PostsMsg model
+
+        NewPost pageModel ->
+            pageModel
+                |> Page.NewPost.consumeKeyboardEvent globals event
+                |> updatePageWithGlobals NewPost NewPostMsg model
 
         Group pageModel ->
             pageModel

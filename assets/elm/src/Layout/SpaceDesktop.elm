@@ -70,20 +70,19 @@ keyboardCommandReference =
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Actions" ]
             , keyboardCommandItem "Shortcuts" [ "?" ]
             , keyboardCommandItem "Search" [ "/" ]
+            , keyboardCommandItem "Compose a Post" [ "C" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Navigation" ]
             , keyboardCommandItem "Next / Previous Post" [ "J", "K" ]
-            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Channels" ]
-            , keyboardCommandItem "Compose a Post" [ "C" ]
+            , keyboardCommandItem "Go to Inbox" [ "i" ]
+            , keyboardCommandItem "Go to Feed" [ "F" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Posts" ]
             , keyboardCommandItem "Dismiss from Inbox" [ "E" ]
             , keyboardCommandItem "Move to Inbox" [ "⌘", "E" ]
+            , keyboardCommandItem "Resolve" [ "Y" ]
             , keyboardCommandItem "Reply" [ "R" ]
             , keyboardCommandItem "Send" [ "⌘", "enter" ]
             , keyboardCommandItem "Send + Resolve" [ "⌘", "shift", "enter" ]
             , keyboardCommandItem "Close Reply Editor" [ "esc" ]
-            , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Pages" ]
-            , keyboardCommandJumpItem "Jump to Inbox" "i"
-            , keyboardCommandJumpItem "Jump to Feed" "F"
             ]
         ]
 
@@ -136,9 +135,9 @@ fullSidebar config =
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "110px", style "bottom" "70px" ]
             [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ navLink config.space "Compose" (Just <| Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
-                , navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
+                [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
                 , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                , navLink config.space "New" (Just <| Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
                 ]
             , viewUnless (List.isEmpty config.bookmarks) <|
                 div []

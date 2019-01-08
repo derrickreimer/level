@@ -1,4 +1,4 @@
-module Page.NewPost exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
+module Page.NewPost exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, teardown, title, update, view)
 
 import Avatar
 import Browser.Navigation as Nav
@@ -13,6 +13,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
+import KeyboardShortcuts
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
@@ -31,7 +32,7 @@ import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
-import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
+import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, viewIf)
 
 
@@ -137,6 +138,7 @@ type Msg
     | NewPostFileUploadError Id
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
+    | EscapePressed
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -240,6 +242,9 @@ update msg globals model =
         NewPostFileUploadError clientId ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
 
+        EscapePressed ->
+            handleEscapePressed globals model
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -260,6 +265,19 @@ redirectToLogin globals model =
     ( ( model, Route.toLogin ), globals )
 
 
+handleEscapePressed : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+handleEscapePressed globals model =
+    let
+        cmd =
+            if PostEditor.getBody model.postComposer == "" then
+                Route.pushUrl globals.navKey (Route.Posts (Route.Posts.init (Route.NewPost.getSpaceSlug model.params)))
+
+            else
+                Cmd.none
+    in
+    ( ( model, cmd ), globals )
+
+
 
 -- EVENTS
 
@@ -275,6 +293,16 @@ consumeEvent globals event model =
 
         _ ->
             ( model, Cmd.none )
+
+
+consumeKeyboardEvent : Globals -> KeyboardShortcuts.Event -> Model -> ( ( Model, Cmd Msg ), Globals )
+consumeKeyboardEvent globals event model =
+    case ( event.key, event.modifiers ) of
+        ( "Escape", [] ) ->
+            handleEscapePressed globals model
+
+        _ ->
+            ( ( model, Cmd.none ), globals )
 
 
 
@@ -352,7 +380,10 @@ desktopPostComposerView globals model data =
                         , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
-                        , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]
+                        , onKeydown preventDefault
+                            [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
+                            , ( [], esc, \event -> EscapePressed )
+                            ]
                         , readonly (PostEditor.isSubmitting editor)
                         , value (PostEditor.getBody editor)
                         , tabindex 1
