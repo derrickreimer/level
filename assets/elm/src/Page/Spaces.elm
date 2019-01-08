@@ -26,7 +26,7 @@ import View.UserLayout
 
 type alias Model =
     { viewerId : Id
-    , spaceIds : Connection Id
+    , spaceIds : List Id
     , query : String
     }
 
@@ -165,15 +165,15 @@ resolvedView globals model data =
             ]
 
 
-spacesView : Repo -> String -> Connection Id -> Html Msg
+spacesView : Repo -> String -> List Id -> Html Msg
 spacesView repo query spaceIds =
-    if Connection.isEmpty spaceIds then
+    if List.isEmpty spaceIds then
         blankSlateView
 
     else
         let
             filteredSpaces =
-                Repo.getSpaces (Connection.toList spaceIds) repo
+                Repo.getSpaces spaceIds repo
                     |> filter query
         in
         if List.isEmpty filteredSpaces then

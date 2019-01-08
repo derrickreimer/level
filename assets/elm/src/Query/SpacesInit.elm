@@ -14,23 +14,15 @@ import User exposing (User)
 
 type alias Response =
     { userId : Id
-    , spaceIds : Connection Id
+    , spaceIds : List Id
     , repo : Repo
     }
 
 
 type alias Data =
     { user : User
-    , spaces : Connection Space
+    , spaces : List Space
     }
-
-
-{-| TODO: replace with actual route params
--}
-type Params
-    = Root
-    | After String
-    | Before String
 
 
 fragment : Fragment
@@ -47,92 +39,41 @@ fragment =
         ]
 
 
-document : Params -> Document
-document params =
-    GraphQL.toDocument (documentBody params)
-        [ Connection.fragment "SpaceUserConnection" fragment
+document : Document
+document =
+    GraphQL.toDocument
+        """
+        query SpacesInit(
+          $limit: Int!
+        ) {
+          viewer {
+            ...UserFields
+            spaceUsers(
+              first: $limit,
+              orderBy: {field: SPACE_NAME, direction: ASC}
+            ) {
+              edges {
+                node {
+                  space {
+                    ...SpaceFields
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+        [ Space.fragment
         , User.fragment
         ]
 
 
-documentBody : Params -> String
-documentBody params =
-    case params of
-        Root ->
-            """
-            query SpacesInit(
-              $limit: Int!
-            ) {
-              viewer {
-                ...UserFields
-                spaceUsers(
-                  first: $limit,
-                  orderBy: {field: SPACE_NAME, direction: ASC}
-                ) {
-                  ...SpaceUserConnectionFields
-                }
-              }
-            }
-            """
-
-        After cursor ->
-            """
-            query SpacesInit(
-              $cursor: Cursor!,
-              $limit: Int!
-            ) {
-              viewer {
-                ...UserFields
-                spaceUsers(
-                  first: $limit,
-                  after: $cursor,
-                  orderBy: {field: SPACE_NAME, direction: ASC}
-                ) {
-                  ...SpaceUserConnectionFields
-                }
-              }
-            }
-            """
-
-        Before cursor ->
-            """
-            query SpacesInit(
-              $cursor: Cursor!,
-              $limit: Int!
-            ) {
-              viewer {
-                ...UserFields
-                spaceUsers(
-                  last: $limit,
-                  before: $cursor,
-                  orderBy: {field: SPACE_NAME, direction: ASC}
-                ) {
-                  ...SpaceUserConnectionFields
-                }
-              }
-            }
-            """
-
-
-variables : Params -> Int -> Maybe Encode.Value
-variables params limit =
-    let
-        paramVariables =
-            case params of
-                After cursor ->
-                    [ ( "cursor", Encode.string cursor ) ]
-
-                Before cursor ->
-                    [ ( "cursor", Encode.string cursor ) ]
-
-                Root ->
-                    []
-    in
+variables : Int -> Maybe Encode.Value
+variables limit =
     Just <|
         Encode.object <|
-            List.append paramVariables
-                [ ( "limit", Encode.int limit )
-                ]
+            [ ( "limit", Encode.int limit )
+            ]
 
 
 decoder : Decoder Data
@@ -140,7 +81,7 @@ decoder =
     Decode.at [ "data", "viewer" ] <|
         Decode.map2 Data
             User.decoder
-            (Decode.field "spaceUsers" (Connection.decoder (Decode.field "space" Space.decoder)))
+            (Decode.at [ "spaceUsers", "edges" ] (Decode.list (Decode.at [ "node", "space" ] Space.decoder)))
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -149,12 +90,12 @@ buildResponse ( session, data ) =
         repo =
             Repo.empty
                 |> Repo.setUser data.user
-                |> Repo.setSpaces (Connection.toList data.spaces)
+                |> Repo.setSpaces data.spaces
 
         resp =
             Response
                 (User.id data.user)
-                (Connection.map Space.id data.spaces)
+                (List.map Space.id data.spaces)
                 repo
     in
     ( session, resp )
@@ -162,6 +103,6 @@ buildResponse ( session, data ) =
 
 request : Int -> Session -> Task Session.Error ( Session, Response )
 request limit session =
-    GraphQL.request (document Root) (variables Root limit) decoder
+    GraphQL.request document (variables limit) decoder
         |> Session.request session
         |> Task.map buildResponse
