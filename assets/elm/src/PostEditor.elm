@@ -383,6 +383,7 @@ wrapper config children =
         [ id (getId config.editor)
         , property "spaceId" (Id.encoder config.spaceId)
         , property "spaceUsers" (spaceUsersEncoder config.spaceUsers)
+        , property "groups" (groupsEncoder config.groups)
         , on "fileAdded" <|
             Decode.map config.onFileAdded
                 (Decode.at [ "detail" ] File.decoder)
@@ -413,6 +414,18 @@ spaceUserEncoder spaceUser =
     Encode.object
         [ ( "handle", Encode.string <| SpaceUser.handle spaceUser )
         , ( "displayName", Encode.string <| SpaceUser.displayName spaceUser )
+        ]
+
+
+groupsEncoder : List Group -> Encode.Value
+groupsEncoder list =
+    Encode.list groupEncoder list
+
+
+groupEncoder : Group -> Encode.Value
+groupEncoder group =
+    Encode.object
+        [ ( "name", Encode.string <| Group.name group )
         ]
 
 

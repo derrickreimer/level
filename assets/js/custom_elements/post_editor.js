@@ -27,9 +27,10 @@ customElements.define(
     connectedCallback() {
       this.setupAutosize();
       this.setupDragDrop();
-      this.setupMentions();
+      this.setupTribute();
       this._dragging_over = false;
       this._spaceUsers = [];
+      this._groups = [];
 
       this.addEventListener("bodyChanged", this.handleBodyChanged);
       this.addEventListener("focus", e => {
@@ -59,6 +60,18 @@ customElements.define(
       }
     }
 
+    get groups() {
+      return this._groups;
+    }
+
+    set groups(newValue) {
+      this._groups = newValue;
+
+      if (this._tribute) {
+        this._tribute.append(1, newValue, true);
+      }
+    }
+
     /**
      * Initialize the autosize functionality on the textarea.
      */
@@ -82,16 +95,26 @@ customElements.define(
     /**
      * Initializes Tribute @-mention completion.
      */
-    setupMentions() {
+    setupTribute() {
       let textarea = this.querySelector("textarea");
       if (!textarea) return;
 
       this._tribute = new Tribute({
-        values: this._spaceUsers,
-        lookup: item => {
-          return item.displayName + " (@" + item.handle + ")";
-        },
-        fillAttr: "handle",
+        collection: [{
+          trigger: "@",
+          values: this._spaceUsers,
+          lookup: item => {
+            return item.displayName + " (@" + item.handle + ")";
+          },
+          fillAttr: "handle",
+        }, {
+          trigger: "#",
+          values: this._groups,
+          lookup: item => {
+            return "#" + item.name;
+          },
+          fillAttr: "name",
+        }],
         menuContainer: this,
         positionMenu: false,
         allowSpaces: false
