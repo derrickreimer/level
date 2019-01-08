@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -175,6 +175,12 @@ commentWhite : Html msg
 commentWhite =
     iconView <|
         svg [ width "26px", height "26px", viewBox "0 0 26 26", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "message-square-copy", transform "translate(1.000000, 1.000000)", fill "#FFFFFF", stroke "#FFFFFF", strokeWidth "2" ] [ Svg.path [ d "M24,16 C24,17.4727593 22.8060927,18.6666667 21.3333333,18.6666667 L5.33333333,18.6666667 L0,24 L0,2.66666667 C0,1.19390733 1.19390733,0 2.66666667,0 L21.3333333,0 C22.8060927,0 24,1.19390733 24,2.66666667 L24,16 Z", id "Shape" ] [] ] ] ]
+
+
+hash : Html msg
+hash =
+    iconView <|
+        svg [ width "16px", height "18px", viewBox "0 0 16 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "hash", transform "translate(1.000000, 1.000000)", stroke "#4B73E1", strokeWidth "2" ] [ Svg.path [ d "M0,5.33333333 L14,5.33333333", id "Path" ] [], Svg.path [ d "M0,10.6666667 L14,10.6666667", id "Path" ] [], Svg.path [ d "M5.25,0 L3.5,16", id "Path" ] [], Svg.path [ d "M10.5,0 L8.75,16", id "Path" ] [] ] ] ]
 
 
 heart : Html msg

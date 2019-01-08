@@ -358,6 +358,10 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 py-6 max-w-lg leading-normal" ]
             [ desktopPostComposerView globals model data
+            , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
+                [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+                , text "Hashtag the Channels where you'd like to post your message."
+                ]
             ]
         ]
 
