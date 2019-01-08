@@ -426,10 +426,10 @@ desktopPostComposerView globals model data =
 resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
-        config =
+        layoutConfig =
             { space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
+            , bookmarks = []
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , title = "New Post"
@@ -438,9 +438,51 @@ resolvedMobileView globals model data =
             , onSidebarToggled = SidebarToggled
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
-            , leftControl = Layout.SpaceMobile.NoControl
-            , rightControl = Layout.SpaceMobile.NoControl
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl =
+                Layout.SpaceMobile.Custom <|
+                    button
+                        [ class "btn btn-blue flex items-center justify-center w-9 h-9 p-0"
+                        , onClick NewPostSubmit
+                        , disabled (PostEditor.isUnsubmittable editor)
+                        ]
+                        [ Icons.sendWhite ]
+            }
+
+        editor =
+            model.postComposer
+
+        composerConfig =
+            { editor = editor
+            , spaceId = model.spaceId
+            , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+            , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
+            , onFileAdded = NewPostFileAdded
+            , onFileUploadProgress = NewPostFileUploadProgress
+            , onFileUploaded = NewPostFileUploaded
+            , onFileUploadError = NewPostFileUploadError
+            , classList = []
             }
     in
-    Layout.SpaceMobile.layout config
-        []
+    Layout.SpaceMobile.layout layoutConfig
+        [ div [ class "mx-auto leading-normal" ]
+            [ PostEditor.wrapper composerConfig
+                [ textarea
+                    [ id (PostEditor.getTextareaId editor)
+                    , class "w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
+                    , placeholder "Compose a new post..."
+                    , onInput NewPostBodyChanged
+                    , readonly (PostEditor.isSubmitting editor)
+                    , value (PostEditor.getBody editor)
+                    ]
+                    []
+                , div [ class "p-4" ]
+                    [ PostEditor.filesView editor
+                    ]
+                ]
+            , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
+                [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+                , text "Hashtag the Channels where you'd like to post your message."
+                ]
+            ]
+        ]

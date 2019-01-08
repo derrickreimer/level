@@ -410,7 +410,7 @@ resolvedMobileView globals model data =
             , onFileUploadProgress = NewPostFileUploadProgress
             , onFileUploaded = NewPostFileUploaded
             , onFileUploadError = NewPostFileUploadError
-            , classList = [ ( "absolute w-full pin-t-mobile pin-b", True ) ]
+            , classList = []
             }
     in
     Layout.SpaceMobile.layout layoutConfig

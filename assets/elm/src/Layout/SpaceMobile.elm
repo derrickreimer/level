@@ -17,6 +17,7 @@ import Route.Group
 import Route.Groups
 import Route.Help
 import Route.Inbox
+import Route.NewPost
 import Route.Posts
 import Route.Settings
 import Route.SpaceUsers
@@ -94,10 +95,11 @@ layout config children =
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
                             , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                            , navLink config.space "New" (Just <| Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
                             ]
                         , viewUnless (List.isEmpty config.bookmarks) <|
                             div []
-                                [ h3 [ class "mb-1p5 pl-3 font-sans text-base" ]
+                                [ h3 [ class "mb-1p5 pl-6 font-sans text-base" ]
                                     [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue-dark no-underline" ] [ text "Channels" ] ]
                                 , bookmarkList config
                                 ]
