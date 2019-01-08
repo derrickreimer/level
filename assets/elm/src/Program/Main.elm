@@ -475,7 +475,12 @@ update msg model =
                     ( { model | going = True }, Cmd.none )
 
                 ( "c", [], Just spaceSlug ) ->
-                    ( { model | going = False }, Route.pushUrl model.navKey (Route.NewPost <| Route.NewPost.init spaceSlug) )
+                    case model.page of
+                        Group _ ->
+                            sendKeyboardEventToPage globals event { model | going = False }
+
+                        _ ->
+                            ( { model | going = False }, Route.pushUrl model.navKey (Route.NewPost <| Route.NewPost.init spaceSlug) )
 
                 ( "i", [], Just spaceSlug ) ->
                     ( { model | going = False }, Route.pushUrl model.navKey (Route.Inbox <| Route.Inbox.init spaceSlug) )
