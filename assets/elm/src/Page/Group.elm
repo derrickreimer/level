@@ -957,7 +957,7 @@ resolvedDesktopView globals model data =
             [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-4 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ nameView data.group model.nameEditor
-                    , bookmarkButtonView (Group.isBookmarked data.group)
+                    , viewIf False <| bookmarkButtonView (Group.isBookmarked data.group)
                     , nameErrors model.nameEditor
                     , controlsView model
                     ]
