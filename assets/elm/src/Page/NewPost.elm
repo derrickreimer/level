@@ -308,7 +308,7 @@ desktopPostComposerView globals model data =
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "What's on your mind?"
+                        , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
 
                         -- , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]

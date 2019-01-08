@@ -394,7 +394,7 @@ resolvedMobileView globals model data =
                 [ filterTab Device.Mobile "Open" Route.Groups.Open (openParams model.params) model.params
                 , filterTab Device.Mobile "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
-            , div [ class "p-2" ] [ groupsView globals.repo model.params data.space model.groups ]
+            , div [ class "py-2 px-4" ] [ groupsView globals.repo model.params data.space model.groups ]
             ]
         ]
 

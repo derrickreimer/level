@@ -23,7 +23,7 @@ import Route.SpaceUsers
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
-import View.Helpers exposing (viewIf)
+import View.Helpers exposing (viewIf, viewUnless)
 
 
 
@@ -61,6 +61,10 @@ type alias Config msg =
 
 layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
+    let
+        spaceSlug =
+            Space.slug config.space
+    in
     div [ class "font-sans font-antialised", style "padding-top" "60px" ]
         [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-white z-40" ]
             [ div [ class "flex-no-shrink" ]
@@ -88,17 +92,19 @@ layout config children =
                         ]
                     , div [ class "absolute w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                            [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init (Space.slug config.space))) config.currentRoute
-                            , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init (Space.slug config.space))) config.currentRoute
+                            [ navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
+                            , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
                             ]
-                        , h3 [ class "mb-2 pl-6 font-sans text-base" ]
-                            [ a [ Route.href (Route.Groups (Route.Groups.init (Space.slug config.space))), class "text-dusty-blue no-underline" ] [ text "Channels" ]
-                            ]
-                        , bookmarkList config
+                        , viewUnless (List.isEmpty config.bookmarks) <|
+                            div []
+                                [ h3 [ class "mb-1p5 pl-6 font-sans text-base text-dusty-blue-dark" ] [ text "Bookmarks" ]
+                                , bookmarkList config
+                                ]
                         , ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                            [ navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init (Space.slug config.space))) config.currentRoute
-                            , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init (Space.slug config.space) Route.Settings.Preferences)) config.currentRoute
-                            , navLink config.space "Help" (Just <| Route.Help (Route.Help.init (Space.slug config.space))) config.currentRoute
+                            [ navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
+                            , navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
+                            , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
+                            , navLink config.space "Help" (Just <| Route.Help (Route.Help.init spaceSlug)) config.currentRoute
                             ]
                         ]
                     , div [ class "absolute pin-b w-full" ]
