@@ -472,7 +472,7 @@ groupView space group =
         , viewIf (Group.isBookmarked group) <|
             button
                 [ class "tooltip tooltip-bottom ml-2 flex-0 no-outline"
-                , attribute "data-tooltip" "Remove shortcut"
+                , attribute "data-tooltip" "Unbookmark"
                 , onClick (Unbookmark group)
                 ]
                 [ Icons.bookmark Icons.On
@@ -480,7 +480,7 @@ groupView space group =
         , viewUnless (Group.isBookmarked group) <|
             button
                 [ class "tooltip tooltip-bottom ml-2 flex-0 no-outline"
-                , attribute "data-tooltip" "Add shortcut"
+                , attribute "data-tooltip" "Bookmark"
                 , onClick (Bookmark group)
                 ]
                 [ Icons.bookmark Icons.Off

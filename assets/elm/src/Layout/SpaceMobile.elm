@@ -97,11 +97,13 @@ layout config children =
                             ]
                         , viewUnless (List.isEmpty config.bookmarks) <|
                             div []
-                                [ h3 [ class "mb-1p5 pl-6 font-sans text-base text-dusty-blue-dark" ] [ text "Bookmarks" ]
+                                [ h3 [ class "mb-1p5 pl-3 font-sans text-base" ]
+                                    [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue-dark no-underline" ] [ text "Channels" ] ]
                                 , bookmarkList config
                                 ]
                         , ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                            [ navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
+                            [ viewIf (List.isEmpty config.bookmarks) <|
+                                navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
                             , navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
                             , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
                             , navLink config.space "Help" (Just <| Route.Help (Route.Help.init spaceSlug)) config.currentRoute
