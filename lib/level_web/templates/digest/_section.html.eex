@@ -9,7 +9,7 @@
         <%= render LevelWeb.DigestView, "_post.html", %{digest: @digest, post: post} %>
       <% end %>
 
-      <table>
+      <table class="pt-20px">
         <tr>
           <td>
             <a href="<%= @section.link_url %>" class="btn" target="_blank"><%= @section.link_text %></a>

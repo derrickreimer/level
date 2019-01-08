@@ -1,4 +1,4 @@
-<table class="py-10px w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+<table class="py-15px w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td class="w-40px align-top" valign="top" width="40">
       <%= avatar(@post.author) %>
@@ -6,7 +6,7 @@
     <td>
       <p class="mb-0">
         <strong class="text-sm"><%= display_name(@post.author) %></strong>
-        <span class="ml-2 text-dusty-blue text-xs"><%= post_timestamp(@digest, @post) %></span>
+        <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space_slug, "posts", @post.id]) %>" class="ml-2 text-dusty-blue text-xs no-underline"><%= post_timestamp(@digest, @post) %></a>
       </p>
 
       <!-- Post Body -->
@@ -20,7 +20,7 @@
 
       <!-- Replies -->
       <%= for reply <- @post.recent_replies do %>
-        <table class="py-10x w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+        <table class="w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td class="w-40px align-top" valign="top">
               <%= avatar(reply_author(reply)) %>
@@ -38,6 +38,21 @@
                   </td>
                 </tr>
               </table>
+            </td>
+          </tr>
+        </table>
+      <% end %>
+
+      <%= if @post.state == "CLOSED" do %>
+        <table class="pb-10px w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="w-40px align-middle" valign="middle">
+              <img src="<%= static_path(LevelWeb.Endpoint, "/images/digest/resolved.png") %>" width="32px" height="32px" alt="✓" />
+            </td>
+            <td>
+              <p class="mb-0">
+                <strong class="text-sm font-bold text-green">Resolved</strong>
+              </p>
             </td>
           </tr>
         </table>

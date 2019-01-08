@@ -226,6 +226,10 @@
       color: #22384c;
     }
 
+    .text-green {
+      color: #38C172;
+    }
+
     .text-white {
       color: #fff;
     }
@@ -270,8 +274,16 @@
       padding: 25px;
     }
 
+    .pt-20px {
+      padding-top: 20px;
+    }
+
     .pb-0 {
       padding-bottom: 0;
+    }
+
+    .pb-10px {
+      padding-bottom: 10px;
     }
 
     .pb-15px {
@@ -294,6 +306,11 @@
     .py-10px {
       padding-top: 10px;
       padding-bottom: 10px;
+    }
+
+    .py-15px {
+      padding-top: 15px;
+      padding-bottom: 15px;
     }
 
     .py-20px {
