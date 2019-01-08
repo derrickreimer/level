@@ -21,6 +21,8 @@ import Task exposing (Task)
 type alias Response =
     { viewerId : Id
     , spaceId : Id
+    , groupIds : List Id
+    , spaceUserIds : List Id
     , bookmarkIds : List Id
     , featuredUserIds : List Id
     , postWithRepliesIds : Connection ( Id, Connection Id )
@@ -31,6 +33,8 @@ type alias Response =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
+    , groups : List Group
+    , spaceUsers : List SpaceUser
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
     , resolvedPosts : Connection ResolvedPostWithReplies
@@ -142,9 +146,11 @@ castState state =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map5 Data
+        Decode.map7 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
+            (Decode.at [ "space", "groups", "edges" ] (list (field "node" Group.decoder)))
+            (Decode.at [ "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
             (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
             (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
@@ -156,6 +162,8 @@ buildResponse ( session, data ) =
         repo =
             Repo.empty
                 |> Repo.setSpace data.space
+                |> Repo.setGroups data.groups
+                |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setGroups data.bookmarks
                 |> Repo.setSpaceUsers data.featuredUsers
@@ -165,6 +173,8 @@ buildResponse ( session, data ) =
             Response
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
+                (List.map Group.id data.groups)
+                (List.map SpaceUser.id data.spaceUsers)
                 (List.map Group.id data.bookmarks)
                 (List.map SpaceUser.id data.featuredUsers)
                 (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)

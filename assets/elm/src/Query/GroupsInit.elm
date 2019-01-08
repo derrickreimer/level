@@ -17,8 +17,10 @@ import Task exposing (Task)
 type alias Response =
     { viewerId : Id
     , spaceId : Id
+    , groupIds : List Id
+    , spaceUserIds : List Id
     , bookmarkIds : List Id
-    , groups : Connection Group
+    , filteredGroups : Connection Group
     , repo : Repo
     }
 
@@ -26,8 +28,10 @@ type alias Response =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
+    , groups : List Group
+    , spaceUsers : List SpaceUser
     , bookmarks : List Group
-    , groups : Connection Group
+    , filteredGroups : Connection Group
     }
 
 
@@ -47,7 +51,7 @@ document params =
             ...SpaceUserFields
             space {
               ...SpaceFields
-              groups(
+              filteredGroups: groups(
                 first: $first,
                 last: $last,
                 before: $before,
@@ -116,11 +120,13 @@ variables params limit =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map4 Data
+        Decode.map6 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
+            (Decode.at [ "space", "groups", "edges" ] (list (field "node" Group.decoder)))
+            (Decode.at [ "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
             (field "bookmarks" (list Group.decoder))
-            (Decode.at [ "space", "groups" ] (Connection.decoder Group.decoder))
+            (Decode.at [ "space", "filteredGroups" ] (Connection.decoder Group.decoder))
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -130,15 +136,19 @@ buildResponse ( session, data ) =
             Repo.empty
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setSpace data.space
+                |> Repo.setGroups data.groups
+                |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setGroups data.bookmarks
-                |> Repo.setGroups (Connection.toList data.groups)
+                |> Repo.setGroups (Connection.toList data.filteredGroups)
 
         resp =
             Response
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
+                (List.map Group.id data.groups)
+                (List.map SpaceUser.id data.spaceUsers)
                 (List.map Group.id data.bookmarks)
-                data.groups
+                data.filteredGroups
                 repo
     in
     ( session, resp )

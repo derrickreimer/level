@@ -19,6 +19,8 @@ import Task exposing (Task)
 type alias Response =
     { viewerId : Id
     , spaceId : Id
+    , groupIds : List Id
+    , spaceUserIds : List Id
     , bookmarkIds : List Id
     , space : Space
     , digestSettings : DigestSettings
@@ -31,6 +33,8 @@ type alias Response =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
+    , groups : List Group
+    , spaceUsers : List SpaceUser
     , bookmarks : List Group
     , digestSettings : DigestSettings
     , nudges : List Nudge
@@ -87,6 +91,8 @@ decoder =
         (Decode.succeed Data
             |> Pipeline.custom (Decode.field "spaceUser" SpaceUser.decoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "groups", "edges" ] (Decode.list (Decode.field "node" Group.decoder)))
+            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (Decode.list (Decode.field "node" SpaceUser.decoder)))
             |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarks" ] (Decode.list Group.decoder))
             |> Pipeline.custom (Decode.at [ "spaceUser", "digestSettings" ] DigestSettings.decoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "nudges" ] (Decode.list Nudge.decoder))
@@ -101,12 +107,16 @@ buildResponse ( session, data ) =
             Repo.empty
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setSpace data.space
+                |> Repo.setSpace data.space
+                |> Repo.setGroups data.groups
                 |> Repo.setGroups data.bookmarks
 
         resp =
             Response
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
+                (List.map Group.id data.groups)
+                (List.map SpaceUser.id data.spaceUsers)
                 (List.map Group.id data.bookmarks)
                 data.space
                 data.digestSettings

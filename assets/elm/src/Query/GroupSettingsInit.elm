@@ -17,10 +17,11 @@ import Task exposing (Task)
 type alias Response =
     { viewerId : Id
     , spaceId : Id
+    , groupIds : List Id
+    , spaceUserIds : List Id
     , bookmarkIds : List Id
     , groupId : Id
     , isDefault : Bool
-    , spaceUserIds : Connection Id
     , repo : Repo
     }
 
@@ -28,9 +29,10 @@ type alias Response =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
+    , groups : List Group
+    , spaceUsers : List SpaceUser
     , bookmarks : List Group
     , group : Group
-    , spaceUsers : Connection SpaceUser
     }
 
 
@@ -82,12 +84,13 @@ variables params =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data" ] <|
-        Decode.map5 Data
+        Decode.map6 Data
             (field "spaceUser" SpaceUser.decoder)
             (Decode.at [ "spaceUser", "space" ] Space.decoder)
+            (Decode.at [ "spaceUser", "space", "groups", "edges" ] (list (field "node" Group.decoder)))
+            (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
             (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
             (field "group" Group.decoder)
-            (Decode.at [ "spaceUser", "space", "spaceUsers" ] (Connection.decoder SpaceUser.decoder))
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -97,18 +100,20 @@ buildResponse ( session, data ) =
             Repo.empty
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setSpace data.space
+                |> Repo.setGroups data.groups
+                |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setGroup data.group
                 |> Repo.setGroups data.bookmarks
-                |> Repo.setSpaceUsers (Connection.toList data.spaceUsers)
 
         resp =
             Response
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
+                (List.map Group.id data.groups)
+                (List.map SpaceUser.id data.spaceUsers)
                 (List.map Group.id data.bookmarks)
                 (Group.id data.group)
                 (Group.isDefault data.group)
-                (Connection.map SpaceUser.id data.spaceUsers)
                 repo
     in
     ( session, resp )

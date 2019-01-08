@@ -20,6 +20,8 @@ import Task exposing (Task)
 type alias Response =
     { viewerId : Id
     , spaceId : Id
+    , groupIds : List Id
+    , spaceUserIds : List Id
     , bookmarkIds : List Id
     , postWithRepliesId : ( Id, Connection Id )
     , repo : Repo
@@ -29,6 +31,8 @@ type alias Response =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
+    , groups : List Group
+    , spaceUsers : List SpaceUser
     , bookmarks : List Group
     , resolvedPost : ResolvedPostWithReplies
     }
@@ -79,9 +83,11 @@ variables spaceSlug postId =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map4 Data
+        Decode.map6 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
+            (Decode.at [ "space", "groups", "edges" ] (list (field "node" Group.decoder)))
+            (Decode.at [ "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
             (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "post" ] ResolvedPostWithReplies.decoder)
 
@@ -92,6 +98,8 @@ buildResponse ( session, data ) =
         repo =
             Repo.empty
                 |> Repo.setSpace data.space
+                |> Repo.setGroups data.groups
+                |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setSpaceUser data.viewer
                 |> Repo.setGroups data.bookmarks
                 |> ResolvedPostWithReplies.addToRepo data.resolvedPost
@@ -100,6 +108,8 @@ buildResponse ( session, data ) =
             Response
                 (SpaceUser.id data.viewer)
                 (Space.id data.space)
+                (List.map Group.id data.groups)
+                (List.map SpaceUser.id data.spaceUsers)
                 (List.map Group.id data.bookmarks)
                 (ResolvedPostWithReplies.unresolve data.resolvedPost)
                 repo

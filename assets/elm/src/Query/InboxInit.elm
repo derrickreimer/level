@@ -22,6 +22,8 @@ import Task exposing (Task)
 type alias Data =
     { viewerId : Id
     , spaceId : Id
+    , groupIds : List Id
+    , spaceUserIds : List Id
     , bookmarkIds : List Id
     , featuredUserIds : List Id
     , postWithRepliesIds : Connection ( Id, Connection Id )
@@ -32,6 +34,8 @@ type alias Data =
 type alias ResolvedData =
     { viewer : SpaceUser
     , space : Space
+    , groups : List Group
+    , spaceUsers : List SpaceUser
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
     , resolvedPosts : Connection ResolvedPostWithReplies
@@ -160,31 +164,14 @@ castLastActivity lastActivity =
             "TODAY"
 
 
-decoder : Decoder (Response Data)
-decoder =
-    let
-        resolvedDecoder =
-            Decode.at [ "data", "spaceUser" ] <|
-                Decode.map5 ResolvedData
-                    SpaceUser.decoder
-                    (field "space" Space.decoder)
-                    (field "bookmarks" (list Group.decoder))
-                    (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
-                    (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
-    in
-    Decode.oneOf
-        [ Decode.map Response.Found <|
-            Decode.map unresolve resolvedDecoder
-        , Decode.succeed Response.NotFound
-        ]
-
-
 unresolve : ResolvedData -> Data
 unresolve resolvedData =
     let
         repo =
             Repo.empty
                 |> Repo.setSpace resolvedData.space
+                |> Repo.setGroups resolvedData.groups
+                |> Repo.setSpaceUsers resolvedData.spaceUsers
                 |> Repo.setSpaceUser resolvedData.viewer
                 |> Repo.setGroups resolvedData.bookmarks
                 |> Repo.setSpaceUsers resolvedData.featuredUsers
@@ -193,10 +180,33 @@ unresolve resolvedData =
     Data
         (SpaceUser.id resolvedData.viewer)
         (Space.id resolvedData.space)
+        (List.map Group.id resolvedData.groups)
+        (List.map SpaceUser.id resolvedData.spaceUsers)
         (List.map Group.id resolvedData.bookmarks)
         (List.map SpaceUser.id resolvedData.featuredUsers)
         (Connection.map ResolvedPostWithReplies.unresolve resolvedData.resolvedPosts)
         repo
+
+
+resolvedDecoder : Decoder ResolvedData
+resolvedDecoder =
+    Decode.at [ "data", "spaceUser" ] <|
+        Decode.map7 ResolvedData
+            SpaceUser.decoder
+            (field "space" Space.decoder)
+            (Decode.at [ "space", "groups", "edges" ] (list (field "node" Group.decoder)))
+            (Decode.at [ "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
+            (field "bookmarks" (list Group.decoder))
+            (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
+            (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
+
+
+decoder : Decoder (Response Data)
+decoder =
+    Decode.oneOf
+        [ Decode.map Response.Found (Decode.map unresolve resolvedDecoder)
+        , Decode.succeed Response.NotFound
+        ]
 
 
 request : Encode.Value -> Session -> Task Session.Error ( Session, Response Data )

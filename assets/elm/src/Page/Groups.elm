@@ -98,7 +98,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.viewerId
                 resp.spaceId
                 resp.bookmarkIds
-                resp.groups
+                resp.filteredGroups
                 False
                 False
 

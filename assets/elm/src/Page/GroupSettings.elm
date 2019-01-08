@@ -44,7 +44,7 @@ type alias Model =
     , groupId : Id
     , bookmarkIds : List Id
     , isDefault : Bool
-    , spaceUserIds : Connection Id
+    , spaceUserIds : List Id
     , selectedIds : List Id
     , isSubmitting : Bool
 
@@ -462,7 +462,6 @@ usersView : Repo -> Model -> Html Msg
 usersView repo model =
     div [ class "pb-6" ]
         (model.spaceUserIds
-            |> Connection.toList
             |> List.filterMap (\id -> Repo.getSpaceUser id repo)
             |> List.map (userView model)
         )

@@ -88,7 +88,7 @@ buildModel : Params -> Globals -> ( Session, SpaceUsersInit.Response ) -> ( Glob
 buildModel params globals ( newSession, resp ) =
     let
         model =
-            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.spaceUserIds False False
+            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.filteredSpaceUserIds False False
 
         newRepo =
             Repo.union resp.repo globals.repo
