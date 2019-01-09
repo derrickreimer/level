@@ -322,7 +322,7 @@ h6 {
 }
 
 .markdown a {
-  @apply text-blue;
+  @apply text-blue no-underline;
 }
 
 .markdown blockquote {
@@ -330,7 +330,7 @@ h6 {
 }
 
 .tagged-group {
-  @apply text-blue-dark;
+  @apply text-blue no-underline;
 }
 
 post-editor {

@@ -212,6 +212,41 @@ defmodule Level.Resolvers do
   end
 
   @doc """
+  Renders the body of a post.
+  """
+  @spec render_markdown(Post.t(), map, info()) :: dataloader_result()
+  def render_markdown(%Post{} = post, _, %{context: %{loader: loader, current_user: user}}) do
+    batch_key = Space
+    item_key = post.space_id
+
+    loader
+    |> Dataloader.load(:db, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(:db, batch_key, item_key)
+      |> do_rendering(post.body, user)
+    end)
+  end
+
+  @spec render_markdown(Reply.t(), map, info()) :: dataloader_result()
+  def render_markdown(%Reply{} = reply, _, %{context: %{loader: loader, current_user: user}}) do
+    batch_key = Space
+    item_key = reply.space_id
+
+    loader
+    |> Dataloader.load(:db, batch_key, item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(:db, batch_key, item_key)
+      |> do_rendering(reply.body, user)
+    end)
+  end
+
+  defp do_rendering(space, body, user) do
+    Posts.render_body(body, %{space: space, user: user})
+  end
+
+  @doc """
   Determines whether the current user has viewed the reply.
   """
   @spec has_viewed_reply(Reply.t(), map(), info()) :: dataloader_result()

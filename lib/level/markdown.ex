@@ -6,6 +6,7 @@ defmodule Level.Markdown do
   alias Earmark.Options
   alias Level.Mentions
   alias Level.TaggedGroups
+  alias LevelWeb.Router
 
   @url_regex ~r/\bhttps?:\/\/
     [a-zA-Z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;=%]+
@@ -16,12 +17,12 @@ defmodule Level.Markdown do
   @doc """
   Convert a string of Markdown to HTML.
   """
-  @spec to_html(String.t()) :: {:ok, String.t(), [any()]} | {:error, String.t(), [any()]}
-  def to_html(input) do
+  @spec to_html(String.t(), map()) :: {:ok, String.t(), [any()]} | {:error, String.t(), [any()]}
+  def to_html(input, context \\ %{}) do
     input
     |> markdownify()
     |> sanitize()
-    |> apply_text_mutations()
+    |> apply_text_mutations(context)
   end
 
   defp markdownify(input) do
@@ -32,11 +33,11 @@ defmodule Level.Markdown do
     {status, HtmlSanitizeEx.markdown_html(html), errors}
   end
 
-  defp apply_text_mutations({status, html, errors}) do
+  defp apply_text_mutations({status, html, errors}, context) do
     new_html =
       html
       |> Floki.parse()
-      |> map_mutable_text(&mutate_text/1)
+      |> map_mutable_text(fn text -> mutate_text(text, context) end)
       |> Floki.raw_html(encode: false)
 
     {status, new_html, errors}
@@ -58,11 +59,11 @@ defmodule Level.Markdown do
 
   def map_mutable_text(node, mapper) when is_binary(node), do: mapper.(node)
 
-  defp mutate_text(text) do
+  defp mutate_text(text, context) do
     text
     |> autolink()
     |> highlight_mentions()
-    |> highlight_hashtags()
+    |> highlight_hashtags(context)
   end
 
   defp autolink(text) do
@@ -77,9 +78,37 @@ defmodule Level.Markdown do
     end)
   end
 
-  defp highlight_hashtags(text) do
-    Regex.replace(TaggedGroups.hashtag_pattern(), text, fn match, handle ->
-      String.replace(match, "##{handle}", ~s(<span class="tagged-group">##{handle}</span>))
+  defp highlight_hashtags(text, %{space: space, absolute: true}) do
+    Regex.replace(TaggedGroups.hashtag_pattern(), text, fn match, name ->
+      String.replace(
+        match,
+        "##{name}",
+        ~s(<a href="#{absolute_channel_url(space, name)}" class="tagged-group">##{name}</a>)
+      )
     end)
+  end
+
+  defp highlight_hashtags(text, %{space: space}) do
+    Regex.replace(TaggedGroups.hashtag_pattern(), text, fn match, name ->
+      String.replace(
+        match,
+        "##{name}",
+        ~s(<a href="/#{space.slug}/channels/#{name}" class="tagged-group">##{name}</a>)
+      )
+    end)
+  end
+
+  defp highlight_hashtags(text, _) do
+    Regex.replace(TaggedGroups.hashtag_pattern(), text, fn match, name ->
+      String.replace(
+        match,
+        "##{name}",
+        ~s(<span class="tagged-group">##{name}</span>)
+      )
+    end)
+  end
+
+  defp absolute_channel_url(space, name) do
+    Router.Helpers.main_url(LevelWeb.Endpoint, :index, [space.slug, "channels", name])
   end
 end

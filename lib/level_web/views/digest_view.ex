@@ -8,6 +8,7 @@ defmodule LevelWeb.DigestView do
   alias Level.Digests.Post
   alias Level.Digests.Reply
   alias Level.Posts
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
 
@@ -68,13 +69,13 @@ defmodule LevelWeb.DigestView do
     end
   end
 
-  def render_body(%Post{} = post) do
-    {:ok, rendered_body} = Posts.render_body(post.body)
+  def render_body(%Space{} = space, %Post{} = post) do
+    {:ok, rendered_body} = Posts.render_body(post.body, %{space: space, absolute: true})
     raw(rendered_body)
   end
 
-  def render_body(%Reply{} = reply) do
-    {:ok, rendered_body} = Posts.render_body(reply.body)
+  def render_body(%Space{} = space, %Reply{} = reply) do
+    {:ok, rendered_body} = Posts.render_body(reply.body, %{space: space, absolute: true})
     raw(rendered_body)
   end
 

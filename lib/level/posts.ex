@@ -421,14 +421,9 @@ defmodule Level.Posts do
   @doc """
   Render a post or reply body.
   """
-  @spec render_body(String.t(), User.t()) :: {:ok, String.t()}
-  def render_body(raw_body, _current_user \\ nil) do
-    raw_body
-    |> render_markdown()
-  end
-
-  defp render_markdown(raw_body) do
-    {_status, html, _errors} = Markdown.to_html(raw_body)
+  @spec render_body(String.t(), %{space: Space.t(), user: User.t()}) :: {:ok, String.t()}
+  def render_body(raw_body, context \\ %{}) do
+    {_status, html, _errors} = Markdown.to_html(raw_body, context)
     {:ok, html}
   end
 

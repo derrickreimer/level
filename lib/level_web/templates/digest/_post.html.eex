@@ -13,7 +13,7 @@
       <table class="text-sm w-full cell-0 table-layout-fixed" width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td class="markdown">
-            <%= render_body(@post) %>
+            <%= render_body(@digest.space, @post) %>
           </td>
         </tr>
       </table>
@@ -42,7 +42,7 @@
               <table class="text-sm w-full cell-0 table-layout-fixed" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td class="markdown">
-                    <%= render_body(reply) %>
+                    <%= render_body(@digest.space, reply) %>
                   </td>
                 </tr>
               </table>

@@ -2,8 +2,9 @@ defmodule Level.MarkdownTest do
   use Level.DataCase, async: true
 
   alias Level.Markdown
+  alias Level.Schemas.Space
 
-  describe "to_html/1" do
+  describe "to_html/2" do
     test "transforms markdown to HTML" do
       {:ok, result, _} = Markdown.to_html("# Title")
       assert result == "<h1>Title</h1>"
@@ -49,6 +50,26 @@ defmodule Level.MarkdownTest do
     test "highlights mentions" do
       {:ok, result, _} = Markdown.to_html("Hey @derrick")
       assert result == ~s(<p>Hey <strong class="user-mention">@derrick</strong></p>)
+    end
+
+    test "highlights channels only when no space context is given" do
+      {:ok, result, _} = Markdown.to_html("Look at #everyone")
+      assert result == ~s(<p>Look at <span class="tagged-group">#everyone</span></p>)
+    end
+
+    test "relative links to channels when space context is given" do
+      {:ok, result, _} = Markdown.to_html("Look at #everyone", %{space: %Space{slug: "foo"}})
+
+      assert result ==
+               ~s(<p>Look at <a href="/foo/channels/everyone" class="tagged-group">#everyone</a></p>)
+    end
+
+    test "absolute links to channels when absolute is true" do
+      {:ok, result, _} =
+        Markdown.to_html("Look at #everyone", %{space: %Space{slug: "foo"}, absolute: true})
+
+      assert result ==
+               ~s(<p>Look at <a href="http://level.test:4001/foo/channels/everyone" class="tagged-group">#everyone</a></p>)
     end
   end
 end

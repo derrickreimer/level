@@ -7,7 +7,6 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.AssetStore
   alias Level.Files
   alias Level.Groups
-  alias Level.Posts
   alias Level.Resolvers
   alias Level.Schemas.Post
   alias Level.Schemas.Reply
@@ -379,9 +378,7 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     field :body_html, non_null(:string) do
-      resolve fn post, _, %{context: %{current_user: user}} ->
-        Posts.render_body(post.body, user)
-      end
+      resolve &Resolvers.render_markdown/3
     end
 
     field :posted_at, non_null(:timestamp) do
@@ -454,9 +451,7 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     field :body_html, non_null(:string) do
-      resolve fn reply, _, %{context: %{current_user: user}} ->
-        Posts.render_body(reply.body, user)
-      end
+      resolve &Resolvers.render_markdown/3
     end
 
     field :posted_at, non_null(:timestamp) do
