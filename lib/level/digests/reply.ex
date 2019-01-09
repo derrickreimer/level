@@ -5,9 +5,9 @@ defmodule Level.Digests.Reply do
 
   alias Level.Posts
   alias Level.Repo
+  alias Level.Schemas.Reply
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
-  alias Level.Schemas.Reply
 
   @enforce_keys [:id, :body, :author, :posted_at, :has_viewed]
   defstruct [:id, :body, :author, :posted_at, :has_viewed]
