@@ -4,6 +4,8 @@ defmodule Level.EmailTest do
 
   alias Level.Digests.Digest
   alias Level.Email
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   describe "digest/1" do
     test "has the right subject and recipient" do
@@ -26,9 +28,14 @@ defmodule Level.EmailTest do
   defp build_digest do
     %Digest{
       id: "11111111-1111-1111-1111-111111111111",
-      space_id: "11111111-1111-1111-1111-111111111111",
-      space_name: "CoffeeKit",
-      space_slug: "coffeekit",
+      space_user: %SpaceUser{
+        id: "11111111-1111-1111-1111-111111111111"
+      },
+      space: %Space{
+        id: "11111111-1111-1111-1111-111111111111",
+        name: "CoffeeKit",
+        slug: "coffeekit"
+      },
       title: "Daily Summary",
       subject: "[CoffeeKit] Daily Summary",
       to_email: "derrick@level.app",

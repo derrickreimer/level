@@ -6,8 +6,8 @@ defmodule LevelWeb.DigestView do
   alias Level.AssetStore
   alias Level.Digests.Digest
   alias Level.Digests.Post
+  alias Level.Digests.Reply
   alias Level.Posts
-  alias Level.Schemas.Reply
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
 
@@ -36,7 +36,7 @@ defmodule LevelWeb.DigestView do
   end
 
   def reply_author(%Reply{} = reply) do
-    reply.space_bot || reply.space_user
+    reply.author
   end
 
   def has_avatar?(user_or_bot) do

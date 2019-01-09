@@ -49,11 +49,10 @@ defmodule Level.Digests.UnreadTodaySection do
 
     compiled_posts =
       space_user
-      |> get_highlighted_inbox_posts(opts.now)
-      |> Compiler.compile_posts()
+      |> Compiler.compile_posts(get_highlighted_inbox_posts(space_user, opts.now))
 
     Persistence.insert_posts!(digest, section_record, compiled_posts)
-    section = Compiler.compile_section(section_record, compiled_posts)
+    section = Compiler.compile_section(space_user, section_record, compiled_posts)
     {:ok, section}
   end
 

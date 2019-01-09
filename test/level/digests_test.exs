@@ -6,6 +6,8 @@ defmodule Level.DigestsTest do
   alias Level.Digests.Digest
   alias Level.Digests.Options
   alias Level.Email
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   describe "get_digest/2" do
     test "fetches by space id and digest id" do
@@ -53,11 +55,16 @@ defmodule Level.DigestsTest do
     test "delivers the digest" do
       digest = %Digest{
         id: "11111111-1111-1111-1111-111111111111",
-        space_id: "11111111-1111-1111-1111-111111111111",
-        space_name: "Level",
-        space_slug: "level",
-        title: "Your Daily Digest (title)",
-        subject: "[Level] Your Daily Digest",
+        space_user: %SpaceUser{
+          id: "11111111-1111-1111-1111-111111111111"
+        },
+        space: %Space{
+          id: "11111111-1111-1111-1111-111111111111",
+          name: "CoffeeKit",
+          slug: "coffeekit"
+        },
+        title: "Daily Summary",
+        subject: "[CoffeeKit] Daily Summary",
         to_email: "derrick@level.app",
         sections: [],
         start_at: ~N[2018-11-01 10:00:00],

@@ -20,7 +20,7 @@ defmodule Level.Digests.Builder do
     |> persist_digest(space_user.space, space_user, opts)
     |> persist_sections(space_user, section_modules, opts)
     |> Repo.transaction()
-    |> after_build(space_user.space)
+    |> after_build(space_user, space_user.space)
   end
 
   defp persist_digest(multi, space, space_user, opts) do
@@ -62,11 +62,11 @@ defmodule Level.Digests.Builder do
     |> Enum.reverse()
   end
 
-  defp after_build({:ok, data}, space) do
-    {:ok, Compiler.compile_digest(space, data.digest, data.sections)}
+  defp after_build({:ok, data}, space_user, space) do
+    {:ok, Compiler.compile_digest(space_user, space, data.digest, data.sections)}
   end
 
-  defp after_build(_, _) do
+  defp after_build(_, _, _) do
     {:error, "An unexpected error occurred"}
   end
 end

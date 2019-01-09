@@ -45,11 +45,10 @@ defmodule Level.Digests.InboxSection do
 
     compiled_posts =
       space_user
-      |> get_highlighted_posts()
-      |> Compiler.compile_posts()
+      |> Compiler.compile_posts(get_highlighted_posts(space_user))
 
     Persistence.insert_posts!(digest, section_record, compiled_posts)
-    section = Compiler.compile_section(section_record, compiled_posts)
+    section = Compiler.compile_section(space_user, section_record, compiled_posts)
     {:ok, section}
   end
 

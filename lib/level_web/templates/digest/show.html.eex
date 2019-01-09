@@ -3,10 +3,10 @@
   <tr>
     <td>
       <p class="mb-0 font-bold">
-        <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space_slug, "inbox"]) %>" class="text-dusty-blue-dark no-underline"><%= @digest.space_name %></a>
+        <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space.slug, "inbox"]) %>" class="text-dusty-blue-dark no-underline"><%= @digest.space.name %></a>
       </p>
       <h1 class="mb-2 font-bold text-xl">
-        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>" class="text-dusty-blue-darkest no-underline"><%= @digest.title %></a>
+        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space.id, @digest.id) %>" class="text-dusty-blue-darkest no-underline"><%= @digest.title %></a>
       </h1>
       <p class="text-dusty-blue-dark">
         <span><%= digest_date(@digest) %></span>
@@ -26,9 +26,9 @@
   <tr>
     <td class="pt-25px">
       <p class="text-dusty-blue text-xs">
-        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>">Click here</a> to view this digest in the browser.<br/>
+        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space.id, @digest.id) %>">Click here</a> to view this digest in the browser.<br/>
         Times are displayed in the <%= @digest.time_zone %> time zone.<br/>
-        <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space_slug, "settings", "preferences"]) %>">Update my digest settings</a>
+        <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space.slug, "settings", "preferences"]) %>">Update my digest settings</a>
       </p>
     </td>
   </tr>

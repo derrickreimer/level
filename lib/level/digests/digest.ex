@@ -4,12 +4,13 @@ defmodule Level.Digests.Digest do
   """
 
   alias Level.Digests.Section
+  alias Level.Schemas.Space
+  alias Level.Schemas.SpaceUser
 
   @enforce_keys [
     :id,
-    :space_id,
-    :space_slug,
-    :space_name,
+    :space_user,
+    :space,
     :title,
     :subject,
     :to_email,
@@ -21,9 +22,8 @@ defmodule Level.Digests.Digest do
 
   defstruct [
     :id,
-    :space_id,
-    :space_slug,
-    :space_name,
+    :space_user,
+    :space,
     :title,
     :subject,
     :to_email,
@@ -35,9 +35,8 @@ defmodule Level.Digests.Digest do
 
   @type t :: %__MODULE__{
           id: String.t(),
-          space_id: String.t(),
-          space_slug: String.t(),
-          space_name: String.t(),
+          space_user: SpaceUser.t(),
+          space: Space.t(),
           title: String.t(),
           subject: String.t(),
           to_email: String.t(),

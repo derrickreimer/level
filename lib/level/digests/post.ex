@@ -5,10 +5,10 @@ defmodule Level.Digests.Post do
 
   import Ecto.Query
 
+  alias Level.Digests.Reply
   alias Level.Repo
   alias Level.Schemas.Group
   alias Level.Schemas.Post
-  alias Level.Schemas.Reply
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
 
@@ -25,7 +25,7 @@ defmodule Level.Digests.Post do
           posted_at: NaiveDateTime.t()
         }
 
-  def build(%Post{} = record) do
+  def build(%SpaceUser{} = viewer, %Post{} = record) do
     record =
       record
       |> Repo.preload(:space_user)
@@ -41,6 +41,7 @@ defmodule Level.Digests.Post do
       |> limit(3)
       |> Repo.all()
       |> Enum.reverse()
+      |> Enum.map(fn reply -> Reply.build(viewer, reply) end)
 
     %__MODULE__{
       id: record.id,
