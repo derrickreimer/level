@@ -2,6 +2,7 @@ module Component.Post exposing (Model, Msg(..), ViewConfig, expandReplyComposer,
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
+import Browser.Navigation as Nav
 import Color exposing (Color)
 import Connection exposing (Connection)
 import Dict exposing (Dict)
@@ -173,6 +174,7 @@ type Msg
     | ReopenPostClicked
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
     | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
+    | InternalLinkClicked String
 
 
 update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -863,6 +865,9 @@ update msg spaceId globals model =
         PostReopened (Err _) ->
             noCmd globals model
 
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -1094,7 +1099,12 @@ groupsLabel space groups =
 bodyView : Space -> Post -> Html Msg
 bodyView space post =
     div []
-        [ div [ class "markdown pb-2" ] [ RenderedHtml.node (Post.bodyHtml post) ]
+        [ div [ class "markdown pb-2" ]
+            [ RenderedHtml.node
+                { html = Post.bodyHtml post
+                , onInternalLinkClicked = InternalLinkClicked
+                }
+            ]
         , staticFilesView (Post.files post)
         ]
 
@@ -1205,7 +1215,10 @@ replyView config model data reply =
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
                             [ div [ class "markdown pb-2" ]
-                                [ RenderedHtml.node (Reply.bodyHtml reply)
+                                [ RenderedHtml.node
+                                    { html = Reply.bodyHtml reply
+                                    , onInternalLinkClicked = InternalLinkClicked
+                                    }
                                 ]
                             , staticFilesView (Reply.files reply)
                             ]

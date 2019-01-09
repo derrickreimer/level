@@ -2,6 +2,7 @@ module Page.Search exposing (Model, Msg(..), consumeEvent, init, setup, subscrip
 
 import Actor exposing (Actor)
 import Avatar
+import Browser.Navigation as Nav
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
 import File exposing (File)
@@ -145,6 +146,7 @@ type Msg
     | Tick Posix
     | SetCurrentTime Posix Zone
     | ClickedToExpand Route
+    | InternalLinkClicked String
     | NoOp
 
 
@@ -178,6 +180,9 @@ update msg globals model =
 
         ClickedToExpand route ->
             ( ( model, Route.pushUrl globals.navKey route ), globals )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         NoOp ->
             noCmd globals model
@@ -325,7 +330,11 @@ postResultView repo params now resolvedResult =
                 ]
             , clickToExpand postRoute
                 [ div [ class "markdown mb-2" ]
-                    [ RenderedHtml.node (Post.bodyHtml resolvedResult.resolvedPost.post) ]
+                    [ RenderedHtml.node
+                        { html = Post.bodyHtml resolvedResult.resolvedPost.post
+                        , onInternalLinkClicked = InternalLinkClicked
+                        }
+                    ]
                 ]
             ]
         ]
@@ -348,7 +357,11 @@ replyResultView repo params now resolvedResult =
                 ]
             , clickToExpand replyRoute
                 [ div [ class "markdown mb-2" ]
-                    [ RenderedHtml.node (Reply.bodyHtml resolvedResult.resolvedReply.reply) ]
+                    [ RenderedHtml.node
+                        { html = Reply.bodyHtml resolvedResult.resolvedReply.reply
+                        , onInternalLinkClicked = InternalLinkClicked
+                        }
+                    ]
                 ]
             ]
         ]
