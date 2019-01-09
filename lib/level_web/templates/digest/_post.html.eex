@@ -57,7 +57,7 @@
             <td class="w-4px align-top" valign="top"></td>
             <td class="w-8px"></td>
             <td class="w-40px align-middle" valign="middle">
-              <img src="<%= static_path(LevelWeb.Endpoint, "/images/digest/resolved.png") %>" width="32px" height="32px" alt="✓" />
+              <img src="<%= static_url(LevelWeb.Endpoint, "/images/digest/resolved.png") %>" width="32px" height="32px" alt="✓" />
             </td>
             <td>
               <p class="mb-0">
