@@ -172,7 +172,7 @@ bookmarkList config =
             Space.slug config.space
 
         linkify group =
-            navLink config.space ("#" ++ Group.name group) (Just <| Route.Group (Route.Group.init slug (Group.id group))) config.currentRoute
+            navLink config.space ("#" ++ Group.name group) (Just <| Route.Group (Route.Group.init slug (Group.name group))) config.currentRoute
 
         links =
             config.bookmarks

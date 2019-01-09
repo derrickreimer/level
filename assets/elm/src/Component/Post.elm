@@ -1073,7 +1073,7 @@ groupsLabel space groups =
     let
         groupLink group =
             a
-                [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.id group)))
+                [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.name group)))
                 , class "mr-1 no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
                 ]
                 [ text ("#" ++ Group.name group) ]

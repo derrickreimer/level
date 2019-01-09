@@ -51,7 +51,7 @@ document =
         """
         query GroupInit(
           $spaceSlug: String!,
-          $groupId: ID!,
+          $groupName: String!,
           $first: Int,
           $last: Int,
           $before: Cursor,
@@ -67,7 +67,7 @@ document =
               ...GroupFields
             }
           }
-          group(id: $groupId) {
+          group(spaceSlug: $spaceSlug, name: $groupName) {
             ...GroupFields
             featuredMemberships {
               spaceUser {
@@ -113,8 +113,8 @@ variables params limit =
         spaceSlug =
             Encode.string (Route.Group.getSpaceSlug params)
 
-        groupId =
-            Id.encoder (Route.Group.getGroupId params)
+        groupName =
+            Encode.string (Route.Group.getGroupName params)
 
         stateFilter =
             Encode.string (castState <| Route.Group.getState params)
@@ -127,7 +127,7 @@ variables params limit =
             of
                 ( Just before, Nothing ) ->
                     [ ( "spaceSlug", spaceSlug )
-                    , ( "groupId", groupId )
+                    , ( "groupName", groupName )
                     , ( "last", Encode.int limit )
                     , ( "before", Encode.string before )
                     , ( "stateFilter", stateFilter )
@@ -135,7 +135,7 @@ variables params limit =
 
                 ( Nothing, Just after ) ->
                     [ ( "spaceSlug", spaceSlug )
-                    , ( "groupId", groupId )
+                    , ( "groupName", groupName )
                     , ( "first", Encode.int limit )
                     , ( "after", Encode.string after )
                     , ( "stateFilter", stateFilter )
@@ -143,7 +143,7 @@ variables params limit =
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
-                    , ( "groupId", groupId )
+                    , ( "groupName", groupName )
                     , ( "first", Encode.int limit )
                     , ( "stateFilter", stateFilter )
                     ]

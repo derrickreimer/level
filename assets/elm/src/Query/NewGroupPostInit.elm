@@ -49,7 +49,7 @@ document =
         """
         query GroupInit(
           $spaceSlug: String!,
-          $groupId: ID!
+          $groupName: String!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -60,7 +60,7 @@ document =
               ...GroupFields
             }
           }
-          group(id: $groupId) {
+          group(spaceSlug: $spaceSlug, name: $groupName) {
             ...GroupFields
             featuredMemberships {
               spaceUser {
@@ -82,13 +82,13 @@ variables params limit =
         spaceSlug =
             Encode.string (Route.NewGroupPost.getSpaceSlug params)
 
-        groupId =
-            Id.encoder (Route.NewGroupPost.getGroupId params)
+        groupName =
+            Id.encoder (Route.NewGroupPost.getGroupName params)
     in
     Just
         (Encode.object
             [ ( "spaceSlug", spaceSlug )
-            , ( "groupId", groupId )
+            , ( "groupName", groupName )
             ]
         )
 

@@ -1,6 +1,6 @@
 module Route.GroupSettings exposing
     ( Params, Section(..)
-    , init, getSpaceSlug, getGroupId, getSection, setSection
+    , init, getSpaceSlug, getGroupName, getSection, setSection
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.GroupSettings exposing
 
 # API
 
-@docs init, getSpaceSlug, getGroupId, getSection, setSection
+@docs init, getSpaceSlug, getGroupName, getSection, setSection
 
 
 # Parsing
@@ -41,7 +41,7 @@ type Params
 
 type alias Internal =
     { spaceSlug : String
-    , groupId : Id
+    , groupName : Id
     , section : Section
     }
 
@@ -56,8 +56,8 @@ type Section
 
 
 init : String -> Id -> Section -> Params
-init spaceSlug groupId section =
-    Params (Internal spaceSlug groupId section)
+init spaceSlug groupName section =
+    Params (Internal spaceSlug groupName section)
 
 
 getSpaceSlug : Params -> String
@@ -65,9 +65,9 @@ getSpaceSlug (Params internal) =
     internal.spaceSlug
 
 
-getGroupId : Params -> Id
-getGroupId (Params internal) =
-    internal.groupId
+getGroupName : Params -> Id
+getGroupName (Params internal) =
+    internal.groupName
 
 
 getSection : Params -> Section
@@ -87,7 +87,7 @@ setSection newSection (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "groups" </> string </> s "settings" </> map parseSection string)
+        map Internal (string </> s "channels" </> string </> s "settings" </> map parseSection string)
 
 
 parseSection : String -> Section
@@ -106,7 +106,7 @@ parseSection sectionSlug =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "groups", internal.groupId, "settings", serializeSection internal.section ] []
+    absolute [ internal.spaceSlug, "channels", internal.groupName, "settings", serializeSection internal.section ] []
 
 
 serializeSection : Section -> String

@@ -444,7 +444,7 @@ groupView : Space -> Group -> Html Msg
 groupView space group =
     let
         groupRoute =
-            Route.Group (Route.Group.init (Space.slug space) (Group.id group))
+            Route.Group (Route.Group.init (Space.slug space) (Group.name group))
 
         checkboxTooltip =
             if Group.membershipState group == Subscribed then

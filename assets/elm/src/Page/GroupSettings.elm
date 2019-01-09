@@ -309,7 +309,7 @@ resolvedDesktopView globals model data =
         groupParams =
             Route.Group.init
                 (Route.GroupSettings.getSpaceSlug model.params)
-                (Route.GroupSettings.getGroupId model.params)
+                (Route.GroupSettings.getGroupName model.params)
 
         config =
             { space = data.space
@@ -363,7 +363,7 @@ resolvedMobileView globals model data =
         groupParams =
             Route.Group.init
                 (Route.GroupSettings.getSpaceSlug model.params)
-                (Route.GroupSettings.getGroupId model.params)
+                (Route.GroupSettings.getGroupName model.params)
 
         config =
             { space = data.space

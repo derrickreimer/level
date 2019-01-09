@@ -1199,7 +1199,7 @@ resolvedMobileView globals model data =
             , div [ class "px-3" ]
                 [ mobilePostsView globals model data ]
             , a
-                [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupId model.params))
+                [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupName model.params))
                 , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
                 , style "bottom" "25px"
                 , style "right" "25px"
@@ -1305,7 +1305,7 @@ sidebarView params space group featuredMembers =
         settingsParams =
             Route.GroupSettings.init
                 (Route.Group.getSpaceSlug params)
-                (Route.Group.getGroupId params)
+                (Route.Group.getGroupName params)
                 Route.GroupSettings.General
     in
     [ h3 [ class "flex items-center mb-2 text-base font-bold" ]

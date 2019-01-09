@@ -41,8 +41,8 @@ document =
     GraphQL.toDocument
         """
         query GroupSettingsInit(
-          $spaceSlug: ID!,
-          $groupId: ID!
+          $spaceSlug: String!,
+          $groupName: String!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -59,7 +59,7 @@ document =
               ...GroupFields
             }
           }
-          group(id: $groupId) {
+          group(spaceSlug: $spaceSlug, name: $groupName) {
             ...GroupFields
           }
         }
@@ -76,7 +76,7 @@ variables params =
     Just
         (Encode.object
             [ ( "spaceSlug", Encode.string <| Route.GroupSettings.getSpaceSlug params )
-            , ( "groupId", Id.encoder <| Route.GroupSettings.getGroupId params )
+            , ( "groupName", Encode.string <| Route.GroupSettings.getGroupName params )
             ]
         )
 

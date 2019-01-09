@@ -1,6 +1,6 @@
 module Route.Group exposing
     ( Params, State(..)
-    , init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath, getState, setState
+    , init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, hasSamePath, getState, setState
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Group exposing
 
 # API
 
-@docs init, getSpaceSlug, getGroupId, getAfter, getBefore, setCursors, hasSamePath, getState, setState
+@docs init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, hasSamePath, getState, setState
 
 
 # Parsing
@@ -41,7 +41,7 @@ type Params
 
 type alias Internal =
     { spaceSlug : String
-    , groupId : Id
+    , groupName : String
     , after : Maybe String
     , before : Maybe String
     , state : State
@@ -57,9 +57,9 @@ type State
 -- API
 
 
-init : String -> Id -> Params
-init spaceSlug groupId =
-    Params (Internal spaceSlug groupId Nothing Nothing Open)
+init : String -> String -> Params
+init spaceSlug groupName =
+    Params (Internal spaceSlug groupName Nothing Nothing Open)
 
 
 getSpaceSlug : Params -> String
@@ -67,9 +67,9 @@ getSpaceSlug (Params internal) =
     internal.spaceSlug
 
 
-getGroupId : Params -> Id
-getGroupId (Params internal) =
-    internal.groupId
+getGroupName : Params -> Id
+getGroupName (Params internal) =
+    internal.groupName
 
 
 getAfter : Params -> Maybe String
@@ -89,7 +89,7 @@ setCursors before after (Params internal) =
 
 hasSamePath : Params -> Params -> Bool
 hasSamePath p1 p2 =
-    getSpaceSlug p1 == getSpaceSlug p2 && getGroupId p1 == getGroupId p2
+    getSpaceSlug p1 == getSpaceSlug p2 && getGroupName p1 == getGroupName p2
 
 
 getState : Params -> State
@@ -118,7 +118,7 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "channels", internal.groupId ] (buildQuery internal)
+    absolute [ internal.spaceSlug, "channels", internal.groupName ] (buildQuery internal)
 
 
 

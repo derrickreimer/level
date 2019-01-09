@@ -385,7 +385,7 @@ groupsLabel params groups =
         [ group ] ->
             span [ class "ml-3 text-sm text-dusty-blue" ]
                 [ a
-                    [ Route.href (Route.Group (Route.Group.init (Route.Search.getSpaceSlug params) (Group.id group)))
+                    [ Route.href (Route.Group (Route.Group.init (Route.Search.getSpaceSlug params) (Group.name group)))
                     , class "no-underline text-dusty-blue font-bold whitespace-no-wrap"
                     ]
                     [ text (Group.name group) ]

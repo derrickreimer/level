@@ -281,7 +281,7 @@ update msg globals model =
                     Route.Group <|
                         Route.Group.init
                             (Route.NewGroupPost.getSpaceSlug model.params)
-                            (Route.NewGroupPost.getGroupId model.params)
+                            (Route.NewGroupPost.getGroupName model.params)
             in
             ( ( model, Route.pushUrl globals.navKey redirectTo )
             , { globals | session = newSession }
@@ -373,7 +373,7 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         groupRoute =
-            Route.Group <| Route.Group.init (Route.NewGroupPost.getSpaceSlug model.params) (Route.NewGroupPost.getGroupId model.params)
+            Route.Group <| Route.Group.init (Route.NewGroupPost.getSpaceSlug model.params) (Route.NewGroupPost.getGroupName model.params)
 
         layoutConfig =
             { space = data.space

@@ -1,6 +1,6 @@
 module Route.NewGroupPost exposing
     ( Params
-    , init, getSpaceSlug, getGroupId, hasSamePath
+    , init, getSpaceSlug, getGroupName, hasSamePath
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.NewGroupPost exposing
 
 # API
 
-@docs init, getSpaceSlug, getGroupId, hasSamePath
+@docs init, getSpaceSlug, getGroupName, hasSamePath
 
 
 # Parsing
@@ -41,7 +41,7 @@ type Params
 
 type alias Internal =
     { spaceSlug : String
-    , groupId : Id
+    , groupName : Id
     }
 
 
@@ -50,8 +50,8 @@ type alias Internal =
 
 
 init : String -> Id -> Params
-init spaceSlug groupId =
-    Params (Internal spaceSlug groupId)
+init spaceSlug groupName =
+    Params (Internal spaceSlug groupName)
 
 
 getSpaceSlug : Params -> String
@@ -59,14 +59,14 @@ getSpaceSlug (Params internal) =
     internal.spaceSlug
 
 
-getGroupId : Params -> Id
-getGroupId (Params internal) =
-    internal.groupId
+getGroupName : Params -> Id
+getGroupName (Params internal) =
+    internal.groupName
 
 
 hasSamePath : Params -> Params -> Bool
 hasSamePath p1 p2 =
-    getSpaceSlug p1 == getSpaceSlug p2 && getGroupId p1 == getGroupId p2
+    getSpaceSlug p1 == getSpaceSlug p2 && getGroupName p1 == getGroupName p2
 
 
 
@@ -85,4 +85,4 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "groups", internal.groupId, "posts", "new" ] []
+    absolute [ internal.spaceSlug, "groups", internal.groupName, "posts", "new" ] []
