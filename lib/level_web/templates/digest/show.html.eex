@@ -26,6 +26,9 @@
   <tr>
     <td class="pt-25px">
       <p class="text-dusty-blue text-xs">
+        Prepared for <%= display_name(@digest.space_user) %>
+      </p>
+      <p class="text-dusty-blue text-xs">
         <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space.id, @digest.id) %>">Click here</a> to view this digest in the browser.<br/>
         Times are displayed in the <%= @digest.time_zone %> time zone.<br/>
         <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space.slug, "settings", "preferences"]) %>">Update my digest settings</a>

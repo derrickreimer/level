@@ -22,6 +22,14 @@
       <%= for reply <- @post.recent_replies do %>
         <table class="w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
           <tr>
+            <td class="w-4px align-top" valign="top">
+              <%= if !reply.has_viewed do %>
+                <div class="w-4px h-32px bg-orange rounded"></div>
+              <% end %>
+            </td>
+
+            <td class="w-8px"></td>
+
             <td class="w-40px align-top" valign="top">
               <%= avatar(reply_author(reply)) %>
             </td>
@@ -46,6 +54,8 @@
       <%= if @post.state == "CLOSED" do %>
         <table class="pb-10px w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
           <tr>
+            <td class="w-4px align-top" valign="top"></td>
+            <td class="w-8px"></td>
             <td class="w-40px align-middle" valign="middle">
               <img src="<%= static_path(LevelWeb.Endpoint, "/images/digest/resolved.png") %>" width="32px" height="32px" alt="✓" />
             </td>

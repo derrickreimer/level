@@ -278,6 +278,10 @@
       padding-top: 20px;
     }
 
+    .pr-10px {
+      padding-right: 10px;
+    }
+
     .pb-0 {
       padding-bottom: 0;
     }
@@ -322,6 +326,14 @@
       padding: 24px 30px;
     }
 
+    .w-4px {
+      width: 4px;
+    }
+
+    .w-8px {
+      width: 8px;
+    }
+
     .w-32px {
       width: 32px;
     }
@@ -360,12 +372,20 @@
       background-color: #8a98a5;
     }
 
+    .bg-orange {
+      background-color: #df9700;
+    }
+
     .border-b-grey {
       border-bottom: 1px solid #e2e6e8;
     }
 
     .last--border-none:last-child {
       border: 0;
+    }
+
+    .rounded {
+      border-radius: 3px;
     }
 
     .container-570 {
