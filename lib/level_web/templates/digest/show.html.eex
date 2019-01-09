@@ -2,8 +2,12 @@
 <table class="border-b-grey w-full cell-0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td>
-      <p class="mb-2 text-dusty-blue-dark font-bold"><%= @digest.space_name %></p>
-      <h1 class="mb-3 font-bold text-dusty-blue-darkest text-xl"><%= @digest.title %></h1>
+      <p class="mb-0 font-bold">
+        <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space_slug, "inbox"]) %>" class="text-dusty-blue-dark no-underline"><%= @digest.space_name %></a>
+      </p>
+      <h1 class="mb-2 font-bold text-xl">
+        <a href="<%= digest_url(LevelWeb.Endpoint, :show, @digest.space_id, @digest.id) %>" class="text-dusty-blue-darkest no-underline"><%= @digest.title %></a>
+      </h1>
       <p class="text-dusty-blue-dark">
         <span><%= digest_date(@digest) %></span>
         <span class="ml-2 text-dusty-blue text-sm">@ <%= digest_time(@digest) %></span>
