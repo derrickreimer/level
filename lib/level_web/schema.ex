@@ -43,7 +43,9 @@ defmodule LevelWeb.Schema do
 
     @desc "Fetches a group."
     field :group, :group do
-      arg :id, non_null(:id)
+      arg :id, :id
+      arg :space_slug, :string
+      arg :name, :string
       resolve &Level.Resolvers.group/2
     end
 

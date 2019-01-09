@@ -107,11 +107,19 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Fetches a group by id.
+  Fetches a group.
   """
   @spec group(map(), info()) :: {:ok, Group.t()} | {:error, String.t()}
   def group(%{id: id} = _args, %{context: %{current_user: user}}) do
     Level.Groups.get_group(user, id)
+  end
+
+  def group(%{space_slug: space_slug, name: name} = _args, %{context: %{current_user: user}}) do
+    Level.Groups.get_group_by_name(user, space_slug, name)
+  end
+
+  def group(_args, _) do
+    {:error, dgettext("errors", "You must provide an `id` or `space_slug` and `name` combo.")}
   end
 
   @doc """

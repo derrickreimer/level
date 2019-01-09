@@ -13,6 +13,7 @@ defmodule Level.Groups do
   alias Level.Schemas.Group
   alias Level.Schemas.GroupBookmark
   alias Level.Schemas.GroupUser
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
 
@@ -50,17 +51,7 @@ defmodule Level.Groups do
   def get_group(%SpaceUser{} = member, id) do
     case Repo.get_by(groups_base_query(member), id: id) do
       %Group{} = group ->
-        if group.is_private do
-          case get_group_user(group, member) do
-            {:ok, %GroupUser{} = _} ->
-              {:ok, group}
-
-            _ ->
-              {:error, dgettext("errors", "Group not found")}
-          end
-        else
-          {:ok, group}
-        end
+        {:ok, group}
 
       _ ->
         {:error, dgettext("errors", "Group not found")}
@@ -69,6 +60,28 @@ defmodule Level.Groups do
 
   def get_group(%User{} = user, id) do
     case Repo.get_by(groups_base_query(user), id: id) do
+      %Group{} = group ->
+        {:ok, group}
+
+      _ ->
+        {:error, dgettext("errors", "Group not found")}
+    end
+  end
+
+  @doc """
+  Fetches a group by name.
+  """
+  @spec get_group_by_name(User.t(), String.t(), String.t()) ::
+          {:ok, Group.t()} | {:error, String.t()}
+  def get_group_by_name(%User{} = user, space_slug, name) do
+    query =
+      from [g, su, gu] in groups_base_query(user),
+        join: s in Space,
+        on: g.space_id == s.id,
+        where: s.slug == ^space_slug,
+        where: g.name == ^name
+
+    case Repo.one(query) do
       %Group{} = group ->
         {:ok, group}
 
