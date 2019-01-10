@@ -21,19 +21,29 @@ export const attachPorts = app => {
     return { Authorization: "Bearer " + token };
   };
 
-  let phoenixSocket = createPhoenixSocket(socketParams);
+  let phoenixSocket = createPhoenixSocket(socketParams, (...args) => console.log("[socket]", ...args));
   let absintheSocket = createAbsintheSocket(phoenixSocket);
   let channels = {};
 
-  phoenixSocket.onOpen(() => {
+  // Expose a helper function for getting the current state of the socket
+  window.phoenixSocket = () => {
+    return phoenixSocket;
+  };
+
+  phoenixSocket.onOpen(args => {
+    console.log("Socket opened", phoenixSocket, args);
+
     const payload = { type: "opened" };
     app.ports.socketIn.send(payload);
     logEvent("socketIn")(payload);
   });
 
-  phoenixSocket.onError(() => {
+  phoenixSocket.onError(args => {
+    console.log("Socket error", phoenixSocket, args);
+
     fetchApiToken()
       .then(newToken => {
+        console.log("New token fetched", newToken);
         token = newToken;
       })
       .catch(() => {
@@ -41,7 +51,9 @@ export const attachPorts = app => {
       });
   });
 
-  phoenixSocket.onClose(() => {
+  phoenixSocket.onClose(args => {
+    console.log("Socket closed", phoenixSocket, args);
+
     const payload = { type: "closed" };
     app.ports.socketIn.send(payload);
     logEvent("socketIn")(payload);
