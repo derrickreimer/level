@@ -408,7 +408,7 @@ desktopPostComposerView globals model data =
                         [ button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
-                            , disabled (PostEditor.isUnsubmittable editor)
+                            , disabled (isUnsubmittable editor)
                             , tabindex 3
                             ]
                             [ text "Send" ]
@@ -486,3 +486,12 @@ resolvedMobileView globals model data =
                 ]
             ]
         ]
+
+
+
+-- SHARED
+
+
+isUnsubmittable : PostEditor -> Bool
+isUnsubmittable editor =
+    PostEditor.isUnsubmittable editor || not (String.contains "#" (PostEditor.getBody editor))
