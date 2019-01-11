@@ -966,9 +966,9 @@ resolvedDesktopView globals model data =
                 desktopPostComposerView globals model data
             , viewIf (Group.state data.group == Group.Closed) <|
                 p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
-                    [ div [ class "flex-grow" ] [ text "This group is closed." ]
+                    [ div [ class "flex-grow" ] [ text "This channel is closed." ]
                     , div [ class "flex-no-shrink" ]
-                        [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
+                        [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
             , div [ class "sticky flex items-baseline mb-4 mx-4 border-b" ]
@@ -1091,7 +1091,7 @@ desktopPostComposerView globals model data =
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Compose a new post..."
+                        , placeholder <| "Post in #" ++ Group.name data.group ++ "..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]
                         , readonly (PostEditor.isSubmitting editor)

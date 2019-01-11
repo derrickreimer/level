@@ -360,7 +360,7 @@ resolvedDesktopView globals model data =
             [ desktopPostComposerView globals model data
             , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
                 [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-                , text "Hashtag the Channels where you'd like to post your message."
+                , text "Hashtag the Channels where you'd like your message to appear."
                 ]
             ]
         ]
@@ -482,7 +482,7 @@ resolvedMobileView globals model data =
                 ]
             , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
                 [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-                , text "Hashtag the Channels where you'd like to post your message."
+                , text "Hashtag the Channels where you'd like your message to appear."
                 ]
             ]
         ]
