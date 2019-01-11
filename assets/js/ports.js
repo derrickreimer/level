@@ -54,7 +54,7 @@ export const attachPorts = app => {
   });
 
   phoenixSocket.onClose(e => {
-    console.log("Socket closed", phoenixSocket, args);
+    console.log("Socket closed", phoenixSocket, e);
 
     const payload = { type: "closed" };
     app.ports.socketIn.send(payload);
