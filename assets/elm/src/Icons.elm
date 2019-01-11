@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock)
+module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -285,3 +285,9 @@ ex : Html msg
 ex =
     iconView <|
         svg [ width "14px", height "14px", viewBox "0 0 14 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "x", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M12,0 L0,12", id "Path" ] [], Svg.path [ d "M0,0 L12,12", id "Path" ] [] ] ] ]
+
+
+zapWhite : Html msg
+zapWhite =
+    iconView <|
+        svg [ width "18px", height "20px", viewBox "0 0 18 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "zap", transform "translate(1.000000, 1.000000)", fill "#FFFFFF", stroke "#FFFFFF", strokeWidth "2" ] [ polygon [ id "Path", points "8.88888889 0 0 10.8 8 10.8 7.11111111 18 16 7.2 8 7.2" ] [] ] ] ]

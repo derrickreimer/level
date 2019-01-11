@@ -10,6 +10,7 @@ import Flash exposing (Flash)
 import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (decodeString)
 import KeyboardShortcuts exposing (Modifier(..))
@@ -1596,8 +1597,10 @@ centerNoticeView : Model -> Html Msg
 centerNoticeView model =
     viewIf (model.socketState == SocketState.Closed) <|
         div [ class "font-sans font-antialised fixed px-3 pin-t pin-l-50 z-50", style "transform" "translateX(-50%)" ]
-            [ div [ class "relative px-5 py-4 border-b-3 border-red bg-red-lightest text-sm text-red" ]
-                [ h2 [ class "pb-2 font-bold text-lg" ] [ text "Attempting to reconnect..." ]
-                , p [ class "text-sm" ] [ text "If the problem persists, try refreshing the page." ]
+            [ div [ class "relative mt-2 px-4 py-2 rounded-full bg-red text-white shadow" ]
+                [ h2 [ class "flex items-center font-bold font-sans text-md" ]
+                    [ div [ class "flex-no-shrink inline-block mr-2 align-middle" ] [ Icons.zapWhite ]
+                    , div [] [ text "Reconnecting..." ]
+                    ]
                 ]
             ]
