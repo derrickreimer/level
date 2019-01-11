@@ -51,12 +51,19 @@ export const attachPorts = app => {
       });
   });
 
-  phoenixSocket.onClose(args => {
+  phoenixSocket.onClose(e => {
     console.log("Socket closed", phoenixSocket, args);
 
     const payload = { type: "closed" };
     app.ports.socketIn.send(payload);
     logEvent("socketIn")(payload);
+
+    // If the event indicates this was a "normal closure (code = 1000), that
+    // means something has gone wrong and the socket has given up retrying to connect.
+    if (e.code == 1000) {
+      console.log("Socket hard reconnecting", phoenixSocket);
+      phoenixSocket.disconnect(() => phoenixSocket.connect());
+    }
   });
 
   const joinChannel = topic => {
