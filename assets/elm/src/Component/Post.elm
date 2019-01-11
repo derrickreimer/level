@@ -56,7 +56,7 @@ import View.Helpers exposing (onPassiveClick, setFocus, smartFormatTime, unsetFo
 
 type alias Model =
     { id : String
-    , spaceSlug : String
+    , spaceId : String
     , postId : Id
     , replyIds : Connection Id
     , replyComposer : PostEditor
@@ -96,11 +96,11 @@ resolveData repo model =
 -- LIFECYCLE
 
 
-init : String -> Id -> Connection Id -> Model
-init spaceSlug postId replyIds =
+init : Id -> Id -> Connection Id -> Model
+init spaceId postId replyIds =
     Model
         postId
-        spaceSlug
+        spaceId
         postId
         replyIds
         (PostEditor.init postId)
@@ -177,14 +177,14 @@ type Msg
     | InternalLinkClicked String
 
 
-update : Msg -> Id -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
-update msg spaceId globals model =
+update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
 
         ExpandReplyComposer ->
-            expandReplyComposer globals spaceId model
+            expandReplyComposer globals model
 
         NewReplyBodyChanged val ->
             let
@@ -228,7 +228,7 @@ update msg spaceId globals model =
 
                 cmd =
                     globals.session
-                        |> CreateReply.request spaceId model.postId body (PostEditor.getUploadIds model.replyComposer)
+                        |> CreateReply.request model.spaceId model.postId body (PostEditor.getUploadIds model.replyComposer)
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newModel, cmd ), globals )
@@ -243,12 +243,12 @@ update msg spaceId globals model =
 
                 replyCmd =
                     globals.session
-                        |> CreateReply.request spaceId model.postId body (PostEditor.getUploadIds model.replyComposer)
+                        |> CreateReply.request model.spaceId model.postId body (PostEditor.getUploadIds model.replyComposer)
                         |> Task.attempt NewReplySubmitted
 
                 closeCmd =
                     globals.session
-                        |> ClosePost.request spaceId model.postId
+                        |> ClosePost.request model.spaceId model.postId
                         |> Task.attempt PostClosed
             in
             ( ( newModel, Cmd.batch [ replyCmd, closeCmd ] ), globals )
@@ -297,7 +297,7 @@ update msg spaceId globals model =
                     let
                         cmd =
                             globals.session
-                                |> Query.Replies.request spaceId model.postId cursor 10
+                                |> Query.Replies.request model.spaceId model.postId cursor 10
                                 |> Task.attempt PreviousRepliesFetched
                     in
                     ( ( model, cmd ), globals )
@@ -323,7 +323,7 @@ update msg spaceId globals model =
                     { model | replyIds = newReplyIds }
 
                 viewCmd =
-                    markVisibleRepliesAsViewed newGlobals spaceId newModel
+                    markVisibleRepliesAsViewed newGlobals newModel
             in
             ( ( newModel, Cmd.batch [ viewCmd ] ), newGlobals )
 
@@ -344,7 +344,7 @@ update msg spaceId globals model =
 
         SelectionToggled ->
             ( ( { model | isChecked = not model.isChecked }
-              , markVisibleRepliesAsViewed globals spaceId model
+              , markVisibleRepliesAsViewed globals model
               )
             , globals
             )
@@ -353,7 +353,7 @@ update msg spaceId globals model =
             let
                 cmd =
                     globals.session
-                        |> DismissPosts.request spaceId [ model.postId ]
+                        |> DismissPosts.request model.spaceId [ model.postId ]
                         |> Task.attempt Dismissed
             in
             ( ( model, cmd ), globals )
@@ -376,7 +376,7 @@ update msg spaceId globals model =
             let
                 cmd =
                     globals.session
-                        |> MarkAsRead.request spaceId [ model.postId ]
+                        |> MarkAsRead.request model.spaceId [ model.postId ]
                         |> Task.attempt PostMovedToInbox
             in
             ( ( model, cmd ), globals )
@@ -475,7 +475,7 @@ update msg spaceId globals model =
             let
                 cmd =
                     globals.session
-                        |> UpdatePost.request spaceId model.postId (PostEditor.getBody model.postEditor)
+                        |> UpdatePost.request model.spaceId model.postId (PostEditor.getBody model.postEditor)
                         |> Task.attempt PostUpdated
 
                 newPostEditor =
@@ -636,7 +636,7 @@ update msg spaceId globals model =
 
                 cmd =
                     globals.session
-                        |> UpdateReply.request spaceId replyId (PostEditor.getBody replyEditor)
+                        |> UpdateReply.request model.spaceId replyId (PostEditor.getBody replyEditor)
                         |> Task.attempt (ReplyUpdated replyId)
 
                 newReplyEditor =
@@ -700,7 +700,7 @@ update msg spaceId globals model =
         CreatePostReactionClicked ->
             let
                 variables =
-                    CreatePostReaction.variables spaceId model.postId
+                    CreatePostReaction.variables model.spaceId model.postId
 
                 cmd =
                     globals.session
@@ -725,7 +725,7 @@ update msg spaceId globals model =
         DeletePostReactionClicked ->
             let
                 variables =
-                    DeletePostReaction.variables spaceId model.postId
+                    DeletePostReaction.variables model.spaceId model.postId
 
                 cmd =
                     globals.session
@@ -750,7 +750,7 @@ update msg spaceId globals model =
         CreateReplyReactionClicked replyId ->
             let
                 variables =
-                    CreateReplyReaction.variables spaceId model.postId replyId
+                    CreateReplyReaction.variables model.spaceId model.postId replyId
 
                 cmd =
                     globals.session
@@ -775,7 +775,7 @@ update msg spaceId globals model =
         DeleteReplyReactionClicked replyId ->
             let
                 variables =
-                    DeleteReplyReaction.variables spaceId model.postId replyId
+                    DeleteReplyReaction.variables model.spaceId model.postId replyId
 
                 cmd =
                     globals.session
@@ -801,7 +801,7 @@ update msg spaceId globals model =
             let
                 cmd =
                     globals.session
-                        |> ClosePost.request spaceId model.postId
+                        |> ClosePost.request model.spaceId model.postId
                         |> Task.attempt PostClosed
             in
             ( ( { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }, cmd ), globals )
@@ -810,7 +810,7 @@ update msg spaceId globals model =
             let
                 cmd =
                     globals.session
-                        |> ReopenPost.request spaceId model.postId
+                        |> ReopenPost.request model.spaceId model.postId
                         |> Task.attempt PostReopened
             in
             ( ( { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }, cmd ), globals )
@@ -879,8 +879,8 @@ redirectToLogin globals model =
     ( ( model, Route.toLogin ), globals )
 
 
-markVisibleRepliesAsViewed : Globals -> Id -> Model -> Cmd Msg
-markVisibleRepliesAsViewed globals spaceId model =
+markVisibleRepliesAsViewed : Globals -> Model -> Cmd Msg
+markVisibleRepliesAsViewed globals model =
     let
         ( replies, _ ) =
             visibleReplies globals.repo model.replyIds
@@ -892,20 +892,20 @@ markVisibleRepliesAsViewed globals spaceId model =
     in
     if List.length unviewedReplyIds > 0 then
         globals.session
-            |> RecordReplyViews.request spaceId unviewedReplyIds
+            |> RecordReplyViews.request model.spaceId unviewedReplyIds
             |> Task.attempt ReplyViewsRecorded
 
     else
         Cmd.none
 
 
-expandReplyComposer : Globals -> Id -> Model -> ( ( Model, Cmd Msg ), Globals )
-expandReplyComposer globals spaceId model =
+expandReplyComposer : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+expandReplyComposer globals model =
     let
         cmd =
             Cmd.batch
                 [ setFocus (PostEditor.getTextareaId model.replyComposer) NoOp
-                , markVisibleRepliesAsViewed globals spaceId model
+                , markVisibleRepliesAsViewed globals model
                 ]
 
         newModel =

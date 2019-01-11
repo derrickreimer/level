@@ -131,7 +131,7 @@ buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), ( Zone, Pos
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
-            Connection.map (buildPostComponent params) resp.postWithRepliesIds
+            Connection.map (buildPostComponent resp.spaceId) resp.postWithRepliesIds
 
         model =
             Model
@@ -155,9 +155,9 @@ buildModel params globals ( ( newSession, resp ), now ) =
     ( { globals | session = newSession, repo = newRepo }, model )
 
 
-buildPostComponent : Params -> ( Id, Connection Id ) -> Component.Post.Model
-buildPostComponent params ( postId, replyIds ) =
-    Component.Post.init (Route.Group.getSpaceSlug params) postId replyIds
+buildPostComponent : Id -> ( Id, Connection Id ) -> Component.Post.Model
+buildPostComponent spaceId ( postId, replyIds ) =
+    Component.Post.init spaceId postId replyIds
 
 
 setup : Model -> Cmd Msg
@@ -533,7 +533,7 @@ update msg globals model =
                 Just postComp ->
                     let
                         ( ( newPostComp, cmd ), newGlobals ) =
-                            Component.Post.update componentMsg model.spaceId globals postComp
+                            Component.Post.update componentMsg globals postComp
                     in
                     ( ( { model | postComps = Connection.update .id newPostComp model.postComps }
                       , Cmd.map (PostComponentMsg postId) cmd
@@ -758,7 +758,7 @@ consumeEvent event session model =
             let
                 postComp =
                     Component.Post.init
-                        (Route.Group.getSpaceSlug model.params)
+                        model.spaceId
                         (Post.id post)
                         (Connection.map Reply.id replies)
             in
@@ -879,7 +879,7 @@ consumeKeyboardEvent globals event model =
                 Just currentPost ->
                     let
                         ( ( newCurrentPost, compCmd ), newGlobals ) =
-                            Component.Post.expandReplyComposer globals model.spaceId currentPost
+                            Component.Post.expandReplyComposer globals currentPost
 
                         newPostComps =
                             Connection.update .id newCurrentPost model.postComps

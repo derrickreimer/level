@@ -114,7 +114,7 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
 
         postComp =
             Component.Post.init
-                spaceSlug
+                resp.spaceId
                 postId
                 replyIds
 
@@ -230,7 +230,7 @@ update msg globals model =
         PostComponentMsg componentMsg ->
             let
                 ( ( newPostComp, cmd ), newGlobals ) =
-                    Component.Post.update componentMsg model.spaceId globals model.postComp
+                    Component.Post.update componentMsg globals model.postComp
             in
             ( ( { model | postComp = newPostComp }
               , Cmd.map PostComponentMsg cmd
