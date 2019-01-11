@@ -100,21 +100,24 @@ customElements.define(
       if (!textarea) return;
 
       this._tribute = new Tribute({
-        collection: [{
-          trigger: "@",
-          values: this._spaceUsers,
-          lookup: item => {
-            return item.displayName + " (@" + item.handle + ")";
+        collection: [
+          {
+            trigger: "@",
+            values: this._spaceUsers,
+            lookup: item => {
+              return item.displayName + " (@" + item.handle + ")";
+            },
+            fillAttr: "handle"
           },
-          fillAttr: "handle",
-        }, {
-          trigger: "#",
-          values: this._groups,
-          lookup: item => {
-            return "#" + item.name;
-          },
-          fillAttr: "name",
-        }],
+          {
+            trigger: "#",
+            values: this._groups,
+            lookup: item => {
+              return "#" + item.name;
+            },
+            fillAttr: "name"
+          }
+        ],
         menuContainer: this,
         positionMenu: false,
         allowSpaces: false

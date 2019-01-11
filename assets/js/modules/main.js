@@ -30,6 +30,6 @@ export function initialize() {
 
   // Initialize Beacon
   if (!isMobile()) {
-    Beacon('init', '907003e9-12d8-4d63-ac3b-34356b2faec0');
+    Beacon("init", "907003e9-12d8-4d63-ac3b-34356b2faec0");
   }
 }

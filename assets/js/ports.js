@@ -21,7 +21,9 @@ export const attachPorts = app => {
     return { Authorization: "Bearer " + token };
   };
 
-  let phoenixSocket = createPhoenixSocket(socketParams, (...args) => console.log("[socket]", ...args));
+  let phoenixSocket = createPhoenixSocket(socketParams, (...args) =>
+    console.log("[socket]", ...args)
+  );
   let absintheSocket = createAbsintheSocket(phoenixSocket);
   let channels = {};
 
@@ -185,7 +187,7 @@ export const attachPorts = app => {
 
         let rect = anchor.getBoundingClientRect();
         let scrollTop = container.scrollTop + rect.top - offset;
-        window.scroll({top: scrollTop, left: 0, behavior: "smooth" });
+        window.scroll({ top: scrollTop, left: 0, behavior: "smooth" });
       } else {
         let container = document.getElementById(containerId);
         let anchor = document.getElementById(anchorId);
