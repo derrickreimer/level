@@ -142,17 +142,17 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
 setup : Globals -> Model -> Cmd Msg
 setup globals ({ postComp } as model) =
     Cmd.batch
-        [ Cmd.map PostComponentMsg (Component.Post.setup postComp)
+        [ Cmd.map PostComponentMsg (Component.Post.setup globals postComp)
         , recordView globals.session model
         , recordReplyViews globals model
         , Presence.join (viewingTopic model)
         ]
 
 
-teardown : Model -> Cmd Msg
-teardown ({ postComp } as model) =
+teardown : Globals -> Model -> Cmd Msg
+teardown globals ({ postComp } as model) =
     Cmd.batch
-        [ Cmd.map PostComponentMsg (Component.Post.teardown postComp)
+        [ Cmd.map PostComponentMsg (Component.Post.teardown globals postComp)
         , Presence.leave (viewingTopic model)
         ]
 

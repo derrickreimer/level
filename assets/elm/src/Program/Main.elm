@@ -557,7 +557,7 @@ transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
 transition model toMsg task =
     ( { model | isTransitioning = True }
     , Cmd.batch
-        [ teardownPage model.page
+        [ teardownPage (buildGlobals model) model.page
         , Cmd.map PageInitialized <| Task.attempt toMsg task
         ]
     )
@@ -783,8 +783,8 @@ setupPage pageInit model =
         InboxInit (Err _) ->
             ( model, Cmd.none )
 
-        PostsInit (Ok result) ->
-            perform Page.Posts.setup Posts PostsMsg model result
+        PostsInit (Ok ( newGlobals, pageModel )) ->
+            perform (Page.Posts.setup newGlobals) Posts PostsMsg model ( newGlobals, pageModel )
 
         PostsInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -828,8 +828,8 @@ setupPage pageInit model =
         GroupsInit (Err _) ->
             ( model, Cmd.none )
 
-        GroupInit (Ok result) ->
-            perform Page.Group.setup Group GroupMsg model result
+        GroupInit (Ok ( newGlobals, pageModel )) ->
+            perform (Page.Group.setup newGlobals) Group GroupMsg model ( newGlobals, pageModel )
 
         GroupInit (Err Session.Expired) ->
             ( model, Route.toLogin )
@@ -936,14 +936,17 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
 
-teardownPage : Page -> Cmd Msg
-teardownPage page =
+teardownPage : Globals -> Page -> Cmd Msg
+teardownPage globals page =
     case page of
         Spaces pageModel ->
             Cmd.map SpacesMsg (Page.Spaces.teardown pageModel)
 
         NewSpace pageModel ->
             Cmd.map NewSpaceMsg (Page.NewSpace.teardown pageModel)
+
+        Inbox pageModel ->
+            Cmd.map InboxMsg (Page.Inbox.teardown globals pageModel)
 
         SpaceUser pageModel ->
             Cmd.map SpaceUserMsg (Page.SpaceUser.teardown pageModel)
@@ -955,7 +958,7 @@ teardownPage page =
             Cmd.map InviteUsersMsg (Page.InviteUsers.teardown pageModel)
 
         Group pageModel ->
-            Cmd.map GroupMsg (Page.Group.teardown pageModel)
+            Cmd.map GroupMsg (Page.Group.teardown globals pageModel)
 
         NewGroupPost pageModel ->
             Cmd.map NewGroupPostMsg (Page.NewGroupPost.teardown pageModel)
@@ -970,10 +973,10 @@ teardownPage page =
             Cmd.map SpaceSettingsMsg (Page.Settings.teardown pageModel)
 
         Posts pageModel ->
-            Cmd.map PostsMsg (Page.Posts.teardown pageModel)
+            Cmd.map PostsMsg (Page.Posts.teardown globals pageModel)
 
         Post pageModel ->
-            Cmd.map PostMsg (Page.Post.teardown pageModel)
+            Cmd.map PostMsg (Page.Post.teardown globals pageModel)
 
         NewPost pageModel ->
             Cmd.map NewPostMsg (Page.NewPost.teardown pageModel)
@@ -1462,7 +1465,7 @@ sendEventToPage globals event model =
 
         Group pageModel ->
             pageModel
-                |> Page.Group.consumeEvent event model.session
+                |> Page.Group.consumeEvent globals event
                 |> updatePage Group GroupMsg model
 
         NewGroupPost pageModel ->

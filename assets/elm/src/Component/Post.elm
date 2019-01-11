@@ -1,4 +1,4 @@
-module Component.Post exposing (Model, Msg(..), ViewConfig, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, postNodeId, setup, teardown, update, view)
+module Component.Post exposing (Model, Msg(..), ViewConfig, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, markVisibleRepliesAsViewed, postNodeId, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -109,13 +109,16 @@ init spaceId postId replyIds =
         False
 
 
-setup : Model -> Cmd Msg
-setup model =
-    PostSubscription.subscribe model.postId
+setup : Globals -> Model -> Cmd Msg
+setup globals model =
+    Cmd.batch
+        [ PostSubscription.subscribe model.postId
+        , markVisibleRepliesAsViewed globals model
+        ]
 
 
-teardown : Model -> Cmd Msg
-teardown model =
+teardown : Globals -> Model -> Cmd Msg
+teardown globals model =
     PostSubscription.unsubscribe model.postId
 
 

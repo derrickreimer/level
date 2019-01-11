@@ -160,8 +160,8 @@ buildPostComponent spaceId ( postId, replyIds ) =
     Component.Post.init spaceId postId replyIds
 
 
-setup : Model -> Cmd Msg
-setup model =
+setup : Globals -> Model -> Cmd Msg
+setup globals model =
     let
         pageCmd =
             Cmd.batch
@@ -171,7 +171,7 @@ setup model =
 
         postsCmd =
             Connection.toList model.postComps
-                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.setup post))
+                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.setup globals post))
                 |> Cmd.batch
     in
     Cmd.batch
@@ -181,15 +181,15 @@ setup model =
         ]
 
 
-teardown : Model -> Cmd Msg
-teardown model =
+teardown : Globals -> Model -> Cmd Msg
+teardown globals model =
     let
         pageCmd =
             teardownSockets model.groupId
 
         postsCmd =
             Connection.toList model.postComps
-                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.teardown post))
+                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.teardown globals post))
                 |> Cmd.batch
     in
     Cmd.batch [ pageCmd, postsCmd ]
@@ -725,8 +725,8 @@ expandSearchEditor globals model =
 -- EVENTS
 
 
-consumeEvent : Event -> Session -> Model -> ( Model, Cmd Msg )
-consumeEvent event session model =
+consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
+consumeEvent globals event model =
     case event of
         Event.GroupBookmarked group ->
             ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
@@ -737,7 +737,7 @@ consumeEvent event session model =
         Event.SubscribedToGroup group ->
             if Group.id group == model.groupId then
                 ( model
-                , FeaturedMemberships.request model.groupId session
+                , FeaturedMemberships.request model.groupId globals.session
                     |> Task.attempt FeaturedMembershipsRefreshed
                 )
 
@@ -747,7 +747,7 @@ consumeEvent event session model =
         Event.UnsubscribedFromGroup group ->
             if Group.id group == model.groupId then
                 ( model
-                , FeaturedMemberships.request model.groupId session
+                , FeaturedMemberships.request model.groupId globals.session
                     |> Task.attempt FeaturedMembershipsRefreshed
                 )
 
@@ -768,7 +768,7 @@ consumeEvent event session model =
                     && List.member model.groupId (Post.groupIds post)
             then
                 ( { model | postComps = Connection.prepend .id postComp model.postComps }
-                , Cmd.map (PostComponentMsg <| Post.id post) (Component.Post.setup postComp)
+                , Cmd.map (PostComponentMsg <| Post.id post) (Component.Post.setup globals postComp)
                 )
 
             else

@@ -132,31 +132,31 @@ buildPostComponent spaceId ( postId, replyIds ) =
     Component.Post.init spaceId postId replyIds
 
 
-setup : Model -> Cmd Msg
-setup model =
+setup : Globals -> Model -> Cmd Msg
+setup globals model =
     let
-        postsCmd =
+        setupPostsCmd =
             model.postComps
                 |> Connection.toList
-                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
+                |> List.map (\comp -> Cmd.map (PostComponentMsg comp.id) (Component.Post.setup globals comp))
                 |> Cmd.batch
     in
     Cmd.batch
-        [ postsCmd
+        [ setupPostsCmd
         , Scroll.toDocumentTop NoOp
         ]
 
 
-teardown : Model -> Cmd Msg
-teardown model =
+teardown : Globals -> Model -> Cmd Msg
+teardown globals model =
     let
-        postsCmd =
+        teardownPostsCmd =
             model.postComps
                 |> Connection.toList
-                |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
+                |> List.map (\comp -> Cmd.map (PostComponentMsg comp.id) (Component.Post.teardown globals comp))
                 |> Cmd.batch
     in
-    postsCmd
+    teardownPostsCmd
 
 
 

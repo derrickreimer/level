@@ -147,7 +147,7 @@ setup globals model =
         postsCmd =
             model.postComps
                 |> Connection.toList
-                |> setupPostComps
+                |> setupPostComps globals
     in
     Cmd.batch
         [ postsCmd
@@ -156,28 +156,28 @@ setup globals model =
         ]
 
 
-teardown : Model -> Cmd Msg
-teardown model =
+teardown : Globals -> Model -> Cmd Msg
+teardown globals model =
     let
         postsCmd =
             model.postComps
                 |> Connection.toList
-                |> teardownPostComps
+                |> teardownPostComps globals
     in
     postsCmd
 
 
-setupPostComps : List Component.Post.Model -> Cmd Msg
-setupPostComps comps =
+setupPostComps : Globals -> List Component.Post.Model -> Cmd Msg
+setupPostComps globals comps =
     comps
-        |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.setup c))
+        |> List.map (\comp -> Cmd.map (PostComponentMsg comp.id) (Component.Post.setup globals comp))
         |> Cmd.batch
 
 
-teardownPostComps : List Component.Post.Model -> Cmd Msg
-teardownPostComps comps =
+teardownPostComps : Globals -> List Component.Post.Model -> Cmd Msg
+teardownPostComps globals comps =
     comps
-        |> List.map (\c -> Cmd.map (PostComponentMsg c.id) (Component.Post.teardown c))
+        |> List.map (\comp -> Cmd.map (PostComponentMsg comp.id) (Component.Post.teardown globals comp))
         |> Cmd.batch
 
 
@@ -290,7 +290,7 @@ update msg globals model =
             let
                 ( newModel, cmd ) =
                     if Route.Inbox.getState model.params == Route.Inbox.Undismissed then
-                        List.foldr removePost ( model, Cmd.none ) posts
+                        List.foldr (removePost globals) ( model, Cmd.none ) posts
 
                     else
                         ( model, Cmd.none )
@@ -319,10 +319,10 @@ update msg globals model =
                     Connection.diff .id newPostComps model.postComps
 
                 setupCmds =
-                    setupPostComps addedComps
+                    setupPostComps globals addedComps
 
                 teardownCmds =
-                    teardownPostComps removedComps
+                    teardownPostComps globals removedComps
             in
             ( ( { model | postComps = newPostComps }
               , Cmd.batch [ setupCmds, teardownCmds ]
@@ -411,8 +411,8 @@ expandSearchEditor globals model =
     )
 
 
-removePost : Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-removePost post ( model, cmd ) =
+removePost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+removePost globals post ( model, cmd ) =
     case Connection.get .id (Post.id post) model.postComps of
         Just postComp ->
             let
@@ -421,7 +421,7 @@ removePost post ( model, cmd ) =
 
                 teardownCmd =
                     Cmd.map (PostComponentMsg postComp.id)
-                        (Component.Post.teardown postComp)
+                        (Component.Post.teardown globals postComp)
 
                 newCmd =
                     Cmd.batch [ cmd, teardownCmd ]
@@ -465,7 +465,7 @@ consumeEvent event globals model =
 
         Event.PostsDismissed posts ->
             if Route.Inbox.getState model.params == Route.Inbox.Undismissed then
-                List.foldr removePost ( model, Cmd.none ) posts
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
 
             else
                 ( model, Cmd.none )
