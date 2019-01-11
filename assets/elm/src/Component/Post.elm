@@ -1041,7 +1041,6 @@ inboxButton post =
                 , attribute "data-tooltip" "Dismiss from inbox"
                 ]
                 [ span [ class "inline-block" ] [ Icons.inbox Icons.On ]
-                , span [ class "ml-1 hidden sm:inline" ] [ text "Inboxed" ]
                 ]
     in
     case Post.inboxState post of
