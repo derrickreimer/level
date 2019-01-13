@@ -93,8 +93,8 @@ decoder =
         (Decode.succeed Data
             |> Pipeline.custom SpaceUser.decoder
             |> Pipeline.custom (Decode.field "space" Space.decoder)
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "groups", "edges" ] (Decode.list (Decode.field "node" Group.decoder)))
-            |> Pipeline.custom (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (Decode.list (Decode.field "node" SpaceUser.decoder)))
+            |> Pipeline.custom (Decode.at [ "space", "groups", "edges" ] (Decode.list (Decode.field "node" Group.decoder)))
+            |> Pipeline.custom (Decode.at [ "space", "spaceUsers", "edges" ] (Decode.list (Decode.field "node" SpaceUser.decoder)))
             |> Pipeline.custom (Decode.field "bookmarks" (Decode.list Group.decoder))
             |> Pipeline.custom (Decode.at [ "space", "search" ] (OffsetConnection.decoder ResolvedSearchResult.decoder))
         )

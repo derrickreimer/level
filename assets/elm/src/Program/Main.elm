@@ -910,7 +910,7 @@ setupPage pageInit model =
         SearchInit (Err Session.Expired) ->
             ( model, Route.toLogin )
 
-        SearchInit (Err err) ->
+        SearchInit (Err _) ->
             ( model, Cmd.none )
 
         WelcomeTutorialInit (Ok result) ->
