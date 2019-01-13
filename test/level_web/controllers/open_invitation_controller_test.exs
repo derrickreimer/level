@@ -15,7 +15,7 @@ defmodule LevelWeb.OpenInvitationControllerTest do
         conn
         |> get("/invites/#{invitation.token}")
 
-      assert html_response(conn, 200) =~ "Join the Acme space"
+      assert html_response(conn, 200) =~ "Join the Acme team"
     end
 
     test "renders 404 if invitation is revoked", %{conn: conn, open_invitation: invitation} do
