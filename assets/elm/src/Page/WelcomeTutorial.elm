@@ -561,7 +561,7 @@ stepView device step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "#channels keep things organized." ]
-                , p [ class "mb-6" ] [ text "When composing a message, include a #hashtag for all the Channels where you want your post to appear." ]
+                , p [ class "mb-6" ] [ text "Use #hashtags in your posts to specify which Channels they should appear in." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -571,7 +571,7 @@ stepView device step model data =
         3 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "@mentions indicate who should take action on a post." ]
-                , p [ class "mb-6" ] [ text "It's best to be explicit about who needs to see or respond to a message. When you @-mention someone, Level places the post in their Inbox." ]
+                , p [ class "mb-6" ] [ text "When you @-mention someone, Level places the post in their Inbox (so they will definitely see it). It's best to be diligent about mentioning the right people, so that no one feels pressure keep up with every conversation." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -581,8 +581,7 @@ stepView device step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your personal to-do list." ]
-                , p [ class "mb-6" ] [ text "When some @-mentions you, that post will make its way into your Inbox and stay until you dismiss it." ]
-                , p [ class "mb-6" ] [ text "A green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon at the top of a post indicates that it’s in your Inbox. Once you are finished with a post, can click the green icon to dismiss it from your Inbox." ]
+                , p [ class "mb-6" ] [ text "Posts that end up in your Inbox (indicated by a green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon) will stay there until you dismiss them. Once you are finished with a post, click the icon to dismiss it from your Inbox." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -592,7 +591,7 @@ stepView device step model data =
         5 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed is a timeline of posts in your channels." ]
-                , p [ class "mb-6" ] [ text "When you subscribe to a Channel, its posts will appear in your Feed. It's a good idea to periodically peruse the Feed, but you shouldn't feel obligated to see everything there." ]
+                , p [ class "mb-6" ] [ text "All posts from the Channels you subscribe to appear in your Feed. It's a good idea to periodically peruse the Feed, but you shouldn't feel obligated to see everything there." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
