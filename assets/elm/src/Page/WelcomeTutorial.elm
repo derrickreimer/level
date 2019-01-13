@@ -581,6 +581,7 @@ stepView device step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your personal to-do list." ]
+                , p [ class "mb-6" ] [ text "When some @-mentions you, that post will make its way into your Inbox and stay until you dismiss it." ]
                 , p [ class "mb-6" ] [ text "A green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon at the top of a post indicates that it’s in your Inbox. Once you are finished with a post, can click the green icon to dismiss it from your Inbox." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
