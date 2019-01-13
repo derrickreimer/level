@@ -560,7 +560,7 @@ stepView device step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Channels keep things organized." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "#channels keep things organized." ]
                 , p [ class "mb-6" ] [ text "When composing a message, include a #hashtag for all the Channels where you want your post to appear." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
@@ -570,7 +570,7 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Use @mentions to indicate who should take action on a post." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "@mentions indicate who should take action on a post." ]
                 , p [ class "mb-6" ] [ text "It's best to be explicit about who needs to see or respond to a message. When you @-mention someone, Level places the post in their Inbox." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
@@ -590,7 +590,7 @@ stepView device step model data =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed aggregates all your Channels." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed is a timeline of posts in your channels." ]
                 , p [ class "mb-6" ] [ text "When you subscribe to a Channel, its posts will appear in your Feed. It's a good idea to periodically peruse the Feed, but you shouldn't feel obligated to see everything there." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
