@@ -560,8 +560,8 @@ stepView device step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "#channels keep things organized." ]
-                , p [ class "mb-6" ] [ text "Use #hashtags in your posts to specify which Channels they should appear in." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Channels keep things organized." ]
+                , p [ class "mb-6" ] [ text "When writing a post, you can tag one or more Channels (using the #hashtag syntax) to categorize your message." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -570,8 +570,8 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "@mentions indicate who should take action on a post." ]
-                , p [ class "mb-6" ] [ text "When you @-mention someone, Level places the post in their Inbox (so they will definitely see it). It's best to be diligent about mentioning the right people, so that no one feels pressure keep up with every conversation." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "@mentions ensure the right people see the message." ]
+                , p [ class "mb-6" ] [ text "When you @-mention someone, the post automatically moves into their Inbox so they are sure to see it. It's a good idea to always tag people who need to see or take action on a post." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -581,7 +581,7 @@ stepView device step model data =
         4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your personal to-do list." ]
-                , p [ class "mb-6" ] [ text "Posts that end up in your Inbox (indicated by a green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon) will stay there until you dismiss them. Once you are finished with a post, click the icon to dismiss it from your Inbox." ]
+                , p [ class "mb-6" ] [ text "Posts flow into your Inbox when you are @mentioned. It's best to dismiss posts from your Inbox once you are finished with them (by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon or using a keyboard shortcut)." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -590,8 +590,8 @@ stepView device step model data =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed is a timeline of posts in your channels." ]
-                , p [ class "mb-6" ] [ text "All posts from the Channels you subscribe to appear in your Feed. It's a good idea to periodically peruse the Feed, but you shouldn't feel obligated to see everything there." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed aggregates all your Channels." ]
+                , p [ class "mb-6" ] [ text "When you subscribe to a Channel, its posts will show up in your Feed. It's a good idea to periodically skim through the Feed, but you'd shouldn't feel obligated to see every post." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -621,7 +621,7 @@ stepView device step model data =
         8 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
-                , p [ class "mb-6" ] [ text "Power users rejoice! Level comes loaded with many of the powerful keyboard shortcuts you already know and love. " ]
+                , p [ class "mb-6" ] [ text "Power users rejoice! Level comes loaded with many of the keyboard shortcuts you already know and love. " ]
                 , p [ class "mb-6" ]
                     [ text "Press "
                     , code [ class "mx-1 px-3 py-1 rounded bg-grey font-bold" ] [ text "?" ]
