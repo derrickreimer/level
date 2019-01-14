@@ -590,8 +590,8 @@ stepView device step model data =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed aggregates all your Channels." ]
-                , p [ class "mb-6" ] [ text "When you subscribe to a Channel, its posts will show up in your Feed. It's a good idea to periodically skim through the Feed, but you'd shouldn't feel obligated to see every post." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed keeps you in the loop." ]
+                , p [ class "mb-6" ] [ text "All posts from the Channels you subscribe to appear in you Feed. It's a good idea to periodically skim through it, but you shouldn't feel obligated to see everything there." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
