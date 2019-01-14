@@ -260,7 +260,7 @@ resolvedView globals model data =
                         ]
                     ]
                 ]
-            , resultsView globals.repo model.params model.now data.resolvedSearchResults
+            , resultsView globals.repo model.params model.now data
             ]
         ]
 
@@ -291,31 +291,31 @@ queryEditorView editor =
         }
 
 
-resultsView : Repo -> Params -> ( Zone, Posix ) -> OffsetConnection ResolvedSearchResult -> Html Msg
-resultsView repo params now taggedResults =
-    if OffsetConnection.isEmptyAndExpanded taggedResults then
+resultsView : Repo -> Params -> ( Zone, Posix ) -> Data -> Html Msg
+resultsView repo params now data =
+    if OffsetConnection.isEmptyAndExpanded data.resolvedSearchResults then
         div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
             [ text "This search turned up no results!" ]
 
     else
-        taggedResults
+        data.resolvedSearchResults
             |> OffsetConnection.toList
-            |> List.map (resultView repo params now)
+            |> List.map (resultView repo params now data)
             |> div []
 
 
-resultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedSearchResult -> Html Msg
-resultView repo params now taggedResult =
+resultView : Repo -> Params -> ( Zone, Posix ) -> Data -> ResolvedSearchResult -> Html Msg
+resultView repo params now data taggedResult =
     case taggedResult of
         ResolvedSearchResult.Post result ->
-            postResultView repo params now result
+            postResultView repo params now data result
 
         ResolvedSearchResult.Reply result ->
-            replyResultView repo params now result
+            replyResultView repo params now data result
 
 
-postResultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedPostSearchResult -> Html Msg
-postResultView repo params now resolvedResult =
+postResultView : Repo -> Params -> ( Zone, Posix ) -> Data -> ResolvedPostSearchResult -> Html Msg
+postResultView repo params now data resolvedResult =
     let
         postRoute =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
@@ -325,9 +325,9 @@ postResultView repo params now resolvedResult =
         , div [ class "flex-grow min-w-0 leading-semi-loose" ]
             [ div []
                 [ authorLabel postRoute resolvedResult.resolvedPost.author
-                , groupsLabel params resolvedResult.resolvedPost.groups
                 , timestampLabel postRoute now (Post.postedAt resolvedResult.resolvedPost.post)
                 ]
+            , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand postRoute
                 [ div [ class "markdown mb-2" ]
                     [ RenderedHtml.node
@@ -340,8 +340,8 @@ postResultView repo params now resolvedResult =
         ]
 
 
-replyResultView : Repo -> Params -> ( Zone, Posix ) -> ResolvedReplySearchResult -> Html Msg
-replyResultView repo params now resolvedResult =
+replyResultView : Repo -> Params -> ( Zone, Posix ) -> Data -> ResolvedReplySearchResult -> Html Msg
+replyResultView repo params now data resolvedResult =
     let
         replyRoute =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
@@ -352,9 +352,9 @@ replyResultView repo params now resolvedResult =
             [ div []
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
                 , authorLabel replyRoute resolvedResult.resolvedReply.author
-                , groupsLabel params resolvedResult.resolvedPost.groups
                 , timestampLabel replyRoute now (Reply.postedAt resolvedResult.resolvedReply.reply)
                 ]
+            , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand replyRoute
                 [ div [ class "markdown mb-2" ]
                     [ RenderedHtml.node
@@ -392,20 +392,27 @@ timestampLabel route (( zone, _ ) as now) time =
         ]
 
 
-groupsLabel : Params -> List Group -> Html Msg
-groupsLabel params groups =
-    case groups of
-        [ group ] ->
-            span [ class "ml-3 text-sm text-dusty-blue" ]
-                [ a
-                    [ Route.href (Route.Group (Route.Group.init (Route.Search.getSpaceSlug params) (Group.name group)))
-                    , class "no-underline text-dusty-blue font-bold whitespace-no-wrap"
-                    ]
-                    [ text (Group.name group) ]
+groupsLabel : Space -> List Group -> Html Msg
+groupsLabel space groups =
+    let
+        groupLink group =
+            a
+                [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.name group)))
+                , class "mr-1 no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
                 ]
+                [ text ("#" ++ Group.name group) ]
 
-        _ ->
-            text ""
+        groupLinks =
+            List.map groupLink groups
+    in
+    if List.isEmpty groups then
+        text ""
+
+    else
+        div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
+            [ text "Posted to "
+            , span [] groupLinks
+            ]
 
 
 clickToExpand : Route -> List (Html Msg) -> Html Msg
