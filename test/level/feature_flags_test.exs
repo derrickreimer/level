@@ -3,14 +3,16 @@ defmodule Level.FeatureFlagsTest do
 
   alias Level.FeatureFlags
 
-  describe "signups_enabled?/1" do
-    test "is true in non-prod environments" do
-      assert FeatureFlags.signups_enabled?(:test)
-      assert FeatureFlags.signups_enabled?(:dev)
+  describe "signups_enabled?/2" do
+    test "is true if enabled, regardless of key" do
+      assert FeatureFlags.signups_enabled?(%{enabled: true, key: "foo"}, nil)
+      assert FeatureFlags.signups_enabled?(%{enabled: true, key: "bar"}, "foo")
     end
 
-    test "is false in prod" do
-      refute FeatureFlags.signups_enabled?(:prod)
+    test "is false if not enabled and keys don't match" do
+      refute FeatureFlags.signups_enabled?(%{enabled: false, key: "foo"}, nil)
+      refute FeatureFlags.signups_enabled?(%{enabled: false, key: "foo"}, "bar")
+      assert FeatureFlags.signups_enabled?(%{enabled: false, key: "foo"}, "foo")
     end
   end
 end

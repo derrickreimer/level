@@ -39,16 +39,14 @@ defmodule LevelWeb.UserController do
   end
 
   defp check_feature_flag(conn, _opts) do
-    if signups_enabled?(env()) do
+    config = Application.get_env(:level, :signups)
+
+    if signups_enabled?(config, conn.params["key"]) do
       conn
     else
       conn
       |> redirect(to: page_path(conn, :index))
       |> halt()
     end
-  end
-
-  defp env do
-    Application.get_env(:level, :env)
   end
 end

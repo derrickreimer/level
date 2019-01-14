@@ -33,12 +33,10 @@
           <%= submit gettext("Sign in"), class: "btn btn-blue w-full" %>
         </div>
 
-        <%= if @signups_enabled do %>
-          <div class="px-8 pt-6 text-sm text-dusty-blue-dark text-center">
-            <%= gettext "Don't have an account?" %>
-            <%= link gettext("Sign up free"), to: user_path(@conn, :new), class: "text-blue" %>
-          </div>
-        <% end %>
+        <div class="px-8 pt-6 text-sm text-dusty-blue-dark text-center">
+          <%= gettext "Don't have an account?" %>
+          <%= link gettext("Sign up free"), to: user_path(@conn, :new), class: "text-blue" %>
+        </div>
 
         <div class="px-8 pt-6 pb-24 text-sm text-dusty-blue-dark text-center">
           <%= gettext "I forgot my password." %>

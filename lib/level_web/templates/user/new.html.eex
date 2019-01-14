@@ -7,6 +7,8 @@
 
   <div class="mx-auto max-w-400px px-8 pb-16">
     <%= form_for @changeset, user_path(@conn, :create), fn f -> %>
+      <input type="hidden" name="key" value="<%= @conn.params["key"] %>" />
+
       <div class="pb-4 max-w-xs <%= error_shake(@changeset) %>">
         <h1 class="mb-6 text-3xl tracking-semi-tight font-bold">Sign up for Level</h1>
 

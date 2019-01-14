@@ -3,6 +3,7 @@ defmodule Level.FeatureFlags do
   Feature flags.
   """
 
-  def signups_enabled?(:prod), do: false
-  def signups_enabled?(_), do: true
+  def signups_enabled?(config, key) do
+    config[:enabled] || key == config[:key]
+  end
 end

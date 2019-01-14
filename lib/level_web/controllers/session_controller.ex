@@ -3,12 +3,10 @@ defmodule LevelWeb.SessionController do
 
   use LevelWeb, :controller
 
-  alias Level.FeatureFlags
   alias LevelWeb.Auth
 
   plug :fetch_current_user_by_session
   plug :redirect_if_signed_in when action in [:new, :create]
-  plug :put_feature_flags
 
   def new(conn, _params) do
     conn
@@ -51,14 +49,5 @@ defmodule LevelWeb.SessionController do
     conn
     |> put_flash(:info, "You're signed out!")
     |> redirect(to: session_path(conn, :new))
-  end
-
-  defp put_feature_flags(conn, _opts) do
-    conn
-    |> assign(:signups_enabled, FeatureFlags.signups_enabled?(env()))
-  end
-
-  defp env do
-    Application.get_env(:level, :env)
   end
 end
