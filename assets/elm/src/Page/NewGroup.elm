@@ -287,7 +287,7 @@ resolvedMobileView globals model data =
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
-            , title = "Create a group"
+            , title = "Create a channel"
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled
@@ -318,26 +318,40 @@ resolvedMobileView globals model data =
 
 subheading : String
 subheading =
-    "Channels represent topics, such as teams within your organization or projects you are working on."
+    "Channels can be used to categorize anything, such as teams within your organization or projects you are working on."
 
 
 fieldsView : Model -> Html Msg
 fieldsView model =
     div []
         [ div [ class "pb-6" ]
-            [ label [ for "name", class "input-label" ] [ text "Name of this channel" ]
-            , input
-                [ id "name"
-                , type_ "text"
-                , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "name" model.errors ) ]
-                , name "name"
-                , placeholder "e.g. engineering"
-                , value model.name
-                , onInput NameChanged
-                , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
-                , disabled model.isSubmitting
+            [ label [ for "name", class "input-label" ] [ text "Name the channel" ]
+            , div
+                [ classList
+                    [ ( "input-field inline-flex leading-none items-baseline", True )
+                    , ( "input-field-error", isInvalid "name" model.errors )
+                    ]
                 ]
-                []
+                [ label
+                    [ for "name"
+                    , class "mr-1 flex-none text-dusty-blue select-none font-bold"
+                    ]
+                    [ text "#" ]
+                , div [ class "flex-1" ]
+                    [ input
+                        [ id "handle"
+                        , type_ "text"
+                        , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                        , name "name"
+                        , placeholder "my-new-channel"
+                        , value model.name
+                        , onInput NameChanged
+                        , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
+                        , disabled model.isSubmitting
+                        ]
+                        []
+                    ]
+                ]
             , errorView "name" model.errors
             ]
 
