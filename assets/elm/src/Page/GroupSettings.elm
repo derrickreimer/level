@@ -441,7 +441,7 @@ generalView model data =
                 ]
                 []
             , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Add people to this channel by default" ]
+            , span [ class "select-none" ] [ text "Auto-subscribe new members to this channel" ]
             ]
         ]
 

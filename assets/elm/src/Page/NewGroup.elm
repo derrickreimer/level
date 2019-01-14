@@ -38,7 +38,7 @@ type alias Model =
     , spaceId : Id
     , bookmarkIds : List Id
     , name : String
-    , isPrivate : Bool
+    , isDefault : Bool
     , isSubmitting : Bool
     , errors : List ValidationError
 
@@ -125,7 +125,7 @@ teardown model =
 type Msg
     = NoOp
     | NameChanged String
-    | PrivacyToggled
+    | DefaultToggled
     | Submit
     | Submitted (Result Session.Error ( Session, CreateGroup.Response ))
       -- MOBILE
@@ -153,7 +153,7 @@ update msg globals navKey model =
             let
                 cmd =
                     globals.session
-                        |> CreateGroup.request model.spaceId model.name model.isPrivate
+                        |> CreateGroup.request model.spaceId model.name model.isDefault
                         |> Task.attempt Submitted
             in
             ( ( { model | isSubmitting = True }, cmd ), globals )
@@ -176,8 +176,8 @@ update msg globals navKey model =
         Submitted (Err _) ->
             noCmd globals model
 
-        PrivacyToggled ->
-            noCmd globals { model | isPrivate = not model.isPrivate }
+        DefaultToggled ->
+            noCmd globals { model | isDefault = not model.isDefault }
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -354,18 +354,15 @@ fieldsView model =
                 ]
             , errorView "name" model.errors
             ]
-
-        -- Hide this while group privacy controls are disabled
-        , viewIf False <|
-            label [ class "control checkbox pb-6" ]
-                [ input
-                    [ type_ "checkbox"
-                    , class "checkbox"
-                    , onClick PrivacyToggled
-                    , checked model.isPrivate
-                    ]
-                    []
-                , span [ class "control-indicator" ] []
-                , span [ class "select-none" ] [ text "Make this channel private (invite only)" ]
+        , label [ class "control checkbox pb-6" ]
+            [ input
+                [ type_ "checkbox"
+                , class "checkbox"
+                , onClick DefaultToggled
+                , checked model.isDefault
                 ]
+                []
+            , span [ class "control-indicator" ] []
+            , span [ class "select-none" ] [ text "Auto-subscribe new members to this channel" ]
+            ]
         ]
