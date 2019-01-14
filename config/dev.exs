@@ -56,6 +56,11 @@ config :level, Level.WebPush,
   retry_timeout: 1000,
   max_attempts: 5
 
+# Signup-related configuration
+config :level, :signups,
+  enabled: true,
+  key: ""
+
 # Import secrets not tracked under version control.
 # Use config/secret_template.exs as a starting point.
 import_config "dev.secret.exs"

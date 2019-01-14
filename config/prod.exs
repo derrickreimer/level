@@ -45,6 +45,11 @@ config :level, Level.WebPush,
   retry_timeout: 1000,
   max_attempts: 5
 
+# Signup-related configuration
+config :level, :signups,
+  enabled: System.get_env("LEVEL_SIGNUPS_ENABLED") == "1",
+  key: System.get_env("LEVEL_SIGNUP_KEY")
+
 # Configure browser push notifications
 config :web_push_encryption, :vapid_details,
   subject: "https://level.app",

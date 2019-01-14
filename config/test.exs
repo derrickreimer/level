@@ -44,6 +44,11 @@ config :level, Level.WebPush,
   retry_timeout: 0,
   max_attempts: 3
 
+# Signup-related configuration
+config :level, :signups,
+  enabled: true,
+  key: ""
+
 # Configure web push notifications
 config :web_push_encryption, :vapid_details,
   subject: "https://level.app",
