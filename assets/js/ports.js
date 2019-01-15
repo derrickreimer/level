@@ -348,6 +348,14 @@ export const attachPorts = app => {
     logEvent("beaconOut")(args);
 
     switch (args.method) {
+      case "init":
+        Beacon("init", "907003e9-12d8-4d63-ac3b-34356b2faec0");
+        break;
+
+      case "destroy":
+        Beacon("destroy");
+        break;
+
       case "open":
         Beacon("open");
         break;

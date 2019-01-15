@@ -102,12 +102,12 @@ buildModel params globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Cmd.none
+    Beacon.init
 
 
 teardown : Model -> Cmd Msg
 teardown model =
-    Cmd.none
+    Beacon.destroy
 
 
 
@@ -221,7 +221,7 @@ resolvedDesktopView globals model data =
                             [ Route.href <| Route.WelcomeTutorial (Route.WelcomeTutorial.init (Route.Help.getSpaceSlug model.params) 1)
                             , class "no-underline"
                             ]
-                            [ h2 [ class "mb-1 block text-xl text-blue-dark font-bold tracking-semi-tight" ] [ text "How Level Works" ]
+                            [ h2 [ class "block text-xl text-blue-dark font-bold tracking-semi-tight leading-semi-loose" ] [ text "How Level Works" ]
                             , p [ class "text-dusty-blue-dark text-base" ] [ text "Get up to speed quickly on key concepts." ]
                             ]
                         ]
