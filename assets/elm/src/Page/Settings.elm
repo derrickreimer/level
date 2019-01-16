@@ -77,13 +77,6 @@ resolveData repo model =
         (Just <| Repo.getGroups model.bookmarkIds repo)
 
 
-nudgeIntervals : List Int
-nudgeIntervals =
-    List.range 12 40
-        |> List.map ((*) 30)
-
-
-
 -- PAGE PROPERTIES
 
 
@@ -476,7 +469,7 @@ nudgesView device model data =
     in
     div [ class "mb-8" ]
         [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Notifications" ]
-        , p [ class "mb-4" ] [ text "Configure when Level should notify you about new messages in your Inbox." ]
+        , p [ class "mb-4" ] [ text "Configure when Level should email you about new messages in your Inbox." ]
         , viewIf (device == Device.Desktop) (View.Nudges.desktopView config)
         , viewIf (device == Device.Mobile) (View.Nudges.mobileView config)
         ]
@@ -486,7 +479,7 @@ digestsView : Model -> Data -> Html Msg
 digestsView model data =
     div []
         [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Daily Summary" ]
-        , p [ class "mb-6" ] [ text "The Daily Summary reminds you what's waiting in your Inbox and summarizes other conversations that might be of interest to you." ]
+        , p [ class "mb-6" ] [ text "This email reminds you what's in your Inbox and summarizes your Feed." ]
         , label [ class "control checkbox pb-6" ]
             [ input
                 [ type_ "checkbox"

@@ -222,7 +222,7 @@ resolvedDesktopView globals model data =
                             , class "no-underline"
                             ]
                             [ h2 [ class "block text-xl text-blue-dark font-bold tracking-semi-tight leading-semi-loose" ] [ text "How Level Works" ]
-                            , p [ class "text-dusty-blue-dark text-base" ] [ text "Learn the essentials about the product works." ]
+                            , p [ class "text-dusty-blue-dark text-base" ] [ text "Learn the essentials about how the product works." ]
                             ]
                         ]
                     ]
