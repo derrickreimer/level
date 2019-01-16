@@ -60,7 +60,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Create a Team"
+    "Create a team"
 
 
 
