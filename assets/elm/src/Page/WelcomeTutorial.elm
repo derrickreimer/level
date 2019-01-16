@@ -88,7 +88,7 @@ defaultGroups =
 
 stepCount : Int
 stepCount =
-    9
+    8
 
 
 
@@ -560,8 +560,8 @@ stepView device step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Tag one or more Channels to organize messages." ]
-                , p [ class "mb-6" ] [ text "Channels in Level work like hashtags on social apps. When you tag a Channel, your message will automatically appear in that Channel's feed." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Channels keep messages organized." ]
+                , p [ class "mb-6" ] [ text "Channels work like hashtags in social apps. When you tag a Channel, your message will automatically appear in that Channel's feed." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -570,18 +570,8 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Tag the right people using Mentions." ]
-                , p [ class "mb-6" ] [ text "When you @-mention someone, the message will drop into their Inbox. It's a good idea to @-mention anyone who needs to see or take action on a post." ]
-                , div []
-                    [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
-                    , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
-                    ]
-                ]
-
-        4 ->
-            div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your to-do list for conversations." ]
-                , p [ class "mb-6" ] [ text "Posts that land in your Inbox stay there until you dismiss them." ]
+                , p [ class "mb-6" ] [ text "When someone @-mentions you or new activity occurs on a post you've interacted with, that post will move into your Inbox." ]
                 , p [ class "mb-6" ] [ text "It's best to dismiss posts from your Inbox once you are finished by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon (or using a keyboard shortcut)."]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
@@ -589,7 +579,7 @@ stepView device step model data =
                     ]
                 ]
 
-        5 ->
+        4 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed helps you stay in the loop." ]
                 , p [ class "mb-6" ] [ text "All posts from the Channels you subscribe to appear in you Feed. It's a good idea to periodically skim through it, but you shouldn't feel obligated to see everything there." ]
@@ -599,7 +589,7 @@ stepView device step model data =
                     ]
                 ]
 
-        6 ->
+        5 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
                 , p [ class "mb-6" ] [ text "Instead of constantly interrupting you with push notifications, Level batches up your notifications and emails them to you at customizable times of the day." ]
@@ -609,7 +599,7 @@ stepView device step model data =
                     ]
                 ]
 
-        7 ->
+        6 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
                 , p [ class "mb-6" ] [ text "Just because you're signed into Level doesn't mean you're available to talk. For that reason, Level does not track who’s currently online." ]
@@ -619,7 +609,7 @@ stepView device step model data =
                     ]
                 ]
 
-        8 ->
+        7 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Command the interface with your keyboard." ]
                 , p [ class "mb-6" ] [ text "Power users rejoice! Level comes loaded with many of the keyboard shortcuts you already know and love. " ]
@@ -634,7 +624,7 @@ stepView device step model data =
                     ]
                 ]
 
-        9 ->
+        8 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "We’re here to help." ]
                 , p [ class "mb-6" ] [ text "To access the knowledgebase or contact support, just click Help in the left sidebar. Don’t hesitate to reach out! " ]
