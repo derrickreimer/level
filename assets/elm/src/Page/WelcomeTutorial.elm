@@ -551,8 +551,8 @@ stepView device step model data =
                     [ div [] [ text "Welcome to Level," ]
                     , div [] [ text <| SpaceUser.firstName data.viewer, text "!" ]
                     ]
-                , p [ class "mb-6" ] [ text "Level works a little differently than real-time chat. This quick tutorial will get you up to speed!" ]
-                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Get started" ] ]
+                , p [ class "mb-6" ] [ text "This quick tutorial will walk you through the basic concepts. Don't worry about trying to remember everything! You can always revisit it later in the Help menu." ]
+                , div [ class "mb-4 pb-6 border-b" ] [ button [ class "btn btn-blue", onClick Advance ] [ text "Let's get started" ] ]
                 , button [ onClick SkipClicked, class "flex items-center text-sm text-dusty-blue no-underline" ]
                     [ span [ class "mr-2" ] [ text "Already know Level? Skip the tutorial" ]
                     ]
@@ -560,8 +560,8 @@ stepView device step model data =
 
         2 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Channels keep things organized." ]
-                , p [ class "mb-6" ] [ text "When writing a post, you can tag one or more Channels (using the #hashtag syntax) to categorize your message." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Tag one or more Channels to organize messages." ]
+                , p [ class "mb-6" ] [ text "Channels in Level work like hashtags on social apps. When you tag a Channel, your message will automatically appear in that Channel's feed." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -570,8 +570,8 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "@mentions ensure the right people see the message." ]
-                , p [ class "mb-6" ] [ text "When you @-mention someone, the post automatically moves into their Inbox so they are sure to see it. It's a good idea to always tag people who need to see or take action on a post." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Tag the right people using Mentions." ]
+                , p [ class "mb-6" ] [ text "When you @-mention someone, the message will drop into their Inbox. It's a good idea to @-mention anyone who needs to see or take action on a post." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -580,8 +580,9 @@ stepView device step model data =
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your personal to-do list." ]
-                , p [ class "mb-6" ] [ text "Posts flow into your Inbox when you are @mentioned. It's best to dismiss posts from your Inbox once you are finished with them (by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon or using a keyboard shortcut)." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your to-do list for conversations." ]
+                , p [ class "mb-6" ] [ text "Posts that land in your Inbox stay there until you dismiss them." ]
+                , p [ class "mb-6" ] [ text "It's best to dismiss posts from your Inbox once you are finished by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon (or using a keyboard shortcut)."]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -590,7 +591,7 @@ stepView device step model data =
 
         5 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed keeps you in the loop." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed helps you stay in the loop." ]
                 , p [ class "mb-6" ] [ text "All posts from the Channels you subscribe to appear in you Feed. It's a good idea to periodically skim through it, but you shouldn't feel obligated to see everything there." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
@@ -611,7 +612,7 @@ stepView device step model data =
         7 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Who’s online? Who cares." ]
-                , p [ class "mb-6" ] [ text "Level does not track who’s currently online, because being signed in is not a good indicator of whether someone’s actually available to talk." ]
+                , p [ class "mb-6" ] [ text "Just because you're signed into Level doesn't mean you're available to talk. For that reason, Level does not track who’s currently online." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -636,7 +637,7 @@ stepView device step model data =
         9 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "We’re here to help." ]
-                , p [ class "mb-6" ] [ text "To access the knowledgebase or contact support, just click Help in the left sidebar. If run into trouble, don’t hesitate to reach out! " ]
+                , p [ class "mb-6" ] [ text "To access the knowledgebase or contact support, just click Help in the left sidebar. Don’t hesitate to reach out! " ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ]
