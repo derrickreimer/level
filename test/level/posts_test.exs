@@ -3,6 +3,7 @@ defmodule Level.PostsTest do
 
   import Ecto.Query
 
+  alias Ecto.Changeset
   alias Level.Groups
   alias Level.Notifications
   alias Level.Posts
@@ -109,6 +110,23 @@ defmodule Level.PostsTest do
     } do
       {:ok, %{post: %Post{id: post_id}}} = create_post(levelbot, space_user)
       {:ok, %{user: another_user}} = create_space_member(space)
+
+      refute another_user
+             |> Posts.posts_base_query()
+             |> Repo.get_by(id: post_id)
+    end
+
+    test "should exclude deleted posts", %{
+      space: space,
+      space_user: space_user,
+      group: group
+    } do
+      {:ok, %{post: %Post{id: post_id} = post}} = create_post(space_user, group)
+      {:ok, %{user: another_user}} = create_space_member(space)
+
+      post
+      |> Changeset.change(state: "DELETED")
+      |> Repo.update()
 
       refute another_user
              |> Posts.posts_base_query()

@@ -44,6 +44,7 @@ defmodule Level.Posts.Query do
       on: gu.space_user_id == su.id and gu.group_id == g.id,
       left_join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id,
+      where: p.state != "DELETED",
       where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
       distinct: p.id
   end
