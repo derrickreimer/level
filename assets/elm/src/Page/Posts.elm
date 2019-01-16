@@ -6,6 +6,7 @@ import Connection exposing (Connection)
 import Device exposing (Device)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
+import File exposing (File)
 import Flash
 import Globals exposing (Globals)
 import Group exposing (Group)
@@ -21,10 +22,12 @@ import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
+import Mutation.CreatePost as CreatePost
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
 import Pagination
 import Post exposing (Post)
+import PostEditor exposing (PostEditor)
 import Query.PostsInit as PostsInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -40,6 +43,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import Vendor.Keys as Keys exposing (enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
 
@@ -57,6 +61,8 @@ type alias Model =
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
     , searchEditor : FieldEditor String
+    , postComposer : PostEditor
+    , isSubmitting : Bool
 
     -- MOBILE
     , showNav : Bool
@@ -118,6 +124,8 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 postComps
                 now
                 (FieldEditor.init "search-editor" "")
+                (PostEditor.init "post-composer")
+                False
                 False
                 False
 
@@ -175,6 +183,14 @@ type Msg
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
+    | PostEditorEventReceived Decode.Value
+    | NewPostBodyChanged String
+    | NewPostFileAdded File
+    | NewPostFileUploadProgress Id Int
+    | NewPostFileUploaded Id Id String
+    | NewPostFileUploadError Id
+    | NewPostSubmit
+    | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -252,6 +268,115 @@ update msg globals model =
         PostClosed _ ->
             noCmd { globals | flash = Flash.set Flash.Notice "Marked as resolved" 3000 globals.flash } model
 
+        PostEditorEventReceived value ->
+            case PostEditor.decodeEvent value of
+                PostEditor.LocalDataFetched id body ->
+                    if id == PostEditor.getId model.postComposer then
+                        let
+                            newPostComposer =
+                                PostEditor.setBody body model.postComposer
+                        in
+                        ( ( { model | postComposer = newPostComposer }
+                          , Cmd.none
+                          )
+                        , globals
+                        )
+
+                    else
+                        noCmd globals model
+
+                PostEditor.Unknown ->
+                    noCmd globals model
+
+        NewPostBodyChanged value ->
+            let
+                newPostComposer =
+                    PostEditor.setBody value model.postComposer
+            in
+            ( ( { model | postComposer = newPostComposer }
+              , PostEditor.saveLocal newPostComposer
+              )
+            , globals
+            )
+
+        NewPostFileAdded file ->
+            noCmd globals { model | postComposer = PostEditor.addFile file model.postComposer }
+
+        NewPostFileUploadProgress clientId percentage ->
+            noCmd globals { model | postComposer = PostEditor.setFileUploadPercentage clientId percentage model.postComposer }
+
+        NewPostFileUploaded clientId fileId url ->
+            let
+                newPostComposer =
+                    model.postComposer
+                        |> PostEditor.setFileState clientId (File.Uploaded fileId url)
+
+                cmd =
+                    newPostComposer
+                        |> PostEditor.insertFileLink fileId
+            in
+            ( ( { model | postComposer = newPostComposer }, cmd ), globals )
+
+        NewPostSubmit ->
+            if PostEditor.isSubmittable model.postComposer then
+                let
+                    variables =
+                        CreatePost.variablesWithoutGroup
+                            model.spaceId
+                            (PostEditor.getBody model.postComposer)
+                            (PostEditor.getUploadIds model.postComposer)
+
+                    cmd =
+                        globals.session
+                            |> CreatePost.request variables
+                            |> Task.attempt NewPostSubmitted
+                in
+                ( ( { model | postComposer = PostEditor.setToSubmitting model.postComposer }, cmd ), globals )
+
+            else
+                noCmd globals model
+
+        NewPostSubmitted (Ok ( newSession, CreatePost.Success newPost )) ->
+            let
+                newRepo =
+                    Repo.setPost newPost globals.repo
+
+                newGlobals =
+                    { globals | session = newSession, repo = newRepo }
+
+                ( newPostComposer, postComposerCmd ) =
+                    model.postComposer
+                        |> PostEditor.reset
+
+                newPostComp =
+                    buildPostComponent model.spaceId ( Post.id newPost, Connection.empty )
+
+                postSetupCmd =
+                    Cmd.map (PostComponentMsg newPostComp.id) (Component.Post.setup newGlobals newPostComp)
+
+                newPostComps =
+                    Connection.prepend .id newPostComp model.postComps
+            in
+            ( ( { model | postComposer = newPostComposer, postComps = newPostComps }
+              , Cmd.batch [ postComposerCmd, postSetupCmd ]
+              )
+            , newGlobals
+            )
+
+        NewPostSubmitted (Ok ( newSession, CreatePost.Invalid _ )) ->
+            { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
+                |> noCmd { globals | session = newSession }
+
+        NewPostSubmitted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NewPostSubmitted (Err _) ->
+            { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
+                |> noCmd globals
+
+        NewPostFileUploadError clientId ->
+            noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -274,6 +399,11 @@ expandSearchEditor globals model =
       )
     , globals
     )
+
+
+redirectToLogin : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
+redirectToLogin globals model =
+    ( ( model, Route.toLogin ), globals )
 
 
 
@@ -325,7 +455,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
 
                         Nothing ->
                             Cmd.none
@@ -340,7 +470,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
 
                         Nothing ->
                             Cmd.none
@@ -465,18 +595,78 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 px-4 pt-4 bg-white z-50" ]
+            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-4 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
                     , controlsView model
                     ]
-                , div [ class "flex items-baseline trans-border-b-grey relative -pin-b-1px" ]
+                ]
+            , desktopPostComposerView globals model data
+            , div [ class "mb-3 px-4 bg-white z-50" ]
+                [ div [ class "flex items-baseline trans-border-b-grey relative -pin-b-1px" ]
                     [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
                     , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
             , desktopPostsView globals model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
+            ]
+        ]
+
+
+desktopPostComposerView : Globals -> Model -> Data -> Html Msg
+desktopPostComposerView globals model data =
+    let
+        editor =
+            model.postComposer
+
+        config =
+            { editor = editor
+            , spaceId = Space.id data.space
+            , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+            , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
+            , onFileAdded = NewPostFileAdded
+            , onFileUploadProgress = NewPostFileUploadProgress
+            , onFileUploaded = NewPostFileUploaded
+            , onFileUploadError = NewPostFileUploadError
+            , classList = []
+            }
+    in
+    PostEditor.wrapper config
+        [ label [ class "composer mb-4" ]
+            [ div [ class "flex" ]
+                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow pl-2 pt-2" ]
+                    [ textarea
+                        [ id (PostEditor.getTextareaId editor)
+                        , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , placeholder "Compose a new post..."
+                        , onInput NewPostBodyChanged
+                        , onKeydown preventDefault
+                            [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
+                            ]
+                        , readonly (PostEditor.isSubmitting editor)
+                        , value (PostEditor.getBody editor)
+                        , tabindex 1
+                        ]
+                        []
+                    , PostEditor.filesView editor
+                    , div [ class "flex items-baseline justify-end" ]
+                        [ viewIf (not (String.contains "#" (PostEditor.getBody editor))) <|
+                            div [ classList [ ( "flex-grow text-sm text-dusty-blue", True ) ] ]
+                                [ span [ class "-mt-1 mr-2 inline-block align-middle opacity-75" ] [ Icons.hash ]
+                                , text "Tag one or more channels in your post."
+                                ]
+                        , button
+                            [ class "btn btn-blue btn-md flex-no-shrink"
+                            , onClick NewPostSubmit
+                            , disabled (isUnsubmittable editor)
+                            , tabindex 3
+                            ]
+                            [ text "Send" ]
+                        ]
+                    ]
+                ]
             ]
         ]
 
@@ -723,3 +913,8 @@ closedParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
         |> Route.Posts.setState Route.Posts.Closed
+
+
+isUnsubmittable : PostEditor -> Bool
+isUnsubmittable editor =
+    PostEditor.isUnsubmittable editor || not (String.contains "#" (PostEditor.getBody editor))

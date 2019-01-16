@@ -1,4 +1,4 @@
-module Connection exposing (Connection, Subset, append, decoder, diff, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selectNext, selectPrev, selected, startCursor, toList, update)
+module Connection exposing (Connection, Subset, append, decoder, diff, empty, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selectNext, selectPrev, selected, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
@@ -35,6 +35,11 @@ type alias Subset a =
 type Nodes a
     = NonEmpty (SelectList a)
     | Empty
+
+
+empty : Connection a
+empty =
+    Connection (Data Empty (PageInfo False False Nothing Nothing))
 
 
 
