@@ -1,0 +1,3 @@
+<article class="mx-auto px-8 pb-16 max-w-lg markdown marketing-markdown">
+  <%= render("_privacy_body.html") %>
+</article>

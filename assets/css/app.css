@@ -329,6 +329,41 @@ h6 {
   @apply pl-3 mb-4 border-l-3 border-grey text-dusty-blue-dark;
 }
 
+/**
+ * Markdown on marketing site
+ */
+
+.marketing-markdown h1 {
+  @apply mb-8 font-headline font-bold tracking-tight leading-tight text-4xl;
+}
+
+@screen sm {
+  .marketing-markdown h1 {
+    @apply tracking-tight leading-tightest text-6xl;
+  }
+}
+
+.marketing-markdown h2 {
+  @apply text-3xl;
+}
+
+.marketing-markdown h3 {
+  @apply text-2xl;
+}
+
+.marketing-markdown p {
+  @apply mb-6 text-dusty-blue-darker;
+}
+
+.marketing-markdown ul,
+.marketing-markdown ol {
+  @apply mb-6 text-dusty-blue-darker;
+}
+
+.marketing-markdown pre {
+  @apply mb-6;
+}
+
 .tagged-group {
   @apply text-blue no-underline;
 }

@@ -43,6 +43,7 @@ defmodule LevelWeb.Router do
     get "/", PageController, :index
     get "/manifesto", PageController, :manifesto
     get "/preorder/thanks", PageController, :post_preorder
+    get "/privacy", PageController, :privacy
 
     get "/login", SessionController, :new
     post "/login", SessionController, :create

@@ -25,4 +25,8 @@ defmodule LevelWeb.PageController do
   def post_preorder(conn, _params) do
     render conn, "post_preorder.html"
   end
+
+  def privacy(conn, _params) do
+    render conn, "privacy.html"
+  end
 end

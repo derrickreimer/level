@@ -48,6 +48,9 @@ config :level, Level.Scheduler,
     {"*/10 * * * *", {Level.Nudges, :periodic_task, []}}
   ]
 
+# Add the Markdown engine
+config :phoenix, :template_engines, md: PhoenixMarkdown.Engine
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

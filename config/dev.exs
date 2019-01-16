@@ -29,7 +29,7 @@ config :level, LevelWeb.Endpoint,
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
       ~r{lib/level_web/views/.*(ex)$},
-      ~r{lib/level_web/templates/.*(eex)$}
+      ~r{lib/level_web/templates/.*(eex|md)$}
     ]
   ]
 
