@@ -26,7 +26,7 @@ type alias Config msg =
 desktopView : Config msg -> Html msg
 desktopView config =
     div []
-        [ div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (tile config 4) morningIntervals ++ List.indexedMap (tile config 4) afternoonIntervals)
+        [ div [ class "mb-8 flex flex-no-wrap" ] (List.indexedMap (tile config 2) morningIntervals ++ List.indexedMap (tile config 2) afternoonIntervals)
         , p [ class "text-sm text-dusty-blue-dark" ] [ text <| "In the " ++ config.timeZone ++ " time zone." ]
         ]
 
@@ -72,13 +72,13 @@ tile config labelEvery idx minute =
 
 morningIntervals : List Int
 morningIntervals =
-    List.range 12 23
+    List.range 10 23
         |> List.map ((*) 30)
 
 
 afternoonIntervals : List Int
 afternoonIntervals =
-    List.range 24 35
+    List.range 24 37
         |> List.map ((*) 30)
 
 

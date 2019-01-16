@@ -79,7 +79,7 @@ resolveData repo model =
 
 nudgeIntervals : List Int
 nudgeIntervals =
-    List.range 12 36
+    List.range 12 40
         |> List.map ((*) 30)
 
 
