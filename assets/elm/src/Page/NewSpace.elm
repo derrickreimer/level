@@ -23,7 +23,7 @@ import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.UserLayout
-
+import Beacon
 
 
 -- MODEL
@@ -88,12 +88,15 @@ buildModel globals ( newSession, resp ) =
 
 setup : Model -> Cmd Msg
 setup model =
-    Scroll.toDocumentTop NoOp
+    Cmd.batch
+        [ Scroll.toDocumentTop NoOp
+        , Beacon.init
+        ]
 
 
 teardown : Model -> Cmd Msg
 teardown model =
-    Cmd.none
+    Beacon.destroy
 
 
 
