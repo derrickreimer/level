@@ -410,12 +410,33 @@ redirectToLogin globals model =
     ( ( model, Route.toLogin ), globals )
 
 
+removePost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+removePost globals post ( model, cmd ) =
+    case Connection.get .id (Post.id post) model.postComps of
+        Just postComp ->
+            let
+                newPostComps =
+                    Connection.remove .id (Post.id post) model.postComps
+
+                teardownCmd =
+                    Cmd.map (PostComponentMsg postComp.id)
+                        (Component.Post.teardown globals postComp)
+
+                newCmd =
+                    Cmd.batch [ cmd, teardownCmd ]
+            in
+            ( { model | postComps = newPostComps }, newCmd )
+
+        Nothing ->
+            ( model, cmd )
+
+
 
 -- EVENTS
 
 
-consumeEvent : Event -> Model -> ( Model, Cmd Msg )
-consumeEvent event model =
+consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
+consumeEvent globals event model =
     case event of
         Event.GroupBookmarked group ->
             ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
@@ -440,6 +461,9 @@ consumeEvent event model =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        Event.PostDeleted post ->
+            removePost globals post ( model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

@@ -440,8 +440,8 @@ removePost globals post ( model, cmd ) =
 -- EVENTS
 
 
-consumeEvent : Event -> Globals -> Model -> ( Model, Cmd Msg )
-consumeEvent event globals model =
+consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
+consumeEvent globals event model =
     case event of
         Event.GroupBookmarked group ->
             ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
@@ -473,6 +473,9 @@ consumeEvent event globals model =
 
             else
                 ( model, Cmd.none )
+
+        Event.PostDeleted post ->
+            removePost globals post ( model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

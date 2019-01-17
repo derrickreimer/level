@@ -1322,6 +1322,11 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.PostDeleted post ->
+            ( { model | repo = Repo.setPost post model.repo }
+            , Cmd.none
+            )
+
         Event.PostReactionCreated post ->
             ( { model | repo = Repo.setPost post model.repo }
             , Cmd.none
@@ -1436,12 +1441,12 @@ sendEventToPage globals event model =
 
         Posts pageModel ->
             pageModel
-                |> Page.Posts.consumeEvent event
+                |> Page.Posts.consumeEvent globals event
                 |> updatePage Posts PostsMsg model
 
         Inbox pageModel ->
             pageModel
-                |> Page.Inbox.consumeEvent event globals
+                |> Page.Inbox.consumeEvent globals event
                 |> updatePage Inbox InboxMsg model
 
         SpaceUser pageModel ->

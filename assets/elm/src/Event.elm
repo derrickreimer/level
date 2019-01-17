@@ -24,6 +24,7 @@ type Event
     | PostUpdated Post
     | PostClosed Post
     | PostReopened Post
+    | PostDeleted Post
     | PostReactionCreated Post
     | PostReactionDeleted Post
     | ReplyReactionCreated Reply
@@ -83,6 +84,7 @@ eventDecoder =
         , Decode.map ReplyUpdated PostSubscription.replyUpdatedDecoder
         , Decode.map PostClosed PostSubscription.postClosedDecoder
         , Decode.map PostReopened PostSubscription.postReopenedDecoder
+        , Decode.map PostDeleted PostSubscription.postDeletedDecoder
         , Decode.map PostReactionCreated PostSubscription.postReactionCreatedDecoder
         , Decode.map PostReactionDeleted PostSubscription.postReactionDeletedDecoder
         , Decode.map ReplyReactionCreated PostSubscription.replyReactionCreatedDecoder
