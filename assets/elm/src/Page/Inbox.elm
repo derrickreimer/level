@@ -635,15 +635,16 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
             [ div [ class "sticky pin-t mb-3 px-4 pt-2 bg-white z-50" ]
-                [ div [ class "trans-border-b-grey" ]
-                    [ -- div [ class "flex items-center" ]
-                      --  [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Inbox" ]
-                      --  , controlsView model data
-                      --  ]
-                      div [ class "flex items-center relative" ]
+                [ -- div [ class "flex items-center" ]
+                  --  [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Inbox" ]
+                  --  , controlsView model data
+                  --  ]
+                  div [ class "flex items-center trans-border-b-grey" ]
+                    [ div [ class "pt-2 flex-grow flex" ]
                         [ filterTab Device.Desktop "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
                         , filterTab Device.Desktop "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
+                    , controlsView model data
                     ]
                 ]
             , filterNoticeView globals.repo model data
@@ -703,7 +704,7 @@ desktopPostView globals spaceUsers groups model data component =
 
 controlsView : Model -> Data -> Html Msg
 controlsView model data =
-    div [ class "flex items-center flex-grow justify-end" ]
+    div [ class "mb-1 flex flex-no-grow justify-end" ]
         [ selectionControlsView model.postComps
         , searchEditorView model.searchEditor
         , paginationView model.params model.postComps

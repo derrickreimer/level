@@ -606,9 +606,12 @@ resolvedDesktopView globals model data =
                   --  [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
                   --  , controlsView model
                   --  ]
-                  div [ class "flex items-baseline trans-border-b-grey relative" ]
-                    [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
-                    , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                  div [ class "flex items-center trans-border-b-grey" ]
+                    [ div [ class "pt-2 flex-grow flex" ]
+                        [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
+                        , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                        ]
+                    , controlsView model
                     ]
                 ]
 
@@ -679,7 +682,7 @@ desktopPostComposerView globals model data =
 
 controlsView : Model -> Html Msg
 controlsView model =
-    div [ class "flex flex-grow justify-end" ]
+    div [ class "mb-1 flex flex-grow justify-end" ]
         [ searchEditorView model.searchEditor
         , paginationView model.params model.postComps
         ]
