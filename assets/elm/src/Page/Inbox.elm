@@ -698,7 +698,7 @@ desktopPostView globals spaceUsers groups model data component =
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute mt-6 w-2 h-2 rounded-full pin-t pin-b pin-l bg-orange" ] []
+            div [ class "absolute w-2 h-2 rounded-full pin-t pin-b pin-l bg-turquoise", style "margin-top" "35px" ] []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
