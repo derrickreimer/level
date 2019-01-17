@@ -231,6 +231,26 @@ defmodule Level.Posts do
   end
 
   @doc """
+  Deletes a post.
+
+  TODO: send a pubsub event.
+  """
+  @spec delete_post(SpaceUser.t(), Post.t()) :: {:ok, Post.t()} | {:error, Ecto.Changeset.t()}
+  def delete_post(_actor, post) do
+    post
+    |> Ecto.Changeset.change(state: "DELETED")
+    |> Repo.update()
+    |> after_delete_post()
+  end
+
+  defp after_delete_post({:ok, post} = result) do
+    _ = Events.post_deleted(post.id, post)
+    result
+  end
+
+  defp after_delete_post(err), do: err
+
+  @doc """
   Adds a reply to a post.
   """
   @spec create_reply(SpaceUser.t(), Post.t(), map()) :: create_reply_result()

@@ -108,6 +108,10 @@ defmodule Level.Events do
     publish_to_post(id, :post_reopened, %{post: post})
   end
 
+  def post_deleted(id, %Post{} = post) do
+    publish_to_post(id, :post_deleted, %{post: post})
+  end
+
   def post_reaction_created(id, %Post{} = post, %PostReaction{} = reaction) do
     publish_to_post(id, :post_reaction_created, %{post: post, reaction: reaction})
   end

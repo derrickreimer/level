@@ -509,6 +509,24 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Deletes a post.
+  """
+  @spec delete_post(map(), info()) :: post_mutation_result()
+  def delete_post(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, post} <- Posts.get_post(user, args.post_id),
+         {:ok, deleted_post} <- Posts.delete_post(space_user, post) do
+      {:ok, %{success: true, post: deleted_post, errors: []}}
+    else
+      {:error, changeset} ->
+        {:ok, %{success: false, post: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
   Marks a space setup step complete.
   """
   @spec complete_setup_step(map(), info()) :: setup_step_mutation_result()

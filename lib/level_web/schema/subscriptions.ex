@@ -49,6 +49,7 @@ defmodule LevelWeb.Schema.Subscriptions do
       :reply_updated_payload,
       :post_closed_payload,
       :post_reopened_payload,
+      :post_deleted_payload,
       :post_reaction_created_payload,
       :post_reaction_deleted_payload,
       :reply_reaction_created_payload,
@@ -111,6 +112,12 @@ defmodule LevelWeb.Schema.Subscriptions do
   @desc "The payload for the post reopened event."
   object :post_reopened_payload do
     @desc "The updated post."
+    field :post, :post
+  end
+
+  @desc "The payload for the post deleted event."
+  object :post_deleted_payload do
+    @desc "The deleted post."
     field :post, :post
   end
 

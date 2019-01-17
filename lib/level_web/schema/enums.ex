@@ -38,6 +38,7 @@ defmodule LevelWeb.Schema.Enums do
   enum :post_state do
     value :open, as: "OPEN"
     value :closed, as: "CLOSED"
+    value :deleted, as: "DELETED"
   end
 
   enum :post_subscription_state do
