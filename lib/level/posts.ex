@@ -434,8 +434,14 @@ defmodule Level.Posts do
   Determines whether a user has viewed a reply.
   """
   @spec viewed_reply?(Reply.t(), SpaceUser.t()) :: boolean() | no_return()
-  def viewed_reply?(%Reply{} = reply, %SpaceUser{} = space_user) do
-    Repo.get_by(ReplyView, reply_id: reply.id, space_user_id: space_user.id) != nil
+  def viewed_reply?(%Reply{id: reply_id}, %SpaceUser{id: space_user_id}) do
+    query =
+      from rv in ReplyView,
+        where: rv.reply_id == ^reply_id,
+        where: rv.space_user_id == ^space_user_id,
+        limit: 1
+
+    Repo.all(query) != []
   end
 
   @doc """
