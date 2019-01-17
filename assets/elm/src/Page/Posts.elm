@@ -602,6 +602,11 @@ resolvedDesktopView globals model data =
                     ]
                 ]
             , desktopPostComposerView globals model data
+            , viewIf (not (String.contains "#" (PostEditor.getBody model.postComposer))) <|
+                div [ classList [ ( "mr-4 text-right text-sm text-dusty-blue-dark", True ) ] ]
+                    [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+                    , text "Tag one or more Channels in your post before sending."
+                    ]
             , div [ class "mb-3 px-4 bg-white z-50" ]
                 [ div [ class "flex items-baseline trans-border-b-grey relative -pin-b-1px" ]
                     [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
@@ -652,12 +657,7 @@ desktopPostComposerView globals model data =
                         []
                     , PostEditor.filesView editor
                     , div [ class "flex items-baseline justify-end" ]
-                        [ viewIf (not (String.contains "#" (PostEditor.getBody editor))) <|
-                            div [ classList [ ( "flex-grow text-sm text-dusty-blue", True ) ] ]
-                                [ span [ class "-mt-1 mr-2 inline-block align-middle opacity-75" ] [ Icons.hash ]
-                                , text "Tag one or more channels in your post."
-                                ]
-                        , button
+                        [ button
                             [ class "btn btn-blue btn-md flex-no-shrink"
                             , onClick NewPostSubmit
                             , disabled (isUnsubmittable editor)

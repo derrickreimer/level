@@ -42,7 +42,7 @@ type alias Config =
 
 layout : Config -> List (Html msg) -> Html msg
 layout config children =
-    div [ class "font-sans font-antialised" ]
+    div [ class "relative mx-auto font-sans font-antialised max-w-3xl bg-white h-screen" ]
         [ fullSidebar config
         , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
@@ -55,7 +55,7 @@ rightSidebar : List (Html msg) -> Html msg
 rightSidebar children =
     div
         [ classList
-            [ ( "fixed pin-t pin-r mt-3 py-2 pl-6 min-h-half", True )
+            [ ( "absolute pin-t pin-r mt-3 py-2 pl-6 min-h-half", True )
             , ( "hidden md:block md:w-48 lg:w-56", True )
             ]
         ]
@@ -64,7 +64,7 @@ rightSidebar children =
 
 keyboardCommandReference : Html msg
 keyboardCommandReference =
-    div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)" ]
+    div [ class "absolute pin z-50", style "background-color" "rgba(0,0,0,0.5)" ]
         [ div [ class "absolute overflow-y-auto pin-t pin-r pin-b w-80 bg-white p-6 shadow-lg" ]
             [ h2 [ class "pb-3 text-base text-dusty-blue-darkest" ] [ text "Keyboard Commands" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Actions" ]
