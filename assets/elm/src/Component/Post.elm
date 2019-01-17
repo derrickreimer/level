@@ -982,9 +982,10 @@ resolvedView config model data =
     div [ id (postNodeId model.postId), class "flex" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
-            [ div [ class "pb-1 flex items-center flex-wrap" ]
+            [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
                     [ postAuthorName config.space model.postId data.author
+                    , span [ class "text-dusty-blue text-sm" ] [ text " · " ]
                     , a
                         [ Route.href <| Route.Post (Space.slug config.space) model.postId
                         , class "no-underline whitespace-no-wrap"
@@ -1071,9 +1072,11 @@ postAuthorName space postId author =
     in
     a
         [ Route.href route
-        , class "mr-3 no-underline text-dusty-blue-darkest whitespace-no-wrap"
+        , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
         ]
-        [ span [ class "font-bold" ] [ text <| Actor.displayName author ] ]
+        [ span [ class "mr-2 font-bold" ] [ text <| Actor.displayName author ]
+        , span [ class "text-sm text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+        ]
 
 
 groupsLabel : Space -> List Group -> Html Msg
@@ -1093,8 +1096,8 @@ groupsLabel space groups =
         text ""
 
     else
-        div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
-            [ text "Posted to "
+        div [ class "pb-2 mr-3 text-sm text-dusty-blue-darker" ]
+            [ text "Published in "
             , span [] groupLinks
             ]
 
@@ -1205,8 +1208,9 @@ replyView config model data reply =
                     div [ class "mr-2 -ml-3 w-1 h-9 rounded pin-t bg-orange flex-no-shrink" ] []
                 , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
                 , div [ class "flex-grow leading-normal" ]
-                    [ div [ class "pb-1 flex items-baseline" ]
+                    [ div [ class "pb-1/2" ]
                         [ replyAuthorName config.space author
+                        , span [ class "text-dusty-blue text-sm" ] [ text " · " ]
                         , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             button
@@ -1241,12 +1245,17 @@ replyAuthorName space author =
         Actor.User user ->
             a
                 [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
-                , class "mr-3 font-bold whitespace-no-wrap text-dusty-blue-darkest no-underline"
+                , class "whitespace-no-wrap no-underline"
                 ]
-                [ text <| Actor.displayName author ]
+                [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
+                , span [ class "text-sm text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+                ]
 
         _ ->
-            span [ class "mr-3 font-bold whitespace-no-wrap" ] [ text <| Actor.displayName author ]
+            span [ class "whitespace-no-wrap" ]
+                [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
+                , span [ class "text-sm text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+                ]
 
 
 replyEditorView : ViewConfig -> Id -> PostEditor -> Html Msg
