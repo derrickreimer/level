@@ -627,7 +627,7 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
+        [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
             [ div [ class "sticky pin-t mb-3 px-4 pt-4 bg-white z-50" ]
                 [ div [ class "trans-border-b-grey" ]
                     [ div [ class "flex items-center" ]
@@ -687,7 +687,7 @@ desktopPostView globals spaceUsers groups model data component =
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute w-1 rounded-full pin-t pin-b pin-l bg-dusty-blue" ] []
+            div [ class "absolute rounded-full pin-t pin-b pin-l bg-turquoise", style "width" "3px" ] []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)

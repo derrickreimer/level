@@ -455,7 +455,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
 
                         Nothing ->
                             Cmd.none
@@ -470,7 +470,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
 
                         Nothing ->
                             Cmd.none
@@ -594,7 +594,7 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
+        [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
             [ div [ class "sticky pin-t mb-3 px-4 pt-4 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
@@ -746,7 +746,7 @@ desktopPostView globals spaceUsers groups model data component =
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute w-1 rounded-full pin-t pin-b pin-l bg-dusty-blue" ] []
+            div [ class "absolute rounded-full pin-t pin-b pin-l bg-turquoise", style "width" "3px" ] []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
