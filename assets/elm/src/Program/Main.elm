@@ -259,6 +259,7 @@ updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlo
         , repo = newGlobals.repo
         , page = toPage newPageModel
         , flash = newFlash
+        , showKeyboardCommands = newGlobals.showKeyboardCommands
       }
     , Cmd.batch
         [ Cmd.map toPageMsg pageCmd
@@ -478,7 +479,7 @@ update msg model =
                 ( "c", [], Just spaceSlug ) ->
                     case model.page of
                         Group _ ->
-                            sendKeyboardEventToPage globals event { model | going = False }
+                            sendKeyboardEventToPage event { model | going = False }
 
                         _ ->
                             ( { model | going = False }, Route.pushUrl model.navKey (Route.NewPost <| Route.NewPost.init spaceSlug) )
@@ -490,13 +491,13 @@ update msg model =
                     ( { model | going = False }, Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug) )
 
                 ( "?", [ Shift ], _ ) ->
-                    ( { model | going = False, showKeyboardCommands = True }, Cmd.none )
+                    ( { model | going = False, showKeyboardCommands = not model.showKeyboardCommands }, Cmd.none )
 
                 ( "Escape", [], _ ) ->
-                    sendKeyboardEventToPage globals event { model | going = False, showKeyboardCommands = False }
+                    sendKeyboardEventToPage event { model | going = False, showKeyboardCommands = False }
 
                 _ ->
-                    sendKeyboardEventToPage globals event { model | going = False }
+                    sendKeyboardEventToPage event { model | going = False }
 
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
@@ -1525,8 +1526,12 @@ sendEventToPage globals event model =
             ( model, Cmd.none )
 
 
-sendKeyboardEventToPage : Globals -> KeyboardShortcuts.Event -> Model -> ( Model, Cmd Msg )
-sendKeyboardEventToPage globals event model =
+sendKeyboardEventToPage : KeyboardShortcuts.Event -> Model -> ( Model, Cmd Msg )
+sendKeyboardEventToPage event model =
+    let
+        globals =
+            buildGlobals model
+    in
     case model.page of
         Inbox pageModel ->
             pageModel

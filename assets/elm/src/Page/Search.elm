@@ -141,7 +141,8 @@ teardown model =
 
 
 type Msg
-    = SearchEditorChanged String
+    = ToggleKeyboardCommands
+    | SearchEditorChanged String
     | SearchSubmitted
     | Tick Posix
     | SetCurrentTime Posix Zone
@@ -153,6 +154,9 @@ type Msg
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 update msg globals model =
     case msg of
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
         Tick posix ->
             ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
 
@@ -248,6 +252,8 @@ resolvedView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config

@@ -112,6 +112,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -123,6 +124,9 @@ update msg globals model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -189,6 +193,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config

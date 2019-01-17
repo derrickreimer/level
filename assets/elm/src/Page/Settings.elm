@@ -77,6 +77,7 @@ resolveData repo model =
         (Just <| Repo.getGroups model.bookmarkIds repo)
 
 
+
 -- PAGE PROPERTIES
 
 
@@ -138,6 +139,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | NameChanged String
     | SlugChanged String
     | Submit
@@ -160,6 +162,9 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         NameChanged val ->
             noCmd globals { model | name = val }
@@ -389,6 +394,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config

@@ -104,6 +104,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | LinkCopied
     | LinkCopyFailed
     | ScrollTopClicked
@@ -114,6 +115,9 @@ update msg globals model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         LinkCopied ->
             let
@@ -193,6 +197,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config

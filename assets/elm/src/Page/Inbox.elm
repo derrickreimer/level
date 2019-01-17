@@ -210,6 +210,7 @@ markPostsAsRead globals model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | Tick Posix
     | SetCurrentTime Posix Zone
     | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
@@ -234,6 +235,9 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         Tick posix ->
             ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
@@ -624,6 +628,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config

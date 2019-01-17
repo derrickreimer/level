@@ -180,6 +180,7 @@ markIfComplete globals model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | BackUp
     | Advance
     | SkipClicked
@@ -203,6 +204,9 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         BackUp ->
             backUp globals model
@@ -461,6 +465,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config
@@ -572,7 +578,7 @@ stepView device step model data =
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your to-do list for conversations." ]
                 , p [ class "mb-6" ] [ text "When someone @-mentions you or new activity occurs on a post you've interacted with, that post will move into your Inbox." ]
-                , p [ class "mb-6" ] [ text "It's best to dismiss posts from your Inbox once you are finished by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon (or using a keyboard shortcut)."]
+                , p [ class "mb-6" ] [ text "It's best to dismiss posts from your Inbox once you are finished by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon (or using a keyboard shortcut)." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]

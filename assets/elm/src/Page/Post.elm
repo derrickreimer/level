@@ -188,6 +188,7 @@ recordReplyViews globals model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | PostEditorEventReceived Decode.Value
     | PostComponentMsg Component.Post.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
@@ -215,6 +216,9 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         PostEditorEventReceived value ->
             let
@@ -524,6 +528,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
 
         postConfig =

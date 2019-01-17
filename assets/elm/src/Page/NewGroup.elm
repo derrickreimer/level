@@ -124,6 +124,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | NameChanged String
     | DefaultToggled
     | Submit
@@ -139,6 +140,9 @@ update msg globals navKey model =
     case msg of
         NoOp ->
             noCmd globals model
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         NameChanged val ->
             let
@@ -254,6 +258,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config

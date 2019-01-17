@@ -129,6 +129,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | ToggleMembership Group
     | SubscribedToGroup (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribedFromGroup (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
@@ -147,6 +148,9 @@ update msg globals model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         ToggleMembership group ->
             let
@@ -340,6 +344,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config

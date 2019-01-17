@@ -5,7 +5,9 @@ import Flash exposing (Flash)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
+import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
 import Route exposing (Route)
 import Route.Group
@@ -26,13 +28,15 @@ import View.Helpers exposing (viewIf, viewUnless)
 -- TYPES
 
 
-type alias Config =
+type alias Config msg =
     { space : Space
     , spaceUser : SpaceUser
     , bookmarks : List Group
     , currentRoute : Maybe Route
     , flash : Flash
     , showKeyboardCommands : Bool
+    , onNoOp : msg
+    , onToggleKeyboardCommands : msg
     }
 
 
@@ -40,14 +44,14 @@ type alias Config =
 -- API
 
 
-layout : Config -> List (Html msg) -> Html msg
+layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
         [ fullSidebar config
         , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         , Flash.view config.flash
-        , viewIf config.showKeyboardCommands keyboardCommandReference
+        , viewIf config.showKeyboardCommands (keyboardCommandReference config)
         ]
 
 
@@ -62,10 +66,17 @@ rightSidebar children =
         children
 
 
-keyboardCommandReference : Html msg
-keyboardCommandReference =
-    div [ class "absolute pin z-50", style "background-color" "rgba(0,0,0,0.5)" ]
-        [ div [ class "absolute overflow-y-auto pin-t pin-r pin-b w-80 bg-white p-6 shadow-lg" ]
+keyboardCommandReference : Config msg -> Html msg
+keyboardCommandReference config =
+    div
+        [ class "absolute pin z-50"
+        , style "background-color" "rgba(0,0,0,0.5)"
+        , onClick config.onToggleKeyboardCommands
+        ]
+        [ div
+            [ class "absolute overflow-y-auto pin-t pin-r pin-b w-80 bg-white p-6 shadow-lg"
+            , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed config.onNoOp))
+            ]
             [ h2 [ class "pb-3 text-base text-dusty-blue-darkest" ] [ text "Keyboard Commands" ]
             , h3 [ class "pt-6 pb-2 text-sm font-bold text-dusty-blue-darkest" ] [ text "Actions" ]
             , keyboardCommandItem "Shortcuts" [ "?" ]
@@ -85,6 +96,11 @@ keyboardCommandReference =
             , keyboardCommandItem "Close Reply Editor" [ "esc" ]
             ]
         ]
+
+
+alwaysStopPropagation : msg -> ( msg, Bool )
+alwaysStopPropagation msg =
+    ( msg, True )
 
 
 keyboardCommandItem : String -> List String -> Html msg
@@ -116,7 +132,7 @@ keyView value =
 -- PRIVATE
 
 
-fullSidebar : Config -> Html msg
+fullSidebar : Config msg -> Html msg
 fullSidebar config =
     let
         spaceSlug =
@@ -164,7 +180,7 @@ fullSidebar config =
         ]
 
 
-bookmarkList : Config -> Html msg
+bookmarkList : Config msg -> Html msg
 bookmarkList config =
     let
         slug =

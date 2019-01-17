@@ -130,6 +130,7 @@ teardown model =
 
 type Msg
     = NoOp
+    | ToggleKeyboardCommands
     | UserToggled Id
     | CloseClicked
     | Closed (Result Session.Error ( Session, CloseGroup.Response ))
@@ -148,6 +149,9 @@ update msg globals model =
     case msg of
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         UserToggled toggledId ->
             let
@@ -318,6 +322,8 @@ resolvedDesktopView globals model data =
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
     in
     Layout.SpaceDesktop.layout config
