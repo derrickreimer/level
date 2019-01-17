@@ -48,7 +48,7 @@ layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
         [ fullSidebar config
-        , div [ class "ml-48 lg:ml-56 md:mr-48 lg:mr-56" ] children
+        , div [ class "ml-48 lg:ml-56 lg:mr-56" ] children
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         , Flash.view config.flash
         , viewIf config.showKeyboardCommands (keyboardCommandReference config)
@@ -60,7 +60,7 @@ rightSidebar children =
     div
         [ classList
             [ ( "fixed pin-r pin-t mt-3 py-2 pl-6 min-h-half", True )
-            , ( "hidden md:block md:w-48 lg:w-56", True )
+            , ( "hidden lg:block md:w-48 lg:w-56", True )
             ]
         ]
         children

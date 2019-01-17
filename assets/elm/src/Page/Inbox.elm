@@ -648,7 +648,8 @@ resolvedDesktopView globals model data =
                 ]
             , filterNoticeView globals.repo model data
             , desktopPostsView globals model data
-            , Layout.SpaceDesktop.rightSidebar (sidebarView globals data.space data.featuredUsers)
+
+            -- , Layout.SpaceDesktop.rightSidebar (sidebarView globals data.space data.featuredUsers)
             ]
         ]
 

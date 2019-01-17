@@ -619,7 +619,8 @@ resolvedDesktopView globals model data =
             --         , text "Hashtag one or more Channels in your post."
             --         ]
             , desktopPostsView globals model data
-            , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
+
+            -- , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
         ]
 
