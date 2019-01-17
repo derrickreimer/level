@@ -1009,6 +1009,7 @@ resolvedView config model data =
                 postEditorView config model.postEditor
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post
+                , replyButtonView config model data
                 ]
             , div [ class "relative" ]
                 [ repliesView config model data
@@ -1325,7 +1326,7 @@ replyComposerView viewConfig model data =
         expandedReplyComposerView viewConfig model.replyComposer
 
     else
-        replyPromptView viewConfig.currentUser
+        replyPromptView viewConfig model data
 
 
 expandedReplyComposerView : ViewConfig -> PostEditor -> Html Msg
@@ -1392,14 +1393,32 @@ expandedReplyComposerView viewConfig editor =
         ]
 
 
-replyPromptView : SpaceUser -> Html Msg
-replyPromptView currentUser =
-    button [ class "flex mt-4 items-center", onClick ExpandReplyComposer ]
-        [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small currentUser ]
-        , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
-            [ text "Reply or resolve..."
+replyPromptView : ViewConfig -> Model -> Data -> Html Msg
+replyPromptView config model data =
+    if not (Connection.isEmpty model.replyIds) then
+        button [ class "flex mt-4 items-center", onClick ExpandReplyComposer ]
+            [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
+            , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
+                [ text "Reply or resolve..."
+                ]
             ]
-        ]
+
+    else
+        text ""
+
+
+replyButtonView : ViewConfig -> Model -> Data -> Html Msg
+replyButtonView config model data =
+    if Post.state data.post == Post.Open then
+        button
+            [ class "tooltip tooltip-bottom"
+            , onClick ExpandReplyComposer
+            , attribute "data-tooltip" "Reply or Resolve"
+            ]
+            [ Icons.reply ]
+
+    else
+        text ""
 
 
 staticFilesView : List File -> Html msg

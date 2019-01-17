@@ -202,8 +202,9 @@ logo =
 
 reply : Html msg
 reply =
-    iconView <|
-        svg [ width "14px", height "14px", viewBox "0 0 14 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "corner-up-left", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "3.75 7.5 0 3.75 3.75 0" ] [], Svg.path [ d "M11.8181818,12 L11.8181818,6.90909091 C11.8181818,5.30244436 10.5157375,4 8.90909091,4 L0.181818182,4", id "Shape" ] [] ] ] ]
+    Html.div [ Html.Attributes.class "flex items-center", Html.Attributes.style "margin-top" "2px" ]
+        [ svg [ width "18px", height "15px", viewBox "0 0 18 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "corner-up-left", transform "translate(1.000000, 0.000000)", stroke "#8A98A5" ] [ polyline [ id "Path", points "5 10 0 5 5 0" ] [], Svg.path [ d "M16,15 L16,8.63636364 C16,6.62805546 14.209139,5 12,5 L0,5", id "Path" ] [] ] ] ]
+        ]
 
 
 refresh : Html msg
