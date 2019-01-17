@@ -135,7 +135,7 @@ defmodule Level.Spaces do
   end
 
   defp create_everyone_group(space_user) do
-    case Groups.create_group(space_user, %{name: "Everyone", is_default: true}) do
+    case Groups.create_group(space_user, %{name: "everyone", is_default: true}) do
       {:ok, %{group: group}} ->
         {:ok, group}
 
