@@ -709,7 +709,7 @@ desktopPostsView globals model data =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
     if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+        div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
             [ text "You're all caught up!" ]
 
     else

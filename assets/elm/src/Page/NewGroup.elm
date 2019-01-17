@@ -340,7 +340,7 @@ fieldsView model =
                 ]
                 [ label
                     [ for "name"
-                    , class "mr-1 flex-none text-dusty-blue select-none font-bold"
+                    , class "mr-1 flex-none text-dusty-blue-dark select-none font-bold"
                     ]
                     [ text "#" ]
                 , div [ class "flex-1" ]
