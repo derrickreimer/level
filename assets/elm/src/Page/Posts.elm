@@ -607,7 +607,7 @@ resolvedDesktopView globals model data =
                   --  , controlsView model
                   --  ]
                   div [ class "flex items-center trans-border-b-grey" ]
-                    [ div [ class "pt-2 flex-grow flex" ]
+                    [ div [ class "flex-grow flex" ]
                         [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
                         , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                         ]
@@ -682,7 +682,7 @@ desktopPostComposerView globals model data =
 
 controlsView : Model -> Html Msg
 controlsView model =
-    div [ class "mb-1 flex flex-grow justify-end" ]
+    div [ class "mb-2 flex flex-grow justify-end" ]
         [ searchEditorView model.searchEditor
         , paginationView model.params model.postComps
         ]

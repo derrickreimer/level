@@ -640,7 +640,7 @@ resolvedDesktopView globals model data =
                   --  , controlsView model data
                   --  ]
                   div [ class "flex items-center trans-border-b-grey" ]
-                    [ div [ class "pt-2 flex-grow flex" ]
+                    [ div [ class "flex-grow flex" ]
                         [ filterTab Device.Desktop "To Do" Route.Inbox.Undismissed (undismissedParams model.params) model.params
                         , filterTab Device.Desktop "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                         ]
@@ -704,7 +704,7 @@ desktopPostView globals spaceUsers groups model data component =
 
 controlsView : Model -> Data -> Html Msg
 controlsView model data =
-    div [ class "mb-1 flex flex-no-grow justify-end" ]
+    div [ class "mb-2 flex flex-no-grow justify-end" ]
         [ selectionControlsView model.postComps
         , searchEditorView model.searchEditor
         , paginationView model.params model.postComps

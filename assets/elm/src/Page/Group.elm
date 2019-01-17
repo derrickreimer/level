@@ -960,7 +960,7 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
-            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-4 bg-white z-40" ]
+            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-3 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ nameView data.group model.nameEditor
                     , viewIf False <| bookmarkButtonView (Group.isBookmarked data.group)
@@ -1090,7 +1090,7 @@ desktopPostComposerView globals model data =
             }
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-2" ]
+        [ label [ class "composer mb-1" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow pl-2 pt-2" ]
