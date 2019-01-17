@@ -21,6 +21,7 @@ import Mutation.ClosePost as ClosePost
 import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
 import Mutation.CreateReplyReaction as CreateReplyReaction
+import Mutation.DeletePost as DeletePost
 import Mutation.DeletePostReaction as DeletePostReaction
 import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
@@ -177,6 +178,8 @@ type Msg
     | ReopenPostClicked
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
     | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
+    | DeletePostClicked
+    | PostDeleted (Result Session.Error ( Session, DeletePost.Response ))
     | InternalLinkClicked String
 
 
@@ -818,6 +821,15 @@ update msg globals model =
             in
             ( ( { model | replyComposer = PostEditor.setToSubmitting model.replyComposer }, cmd ), globals )
 
+        DeletePostClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> DeletePost.request (DeletePost.variables model.spaceId model.postId)
+                        |> Task.attempt PostDeleted
+            in
+            ( ( { model | postEditor = PostEditor.setToSubmitting model.postEditor }, cmd ), globals )
+
         PostClosed (Ok ( newSession, ClosePost.Success post )) ->
             let
                 newRepo =
@@ -866,6 +878,32 @@ update msg globals model =
             redirectToLogin globals model
 
         PostReopened (Err _) ->
+            noCmd globals model
+
+        PostDeleted (Ok ( newSession, DeletePost.Success post )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setPost post
+
+                newPostEditor =
+                    model.postEditor
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.collapse
+            in
+            ( ( { model | postEditor = newPostEditor }, Cmd.none )
+            , { globals | repo = newRepo, session = newSession }
+            )
+
+        PostDeleted (Ok ( newSession, DeletePost.Invalid errors )) ->
+            ( ( { model | postEditor = PostEditor.setNotSubmitting model.postEditor }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        PostDeleted (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostDeleted (Err _) ->
             noCmd globals model
 
         InternalLinkClicked pathname ->
@@ -1146,18 +1184,25 @@ postEditorView viewConfig editor =
                 []
             , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
             , PostEditor.filesView editor
-            , div [ class "flex justify-end" ]
+            , div [ class "flex" ]
                 [ button
                     [ class "mr-2 btn btn-grey-outline btn-sm"
-                    , onClick CollapsePostEditor
+                    , onClick DeletePostClicked
                     ]
-                    [ text "Cancel" ]
-                , button
-                    [ class "btn btn-blue btn-sm"
-                    , onClick PostEditorSubmitted
-                    , disabled (PostEditor.isUnsubmittable editor)
+                    [ text "Delete post" ]
+                , div [ class "flex-grow flex justify-end" ]
+                    [ button
+                        [ class "mr-2 btn btn-grey-outline btn-sm"
+                        , onClick CollapsePostEditor
+                        ]
+                        [ text "Cancel" ]
+                    , button
+                        [ class "btn btn-blue btn-sm"
+                        , onClick PostEditorSubmitted
+                        , disabled (PostEditor.isUnsubmittable editor)
+                        ]
+                        [ text "Update post" ]
                     ]
-                    [ text "Update post" ]
                 ]
             ]
         ]

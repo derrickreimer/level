@@ -54,6 +54,7 @@ type Post
 type State
     = Open
     | Closed
+    | Deleted
 
 
 type SubscriptionState
@@ -251,6 +252,9 @@ stateDecoder =
 
                 "CLOSED" ->
                     succeed Closed
+
+                "DELETED" ->
+                    succeed Deleted
 
                 _ ->
                     fail "State not valid"

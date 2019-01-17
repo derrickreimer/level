@@ -671,6 +671,9 @@ postStateButton isChangingState post =
                 ]
                 [ text "Mark as open" ]
 
+        _ ->
+            text ""
+
 
 sidebarView : Repo -> Model -> Data -> List (Html Msg)
 sidebarView repo model data =
