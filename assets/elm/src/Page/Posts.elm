@@ -595,24 +595,23 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-4 bg-white z-40" ]
+            [ div [ class "sticky pin-t mb-3 px-4 pt-4 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
                     , controlsView model
                     ]
-                ]
-            , desktopPostComposerView globals model data
-            , viewIf (not (String.contains "#" (PostEditor.getBody model.postComposer))) <|
-                div [ classList [ ( "mr-4 text-right text-sm text-dusty-blue-dark", True ) ] ]
-                    [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-                    , text "Tag one or more Channels in your post before sending."
-                    ]
-            , div [ class "mb-3 px-4 bg-white z-50" ]
-                [ div [ class "flex items-baseline trans-border-b-grey relative -pin-b-1px" ]
+                , div [ class "flex items-baseline trans-border-b-grey relative -pin-b-1px" ]
                     [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
                     , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
                 ]
+
+            -- , desktopPostComposerView globals model data
+            -- , viewIf (not (String.contains "#" (PostEditor.getBody model.postComposer))) <|
+            --     div [ classList [ ( "mr-4 text-right text-sm text-dusty-blue-dark", True ) ] ]
+            --         [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+            --         , text "Hashtag one or more Channels in your post."
+            --         ]
             , desktopPostsView globals model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
