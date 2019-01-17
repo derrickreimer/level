@@ -29,7 +29,7 @@ arrowLeft toggle =
                     "#e2e6e8"
     in
     iconView <|
-        svg [ width "16px", height "14px", viewBox "0 0 16 14", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(1.000000, 1.000000)", stroke color, strokeWidth "2" ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
+        svg [ width "16px", height "12px", viewBox "0 0 16 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(1.000000, 0.000000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
 arrowRight : Toggle -> Html msg
@@ -44,7 +44,7 @@ arrowRight toggle =
                     "#e2e6e8"
     in
     iconView <|
-        svg [ width "16px", height "14px", viewBox "0 0 16 14", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(8.000000, 7.000000) scale(-1, 1) translate(-8.000000, -7.000000) translate(1.000000, 1.000000)", stroke color, strokeWidth "2" ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
+        svg [ width "16px", height "12px", viewBox "0 0 16 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(8.000000, 6.000000) scale(-1, 1) translate(-8.000000, -6.000000) translate(1.000000, 0.000000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
 arrowUpRight : Html msg
@@ -222,7 +222,7 @@ revokeMember =
 search : Html msg
 search =
     iconView <|
-        svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "search", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ circle [ id "Oval", cx "6.22222222", cy "6.22222222", r "6.22222222" ] [], Svg.path [ d "M14,14 L10.6166667,10.6166667", id "Shape" ] [] ] ] ]
+        svg [ width "16px", height "15px", viewBox "0 0 16 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "search", transform "translate(1.000000, 1.000000)", stroke "#8A98A5" ] [ circle [ id "Oval", cx "6.22222222", cy "6.22222222", r "6.22222222" ] [], Svg.path [ d "M14,14 L10.6166667,10.6166667", id "Shape" ] [] ] ] ]
 
 
 sendWhite : Html msg
