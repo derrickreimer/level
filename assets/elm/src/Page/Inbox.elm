@@ -651,6 +651,11 @@ resolvedDesktopView globals model data =
                     ]
                 ]
             , filterNoticeView globals.repo model data
+            , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
+                div [ class "mx-4 mb-3 px-4 py-3 flex items-center bg-green-lightest border-b-2 border-green text-green-dark text-md font-bold" ]
+                    [ div [ class "flex-grow" ] [ text "Allow Level to send you push notifications." ]
+                    , button [ class "btn btn-sm btn-green", onClick PushSubscribeClicked ] [ text "Allow" ]
+                    ]
             , desktopPostsView globals model data
 
             -- , Layout.SpaceDesktop.rightSidebar (sidebarView globals data.space data.featuredUsers)
@@ -698,7 +703,7 @@ desktopPostView globals spaceUsers groups model data component =
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute w-2 h-2 rounded-full pin-t pin-b pin-l bg-turquoise", style "margin-top" "35px" ] []
+            div [ class "absolute w-2 h-2 rounded-full pin-t pin-b pin-l bg-green", style "margin-top" "35px" ] []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
@@ -771,6 +776,11 @@ resolvedMobileView globals model data =
                 , filterTab Device.Mobile "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                 ]
             , filterNoticeView globals.repo model data
+            , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
+                div [ class "mx-3 mb-3 px-4 py-3 flex items-center bg-green-lightest border-b-2 border-green text-green-dark text-md font-bold" ]
+                    [ div [ class "flex-grow" ] [ text "Allow Level to send you push notifications." ]
+                    , button [ class "btn btn-sm btn-green", onClick PushSubscribeClicked ] [ text "Allow" ]
+                    ]
             , div [ class "px-3" ] [ mobilePostsView globals model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]

@@ -139,6 +139,10 @@ h6 {
   @apply bg-blue border-blue;
 }
 
+.btn-green {
+  @apply bg-green border-green;
+}
+
 .btn-red {
   @apply bg-red border-red;
 }
