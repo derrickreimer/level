@@ -459,7 +459,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
 
                         Nothing ->
                             Cmd.none
@@ -474,7 +474,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 120
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
 
                         Nothing ->
                             Cmd.none
@@ -601,12 +601,12 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 px-4 pt-4 bg-white z-40" ]
-                [ div [ class "flex items-center" ]
-                    [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
-                    , controlsView model
-                    ]
-                , div [ class "flex items-baseline trans-border-b-grey relative -pin-b-1px" ]
+            [ div [ class "sticky pin-t mb-3 px-4 pt-2 bg-white z-40" ]
+                [ -- div [ class "flex items-center" ]
+                  --  [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Feed" ]
+                  --  , controlsView model
+                  --  ]
+                  div [ class "flex items-baseline trans-border-b-grey relative" ]
                     [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
                     , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                     ]
@@ -676,23 +676,6 @@ desktopPostComposerView globals model data =
         ]
 
 
-desktopFilterTab : String -> Route.Posts.State -> Params -> Params -> Html Msg
-desktopFilterTab label state linkParams currentParams =
-    let
-        isCurrent =
-            Route.Posts.getState currentParams == state
-    in
-    a
-        [ Route.href (Route.Posts linkParams)
-        , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
-            , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            ]
-        ]
-        [ text label ]
-
-
 controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
@@ -752,7 +735,7 @@ desktopPostView globals spaceUsers groups model data component =
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute rounded-full pin-t pin-b pin-l bg-turquoise", style "width" "3px" ] []
+            div [ class "absolute mt-6 w-2 h-2 rounded-full pin-t pin-b pin-l bg-orange" ] []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
@@ -852,10 +835,10 @@ filterTab device label state linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            [ ( "block text-sm mr-4 py-3 border-b-4 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
-            , ( "text-center min-w-100px", device == Device.Mobile )
+            , ( "text-center min-w-100px", device == Device.Mobile || device == Device.Desktop )
             ]
         ]
         [ text label ]
