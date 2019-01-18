@@ -1137,18 +1137,20 @@ desktopPostComposerView globals model data =
                     , div [ class "flex items-center justify-end" ]
                         [ viewUnless (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-lighter hover:bg-grey transition-bg no-outline"
+                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Mark urgent"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.Off ]
                         , viewIf (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-lighter hover:bg-grey transition-bg no-outline"
+                                [ class "flex items-center tooltip tooltip-bottom mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
                                 , attribute "data-tooltip" "Mark not urgent"
                                 , onClick ToggleUrgent
                                 ]
-                                [ Icons.alert Icons.On ]
+                                [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
+                                , div [] [ text "Urgent" ]
+                                ]
                         , button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
