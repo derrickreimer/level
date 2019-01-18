@@ -838,7 +838,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
 
                         Nothing ->
                             Cmd.none
@@ -853,7 +853,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case Connection.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 95
+                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
 
                         Nothing ->
                             Cmd.none
@@ -1114,7 +1114,7 @@ desktopPostComposerView globals model data =
             }
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-1" ]
+        [ label [ class "composer mb-2" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow pl-2 pt-2" ]
@@ -1294,7 +1294,7 @@ filterTab device label state linkParams currentParams =
     a
         [ Route.href (Route.Group linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-3 border-b-4 border-transparent no-underline font-bold", True )
+            [ ( "block text-sm mr-4 py-2 border-b-4 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile || device == Device.Desktop )
