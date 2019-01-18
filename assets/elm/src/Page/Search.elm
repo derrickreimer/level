@@ -328,14 +328,14 @@ postResultView repo params now data resolvedResult =
     in
     div [ class "flex py-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
-        , div [ class "flex-grow min-w-0 leading-semi-loose" ]
-            [ div []
+        , div [ class "flex-grow min-w-0 normal" ]
+            [ div [ class "pb-1/2" ]
                 [ authorLabel postRoute resolvedResult.resolvedPost.author
                 , timestampLabel postRoute now (Post.postedAt resolvedResult.resolvedPost.post)
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand postRoute
-                [ div [ class "markdown mb-2" ]
+                [ div [ class "markdown mb-3/2" ]
                     [ RenderedHtml.node
                         { html = Post.bodyHtml resolvedResult.resolvedPost.post
                         , onInternalLinkClicked = InternalLinkClicked
@@ -354,15 +354,15 @@ replyResultView repo params now data resolvedResult =
     in
     div [ class "flex py-4" ]
         [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
-        , div [ class "flex-grow min-w-0 leading-semi-loose" ]
-            [ div []
+        , div [ class "flex-grow min-w-0 leading-normal" ]
+            [ div [ class "pb-1/2" ]
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
                 , authorLabel replyRoute resolvedResult.resolvedReply.author
                 , timestampLabel replyRoute now (Reply.postedAt resolvedResult.resolvedReply.reply)
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand replyRoute
-                [ div [ class "markdown mb-2" ]
+                [ div [ class "markdown mb-3/2" ]
                     [ RenderedHtml.node
                         { html = Reply.bodyHtml resolvedResult.resolvedReply.reply
                         , onInternalLinkClicked = InternalLinkClicked
@@ -404,7 +404,7 @@ groupsLabel space groups =
         groupLink group =
             a
                 [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.name group)))
-                , class "mr-1 no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
+                , class "mr-1 no-underline text-dusty-blue-dark whitespace-no-wrap"
                 ]
                 [ text ("#" ++ Group.name group) ]
 
@@ -415,8 +415,8 @@ groupsLabel space groups =
         text ""
 
     else
-        div [ class "mb-2 mr-3 text-sm text-dusty-blue-dark" ]
-            [ text "Posted to "
+        div [ class "pb-1 mr-3 text-base text-dusty-blue" ]
+            [ text ""
             , span [] groupLinks
             ]
 

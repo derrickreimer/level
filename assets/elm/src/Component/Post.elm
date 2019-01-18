@@ -1143,7 +1143,7 @@ groupsLabel space groups =
 bodyView : Space -> Post -> Html Msg
 bodyView space post =
     div []
-        [ div [ class "markdown pb-2" ]
+        [ div [ class "markdown pb-3/2" ]
             [ RenderedHtml.node
                 { html = Post.bodyHtml post
                 , onInternalLinkClicked = InternalLinkClicked
@@ -1266,7 +1266,7 @@ replyView config model data reply =
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
-                            [ div [ class "markdown pb-2" ]
+                            [ div [ class "markdown pb-3/2" ]
                                 [ RenderedHtml.node
                                     { html = Reply.bodyHtml reply
                                     , onInternalLinkClicked = InternalLinkClicked
