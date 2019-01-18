@@ -329,6 +329,7 @@ update msg globals model =
                             model.spaceId
                             (PostEditor.getBody model.postComposer)
                             (PostEditor.getUploadIds model.postComposer)
+                            (PostEditor.getIsUrgent model.postComposer)
 
                     cmd =
                         globals.session

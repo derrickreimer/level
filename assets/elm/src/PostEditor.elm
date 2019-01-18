@@ -133,6 +133,11 @@ toggleIsUrgent (PostEditor internal) =
     PostEditor { internal | isUrgent = not internal.isUrgent }
 
 
+setNotUrgent : PostEditor -> PostEditor
+setNotUrgent (PostEditor internal) =
+    PostEditor { internal | isUrgent = False }
+
+
 reset : PostEditor -> ( PostEditor, Cmd msg )
 reset editor =
     let
@@ -141,6 +146,7 @@ reset editor =
                 |> setBody ""
                 |> setNotSubmitting
                 |> setFiles []
+                |> setNotUrgent
                 |> clearErrors
     in
     ( newEditor

@@ -229,6 +229,7 @@ defmodule LevelWeb.Schema do
       arg :group_id, :id
       arg :body, non_null(:string)
       arg :file_ids, list_of(:id)
+      arg :is_urgent, :boolean, default_value: false
 
       resolve &Level.Mutations.create_post/2
     end

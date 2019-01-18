@@ -26,13 +26,15 @@ document =
           $spaceId: ID!,
           $groupId: ID,
           $body: String!,
-          $fileIds: [ID]
+          $fileIds: [ID],
+          $isUrgent: Boolean!
         ) {
           createPost(
             spaceId: $spaceId,
             groupId: $groupId,
             body: $body,
-            fileIds: $fileIds
+            fileIds: $fileIds,
+            isUrgent: $isUrgent
           ) {
             ...ValidationFields
             post {
@@ -50,24 +52,26 @@ document =
         ]
 
 
-variablesWithoutGroup : Id -> String -> List Id -> Maybe Encode.Value
-variablesWithoutGroup spaceId body fileIds =
+variablesWithoutGroup : Id -> String -> List Id -> Bool -> Maybe Encode.Value
+variablesWithoutGroup spaceId body fileIds isUrgent =
     Just <|
         Encode.object
             [ ( "spaceId", Id.encoder spaceId )
             , ( "body", Encode.string body )
             , ( "fileIds", Encode.list Id.encoder fileIds )
+            , ( "isUrgent", Encode.bool isUrgent )
             ]
 
 
-variablesWithGroup : Id -> Id -> String -> List Id -> Maybe Encode.Value
-variablesWithGroup spaceId groupId body fileIds =
+variablesWithGroup : Id -> Id -> String -> List Id -> Bool -> Maybe Encode.Value
+variablesWithGroup spaceId groupId body fileIds isUrgent =
     Just <|
         Encode.object
             [ ( "spaceId", Id.encoder spaceId )
             , ( "groupId", Id.encoder groupId )
             , ( "body", Encode.string body )
             , ( "fileIds", Encode.list Id.encoder fileIds )
+            , ( "isUrgent", Encode.bool isUrgent )
             ]
 
 
