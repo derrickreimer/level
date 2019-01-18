@@ -637,7 +637,7 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 px-4 pt-3 bg-white z-50" ]
+            [ div [ class "sticky pin-t mb-3 px-3 pt-3 bg-white z-50" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-grow font-bold text-2xl" ] [ text "Inbox" ]
                     , controlsView model data
@@ -698,11 +698,11 @@ desktopPostView globals spaceUsers groups model data component =
     in
     div
         [ classList
-            [ ( "relative mb-3 p-4", True )
+            [ ( "relative mb-3 p-3", True )
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute w-2 h-2 rounded-full pin-t pin-b pin-l bg-green", style "margin-top" "35px" ] []
+            div [ class "absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green" ] []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)

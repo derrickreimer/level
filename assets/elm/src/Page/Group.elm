@@ -1006,7 +1006,7 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "sticky flex items-baseline mb-4 mx-4 border-b" ]
+            , div [ class "flex items-baseline mb-4 mx-3 border-b" ]
                 [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
@@ -1138,14 +1138,14 @@ desktopPostComposerView globals model data =
                         [ viewUnless (PostEditor.getIsUrgent editor) <|
                             button
                                 [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
-                                , attribute "data-tooltip" "Mark urgent"
+                                , attribute "data-tooltip" "Interrupt @mentioned people"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.Off ]
                         , viewIf (PostEditor.getIsUrgent editor) <|
                             button
                                 [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
-                                , attribute "data-tooltip" "Mark not urgent"
+                                , attribute "data-tooltip" "Don't interrupt anyone"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.On ]
@@ -1198,11 +1198,11 @@ desktopPostView globals spaceUsers groups model data component =
     in
     div
         [ classList
-            [ ( "relative mb-3 p-4", True )
+            [ ( "relative mb-3 p-3", True )
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute w-2 h-2 rounded-full pin-t pin-b pin-l bg-green", style "margin-top" "35px" ] []
+            div [ class "absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green" ] []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
