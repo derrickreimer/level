@@ -16,7 +16,9 @@ defmodule Level.Posts.CreatePost do
   alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
+  alias Level.StringHelpers
   alias Level.TaggedGroups
+  alias Level.WebPush
 
   # TODO: make this more specific
   @type result :: {:ok, map()} | {:error, any(), any(), map()}
@@ -158,6 +160,8 @@ defmodule Level.Posts.CreatePost do
       _ = send_events(result.post, group)
     end)
 
+    _ = send_push_notifications(result, author)
+
     {:ok, result}
   end
 
@@ -201,4 +205,20 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp after_bot_post(err, _), do: err
+
+  defp send_push_notifications(%{post: %Post{is_urgent: true} = post, mentions: mentions}, author) do
+    payload = build_push_payload(post, author)
+
+    mentions
+    |> Enum.each(fn %SpaceUser{user_id: user_id} ->
+      WebPush.send_web_push(user_id, payload)
+    end)
+  end
+
+  defp send_push_notifications(_, _), do: true
+
+  defp build_push_payload(post, author) do
+    body = "@#{author.handle}: " <> StringHelpers.truncate(post.body)
+    %WebPush.Payload{body: body, tag: nil}
+  end
 end

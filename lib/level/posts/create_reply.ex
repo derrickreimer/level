@@ -13,6 +13,7 @@ defmodule Level.Posts.CreateReply do
   alias Level.Schemas.PostLog
   alias Level.Schemas.Reply
   alias Level.Schemas.SpaceUser
+  alias Level.StringHelpers
   alias Level.WebPush
 
   @typedoc "Dependencies injected in the perform function"
@@ -45,7 +46,7 @@ defmodule Level.Posts.CreateReply do
   """
   @spec build_push_payload(Reply.t(), SpaceUser.t()) :: WebPush.Payload.t()
   def build_push_payload(%Reply{} = reply, %SpaceUser{} = author) do
-    body = "@#{author.handle}: " <> truncate(reply.body)
+    body = "@#{author.handle}: " <> StringHelpers.truncate(reply.body)
     %WebPush.Payload{body: body, tag: nil}
   end
 
@@ -175,13 +176,5 @@ defmodule Level.Posts.CreateReply do
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       _ = events.user_mentioned(id, post)
     end)
-  end
-
-  defp truncate(text) do
-    if String.length(text) > 30 do
-      String.slice(text, 0..30) <> "..."
-    else
-      text
-    end
   end
 end
