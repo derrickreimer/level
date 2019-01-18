@@ -13,6 +13,7 @@ defmodule Level.Schemas.User do
   alias Level.OlsonTimeZone
   alias Level.Schemas.PushSubscription
   alias Level.Schemas.SpaceUser
+  alias Level.Users
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -94,6 +95,7 @@ defmodule Level.Schemas.User do
     |> validate_format(:email, email_format(), message: dgettext("errors", "is invalid"))
     |> Handles.validate_format(:handle)
     |> OlsonTimeZone.validate(:time_zone)
+    |> validate_reservations()
     |> unique_constraint(:email,
       name: :users_lower_email_index,
       message: dgettext("errors", "is already taken")
@@ -131,6 +133,26 @@ defmodule Level.Schemas.User do
 
       _ ->
         put_change(changeset, :time_zone, "UTC")
+    end
+  end
+
+  defp validate_reservations(changeset) do
+    validate_change(changeset, :handle, fn _, handle ->
+      check_reservation(changeset, handle)
+    end)
+  end
+
+  defp check_reservation(changeset, handle) do
+    case Users.get_reservation(handle) do
+      {:ok, reservation} ->
+        if Changeset.get_field(changeset, :email) == reservation.email do
+          []
+        else
+          [{:handle, "is already reserved by another email address"}]
+        end
+
+      _ ->
+        []
     end
   end
 end

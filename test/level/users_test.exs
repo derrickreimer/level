@@ -37,6 +37,30 @@ defmodule Level.UsersTest do
       {:error, %Ecto.Changeset{errors: errors}} = Users.create_user(params)
       assert errors == [email: {"is already taken", []}]
     end
+
+    test "does not allow using a reserved handle if email does not match" do
+      Users.create_reservation(%{email: "derrick@level.app", handle: "derrick"})
+
+      params =
+        valid_user_params()
+        |> Map.put(:email, "impersonator@level.app")
+        |> Map.put(:handle, "derrick")
+
+      {:error, %Ecto.Changeset{errors: errors}} = Users.create_user(params)
+      assert errors == [handle: {"is already reserved by another email address", []}]
+    end
+
+    test "does allow using a reserved handle if email matches" do
+      Users.create_reservation(%{email: "derrick@level.app", handle: "derrick"})
+
+      params =
+        valid_user_params()
+        |> Map.put(:email, "derrick@level.app")
+        |> Map.put(:handle, "derrick")
+
+      {:ok, user} = Users.create_user(params)
+      assert user.handle == "derrick"
+    end
   end
 
   describe "update_user/2" do

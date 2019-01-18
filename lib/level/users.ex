@@ -74,6 +74,20 @@ defmodule Level.Users do
   end
 
   @doc """
+  Looks up a reservation.
+  """
+  @spec get_reservation(String.t()) :: {:ok, Reservation.t()} | {:error, String.t()}
+  def get_reservation(handle) do
+    case Repo.get_by(Reservation, handle: handle) do
+      %Reservation{} = reservation ->
+        {:ok, reservation}
+
+      _ ->
+        {:error, dgettext("errors", "Handle is not reserved")}
+    end
+  end
+
+  @doc """
   Updates a user.
   """
   @spec update_user(User.t(), map()) ::
