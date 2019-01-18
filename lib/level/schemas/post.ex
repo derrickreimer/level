@@ -28,6 +28,7 @@ defmodule Level.Schemas.Post do
     field :state, :string, read_after_writes: true
     field :body, :string
     field :language, :string
+    field :is_urgent, :boolean, read_after_writes: true
 
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
@@ -53,7 +54,7 @@ defmodule Level.Schemas.Post do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_user_id, :space_bot_id, :body])
+    |> cast(attrs, [:space_id, :space_user_id, :space_bot_id, :body, :is_urgent])
     |> validate_required([:body])
   end
 
