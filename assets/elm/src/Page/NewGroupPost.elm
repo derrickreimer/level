@@ -183,6 +183,7 @@ type Msg
     | NewPostFileUploadProgress Id Int
     | NewPostFileUploaded Id Id String
     | NewPostFileUploadError Id
+    | ToggleUrgent
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
       -- MOBILE
@@ -254,6 +255,9 @@ update msg globals model =
 
         NewPostFileUploadError clientId ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
+
+        ToggleUrgent ->
+            ( ( { model | postComposer = PostEditor.toggleIsUrgent model.postComposer }, Cmd.none ), globals )
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -426,9 +430,27 @@ resolvedMobileView globals model data =
                     , value (PostEditor.getBody editor)
                     ]
                     []
-                , div [ class "p-4" ]
+                , div []
                     [ PostEditor.filesView editor
                     ]
+                ]
+            , div [ class "mx-2" ]
+                [ viewUnless (PostEditor.getIsUrgent editor) <|
+                    button
+                        [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                        , attribute "data-tooltip" "Mark urgent"
+                        , onClick ToggleUrgent
+                        ]
+                        [ Icons.alert Icons.Off ]
+                , viewIf (PostEditor.getIsUrgent editor) <|
+                    button
+                        [ class "flex items-center tooltip tooltip-bottom mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
+                        , attribute "data-tooltip" "Mark not urgent"
+                        , onClick ToggleUrgent
+                        ]
+                        [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
+                        , div [] [ text "Urgent" ]
+                        ]
                 ]
             ]
         ]

@@ -33,7 +33,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
-import View.Helpers exposing (setFocus, viewIf)
+import View.Helpers exposing (setFocus, viewIf, viewUnless)
 
 
 
@@ -138,6 +138,7 @@ type Msg
     | NewPostFileUploadProgress Id Int
     | NewPostFileUploaded Id Id String
     | NewPostFileUploadError Id
+    | ToggleUrgent
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | EscapePressed
@@ -204,6 +205,9 @@ update msg globals model =
                         |> PostEditor.insertFileLink fileId
             in
             ( ( { model | postComposer = newPostComposer }, cmd ), globals )
+
+        ToggleUrgent ->
+            ( ( { model | postComposer = PostEditor.toggleIsUrgent model.postComposer }, Cmd.none ), globals )
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -365,7 +369,7 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 py-6 max-w-lg leading-normal" ]
             [ desktopPostComposerView globals model data
-            , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
+            , p [ class "px-8 text-md text-dusty-blue-dark text-center" ]
                 [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
                 , text "Hashtag the Channels where you'd like your message to appear."
                 ]
@@ -411,8 +415,24 @@ desktopPostComposerView globals model data =
                         ]
                         []
                     , PostEditor.filesView editor
-                    , div [ class "flex items-baseline justify-end" ]
-                        [ button
+                    , div [ class "flex items-center justify-end" ]
+                        [ viewUnless (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                , attribute "data-tooltip" "Mark urgent"
+                                , onClick ToggleUrgent
+                                ]
+                                [ Icons.alert Icons.Off ]
+                        , viewIf (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "flex items-center tooltip tooltip-bottom mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
+                                , attribute "data-tooltip" "Mark not urgent"
+                                , onClick ToggleUrgent
+                                ]
+                                [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
+                                , div [] [ text "Urgent" ]
+                                ]
+                        , button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
                             , disabled (isUnsubmittable editor)
@@ -473,7 +493,11 @@ resolvedMobileView globals model data =
     in
     Layout.SpaceMobile.layout layoutConfig
         [ div [ class "mx-auto leading-normal" ]
-            [ PostEditor.wrapper composerConfig
+            [ p [ class "px-3 py-3 text-sm text-dusty-blue-dark" ]
+                [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+                , text "Hashtag one or more Channels in your message."
+                ]
+            , PostEditor.wrapper composerConfig
                 [ textarea
                     [ id (PostEditor.getTextareaId editor)
                     , class "w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
@@ -487,9 +511,23 @@ resolvedMobileView globals model data =
                     [ PostEditor.filesView editor
                     ]
                 ]
-            , p [ class "px-8 text-sm text-dusty-blue-dark text-center" ]
-                [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-                , text "Hashtag the Channels where you'd like your message to appear."
+            , div [ class "mx-2 pb-4" ]
+                [ viewUnless (PostEditor.getIsUrgent editor) <|
+                    button
+                        [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                        , attribute "data-tooltip" "Mark urgent"
+                        , onClick ToggleUrgent
+                        ]
+                        [ Icons.alert Icons.Off ]
+                , viewIf (PostEditor.getIsUrgent editor) <|
+                    button
+                        [ class "flex items-center tooltip tooltip-bottom mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
+                        , attribute "data-tooltip" "Mark not urgent"
+                        , onClick ToggleUrgent
+                        ]
+                        [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
+                        , div [] [ text "Urgent" ]
+                        ]
                 ]
             ]
         ]
