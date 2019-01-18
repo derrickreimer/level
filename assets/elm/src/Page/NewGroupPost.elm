@@ -449,7 +449,7 @@ resolvedMobileView globals model data =
                         , onClick ToggleUrgent
                         ]
                         [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
-                        , div [] [ text "Urgent" ]
+                        , div [] [ text "This message is urgent" ]
                         ]
                 ]
             ]

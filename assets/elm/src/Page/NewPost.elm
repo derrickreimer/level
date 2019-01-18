@@ -425,13 +425,11 @@ desktopPostComposerView globals model data =
                                 [ Icons.alert Icons.Off ]
                         , viewIf (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "flex items-center tooltip tooltip-bottom mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
+                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Mark not urgent"
                                 , onClick ToggleUrgent
                                 ]
-                                [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
-                                , div [] [ text "Urgent" ]
-                                ]
+                                [ Icons.alert Icons.On ]
                         , button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
@@ -526,7 +524,7 @@ resolvedMobileView globals model data =
                         , onClick ToggleUrgent
                         ]
                         [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
-                        , div [] [ text "Urgent" ]
+                        , div [] [ text "This message is urgent" ]
                         ]
                 ]
             ]
