@@ -1,6 +1,6 @@
 module PostEditor exposing
     ( PostEditor, init
-    , getId, getTextareaId, getBody, getErrors, setBody, setErrors, clearErrors, reset
+    , getId, getTextareaId, getBody, getErrors, setBody, setErrors, clearErrors, getIsUrgent, toggleIsUrgent, reset
     , isExpanded, isSubmitting, isSubmittable, isUnsubmittable, expand, collapse, setToSubmitting, setNotSubmitting
     , getFiles, getUploadIds, getFileById, addFile, setFiles, setFileUploadPercentage, setFileState
     , Event(..), receive, decoder, decodeEvent
@@ -18,7 +18,7 @@ module PostEditor exposing
 
 # General
 
-@docs getId, getTextareaId, getBody, getErrors, setBody, setErrors, clearErrors, reset
+@docs getId, getTextareaId, getBody, getErrors, setBody, setErrors, clearErrors, getIsUrgent, toggleIsUrgent, reset
 
 
 # Visual Settings
@@ -73,6 +73,7 @@ type alias Internal =
     , body : String
     , files : List File
     , isExpanded : Bool
+    , isUrgent : Bool
     , isSubmitting : Bool
     , errors : List ValidationError
     }
@@ -80,7 +81,7 @@ type alias Internal =
 
 init : Id -> PostEditor
 init id =
-    PostEditor (Internal id "" [] False False [])
+    PostEditor (Internal id "" [] False False False [])
 
 
 
@@ -120,6 +121,16 @@ setErrors errors (PostEditor internal) =
 clearErrors : PostEditor -> PostEditor
 clearErrors (PostEditor internal) =
     PostEditor { internal | errors = [] }
+
+
+getIsUrgent : PostEditor -> Bool
+getIsUrgent (PostEditor internal) =
+    internal.isUrgent
+
+
+toggleIsUrgent : PostEditor -> PostEditor
+toggleIsUrgent (PostEditor internal) =
+    PostEditor { internal | isUrgent = not internal.isUrgent }
 
 
 reset : PostEditor -> ( PostEditor, Cmd msg )

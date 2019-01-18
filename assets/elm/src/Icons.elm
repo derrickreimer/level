@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
+module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -15,6 +15,18 @@ type Toggle
 iconView : Html msg -> Html msg
 iconView svg =
     Html.div [ Html.Attributes.class "flex items-center" ] [ svg ]
+
+
+alert : Toggle -> Html msg
+alert toggle =
+    case toggle of
+        Off ->
+            iconView <|
+                svg [ width "22px", height "22px", viewBox "0 0 22 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#8A98A5", strokeLinecap "round", strokeLinejoin "round", cx "10", cy "10", r "10" ] [], Svg.path [ d "M10,6 L10,10", id "Path", stroke "#8A98A5", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#8A98A5", fillRule "nonzero", cx "10", cy "14", r "1" ] [] ] ] ]
+
+        On ->
+            iconView <|
+                svg [ width "22px", height "22px", viewBox "0 0 22 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#38C172", fill "#38C172", strokeLinecap "round", strokeLinejoin "round", cx "10", cy "10", r "10" ] [], Svg.path [ d "M10,6 L10,10", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "10", cy "14", r "1" ] [] ] ] ]
 
 
 arrowLeft : Toggle -> Html msg

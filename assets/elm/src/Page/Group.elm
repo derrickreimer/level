@@ -220,6 +220,7 @@ type Msg
     | NewPostFileUploadProgress Id Int
     | NewPostFileUploaded Id Id String
     | NewPostFileUploadError Id
+    | ToggleUrgent
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | SubscribeClicked
@@ -323,6 +324,9 @@ update msg globals model =
 
         NewPostFileUploadError clientId ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
+
+        ToggleUrgent ->
+            ( ( { model | postComposer = PostEditor.toggleIsUrgent model.postComposer }, Cmd.none ), globals )
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -1129,8 +1133,22 @@ desktopPostComposerView globals model data =
                         ]
                         []
                     , PostEditor.filesView editor
-                    , div [ class "flex items-baseline justify-end" ]
-                        [ button
+                    , div [ class "flex items-center justify-end" ]
+                        [ viewUnless (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-lighter hover:bg-grey transition-bg no-outline"
+                                , attribute "data-tooltip" "Mark urgent"
+                                , onClick ToggleUrgent
+                                ]
+                                [ Icons.alert Icons.Off ]
+                        , viewIf (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-lighter hover:bg-grey transition-bg no-outline"
+                                , attribute "data-tooltip" "Mark not urgent"
+                                , onClick ToggleUrgent
+                                ]
+                                [ Icons.alert Icons.On ]
+                        , button
                             [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
                             , disabled (PostEditor.isUnsubmittable editor)
