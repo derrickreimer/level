@@ -26,7 +26,7 @@ alert toggle =
 
         On ->
             iconView <|
-                svg [ width "22px", height "22px", viewBox "0 0 22 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#38C172", fill "#38C172", strokeLinecap "round", strokeLinejoin "round", cx "10", cy "10", r "10" ] [], Svg.path [ d "M10,6 L10,10", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "10", cy "14", r "1" ] [] ] ] ]
+                svg [ width "22px", height "22px", viewBox "0 0 22 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#FF1E12", fill "#FF1E12", strokeLinecap "round", strokeLinejoin "round", cx "10", cy "10", r "10" ] [], Svg.path [ d "M10,6 L10,10", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "10", cy "14", r "1" ] [] ] ] ]
 
 
 arrowLeft : Toggle -> Html msg
