@@ -4,11 +4,13 @@ defmodule Level.WebPush.Payload do
   """
 
   @enforce_keys [:body]
-  defstruct [:body, :tag]
+  defstruct body: "", tag: nil, require_interaction: false, click_url: nil
 
   @type t :: %__MODULE__{
           body: String.t(),
-          tag: String.t() | nil
+          tag: String.t() | nil,
+          require_interaction: boolean(),
+          click_url: String.t() | nil
         }
 
   @doc """

@@ -16,9 +16,9 @@ defmodule Level.Posts.CreatePost do
   alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
-  alias Level.StringHelpers
   alias Level.TaggedGroups
   alias Level.WebPush
+  alias LevelWeb.Router.Helpers
 
   # TODO: make this more specific
   @type result :: {:ok, map()} | {:error, any(), any(), map()}
@@ -218,7 +218,9 @@ defmodule Level.Posts.CreatePost do
   defp send_push_notifications(_, _), do: true
 
   defp build_push_payload(post, author) do
-    body = "@#{author.handle}: " <> StringHelpers.truncate(post.body)
-    %WebPush.Payload{body: body, tag: nil}
+    post = Repo.preload(post, :space)
+    body = "@#{author.handle} posted an urgent message"
+    click_url = Helpers.main_url(LevelWeb.Endpoint, :index, [post.space.slug, "posts", post.id])
+    %WebPush.Payload{body: body, tag: nil, require_interaction: true, click_url: click_url}
   end
 end
