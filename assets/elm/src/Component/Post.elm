@@ -1023,7 +1023,7 @@ resolvedView config model data =
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
                     [ postAuthorName config.space model.postId data.author
-                    , span [ class "text-dusty-blue text-sm" ] [ text " · " ]
+                    , span [ class "mx-1 text-dusty-blue" ] [ text "·" ]
                     , a
                         [ Route.href <| Route.Post (Space.slug config.space) model.postId
                         , class "no-underline whitespace-no-wrap"
@@ -1110,10 +1110,10 @@ postAuthorName space postId author =
     in
     a
         [ Route.href route
-        , class "no-underline text-dusty-blue-darkest whitespace-no-wrap"
+        , class "no-underline whitespace-no-wrap"
         ]
-        [ span [ class "mr-2 font-bold" ] [ text <| Actor.displayName author ]
-        , span [ class "text-sm text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+        [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
+        , span [ class "text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
         ]
 
 
@@ -1123,7 +1123,7 @@ groupsLabel space groups =
         groupLink group =
             a
                 [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.name group)))
-                , class "mr-1 no-underline text-dusty-blue-dark font-bold whitespace-no-wrap"
+                , class "mr-1 no-underline text-dusty-blue-dark whitespace-no-wrap"
                 ]
                 [ text ("#" ++ Group.name group) ]
 
@@ -1134,8 +1134,8 @@ groupsLabel space groups =
         text ""
 
     else
-        div [ class "pb-2 mr-3 text-sm text-dusty-blue-darker" ]
-            [ text "Published in "
+        div [ class "pb-1 mr-3 text-base text-dusty-blue" ]
+            [ text ""
             , span [] groupLinks
             ]
 
@@ -1255,7 +1255,7 @@ replyView config model data reply =
                 , div [ class "flex-grow leading-normal" ]
                     [ div [ class "pb-1/2" ]
                         [ replyAuthorName config.space author
-                        , span [ class "text-dusty-blue text-sm" ] [ text " · " ]
+                        , span [ class "mx-1 text-dusty-blue text-sm" ] [ text "·" ]
                         , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             button
@@ -1293,13 +1293,13 @@ replyAuthorName space author =
                 , class "whitespace-no-wrap no-underline"
                 ]
                 [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "text-sm text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+                , span [ class "text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
         _ ->
             span [ class "whitespace-no-wrap" ]
                 [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "text-sm text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+                , span [ class "text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
 

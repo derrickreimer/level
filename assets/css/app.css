@@ -37,7 +37,7 @@
  */
 
 body {
-  @apply .text-dusty-blue-darkest;
+  @apply text-dusty-blue-darkest text-base;
 }
 
 h1,
@@ -132,7 +132,7 @@ h6 {
 }
 
 .btn-md {
-  @apply px-5 py-2 text-sm;
+  @apply px-5 py-2 text-md;
 }
 
 .btn-blue {
