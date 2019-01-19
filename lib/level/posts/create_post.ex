@@ -220,7 +220,7 @@ defmodule Level.Posts.CreatePost do
   defp build_push_payload(post, author) do
     post = Repo.preload(post, :space)
     body = "@#{author.handle} posted an urgent message"
-    click_url = Helpers.main_path(LevelWeb.Endpoint, :index, [post.space.slug, "posts", post.id])
-    %WebPush.Payload{body: body, tag: nil, require_interaction: true, click_url: click_url}
+    url = Helpers.main_path(LevelWeb.Endpoint, :index, [post.space.slug, "posts", post.id])
+    %WebPush.Payload{body: body, tag: nil, require_interaction: true, url: url}
   end
 end

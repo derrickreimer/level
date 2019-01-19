@@ -9,7 +9,7 @@ self.addEventListener('push', function (event) {
     body: data.body,
     requireInteraction: data.require_interaction,
     data: {
-      clickUrl: data.click_url
+      url: data.url
     }
   };
 
@@ -23,13 +23,11 @@ self.addEventListener('push', function (event) {
 // Listen for notification clicks
 self.addEventListener('notificationclick', function (event) {
   const data = event.notification.data;
-
+  event.notification.close();
   console.log("[sw]", "notification click", event);
 
-  if (data.clickUrl) {
-    event.notification.close();
-
-    const urlToOpen = new URL(data.clickUrl, self.location.origin).href;
+  if (data.url) {
+    const fullUrl = new URL(data.url, self.location.origin).href;
 
     const promiseChain = clients.matchAll({
       type: 'window',
@@ -38,27 +36,33 @@ self.addEventListener('notificationclick', function (event) {
     .then((windowClients) => {
       let matchingClient = null;
 
+      // Search for an exact matching window
       for (let i = 0; i < windowClients.length; i++) {
         const windowClient = windowClients[i];
-        if (windowClient.url === urlToOpen) {
+        if (windowClient.url === fullUrl) {
           matchingClient = windowClient;
           break;
         }
       }
 
+      // If there's an exact matching window, focus it
       if (matchingClient) {
         return matchingClient.focus();
+
+      // If there are any windows, focus on the first one and redirect
       } else if (windowClients.length > 0) {
         let firstClient = windowClients[0];
 
         firstClient.postMessage({
           type: "redirect",
-          url: urlToOpen
+          url: fullUrl
         });
 
         return firstClient.focus();
+
+      // Otherwise, open a new window
       } else {
-        return clients.openWindow(urlToOpen);
+        return clients.openWindow(fullUrl);
       }
     });
 
