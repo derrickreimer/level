@@ -20,7 +20,7 @@ import "phoenix_html";
 import * as Main from "./modules/main";
 import * as Home from "./modules/home";
 import * as SvgToElm from "./modules/svg_to_elm";
-import * as Background from "./background";
+import * as ServiceWorker from "./service_worker";
 import * as Honeybadger from "honeybadger-js";
 import "./custom_elements/rendered_html";
 import "./custom_elements/clipboard_button";
@@ -31,7 +31,7 @@ import smoothscroll from "smoothscroll-polyfill";
 smoothscroll.polyfill();
 
 // Initialize service worker
-Background.registerWorker();
+ServiceWorker.registerWorker();
 
 // Initialize the current page module
 const moduleNode = document.head.querySelector("meta[name='module']");

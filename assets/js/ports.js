@@ -3,7 +3,7 @@ import { Presence } from "phoenix";
 import { getInitialApiToken, fetchApiToken } from "./token";
 import { insertTextAtCursor } from "./utils";
 import * as AbsintheSocket from "@absinthe/socket";
-import * as Background from "./background";
+import * as ServiceWorker from "./service_worker";
 import autosize from "autosize";
 
 const logEvent = eventName => (...args) =>
@@ -252,11 +252,11 @@ export const attachPorts = app => {
     logEvent("requestFile")({ id });
   });
 
-  if (Background.isSupported()) {
+  if (ServiceWorker.isSupported()) {
     app.ports.pushManagerOut.subscribe(method => {
       switch (method) {
         case "getSubscription":
-          Background.getPushSubscription().then(subscription => {
+          ServiceWorker.getPushSubscription().then(subscription => {
             const payload = {
               type: "subscription",
               subscription: JSON.stringify(subscription)
@@ -269,7 +269,7 @@ export const attachPorts = app => {
           break;
 
         case "subscribe":
-          Background.subscribe()
+          ServiceWorker.subscribe()
             .then(subscription => {
               const payload = {
                 type: "subscription",
@@ -289,7 +289,7 @@ export const attachPorts = app => {
       logEvent("pushManagerOut")(method);
     });
 
-    Background.addEventListener("message", event => {
+    ServiceWorker.addEventListener("message", event => {
       const payload = event.data;
       app.ports.pushManagerIn.send(payload);
       logEvent("pushManagerIn")(payload);

@@ -1,7 +1,7 @@
 import { getInitialApiToken } from "../token";
 import { attachPorts } from "../ports";
 import { Elm } from "../../elm/src/Program/Main.elm";
-import * as Background from "../background";
+import * as ServiceWorker from "../service_worker";
 import { isMobile } from "../device_detection";
 import jstz from "jstz";
 
@@ -9,7 +9,7 @@ export function initialize() {
   const app = Elm.Program.Main.init({
     flags: {
       apiToken: getInitialApiToken(),
-      supportsNotifications: Background.isSupported(),
+      supportsNotifications: ServiceWorker.isSupported(),
       timeZone: jstz.determine().name(),
       device: isMobile() ? "MOBILE" : "DESKTOP"
     }
