@@ -42,7 +42,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
            subscription: subscription,
            worker_pid: worker_pid
          } do
-      payload = %Payload{body: "Hello"}
+      payload = %Payload{title: "Level", body: "Hello"}
       expect_response(201, payload, subscription)
       assert :ok == SubscriptionWorker.send_web_push(digest, payload)
 
@@ -57,7 +57,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
            subscription: subscription,
            worker_pid: worker_pid
          } do
-      payload = %Payload{body: "Hello"}
+      payload = %Payload{title: "Level", body: "Hello"}
       expect_response(404, payload, subscription)
       assert :ok == SubscriptionWorker.send_web_push(digest, payload)
 
@@ -74,7 +74,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
            subscription: subscription,
            worker_pid: worker_pid
          } do
-      payload = %Payload{body: "Hello"}
+      payload = %Payload{title: "Level", body: "Hello"}
       expect_response(410, payload, subscription)
       assert :ok == SubscriptionWorker.send_web_push(digest, payload)
 
@@ -90,7 +90,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
            subscription: subscription,
            worker_pid: worker_pid
          } do
-      payload = %Payload{body: "Hello"}
+      payload = %Payload{title: "Level", body: "Hello"}
       expect_response(500, payload, subscription)
       expect_response(201, payload, subscription)
       assert :ok == SubscriptionWorker.send_web_push(digest, payload)
@@ -104,7 +104,7 @@ defmodule Level.WebPush.SubscriptionWorkerTest do
            digest: digest,
            subscription: subscription
          } do
-      payload = %Payload{body: "Hello"}
+      payload = %Payload{title: "Level", body: "Hello"}
       expect_response(500, payload, subscription, max_attempts())
       assert :ok == SubscriptionWorker.send_web_push(digest, payload)
 

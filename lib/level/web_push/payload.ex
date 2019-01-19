@@ -3,10 +3,11 @@ defmodule Level.WebPush.Payload do
   Represents a web push payload.
   """
 
-  @enforce_keys [:body]
-  defstruct body: "", tag: nil, require_interaction: false, url: nil
+  @enforce_keys [:title, :body]
+  defstruct title: "Level", body: "", tag: nil, require_interaction: false, url: nil
 
   @type t :: %__MODULE__{
+          title: String.t(),
           body: String.t(),
           tag: String.t() | nil,
           require_interaction: boolean(),

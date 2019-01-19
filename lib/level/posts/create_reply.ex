@@ -46,8 +46,9 @@ defmodule Level.Posts.CreateReply do
   """
   @spec build_push_payload(Reply.t(), SpaceUser.t()) :: WebPush.Payload.t()
   def build_push_payload(%Reply{} = reply, %SpaceUser{} = author) do
+    author = Repo.preload(author, :space)
     body = "@#{author.handle}: " <> StringHelpers.truncate(reply.body)
-    %WebPush.Payload{body: body, tag: nil}
+    %WebPush.Payload{title: author.space.name, body: body, tag: nil}
   end
 
   defp build_params(author, post, params) do

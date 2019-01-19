@@ -17,7 +17,7 @@ self.addEventListener('push', function (event) {
 
   // Keep the service worker alive until the notification is created.
   console.log("[sw]", "show notification", payload);
-  event.waitUntil(self.registration.showNotification('Level', payload));
+  event.waitUntil(self.registration.showNotification(data.title || 'Level', payload));
 });
 
 // Listen for notification clicks
