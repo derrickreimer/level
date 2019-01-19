@@ -1395,6 +1395,11 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.ReplyDeleted reply ->
+            ( { model | repo = Repo.setReply reply model.repo }
+            , Cmd.none
+            )
+
         Event.MentionsDismissed post ->
             ( { model | repo = Repo.setPost post model.repo }
             , Cmd.none

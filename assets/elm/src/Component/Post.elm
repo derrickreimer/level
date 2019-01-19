@@ -23,6 +23,7 @@ import Mutation.CreateReply as CreateReply
 import Mutation.CreateReplyReaction as CreateReplyReaction
 import Mutation.DeletePost as DeletePost
 import Mutation.DeletePostReaction as DeletePostReaction
+import Mutation.DeleteReply as DeleteReply
 import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
@@ -182,6 +183,8 @@ type Msg
     | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
     | DeletePostClicked
     | PostDeleted (Result Session.Error ( Session, DeletePost.Response ))
+    | DeleteReplyClicked Id
+    | ReplyDeleted Id (Result Session.Error ( Session, DeleteReply.Response ))
     | InternalLinkClicked String
 
 
@@ -908,6 +911,60 @@ update msg globals model =
         PostDeleted (Err _) ->
             noCmd globals model
 
+        DeleteReplyClicked replyId ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setToSubmitting
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+
+                cmd =
+                    globals.session
+                        |> DeleteReply.request (DeleteReply.variables model.spaceId replyId)
+                        |> Task.attempt (ReplyDeleted replyId)
+            in
+            ( ( { model | replyEditors = newReplyEditors }, cmd ), globals )
+
+        ReplyDeleted _ (Ok ( newSession, DeleteReply.Success reply )) ->
+            ( ( model, Cmd.none ), { globals | session = newSession } )
+
+        ReplyDeleted replyId (Ok ( newSession, DeleteReply.Invalid _ )) ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setNotSubmitting
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        ReplyDeleted _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ReplyDeleted replyId (Err _) ->
+            let
+                newReplyEditor =
+                    model.replyEditors
+                        |> getReplyEditor replyId
+                        |> PostEditor.setNotSubmitting
+
+                newReplyEditors =
+                    model.replyEditors
+                        |> Dict.insert replyId newReplyEditor
+            in
+            ( ( { model | replyEditors = newReplyEditors }, Cmd.none )
+            , globals
+            )
+
         InternalLinkClicked pathname ->
             ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
@@ -1339,18 +1396,25 @@ replyEditorView viewConfig replyId editor =
                 []
             , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
             , PostEditor.filesView editor
-            , div [ class "flex justify-end" ]
+            , div [ class "flex" ]
                 [ button
                     [ class "mr-2 btn btn-grey-outline btn-sm"
-                    , onClick (CollapseReplyEditor replyId)
+                    , onClick (DeleteReplyClicked replyId)
                     ]
-                    [ text "Cancel" ]
-                , button
-                    [ class "btn btn-blue btn-sm"
-                    , onClick (ReplyEditorSubmitted replyId)
-                    , disabled (PostEditor.isUnsubmittable editor)
+                    [ text "Delete reply" ]
+                , div [ class "flex-grow flex justify-end" ]
+                    [ button
+                        [ class "mr-2 btn btn-grey-outline btn-sm"
+                        , onClick (CollapseReplyEditor replyId)
+                        ]
+                        [ text "Cancel" ]
+                    , button
+                        [ class "btn btn-blue btn-sm"
+                        , onClick (ReplyEditorSubmitted replyId)
+                        , disabled (PostEditor.isUnsubmittable editor)
+                        ]
+                        [ text "Update reply" ]
                     ]
-                    [ text "Update reply" ]
                 ]
             ]
         ]
@@ -1637,7 +1701,9 @@ visibleReplies : Repo -> Connection Id -> ( List Reply, Bool )
 visibleReplies repo replyIds =
     let
         replies =
-            Repo.getReplies (Connection.toList replyIds) repo
+            repo
+                |> Repo.getReplies (Connection.toList replyIds)
+                |> List.filter Reply.notDeleted
 
         hasPreviousPage =
             Connection.hasPreviousPage replyIds

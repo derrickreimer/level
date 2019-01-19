@@ -1,4 +1,4 @@
-module Subscription.PostSubscription exposing (postClosedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, replyCreatedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
+module Subscription.PostSubscription exposing (postClosedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
 
 import GraphQL exposing (Document)
 import Json.Decode as Decode
@@ -47,6 +47,14 @@ replyUpdatedDecoder : Decode.Decoder Reply
 replyUpdatedDecoder =
     Subscription.decoder "post"
         "ReplyUpdated"
+        "reply"
+        Reply.decoder
+
+
+replyDeletedDecoder : Decode.Decoder Reply
+replyDeletedDecoder =
+    Subscription.decoder "post"
+        "ReplyDeleted"
         "reply"
         Reply.decoder
 
@@ -136,6 +144,11 @@ document =
               }
             }
             ... on ReplyUpdatedPayload {
+              reply {
+                ...ReplyFields
+              }
+            }
+            ... on ReplyDeletedPayload {
               reply {
                 ...ReplyFields
               }

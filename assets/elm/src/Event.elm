@@ -42,6 +42,7 @@ type Event
     | GroupUpdated Group
     | ReplyCreated Reply
     | ReplyUpdated Reply
+    | ReplyDeleted Reply
     | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
     | Unknown Decode.Value
@@ -82,6 +83,7 @@ eventDecoder =
         , Decode.map PostUpdated PostSubscription.postUpdatedDecoder
         , Decode.map ReplyCreated PostSubscription.replyCreatedDecoder
         , Decode.map ReplyUpdated PostSubscription.replyUpdatedDecoder
+        , Decode.map ReplyDeleted PostSubscription.replyDeletedDecoder
         , Decode.map PostClosed PostSubscription.postClosedDecoder
         , Decode.map PostReopened PostSubscription.postReopenedDecoder
         , Decode.map PostDeleted PostSubscription.postDeletedDecoder
