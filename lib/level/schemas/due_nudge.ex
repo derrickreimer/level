@@ -7,6 +7,7 @@ defmodule Level.Schemas.DueNudge do
 
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   @type t :: %__MODULE__{}
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -20,5 +21,6 @@ defmodule Level.Schemas.DueNudge do
 
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
+    belongs_to :user, User
   end
 end

@@ -8,11 +8,13 @@ defmodule Level.Nudges do
 
   alias Ecto.Changeset
   alias Level.Digests
+  alias Level.Digests.Digest
   alias Level.Digests.UnreadTodaySection
   alias Level.Repo
   alias Level.Schemas.DueNudge
   alias Level.Schemas.Nudge
   alias Level.Schemas.SpaceUser
+  alias Level.WebPush
 
   @doc """
   Fetches nudges that are due to send.
@@ -30,6 +32,7 @@ defmodule Level.Nudges do
           id: fragment("?::text", n.id),
           space_id: fragment("?::text", n.space_id),
           space_user_id: fragment("?::text", n.space_user_id),
+          user_id: fragment("?::text", su.user_id),
           minute: n.minute,
           time_zone: u.time_zone,
           digest_key:
@@ -54,7 +57,8 @@ defmodule Level.Nudges do
       on: d.key == n.digest_key,
       where: n.current_minute >= n.minute,
       where: n.current_minute < fragment("LEAST(? + 30, 1440)", n.minute),
-      where: is_nil(d.id)
+      where: is_nil(d.id),
+      preload: [:space_user, :space]
   end
 
   @doc """
@@ -176,19 +180,36 @@ defmodule Level.Nudges do
     |> due_query()
     |> Repo.all()
     |> filter_sendable(now)
-    |> build_digests(now)
+    |> build_and_send_digests(now)
   end
 
-  defp build_digests(due_nudges, now) do
+  defp build_and_send_digests(due_nudges, now) do
     Enum.map(due_nudges, fn due_nudge ->
-      case build_digest(due_nudge, now) do
-        {:ok, digest} ->
-          _ = Digests.send_email(digest)
-          {:ok, digest}
-
-        {:error, _} ->
-          {:error, due_nudge}
-      end
+      due_nudge
+      |> build_digest(now)
+      |> after_build(due_nudge)
     end)
+  end
+
+  defp after_build({:ok, digest}, due_nudge) do
+    _ = Digests.send_email(digest)
+    _ = send_push_notification(digest, due_nudge)
+
+    {:ok, digest}
+  end
+
+  defp after_build(_, due_nudge) do
+    {:error, due_nudge}
+  end
+
+  defp send_push_notification(%Digest{sections: [first_section | _]}, due_nudge) do
+    payload = %WebPush.Payload{
+      title: due_nudge.space.name,
+      body: first_section.summary,
+      require_interaction: true,
+      url: first_section.link_url
+    }
+
+    WebPush.send_web_push(due_nudge.user_id, payload)
   end
 end
