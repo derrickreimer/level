@@ -252,32 +252,32 @@ export const attachPorts = app => {
     logEvent("requestFile")({ id });
   });
 
-  if (ServiceWorker.isSupported()) {
-    app.ports.pushManagerOut.subscribe(method => {
+  if (ServiceWorker.isPushSupported()) {
+    app.ports.serviceWorkerOut.subscribe(method => {
       switch (method) {
-        case "getSubscription":
+        case "getPushSubscription":
           ServiceWorker.getPushSubscription().then(subscription => {
             const payload = {
-              type: "subscription",
+              type: "pushSubscription",
               subscription: JSON.stringify(subscription)
             };
 
-            app.ports.pushManagerIn.send(payload);
-            logEvent("pushManagerIn")(payload);
+            app.ports.serviceWorkerIn.send(payload);
+            logEvent("serviceWorkerIn")(payload);
           });
 
           break;
 
-        case "subscribe":
-          ServiceWorker.subscribe()
+        case "pushSubscribe":
+          ServiceWorker.pushSubscribe()
             .then(subscription => {
               const payload = {
-                type: "subscription",
+                type: "pushSubscription",
                 subscription: JSON.stringify(subscription)
               };
 
-              app.ports.pushManagerIn.send(payload);
-              logEvent("pushManagerIn")(payload);
+              app.ports.serviceWorkerIn.send(payload);
+              logEvent("serviceWorkerIn")(payload);
             })
             .catch(err => {
               console.error(err);
@@ -286,13 +286,13 @@ export const attachPorts = app => {
           break;
       }
 
-      logEvent("pushManagerOut")(method);
+      logEvent("serviceWorkerOut")(method);
     });
 
     ServiceWorker.addEventListener("message", event => {
       const payload = event.data;
-      app.ports.pushManagerIn.send(payload);
-      logEvent("pushManagerIn")(payload);
+      app.ports.serviceWorkerIn.send(payload);
+      logEvent("serviceWorkerIn")(payload);
     });
   }
 

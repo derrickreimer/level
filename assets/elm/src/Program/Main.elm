@@ -38,7 +38,6 @@ import Page.Spaces
 import Page.UserSettings
 import Page.WelcomeTutorial
 import Presence exposing (PresenceList)
-import PushManager
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
@@ -57,6 +56,7 @@ import Route.Settings
 import Route.SpaceUser
 import Route.SpaceUsers
 import Route.WelcomeTutorial
+import ServiceWorker
 import Session exposing (Session)
 import Socket
 import SocketState exposing (SocketState(..))
@@ -134,7 +134,7 @@ init flags url navKey =
     , Cmd.batch
         [ navigateCmd
         , initCmd
-        , PushManager.getSubscription
+        , ServiceWorker.getPushSubscription
         ]
     )
 
@@ -234,7 +234,7 @@ type Msg
     | WelcomeTutorialMsg Page.WelcomeTutorial.Msg
     | HelpMsg Page.Help.Msg
     | SocketIn Decode.Value
-    | PushManagerIn Decode.Value
+    | ServiceWorkerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
     | PresenceIn Decode.Value
     | FlashExpired Flash.Key
@@ -441,9 +441,9 @@ update msg model =
                 Socket.Unknown ->
                     ( model, Cmd.none )
 
-        ( PushManagerIn value, _ ) ->
-            case PushManager.decodePayload value of
-                PushManager.Subscription (Just data) ->
+        ( ServiceWorkerIn value, _ ) ->
+            case ServiceWorker.decodePayload value of
+                ServiceWorker.PushSubscription (Just data) ->
                     let
                         cmd =
                             model.session
@@ -452,10 +452,10 @@ update msg model =
                     in
                     ( { model | pushStatus = PushStatus.setIsSubscribed model.pushStatus }, cmd )
 
-                PushManager.Subscription Nothing ->
+                ServiceWorker.PushSubscription Nothing ->
                     ( { model | pushStatus = PushStatus.setNotSubscribed model.pushStatus }, Cmd.none )
 
-                PushManager.Redirect url ->
+                ServiceWorker.Redirect url ->
                     ( model, Nav.pushUrl model.navKey url )
 
                 _ ->
@@ -1590,7 +1590,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Socket.receive SocketIn
-        , PushManager.receive PushManagerIn
+        , ServiceWorker.receive ServiceWorkerIn
         , Presence.receive PresenceIn
         , KeyboardShortcuts.subscribe KeyPressed
         , pageSubscription model.page

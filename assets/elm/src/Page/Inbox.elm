@@ -25,7 +25,6 @@ import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
 import Pagination
 import Post exposing (Post)
-import PushManager
 import PushStatus exposing (PushStatus)
 import Query.InboxInit as InboxInit
 import Reply exposing (Reply)
@@ -37,6 +36,7 @@ import Route.Search
 import Route.SpaceUser
 import Route.SpaceUsers
 import Scroll
+import ServiceWorker
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -309,7 +309,7 @@ update msg globals model =
             noCmd globals model
 
         PushSubscribeClicked ->
-            ( ( model, PushManager.subscribe ), globals )
+            ( ( model, ServiceWorker.pushSubscribe ), globals )
 
         PostsRefreshed (Ok ( newSession, Response.Found data )) ->
             let

@@ -1,4 +1,4 @@
-module PushManager exposing (Payload(..), decodePayload, decoder, getSubscription, receive, subscribe)
+module ServiceWorker exposing (Payload(..), decodePayload, decoder, getPushSubscription, pushSubscribe, receive)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
@@ -6,7 +6,7 @@ import Ports
 
 
 type Payload
-    = Subscription (Maybe String)
+    = PushSubscription (Maybe String)
     | Redirect String
     | Unknown Decode.Value
 
@@ -17,21 +17,21 @@ type Payload
 
 receive : (Decode.Value -> msg) -> Sub msg
 receive toMsg =
-    Ports.pushManagerIn toMsg
+    Ports.serviceWorkerIn toMsg
 
 
 
 -- OUTBOUND
 
 
-getSubscription : Cmd msg
-getSubscription =
-    Ports.pushManagerOut "getSubscription"
+getPushSubscription : Cmd msg
+getPushSubscription =
+    Ports.serviceWorkerOut "getPushSubscription"
 
 
-subscribe : Cmd msg
-subscribe =
-    Ports.pushManagerOut "subscribe"
+pushSubscribe : Cmd msg
+pushSubscribe =
+    Ports.serviceWorkerOut "pushSubscribe"
 
 
 
@@ -50,7 +50,7 @@ decoder =
         convert type_ =
             case type_ of
                 "subscription" ->
-                    Decode.map Subscription <|
+                    Decode.map PushSubscription <|
                         Decode.field "subscription" nullStringDecoder
 
                 "redirect" ->

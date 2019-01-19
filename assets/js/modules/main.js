@@ -9,7 +9,7 @@ export function initialize() {
   const app = Elm.Program.Main.init({
     flags: {
       apiToken: getInitialApiToken(),
-      supportsNotifications: ServiceWorker.isSupported(),
+      supportsNotifications: ServiceWorker.isPushSupported(),
       timeZone: jstz.determine().name(),
       device: isMobile() ? "MOBILE" : "DESKTOP"
     }

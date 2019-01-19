@@ -1,5 +1,5 @@
-const log = (...args) => console.log("[bg]", ...args);
-const error = (...args) => console.error("[bg]", ...args);
+const log = (...args) => console.log("[sw client]", ...args);
+const error = (...args) => console.error("[sw client]", ...args);
 
 /**
  * Fetches the VAPID public key.
@@ -24,7 +24,7 @@ export function getPushSubscription() {
  * Initiates a subscription flow.
  * @returns {Promise}
  */
-export function subscribe() {
+export function pushSubscribe() {
   return navigator.serviceWorker.ready.then(registration => {
     const convertedKey = urlBase64ToUint8Array(getPublicKey());
 
@@ -56,12 +56,21 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 /**
+ * Checks to see if push notifications are supported.
+ * @returns {Boolean}
+ */
+export const isPushSupported = () => {
+  if (!isSupported()) return false;
+  if (!("PushManager" in window)) return false;
+  return true;
+};
+
+/**
  * Checks to see if service workers are supported.
  * @returns {Boolean}
  */
 export const isSupported = () => {
   if (!("serviceWorker" in navigator)) return false;
-  if (!("PushManager" in window)) return false;
   return true;
 };
 

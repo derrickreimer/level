@@ -1,4 +1,4 @@
-port module Ports exposing (beaconOut, postEditorIn, postEditorOut, presenceIn, presenceOut, pushManagerIn, pushManagerOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, socketIn, socketOut, socketTokenUpdated, updateToken)
+port module Ports exposing (beaconOut, postEditorIn, postEditorOut, presenceIn, presenceOut, receiveFile, requestFile, scrollPositionReceived, scrollTo, scrollToBottom, select, serviceWorkerIn, serviceWorkerOut, socketIn, socketOut, socketTokenUpdated, updateToken)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -21,7 +21,7 @@ port scrollPositionReceived : (Decode.Value -> msg) -> Sub msg
 port receiveFile : (Decode.Value -> msg) -> Sub msg
 
 
-port pushManagerIn : (Decode.Value -> msg) -> Sub msg
+port serviceWorkerIn : (Decode.Value -> msg) -> Sub msg
 
 
 port presenceIn : (Decode.Value -> msg) -> Sub msg
@@ -58,7 +58,7 @@ port select : String -> Cmd msg
 port requestFile : String -> Cmd msg
 
 
-port pushManagerOut : String -> Cmd msg
+port serviceWorkerOut : String -> Cmd msg
 
 
 port presenceOut : { method : String, topic : String } -> Cmd msg
