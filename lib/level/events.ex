@@ -100,6 +100,10 @@ defmodule Level.Events do
     publish_to_post(id, :reply_updated, %{reply: reply})
   end
 
+  def reply_deleted(id, %Reply{} = reply) do
+    publish_to_post(id, :reply_deleted, %{reply: reply})
+  end
+
   def post_closed(id, %Post{} = post) do
     publish_to_post(id, :post_closed, %{post: post})
   end

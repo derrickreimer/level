@@ -247,7 +247,6 @@ defmodule LevelWeb.Schema do
     field :delete_post, type: :delete_post_payload do
       arg :space_id, non_null(:id)
       arg :post_id, non_null(:id)
-      arg :body, :string
 
       resolve &Level.Mutations.delete_post/2
     end
@@ -269,6 +268,14 @@ defmodule LevelWeb.Schema do
       arg :body, :string
 
       resolve &Level.Mutations.update_reply/2
+    end
+
+    @desc "Deletes a reply."
+    field :delete_reply, type: :delete_reply_payload do
+      arg :space_id, non_null(:id)
+      arg :reply_id, non_null(:id)
+
+      resolve &Level.Mutations.delete_reply/2
     end
 
     @desc "Records when a user views a post (optionally with the last viewed reply)."

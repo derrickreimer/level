@@ -3,8 +3,12 @@ defmodule Level.Resolvers.ReplyConnection do
   A paginated connection for fetching a post's replies.
   """
 
+  import Ecto.Query
+
   alias Level.Pagination
   alias Level.Pagination.Args
+  alias Level.Schemas.Post
+  alias Level.Schemas.Reply
 
   defstruct first: nil,
             last: nil,
@@ -26,8 +30,12 @@ defmodule Level.Resolvers.ReplyConnection do
   @doc """
   Executes a paginated query for a post's replies.
   """
-  def get(post, args, _info) do
-    query = Ecto.assoc(post, :replies)
+  def get(%Post{id: post_id}, args, _info) do
+    query =
+      from r in Reply,
+        where: r.post_id == ^post_id,
+        where: r.is_deleted == false
+
     args = process_args(args)
     Pagination.fetch_result(query, Args.build(args))
   end

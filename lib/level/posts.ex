@@ -96,6 +96,7 @@ defmodule Level.Posts do
       on: gu.space_user_id == su.id and gu.group_id == g.id,
       left_join: pu in PostUser,
       on: pu.post_id == p.id and pu.space_user_id == su.id,
+      where: r.is_deleted == false,
       where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
       distinct: r.id
   end
@@ -232,8 +233,6 @@ defmodule Level.Posts do
 
   @doc """
   Deletes a post.
-
-  TODO: send a pubsub event.
   """
   @spec delete_post(SpaceUser.t(), Post.t()) :: {:ok, Post.t()} | {:error, Ecto.Changeset.t()}
   def delete_post(_actor, post) do
@@ -261,6 +260,24 @@ defmodule Level.Posts do
       events: Level.Events
     )
   end
+
+  @doc """
+  Deletes a reply.
+  """
+  @spec delete_reply(SpaceUser.t(), Reply.t()) :: {:ok, Reply.t()} | {:error, Ecto.Changeset.t()}
+  def delete_reply(_actor, reply) do
+    reply
+    |> Ecto.Changeset.change(is_deleted: true)
+    |> Repo.update()
+    |> after_delete_reply()
+  end
+
+  defp after_delete_reply({:ok, reply} = result) do
+    _ = Events.reply_deleted(reply.post_id, reply)
+    result
+  end
+
+  defp after_delete_reply(err), do: err
 
   @doc """
   Subscribes a user to the given posts.

@@ -445,6 +445,7 @@ defmodule LevelWeb.Schema.Objects do
     field :post_id, non_null(:id)
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(:db)
+    field :is_deleted, non_null(:boolean)
 
     field :author, non_null(:actor) do
       resolve &Resolvers.reply_author/3

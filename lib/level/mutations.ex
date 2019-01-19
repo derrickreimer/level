@@ -582,6 +582,24 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Deletes a reply.
+  """
+  @spec delete_reply(map(), info()) :: reply_mutation_result()
+  def delete_reply(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, reply} <- Posts.get_reply(user, args.reply_id),
+         {:ok, deleted_reply} <- Posts.delete_reply(space_user, reply) do
+      {:ok, %{success: true, reply: deleted_reply, errors: []}}
+    else
+      {:error, changeset} ->
+        {:ok, %{success: false, reply: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
   Records a post view.
   """
   @spec record_post_view(map(), info()) ::

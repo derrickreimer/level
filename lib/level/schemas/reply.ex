@@ -21,6 +21,7 @@ defmodule Level.Schemas.Reply do
   schema "replies" do
     field :body, :string
     field :language, :string
+    field :is_deleted, :boolean, read_after_writes: true
 
     belongs_to :space, Space
     belongs_to :post, Post
