@@ -35,6 +35,7 @@ import Mutation.UpdateGroup as UpdateGroup
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PushStatus
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
@@ -46,6 +47,7 @@ import Route.NewGroupPost
 import Route.Search
 import Route.SpaceUser
 import Scroll
+import ServiceWorker
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -252,6 +254,7 @@ type Msg
     | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
     | FocusOnComposer
+    | PushSubscribeClicked
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -701,6 +704,9 @@ update msg globals model =
         FocusOnComposer ->
             ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
 
+        PushSubscribeClicked ->
+            ( ( model, ServiceWorker.pushSubscribe ), globals )
+
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
 
@@ -1010,6 +1016,7 @@ resolvedDesktopView globals model data =
                 [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
                 , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
                 ]
+            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
             , Layout.SpaceDesktop.rightSidebar (sidebarView model.params data.space data.group data.featuredMembers)
             ]
@@ -1245,6 +1252,7 @@ resolvedMobileView globals model data =
                         [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
                         ]
                     ]
+            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "px-3" ]
                 [ mobilePostsView globals model data ]
             , a

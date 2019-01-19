@@ -1,4 +1,9 @@
-module PushStatus exposing (PushStatus, getIsSubscribed, init, setIsSubscribed, setNotSubscribed)
+module PushStatus exposing (PushStatus, bannerView, getIsSubscribed, init, setIsSubscribed, setNotSubscribed)
+
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
+import View.Helpers exposing (viewUnless)
 
 
 type PushStatus
@@ -33,3 +38,16 @@ setNotSubscribed (PushStatus internal) =
 getIsSubscribed : PushStatus -> Maybe Bool
 getIsSubscribed (PushStatus internal) =
     internal.isSubscribed
+
+
+
+-- VIEW
+
+
+bannerView : PushStatus -> msg -> Html msg
+bannerView pushStatus onClicked =
+    viewUnless (getIsSubscribed pushStatus |> Maybe.withDefault True) <|
+        div [ class "mx-3 mb-3 px-4 py-3 flex items-center bg-green-lightest border-b-2 border-green text-green-dark text-md font-bold" ]
+            [ div [ class "flex-grow" ] [ text "Allow Level to send you push notifications." ]
+            , button [ class "btn btn-sm btn-green", onClick onClicked ] [ text "Allow" ]
+            ]

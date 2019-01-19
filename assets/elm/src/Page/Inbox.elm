@@ -650,11 +650,7 @@ resolvedDesktopView globals model data =
                     ]
                 ]
             , filterNoticeView globals.repo model data
-            , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
-                div [ class "mx-4 mb-3 px-4 py-3 flex items-center bg-green-lightest border-b-2 border-green text-green-dark text-md font-bold" ]
-                    [ div [ class "flex-grow" ] [ text "Allow Level to send you push notifications." ]
-                    , button [ class "btn btn-sm btn-green", onClick PushSubscribeClicked ] [ text "Allow" ]
-                    ]
+            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
 
             -- , Layout.SpaceDesktop.rightSidebar (sidebarView globals data.space data.featuredUsers)
@@ -775,11 +771,7 @@ resolvedMobileView globals model data =
                 , filterTab Device.Mobile "Dismissed" Route.Inbox.Dismissed (dismissedParams model.params) model.params
                 ]
             , filterNoticeView globals.repo model data
-            , viewUnless (PushStatus.getIsSubscribed globals.pushStatus |> Maybe.withDefault True) <|
-                div [ class "mx-3 mb-3 px-4 py-3 flex items-center bg-green-lightest border-b-2 border-green text-green-dark text-md font-bold" ]
-                    [ div [ class "flex-grow" ] [ text "Allow Level to send you push notifications." ]
-                    , button [ class "btn btn-sm btn-green", onClick PushSubscribeClicked ] [ text "Allow" ]
-                    ]
+            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "px-3" ] [ mobilePostsView globals model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]

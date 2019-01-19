@@ -28,6 +28,7 @@ import Mutation.MarkAsRead as MarkAsRead
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PushStatus exposing (PushStatus)
 import Query.PostsInit as PostsInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -37,6 +38,7 @@ import Route.Search
 import Route.SpaceUser
 import Route.SpaceUsers
 import Scroll
+import ServiceWorker
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -192,6 +194,7 @@ type Msg
     | NewPostFileUploadError Id
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
+    | PushSubscribeClicked
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -381,6 +384,9 @@ update msg globals model =
 
         NewPostFileUploadError clientId ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
+
+        PushSubscribeClicked ->
+            ( ( model, ServiceWorker.pushSubscribe ), globals )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -645,6 +651,7 @@ resolvedDesktopView globals model data =
             --         [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
             --         , text "Hashtag one or more Channels in your post."
             --         ]
+            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
 
             -- , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
@@ -799,6 +806,7 @@ resolvedMobileView globals model data =
                 [ filterTab Device.Mobile "Open" Route.Posts.Open (openParams model.params) model.params
                 , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                 ]
+            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "px-4" ] [ mobilePostsView globals model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]
