@@ -9,22 +9,25 @@ import Post exposing (Post)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedReply exposing (ResolvedReply)
+import SpaceUser exposing (SpaceUser)
 
 
 type alias ResolvedPostWithReplies =
     { post : Post
     , author : Actor
     , groups : List Group
+    , reactors : List SpaceUser
     , resolvedReplies : Connection ResolvedReply
     }
 
 
 decoder : Decoder ResolvedPostWithReplies
 decoder =
-    Decode.map4 ResolvedPostWithReplies
+    Decode.map5 ResolvedPostWithReplies
         Post.decoder
         (field "author" Actor.decoder)
         (field "groups" (list Group.decoder))
+        (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser" ] SpaceUser.decoder))
         (field "replies" (Connection.decoder ResolvedReply.decoder))
 
 
@@ -34,6 +37,7 @@ addToRepo post repo =
         |> Repo.setPost post.post
         |> Repo.setGroups post.groups
         |> Repo.setActor post.author
+        |> Repo.setSpaceUsers post.reactors
         |> ResolvedReply.addManyToRepo (Connection.toList post.resolvedReplies)
 
 
@@ -50,10 +54,11 @@ resolve repo ( postId, replyIds ) =
     in
     case maybePost of
         Just post ->
-            Maybe.map4 ResolvedPostWithReplies
+            Maybe.map5 ResolvedPostWithReplies
                 (Just post)
                 (Repo.getActor (Post.authorId post) repo)
                 (Just <| List.filterMap (\id -> Repo.getGroup id repo) (Post.groupIds post))
+                (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
                 (Just <| Connection.filterMap (ResolvedReply.resolve repo) replyIds)
 
         Nothing ->
