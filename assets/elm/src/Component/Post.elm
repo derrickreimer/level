@@ -1112,8 +1112,8 @@ postAuthorName space postId author =
         [ Route.href route
         , class "no-underline whitespace-no-wrap"
         ]
-        [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-        , span [ class "text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+        [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
+        , span [ class "ml-2 text-dusty-blue-dark hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
         ]
 
 
@@ -1292,14 +1292,14 @@ replyAuthorName space author =
                 [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
                 , class "whitespace-no-wrap no-underline"
                 ]
-                [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+                [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
+                , span [ class "ml-2 text-dusty-blue-dark hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
         _ ->
             span [ class "whitespace-no-wrap" ]
-                [ span [ class "mr-2 font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "text-dusty-blue-dark" ] [ text <| "@" ++ Actor.handle author ]
+                [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
+                , span [ class "ml-2 text-dusty-blue-dark hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
 

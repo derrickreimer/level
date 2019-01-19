@@ -512,19 +512,19 @@ resolvedMobileView globals model data =
             , div [ class "mx-2 pb-4" ]
                 [ viewUnless (PostEditor.getIsUrgent editor) <|
                     button
-                        [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
-                        , attribute "data-tooltip" "Mark urgent"
+                        [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-dusty-blue"
                         , onClick ToggleUrgent
                         ]
-                        [ Icons.alert Icons.Off ]
+                        [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.Off ]
+                        , div [] [ text "Don't interrupt anyone" ]
+                        ]
                 , viewIf (PostEditor.getIsUrgent editor) <|
                     button
-                        [ class "flex items-center tooltip tooltip-bottom mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
-                        , attribute "data-tooltip" "Mark not urgent"
+                        [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
                         , onClick ToggleUrgent
                         ]
                         [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
-                        , div [] [ text "This message is urgent" ]
+                        , div [] [ text "Interrupt all @mentioned people" ]
                         ]
                 ]
             ]

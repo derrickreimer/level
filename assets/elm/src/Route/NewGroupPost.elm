@@ -76,7 +76,7 @@ hasSamePath p1 p2 =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "groups" </> string </> s "posts" </> s "new")
+        map Internal (string </> s "channels" </> string </> s "posts" </> s "new")
 
 
 
@@ -85,4 +85,4 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "groups", internal.groupName, "posts", "new" ] []
+    absolute [ internal.spaceSlug, "channels", internal.groupName, "posts", "new" ] []
