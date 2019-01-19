@@ -49,7 +49,7 @@ decoder =
     let
         convert type_ =
             case type_ of
-                "subscription" ->
+                "pushSubscription" ->
                     Decode.map PushSubscription <|
                         Decode.field "subscription" nullStringDecoder
 
