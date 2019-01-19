@@ -70,6 +70,7 @@ type alias Model =
 type alias Data =
     { post : Post
     , author : Actor
+    , reactors : List SpaceUser
     }
 
 
@@ -85,9 +86,10 @@ resolveData repo model =
     in
     case maybePost of
         Just post ->
-            Maybe.map2 Data
+            Maybe.map3 Data
                 (Just post)
                 (Repo.getActor (Post.authorId post) repo)
+                (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
 
         Nothing ->
             Nothing
@@ -1047,7 +1049,7 @@ resolvedView config model data =
             , viewIf (PostEditor.isExpanded model.postEditor) <|
                 postEditorView config model.postEditor
             , div [ class "pb-2 flex items-start" ]
-                [ postReactionButton data.post
+                [ postReactionButton data.post data.reactors
                 , replyButtonView config model data
                 ]
             , div [ class "relative" ]
@@ -1505,13 +1507,20 @@ staticFileView file =
 -- REACTIONS
 
 
-postReactionButton : Post -> Html Msg
-postReactionButton post =
+postReactionButton : Post -> List SpaceUser -> Html Msg
+postReactionButton post reactors =
+    let
+        flyoutLabel =
+            if List.isEmpty reactors then
+                "Acknowledge"
+
+            else
+                "Acknowledged by"
+    in
     if Post.hasReacted post then
         button
-            [ class "flex relative tooltip tooltip-bottom items-center mr-6 no-outline"
+            [ class "flex relative items-center mr-6 no-outline react-button"
             , onClick DeletePostReactionClicked
-            , attribute "data-tooltip" "Acknowledge"
             ]
             [ Icons.thumbs Icons.On
             , viewIf (Post.reactionCount post > 0) <|
@@ -1519,13 +1528,17 @@ postReactionButton post =
                     [ class "ml-1 text-green font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Post.reactionCount post) ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
+                , viewUnless (List.isEmpty reactors) <|
+                    div [ class "mt-1" ] (List.map reactorView reactors)
+                ]
             ]
 
     else
         button
-            [ class "flex relative tooltip tooltip-bottom items-center mr-6 no-outline"
+            [ class "flex relative items-center mr-6 no-outline react-button"
             , onClick CreatePostReactionClicked
-            , attribute "data-tooltip" "Acknowledge"
             ]
             [ Icons.thumbs Icons.Off
             , viewIf (Post.reactionCount post > 0) <|
@@ -1533,6 +1546,11 @@ postReactionButton post =
                     [ class "ml-1 text-dusty-blue font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Post.reactionCount post) ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
+                , viewUnless (List.isEmpty reactors) <|
+                    div [ class "mt-1" ] (List.map reactorView reactors)
+                ]
             ]
 
 
@@ -1565,6 +1583,16 @@ replyReactionButton reply =
                     ]
                     [ text <| String.fromInt (Reply.reactionCount reply) ]
             ]
+
+
+reactorView : SpaceUser -> Html Msg
+reactorView user =
+    div
+        [ class "flex items-center pr-4 mb-px no-underline text-white"
+        ]
+        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
+        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
+        ]
 
 
 

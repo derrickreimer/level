@@ -472,6 +472,44 @@ post-editor.dragging-over > * {
 }
 
 /**
+ * React button
+ */
+.react-button {
+  position: relative;
+  cursor: pointer;
+}
+
+.react-button:hover .reactors,
+.reactors:hover {
+  transform: translateY(10px);
+  visibility: visible;
+  opacity: 1;
+}
+
+.reactors {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease-in-out,
+    visibility 0.2s ease-in-out,
+    transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+  transform: translate3d(0, 0, 0);
+  pointer-events: none;
+
+  @apply px-2 py-1 z-50 bg-dusty-blue-darker rounded text-left leading-normal;
+  @apply w-48;
+
+  top: 100%;
+  bottom: auto;
+  left: 0;
+}
+
+.reactors.no-reactors {
+  @apply w-24 text-center;
+}
+
+/**
  * Tooltips
  *
  * Based on This technique: https://chrisbracco.com/a-simple-css-tooltip/
