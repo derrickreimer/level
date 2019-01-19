@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount
+    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount
+@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
 
 
 # GraphQL
@@ -39,6 +39,7 @@ import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, st
 import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import List
 import Reply exposing (Reply)
+import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 
@@ -84,6 +85,7 @@ type alias Data =
     , canEdit : Bool
     , hasReacted : Bool
     , reactionCount : Int
+    , reactorIds : List Id
     , fetchedAt : Int
     }
 
@@ -169,6 +171,11 @@ reactionCount (Post data) =
     data.reactionCount
 
 
+reactorIds : Post -> List Id
+reactorIds (Post data) =
+    data.reactorIds
+
+
 
 -- GRAPHQL
 
@@ -195,7 +202,14 @@ fragment =
               files {
                 ...FileFields
               }
-              reactions(first: 1) {
+              reactions(first: 100) {
+                edges {
+                  node {
+                    spaceUser {
+                      ...SpaceUserFields
+                    }
+                  }
+                }
                 totalCount
               }
               canEdit
@@ -208,6 +222,7 @@ fragment =
         [ Actor.fragment
         , Group.fragment
         , File.fragment
+        , SpaceUser.fragment
         ]
 
 
@@ -232,6 +247,7 @@ decoder =
             |> required "canEdit" bool
             |> required "hasReacted" bool
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
+            |> custom (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
             |> required "fetchedAt" int
         )
 
