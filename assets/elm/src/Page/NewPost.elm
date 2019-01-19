@@ -419,7 +419,7 @@ desktopPostComposerView globals model data =
                         [ viewUnless (PostEditor.getIsUrgent editor) <|
                             button
                                 [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
-                                , attribute "data-tooltip" "Interrupt @mentioned people"
+                                , attribute "data-tooltip" "Interrupt all @mentioned people"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.Off ]

@@ -22,11 +22,11 @@ alert toggle =
     case toggle of
         Off ->
             iconView <|
-                svg [ width "22px", height "22px", viewBox "0 0 22 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#8A98A5", strokeLinecap "round", strokeLinejoin "round", cx "10", cy "10", r "10" ] [], Svg.path [ d "M10,6 L10,10", id "Path", stroke "#8A98A5", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#8A98A5", fillRule "nonzero", cx "10", cy "14", r "1" ] [] ] ] ]
+                svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#8A98A5", strokeLinecap "round", strokeLinejoin "round", cx "9", cy "9", r "9" ] [], Svg.path [ d "M9,5.4 L9,9", id "Path", stroke "#8A98A5", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#8A98A5", fillRule "nonzero", cx "9", cy "12.6", r "1" ] [] ] ] ]
 
         On ->
             iconView <|
-                svg [ width "22px", height "22px", viewBox "0 0 22 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#FF1E12", fill "#FF1E12", strokeLinecap "round", strokeLinejoin "round", cx "10", cy "10", r "10" ] [], Svg.path [ d "M10,6 L10,10", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "10", cy "14", r "1" ] [] ] ] ]
+                svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#FF1E12", fill "#FF1E12", strokeLinecap "round", strokeLinejoin "round", cx "9", cy "9", r "9" ] [], Svg.path [ d "M9,5.4 L9,9", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "9", cy "12.6", r "1" ] [] ] ] ]
 
 
 arrowLeft : Toggle -> Html msg
