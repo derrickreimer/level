@@ -66,6 +66,13 @@ export const isSupported = () => {
 };
 
 /**
+ * Adds an event listener to the service worker.
+ */
+export function addEventListener(eventName, callback) {
+  navigator.serviceWorker.addEventListener(eventName, callback);
+}
+
+/**
  * Initializes the service worker.
  * @returns {Promise}
  */

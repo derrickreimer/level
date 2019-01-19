@@ -27,6 +27,41 @@ self.addEventListener('notificationclick', function (event) {
   console.log("[sw]", "notification click", event);
 
   if (data.clickUrl) {
-    event.waitUntil(clients.openWindow(data.clickUrl));
+    event.notification.close();
+
+    const urlToOpen = new URL(data.clickUrl, self.location.origin).href;
+
+    const promiseChain = clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    })
+    .then((windowClients) => {
+      let matchingClient = null;
+
+      for (let i = 0; i < windowClients.length; i++) {
+        const windowClient = windowClients[i];
+        if (windowClient.url === urlToOpen) {
+          matchingClient = windowClient;
+          break;
+        }
+      }
+
+      if (matchingClient) {
+        return matchingClient.focus();
+      } else if (windowClients.length > 0) {
+        let firstClient = windowClients[0];
+
+        firstClient.postMessage({
+          type: "redirect",
+          url: urlToOpen
+        });
+
+        return firstClient.focus();
+      } else {
+        return clients.openWindow(urlToOpen);
+      }
+    });
+
+    event.waitUntil(promiseChain);
   }
 });

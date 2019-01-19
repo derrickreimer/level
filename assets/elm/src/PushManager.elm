@@ -7,6 +7,7 @@ import Ports
 
 type Payload
     = Subscription (Maybe String)
+    | Redirect String
     | Unknown Decode.Value
 
 
@@ -51,6 +52,10 @@ decoder =
                 "subscription" ->
                     Decode.map Subscription <|
                         Decode.field "subscription" nullStringDecoder
+
+                "redirect" ->
+                    Decode.map Redirect <|
+                        Decode.field "url" Decode.string
 
                 _ ->
                     Decode.fail "Push manager payload not recognized"

@@ -288,6 +288,12 @@ export const attachPorts = app => {
 
       logEvent("pushManagerOut")(method);
     });
+
+    Background.addEventListener("message", event => {
+      const payload = event.data;
+      app.ports.pushManagerIn.send(payload);
+      logEvent("pushManagerIn")(payload);
+    });
   }
 
   app.ports.postEditorOut.subscribe(args => {

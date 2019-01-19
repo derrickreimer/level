@@ -455,6 +455,9 @@ update msg model =
                 PushManager.Subscription Nothing ->
                     ( { model | pushStatus = PushStatus.setNotSubscribed model.pushStatus }, Cmd.none )
 
+                PushManager.Redirect url ->
+                    ( model, Nav.pushUrl model.navKey url )
+
                 _ ->
                     ( model, Cmd.none )
 
