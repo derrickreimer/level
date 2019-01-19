@@ -1242,6 +1242,9 @@ replyView config model data reply =
         replyId =
             Reply.id reply
 
+        reactors =
+            Repo.getSpaceUsers (Reply.reactorIds reply) config.globals.repo
+
         editor =
             getReplyEditor replyId model.replyEditors
     in
@@ -1277,7 +1280,7 @@ replyView config model data reply =
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <| replyEditorView config replyId editor
-                    , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply ]
+                    , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
                     ]
                 ]
 
@@ -1554,13 +1557,20 @@ postReactionButton post reactors =
             ]
 
 
-replyReactionButton : Reply -> Html Msg
-replyReactionButton reply =
+replyReactionButton : Reply -> List SpaceUser -> Html Msg
+replyReactionButton reply reactors =
+    let
+        flyoutLabel =
+            if List.isEmpty reactors then
+                "Acknowledge"
+
+            else
+                "Acknowledged by"
+    in
     if Reply.hasReacted reply then
         button
-            [ class "flex relative tooltip tooltip-bottom items-center mr-6 text-green font-bold no-outline"
+            [ class "flex relative items-center mr-6 no-outline react-button"
             , onClick <| DeleteReplyReactionClicked (Reply.id reply)
-            , attribute "data-tooltip" "Acknowledge"
             ]
             [ Icons.thumbs Icons.On
             , viewIf (Reply.reactionCount reply > 0) <|
@@ -1568,13 +1578,17 @@ replyReactionButton reply =
                     [ class "ml-1 text-green font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Reply.reactionCount reply) ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
+                , viewUnless (List.isEmpty reactors) <|
+                    div [ class "mt-1" ] (List.map reactorView reactors)
+                ]
             ]
 
     else
         button
-            [ class "flex relative tooltip tooltip-bottom items-center mr-6 text-dusty-blue font-bold no-outline"
+            [ class "flex relative items-center mr-6 no-outline react-button"
             , onClick <| CreateReplyReactionClicked (Reply.id reply)
-            , attribute "data-tooltip" "Acknowledge"
             ]
             [ Icons.thumbs Icons.Off
             , viewIf (Reply.reactionCount reply > 0) <|
@@ -1582,6 +1596,11 @@ replyReactionButton reply =
                     [ class "ml-1 text-dusty-blue font-bold text-sm"
                     ]
                     [ text <| String.fromInt (Reply.reactionCount reply) ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
+                , viewUnless (List.isEmpty reactors) <|
+                    div [ class "mt-1" ] (List.map reactorView reactors)
+                ]
             ]
 
 

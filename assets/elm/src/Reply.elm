@@ -1,4 +1,4 @@
-module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, files, fragment, hasReacted, hasViewed, id, postId, postedAt, reactionCount)
+module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, files, fragment, hasReacted, hasViewed, id, postId, postedAt, reactionCount, reactorIds)
 
 import Actor exposing (ActorId)
 import File exposing (File)
@@ -28,6 +28,7 @@ type alias Data =
     , hasViewed : Bool
     , hasReacted : Bool
     , reactionCount : Int
+    , reactorIds : List Id
     , canEdit : Bool
     , postedAt : Posix
     , fetchedAt : Int
@@ -51,7 +52,14 @@ fragment =
           }
           hasViewed
           hasReacted
-          reactions(first: 1) {
+          reactions(first: 100) {
+            edges {
+              node {
+                spaceUser {
+                  ...SpaceUserFields
+                }
+              }
+            }
             totalCount
           }
           canEdit
@@ -113,6 +121,11 @@ reactionCount (Reply data) =
     data.reactionCount
 
 
+reactorIds : Reply -> List Id
+reactorIds (Reply data) =
+    data.reactorIds
+
+
 canEdit : Reply -> Bool
 canEdit (Reply data) =
     data.canEdit
@@ -140,6 +153,7 @@ decoder =
             |> required "hasViewed" bool
             |> required "hasReacted" bool
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
+            |> custom (Decode.at [ "reactions", "edges" ] (Decode.list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
             |> required "canEdit" bool
             |> required "postedAt" dateDecoder
             |> required "fetchedAt" int
