@@ -909,7 +909,7 @@ userItemView space user =
         , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
         ]
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
+        , div [ class "flex-grow text-md truncate" ] [ text <| SpaceUser.displayName user ]
         ]
 
 
