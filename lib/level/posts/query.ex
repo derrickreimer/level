@@ -7,8 +7,16 @@ defmodule Level.Posts.Query do
 
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
+  alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
+
+  @notable_activities [
+    "POST_CREATED",
+    "REPLY_CREATED",
+    "POST_CLOSED",
+    "POST_REOPENED"
+  ]
 
   @doc """
   Builds a query for posts accessible to a particular user.
@@ -55,9 +63,12 @@ defmodule Level.Posts.Query do
   @spec select_last_activity_at(Ecto.Query.t()) :: Ecto.Query.t()
   def select_last_activity_at(query) do
     from [p, su, u, g, gu, pu] in query,
-      left_join: pl in assoc(p, :post_logs),
+      left_join: pl in PostLog,
+      on: pl.post_id == p.id and pl.event in @notable_activities,
       group_by: p.id,
-      select_merge: %{last_activity_at: max(pl.occurred_at)}
+      select_merge: %{
+        last_activity_at: max(pl.occurred_at)
+      }
   end
 
   @doc """
