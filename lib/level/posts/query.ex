@@ -67,7 +67,7 @@ defmodule Level.Posts.Query do
       on: pl.post_id == p.id and pl.event in @notable_activities,
       group_by: p.id,
       select_merge: %{
-        last_activity_at: max(pl.occurred_at)
+        last_activity_at: fragment("COALESCE(MAX(?), ?)", pl.occurred_at, p.inserted_at)
       }
   end
 

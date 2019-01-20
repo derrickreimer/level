@@ -180,7 +180,7 @@ defmodule Level.NudgesTest do
     now = ~N[2018-11-01 10:00:00] |> DateTime.from_naive!("Etc/UTC")
 
     # Log some activity
-    {:ok, _} = PostLog.post_edited(post, space_user, now)
+    {:ok, _} = PostLog.post_created(post, space_user, now)
 
     # Mark the post as unread
     {:ok, _} = Posts.mark_as_unread(space_user, [post])
@@ -211,7 +211,7 @@ defmodule Level.NudgesTest do
     now = ~N[2018-11-01 10:00:00] |> DateTime.from_naive!("Etc/UTC")
 
     # Log some activity in the past
-    {:ok, _} = PostLog.post_edited(post, space_user, ~N[2018-10-31 10:00:00])
+    {:ok, _} = PostLog.post_created(post, space_user, ~N[2018-10-31 10:00:00])
 
     # Mark the post as unread
     {:ok, _} = Posts.mark_as_unread(space_user, [post])
