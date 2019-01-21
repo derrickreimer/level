@@ -770,7 +770,11 @@ desktopPostView globals spaceUsers groups model data component =
             ]
         ]
         [ viewIf isSelected <|
-            div [ class "absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green" ] []
+            div
+                [ class "tooltip tooltip-top cursor-default absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green"
+                , attribute "data-tooltip" "Currently selected"
+                ]
+                []
         , component
             |> Component.Post.view config
             |> Html.map (PostComponentMsg component.id)
