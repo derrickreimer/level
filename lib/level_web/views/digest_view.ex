@@ -40,6 +40,13 @@ defmodule LevelWeb.DigestView do
     reply.author
   end
 
+  def groups_label(groups) do
+    groups
+    |> Enum.map(fn group -> "##{group.name}" end)
+    |> Enum.sort()
+    |> Enum.join(" ")
+  end
+
   def has_avatar?(user_or_bot) do
     !is_nil(user_or_bot.avatar)
   end

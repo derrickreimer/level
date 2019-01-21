@@ -4,9 +4,13 @@
       <%= avatar(@post.author) %>
     </td>
     <td>
-      <p class="mb-0">
-        <strong class="text-sm"><%= display_name(@post.author) %></strong>
+      <p class="mb-0 text-sm">
+        <strong><%= display_name(@post.author) %></strong>
         <a href="<%= main_url(LevelWeb.Endpoint, :index, [@digest.space.slug, "posts", @post.id]) %>" class="ml-2 text-dusty-blue text-xs no-underline"><%= post_timestamp(@digest, @post) %></a>
+      </p>
+
+      <p class="mb-0 text-sm">
+        <span class="text-dusty-blue"><%= groups_label(@post.groups) %></span>
       </p>
 
       <!-- Post Body -->
