@@ -436,6 +436,37 @@ removePost globals post ( model, cmd ) =
             ( model, cmd )
 
 
+addPost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addPost globals post ( model, cmd ) =
+    if Post.spaceId post == model.spaceId then
+        case Connection.get .id (Post.id post) model.postComps of
+            Just _ ->
+                ( model, Cmd.none )
+
+            Nothing ->
+                let
+                    postComp =
+                        Component.Post.init
+                            model.spaceId
+                            (Post.id post)
+                            Connection.empty
+
+                    newPostComps =
+                        Connection.prepend .id postComp model.postComps
+
+                    setupCmd =
+                        Cmd.map (PostComponentMsg postComp.id)
+                            (Component.Post.setup globals postComp)
+
+                    newCmd =
+                        Cmd.batch [ cmd, setupCmd ]
+                in
+                ( { model | postComps = newPostComps }, newCmd )
+
+    else
+        ( model, cmd )
+
+
 
 -- EVENTS
 
@@ -467,9 +498,32 @@ consumeEvent globals event model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        Event.PostsMarkedAsUnread posts ->
+            if Route.Inbox.getState model.params == Route.Inbox.Undismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
+
+            else if Route.Inbox.getState model.params == Route.Inbox.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsMarkedAsRead posts ->
+            if Route.Inbox.getState model.params == Route.Inbox.Undismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
+
+            else if Route.Inbox.getState model.params == Route.Inbox.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
+
         Event.PostsDismissed posts ->
             if Route.Inbox.getState model.params == Route.Inbox.Undismissed then
                 List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else if Route.Inbox.getState model.params == Route.Inbox.Dismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
 
             else
                 ( model, Cmd.none )

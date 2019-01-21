@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
+    , id, spaceId, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
+@docs id, spaceId, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
 
 
 # GraphQL
@@ -73,6 +73,7 @@ type InboxState
 
 type alias Data =
     { id : Id
+    , spaceId : Id
     , state : State
     , body : String
     , bodyHtml : String
@@ -97,6 +98,11 @@ type alias Data =
 id : Post -> Id
 id (Post data) =
     data.id
+
+
+spaceId : Post -> Id
+spaceId (Post data) =
+    data.spaceId
 
 
 fetchedAt : Post -> Int
@@ -187,6 +193,9 @@ fragment =
             """
             fragment PostFields on Post {
               id
+              space {
+                id
+              }
               state
               body
               bodyHtml
@@ -235,6 +244,7 @@ decoder =
     Decode.map Post <|
         (Decode.succeed Data
             |> required "id" Id.decoder
+            |> custom (Decode.at [ "space", "id" ] Id.decoder)
             |> required "state" stateDecoder
             |> required "body" string
             |> required "bodyHtml" string
