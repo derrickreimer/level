@@ -112,10 +112,13 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp detect_tagged_groups(multi, author) do
-    Multi.run(multi, :tagged_groups, fn %{post: post} ->
+    Multi.run(multi, :tagged_groups, fn %{post: post} = result ->
       groups =
         author
         |> TaggedGroups.get_tagged_groups(post.body)
+        |> Enum.reject(fn group ->
+          result[:primary_group] && result[:primary_group].id == group.id
+        end)
         |> Enum.map(fn group ->
           %PostGroup{}
           |> Changeset.change(build_post_group_params(post, group))

@@ -165,7 +165,7 @@ defmodule Level.PostsTest do
   describe "create_post/2 with space user + group" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{group: group}} = create_group(space_user, %{name: "room"})
       {:ok, Map.put(result, :group, group)}
     end
 
@@ -275,6 +275,14 @@ defmodule Level.PostsTest do
 
       post = Repo.preload(post, :groups)
       assert Enum.any?(post.groups, fn group -> group.id == another_group.id end)
+    end
+
+    test "handles duplicate tagged groups", %{space_user: space_user, group: group} do
+      params =
+        valid_post_params()
+        |> Map.put(:body, "Hello #room")
+
+      assert {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
     end
 
     test "returns errors given invalid params", %{space_user: space_user, group: group} do
