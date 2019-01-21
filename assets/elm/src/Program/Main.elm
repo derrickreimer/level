@@ -61,8 +61,10 @@ import Session exposing (Session)
 import Socket
 import SocketState exposing (SocketState(..))
 import Space exposing (Space)
+import SpaceUser
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
+import Subscription.UserSubscription as UserSubscription
 import Task exposing (Task)
 import Url exposing (Url)
 import User exposing (User)
@@ -182,7 +184,8 @@ setup { currentUser, spaceIds, spaceUserIds } model =
     in
     ( { model | currentUser = Loaded currentUser }
     , Cmd.batch
-        [ subscribeToSpaces
+        [ UserSubscription.subscribe
+        , subscribeToSpaces
         , subscribeToSpaceUsers
         , updateTimeZone
         ]
@@ -1289,6 +1292,20 @@ pageView globals page =
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event ({ page } as model) =
     case event of
+        Event.SpaceJoined ( space, spaceUser ) ->
+            let
+                newRepo =
+                    model.repo
+                        |> Repo.setSpace space
+                        |> Repo.setSpaceUser spaceUser
+            in
+            ( { model | repo = newRepo }
+            , Cmd.batch
+                [ SpaceSubscription.subscribe (Space.id space)
+                , SpaceUserSubscription.subscribe (SpaceUser.id spaceUser)
+                ]
+            )
+
         Event.GroupBookmarked group ->
             ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none

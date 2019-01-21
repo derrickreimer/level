@@ -1,4 +1,4 @@
-module Subscription exposing (cancel, decoder, send)
+module Subscription exposing (cancel, decoder, genericDecoder, send)
 
 import GraphQL exposing (Document, serializeDocument)
 import Json.Decode as Decode exposing (Decoder)
@@ -41,6 +41,22 @@ decoder topic event nodeType nodeDecoder =
         payloadDecoder typename =
             if typename == (event ++ "Payload") then
                 Decode.field nodeType nodeDecoder
+
+            else
+                Decode.fail "payload does not match"
+    in
+    Decode.field (topic ++ "Subscription") <|
+        (Decode.field "__typename" Decode.string
+            |> Decode.andThen payloadDecoder
+        )
+
+
+genericDecoder : String -> String -> Decoder a -> Decoder a
+genericDecoder topic event resultDecoder =
+    let
+        payloadDecoder typename =
+            if typename == (event ++ "Payload") then
+                resultDecoder
 
             else
                 Decode.fail "payload does not match"

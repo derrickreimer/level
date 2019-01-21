@@ -11,6 +11,7 @@ import Subscription.GroupSubscription as GroupSubscription
 import Subscription.PostSubscription as PostSubscription
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
+import Subscription.UserSubscription as UserSubscription
 
 
 
@@ -18,7 +19,8 @@ import Subscription.SpaceUserSubscription as SpaceUserSubscription
 
 
 type Event
-    = GroupBookmarked Group
+    = SpaceJoined ( Space, SpaceUser )
+    | GroupBookmarked Group
     | GroupUnbookmarked Group
     | PostCreated ( Post, Connection Reply )
     | PostUpdated Post
@@ -61,8 +63,11 @@ decodeEvent value =
 eventDecoder : Decode.Decoder Event
 eventDecoder =
     Decode.oneOf
-        [ -- SPACE USER EVENTS
-          Decode.map GroupBookmarked SpaceUserSubscription.groupBookmarkedDecoder
+        [ -- USER EVENTS
+          Decode.map SpaceJoined UserSubscription.spaceJoinedDecoder
+
+        -- SPACE USER EVENTS
+        , Decode.map GroupBookmarked SpaceUserSubscription.groupBookmarkedDecoder
         , Decode.map GroupUnbookmarked SpaceUserSubscription.groupUnbookmarkedDecoder
         , Decode.map PostsSubscribed SpaceUserSubscription.postsSubscribedDecoder
         , Decode.map PostsUnsubscribed SpaceUserSubscription.postsUnsubscribedDecoder
