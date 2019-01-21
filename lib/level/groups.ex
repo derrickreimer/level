@@ -154,7 +154,7 @@ defmodule Level.Groups do
     query =
       from gu in subquery(base_query),
         order_by: {:asc, gu.last_name},
-        limit: 10
+        limit: 20
 
     {:ok, Repo.all(query)}
   end
