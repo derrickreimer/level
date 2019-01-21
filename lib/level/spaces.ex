@@ -116,6 +116,7 @@ defmodule Level.Spaces do
       create_everyone_group(space_user)
     end)
     |> Repo.transaction()
+    |> after_create_space(user)
   end
 
   defp install_levelbot(space) do
@@ -143,6 +144,13 @@ defmodule Level.Spaces do
         err
     end
   end
+
+  defp after_create_space({:ok, %{space: space, space_user: space_user}} = result, user) do
+    _ = Events.space_joined(user.id, space, space_user)
+    result
+  end
+
+  defp after_create_space(err, _), do: err
 
   @doc """
   Updates a space.

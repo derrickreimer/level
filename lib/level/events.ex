@@ -12,6 +12,12 @@ defmodule Level.Events do
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
 
+  # User
+
+  def space_joined(id, %Space{} = space, %SpaceUser{} = space_user) do
+    publish_to_user(id, :space_joined, %{space: space, space_user: space_user})
+  end
+
   # Space
 
   def space_updated(id, %Space{} = space) do
@@ -133,6 +139,10 @@ defmodule Level.Events do
   end
 
   # Internal
+
+  defp publish_to_user(id, type, data) do
+    do_publish(Map.merge(data, %{type: type}), user_subscription: id)
+  end
 
   defp publish_to_space(id, type, data) do
     do_publish(Map.merge(data, %{type: type}), space_subscription: id)
