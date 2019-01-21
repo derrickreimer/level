@@ -567,7 +567,7 @@ stepView device step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Channels keep messages organized." ]
-                , p [ class "mb-6" ] [ text "Channels work like hashtags in social apps. When you tag a Channel, your message will automatically appear in that Channel's feed." ]
+                , p [ class "mb-6" ] [ text "Channels are where you go to post messages. You can also tag additional Channels in the body of your message to post it there as well (similar to hashtags on social apps)." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -576,7 +576,7 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your to-do list for conversations." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your conversational to-do list." ]
                 , p [ class "mb-6" ] [ text "When someone @-mentions you or new activity occurs on a post you've interacted with, that post will move into your Inbox." ]
                 , p [ class "mb-6" ] [ text "It's best to dismiss posts from your Inbox once you are finished by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon (or using a keyboard shortcut)." ]
                 , div []
@@ -599,6 +599,7 @@ stepView device step model data =
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Notifications are batched to minimize distractions." ]
                 , p [ class "mb-6" ] [ text "Instead of constantly interrupting you with push notifications, Level batches up your notifications and emails them to you at customizable times of the day." ]
+                , p [ class "mb-6" ] [ text "Level will also send you a daily summary email to remind you what's waiting in your Inbox and summarize the latest from your Feed." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
