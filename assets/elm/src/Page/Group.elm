@@ -253,6 +253,7 @@ type Msg
     | PostsDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | PostsMarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
+    | PostSelected Id
     | FocusOnComposer
     | PushSubscribeClicked
       -- MOBILE
@@ -700,6 +701,13 @@ update msg globals model =
 
         PostClosed _ ->
             noCmd { globals | flash = Flash.set Flash.Notice "Marked as resolved" 3000 globals.flash } model
+
+        PostSelected postId ->
+            let
+                newPostComps =
+                    Connection.selectBy .id postId model.postComps
+            in
+            ( ( { model | postComps = newPostComps }, Cmd.none ), globals )
 
         FocusOnComposer ->
             ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
@@ -1207,6 +1215,7 @@ desktopPostView globals spaceUsers groups model data component =
         [ classList
             [ ( "relative mb-3 p-3", True )
             ]
+        , onClick (PostSelected component.id)
         ]
         [ viewIf isSelected <|
             div

@@ -1,4 +1,4 @@
-module Connection exposing (Connection, Subset, append, decoder, diff, empty, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selectNext, selectPrev, selected, startCursor, toList, update)
+module Connection exposing (Connection, Subset, append, decoder, diff, empty, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selectBy, selectNext, selectPrev, selected, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
@@ -444,6 +444,20 @@ selectNext (Connection data) =
                                     newAfter
     in
     Connection { data | nodes = newNodes }
+
+
+selectBy : (a -> comparable) -> comparable -> Connection a -> Connection a
+selectBy comparator comparable (Connection data) =
+    case data.nodes of
+        Empty ->
+            Connection data
+
+        NonEmpty slist ->
+            let
+                newNodes =
+                    SelectList.select (\item -> comparator item == comparable) slist
+            in
+            Connection { data | nodes = NonEmpty newNodes }
 
 
 

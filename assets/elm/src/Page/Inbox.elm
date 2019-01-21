@@ -224,6 +224,7 @@ type Msg
     | SearchEditorChanged String
     | SearchSubmitted
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
+    | PostSelected Id
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -378,6 +379,13 @@ update msg globals model =
 
         PostClosed _ ->
             noCmd { globals | flash = Flash.set Flash.Notice "Marked as resolved" 3000 globals.flash } model
+
+        PostSelected postId ->
+            let
+                newPostComps =
+                    Connection.selectBy .id postId model.postComps
+            in
+            ( ( { model | postComps = newPostComps }, Cmd.none ), globals )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -750,6 +758,7 @@ desktopPostView globals spaceUsers groups model data component =
         [ classList
             [ ( "relative mb-3 p-3", True )
             ]
+        , onClick (PostSelected component.id)
         ]
         [ viewIf isSelected <|
             div

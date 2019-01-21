@@ -194,6 +194,7 @@ type Msg
     | NewPostFileUploadError Id
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
+    | PostSelected Id
     | PushSubscribeClicked
       -- MOBILE
     | NavToggled
@@ -384,6 +385,13 @@ update msg globals model =
 
         NewPostFileUploadError clientId ->
             noCmd globals { model | postComposer = PostEditor.setFileState clientId File.UploadError model.postComposer }
+
+        PostSelected postId ->
+            let
+                newPostComps =
+                    Connection.selectBy .id postId model.postComps
+            in
+            ( ( { model | postComps = newPostComps }, Cmd.none ), globals )
 
         PushSubscribeClicked ->
             ( ( model, ServiceWorker.pushSubscribe ), globals )
@@ -768,6 +776,7 @@ desktopPostView globals spaceUsers groups model data component =
         [ classList
             [ ( "relative mb-3 p-3", True )
             ]
+        , onClick (PostSelected component.id)
         ]
         [ viewIf isSelected <|
             div
