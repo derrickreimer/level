@@ -199,7 +199,7 @@ defmodule Level.PostsTest do
       params = valid_post_params()
       {:ok, %{post: post, log: log}} = Posts.create_post(space_user, group, params)
       assert log.event == "POST_CREATED"
-      assert log.actor_id == space_user.id
+      assert log.space_user_id == space_user.id
       assert log.post_id == post.id
     end
 
@@ -361,7 +361,7 @@ defmodule Level.PostsTest do
     test "logs the event", %{space_user: space_user, post: post} do
       {:ok, %{log: log}} = Posts.update_post(space_user, post, %{body: "New body"})
       assert log.event == "POST_EDITED"
-      assert log.actor_id == space_user.id
+      assert log.space_user_id == space_user.id
       assert log.post_id == post.id
     end
   end
@@ -425,7 +425,7 @@ defmodule Level.PostsTest do
       params = valid_reply_params()
       {:ok, %{reply: reply, log: log}} = Posts.create_reply(space_user, post, params)
       assert log.event == "REPLY_CREATED"
-      assert log.actor_id == space_user.id
+      assert log.space_user_id == space_user.id
       assert log.group_id == group.id
       assert log.post_id == post.id
       assert log.reply_id == reply.id
@@ -709,7 +709,7 @@ defmodule Level.PostsTest do
       assert Posts.reacted?(space_user, post)
 
       assert Repo.get_by(PostLog,
-               actor_id: space_user.id,
+               space_user_id: space_user.id,
                post_id: post.id,
                event: "POST_REACTION_CREATED"
              )
@@ -762,7 +762,7 @@ defmodule Level.PostsTest do
       assert Posts.reacted?(space_user, reply)
 
       assert Repo.get_by(PostLog,
-               actor_id: space_user.id,
+               space_user_id: space_user.id,
                post_id: post.id,
                reply_id: reply.id,
                event: "REPLY_REACTION_CREATED"

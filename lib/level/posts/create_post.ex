@@ -44,6 +44,7 @@ defmodule Level.Posts.CreatePost do
     Multi.new()
     |> insert_post(build_params(author, params))
     |> save_locator(params)
+    |> log(author)
     |> Repo.transaction()
     |> after_bot_post(recipient)
   end

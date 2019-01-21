@@ -10,6 +10,7 @@ defmodule Level.Schemas.PostLog do
   alias Level.Schemas.Post
   alias Level.Schemas.Reply
   alias Level.Schemas.Space
+  alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
@@ -23,43 +24,44 @@ defmodule Level.Schemas.PostLog do
     belongs_to :space, Space
     belongs_to :group, Group
     belongs_to :post, Post
-    belongs_to :actor, SpaceUser, foreign_key: :actor_id
+    belongs_to :space_bot, SpaceBot, foreign_key: :space_bot_id
+    belongs_to :space_user, SpaceUser, foreign_key: :space_user_id
     belongs_to :reply, Reply
 
     timestamps(inserted_at: false, updated_at: false)
   end
 
-  @spec post_created(Post.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec post_created(Post.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def post_created(%Post{} = post, %SpaceUser{} = space_user, now \\ nil) do
+  def post_created(%Post{} = post, actor, now \\ nil) do
     do_insert(
+      actor,
       %{
         event: "POST_CREATED",
         space_id: post.space_id,
-        post_id: post.id,
-        actor_id: space_user.id
+        post_id: post.id
       },
       now
     )
   end
 
-  @spec post_edited(Post.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec post_edited(Post.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def post_edited(%Post{} = post, %SpaceUser{} = space_user, now \\ nil) do
+  def post_edited(%Post{} = post, actor, now \\ nil) do
     do_insert(
+      actor,
       %{
         event: "POST_EDITED",
         space_id: post.space_id,
-        post_id: post.id,
-        actor_id: space_user.id
+        post_id: post.id
       },
       now
     )
   end
 
-  @spec reply_created(Post.t(), Reply.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec reply_created(Post.t(), Reply.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def reply_created(%Post{} = post, %Reply{} = reply, %SpaceUser{} = space_user, now \\ nil) do
+  def reply_created(%Post{} = post, %Reply{} = reply, actor, now \\ nil) do
     groups =
       post
       |> Ecto.assoc(:groups)
@@ -73,93 +75,101 @@ defmodule Level.Schemas.PostLog do
       end
 
     do_insert(
+      actor,
       %{
         event: "REPLY_CREATED",
         space_id: post.space_id,
         group_id: group_id,
         post_id: post.id,
-        reply_id: reply.id,
-        actor_id: space_user.id
+        reply_id: reply.id
       },
       now
     )
   end
 
-  @spec reply_edited(Reply.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec reply_edited(Reply.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def reply_edited(%Reply{} = reply, %SpaceUser{} = space_user, now \\ nil) do
+  def reply_edited(%Reply{} = reply, actor, now \\ nil) do
     do_insert(
+      actor,
       %{
         event: "REPLY_EDITED",
         space_id: reply.space_id,
         post_id: reply.post_id,
-        reply_id: reply.id,
-        actor_id: space_user.id
+        reply_id: reply.id
       },
       now
     )
   end
 
-  @spec post_closed(Post.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec post_closed(Post.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def post_closed(%Post{} = post, %SpaceUser{} = space_user, now \\ nil) do
+  def post_closed(%Post{} = post, actor, now \\ nil) do
     do_insert(
+      actor,
       %{
         event: "POST_CLOSED",
         space_id: post.space_id,
-        post_id: post.id,
-        actor_id: space_user.id
+        post_id: post.id
       },
       now
     )
   end
 
-  @spec post_reopened(Post.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec post_reopened(Post.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def post_reopened(%Post{} = post, %SpaceUser{} = space_user, now \\ nil) do
+  def post_reopened(%Post{} = post, actor, now \\ nil) do
     do_insert(
+      actor,
       %{
         event: "POST_REOPENED",
         space_id: post.space_id,
-        post_id: post.id,
-        actor_id: space_user.id
+        post_id: post.id
       },
       now
     )
   end
 
-  @spec post_reaction_created(Post.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec post_reaction_created(Post.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def post_reaction_created(%Post{} = post, %SpaceUser{} = space_user, now \\ nil) do
+  def post_reaction_created(%Post{} = post, actor, now \\ nil) do
     do_insert(
+      actor,
       %{
         event: "POST_REACTION_CREATED",
         space_id: post.space_id,
-        post_id: post.id,
-        actor_id: space_user.id
+        post_id: post.id
       },
       now
     )
   end
 
-  @spec reply_reaction_created(Reply.t(), SpaceUser.t(), DateTime.t()) ::
+  @spec reply_reaction_created(Reply.t(), SpaceBot.t() | SpaceUser.t(), DateTime.t()) ::
           {:ok, t()} | {:error, Ecto.Changeset.t()}
-  def reply_reaction_created(%Reply{} = reply, %SpaceUser{} = space_user, now \\ nil) do
+  def reply_reaction_created(%Reply{} = reply, actor, now \\ nil) do
     do_insert(
+      actor,
       %{
         event: "REPLY_REACTION_CREATED",
         space_id: reply.space_id,
         post_id: reply.post_id,
-        reply_id: reply.id,
-        actor_id: space_user.id
+        reply_id: reply.id
       },
       now
     )
   end
 
-  defp do_insert(params, now) do
+  defp do_insert(%SpaceUser{} = actor, params, now) do
     %__MODULE__{}
     |> Ecto.Changeset.change(Map.put(params, :occurred_at, now || DateTime.utc_now()))
+    |> Ecto.Changeset.change(space_user_id: actor.id)
+    |> Repo.insert()
+  end
+
+  defp do_insert(%SpaceBot{} = actor, params, now) do
+    %__MODULE__{}
+    |> Ecto.Changeset.change(Map.put(params, :occurred_at, now || DateTime.utc_now()))
+    |> Ecto.Changeset.change(space_bot_id: actor.id)
     |> Repo.insert()
   end
 end

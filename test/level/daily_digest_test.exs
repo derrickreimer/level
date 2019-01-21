@@ -82,6 +82,8 @@ defmodule Level.DailyDigestTest do
     test "skips when there is no inbox activity or other recent activity" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
 
+      Repo.delete_all(PostLog)
+
       due_digest = build_due_digest(space_user)
 
       assert [{:skip, ^due_digest}] =
