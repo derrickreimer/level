@@ -168,6 +168,14 @@
       color: #50667a;
     }
 
+    .user-mention {
+      color: #4b73e1;
+    }
+
+    .tagged-group {
+      color: #4b73e1;
+    }
+
     /* Utilities */
 
     .avatar {
