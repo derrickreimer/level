@@ -323,7 +323,7 @@ defmodule Level.Posts do
   @spec mark_as_unread(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
   def mark_as_unread(%SpaceUser{} = space_user, posts) do
     space_user
-    |> update_many_user_states(posts, %{inbox_state: "UNREAD"})
+    |> update_many_user_states(posts, %{subscription_state: "SUBSCRIBED", inbox_state: "UNREAD"})
     |> after_mark_as_unread(space_user)
   end
 
@@ -342,7 +342,7 @@ defmodule Level.Posts do
   @spec mark_as_read(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
   def mark_as_read(%SpaceUser{} = space_user, posts) do
     space_user
-    |> update_many_user_states(posts, %{inbox_state: "READ"})
+    |> update_many_user_states(posts, %{subscription_state: "SUBSCRIBED", inbox_state: "READ"})
     |> after_mark_as_read(space_user)
   end
 

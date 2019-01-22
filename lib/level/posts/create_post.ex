@@ -186,7 +186,6 @@ defmodule Level.Posts.CreatePost do
     Enum.each(mentioned_users, fn mentioned_user ->
       case Posts.get_post(mentioned_user, post.id) do
         {:ok, _} ->
-          _ = Posts.subscribe(mentioned_user, [post])
           _ = Posts.mark_as_unread(mentioned_user, [post])
           _ = Events.user_mentioned(mentioned_user.id, post)
           _ = Notifications.record_post_created(mentioned_user, post)
