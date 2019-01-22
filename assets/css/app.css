@@ -372,6 +372,10 @@ h6 {
   @apply text-blue no-underline;
 }
 
+.user-mention {
+  @apply text-blue no-underline;
+}
+
 post-editor {
   @apply block relative;
 }

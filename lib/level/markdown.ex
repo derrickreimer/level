@@ -62,7 +62,7 @@ defmodule Level.Markdown do
   defp mutate_text(text, context) do
     text
     |> autolink()
-    |> highlight_mentions()
+    |> highlight_mentions(context)
     |> highlight_hashtags(context)
   end
 
@@ -72,9 +72,16 @@ defmodule Level.Markdown do
 
   defp build_link(url), do: ~s(<a href="#{url}">#{url}</a>)
 
-  defp highlight_mentions(text) do
+  defp highlight_mentions(text, context) do
     Regex.replace(Mentions.mention_pattern(), text, fn match, handle ->
-      String.replace(match, "@#{handle}", ~s(<strong class="user-mention">@#{handle}</strong>))
+      classes =
+        if context[:user] && context[:user].handle == handle do
+          "user-mention user-mention-current"
+        else
+          "user-mention"
+        end
+
+      String.replace(match, "@#{handle}", ~s(<span class="#{classes}">@#{handle}</span>))
     end)
   end
 
