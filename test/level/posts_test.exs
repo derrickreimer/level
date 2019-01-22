@@ -235,11 +235,31 @@ defmodule Level.PostsTest do
 
       params = valid_post_params() |> Map.merge(%{body: "Hey @tiff"})
 
-      {:ok, %{post: post, mentions: [%SpaceUser{id: ^mentioned_id}]}} =
+      {:ok, %{post: post, mentions: %{space_users: [%SpaceUser{id: ^mentioned_id}]}}} =
         Posts.create_post(space_user, group, params)
 
       assert %{inbox: "EXCLUDED", subscription: "NOT_SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
+    end
+
+    test "handles channel mentions", %{
+      space: space,
+      space_user: space_user,
+      group: group
+    } do
+      {:ok, %{group: %Group{id: another_group_id} = another_group}} =
+        create_group(space_user, %{name: "devs"})
+
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.subscribe(another_group, another_user)
+
+      params = valid_post_params() |> Map.merge(%{body: "Hey @#devs"})
+
+      assert {:ok, %{post: post, mentions: %{groups: [%Group{id: ^another_group_id}]}}} =
+               Posts.create_post(space_user, group, params)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, another_user)
     end
 
     test "attaches file uploads", %{space_user: space_user, group: group} do
@@ -425,7 +445,7 @@ defmodule Level.PostsTest do
 
       params = valid_reply_params() |> Map.merge(%{body: "Hey @tiff"})
 
-      assert {:ok, %{mentions: [%SpaceUser{id: ^mentioned_id}]}} =
+      assert {:ok, %{mentions: %{space_users: [%SpaceUser{id: ^mentioned_id}]}}} =
                Posts.create_reply(space_user, post, params)
     end
 
@@ -456,7 +476,7 @@ defmodule Level.PostsTest do
 
       params = valid_reply_params() |> Map.merge(%{body: "Hey @tiff"})
 
-      {:ok, %{mentions: [%SpaceUser{id: ^mentioned_id}]}} =
+      {:ok, %{mentions: %{space_users: [%SpaceUser{id: ^mentioned_id}]}}} =
         Posts.create_reply(space_user, post, params)
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
@@ -478,7 +498,7 @@ defmodule Level.PostsTest do
 
       params = valid_post_params() |> Map.merge(%{body: "Hey @tiff"})
 
-      {:ok, %{mentions: [%SpaceUser{id: ^mentioned_id}]}} =
+      {:ok, %{mentions: %{space_users: [%SpaceUser{id: ^mentioned_id}]}}} =
         Posts.create_reply(space_user, post, params)
 
       assert %{inbox: "EXCLUDED", subscription: "NOT_SUBSCRIBED"} =

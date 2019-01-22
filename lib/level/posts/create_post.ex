@@ -5,6 +5,7 @@ defmodule Level.Posts.CreatePost do
   alias Ecto.Multi
   alias Level.Events
   alias Level.Files
+  alias Level.Groups
   alias Level.Mentions
   alias Level.Notifications
   alias Level.Posts
@@ -33,7 +34,7 @@ defmodule Level.Posts.CreatePost do
     |> save_locator(params)
     |> set_primary_group(group)
     |> detect_tagged_groups(author)
-    |> record_mentions()
+    |> record_mentions(author)
     |> attach_files(author, params)
     |> log(author)
     |> Repo.transaction()
@@ -55,7 +56,7 @@ defmodule Level.Posts.CreatePost do
     |> insert_post(build_params(author, params))
     |> save_locator(params)
     |> detect_tagged_groups(author)
-    |> record_mentions()
+    |> record_mentions(author)
     |> attach_files(author, params)
     |> log(author)
     |> Repo.transaction()
@@ -131,9 +132,9 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp record_mentions(multi) do
+  defp record_mentions(multi, author) do
     Multi.run(multi, :mentions, fn %{post: post} ->
-      Mentions.record(post)
+      Mentions.record(author, post)
     end)
   end
 
@@ -156,7 +157,8 @@ defmodule Level.Posts.CreatePost do
 
   defp after_user_post({:ok, result}, author) do
     _ = Posts.subscribe(author, [result.post])
-    _ = subscribe_mentioned(result.post, result)
+    _ = subscribe_mentioned_users(result.post, result)
+    _ = subscribe_mentioned_groups(result.post, result)
 
     result
     |> gather_groups()
@@ -182,7 +184,7 @@ defmodule Level.Posts.CreatePost do
   # This is not very efficient, but assuming that posts will not have too
   # many @-mentions, I'm not going to worry about the performance penalty
   # of performing a post lookup query for every mention (for now).
-  defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
+  defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       case Posts.get_post(mentioned_user, post.id) do
         {:ok, _} ->
@@ -193,6 +195,17 @@ defmodule Level.Posts.CreatePost do
         _ ->
           false
       end
+    end)
+  end
+
+  defp subscribe_mentioned_groups(post, %{mentions: %{groups: mentioned_groups}}) do
+    Enum.each(mentioned_groups, fn mentioned_group ->
+      {:ok, group_users} = Groups.list_all_memberships(mentioned_group)
+      group_users = Repo.preload(group_users, :space_user)
+
+      Enum.each(group_users, fn group_user ->
+        _ = Posts.mark_as_unread(group_user.space_user, [post])
+      end)
     end)
   end
 
@@ -209,10 +222,13 @@ defmodule Level.Posts.CreatePost do
 
   defp after_bot_post(err, _), do: err
 
-  defp send_push_notifications(%{post: %Post{is_urgent: true} = post, mentions: mentions}, author) do
+  defp send_push_notifications(
+         %{post: %Post{is_urgent: true} = post, mentions: %{space_users: mentioned_users}},
+         author
+       ) do
     payload = build_push_payload(post, author)
 
-    mentions
+    mentioned_users
     |> Enum.each(fn %SpaceUser{user_id: user_id} ->
       WebPush.send_web_push(user_id, payload)
     end)

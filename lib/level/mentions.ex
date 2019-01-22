@@ -6,6 +6,7 @@ defmodule Level.Mentions do
   import Ecto.Query
 
   alias Level.Events
+  alias Level.Groups
   alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Post
@@ -19,9 +20,9 @@ defmodule Level.Mentions do
   """
   def mention_pattern do
     ~r/
-      (?:^|\W)                    # beginning of string or non-word char
-      @((?>[a-z0-9][a-z0-9-]*))   # at-handle
-      (?!\/)                      # without a trailing slash
+      (?:^|\W)                     # beginning of string or non-word char
+      @(\#?(?>[a-z0-9][a-z0-9-]*)) # at-handle
+      (?!\/)                       # without a trailing slash
       (?=
         \.+[ \t\W]|               # dots followed by space or non-word character
         \.+$|                     # dots at end of line
@@ -52,40 +53,55 @@ defmodule Level.Mentions do
   @doc """
   Record mentions from the body of a post.
   """
-  @spec record(Post.t()) :: {:ok, [String.t()]}
-  def record(%Post{space_user_id: author_id, body: body} = post) do
-    do_record(body, post, nil, author_id)
+  @spec record(SpaceUser.t(), Post.t()) :: {:ok, [String.t()]}
+  def record(%SpaceUser{} = author, %Post{body: body} = post) do
+    do_record(body, post, nil, author)
   end
 
-  @spec record(Post.t(), Reply.t()) :: {:ok, [String.t()]}
-  def record(%Post{} = post, %Reply{id: reply_id, space_user_id: author_id, body: body}) do
-    do_record(body, post, reply_id, author_id)
+  @spec record(SpaceUser.t(), Post.t(), Reply.t()) :: {:ok, %{space_users: [String.t()]}}
+  def record(%SpaceUser{} = author, %Post{} = post, %Reply{id: reply_id, body: body}) do
+    do_record(body, post, reply_id, author)
   end
 
-  defp do_record(body, post, reply_id, author_id) do
+  defp do_record(body, post, reply_id, author) do
     mention_pattern()
     |> Regex.scan(body, capture: :all_but_first)
-    |> process_handles(post, reply_id, author_id)
+    |> process_handles(post, reply_id, author)
   end
 
   defp process_handles(nil, _, _, _) do
-    {:ok, []}
+    {:ok, %{space_users: [], groups: []}}
   end
 
-  defp process_handles(handles, post, reply_id, author_id) do
+  defp process_handles(handles, post, reply_id, author) do
     lower_handles =
       handles
       |> Enum.map(fn [handle] -> String.downcase(handle) end)
       |> Enum.uniq()
 
-    query =
+    channel_names =
+      lower_handles
+      |> Enum.flat_map(fn
+        "#" <> name -> [name]
+        _ -> []
+      end)
+
+    space_user_query =
       from su in SpaceUser,
         where: su.space_id == ^post.space_id,
         where: fragment("lower(?)", su.handle) in ^lower_handles
 
-    query
-    |> Repo.all()
-    |> insert_batch(post, reply_id, author_id)
+    {:ok, space_users} =
+      space_user_query
+      |> Repo.all()
+      |> insert_batch(post, reply_id, author.id)
+
+    group_query =
+      from [g, gu] in Groups.groups_base_query(author),
+        where: g.name in ^channel_names
+
+    groups = Repo.all(group_query)
+    {:ok, %{space_users: space_users, groups: groups}}
   end
 
   defp insert_batch(mentioned_users, post, reply_id, author_id) do

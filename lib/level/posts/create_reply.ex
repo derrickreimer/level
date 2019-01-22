@@ -33,7 +33,7 @@ defmodule Level.Posts.CreateReply do
   def perform(%SpaceUser{} = author, %Post{} = post, params, opts) do
     Multi.new()
     |> do_insert(build_params(author, post, params))
-    |> record_mentions(post)
+    |> record_mentions(post, author)
     |> attach_files(author, params)
     |> log(post, author)
     |> record_post_view(post, author)
@@ -62,9 +62,9 @@ defmodule Level.Posts.CreateReply do
     Multi.insert(multi, :reply, Reply.create_changeset(%Reply{}, params))
   end
 
-  defp record_mentions(multi, post) do
+  defp record_mentions(multi, post, author) do
     Multi.run(multi, :mentions, fn %{reply: reply} ->
-      Mentions.record(post, reply)
+      Mentions.record(author, post, reply)
     end)
   end
 
@@ -114,7 +114,7 @@ defmodule Level.Posts.CreateReply do
   # This is not very efficient, but assuming that posts will not have too
   # many @-mentions, I'm not going to worry about the performance penalty
   # of performing a post lookup query for every mention (for now).
-  defp subscribe_mentioned(post, %{mentions: mentioned_users}) do
+  defp subscribe_mentioned(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       case Posts.get_post(mentioned_user, post.id) do
         {:ok, _} ->
@@ -169,7 +169,7 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp send_events(post, %{reply: reply, mentions: mentioned_users}, opts) do
+  defp send_events(post, %{reply: reply, mentions: %{space_users: mentioned_users}}, opts) do
     events = Keyword.get(opts, :events)
 
     _ = events.reply_created(post.id, reply)

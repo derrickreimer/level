@@ -43,6 +43,20 @@ defmodule Level.Groups do
   end
 
   @doc """
+  Generate the query for all members.
+  """
+  @spec members_base_query(Group.t()) :: Ecto.Query.t()
+  def members_base_query(%Group{id: group_id}) do
+    from gu in GroupUser,
+      join: su in assoc(gu, :space_user),
+      where: su.state == "ACTIVE",
+      where: gu.group_id == ^group_id,
+      where: gu.state == "SUBSCRIBED",
+      join: u in assoc(gu, :user),
+      select: %{gu | last_name: u.last_name}
+  end
+
+  @doc """
   Fetches a group by id.
   """
   @spec get_group(SpaceUser.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
@@ -138,24 +152,27 @@ defmodule Level.Groups do
   @doc """
   Lists featured group memberships (for display in the sidebar).
 
-  Currently returns the top ten users, ordered alphabetically.
+  Currently returns the top users, ordered alphabetically.
   """
   @spec list_featured_memberships(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
   def list_featured_memberships(group) do
-    base_query =
-      from gu in GroupUser,
-        join: su in assoc(gu, :space_user),
-        where: su.state == "ACTIVE",
-        where: gu.group_id == ^group.id,
-        where: gu.state == "SUBSCRIBED",
-        join: u in assoc(gu, :user),
-        select: %{gu | last_name: u.last_name}
+    base_query = members_base_query(group)
 
     query =
       from gu in subquery(base_query),
         order_by: {:asc, gu.last_name},
         limit: 20
 
+    {:ok, Repo.all(query)}
+  end
+
+  @doc """
+  Lists all members of a group.
+  """
+  @spec list_all_memberships(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
+  def list_all_memberships(group) do
+    base_query = members_base_query(group)
+    query = from gu in subquery(base_query), order_by: {:asc, gu.last_name}
     {:ok, Repo.all(query)}
   end
 
