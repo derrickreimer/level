@@ -590,8 +590,12 @@ defmodule Level.PostsTest do
     end
 
     test "emboldens mentions", %{viewer: viewer} do
-      assert Posts.render_body("@tiff Hey", viewer) ==
-               {:ok, "<p><strong class=\"user-mention\">@tiff</strong> Hey</p>"}
+      assert Posts.render_body("@tiff Hey", %{user: viewer}) ==
+               {:ok, "<p><span class=\"user-mention\">@tiff</span> Hey</p>"}
+
+      assert Posts.render_body("@derrick Hey", %{user: viewer}) ==
+               {:ok,
+                "<p><span class=\"user-mention user-mention-current\">@derrick</span> Hey</p>"}
     end
   end
 

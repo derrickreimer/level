@@ -49,7 +49,7 @@ defmodule Level.MarkdownTest do
 
     test "highlights mentions" do
       {:ok, result, _} = Markdown.to_html("Hey @derrick")
-      assert result == ~s(<p>Hey <strong class="user-mention">@derrick</strong></p>)
+      assert result == ~s(<p>Hey <span class="user-mention">@derrick</span></p>)
     end
 
     test "highlights channels only when no space context is given" do
