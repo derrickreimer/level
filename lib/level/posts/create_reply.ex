@@ -5,6 +5,7 @@ defmodule Level.Posts.CreateReply do
 
   alias Ecto.Multi
   alias Level.Files
+  alias Level.Groups
   alias Level.Mentions
   alias Level.Notifications
   alias Level.Posts
@@ -93,7 +94,8 @@ defmodule Level.Posts.CreateReply do
 
   defp after_transaction({:ok, %{reply: reply} = result}, post, author, opts) do
     _ = subscribe_author(post, author)
-    _ = subscribe_mentioned(post, result)
+    _ = subscribe_mentioned_users(post, result)
+    _ = subscribe_mentioned_groups(post, result)
     _ = record_reply_view(reply, author)
 
     {:ok, subscribers} = Posts.get_subscribers(post)
@@ -114,7 +116,7 @@ defmodule Level.Posts.CreateReply do
   # This is not very efficient, but assuming that posts will not have too
   # many @-mentions, I'm not going to worry about the performance penalty
   # of performing a post lookup query for every mention (for now).
-  defp subscribe_mentioned(post, %{mentions: %{space_users: mentioned_users}}) do
+  defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       case Posts.get_post(mentioned_user, post.id) do
         {:ok, _} ->
@@ -123,6 +125,17 @@ defmodule Level.Posts.CreateReply do
         _ ->
           false
       end
+    end)
+  end
+
+  defp subscribe_mentioned_groups(post, %{mentions: %{groups: mentioned_groups}}) do
+    Enum.each(mentioned_groups, fn mentioned_group ->
+      {:ok, group_users} = Groups.list_all_memberships(mentioned_group)
+      group_users = Repo.preload(group_users, :space_user)
+
+      Enum.each(group_users, fn group_user ->
+        _ = Posts.subscribe(group_user.space_user, [post])
+      end)
     end)
   end
 
