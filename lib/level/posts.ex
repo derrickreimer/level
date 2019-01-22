@@ -22,6 +22,7 @@ defmodule Level.Posts do
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.PostFile
+  alias Level.Schemas.PostGroup
   alias Level.Schemas.PostLog
   alias Level.Schemas.PostReaction
   alias Level.Schemas.PostUser
@@ -792,6 +793,23 @@ defmodule Level.Posts do
       %ReplyReaction{} -> true
       _ -> false
     end
+  end
+
+  @doc """
+  Publishes a post to particular group.
+  """
+  @spec publish_to_group(Post.t(), Group.t()) ::
+          {:ok, PostGroup.t()} | {:error, Ecto.Changeset.t()}
+  def publish_to_group(%Post{} = post, %Group{} = group) do
+    params = %{
+      space_id: post.space_id,
+      post_id: post.id,
+      group_id: group.id
+    }
+
+    %PostGroup{}
+    |> Ecto.Changeset.change(params)
+    |> Repo.insert(on_conflict: :nothing)
   end
 
   # Internal

@@ -1,7 +1,6 @@
 defmodule Level.Posts.CreatePost do
   @moduledoc false
 
-  alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.Events
   alias Level.Files
@@ -12,7 +11,6 @@ defmodule Level.Posts.CreatePost do
   alias Level.Repo
   alias Level.Schemas.Group
   alias Level.Schemas.Post
-  alias Level.Schemas.PostGroup
   alias Level.Schemas.PostLocator
   alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceBot
@@ -77,14 +75,6 @@ defmodule Level.Posts.CreatePost do
     |> Map.put(:space_bot_id, author.id)
   end
 
-  defp build_post_group_params(post, group) do
-    %{
-      space_id: post.space_id,
-      post_id: post.id,
-      group_id: group.id
-    }
-  end
-
   defp insert_post(multi, params) do
     Multi.insert(multi, :post, Post.create_changeset(%Post{}, params))
   end
@@ -104,9 +94,7 @@ defmodule Level.Posts.CreatePost do
 
   defp set_primary_group(multi, group) do
     Multi.run(multi, :primary_group, fn %{post: post} ->
-      %PostGroup{}
-      |> Changeset.change(build_post_group_params(post, group))
-      |> Repo.insert()
+      _ = Posts.publish_to_group(post, group)
 
       {:ok, group}
     end)
@@ -121,9 +109,7 @@ defmodule Level.Posts.CreatePost do
           result[:primary_group] && result[:primary_group].id == group.id
         end)
         |> Enum.map(fn group ->
-          %PostGroup{}
-          |> Changeset.change(build_post_group_params(post, group))
-          |> Repo.insert()
+          _ = Posts.publish_to_group(post, group)
 
           group
         end)

@@ -420,7 +420,7 @@ defmodule Level.PostsTest do
   describe "create_reply/2" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
-      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{group: group}} = create_group(space_user, %{name: "marketing"})
       {:ok, %{post: post}} = create_post(space_user, group)
       {:ok, Map.merge(result, %{group: group, post: post})}
     end
@@ -447,6 +447,19 @@ defmodule Level.PostsTest do
 
       assert {:ok, %{mentions: %{space_users: [%SpaceUser{id: ^mentioned_id}]}}} =
                Posts.create_reply(space_user, post, params)
+    end
+
+    test "adds to tagged groups", %{space_user: space_user, post: post} do
+      {:ok, %{group: another_group}} = create_group(space_user, %{name: "my-group"})
+
+      params =
+        valid_reply_params()
+        |> Map.put(:body, "Hello #marketing #my-group")
+
+      {:ok, _} = Posts.create_reply(space_user, post, params)
+
+      post = Repo.preload(post, :groups)
+      assert Enum.any?(post.groups, fn group -> group.id == another_group.id end)
     end
 
     test "logs the event", %{space_user: space_user, post: post, group: group} do
