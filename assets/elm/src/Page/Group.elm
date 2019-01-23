@@ -1419,8 +1419,9 @@ sidebarView params space group featuredMembers =
         [ viewIf (Group.membershipState group == GroupMembership.Subscribed) <|
             li [ class "mb-3" ]
                 [ button
-                    [ class "flex items-center text-md text-dusty-blue no-underline font-bold"
+                    [ class "tooltip tooltip-bottom tooltip-wide flex items-center text-md text-dusty-blue no-underline font-bold"
                     , onClick WatchClicked
+                    , attribute "data-tooltip" "Only put posts @mentioning you in your Inbox (recommended)"
                     ]
                     [ div [ class "mr-1" ] [ Icons.eye Icons.Off ]
                     , div [] [ text "Not Watching" ]
@@ -1429,8 +1430,9 @@ sidebarView params space group featuredMembers =
         , viewIf (Group.membershipState group == GroupMembership.Watching) <|
             li [ class "mb-3" ]
                 [ button
-                    [ class "flex items-center text-md text-green no-underline font-bold"
+                    [ class "tooltip tooltip-bottom tooltip-wide flex items-center text-md text-green no-underline font-bold"
                     , onClick SubscribeClicked
+                    , attribute "data-tooltip" "Put all new posts in your Inbox (might get overwhelming)"
                     ]
                     [ div [ class "mr-1" ] [ Icons.eye Icons.On ]
                     , div [] [ text "Watching" ]

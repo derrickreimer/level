@@ -558,6 +558,10 @@ post-editor.dragging-over > * {
   content: attr(data-tooltip);
 }
 
+.tooltip.tooltip-wide:after {
+  width: 120px;
+}
+
 /* Directions */
 
 /* Top (default) */
@@ -573,6 +577,11 @@ post-editor.dragging-over > * {
 .tooltip:after,
 .tooltip-top:after {
   margin-left: -50px;
+}
+
+.tooltip.tooltip-wide:after,
+.tooltip-top.tooltip-wide:after {
+  margin-left: -60px;
 }
 
 [data-tooltip]:hover:after,
