@@ -1529,7 +1529,7 @@ expandedReplyComposerView viewConfig editor =
 replyPromptView : ViewConfig -> Model -> Data -> Html Msg
 replyPromptView config model data =
     if not (Connection.isEmpty model.replyIds) then
-        button [ class "flex mt-4 items-center", onClick ExpandReplyComposer ]
+        button [ class "flex my-4 items-center", onClick ExpandReplyComposer ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
             , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
                 [ text "Reply or resolve..."
