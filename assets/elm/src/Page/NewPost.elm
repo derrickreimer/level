@@ -20,6 +20,7 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CreatePost as CreatePost
 import PostEditor exposing (PostEditor)
 import Query.SetupInit as SetupInit
+import Regex exposing (Regex)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
@@ -60,6 +61,12 @@ type alias Data =
     , space : Space
     , bookmarks : List Group
     }
+
+
+type Recipient
+    = Nobody
+    | Direct
+    | Channel
 
 
 resolveData : Repo -> Model -> Maybe Data
@@ -394,6 +401,17 @@ desktopPostComposerView globals model data =
             , onFileUploadError = NewPostFileUploadError
             , classList = []
             }
+
+        buttonText =
+            case determineRecipient (PostEditor.getBody editor) of
+                Nobody ->
+                    "Save Note"
+
+                Direct ->
+                    "Send Direct Message "
+
+                Channel ->
+                    "Send to Channel"
     in
     PostEditor.wrapper config
         [ label [ class "composer mb-4" ]
@@ -436,7 +454,7 @@ desktopPostComposerView globals model data =
                             , disabled (isUnsubmittable editor)
                             , tabindex 3
                             ]
-                            [ text "Send" ]
+                            [ text buttonText ]
                         ]
                     ]
                 ]
@@ -537,4 +555,30 @@ resolvedMobileView globals model data =
 
 isUnsubmittable : PostEditor -> Bool
 isUnsubmittable editor =
-    PostEditor.isUnsubmittable editor || not (String.contains "#" (PostEditor.getBody editor))
+    PostEditor.isUnsubmittable editor
+
+
+determineRecipient : String -> Recipient
+determineRecipient text =
+    if Regex.contains hashtagRegex text then
+        Channel
+
+    else if Regex.contains mentionRegex text then
+        Direct
+
+    else
+        Nobody
+
+
+mentionRegex : Regex
+mentionRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromStringWith { caseInsensitive = True, multiline = True }
+            "(?:^|\\W)@(\\#?[a-z0-9][a-z0-9-]*)(?!\\/)(?=\\.+[ \\t\\W]|\\.+$|[^0-9a-zA-Z_.]|$)"
+
+
+hashtagRegex : Regex
+hashtagRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromStringWith { caseInsensitive = True, multiline = True }
+            "(?:^|\\W)\\#([a-z0-9][a-z0-9-]*)(?!\\/)(?=\\.+[ \\t\\W]|\\.+$|[^0-9a-zA-Z_.]|$)"
