@@ -403,15 +403,19 @@ desktopPostComposerView globals model data =
             }
 
         buttonText =
-            case determineRecipient (PostEditor.getBody editor) of
-                Nobody ->
-                    "Save Note"
+            if PostEditor.getBody editor == "" then
+                "Send"
 
-                Direct ->
-                    "Send Direct Message "
+            else
+                case determineRecipient (PostEditor.getBody editor) of
+                    Nobody ->
+                        "Save Private Note"
 
-                Channel ->
-                    "Send to Channel"
+                    Direct ->
+                        "Send Direct Message "
+
+                    Channel ->
+                        "Send to Channel"
     in
     PostEditor.wrapper config
         [ label [ class "composer mb-4" ]
