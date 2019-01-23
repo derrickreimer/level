@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
+module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, menu, more, open, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -111,6 +111,18 @@ edit : Html msg
 edit =
     iconView <|
         svg [ width "17px", height "17px", viewBox "0 0 17 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "edit", transform "translate(1.000000, 1.000000)", stroke "#c6ced2", strokeWidth "2" ] [ Svg.path [ d "M14.4,8.128 L14.4,13.4 C14.4,14.2836556 13.6836556,15 12.8,15 L1.6,15 C0.7163444,15 0,14.2836556 0,13.4 L0,2.2 C-1.77635684e-16,1.3163444 0.7163444,0.6 1.6,0.6 L5.872,0.6", id "Path" ] [], polygon [ id "Path", fill "#c6ced2", points "14 2.98431373 6.78431373 10.2 4.8 10.2 4.8 8.21568627 12.0156863 1" ] [] ] ] ]
+
+
+eye : Toggle -> Html msg
+eye toggle =
+    case toggle of
+        Off ->
+            iconView <|
+                svg [ width "20px", height "18px", viewBox "0 0 20 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "eye-off", transform "translate(1.000000, 0.000000)", stroke "#8A98A5" ] [ Svg.path [ d "M13.86,13.86 C12.4613918,14.9260927 10.7583607,15.5167062 9,15.5454545 C3.27272727,15.5454545 0,9 0,9 C1.0177281,7.10336918 2.42929264,5.44631515 4.14,4.14 M7.28181818,2.65090909 C7.84499916,2.51908324 8.42159788,2.45318624 9,2.45454545 C14.7272727,2.45454545 18,9 18,9 C17.5033469,9.92913329 16.9110453,10.803875 16.2327273,11.61 M10.7345455,10.7345455 C10.1226417,11.3912286 9.20109095,11.6615428 8.33141812,11.4394436 C7.46174528,11.2173444 6.78265559,10.5382547 6.56055641,9.66858188 C6.33845722,8.79890905 6.60877142,7.87735826 7.26545455,7.26545455", id "Shape" ] [], Svg.path [ d "M0,0 L18,18", id "Path" ] [] ] ] ]
+
+        On ->
+            iconView <|
+                svg [ width "20px", height "15px", viewBox "0 0 20 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "eye", transform "translate(1.000000, 1.000000)", fill "#38C172" ] [ Svg.path [ d "M0,6.5 C0,6.5 3.27272727,0 9,0 C14.7272727,0 18,6.5 18,6.5 C18,6.5 14.7272727,13 9,13 C3.27272727,13 0,6.5 0,6.5 Z", id "Path", stroke "#38C172" ] [], ellipse [ id "Oval", stroke "#FFFFFF", strokeWidth "2", cx "9", cy "6.5", rx "2.45454545", ry "2.4375" ] [] ] ] ]
 
 
 file : Color -> Html msg

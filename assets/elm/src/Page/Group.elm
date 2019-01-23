@@ -32,6 +32,7 @@ import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
 import Mutation.UpdateGroup as UpdateGroup
+import Mutation.WatchGroup as WatchGroup
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
@@ -229,6 +230,8 @@ type Msg
     | Subscribed (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribeClicked
     | Unsubscribed (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
+    | WatchClicked
+    | Watched (Result Session.Error ( Session, WatchGroup.Response ))
     | NameClicked
     | NameEditorChanged String
     | NameEditorDismissed
@@ -420,6 +423,32 @@ update msg globals model =
             redirectToLogin globals model
 
         Unsubscribed (Err _) ->
+            noCmd globals model
+
+        WatchClicked ->
+            let
+                cmd =
+                    globals.session
+                        |> WatchGroup.request model.spaceId model.groupId
+                        |> Task.attempt Watched
+            in
+            ( ( model, cmd ), globals )
+
+        Watched (Ok ( newSession, WatchGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+
+        Watched (Ok ( newSession, WatchGroup.Invalid _ )) ->
+            noCmd globals model
+
+        Watched (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        Watched (Err _) ->
             noCmd globals model
 
         NameClicked ->
@@ -1387,7 +1416,27 @@ sidebarView params space group featuredMembers =
         ]
     , memberListView space featuredMembers
     , ul [ class "list-reset leading-normal" ]
-        [ li []
+        [ viewIf (Group.membershipState group == GroupMembership.Subscribed) <|
+            li [ class "mb-3" ]
+                [ button
+                    [ class "flex items-center text-md text-dusty-blue no-underline font-bold"
+                    , onClick WatchClicked
+                    ]
+                    [ div [ class "mr-1" ] [ Icons.eye Icons.Off ]
+                    , div [] [ text "Not Watching" ]
+                    ]
+                ]
+        , viewIf (Group.membershipState group == GroupMembership.Watching) <|
+            li [ class "mb-3" ]
+                [ button
+                    [ class "flex items-center text-md text-green no-underline font-bold"
+                    , onClick SubscribeClicked
+                    ]
+                    [ div [ class "mr-1" ] [ Icons.eye Icons.On ]
+                    , div [] [ text "Watching" ]
+                    ]
+                ]
+        , li []
             [ subscribeButtonView (Group.membershipState group)
             ]
         , li []
@@ -1432,6 +1481,13 @@ subscribeButtonView state =
                 [ text "Subscribe" ]
 
         GroupMembership.Subscribed ->
+            button
+                [ class "text-md text-dusty-blue no-underline font-bold"
+                , onClick UnsubscribeClicked
+                ]
+                [ text "Unsubscribe" ]
+
+        GroupMembership.Watching ->
             button
                 [ class "text-md text-dusty-blue no-underline font-bold"
                 , onClick UnsubscribeClicked

@@ -18,6 +18,7 @@ type alias GroupMembership =
 type GroupMembershipState
     = NotSubscribed
     | Subscribed
+    | Watching
 
 
 fragment : Fragment
@@ -50,6 +51,9 @@ stateDecoder =
         convert : String -> Decoder GroupMembershipState
         convert raw =
             case raw of
+                "WATCHING" ->
+                    succeed Watching
+
                 "SUBSCRIBED" ->
                     succeed Subscribed
 
@@ -74,3 +78,6 @@ stateEncoder state =
 
         Subscribed ->
             Encode.string "SUBSCRIBED"
+
+        Watching ->
+            Encode.string "WATCHING"

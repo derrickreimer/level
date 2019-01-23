@@ -167,9 +167,6 @@ defmodule Level.Posts.CreatePost do
     tagged_groups |> Enum.uniq_by(fn group -> group.id end)
   end
 
-  # This is not very efficient, but assuming that posts will not have too
-  # many @-mentions, I'm not going to worry about the performance penalty
-  # of performing a post lookup query for every mention (for now).
   defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       _ = Posts.mark_as_unread(mentioned_user, [post])
@@ -194,7 +191,6 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp after_bot_post({:ok, result}, recipient) do
-    _ = Posts.subscribe(recipient, [result.post])
     _ = Posts.mark_as_unread(recipient, [result.post])
 
     {:ok, result}
