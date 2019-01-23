@@ -134,13 +134,7 @@ defmodule Level.Posts.CreateReply do
   # of performing a post lookup query for every mention (for now).
   defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      case Posts.get_post(mentioned_user, post.id) do
-        {:ok, _} ->
-          _ = Posts.subscribe(mentioned_user, [post])
-
-        _ ->
-          false
-      end
+      _ = Posts.subscribe(mentioned_user, [post])
     end)
   end
 

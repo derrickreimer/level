@@ -498,7 +498,7 @@ defmodule Level.PostsTest do
       assert [%Notification{event: "REPLY_CREATED"}] = Notifications.list(mentioned, post)
     end
 
-    test "does not subscribe mentioned users who cannot access the post", %{
+    test "loops in mentioned people who previously did not have access", %{
       space: space,
       space_user: space_user,
       post: post,
@@ -514,7 +514,7 @@ defmodule Level.PostsTest do
       {:ok, %{mentions: %{space_users: [%SpaceUser{id: ^mentioned_id}]}}} =
         Posts.create_reply(space_user, post, params)
 
-      assert %{inbox: "EXCLUDED", subscription: "NOT_SUBSCRIBED"} =
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
     end
 
