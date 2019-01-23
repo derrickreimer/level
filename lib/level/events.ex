@@ -88,6 +88,10 @@ defmodule Level.Events do
     publish_to_group(id, :subscribed_to_group, %{group: group, space_user: space_user})
   end
 
+  def watched_group(id, %Group{} = group, %SpaceUser{} = space_user) do
+    publish_to_group(id, :watched_group, %{group: group, space_user: space_user})
+  end
+
   def unsubscribed_from_group(id, %Group{} = group, %SpaceUser{} = space_user) do
     publish_to_group(id, :unsubscribed_from_group, %{group: group, space_user: space_user})
   end

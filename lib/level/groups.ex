@@ -51,7 +51,7 @@ defmodule Level.Groups do
       join: su in assoc(gu, :space_user),
       where: su.state == "ACTIVE",
       where: gu.group_id == ^group_id,
-      where: gu.state == "SUBSCRIBED",
+      where: gu.state in ["SUBSCRIBED", "WATCHING"],
       join: u in assoc(gu, :user),
       select: %{gu | last_name: u.last_name}
   end
@@ -356,6 +356,38 @@ defmodule Level.Groups do
   end
 
   @doc """
+  Watches a group.
+  """
+  @spec watch(Group.t(), SpaceUser.t()) :: :ok | {:error, Changeset.t()}
+  def watch(%Group{} = group, %SpaceUser{} = space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        state: "WATCHING"
+      })
+
+    opts = [
+      on_conflict: [set: [state: "WATCHING"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
+
+    changeset
+    |> Repo.insert(opts)
+    |> after_watch(group, space_user)
+  end
+
+  defp after_watch({:ok, _}, group, space_user) do
+    Events.watched_group(group.id, group, space_user)
+    :ok
+  end
+
+  defp after_watch(err, _, _) do
+    err
+  end
+
+  @doc """
   Grants a user access to a group.
   """
   @spec grant_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
@@ -452,11 +484,13 @@ defmodule Level.Groups do
   @doc """
   Gets a user's state.
   """
-  @spec get_user_state(Group.t(), User.t() | SpaceUser.t()) :: :not_subscribed | :subscribed | nil
+  @spec get_user_state(Group.t(), User.t() | SpaceUser.t()) ::
+          :not_subscribed | :subscribed | :watching | nil
   def get_user_state(%Group{} = group, user) do
     case get_group_user(group, user) do
       {:ok, %GroupUser{state: "SUBSCRIBED"}} -> :subscribed
       {:ok, %GroupUser{state: "NOT_SUBSCRIBED"}} -> :not_subscribed
+      {:ok, %GroupUser{state: "WATCHING"}} -> :watching
       _ -> nil
     end
   end

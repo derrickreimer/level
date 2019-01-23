@@ -61,6 +61,11 @@ defmodule Level.Mutations do
           {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
           | {:error, String.t()}
 
+  @typedoc "The payload for the watch group mutation"
+  @type watch_group_payload ::
+          {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
+          | {:error, String.t()}
+
   @typedoc "The payload for the unsubscribe from group mutation"
   @type unsubscribe_from_group_payload ::
           {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
@@ -372,6 +377,21 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
          :ok <- Groups.subscribe(group, space_user) do
+      {:ok, %{success: true, group: group, errors: []}}
+    else
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Watches a group.
+  """
+  @spec watch_group(map(), info()) :: watch_group_payload()
+  def watch_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         :ok <- Groups.watch(group, space_user) do
       {:ok, %{success: true, group: group, errors: []}}
     else
       err ->

@@ -41,6 +41,7 @@ defmodule LevelWeb.Schema.Subscriptions do
       :group_updated_payload,
       :post_created_payload,
       :subscribed_to_group_payload,
+      :watched_group_payload,
       :unsubscribed_from_group_payload
     ]
 
@@ -175,6 +176,15 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for the subscribed to group event."
   object :subscribed_to_group_payload do
+    @desc "The group."
+    field :group, non_null(:group)
+
+    @desc "The space user."
+    field :space_user, non_null(:space_user)
+  end
+
+  @desc "The payload for the watched group event."
+  object :watched_group_payload do
     @desc "The group."
     field :group, non_null(:group)
 

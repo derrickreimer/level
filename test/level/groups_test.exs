@@ -357,6 +357,35 @@ defmodule Level.GroupsTest do
     end
   end
 
+  describe "watch/2" do
+    setup do
+      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, Map.merge(result, %{group: group})}
+    end
+
+    test "sets the user to watching", %{space: space, group: group} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      assert Groups.get_user_state(group, another_user) == nil
+
+      Groups.watch(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :watching
+    end
+
+    test "sets the user to watching when previously granted access", %{
+      user: user,
+      space: space,
+      group: group
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.grant_access(user, group, another_user)
+      assert Groups.get_user_state(group, another_user) == :not_subscribed
+
+      Groups.watch(group, another_user)
+      assert Groups.get_user_state(group, another_user) == :watching
+    end
+  end
+
   describe "unsubscribe/2" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()

@@ -181,6 +181,14 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.subscribe_to_group/2
     end
 
+    @desc "Watches a group."
+    field :watch_group, type: :watch_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.watch_group/2
+    end
+
     @desc "Unsubscribe from group."
     field :unsubscribe_from_group, type: :unsubscribe_from_group_payload do
       arg :space_id, non_null(:id)
