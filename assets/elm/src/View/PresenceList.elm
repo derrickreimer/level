@@ -22,7 +22,7 @@ view repo space list =
                 |> List.sortBy SpaceUser.lastName
     in
     if List.isEmpty spaceUsers then
-        div [ class "pb-4 text-sm" ] [ text "There is nobody here." ]
+        div [ class "pb-4 text-md" ] [ text "There is nobody here." ]
 
     else
         div [ class "pb-4" ] <| List.map (itemView space) spaceUsers
@@ -35,5 +35,5 @@ itemView space user =
         , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
         ]
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
+        , div [ class "flex-grow text-md truncate" ] [ text <| SpaceUser.displayName user ]
         ]

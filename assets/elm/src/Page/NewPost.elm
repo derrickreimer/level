@@ -538,7 +538,7 @@ resolvedMobileView globals model data =
                         , onClick ToggleUrgent
                         ]
                         [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.Off ]
-                        , div [] [ text "Don't interrupt anyone" ]
+                        , div [] [ text "Click to interrupt @mentioned people" ]
                         ]
                 , viewIf (PostEditor.getIsUrgent editor) <|
                     button
@@ -546,7 +546,7 @@ resolvedMobileView globals model data =
                         , onClick ToggleUrgent
                         ]
                         [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
-                        , div [] [ text "Interrupt all @mentioned people" ]
+                        , div [] [ text "Click to interrupt nobody" ]
                         ]
                 ]
             ]

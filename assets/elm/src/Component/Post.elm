@@ -1082,7 +1082,8 @@ resolvedView config model data =
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
                     [ postAuthorName config.space model.postId data.author
-                    , span [ class "mx-1 text-dusty-blue" ] [ text "·" ]
+
+                    -- , span [ class "mx-1 text-dusty-blue" ] [ text "·" ]
                     , a
                         [ Route.href <| Route.Post (Space.slug config.space) model.postId
                         , class "no-underline whitespace-no-wrap"
@@ -1171,8 +1172,8 @@ postAuthorName space postId author =
         [ Route.href route
         , class "no-underline whitespace-no-wrap"
         ]
-        [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-        , span [ class "ml-2 text-dusty-blue hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
+        [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| Actor.displayName author ]
+        , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ Actor.handle author ]
         ]
 
 
@@ -1309,7 +1310,7 @@ replyView config model data reply =
         Just author ->
             div
                 [ id (replyNodeId replyId)
-                , classList [ ( "flex mt-4 relative", True ) ]
+                , classList [ ( "flex mt-3 relative", True ) ]
                 ]
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 h-9 rounded pin-t bg-orange flex-no-shrink" ] []
@@ -1317,7 +1318,8 @@ replyView config model data reply =
                 , div [ class "flex-grow leading-normal" ]
                     [ div [ class "pb-1/2" ]
                         [ replyAuthorName config.space author
-                        , span [ class "mx-1 text-dusty-blue text-sm" ] [ text "·" ]
+
+                        -- , span [ class "mx-1 text-dusty-blue text-sm" ] [ text "·" ]
                         , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             button
@@ -1362,14 +1364,14 @@ replyAuthorName space author =
                 [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
                 , class "whitespace-no-wrap no-underline"
                 ]
-                [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "ml-2 text-dusty-blue hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
+                [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| Actor.displayName author ]
+                , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
         _ ->
             span [ class "whitespace-no-wrap" ]
-                [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "ml-2 text-dusty-blue hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
+                [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| Actor.displayName author ]
+                , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
 
