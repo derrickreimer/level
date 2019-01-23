@@ -1172,7 +1172,7 @@ postAuthorName space postId author =
         , class "no-underline whitespace-no-wrap"
         ]
         [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-        , span [ class "ml-2 text-dusty-blue-dark hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
+        , span [ class "ml-2 text-dusty-blue hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
         ]
 
 
@@ -1321,10 +1321,17 @@ replyView config model data reply =
                         , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             button
-                                [ class "text-sm text-dusty-blue"
+                                [ class "mr-3 text-sm text-dusty-blue"
                                 , onClick (ExpandReplyEditor replyId)
                                 ]
                                 [ text "Edit" ]
+                        , viewIf (Reply.reactionCount reply == 0) <|
+                            button
+                                [ class "relative border-dusty-blue rounded"
+                                , style "bottom" "-2px"
+                                , onClick <| CreateReplyReactionClicked (Reply.id reply)
+                                ]
+                                [ Icons.thumbsSmall ]
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
@@ -1337,7 +1344,8 @@ replyView config model data reply =
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <| replyEditorView config replyId editor
-                    , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
+                    , viewIf (Reply.reactionCount reply > 0) <|
+                        div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
                     ]
                 ]
 
@@ -1355,13 +1363,13 @@ replyAuthorName space author =
                 , class "whitespace-no-wrap no-underline"
                 ]
                 [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "ml-2 text-dusty-blue-dark hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
+                , span [ class "ml-2 text-dusty-blue hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
         _ ->
             span [ class "whitespace-no-wrap" ]
                 [ span [ class "font-bold text-dusty-blue-darkest" ] [ text <| Actor.displayName author ]
-                , span [ class "ml-2 text-dusty-blue-dark hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
+                , span [ class "ml-2 text-dusty-blue hidden sm:inline" ] [ text <| "@" ++ Actor.handle author ]
                 ]
 
 
