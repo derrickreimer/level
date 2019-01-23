@@ -149,6 +149,7 @@ defmodule Level.Posts.CreatePost do
     result
     |> gather_groups()
     |> Enum.each(fn group ->
+      _ = subscribe_watchers(result.post, group)
       _ = send_events(result.post, group)
     end)
 
@@ -183,6 +184,19 @@ defmodule Level.Posts.CreatePost do
       Enum.each(group_users, fn group_user ->
         _ = Posts.mark_as_unread(group_user.space_user, [post])
       end)
+    end)
+  end
+
+  defp subscribe_watchers(post, group) do
+    {:ok, watching_group_users} = Groups.list_all_watchers(group)
+
+    space_users =
+      watching_group_users
+      |> Repo.preload(:space_user)
+      |> Enum.map(fn group_user -> group_user.space_user end)
+
+    Enum.each(space_users, fn space_user ->
+      _ = Posts.mark_as_unread(space_user, [post])
     end)
   end
 

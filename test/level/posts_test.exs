@@ -242,6 +242,21 @@ defmodule Level.PostsTest do
                Posts.get_user_state(post, mentioned)
     end
 
+    test "subscribes channel watchers", %{
+      space: space,
+      space_user: space_user,
+      group: group
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.watch(group, another_user)
+
+      params = valid_post_params()
+      {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, another_user)
+    end
+
     test "handles channel mentions", %{
       space: space,
       space_user: space_user,

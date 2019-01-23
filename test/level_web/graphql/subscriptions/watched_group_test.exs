@@ -52,25 +52,4 @@ defmodule LevelWeb.GraphQL.WatchedGroupTest do
 
     assert_push("subscription:data", ^push_data)
   end
-
-  test "rejects subscription if user cannot access the group", %{socket: socket, space: space} do
-    {:ok, %{space_user: another_space_user}} = create_space_member(space)
-    {:ok, %{group: group}} = create_group(another_space_user, %{is_private: true})
-
-    ref = push_subscription(socket, @operation, %{"id" => group.id})
-
-    assert_reply(
-      ref,
-      :error,
-      %{
-        errors: [
-          %{
-            locations: [%{column: 0, line: 4}],
-            message: "Group not found"
-          }
-        ]
-      },
-      1000
-    )
-  end
 end

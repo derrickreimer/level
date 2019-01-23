@@ -177,6 +177,21 @@ defmodule Level.Groups do
   end
 
   @doc """
+  Lists group watchers.
+  """
+  @spec list_all_watchers(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
+  def list_all_watchers(group) do
+    base_query = members_base_query(group)
+
+    query =
+      from gu in subquery(base_query),
+        where: gu.state == "WATCHING",
+        order_by: {:asc, gu.last_name}
+
+    {:ok, Repo.all(query)}
+  end
+
+  @doc """
   Bookmarks a group.
   """
   @spec bookmark_group(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
