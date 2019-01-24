@@ -78,6 +78,8 @@ type alias Model =
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
     , searchEditor : FieldEditor String
+    , isWatching : Bool
+    , isTogglingWatching : Bool
 
     -- MOBILE
     , showNav : Bool
@@ -149,6 +151,8 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 (FieldEditor.init "name-editor" "")
                 (PostEditor.init ("post-composer-" ++ resp.groupId))
                 (FieldEditor.init "search-editor" "")
+                resp.isWatching
+                False
                 False
                 False
 
@@ -226,6 +230,7 @@ type Msg
     | ToggleUrgent
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
+    | ToggleWatching
     | SubscribeClicked
     | Subscribed (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribeClicked
@@ -373,6 +378,21 @@ update msg globals model =
             { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
                 |> noCmd globals
 
+        ToggleWatching ->
+            let
+                cmd =
+                    if model.isWatching then
+                        globals.session
+                            |> SubscribeToGroup.request model.spaceId model.groupId
+                            |> Task.attempt Subscribed
+
+                    else
+                        globals.session
+                            |> WatchGroup.request model.spaceId model.groupId
+                            |> Task.attempt Watched
+            in
+            ( ( { model | isWatching = not model.isWatching, isTogglingWatching = True }, cmd ), globals )
+
         SubscribeClicked ->
             let
                 cmd =
@@ -388,7 +408,9 @@ update msg globals model =
                     globals.repo
                         |> Repo.setGroup group
             in
-            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+            ( ( { model | isWatching = False, isTogglingWatching = False }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
 
         Subscribed (Ok ( newSession, SubscribeToGroup.Invalid _ )) ->
             noCmd globals model
@@ -406,7 +428,7 @@ update msg globals model =
                         |> UnsubscribeFromGroup.request model.spaceId model.groupId
                         |> Task.attempt Unsubscribed
             in
-            ( ( model, cmd ), globals )
+            ( ( { model | isWatching = False, isTogglingWatching = False }, cmd ), globals )
 
         Unsubscribed (Ok ( newSession, UnsubscribeFromGroup.Success group )) ->
             let
@@ -414,7 +436,9 @@ update msg globals model =
                     globals.repo
                         |> Repo.setGroup group
             in
-            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+            ( ( { model | isWatching = False, isTogglingWatching = False }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
 
         Unsubscribed (Ok ( newSession, UnsubscribeFromGroup.Invalid _ )) ->
             noCmd globals model
@@ -432,7 +456,7 @@ update msg globals model =
                         |> WatchGroup.request model.spaceId model.groupId
                         |> Task.attempt Watched
             in
-            ( ( model, cmd ), globals )
+            ( ( { model | isWatching = True, isTogglingWatching = True }, cmd ), globals )
 
         Watched (Ok ( newSession, WatchGroup.Success group )) ->
             let
@@ -440,7 +464,9 @@ update msg globals model =
                     globals.repo
                         |> Repo.setGroup group
             in
-            ( ( model, Cmd.none ), { globals | session = newSession, repo = newRepo } )
+            ( ( { model | isWatching = True, isTogglingWatching = False }, Cmd.none )
+            , { globals | session = newSession, repo = newRepo }
+            )
 
         Watched (Ok ( newSession, WatchGroup.Invalid _ )) ->
             noCmd globals model
@@ -1055,7 +1081,7 @@ resolvedDesktopView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
-            , Layout.SpaceDesktop.rightSidebar (sidebarView model.params data.space data.group data.featuredMembers)
+            , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.group data.featuredMembers model)
             ]
         ]
 
@@ -1306,7 +1332,7 @@ resolvedMobileView globals model data =
                 [ Icons.commentWhite ]
             , viewIf model.showSidebar <|
                 Layout.SpaceMobile.rightSidebar config
-                    [ div [ class "p-6" ] (sidebarView model.params data.space data.group data.featuredMembers)
+                    [ div [ class "p-6" ] (sidebarView data.space data.group data.featuredMembers model)
                     ]
             ]
         ]
@@ -1398,13 +1424,13 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-sidebarView : Params -> Space -> Group -> List SpaceUser -> List (Html Msg)
-sidebarView params space group featuredMembers =
+sidebarView : Space -> Group -> List SpaceUser -> Model -> List (Html Msg)
+sidebarView space group featuredMembers model =
     let
         settingsParams =
             Route.GroupSettings.init
-                (Route.Group.getSpaceSlug params)
-                (Route.Group.getGroupName params)
+                (Route.Group.getSpaceSlug model.params)
+                (Route.Group.getGroupName model.params)
                 Route.GroupSettings.General
     in
     [ h3 [ class "flex items-center mb-2 text-lg font-bold" ]
@@ -1416,26 +1442,22 @@ sidebarView params space group featuredMembers =
         ]
     , memberListView space featuredMembers
     , ul [ class "list-reset leading-normal" ]
-        [ viewIf (Group.membershipState group == GroupMembership.Subscribed) <|
-            li [ class "mb-3" ]
-                [ button
-                    [ class "tooltip tooltip-bottom tooltip-wide flex items-center text-md text-dusty-blue no-underline font-bold"
-                    , onClick WatchClicked
-                    , attribute "data-tooltip" "Put new posts @mentioning you in your Inbox (recommended)"
+        [ viewUnless (Group.membershipState group == GroupMembership.NotSubscribed) <|
+            li [ class "flex mb-3" ]
+                [ label
+                    [ class "control checkbox tooltip tooltip-bottom tooltip-wide"
+                    , attribute "data-tooltip" "Be default, only posts where you are @mentioned go to your Inbox"
                     ]
-                    [ div [ class "mr-1" ] [ Icons.atSign ]
-                    , div [] [ text "Watch mentions" ]
-                    ]
-                ]
-        , viewIf (Group.membershipState group == GroupMembership.Watching) <|
-            li [ class "mb-3" ]
-                [ button
-                    [ class "tooltip tooltip-bottom tooltip-wide flex items-center text-md text-dusty-blue no-underline font-bold"
-                    , onClick SubscribeClicked
-                    , attribute "data-tooltip" "Put all new posts in your Inbox (might get overwhelming)"
-                    ]
-                    [ div [ class "mr-1" ] [ Icons.eye Icons.On ]
-                    , div [] [ text "Watch all posts" ]
+                    [ input
+                        [ type_ "checkbox"
+                        , class "checkbox"
+                        , onClick ToggleWatching
+                        , checked model.isWatching
+                        , disabled model.isTogglingWatching
+                        ]
+                        []
+                    , span [ class "control-indicator w-4 h-4 mr-2 border" ] []
+                    , span [ class "select-none text-md text-dusty-blue-darker" ] [ text "Send all to Inbox" ]
                     ]
                 ]
         , li []
