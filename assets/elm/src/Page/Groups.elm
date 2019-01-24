@@ -155,18 +155,18 @@ update msg globals model =
         ToggleMembership group ->
             let
                 ( newGroup, cmd ) =
-                    if Group.membershipState group == Subscribed then
-                        ( Group.setMembershipState NotSubscribed group
-                        , globals.session
-                            |> UnsubscribeFromGroup.request model.spaceId (Group.id group)
-                            |> Task.attempt UnsubscribedFromGroup
-                        )
-
-                    else
+                    if Group.membershipState group == NotSubscribed then
                         ( Group.setMembershipState Subscribed group
                         , globals.session
                             |> SubscribeToGroup.request model.spaceId (Group.id group)
                             |> Task.attempt SubscribedToGroup
+                        )
+
+                    else
+                        ( Group.setMembershipState NotSubscribed group
+                        , globals.session
+                            |> UnsubscribeFromGroup.request model.spaceId (Group.id group)
+                            |> Task.attempt UnsubscribedFromGroup
                         )
 
                 newGroups =
@@ -467,7 +467,7 @@ groupView space group =
             [ input
                 [ type_ "checkbox"
                 , class "checkbox"
-                , checked (Group.membershipState group == Subscribed)
+                , checked (not <| Group.membershipState group == NotSubscribed)
                 , onClick (ToggleMembership group)
                 ]
                 []
