@@ -1453,7 +1453,6 @@ sidebarView space group featuredMembers model =
                         , class "checkbox"
                         , onClick ToggleWatching
                         , checked model.isWatching
-                        , disabled model.isTogglingWatching
                         ]
                         []
                     , span [ class "control-indicator w-4 h-4 mr-2 border" ] []
