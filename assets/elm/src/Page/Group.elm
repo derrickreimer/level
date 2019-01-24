@@ -1407,7 +1407,7 @@ sidebarView params space group featuredMembers =
                 (Route.Group.getGroupName params)
                 Route.GroupSettings.General
     in
-    [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
+    [ h3 [ class "flex items-center mb-2 text-lg font-bold" ]
         [ text "Subscribers"
 
         -- Hide this for now while private groups are disabled
@@ -1430,12 +1430,12 @@ sidebarView params space group featuredMembers =
         , viewIf (Group.membershipState group == GroupMembership.Watching) <|
             li [ class "mb-3" ]
                 [ button
-                    [ class "tooltip tooltip-bottom tooltip-wide flex items-center text-md text-green no-underline font-bold"
+                    [ class "tooltip tooltip-bottom tooltip-wide flex items-center text-md text-dusty-blue no-underline font-bold"
                     , onClick SubscribeClicked
                     , attribute "data-tooltip" "Put all new posts in your Inbox (might get overwhelming)"
                     ]
                     [ div [ class "mr-1" ] [ Icons.eye Icons.On ]
-                    , div [] [ text "Watch all" ]
+                    , div [] [ text "Watch all posts" ]
                     ]
                 ]
         , li []
@@ -1455,7 +1455,7 @@ sidebarView params space group featuredMembers =
 memberListView : Space -> List SpaceUser -> Html Msg
 memberListView space featuredMembers =
     if List.isEmpty featuredMembers then
-        div [ class "pb-4 text-sm text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
+        div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
 
     else
         div [ class "pb-4" ] <| List.map (memberItemView space) featuredMembers

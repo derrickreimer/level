@@ -122,7 +122,7 @@ eye toggle =
 
         On ->
             iconView <|
-                svg [ width "20px", height "15px", viewBox "0 0 20 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "eye", transform "translate(1.000000, 1.000000)", fill "#38C172" ] [ Svg.path [ d "M0,6.5 C0,6.5 3.27272727,0 9,0 C14.7272727,0 18,6.5 18,6.5 C18,6.5 14.7272727,13 9,13 C3.27272727,13 0,6.5 0,6.5 Z", id "Path", stroke "#38C172" ] [], ellipse [ id "Oval", stroke "#FFFFFF", strokeWidth "2", cx "9", cy "6.5", rx "2.45454545", ry "2.4375" ] [] ] ] ]
+                svg [ width "20px", height "15px", viewBox "0 0 20 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "eye", transform "translate(1.000000, 1.000000)", fill "#8A98A5" ] [ Svg.path [ d "M0,6.5 C0,6.5 3.27272727,0 9,0 C14.7272727,0 18,6.5 18,6.5 C18,6.5 14.7272727,13 9,13 C3.27272727,13 0,6.5 0,6.5 Z", id "Path", stroke "#8A98A5" ] [], ellipse [ id "Oval", stroke "#FFFFFF", strokeWidth "2", cx "9", cy "6.5", rx "2.45454545", ry "2.4375" ] [] ] ] ]
 
 
 file : Color -> Html msg
