@@ -19,6 +19,8 @@ defmodule Level.Schemas.Space do
     field :name, :string, default: ""
     field :slug, :string, default: ""
     field :avatar, :string
+    field :postbot_key, :string
+
     has_many :space_users, SpaceUser
     has_many :groups, Group
 

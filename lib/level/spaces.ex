@@ -6,7 +6,6 @@ defmodule Level.Spaces do
   import Ecto.Query
   import Level.Gettext
 
-  alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Events
