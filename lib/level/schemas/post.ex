@@ -30,6 +30,11 @@ defmodule Level.Schemas.Post do
     field :language, :string
     field :is_urgent, :boolean, read_after_writes: true
 
+    # Overrides
+    field :author_display_name, :string
+    field :avatar_initials, :string
+    field :avatar_color, :string
+
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
     belongs_to :space_bot, SpaceBot
