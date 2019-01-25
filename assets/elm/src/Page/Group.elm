@@ -1446,7 +1446,7 @@ sidebarView space group featuredMembers model =
             li [ class "flex mb-3" ]
                 [ label
                     [ class "control checkbox tooltip tooltip-bottom tooltip-wide"
-                    , attribute "data-tooltip" "Be default, only posts where you are @mentioned go to your Inbox"
+                    , attribute "data-tooltip" "By default, only posts where you are @mentioned go to your Inbox"
                     ]
                     [ input
                         [ type_ "checkbox"
@@ -1456,7 +1456,7 @@ sidebarView space group featuredMembers model =
                         ]
                         []
                     , span [ class "control-indicator w-4 h-4 mr-2 border" ] []
-                    , span [ class "select-none text-md text-dusty-blue-darker" ] [ text "Send all to Inbox" ]
+                    , span [ class "select-none text-md text-dusty-blue-dark" ] [ text "Send all to Inbox" ]
                     ]
                 ]
         , li []
