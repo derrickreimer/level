@@ -126,6 +126,21 @@ defmodule Level.SpacesTest do
       assert levelbot.space_id == space.id
       assert levelbot.handle == "levelbot"
     end
+
+    test "installs postbot", %{user: user} do
+      params = valid_space_params()
+      {:ok, %{space: space, postbot: postbot}} = Spaces.create_space(user, params)
+
+      assert postbot.space_id == space.id
+      assert postbot.handle == "postbot"
+    end
+
+    test "sets a postbot key", %{user: user} do
+      params = valid_space_params()
+      {:ok, %{space: space}} = Spaces.create_space(user, params)
+
+      assert String.length(space.postbot_key) == 32
+    end
   end
 
   describe "get_space_by_slug/2" do

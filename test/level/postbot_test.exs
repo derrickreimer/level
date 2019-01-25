@@ -36,10 +36,5 @@ defmodule Level.PostbotTest do
 
       assert %SpaceBot{space_id: ^space_id, handle: "postbot"} = Postbot.get_space_bot(space_user)
     end
-
-    test "returns nil if not installed" do
-      {:ok, %{space: space}} = create_user_and_space()
-      assert Postbot.get_space_bot(space) == nil
-    end
   end
 end

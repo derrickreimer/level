@@ -38,4 +38,24 @@ defmodule Level.Levelbot do
   defp do_get_space_bot!(space_id) do
     Repo.get_by!(SpaceBot, space_id: space_id, handle: "levelbot")
   end
+
+  @doc """
+  Installs the bot in a space.
+  """
+  @spec install_bot(Space.t()) :: {:ok, SpaceBot.t()} | {:error, Ecto.Changeset.t()}
+  def install_bot(%Space{} = space) do
+    bot = get_bot!()
+
+    params = %{
+      space_id: space.id,
+      bot_id: bot.id,
+      handle: bot.handle,
+      display_name: bot.display_name,
+      avatar: bot.avatar
+    }
+
+    %SpaceBot{}
+    |> Changeset.change(params)
+    |> Repo.insert()
+  end
 end

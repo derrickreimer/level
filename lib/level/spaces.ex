@@ -12,6 +12,7 @@ defmodule Level.Spaces do
   alias Level.Events
   alias Level.Groups
   alias Level.Levelbot
+  alias Level.Postbot
   alias Level.Repo
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
@@ -29,12 +30,21 @@ defmodule Level.Spaces do
              space_user: SpaceUser.t(),
              open_invitation: OpenInvitation.t(),
              levelbot: SpaceBot.t(),
+             postbot: SpaceBot.t(),
              default_group: Group.t()
            }}
-          | {:error, :space | :space_user | :open_invitation | :levelbot | :default_group, any(),
+          | {:error,
+             :space | :space_user | :open_invitation | :levelbot | :postbot | :default_group,
+             any(),
              %{
-               optional(:space | :space_user | :open_invitation | :levelbot | :default_group) =>
-                 any()
+               optional(
+                 :space
+                 | :space_user
+                 | :open_invitation
+                 | :levelbot
+                 | :postbot
+                 | :default_group
+               ) => any()
              }}
 
   @typedoc "The result of getting a space"
@@ -109,7 +119,8 @@ defmodule Level.Spaces do
   def create_space(user, params) do
     Multi.new()
     |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
-    |> Multi.run(:levelbot, fn %{space: space} -> install_levelbot(space) end)
+    |> Multi.run(:levelbot, fn %{space: space} -> Levelbot.install_bot(space) end)
+    |> Multi.run(:postbot, fn %{space: space} -> Postbot.install_bot(space) end)
     |> Multi.run(:space_user, fn %{space: space} -> create_owner(user, space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
     |> Multi.run(:default_group, fn %{space_user: space_user} ->
@@ -117,22 +128,6 @@ defmodule Level.Spaces do
     end)
     |> Repo.transaction()
     |> after_create_space(user)
-  end
-
-  defp install_levelbot(space) do
-    bot = Levelbot.get_bot!()
-
-    params = %{
-      space_id: space.id,
-      bot_id: bot.id,
-      handle: bot.handle,
-      display_name: bot.display_name,
-      avatar: bot.avatar
-    }
-
-    %SpaceBot{}
-    |> Changeset.change(params)
-    |> Repo.insert()
   end
 
   defp create_everyone_group(space_user) do

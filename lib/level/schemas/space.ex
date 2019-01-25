@@ -35,6 +35,7 @@ defmodule Level.Schemas.Space do
       slug_format(),
       message: dgettext("errors", "contains invalid characters")
     )
+    |> set_postbot_key()
     |> unique_constraint(:slug, name: :spaces_lower_slug_index)
   end
 
@@ -56,6 +57,17 @@ defmodule Level.Schemas.Space do
   """
   def slug_format do
     ~r/^(?>[A-Za-z][A-Za-z0-9-\.]*[A-Za-z0-9])$/
+  end
+
+  defp set_postbot_key(changeset) do
+    key =
+      16
+      |> :crypto.strong_rand_bytes()
+      |> Base.encode16()
+      |> String.downcase()
+
+    changeset
+    |> Ecto.Changeset.change(postbot_key: key)
   end
 end
 

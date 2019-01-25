@@ -56,6 +56,6 @@ defmodule Level.Postbot do
 
     %SpaceBot{}
     |> Changeset.change(params)
-    |> Repo.insert()
+    |> Repo.insert(on_conflict: :nothing)
   end
 end
