@@ -1433,7 +1433,7 @@ sidebarView space group featuredMembers model =
                 (Route.Group.getGroupName model.params)
                 Route.GroupSettings.General
     in
-    [ h3 [ class "flex items-center mb-2 text-lg font-bold" ]
+    [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
         [ text "Subscribers"
 
         -- Hide this for now while private groups are disabled
