@@ -11,5 +11,7 @@
 # and so on) as they will fail if something goes wrong.
 
 alias Level.Levelbot
+alias Level.Postbot
 
 Levelbot.create_bot!()
+Postbot.create_bot!()
