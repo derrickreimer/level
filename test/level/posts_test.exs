@@ -23,7 +23,7 @@ defmodule Level.PostsTest do
 
   describe "posts_base_query/1 with users" do
     setup do
-      {:ok, %{space_user: space_user} = result} = create_user_and_space()
+      {:ok, %{space_user: space_user} = result} = create_user_and_space(%{handle: "derrick"})
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, Map.put(result, :group, group)}
     end
@@ -92,10 +92,9 @@ defmodule Level.PostsTest do
 
     test "should include posts sent directly to the user", %{
       levelbot: levelbot,
-      space_user: space_user,
       user: user
     } do
-      {:ok, %{post: %Post{id: post_id}}} = create_post(levelbot, space_user)
+      {:ok, %{post: %Post{id: post_id}}} = Posts.create_post(levelbot, %{body: "Hello @derrick"})
 
       assert %Post{id: ^post_id} =
                user
@@ -105,10 +104,9 @@ defmodule Level.PostsTest do
 
     test "should exclude posts sent directly to other users", %{
       space: space,
-      levelbot: levelbot,
-      space_user: space_user
+      levelbot: levelbot
     } do
-      {:ok, %{post: %Post{id: post_id}}} = create_post(levelbot, space_user)
+      {:ok, %{post: %Post{id: post_id}}} = Posts.create_post(levelbot, %{body: "Hello @derrick"})
       {:ok, %{user: another_user}} = create_space_member(space)
 
       refute another_user
@@ -329,23 +327,23 @@ defmodule Level.PostsTest do
     end
   end
 
-  describe "create_post/2 with bot + direct recipient" do
+  describe "create_post/2 with bot" do
     setup do
       {:ok, %{space: space} = result} = create_user_and_space()
-      {:ok, %{space_user: recipient}} = create_space_member(space)
+      {:ok, %{space_user: recipient}} = create_space_member(space, %{handle: "bobby"})
       {:ok, Map.put(result, :recipient, recipient)}
     end
 
-    test "creates a new post given valid params", %{levelbot: space_bot, recipient: recipient} do
-      params = valid_post_params() |> Map.merge(%{body: "The body"})
-      {:ok, %{post: post}} = Posts.create_post(space_bot, recipient, params)
+    test "creates a new post given valid params", %{levelbot: space_bot} do
+      params = valid_post_params() |> Map.merge(%{body: "Hi @bobby"})
+      {:ok, %{post: post}} = Posts.create_post(space_bot, params)
       assert post.space_bot_id == space_bot.id
-      assert post.body == "The body"
+      assert post.body == "Hi @bobby"
     end
 
     test "subscribes the recipient to the post", %{levelbot: space_bot, recipient: recipient} do
-      params = valid_post_params()
-      {:ok, %{post: post}} = Posts.create_post(space_bot, recipient, params)
+      params = valid_post_params() |> Map.merge(%{body: "Hi @bobby"})
+      {:ok, %{post: post}} = Posts.create_post(space_bot, params)
 
       assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
                Posts.get_user_state(post, recipient)
@@ -353,8 +351,8 @@ defmodule Level.PostsTest do
 
     test "stores the locator", %{levelbot: space_bot, recipient: recipient} do
       locator_params = %{scope: "level", topic: "welcome_message", key: recipient.id}
-      params = valid_post_params() |> Map.merge(%{locator: locator_params})
-      {:ok, %{post: post, locator: locator}} = Posts.create_post(space_bot, recipient, params)
+      params = valid_post_params() |> Map.merge(%{body: "Hi @bobby", locator: locator_params})
+      {:ok, %{post: post, locator: locator}} = Posts.create_post(space_bot, params)
 
       assert locator.post_id == post.id
       assert locator.scope == "level"
@@ -362,9 +360,9 @@ defmodule Level.PostsTest do
       assert locator.key == recipient.id
     end
 
-    test "returns errors given invalid params", %{levelbot: space_bot, recipient: recipient} do
+    test "returns errors given invalid params", %{levelbot: space_bot} do
       params = valid_post_params() |> Map.merge(%{body: nil})
-      {:error, :post, changeset, _} = Posts.create_post(space_bot, recipient, params)
+      {:error, :post, changeset, _} = Posts.create_post(space_bot, params)
 
       assert %Ecto.Changeset{errors: [body: {"can't be blank", [validation: :required]}]} =
                changeset

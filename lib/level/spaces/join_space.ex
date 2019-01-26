@@ -67,7 +67,7 @@ defmodule Level.Spaces.JoinSpace do
 
   defp create_welcome_message(levelbot, space_user) do
     body = """
-    Hey #{space_user.first_name} 👋
+    Hey @#{space_user.handle} 👋
 
     This is what a post looks like! Here are a few writing tips:
 
@@ -81,12 +81,11 @@ defmodule Level.Spaces.JoinSpace do
     When you are finished reading this post, click the green button at the top to dismiss it from your Inbox.
     """
 
-    create_bot_post(levelbot, space_user, body)
+    create_bot_post(levelbot, body)
   end
 
-  defp create_bot_post(levelbot, space_user, body) do
-    {:ok, %{post: post}} = Posts.create_post(levelbot, space_user, %{body: body})
-    {:ok, [post]} = Posts.mark_as_unread(space_user, [post])
+  defp create_bot_post(levelbot, body) do
+    {:ok, %{post: post}} = Posts.create_post(levelbot, %{body: body})
     {:ok, post}
   end
 end

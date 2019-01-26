@@ -340,7 +340,7 @@ defmodule Level.SpacesTest do
         |> Repo.all()
 
       assert Enum.any?(posts, fn post ->
-               post.body =~ ~r/Hey #{space_user.first_name}/ &&
+               post.body =~ ~r/Hey \@#{space_user.handle}/ &&
                  post.space_bot_id == Levelbot.get_space_bot!(space).id
              end)
     end

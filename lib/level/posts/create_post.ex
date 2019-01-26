@@ -25,7 +25,7 @@ defmodule Level.Posts.CreatePost do
   @doc """
   Creates a new post.
   """
-  @spec perform(Posts.author(), Posts.recipient(), map()) :: result()
+  @spec perform(SpaceUser.t(), Group.t(), map()) :: result()
   def perform(%SpaceUser{} = author, %Group{} = group, params) do
     Multi.new()
     |> insert_post(build_params(author, params))
@@ -39,16 +39,7 @@ defmodule Level.Posts.CreatePost do
     |> after_user_post(author)
   end
 
-  def perform(%SpaceBot{} = author, %SpaceUser{} = recipient, params) do
-    Multi.new()
-    |> insert_post(build_params(author, params))
-    |> save_locator(params)
-    |> log(author)
-    |> Repo.transaction()
-    |> after_bot_post(recipient)
-  end
-
-  @spec perform(Posts.author(), map()) :: result()
+  @spec perform(SpaceUser.t(), map()) :: result()
   def perform(%SpaceUser{} = author, params) do
     Multi.new()
     |> insert_post(build_params(author, params))
@@ -59,6 +50,19 @@ defmodule Level.Posts.CreatePost do
     |> log(author)
     |> Repo.transaction()
     |> after_user_post(author)
+  end
+
+  @spec perform(SpaceBot.t(), map()) :: result()
+  def perform(%SpaceBot{} = author, params) do
+    Multi.new()
+    |> insert_post(build_params(author, params))
+    |> save_locator(params)
+    |> detect_tagged_groups(author)
+    |> record_mentions(author)
+    |> attach_files(author, params)
+    |> log(author)
+    |> Repo.transaction()
+    |> after_bot_post(author)
   end
 
   # Internal
@@ -204,8 +208,18 @@ defmodule Level.Posts.CreatePost do
     _ = Events.post_created(group.id, post)
   end
 
-  defp after_bot_post({:ok, result}, recipient) do
-    _ = Posts.mark_as_unread(recipient, [result.post])
+  defp after_bot_post({:ok, result}, author) do
+    _ = subscribe_mentioned_users(result.post, result)
+    _ = subscribe_mentioned_groups(result.post, result)
+
+    result
+    |> gather_groups()
+    |> Enum.each(fn group ->
+      _ = subscribe_watchers(result.post, group)
+      _ = send_events(result.post, group)
+    end)
+
+    _ = send_push_notifications(result, author)
 
     {:ok, result}
   end

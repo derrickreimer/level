@@ -14,6 +14,7 @@ defmodule Level.Groups do
   alias Level.Schemas.GroupBookmark
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Space
+  alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
 
@@ -21,6 +22,7 @@ defmodule Level.Groups do
   Generate the query for listing all accessible groups.
   """
   @spec groups_base_query(SpaceUser.t()) :: Ecto.Query.t()
+  @spec groups_base_query(SpaceBot.t()) :: Ecto.Query.t()
   @spec groups_base_query(User.t()) :: Ecto.Query.t()
 
   def groups_base_query(%SpaceUser{id: space_user_id, space_id: space_id}) do
@@ -29,6 +31,13 @@ defmodule Level.Groups do
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == ^space_user_id,
       where: g.is_private == false or (g.is_private == true and not is_nil(gu.id)),
+      where: g.state != "DELETED"
+  end
+
+  def groups_base_query(%SpaceBot{space_id: space_id}) do
+    from g in Group,
+      where: g.space_id == ^space_id,
+      where: g.is_private == false,
       where: g.state != "DELETED"
   end
 

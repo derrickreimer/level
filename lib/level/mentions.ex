@@ -11,6 +11,7 @@ defmodule Level.Mentions do
   alias Level.Repo
   alias Level.Schemas.Post
   alias Level.Schemas.Reply
+  alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
   alias Level.Schemas.UserMention
@@ -53,27 +54,28 @@ defmodule Level.Mentions do
   @doc """
   Record mentions from the body of a post.
   """
-  @spec record(SpaceUser.t(), Post.t()) :: {:ok, [String.t()]}
-  def record(%SpaceUser{} = author, %Post{body: body} = post) do
-    do_record(body, post, nil, author)
+  @spec record(SpaceUser.t() | SpaceBot.t(), Post.t()) :: {:ok, [String.t()]}
+  def record(author, %Post{body: body} = post) do
+    do_record(author, body, post, nil)
   end
 
-  @spec record(SpaceUser.t(), Post.t(), Reply.t()) :: {:ok, %{space_users: [String.t()]}}
-  def record(%SpaceUser{} = author, %Post{} = post, %Reply{id: reply_id, body: body}) do
-    do_record(body, post, reply_id, author)
+  @spec record(SpaceUser.t() | SpaceBot.t(), Post.t(), Reply.t()) ::
+          {:ok, %{space_users: [String.t()]}}
+  def record(author, %Post{} = post, %Reply{id: reply_id, body: body}) do
+    do_record(author, body, post, reply_id)
   end
 
-  defp do_record(body, post, reply_id, author) do
+  defp do_record(author, body, post, reply_id) do
     mention_pattern()
     |> Regex.scan(body, capture: :all_but_first)
-    |> process_handles(post, reply_id, author)
+    |> process_handles(author, post, reply_id)
   end
 
   defp process_handles(nil, _, _, _) do
     {:ok, %{space_users: [], groups: []}}
   end
 
-  defp process_handles(handles, post, reply_id, author) do
+  defp process_handles(handles, author, post, reply_id) do
     lower_handles =
       handles
       |> Enum.map(fn [handle] -> String.downcase(handle) end)
@@ -94,23 +96,27 @@ defmodule Level.Mentions do
     {:ok, space_users} =
       space_user_query
       |> Repo.all()
-      |> insert_batch(post, reply_id, author.id)
+      |> insert_batch(author, post, reply_id)
 
     group_query =
-      from [g, gu] in Groups.groups_base_query(author),
+      from [g] in Groups.groups_base_query(author),
         where: g.name in ^channel_names
 
     groups = Repo.all(group_query)
     {:ok, %{space_users: space_users, groups: groups}}
   end
 
-  defp insert_batch(mentioned_users, post, reply_id, author_id) do
+  defp insert_batch(mentioned_users, %SpaceBot{} = _author, _, _) do
+    {:ok, mentioned_users}
+  end
+
+  defp insert_batch(mentioned_users, %SpaceUser{} = author, post, reply_id) do
     Enum.each(mentioned_users, fn %SpaceUser{id: mentioned_id} ->
       params = %{
         space_id: post.space_id,
         post_id: post.id,
         reply_id: reply_id,
-        mentioner_id: author_id,
+        mentioner_id: author.id,
         mentioned_id: mentioned_id
       }
 

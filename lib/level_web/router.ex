@@ -65,6 +65,8 @@ defmodule LevelWeb.Router do
     post "/svg-to-elm", Util.SvgToElmController, :create
 
     get "/digests/:space_id/:digest_id", DigestController, :show
+
+    post "/postbot/:space_slug/:key", PostbotController, :create
   end
 
   scope "/" do

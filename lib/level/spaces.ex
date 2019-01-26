@@ -100,6 +100,17 @@ defmodule Level.Spaces do
   @doc """
   Fetches a space by slug.
   """
+  @spec get_space_by_slug(String.t()) :: {:ok, Space.t()} | {:error, String.t()}
+  def get_space_by_slug(slug) do
+    case Repo.get_by(Space, %{slug: slug}) do
+      %Space{} = space ->
+        {:ok, space}
+
+      _ ->
+        {:error, dgettext("errors", "Space not found")}
+    end
+  end
+
   @spec get_space_by_slug(User.t(), String.t()) :: get_space_result()
   def get_space_by_slug(user, slug) do
     with %Space{} = space <- Repo.get_by(Space, %{slug: slug}),
