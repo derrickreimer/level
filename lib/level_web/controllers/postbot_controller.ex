@@ -43,12 +43,13 @@ defmodule LevelWeb.PostbotController do
 
   defp get_bot(err), do: err
 
-  defp create_post({:ok, %{space_bot: space_bot}}, %{"body" => body}) do
-    Posts.create_post(space_bot, %{body: body})
-  end
-
-  defp create_post({:ok, _}, _) do
-    {:error, "body_is_required"}
+  defp create_post({:ok, %{space_bot: space_bot}}, params) do
+    Posts.create_post(space_bot, %{
+      body: params["body"],
+      author_display_name: params["display_name"],
+      avatar_initials: params["initials"],
+      avatar_color: params["avatar_color"]
+    })
   end
 
   defp create_post(err, _), do: err
@@ -57,6 +58,12 @@ defmodule LevelWeb.PostbotController do
     conn
     |> put_status(200)
     |> render("success.json", %{post: post})
+  end
+
+  defp build_response({:error, :post, %Ecto.Changeset{} = changeset, _}, conn) do
+    conn
+    |> put_status(422)
+    |> render("validation_errors.json", %{changeset: changeset})
   end
 
   defp build_response({:error, %Ecto.Changeset{} = changeset}, conn) do

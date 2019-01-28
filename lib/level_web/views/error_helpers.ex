@@ -47,7 +47,7 @@ defmodule LevelWeb.ErrorHelpers do
               String.replace(acc, "%{#{k}}", to_string(v))
             end)
 
-          %{attribute: attr, message: message, properties: Map.new(props)}
+          %{attribute: attr, message: message}
         end)
     }
   end

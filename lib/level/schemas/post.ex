@@ -59,8 +59,21 @@ defmodule Level.Schemas.Post do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:space_id, :space_user_id, :space_bot_id, :body, :is_urgent])
+    |> cast(attrs, [
+      :space_id,
+      :space_user_id,
+      :space_bot_id,
+      :body,
+      :is_urgent,
+      :author_display_name,
+      :avatar_initials,
+      :avatar_color
+    ])
     |> validate_required([:body])
+    |> transform_initials()
+    |> validate_length(:author_display_name, min: 1, max: 20)
+    |> validate_length(:avatar_initials, min: 1, max: 2)
+    |> validate_format(:avatar_color, ~r/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
   end
 
   @doc false
@@ -69,4 +82,11 @@ defmodule Level.Schemas.Post do
     |> cast(attrs, [:body])
     |> validate_required([:body])
   end
+
+  defp transform_initials(%Ecto.Changeset{changes: %{avatar_initials: initials}} = changeset)
+       when is_binary(initials) do
+    put_change(changeset, :avatar_initials, String.upcase(initials))
+  end
+
+  defp transform_initials(changeset), do: changeset
 end

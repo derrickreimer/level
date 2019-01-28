@@ -3,8 +3,8 @@ defmodule LevelWeb.PostbotView do
 
   use LevelWeb, :view
 
-  def render("success.json", _) do
-    %{success: true}
+  def render("success.json", %{post: post}) do
+    %{success: true, post_id: post.id}
   end
 
   def render("validation_errors.json", %{changeset: changeset}) do
