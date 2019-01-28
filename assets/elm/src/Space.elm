@@ -1,4 +1,4 @@
-module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, groupIds, id, name, openInvitationUrl, slug, spaceUserIds)
+module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, groupIds, id, name, openInvitationUrl, postbotUrl, slug, spaceUserIds)
 
 import Avatar
 import Connection exposing (Connection)
@@ -28,6 +28,7 @@ type alias Data =
     , slug : String
     , avatarUrl : Maybe String
     , openInvitationUrl : Maybe String
+    , postbotUrl : String
     , spaceUserIds : List Id
     , groupIds : List Id
     , canUpdate : Bool
@@ -45,6 +46,7 @@ fragment =
           slug
           avatarUrl
           openInvitationUrl
+          postbotUrl
           spaceUsers(first: 1000) {
             ...SpaceUserConnectionFields
           }
@@ -94,6 +96,11 @@ openInvitationUrl (Space data) =
     data.openInvitationUrl
 
 
+postbotUrl : Space -> String
+postbotUrl (Space data) =
+    data.postbotUrl
+
+
 spaceUserIds : Space -> List Id
 spaceUserIds (Space data) =
     data.spaceUserIds
@@ -122,6 +129,7 @@ decoder =
             |> required "slug" string
             |> required "avatarUrl" (maybe string)
             |> required "openInvitationUrl" (maybe string)
+            |> required "postbotUrl" string
             |> custom (Decode.at [ "spaceUsers", "edges" ] (list (Decode.at [ "node", "id" ] Id.decoder)))
             |> custom (Decode.at [ "groups", "edges" ] (list (Decode.at [ "node", "id" ] Id.decoder)))
             |> required "canUpdate" bool

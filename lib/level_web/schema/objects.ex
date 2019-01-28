@@ -225,6 +225,13 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    @desc "The postbot URL."
+    field :postbot_url, :string do
+      resolve fn space, _args, _context ->
+        {:ok, Helpers.postbot_url(Endpoint, :create, space, space.postbot_key)}
+      end
+    end
+
     @desc "A paginated list of groups in the space."
     field :groups, non_null(:group_connection) do
       arg :first, :integer
