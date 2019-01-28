@@ -18,6 +18,7 @@ import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Mutation.UpdateUser as UpdateUser
+import Page.Apps
 import Page.Group
 import Page.GroupSettings
 import Page.Groups
@@ -43,6 +44,7 @@ import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import Response exposing (Response)
 import Route exposing (Route)
+import Route.Apps
 import Route.Group
 import Route.GroupSettings
 import Route.Groups
@@ -236,6 +238,7 @@ type Msg
     | SearchMsg Page.Search.Msg
     | WelcomeTutorialMsg Page.WelcomeTutorial.Msg
     | HelpMsg Page.Help.Msg
+    | AppsMsg Page.Apps.Msg
     | SocketIn Decode.Value
     | ServiceWorkerIn Decode.Value
     | PushSubscriptionRegistered (Result Session.Error ( Session, RegisterPushSubscription.Response ))
@@ -420,6 +423,11 @@ update msg model =
                 |> Page.Help.update pageMsg globals
                 |> updatePageWithGlobals Help HelpMsg model
 
+        ( AppsMsg pageMsg, Apps pageModel ) ->
+            pageModel
+                |> Page.Apps.update pageMsg globals
+                |> updatePageWithGlobals Apps AppsMsg model
+
         ( SocketIn value, page ) ->
             case Socket.decodeEvent value of
                 Socket.MessageReceived messageData ->
@@ -536,6 +544,7 @@ type Page
     | Search Page.Search.Model
     | WelcomeTutorial Page.WelcomeTutorial.Model
     | Help Page.Help.Model
+    | Apps Page.Apps.Model
 
 
 type PageInit
@@ -558,6 +567,7 @@ type PageInit
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
     | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
     | HelpInit (Result Session.Error ( Globals, Page.Help.Model ))
+    | AppsInit (Result Session.Error ( Globals, Page.Apps.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -678,6 +688,11 @@ navigateTo maybeRoute model =
                 |> Page.Help.init params
                 |> transition model HelpInit
 
+        Just (Route.Apps params) ->
+            globals
+                |> Page.Apps.init params
+                |> transition model AppsInit
+
 
 pageTitle : Repo -> Page -> String
 pageTitle repo page =
@@ -738,6 +753,9 @@ pageTitle repo page =
 
         Help pageModel ->
             Page.Help.title
+
+        Apps pageModel ->
+            Page.Apps.title
 
         NotFound ->
             "404"
@@ -942,6 +960,15 @@ setupPage pageInit model =
         HelpInit (Err err) ->
             ( model, Cmd.none )
 
+        AppsInit (Ok result) ->
+            perform Page.Apps.setup Apps AppsMsg model result
+
+        AppsInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        AppsInit (Err err) ->
+            ( model, Cmd.none )
+
 
 teardownPage : Globals -> Page -> Cmd Msg
 teardownPage globals page =
@@ -996,6 +1023,9 @@ teardownPage globals page =
 
         Help pageModel ->
             Cmd.map HelpMsg (Page.Help.teardown pageModel)
+
+        Apps pageModel ->
+            Cmd.map AppsMsg (Page.Apps.teardown pageModel)
 
         _ ->
             Cmd.none
@@ -1101,6 +1131,9 @@ routeFor page =
         Help { params } ->
             Just <| Route.Help params
 
+        Apps { params } ->
+            Just <| Route.Apps params
+
         Blank ->
             Nothing
 
@@ -1167,6 +1200,9 @@ getSpaceSlug page =
 
         Help { params } ->
             Just <| Route.Help.getSpaceSlug params
+
+        Apps { params } ->
+            Just <| Route.Apps.getSpaceSlug params
 
         Blank ->
             Nothing
@@ -1272,6 +1308,11 @@ pageView globals page =
             pageModel
                 |> Page.Help.view globals
                 |> Html.map HelpMsg
+
+        Apps pageModel ->
+            pageModel
+                |> Page.Apps.view globals
+                |> Html.map AppsMsg
 
         Blank ->
             div [ class "font-sans font-antialised flex items-center justify-center h-screen w-full bg-turquoise" ]
@@ -1548,6 +1589,11 @@ sendEventToPage globals event model =
             pageModel
                 |> Page.Help.consumeEvent event
                 |> updatePage Help HelpMsg model
+
+        Apps pageModel ->
+            pageModel
+                |> Page.Apps.consumeEvent event
+                |> updatePage Apps AppsMsg model
 
         Blank ->
             ( model, Cmd.none )

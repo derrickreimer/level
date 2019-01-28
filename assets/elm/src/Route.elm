@@ -6,6 +6,7 @@ module Route exposing (Route(..), fromUrl, href, parser, pushUrl, replaceUrl, to
 import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
+import Route.Apps
 import Route.Group
 import Route.GroupSettings
 import Route.Groups
@@ -49,6 +50,7 @@ type Route
     | Search Route.Search.Params
     | WelcomeTutorial Route.WelcomeTutorial.Params
     | Help Route.Help.Params
+    | Apps Route.Apps.Params
 
 
 parser : Parser (Route -> a) a
@@ -74,6 +76,7 @@ parser =
         , Parser.map Search Route.Search.parser
         , Parser.map WelcomeTutorial Route.WelcomeTutorial.parser
         , Parser.map Help Route.Help.parser
+        , Parser.map Apps Route.Apps.parser
         ]
 
 
@@ -177,3 +180,6 @@ toString page =
 
         Help params ->
             Route.Help.toString params
+
+        Apps params ->
+            Route.Apps.toString params
