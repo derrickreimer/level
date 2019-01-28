@@ -1,4 +1,4 @@
-module SpaceUser exposing (Role(..), SpaceUser, State(..), avatar, canManageMembers, canManageOwners, decoder, displayName, firstName, fragment, handle, id, lastName, role, roleDecoder, roleEncoder, spaceId, state, userId)
+module SpaceUser exposing (Role(..), SpaceUser, State(..), avatar, avatarUrl, canManageMembers, canManageOwners, decoder, displayName, firstName, fragment, handle, id, initials, lastName, role, roleDecoder, roleEncoder, spaceId, state, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -111,6 +111,27 @@ lastName (SpaceUser data) =
 displayName : SpaceUser -> String
 displayName (SpaceUser data) =
     data.firstName ++ " " ++ data.lastName
+
+
+initials : SpaceUser -> String
+initials (SpaceUser data) =
+    let
+        firstInitial =
+            data.firstName
+                |> String.left 1
+                |> String.toUpper
+
+        lastInitial =
+            data.lastName
+                |> String.left 1
+                |> String.toUpper
+    in
+    firstInitial ++ lastInitial
+
+
+avatarUrl : SpaceUser -> Maybe String
+avatarUrl (SpaceUser data) =
+    data.avatarUrl
 
 
 handle : SpaceUser -> String

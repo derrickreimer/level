@@ -1,7 +1,8 @@
-module ResolvedAuthor exposing (ResolvedAuthor, actor, addToRepo, decoder, displayName, fragment, overrides, resolve, unresolve)
+module ResolvedAuthor exposing (ResolvedAuthor, actor, addToRepo, avatarConfig, decoder, displayName, fragment, handle, overrides, resolve, unresolve)
 
 import Actor exposing (Actor)
 import Author exposing (Author)
+import Avatar
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
 import Repo exposing (Repo)
@@ -46,6 +47,30 @@ displayName : ResolvedAuthor -> String
 displayName (ResolvedAuthor data) =
     data.overrides.displayName
         |> Maybe.withDefault (Actor.displayName data.actor)
+
+
+initials : ResolvedAuthor -> String
+initials (ResolvedAuthor data) =
+    data.overrides.initials
+        |> Maybe.withDefault (Actor.initials data.actor)
+
+
+avatarUrl : ResolvedAuthor -> Maybe String
+avatarUrl (ResolvedAuthor data) =
+    Actor.avatarUrl data.actor
+
+
+avatarConfig : Avatar.Size -> ResolvedAuthor -> Avatar.Config
+avatarConfig size author =
+    { size = size
+    , initials = initials author
+    , avatarUrl = avatarUrl author
+    }
+
+
+handle : ResolvedAuthor -> String
+handle (ResolvedAuthor data) =
+    Actor.handle data.actor
 
 
 

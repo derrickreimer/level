@@ -1,4 +1,4 @@
-module Avatar exposing (Size(..), avatar, botAvatar, personAvatar, texitar, thingAvatar, uploader)
+module Avatar exposing (Config, Size(..), avatar, botAvatar, fromConfig, personAvatar, texitar, thingAvatar, uploader)
 
 import File
 import Html exposing (..)
@@ -11,6 +11,13 @@ type Size
     | Medium
     | Large
     | XLarge
+
+
+type alias Config =
+    { size : Size
+    , initials : String
+    , avatarUrl : Maybe String
+    }
 
 
 type alias Person a =
@@ -27,6 +34,16 @@ type alias Bot a =
 
 
 -- DISPLAY
+
+
+fromConfig : Config -> Html msg
+fromConfig config =
+    case config.avatarUrl of
+        Just url ->
+            avatar config.size url
+
+        Nothing ->
+            texitar config.size config.initials
 
 
 {-| A text-based avatar (to be used a placeholder when there does not exist

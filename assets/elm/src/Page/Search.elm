@@ -328,7 +328,7 @@ postResultView repo params now data resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium (ResolvedAuthor.actor resolvedResult.resolvedPost.author) ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium resolvedResult.resolvedPost.author) ]
         , div [ class "flex-grow min-w-0 normal" ]
             [ div [ class "pb-1/2" ]
                 [ authorLabel postRoute (ResolvedAuthor.actor resolvedResult.resolvedPost.author)
@@ -354,7 +354,7 @@ replyResultView repo params now data resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium (ResolvedAuthor.actor resolvedResult.resolvedReply.author) ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium resolvedResult.resolvedReply.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2" ]
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]

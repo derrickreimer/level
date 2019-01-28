@@ -1,4 +1,4 @@
-module Actor exposing (Actor(..), ActorId(..), avatar, decoder, displayName, fragment, handle, id, idDecoder)
+module Actor exposing (Actor(..), ActorId(..), avatar, avatarUrl, decoder, displayName, fragment, handle, id, idDecoder, initials)
 
 {-| An actor represents either a "space user" or "space bot".
 -}
@@ -48,6 +48,26 @@ displayName actor =
 
         Bot bot ->
             SpaceBot.displayName bot
+
+
+initials : Actor -> String
+initials actor =
+    case actor of
+        User user ->
+            SpaceUser.initials user
+
+        Bot bot ->
+            SpaceBot.initials bot
+
+
+avatarUrl : Actor -> Maybe String
+avatarUrl actor =
+    case actor of
+        User user ->
+            SpaceUser.avatarUrl user
+
+        Bot bot ->
+            SpaceBot.avatarUrl bot
 
 
 handle : Actor -> String

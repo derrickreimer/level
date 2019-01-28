@@ -1,4 +1,4 @@
-module SpaceBot exposing (SpaceBot, avatar, decoder, displayName, fragment, handle, id, spaceId)
+module SpaceBot exposing (SpaceBot, avatar, avatarUrl, decoder, displayName, fragment, handle, id, initials, spaceId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -61,6 +61,18 @@ spaceId (SpaceBot data) =
 displayName : SpaceBot -> String
 displayName (SpaceBot data) =
     data.displayName
+
+
+initials : SpaceBot -> String
+initials (SpaceBot data) =
+    data.displayName
+        |> String.left 1
+        |> String.toUpper
+
+
+avatarUrl : SpaceBot -> Maybe String
+avatarUrl (SpaceBot data) =
+    data.avatarUrl
 
 
 handle : SpaceBot -> String
