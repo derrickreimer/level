@@ -33,6 +33,8 @@ defmodule Level.Schemas.Post do
     # Overrides
     field :author_display_name, :string
     field :avatar_initials, :string
+    field :display_name, :string
+    field :initials, :string
     field :avatar_color, :string
 
     belongs_to :space, Space
