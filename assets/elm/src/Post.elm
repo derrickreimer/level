@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, authorId, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
 
 
 # GraphQL
@@ -29,7 +29,7 @@ module Post exposing
 
 -}
 
-import Actor exposing (ActorId)
+import Author exposing (Author)
 import Connection exposing (Connection)
 import File exposing (File)
 import GraphQL exposing (Fragment)
@@ -77,7 +77,7 @@ type alias Data =
     , state : State
     , body : String
     , bodyHtml : String
-    , authorId : ActorId
+    , author : Author
     , groupIds : List Id
     , files : List File
     , postedAt : Posix
@@ -115,9 +115,9 @@ postedAt (Post data) =
     data.postedAt
 
 
-authorId : Post -> ActorId
-authorId (Post data) =
-    data.authorId
+author : Post -> Author
+author (Post data) =
+    data.author
 
 
 groupIds : Post -> List Id
@@ -203,7 +203,7 @@ fragment =
               subscriptionState
               inboxState
               author {
-                ...ActorFields
+                ...AuthorFields
               }
               groups {
                 ...GroupFields
@@ -228,7 +228,7 @@ fragment =
             """
     in
     GraphQL.toFragment queryBody
-        [ Actor.fragment
+        [ Author.fragment
         , Group.fragment
         , File.fragment
         , SpaceUser.fragment
@@ -248,7 +248,7 @@ decoder =
             |> required "state" stateDecoder
             |> required "body" string
             |> required "bodyHtml" string
-            |> required "author" Actor.idDecoder
+            |> required "author" Author.decoder
             |> required "groups" (list (field "id" Id.decoder))
             |> required "files" (list File.decoder)
             |> required "postedAt" dateDecoder

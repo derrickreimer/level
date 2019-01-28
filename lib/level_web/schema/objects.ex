@@ -373,7 +373,7 @@ defmodule LevelWeb.Schema.Objects do
     field :space, non_null(:space), resolve: dataloader(:db)
     field :groups, list_of(:group), resolve: dataloader(:db)
 
-    field :author, non_null(:actor) do
+    field :author, non_null(:author) do
       resolve &Resolvers.post_author/3
     end
 
@@ -447,7 +447,7 @@ defmodule LevelWeb.Schema.Objects do
     field :space, non_null(:space), resolve: dataloader(:db)
     field :is_deleted, non_null(:boolean)
 
-    field :author, non_null(:actor) do
+    field :author, non_null(:author) do
       resolve &Resolvers.reply_author/3
     end
 
@@ -542,6 +542,19 @@ defmodule LevelWeb.Schema.Objects do
     field :current_step, non_null(:integer)
     field :is_complete, non_null(:boolean)
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
+  end
+
+  @desc "An author of a message."
+  object :author do
+    field :actor, non_null(:actor)
+    field :overrides, non_null(:author_overrides)
+  end
+
+  @desc "Overriding values for author attributes."
+  object :author_overrides do
+    field :display_name, :string
+    field :initials, :string
+    field :avatar_color, :string
   end
 
   @desc "An actor."

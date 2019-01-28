@@ -25,6 +25,7 @@ import RenderedHtml
 import Reply
 import ReplySearchResult
 import Repo exposing (Repo)
+import ResolvedAuthor exposing (ResolvedAuthor)
 import ResolvedPostSearchResult exposing (ResolvedPostSearchResult)
 import ResolvedReplySearchResult exposing (ResolvedReplySearchResult)
 import ResolvedSearchResult exposing (ResolvedSearchResult)
@@ -327,10 +328,10 @@ postResultView repo params now data resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedPost.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium (ResolvedAuthor.actor resolvedResult.resolvedPost.author) ]
         , div [ class "flex-grow min-w-0 normal" ]
             [ div [ class "pb-1/2" ]
-                [ authorLabel postRoute resolvedResult.resolvedPost.author
+                [ authorLabel postRoute (ResolvedAuthor.actor resolvedResult.resolvedPost.author)
                 , timestampLabel postRoute now (Post.postedAt resolvedResult.resolvedPost.post)
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups
@@ -353,11 +354,11 @@ replyResultView repo params now data resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium resolvedResult.resolvedReply.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium (ResolvedAuthor.actor resolvedResult.resolvedReply.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2" ]
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
-                , authorLabel replyRoute resolvedResult.resolvedReply.author
+                , authorLabel replyRoute (ResolvedAuthor.actor resolvedResult.resolvedReply.author)
                 , timestampLabel replyRoute now (Reply.postedAt resolvedResult.resolvedReply.reply)
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups

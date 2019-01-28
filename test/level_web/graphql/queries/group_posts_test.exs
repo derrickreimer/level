@@ -13,8 +13,10 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
               body
               bodyHtml
               author {
-                ... on SpaceUser {
-                  firstName
+                actor {
+                  ... on SpaceUser {
+                    firstName
+                  }
                 }
               }
               groups {
@@ -25,8 +27,10 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                   node {
                     body
                     author {
-                      ... on SpaceUser {
-                        firstName
+                      actor {
+                        ... on SpaceUser {
+                          firstName
+                        }
                       }
                     }
                   }
@@ -79,7 +83,9 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                          "body" => "Hey!",
                          "bodyHtml" => "<p>Hey!</p>",
                          "author" => %{
-                           "firstName" => space_user.first_name
+                           "actor" => %{
+                             "firstName" => space_user.first_name
+                           }
                          },
                          "groups" => [
                            %{
@@ -92,7 +98,9 @@ defmodule LevelWeb.GraphQL.GroupPostsTest do
                                "node" => %{
                                  "body" => "Sup?",
                                  "author" => %{
-                                   "firstName" => space_user.first_name
+                                   "actor" => %{
+                                     "firstName" => space_user.first_name
+                                   }
                                  }
                                }
                              }

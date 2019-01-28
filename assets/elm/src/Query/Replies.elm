@@ -7,6 +7,7 @@ import Json.Decode as Decode exposing (Decoder, field)
 import Json.Encode as Encode
 import Reply exposing (Reply)
 import Repo exposing (Repo)
+import ResolvedReply exposing (ResolvedReply)
 import Session exposing (Session)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
@@ -20,12 +21,6 @@ type alias Response =
 
 type alias Data =
     Connection ResolvedReply
-
-
-type alias ResolvedReply =
-    { reply : Reply
-    , author : SpaceUser
-    }
 
 
 document : Document
@@ -62,28 +57,15 @@ variables spaceId postId before limit =
             ]
 
 
-resolvedReplyDecoder : Decoder ResolvedReply
-resolvedReplyDecoder =
-    Decode.map2 ResolvedReply
-        Reply.decoder
-        (field "author" SpaceUser.decoder)
-
-
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "space", "post", "replies" ] <|
-        Connection.decoder resolvedReplyDecoder
+        Connection.decoder ResolvedReply.decoder
 
 
 addRepliesToRepo : Connection ResolvedReply -> Repo -> Repo
-addRepliesToRepo resolvedReplies repo =
-    let
-        reducer resolvedReply acc =
-            acc
-                |> Repo.setReply resolvedReply.reply
-                |> Repo.setSpaceUser resolvedReply.author
-    in
-    List.foldr reducer repo (Connection.toList resolvedReplies)
+addRepliesToRepo conn repo =
+    ResolvedReply.addManyToRepo (Connection.toList conn) repo
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )

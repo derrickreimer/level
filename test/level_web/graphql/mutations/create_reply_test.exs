@@ -21,8 +21,10 @@ defmodule LevelWeb.GraphQL.CreateReplyTest do
         reply {
           body
           author {
-            ... on SpaceUser {
-              firstName
+            actor {
+              ... on SpaceUser {
+                firstName
+              }
             }
           }
           files {
@@ -69,7 +71,9 @@ defmodule LevelWeb.GraphQL.CreateReplyTest do
                  "reply" => %{
                    "body" => "I am the body",
                    "author" => %{
-                     "firstName" => space_user.first_name
+                     "actor" => %{
+                       "firstName" => space_user.first_name
+                     }
                    },
                    "files" => []
                  },
@@ -107,7 +111,9 @@ defmodule LevelWeb.GraphQL.CreateReplyTest do
                  "reply" => %{
                    "body" => "I am the body",
                    "author" => %{
-                     "firstName" => space_user.first_name
+                     "actor" => %{
+                       "firstName" => space_user.first_name
+                     }
                    },
                    "files" => [
                      %{

@@ -1,4 +1,4 @@
-module Actor exposing (Actor(..), ActorId(..), avatar, decoder, displayName, fragment, handle, idDecoder)
+module Actor exposing (Actor(..), ActorId(..), avatar, decoder, displayName, fragment, handle, id, idDecoder)
 
 {-| An actor represents either a "space user" or "space bot".
 -}
@@ -28,6 +28,16 @@ type ActorId
 
 
 -- ACCESSORS
+
+
+id : Actor -> ActorId
+id actor =
+    case actor of
+        User user ->
+            UserId (SpaceUser.id user)
+
+        Bot bot ->
+            BotId (SpaceBot.id bot)
 
 
 displayName : Actor -> String

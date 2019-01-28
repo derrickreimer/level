@@ -6,12 +6,13 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
+import ResolvedAuthor exposing (ResolvedAuthor)
 import SpaceUser exposing (SpaceUser)
 
 
 type alias ResolvedReply =
     { reply : Reply
-    , author : Actor
+    , author : ResolvedAuthor
     , reactors : List SpaceUser
     }
 
@@ -20,7 +21,7 @@ decoder : Decoder ResolvedReply
 decoder =
     Decode.map3 ResolvedReply
         Reply.decoder
-        (field "author" Actor.decoder)
+        (field "author" ResolvedAuthor.decoder)
         (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser" ] SpaceUser.decoder))
 
 
@@ -28,7 +29,7 @@ addToRepo : ResolvedReply -> Repo -> Repo
 addToRepo resolvedReply repo =
     repo
         |> Repo.setReply resolvedReply.reply
-        |> Repo.setActor resolvedReply.author
+        |> ResolvedAuthor.addToRepo resolvedReply.author
         |> Repo.setSpaceUsers resolvedReply.reactors
 
 
@@ -43,7 +44,7 @@ resolve repo id =
         Just reply ->
             Maybe.map3 ResolvedReply
                 (Just <| reply)
-                (Repo.getActor (Reply.authorId reply) repo)
+                (ResolvedAuthor.resolve repo (Reply.author reply))
                 (Just <| Repo.getSpaceUsers (Reply.reactorIds reply) repo)
 
         Nothing ->

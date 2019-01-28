@@ -1,6 +1,6 @@
-module Reply exposing (Reply, authorId, body, bodyHtml, canEdit, decoder, files, fragment, hasReacted, hasViewed, id, notDeleted, postId, postedAt, reactionCount, reactorIds)
+module Reply exposing (Reply, author, body, bodyHtml, canEdit, decoder, files, fragment, hasReacted, hasViewed, id, notDeleted, postId, postedAt, reactionCount, reactorIds)
 
-import Actor exposing (ActorId)
+import Author exposing (Author)
 import File exposing (File)
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
@@ -23,7 +23,7 @@ type alias Data =
     , postId : String
     , body : String
     , bodyHtml : String
-    , authorId : ActorId
+    , author : Author
     , files : List File
     , hasViewed : Bool
     , hasReacted : Bool
@@ -46,7 +46,7 @@ fragment =
           body
           bodyHtml
           author {
-            ...ActorFields
+            ...AuthorFields
           }
           files {
             ...FileFields
@@ -69,7 +69,7 @@ fragment =
           fetchedAt
         }
         """
-        [ Actor.fragment
+        [ Author.fragment
         , File.fragment
         ]
 
@@ -98,9 +98,9 @@ bodyHtml (Reply data) =
     data.bodyHtml
 
 
-authorId : Reply -> ActorId
-authorId (Reply data) =
-    data.authorId
+author : Reply -> Author
+author (Reply data) =
+    data.author
 
 
 files : Reply -> List File
@@ -155,7 +155,7 @@ decoder =
             |> required "postId" Id.decoder
             |> required "body" string
             |> required "bodyHtml" string
-            |> required "author" Actor.idDecoder
+            |> required "author" Author.decoder
             |> required "files" (Decode.list File.decoder)
             |> required "hasViewed" bool
             |> required "hasReacted" bool

@@ -20,8 +20,10 @@ defmodule LevelWeb.GraphQL.CreatePostTest do
             id
           }
           author {
-            ... on SpaceUser {
-              firstName
+            actor {
+              ... on SpaceUser {
+                firstName
+              }
             }
           }
         }
@@ -70,7 +72,9 @@ defmodule LevelWeb.GraphQL.CreatePostTest do
                      }
                    ],
                    "author" => %{
-                     "firstName" => user.first_name
+                     "actor" => %{
+                       "firstName" => user.first_name
+                     }
                    }
                  },
                  "errors" => []

@@ -427,14 +427,48 @@ defmodule Level.Resolvers do
   Fetches the author of a post.
   """
   @spec post_author(Post.t(), map(), info()) :: dataloader_result()
-  def post_author(%Post{space_user_id: space_user_id}, _, %{context: %{loader: loader}})
+  def post_author(%Post{space_user_id: space_user_id} = post, _, %{context: %{loader: loader}})
       when is_binary(space_user_id) do
-    dataloader_one(loader, :db, SpaceUser, space_user_id)
+    loader
+    |> Dataloader.load(:db, SpaceUser, space_user_id)
+    |> on_load(fn loader ->
+      actor =
+        loader
+        |> Dataloader.get(:db, SpaceUser, space_user_id)
+
+      author = %{
+        actor: actor,
+        overrides: %{
+          display_name: post.display_name,
+          initials: post.initials,
+          avatar_color: post.avatar_color
+        }
+      }
+
+      {:ok, author}
+    end)
   end
 
-  def post_author(%Post{space_bot_id: space_bot_id}, _, %{context: %{loader: loader}})
+  def post_author(%Post{space_bot_id: space_bot_id} = post, _, %{context: %{loader: loader}})
       when is_binary(space_bot_id) do
-    dataloader_one(loader, :db, SpaceBot, space_bot_id)
+    loader
+    |> Dataloader.load(:db, SpaceBot, space_bot_id)
+    |> on_load(fn loader ->
+      actor =
+        loader
+        |> Dataloader.get(:db, SpaceBot, space_bot_id)
+
+      author = %{
+        actor: actor,
+        overrides: %{
+          display_name: post.display_name,
+          initials: post.initials,
+          avatar_color: post.avatar_color
+        }
+      }
+
+      {:ok, author}
+    end)
   end
 
   @doc """
@@ -443,12 +477,46 @@ defmodule Level.Resolvers do
   @spec reply_author(Reply.t(), map(), info()) :: dataloader_result()
   def reply_author(%Reply{space_user_id: space_user_id}, _, %{context: %{loader: loader}})
       when is_binary(space_user_id) do
-    dataloader_one(loader, :db, SpaceUser, space_user_id)
+    loader
+    |> Dataloader.load(:db, SpaceUser, space_user_id)
+    |> on_load(fn loader ->
+      actor =
+        loader
+        |> Dataloader.get(:db, SpaceUser, space_user_id)
+
+      author = %{
+        actor: actor,
+        overrides: %{
+          display_name: nil,
+          initials: nil,
+          avatar_color: nil
+        }
+      }
+
+      {:ok, author}
+    end)
   end
 
   def reply_author(%Reply{space_bot_id: space_bot_id}, _, %{context: %{loader: loader}})
       when is_binary(space_bot_id) do
-    dataloader_one(loader, :db, SpaceBot, space_bot_id)
+    loader
+    |> Dataloader.load(:db, SpaceBot, space_bot_id)
+    |> on_load(fn loader ->
+      actor =
+        loader
+        |> Dataloader.get(:db, SpaceBot, space_bot_id)
+
+      author = %{
+        actor: actor,
+        overrides: %{
+          display_name: nil,
+          initials: nil,
+          avatar_color: nil
+        }
+      }
+
+      {:ok, author}
+    end)
   end
 
   @doc """

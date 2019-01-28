@@ -37,6 +37,7 @@ import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
 import Repo exposing (Repo)
+import ResolvedAuthor exposing (ResolvedAuthor)
 import Route
 import Route.Group
 import Route.SpaceUser
@@ -70,7 +71,7 @@ type alias Model =
 
 type alias Data =
     { post : Post
-    , author : Actor
+    , author : ResolvedAuthor
     , reactors : List SpaceUser
     }
 
@@ -89,7 +90,7 @@ resolveData repo model =
         Just post ->
             Maybe.map3 Data
                 (Just post)
-                (Repo.getActor (Post.authorId post) repo)
+                (ResolvedAuthor.resolve repo (Post.author post))
                 (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
 
         Nothing ->
@@ -1077,11 +1078,11 @@ resolvedView config model data =
             config.now
     in
     div [ id (postNodeId model.postId), class "flex" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium data.author ]
+        [ div [ class "flex-no-shrink mr-4" ] [ Actor.avatar Avatar.Medium (ResolvedAuthor.actor data.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
-                    [ postAuthorName config.space model.postId data.author
+                    [ postAuthorName config.space model.postId (ResolvedAuthor.actor data.author)
 
                     -- , span [ class "mx-1 text-dusty-blue" ] [ text "·" ]
                     , a
@@ -1306,7 +1307,7 @@ replyView config model data reply =
         editor =
             getReplyEditor replyId model.replyEditors
     in
-    case Repo.getActor (Reply.authorId reply) config.globals.repo of
+    case ResolvedAuthor.resolve config.globals.repo (Reply.author reply) of
         Just author ->
             div
                 [ id (replyNodeId replyId)
@@ -1314,10 +1315,10 @@ replyView config model data reply =
                 ]
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 h-9 rounded pin-t bg-orange flex-no-shrink" ] []
-                , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small author ]
+                , div [ class "flex-no-shrink mr-3" ] [ Actor.avatar Avatar.Small (ResolvedAuthor.actor author) ]
                 , div [ class "flex-grow leading-normal" ]
                     [ div [ class "pb-1/2" ]
-                        [ replyAuthorName config.space author
+                        [ replyAuthorName config.space (ResolvedAuthor.actor author)
 
                         -- , span [ class "mx-1 text-dusty-blue text-sm" ] [ text "·" ]
                         , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
