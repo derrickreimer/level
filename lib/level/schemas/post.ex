@@ -31,8 +31,6 @@ defmodule Level.Schemas.Post do
     field :is_urgent, :boolean, read_after_writes: true
 
     # Overrides
-    field :author_display_name, :string
-    field :avatar_initials, :string
     field :display_name, :string
     field :initials, :string
     field :avatar_color, :string
