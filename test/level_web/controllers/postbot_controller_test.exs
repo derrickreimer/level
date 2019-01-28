@@ -36,8 +36,8 @@ defmodule LevelWeb.PostbotControllerTest do
 
       {:ok, post} = Posts.get_post(user, post_id)
       assert post.body == "Hello #peeps"
-      assert post.author_display_name == nil
-      assert post.avatar_initials == nil
+      assert post.display_name == nil
+      assert post.initials == nil
       assert post.avatar_color == nil
     end
 
@@ -60,8 +60,8 @@ defmodule LevelWeb.PostbotControllerTest do
 
       {:ok, post} = Posts.get_post(user, post_id)
       assert post.body == "Hello #peeps"
-      assert post.author_display_name == "Twitter"
-      assert post.avatar_initials == "TW"
+      assert post.display_name == "Twitter"
+      assert post.initials == "TW"
       assert post.avatar_color == "4265c7"
     end
 
@@ -87,7 +87,7 @@ defmodule LevelWeb.PostbotControllerTest do
                    "message" => "has invalid format"
                  },
                  %{
-                   "attribute" => "avatar_initials",
+                   "attribute" => "initials",
                    "message" => "should be at most 2 character(s)"
                  }
                ],

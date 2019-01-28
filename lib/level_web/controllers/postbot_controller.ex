@@ -46,8 +46,8 @@ defmodule LevelWeb.PostbotController do
   defp create_post({:ok, %{space_bot: space_bot}}, params) do
     Posts.create_post(space_bot, %{
       body: params["body"],
-      author_display_name: params["display_name"],
-      avatar_initials: params["initials"],
+      display_name: params["display_name"],
+      initials: params["initials"],
       avatar_color: params["avatar_color"]
     })
   end

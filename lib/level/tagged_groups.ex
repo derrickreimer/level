@@ -38,7 +38,7 @@ defmodule Level.TaggedGroups do
     |> fetch_groups(actor)
   end
 
-  defp process_tags([], _) do
+  defp process_tags([]) do
     []
   end
 

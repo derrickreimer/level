@@ -65,14 +65,14 @@ defmodule Level.Schemas.Post do
       :space_bot_id,
       :body,
       :is_urgent,
-      :author_display_name,
-      :avatar_initials,
+      :display_name,
+      :initials,
       :avatar_color
     ])
     |> validate_required([:body])
     |> transform_initials()
-    |> validate_length(:author_display_name, min: 1, max: 20)
-    |> validate_length(:avatar_initials, min: 1, max: 2)
+    |> validate_length(:display_name, min: 1, max: 20)
+    |> validate_length(:initials, min: 1, max: 2)
     |> validate_format(:avatar_color, ~r/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
   end
 
@@ -83,9 +83,9 @@ defmodule Level.Schemas.Post do
     |> validate_required([:body])
   end
 
-  defp transform_initials(%Ecto.Changeset{changes: %{avatar_initials: initials}} = changeset)
+  defp transform_initials(%Ecto.Changeset{changes: %{initials: initials}} = changeset)
        when is_binary(initials) do
-    put_change(changeset, :avatar_initials, String.upcase(initials))
+    put_change(changeset, :initials, String.upcase(initials))
   end
 
   defp transform_initials(changeset), do: changeset
