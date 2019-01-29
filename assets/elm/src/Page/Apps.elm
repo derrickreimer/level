@@ -68,7 +68,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Help"
+    "Integrations"
 
 
 
@@ -118,8 +118,8 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | OpenBeacon
-    | LinkCopied
-    | LinkCopyFailed
+    | TextCopied String
+    | TextCopyFailed
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -138,14 +138,14 @@ update msg globals model =
         OpenBeacon ->
             ( ( model, Beacon.open ), globals )
 
-        LinkCopied ->
+        TextCopied flash ->
             let
                 newGlobals =
-                    { globals | flash = Flash.set Flash.Notice "URL copied" 3000 globals.flash }
+                    { globals | flash = Flash.set Flash.Notice flash 3000 globals.flash }
             in
             ( ( model, Cmd.none ), newGlobals )
 
-        LinkCopyFailed ->
+        TextCopyFailed ->
             let
                 newGlobals =
                     { globals | flash = Flash.set Flash.Alert "Hmm, something went wrong" 3000 globals.flash }
@@ -236,27 +236,10 @@ resolvedDesktopView globals model data =
             [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ div [ class "mb-6" ]
                     [ h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Integrations" ]
-                    , p [ class "mb-6 pb-4 border-b text-lg" ] [ text "Get other apps or your own code talking to Level." ]
+                    , p [ class "mb-6 pb-4 border-b text-lg" ] [ text "Get other apps talking to Level." ]
                     , ul [ class "list-reset " ]
                         [ li []
-                            [ div [ class "flex mb-6" ]
-                                [ div [ class "mr-3 flex-no-grow" ] [ Icons.postbot ]
-                                , div [ class "flex-grow" ]
-                                    [ h2 [ class "text-xl tracking-semi-tight" ] [ text "Postbot" ]
-                                    , p [] [ text "Send messages to Level with a simple HTTP call." ]
-                                    ]
-                                ]
-                            , p [ class "mb-6" ] [ text "The request body must contain a JSON object with a ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " attribute and a ", code [ class "px-1 bg-grey rounded" ] [ text "display_name" ], text " attribute (which will be used in place of the author label on the post). The ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " must include a #channel reference or an @-mention—otherwise the message would not be visible to anyone!" ]
-                            , p [ class "mb-3" ] [ text "Here's the URL for posting messages to this team:" ]
-                            , div [ class "mb-6 flex items-baseline input-field p-0 pr-3 bg-grey border-none" ]
-                                [ input [ type_ "text", class "block mr-4 pl-3 py-1 bg-transparent flex-grow font-mono text-base overflow-auto text-dusty-blue-darker", value (Space.postbotUrl data.space), readonly True ] []
-                                , Clipboard.button "Copy"
-                                    (Space.postbotUrl data.space)
-                                    [ class "btn btn-blue btn-xs flex items-center"
-                                    , Clipboard.onCopy LinkCopied
-                                    , Clipboard.onCopyFailed LinkCopyFailed
-                                    ]
-                                ]
+                            [ postbotInstructions data
                             ]
                         ]
                     ]
@@ -293,26 +276,81 @@ resolvedMobileView globals model data =
             [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ ul [ class "list-reset" ]
                     [ li []
-                        [ div [ class "flex mb-6" ]
-                            [ div [ class "mr-3 flex-no-grow" ] [ Icons.postbot ]
-                            , div [ class "flex-grow" ]
-                                [ h2 [ class "text-xl tracking-semi-tight" ] [ text "Postbot" ]
-                                , p [] [ text "Send messages to Level with a simple HTTP call." ]
-                                ]
-                            ]
-                        , p [ class "mb-6" ] [ text "The request body must contain a JSON object with a ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " attribute and a ", code [ class "px-1 bg-grey rounded" ] [ text "display_name" ], text " attribute (which will be used in place of the author label on the post). The ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " must include a #channel reference or an @-mention—otherwise the message would not be visible to anyone!" ]
-                        , p [ class "mb-3" ] [ text "Here's the URL for posting messages to this team:" ]
-                        , div [ class "mb-6 flex items-baseline input-field p-0 pr-3 bg-grey border-none" ]
-                            [ input [ type_ "text", class "block mr-4 pl-3 py-1 bg-transparent flex-grow font-mono text-base overflow-auto text-dusty-blue-darker", value (Space.postbotUrl data.space), readonly True ] []
-                            , Clipboard.button "Copy"
-                                (Space.postbotUrl data.space)
-                                [ class "btn btn-blue btn-xs flex items-center"
-                                , Clipboard.onCopy LinkCopied
-                                , Clipboard.onCopyFailed LinkCopyFailed
-                                ]
-                            ]
+                        [ postbotInstructions data
                         ]
                     ]
                 ]
             ]
         ]
+
+
+
+-- SHARED
+
+
+postbotInstructions : Data -> Html Msg
+postbotInstructions data =
+    let
+        curlCommand =
+            buildPostbotCommand (Space.postbotUrl data.space) (SpaceUser.handle data.viewer)
+    in
+    div [ class "flex mb-6" ]
+        [ div [ class "mr-3 flex-no-grow" ] [ Icons.postbot ]
+        , div [ class "flex-grow" ]
+            [ h2 [ class "text-xl tracking-semi-tight" ] [ text "Postbot" ]
+            , p [ class "mb-6" ] [ text "Send messages to Level with a simple HTTP call." ]
+            , h2 [ class "mb-2 text-lg font-bold" ] [ text "Endpoint" ]
+            , p [ class "mb-3" ] [ text "Use the POST method with a JSON content type." ]
+            , div [ class "mb-6 flex items-baseline input-field p-0 pr-3 bg-grey border-none" ]
+                [ input [ type_ "text", class "block mr-4 pl-3 py-1 bg-transparent flex-grow font-mono text-md overflow-auto text-dusty-blue-darker", value (Space.postbotUrl data.space), readonly True ] []
+                , Clipboard.button "Copy"
+                    (Space.postbotUrl data.space)
+                    [ class "btn btn-blue btn-xs flex items-center"
+                    , Clipboard.onCopy (TextCopied "URL copied")
+                    , Clipboard.onCopyFailed TextCopyFailed
+                    ]
+                ]
+            , h2 [ class "mb-2 text-lg font-bold" ] [ text "Payload" ]
+            , p [ class "mb-3" ] [ text "The endpoint expects a JSON payload with the following values:" ]
+            , table [ class "mb-6 table-collapse text-left border rounded w-full" ]
+                [ tr [ class "m-0" ]
+                    [ th [ class "p-2 bg-grey-light border-b text-dusty-blue" ] [ text "Key" ]
+                    , th [ class "p-2 bg-grey-light border-b text-dusty-blue" ] [ text "Value" ]
+                    ]
+                , tr [ class "border-b" ]
+                    [ td [ class "p-2" ] [ code [ class "px-1 bg-grey rounded" ] [ text "body" ] ]
+                    , td [ class "p-2" ] [ text "The Markdown-formatted message body (must include a #channel or @person)" ]
+                    ]
+                , tr []
+                    [ td [ class "p-2" ] [ code [ class "px-1 bg-grey rounded" ] [ text "display_name" ] ]
+                    , td [ class "p-2" ] [ text "The name to display as the author of the post" ]
+                    ]
+                ]
+            , h2 [ class "mb-2 text-lg font-bold" ] [ text "Example Request" ]
+            , p [ class "mb-3" ] [ text "Paste the following into your Terminal to send yourself a bot message." ]
+            , div [ class "mb-6 flex items-start input-field p-0 pr-3 bg-grey border-none" ]
+                [ textarea [ class "block flex-grow mr-4 pl-3 py-2 h-16 bg-transparent font-mono text-md text-dusty-blue-darker resize-none whitespace-pre overflow-scroll", readonly True, style "overflow-wrap" "normal" ]
+                    [ text curlCommand ]
+                , div [ class "py-2" ]
+                    [ Clipboard.button "Copy"
+                        curlCommand
+                        [ class "btn btn-blue btn-xs flex items-center"
+                        , Clipboard.onCopy (TextCopied "cURL command copied")
+                        , Clipboard.onCopyFailed TextCopyFailed
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+
+buildPostbotCommand : String -> String -> String
+buildPostbotCommand url handle =
+    let
+        lines =
+            [ "curl -X POST " ++ url ++ " \\"
+            , "  -H \"Content-Type: application/json\" \\"
+            , "  -d '{\"body\": \"Hello @" ++ handle ++ "!\", \"display_name\": \"Postbot\"}'"
+            ]
+    in
+    String.join "\n" lines

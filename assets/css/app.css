@@ -811,3 +811,7 @@ post-editor.dragging-over > * {
 .active\:translate-y-1:active {
   transform: translateY(1px);
 }
+
+.table-collapse {
+  border-collapse: collapse;
+}
