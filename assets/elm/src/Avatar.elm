@@ -1,8 +1,9 @@
-module Avatar exposing (Config, Size(..), avatar, botAvatar, fromConfig, personAvatar, texitar, thingAvatar, uploader)
+module Avatar exposing (Config, Image(..), Size(..), avatar, botAvatar, fromConfig, personAvatar, texitar, thingAvatar, uploader)
 
 import File
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Icons
 
 
 type Size
@@ -13,10 +14,16 @@ type Size
     | XLarge
 
 
+type Image
+    = Initials
+    | Url String
+    | Postbot
+
+
 type alias Config =
     { size : Size
     , initials : String
-    , avatarUrl : Maybe String
+    , image : Image
     }
 
 
@@ -38,11 +45,14 @@ type alias Bot a =
 
 fromConfig : Config -> Html msg
 fromConfig config =
-    case config.avatarUrl of
-        Just url ->
+    case config.image of
+        Url url ->
             avatar config.size url
 
-        Nothing ->
+        Postbot ->
+            Icons.postbot
+
+        Initials ->
             texitar config.size config.initials
 
 

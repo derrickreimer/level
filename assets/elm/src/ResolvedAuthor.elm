@@ -62,9 +62,26 @@ avatarUrl (ResolvedAuthor data) =
 
 avatarConfig : Avatar.Size -> ResolvedAuthor -> Avatar.Config
 avatarConfig size author =
+    let
+        authorHandle =
+            author
+                |> actor
+                |> Actor.handle
+
+        image =
+            case ( avatarUrl author, authorHandle ) of
+                ( Nothing, "postbot" ) ->
+                    Avatar.Postbot
+
+                ( Just url, _ ) ->
+                    Avatar.Url url
+
+                ( Nothing, _ ) ->
+                    Avatar.Initials
+    in
     { size = size
     , initials = initials author
-    , avatarUrl = avatarUrl author
+    , image = image
     }
 
 
