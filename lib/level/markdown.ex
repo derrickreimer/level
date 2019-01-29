@@ -38,7 +38,7 @@ defmodule Level.Markdown do
       html
       |> Floki.parse()
       |> map_mutable_text(fn text -> mutate_text(text, context) end)
-      |> Floki.raw_html(encode: false)
+      |> Floki.raw_html(encode: true)
 
     {status, new_html, errors}
   end
@@ -64,7 +64,12 @@ defmodule Level.Markdown do
     |> autolink()
     |> highlight_mentions(context)
     |> highlight_hashtags(context)
+    |> Floki.parse()
+    |> after_mutate_text()
   end
+
+  defp after_mutate_text(nodes) when is_list(nodes), do: {"span", [], nodes}
+  defp after_mutate_text(node), do: node
 
   defp autolink(text) do
     Regex.replace(@url_regex, text, &build_link/1)
