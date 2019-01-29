@@ -278,7 +278,7 @@ resolvedMobileView globals model data =
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
-            , title = "Apps"
+            , title = "Integrations"
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled
@@ -291,6 +291,28 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "p-4 leading-normal" ]
             [ div [ class "pb-6 text-dusty-blue-darker" ]
-                []
+                [ ul [ class "list-reset" ]
+                    [ li []
+                        [ div [ class "flex mb-6" ]
+                            [ div [ class "mr-3 flex-no-grow" ] [ Icons.postbot ]
+                            , div [ class "flex-grow" ]
+                                [ h2 [ class "text-xl tracking-semi-tight" ] [ text "Postbot" ]
+                                , p [] [ text "Send messages to Level with a simple HTTP call." ]
+                                ]
+                            ]
+                        , p [ class "mb-6" ] [ text "The request body must contain a JSON object with a ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " attribute and a ", code [ class "px-1 bg-grey rounded" ] [ text "display_name" ], text " attribute (which will be used in place of the author label on the post). The ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " must include a #channel reference or an @-mention—otherwise the message would not be visible to anyone!" ]
+                        , p [ class "mb-3" ] [ text "Here's the URL for posting messages to this team:" ]
+                        , div [ class "mb-6 flex items-baseline input-field p-0 pr-3 bg-grey border-none" ]
+                            [ input [ type_ "text", class "block mr-4 pl-3 py-1 bg-transparent flex-grow font-mono text-base overflow-auto text-dusty-blue-darker", value (Space.postbotUrl data.space), readonly True ] []
+                            , Clipboard.button "Copy"
+                                (Space.postbotUrl data.space)
+                                [ class "btn btn-blue btn-xs flex items-center"
+                                , Clipboard.onCopy LinkCopied
+                                , Clipboard.onCopyFailed LinkCopyFailed
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ]
         ]
