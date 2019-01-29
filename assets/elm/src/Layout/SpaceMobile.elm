@@ -108,8 +108,8 @@ layout config children =
                             [ viewIf (List.isEmpty config.bookmarks) <|
                                 navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
                             , navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
-                            , navLink config.space "Apps" (Just <| Route.Apps (Route.Apps.init spaceSlug)) config.currentRoute
                             , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
+                            , navLink config.space "Integrations" (Just <| Route.Apps (Route.Apps.init spaceSlug)) config.currentRoute
                             , navLink config.space "Help" (Just <| Route.Help (Route.Help.init spaceSlug)) config.currentRoute
                             ]
                         ]

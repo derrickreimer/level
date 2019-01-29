@@ -118,6 +118,8 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | OpenBeacon
+    | LinkCopied
+    | LinkCopyFailed
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -135,6 +137,20 @@ update msg globals model =
 
         OpenBeacon ->
             ( ( model, Beacon.open ), globals )
+
+        LinkCopied ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Notice "URL copied" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals )
+
+        LinkCopyFailed ->
+            let
+                newGlobals =
+                    { globals | flash = Flash.set Flash.Alert "Hmm, something went wrong" 3000 globals.flash }
+            in
+            ( ( model, Cmd.none ), newGlobals )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -216,10 +232,33 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
+        [ div [ class "mx-auto max-w-md leading-normal p-8" ]
             [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ div [ class "mb-6" ]
-                    [ h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Apps" ]
+                    [ h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Integrations" ]
+                    , p [ class "mb-6 pb-4 border-b text-lg" ] [ text "Get other apps or your own code talking to Level." ]
+                    , ul [ class "list-reset " ]
+                        [ li []
+                            [ div [ class "flex mb-6" ]
+                                [ div [ class "mr-3 flex-no-grow" ] [ Icons.postbot ]
+                                , div [ class "flex-grow" ]
+                                    [ h2 [ class "text-xl tracking-semi-tight" ] [ text "Postbot" ]
+                                    , p [] [ text "Send messages to Level with a simple HTTP call." ]
+                                    ]
+                                ]
+                            , p [ class "mb-6" ] [ text "The request body must contain a JSON object with a ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " attribute and a ", code [ class "px-1 bg-grey rounded" ] [ text "display_name" ], text " attribute (which will be used in place of the author label on the post). The ", code [ class "px-1 bg-grey rounded" ] [ text "body" ], text " must include a #channel reference or an @-mention—otherwise the message would not be visible to anyone!" ]
+                            , p [ class "mb-3" ] [ text "Here's the URL for posting messages to this team:" ]
+                            , div [ class "mb-6 flex items-baseline input-field p-0 pr-3 bg-grey border-none" ]
+                                [ input [ type_ "text", class "block mr-4 pl-3 py-1 bg-transparent flex-grow font-mono text-base overflow-auto text-dusty-blue-darker", value (Space.postbotUrl data.space), readonly True ] []
+                                , Clipboard.button "Copy"
+                                    (Space.postbotUrl data.space)
+                                    [ class "btn btn-blue btn-xs flex items-center"
+                                    , Clipboard.onCopy LinkCopied
+                                    , Clipboard.onCopyFailed LinkCopyFailed
+                                    ]
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             ]
