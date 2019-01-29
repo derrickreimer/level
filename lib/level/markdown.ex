@@ -64,6 +64,7 @@ defmodule Level.Markdown do
     |> autolink()
     |> highlight_mentions(context)
     |> highlight_hashtags(context)
+    |> String.replace(~r/>[ \n\r]+</, ">&#32;<")
     |> Floki.parse()
     |> after_mutate_text()
   end
