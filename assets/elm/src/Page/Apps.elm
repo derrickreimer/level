@@ -236,7 +236,7 @@ resolvedDesktopView globals model data =
             [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ div [ class "mb-6" ]
                     [ h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Integrations" ]
-                    , p [ class "mb-6 pb-4 border-b text-lg" ] [ text "Get other apps talking to Level." ]
+                    , p [ class "mb-6 pb-4 border-b text-base" ] [ text "Get other apps talking to Level." ]
                     , ul [ class "list-reset " ]
                         [ li []
                             [ postbotInstructions data

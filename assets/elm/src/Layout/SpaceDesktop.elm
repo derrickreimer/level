@@ -48,8 +48,9 @@ type alias Config msg =
 layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
-        [ fullSidebar config
-        , div [ class "ml-48 lg:ml-56 lg:mr-56" ] children
+        [ spacesSidebar config
+        , fullSidebar config
+        , div [ class "ml-64 lg:ml-64 lg:mr-64" ] children
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         , Flash.view config.flash
         , viewIf config.showKeyboardCommands (keyboardCommandReference config)
@@ -133,6 +134,13 @@ keyView value =
 -- PRIVATE
 
 
+spacesSidebar : Config msg -> Html msg
+spacesSidebar config =
+    div [ class "fixed p-3 h-full bg-grey" ]
+        [ a [ href "#", class "flex items-center justify-center w-9 h-9 rounded-full" ] [ Icons.logomark ]
+        ]
+
+
 fullSidebar : Config msg -> Html msg
 fullSidebar config =
     let
@@ -143,8 +151,9 @@ fullSidebar config =
         [ classList
             [ ( "fixed w-48 h-full min-h-screen z-40", True )
             ]
+        , style "left" "4rem"
         ]
-        [ div [ class "p-4 pt-4" ]
+        [ div [ class "p-4 pt-3" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
                 , div [ class "mb-2 font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
