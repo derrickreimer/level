@@ -57,12 +57,11 @@ defmodule Level.Schemas.Post do
   end
 
   @doc false
-  def create_changeset(struct, attrs \\ %{}) do
+  def user_changeset(struct, attrs \\ %{}) do
     struct
     |> cast(attrs, [
       :space_id,
       :space_user_id,
-      :space_bot_id,
       :body,
       :is_urgent,
       :display_name,
@@ -70,10 +69,23 @@ defmodule Level.Schemas.Post do
       :avatar_color
     ])
     |> validate_required([:body])
-    |> transform_initials()
-    |> validate_length(:display_name, min: 1, max: 20)
-    |> validate_length(:initials, min: 1, max: 2)
-    |> validate_format(:avatar_color, ~r/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    |> shared_validations()
+  end
+
+  @doc false
+  def bot_changeset(struct, attrs \\ %{}) do
+    struct
+    |> cast(attrs, [
+      :space_id,
+      :space_bot_id,
+      :body,
+      :is_urgent,
+      :display_name,
+      :initials,
+      :avatar_color
+    ])
+    |> validate_required([:body, :display_name])
+    |> shared_validations()
   end
 
   @doc false
@@ -81,6 +93,14 @@ defmodule Level.Schemas.Post do
     struct
     |> cast(attrs, [:body])
     |> validate_required([:body])
+  end
+
+  defp shared_validations(changeset) do
+    changeset
+    |> transform_initials()
+    |> validate_length(:display_name, min: 1, max: 20)
+    |> validate_length(:initials, min: 1, max: 2)
+    |> validate_format(:avatar_color, ~r/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
   end
 
   defp transform_initials(%Ecto.Changeset{changes: %{initials: initials}} = changeset)

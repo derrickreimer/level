@@ -28,7 +28,7 @@ defmodule Level.Posts.CreatePost do
   @spec perform(SpaceUser.t(), Group.t(), map()) :: result()
   def perform(%SpaceUser{} = author, %Group{} = group, params) do
     Multi.new()
-    |> insert_post(build_params(author, params))
+    |> insert_post(author, params)
     |> save_locator(params)
     |> set_primary_group(group)
     |> detect_tagged_groups(author)
@@ -42,7 +42,7 @@ defmodule Level.Posts.CreatePost do
   @spec perform(SpaceUser.t(), map()) :: result()
   def perform(%SpaceUser{} = author, params) do
     Multi.new()
-    |> insert_post(build_params(author, params))
+    |> insert_post(author, params)
     |> save_locator(params)
     |> detect_tagged_groups(author)
     |> record_mentions(author)
@@ -55,7 +55,7 @@ defmodule Level.Posts.CreatePost do
   @spec perform(SpaceBot.t(), map()) :: result()
   def perform(%SpaceBot{} = author, params) do
     Multi.new()
-    |> insert_post(build_params(author, params))
+    |> insert_post(author, params)
     |> save_locator(params)
     |> detect_tagged_groups(author)
     |> record_mentions(author)
@@ -67,20 +67,22 @@ defmodule Level.Posts.CreatePost do
 
   # Internal
 
-  defp build_params(%SpaceUser{} = author, params) do
-    params
-    |> Map.put(:space_id, author.space_id)
-    |> Map.put(:space_user_id, author.id)
+  defp insert_post(multi, %SpaceUser{} = author, params) do
+    params_with_relations =
+      params
+      |> Map.put(:space_id, author.space_id)
+      |> Map.put(:space_user_id, author.id)
+
+    Multi.insert(multi, :post, Post.user_changeset(%Post{}, params_with_relations))
   end
 
-  defp build_params(%SpaceBot{} = author, params) do
-    params
-    |> Map.put(:space_id, author.space_id)
-    |> Map.put(:space_bot_id, author.id)
-  end
+  defp insert_post(multi, %SpaceBot{} = author, params) do
+    params_with_relations =
+      params
+      |> Map.put(:space_id, author.space_id)
+      |> Map.put(:space_bot_id, author.id)
 
-  defp insert_post(multi, params) do
-    Multi.insert(multi, :post, Post.create_changeset(%Post{}, params))
+    Multi.insert(multi, :post, Post.bot_changeset(%Post{}, params_with_relations))
   end
 
   defp save_locator(multi, %{locator: params}) do

@@ -85,7 +85,7 @@ defmodule Level.Spaces.JoinSpace do
   end
 
   defp create_bot_post(levelbot, body) do
-    {:ok, %{post: post}} = Posts.create_post(levelbot, %{body: body})
+    {:ok, %{post: post}} = Posts.create_post(levelbot, %{body: body, display_name: "Level"})
     {:ok, post}
   end
 end

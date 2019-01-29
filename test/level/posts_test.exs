@@ -94,7 +94,8 @@ defmodule Level.PostsTest do
       levelbot: levelbot,
       user: user
     } do
-      {:ok, %{post: %Post{id: post_id}}} = Posts.create_post(levelbot, %{body: "Hello @derrick"})
+      {:ok, %{post: %Post{id: post_id}}} =
+        Posts.create_post(levelbot, %{body: "Hello @derrick", display_name: "Level"})
 
       assert %Post{id: ^post_id} =
                user
@@ -106,7 +107,9 @@ defmodule Level.PostsTest do
       space: space,
       levelbot: levelbot
     } do
-      {:ok, %{post: %Post{id: post_id}}} = Posts.create_post(levelbot, %{body: "Hello @derrick"})
+      {:ok, %{post: %Post{id: post_id}}} =
+        Posts.create_post(levelbot, %{body: "Hello @derrick", display_name: "Level"})
+
       {:ok, %{user: another_user}} = create_space_member(space)
 
       refute another_user

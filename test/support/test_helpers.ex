@@ -47,7 +47,8 @@ defmodule Level.TestHelpers do
 
   def valid_post_params do
     %{
-      body: "Hello world"
+      body: "Hello world",
+      display_name: "Author"
     }
   end
 

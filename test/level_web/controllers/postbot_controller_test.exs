@@ -30,13 +30,16 @@ defmodule LevelWeb.PostbotControllerTest do
 
       conn =
         conn
-        |> post("/postbot/myspace/#{space.postbot_key}", %{"body" => "Hello #peeps"})
+        |> post("/postbot/myspace/#{space.postbot_key}", %{
+          "body" => "Hello #peeps",
+          "display_name" => "The Bot"
+        })
 
       %{"success" => true, "post_id" => post_id} = json_response(conn, 200)
 
       {:ok, post} = Posts.get_post(user, post_id)
       assert post.body == "Hello #peeps"
-      assert post.display_name == nil
+      assert post.display_name == "The Bot"
       assert post.initials == nil
       assert post.avatar_color == nil
     end
