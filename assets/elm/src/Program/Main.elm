@@ -103,6 +103,7 @@ type alias Model =
     , pushStatus : PushStatus
     , socketState : SocketState
     , currentUser : Lazy User
+    , spaceIds : Lazy (List Id)
     , timeZone : String
     , flash : Flash
     , going : Bool
@@ -155,6 +156,7 @@ buildModel flags navKey =
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
         NotLoaded
+        NotLoaded
         flags.timeZone
         Flash.init
         False
@@ -162,21 +164,21 @@ buildModel flags navKey =
 
 
 setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
-setup { currentUser, spaceIds, spaceUserIds } model =
+setup resp model =
     let
         subscribeToSpaces =
             Cmd.batch <|
-                List.map SpaceSubscription.subscribe spaceIds
+                List.map SpaceSubscription.subscribe resp.spaceIds
 
         subscribeToSpaceUsers =
             Cmd.batch <|
-                List.map SpaceUserSubscription.subscribe spaceUserIds
+                List.map SpaceUserSubscription.subscribe resp.spaceUserIds
 
         updateTimeZone =
             -- Note: It would be better to present the user with a notice that their
             -- time zone on file differs from the one currently detected in their browser,
             -- and ask if they want to change it.
-            if User.timeZone currentUser /= model.timeZone then
+            if User.timeZone resp.currentUser /= model.timeZone then
                 model.session
                     |> UpdateUser.request (UpdateUser.timeZoneVariables model.timeZone)
                     |> Task.attempt TimeZoneUpdated
@@ -184,7 +186,11 @@ setup { currentUser, spaceIds, spaceUserIds } model =
             else
                 Cmd.none
     in
-    ( { model | currentUser = Loaded currentUser }
+    ( { model
+        | currentUser = Loaded resp.currentUser
+        , spaceIds = Loaded resp.spaceIds
+        , repo = Repo.union resp.repo model.repo
+      }
     , Cmd.batch
         [ UserSubscription.subscribe
         , subscribeToSpaces
@@ -199,6 +205,7 @@ buildGlobals model =
     { session = model.session
     , repo = model.repo
     , navKey = model.navKey
+    , spaceIds = model.spaceIds
     , timeZone = model.timeZone
     , flash = model.flash
     , device = model.device
@@ -771,7 +778,7 @@ setupPage pageInit model =
             ( { appModel
                 | page = toPage pageModel
                 , session = newGlobals.session
-                , repo = newGlobals.repo
+                , repo = Repo.union newGlobals.repo model.repo
                 , isTransitioning = False
               }
             , Cmd.map toPageMsg (setupFn pageModel)

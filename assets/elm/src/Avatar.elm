@@ -80,6 +80,7 @@ avatar size url =
             [ ( "avatar", True )
             , ( sizeClass size, True )
             ]
+        , style "background-color" "transparent"
         ]
         []
 

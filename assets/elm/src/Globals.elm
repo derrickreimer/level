@@ -3,6 +3,7 @@ module Globals exposing (Globals)
 import Browser.Navigation as Nav
 import Device exposing (Device)
 import Flash exposing (Flash)
+import Id exposing (Id)
 import Lazy exposing (Lazy)
 import PushStatus exposing (PushStatus)
 import Repo exposing (Repo)
@@ -14,6 +15,7 @@ type alias Globals =
     { session : Session
     , repo : Repo
     , navKey : Nav.Key
+    , spaceIds : Lazy (List Id)
     , timeZone : String
     , flash : Flash
     , device : Device

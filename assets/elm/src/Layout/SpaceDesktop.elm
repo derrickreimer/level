@@ -2,6 +2,7 @@ module Layout.SpaceDesktop exposing (Config, layout, rightSidebar)
 
 import Avatar exposing (personAvatar, thingAvatar)
 import Flash exposing (Flash)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -9,6 +10,7 @@ import Html.Events exposing (..)
 import Icons
 import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
+import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Apps
 import Route.Group
@@ -30,7 +32,8 @@ import View.Helpers exposing (viewIf, viewUnless)
 
 
 type alias Config msg =
-    { space : Space
+    { globals : Globals
+    , space : Space
     , spaceUser : SpaceUser
     , bookmarks : List Group
     , currentRoute : Maybe Route
@@ -136,9 +139,42 @@ keyView value =
 
 spacesSidebar : Config msg -> Html msg
 spacesSidebar config =
-    div [ class "fixed p-3 h-full bg-grey" ]
-        [ a [ href "#", class "flex items-center justify-center w-9 h-9 rounded-full" ] [ Icons.logomark ]
+    let
+        spaces =
+            case config.globals.spaceIds of
+                Loaded spaceIds ->
+                    config.globals.repo
+                        |> Repo.getSpaces spaceIds
+                        |> List.sortBy Space.name
+
+                NotLoaded ->
+                    []
+    in
+    div [ class "fixed p-3 px-4 h-full bg-grey-light z-40 overflow-y-scroll" ]
+        [ a
+            [ Route.href Route.Spaces
+            , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full"
+            ]
+            [ Icons.logomark ]
+        , div [ class "mb-4" ] <| List.map (spaceLink config) spaces
+        , a
+            [ Route.href Route.NewSpace
+            , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-grey hover:bg-grey-dark transition-bg"
+            ]
+            [ Icons.plus ]
         ]
+
+
+spaceLink : Config msg -> Space -> Html msg
+spaceLink config space =
+    a
+        [ Route.href (Route.Root (Space.slug space))
+        , classList
+            [ ( "block mb-1 no-underline hover:opacity-100", True )
+            , ( "opacity-50", not (config.space == space) )
+            ]
+        ]
+        [ Space.avatar Avatar.Small space ]
 
 
 fullSidebar : Config msg -> Html msg
@@ -149,9 +185,9 @@ fullSidebar config =
     in
     div
         [ classList
-            [ ( "fixed w-48 h-full min-h-screen z-40", True )
+            [ ( "fixed w-48 h-full min-h-screen z-30", True )
             ]
-        , style "left" "4rem"
+        , style "left" "4.5rem"
         ]
         [ div [ class "p-4 pt-3" ]
             [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]

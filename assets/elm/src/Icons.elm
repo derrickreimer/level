@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, logomark, menu, more, open, postbot, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
+module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, image, inbox, inboxWhite, lock, logOut, logo, logomark, menu, more, open, plus, postbot, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -234,6 +234,12 @@ logomark : Html msg
 logomark =
     iconView <|
         svg [ width "25px", height "15px", viewBox "0 0 25 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ Svg.path [ d "M5.83333333,0 L19.1666667,2.66453526e-15 C20.0871412,1.67790116e-15 20.8333333,0.746192084 20.8333333,1.66666667 C20.8333333,2.58714125 20.0871412,3.33333333 19.1666667,3.33333333 L5.83333333,3.33333333 C4.91285875,3.33333333 4.16666667,2.58714125 4.16666667,1.66666667 C4.16666667,0.746192084 4.91285875,3.91133043e-16 5.83333333,2.22044605e-16 Z M10,5.83333333 L23.3333333,5.83333333 C24.2538079,5.83333333 25,6.57952542 25,7.5 C25,8.42047458 24.2538079,9.16666667 23.3333333,9.16666667 L10,9.16666667 C9.07952542,9.16666667 8.33333333,8.42047458 8.33333333,7.5 C8.33333333,6.57952542 9.07952542,5.83333333 10,5.83333333 Z M1.66666667,11.6666667 L15,11.6666667 C15.9204746,11.6666667 16.6666667,12.4128588 16.6666667,13.3333333 C16.6666667,14.2538079 15.9204746,15 15,15 L1.66666667,15 C0.746192084,15 1.12725625e-16,14.2538079 0,13.3333333 C-1.12725625e-16,12.4128588 0.746192084,11.6666667 1.66666667,11.6666667 Z", id "Combined-Shape-Copy", fill "#8A98A5" ] [] ] ]
+
+
+plus : Html msg
+plus =
+    iconView <|
+        svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "plus", transform "translate(2.000000, 2.000000)", stroke "#8A98A5", strokeWidth "3" ] [ Svg.path [ d "M7,0 L7,14", id "Path" ] [], Svg.path [ d "M0,7 L14,7", id "Path" ] [] ] ] ]
 
 
 postbot : Html msg
