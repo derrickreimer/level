@@ -177,10 +177,11 @@ spacesSidebar config =
             ]
         , div [ class "p-3" ]
             [ a
-                [ class "absolute pin-b flex items-center mb-5 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+                [ class "tooltip tooltip-right absolute pin-b flex items-center mb-5 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
                 , href "/logout"
                 , rel "tooltip"
                 , title "Sign out"
+                , attribute "data-tooltip" "Sign out"
                 ]
                 [ Icons.logOut ]
             ]
