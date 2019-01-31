@@ -144,19 +144,33 @@ spacesSidebar config =
 
                 NotLoaded ->
                     []
+
+        homeToggle =
+            if config.globals.currentRoute == Just Route.Spaces then
+                Icons.On
+
+            else
+                Icons.Off
+
+        newSpaceToggle =
+            if config.globals.currentRoute == Just Route.NewSpace then
+                Icons.On
+
+            else
+                Icons.Off
     in
     div [ class "fixed p-3 px-4 h-full bg-grey-light z-40 overflow-y-scroll" ]
         [ a
             [ Route.href Route.Spaces
-            , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full"
+            , class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
             ]
-            [ Icons.logomark ]
+            [ Icons.home homeToggle ]
         , div [ class "mb-4" ] <| List.map (spaceLink config) spaces
         , a
             [ Route.href Route.NewSpace
-            , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-grey hover:bg-grey-dark transition-bg"
+            , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
             ]
-            [ Icons.plus ]
+            [ Icons.plus newSpaceToggle ]
         ]
 
 
