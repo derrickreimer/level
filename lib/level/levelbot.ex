@@ -9,6 +9,7 @@ defmodule Level.Levelbot do
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
+  alias Level.Spaces
 
   @doc """
   Creates levelbot.
@@ -44,18 +45,6 @@ defmodule Level.Levelbot do
   """
   @spec install_bot(Space.t()) :: {:ok, SpaceBot.t()} | {:error, Ecto.Changeset.t()}
   def install_bot(%Space{} = space) do
-    bot = get_bot!()
-
-    params = %{
-      space_id: space.id,
-      bot_id: bot.id,
-      handle: bot.handle,
-      display_name: bot.display_name,
-      avatar: bot.avatar
-    }
-
-    %SpaceBot{}
-    |> Changeset.change(params)
-    |> Repo.insert(on_conflict: :nothing)
+    Spaces.install_bot(space, get_bot!())
   end
 end
