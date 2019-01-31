@@ -252,7 +252,7 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div [ class "px-2 py-4 leading-normal" ]
+        [ div [ class "p-3" ]
             [ usersView globals.repo model.params model.spaceUserIds
             ]
         ]

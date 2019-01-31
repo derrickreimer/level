@@ -419,38 +419,36 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout layoutConfig
-        [ div [ class "mx-auto leading-normal" ]
-            [ PostEditor.wrapper composerConfig
-                [ textarea
-                    [ id (PostEditor.getTextareaId editor)
-                    , class "w-full h-24 p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
-                    , placeholder "Compose a new post..."
-                    , onInput NewPostBodyChanged
-                    , readonly (PostEditor.isSubmitting editor)
-                    , value (PostEditor.getBody editor)
-                    ]
-                    []
-                , div []
-                    [ PostEditor.filesView editor
-                    ]
+        [ PostEditor.wrapper composerConfig
+            [ textarea
+                [ id (PostEditor.getTextareaId editor)
+                , class "w-full h-24 p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
+                , placeholder "Compose a new post..."
+                , onInput NewPostBodyChanged
+                , readonly (PostEditor.isSubmitting editor)
+                , value (PostEditor.getBody editor)
                 ]
-            , div [ class "mx-2" ]
-                [ viewUnless (PostEditor.getIsUrgent editor) <|
-                    button
-                        [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-dusty-blue"
-                        , onClick ToggleUrgent
-                        ]
-                        [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.Off ]
-                        , div [] [ text "Don't interrupt anyone" ]
-                        ]
-                , viewIf (PostEditor.getIsUrgent editor) <|
-                    button
-                        [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
-                        , onClick ToggleUrgent
-                        ]
-                        [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
-                        , div [] [ text "Interrupt all @mentioned people" ]
-                        ]
+                []
+            , div [ class "p-3" ]
+                [ PostEditor.filesView editor
                 ]
+            ]
+        , div [ class "p-3" ]
+            [ viewUnless (PostEditor.getIsUrgent editor) <|
+                button
+                    [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-dusty-blue"
+                    , onClick ToggleUrgent
+                    ]
+                    [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.Off ]
+                    , div [] [ text "Click to interrupt @mentioned people" ]
+                    ]
+            , viewIf (PostEditor.getIsUrgent editor) <|
+                button
+                    [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
+                    , onClick ToggleUrgent
+                    ]
+                    [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
+                    , div [] [ text "Click to interrupt nobody" ]
+                    ]
             ]
         ]

@@ -79,7 +79,7 @@ layout config children =
                 [ controlView config config.rightControl
                 ]
             ]
-        , div [] children
+        , div [ class "leading-normal" ] children
         , viewIf config.showNav <|
             div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)", onClick config.onNavToggled ]
                 [ div

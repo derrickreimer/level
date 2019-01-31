@@ -273,7 +273,7 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div [ class "p-4 leading-normal" ]
+        [ div [ class "p-4" ]
             [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ ul [ class "list-reset" ]
                     [ li []

@@ -320,7 +320,7 @@ resolvedDesktopView globals model data =
                         ]
                     ]
                 ]
-            , detailView model data
+            , div [ class "px-8 py-6" ] [ detailView model data ]
             ]
         , viewIf model.showPermissionsModal <|
             permissionsModal model data
@@ -351,7 +351,7 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div []
+        [ div [ class "p-3 leading-tight" ]
             [ detailView model data
             ]
         , viewIf model.showPermissionsModal <|
@@ -365,27 +365,25 @@ resolvedMobileView globals model data =
 
 detailView : Model -> Data -> Html Msg
 detailView model data =
-    div [ class "px-8 py-6" ]
-        [ div [ class "flex mb-4 pb-6" ]
-            [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
-            , div [ class "flex-grow" ]
-                [ div [ class "flex items-center" ]
-                    [ h1 [ class "mb-1 font-bold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
-                    , viewIf (SpaceUser.state data.spaceUser == SpaceUser.Disabled) <|
-                        span [ class "ml-4 px-3 py-1 text-sm border rounded-full text-dusty-blue-dark select-none" ] [ text "Account disabled" ]
+    div [ class "flex mb-4 pb-6" ]
+        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
+        , div [ class "flex-grow" ]
+            [ div [ class "flex items-center" ]
+                [ h1 [ class "mb-1 font-bold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
+                , viewIf (SpaceUser.state data.spaceUser == SpaceUser.Disabled) <|
+                    span [ class "ml-4 px-3 py-1 text-sm border rounded-full text-dusty-blue-dark select-none" ] [ text "Account disabled" ]
+                ]
+            , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
+            ]
+        , div [ class "flex-no-shrink ml-4" ]
+            [ viewIf (canManageAccess model data) <|
+                button
+                    [ class "flex tooltip tooltip-bottom items-center text-dusty-blue no-underline font-bold no-outline"
+                    , onClick TogglePermissionsModal
+                    , attribute "data-tooltip" "Permissions"
                     ]
-                , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
-                ]
-            , div [ class "flex-no-shrink ml-4" ]
-                [ viewIf (canManageAccess model data) <|
-                    button
-                        [ class "flex tooltip tooltip-bottom items-center text-dusty-blue no-underline font-bold no-outline"
-                        , onClick TogglePermissionsModal
-                        , attribute "data-tooltip" "Permissions"
-                        ]
-                        [ div [] [ Icons.shield ]
-                        ]
-                ]
+                    [ div [] [ Icons.shield ]
+                    ]
             ]
         ]
 

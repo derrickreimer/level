@@ -1,6 +1,7 @@
 module Page.UserSettings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
+import Device exposing (Device)
 import Event exposing (Event)
 import File exposing (File)
 import Flash exposing (Flash)
@@ -11,6 +12,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Id exposing (Id)
 import Json.Decode as Decode
+import Layout.UserDesktop
+import Layout.UserMobile
 import Lazy exposing (Lazy(..))
 import Mutation.UpdateUser as UpdateUser
 import Mutation.UpdateUserAvatar as UpdateUserAvatar
@@ -25,7 +28,6 @@ import Task exposing (Task)
 import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.UserLayout
 
 
 
@@ -42,6 +44,10 @@ type alias Model =
     , errors : List ValidationError
     , isSubmitting : Bool
     , newAvatar : Maybe File
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -62,7 +68,7 @@ resolveData repo model =
 
 title : String
 title =
-    "My User Settings"
+    "My Settings"
 
 
 
@@ -90,6 +96,8 @@ buildModel globals ( newSession, resp ) =
                 []
                 False
                 Nothing
+                False
+                False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -122,6 +130,11 @@ type Msg
     | AvatarSelected
     | FileReceived Decode.Value
     | NoOp
+    | ToggleKeyboardCommands
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -216,6 +229,18 @@ update msg globals model =
         NoOp ->
             noCmd globals model
 
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -263,9 +288,27 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
-    View.UserLayout.layout data.viewer globals.flash <|
-        div [ class "mx-auto max-w-md leading-normal" ]
-            [ h1 [ class "pb-8 font-bold tracking-semi-tight text-4xl" ] [ text "My User Settings" ]
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
+    let
+        config =
+            { globals = globals
+            , viewer = data.viewer
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
+            }
+    in
+    Layout.UserDesktop.layout config
+        [ div [ class "mx-auto px-4 max-w-md leading-normal" ]
+            [ h1 [ class "py-8 font-bold tracking-semi-tight text-3xl" ] [ text "My Settings" ]
             , div [ class "flex" ]
                 [ div [ class "flex-1 mr-8" ]
                     [ div [ class "pb-6" ]
@@ -363,3 +406,120 @@ resolvedView globals model data =
                     ]
                 ]
             ]
+        ]
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { globals = globals
+            , viewer = data.viewer
+            , title = "My Settings"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.UserMobile.Back Route.Spaces
+            , rightControl =
+                Layout.UserMobile.Custom <|
+                    button
+                        [ type_ "submit"
+                        , class "btn btn-blue btn-md"
+                        , onClick Submit
+                        , disabled model.isSubmitting
+                        ]
+                        [ text "Save" ]
+            }
+    in
+    Layout.UserMobile.layout config
+        [ div [ class "p-5" ]
+            [ div [ class "pb-6" ]
+                [ div [ class "flex" ]
+                    [ div [ class "flex-1 mr-2" ]
+                        [ label [ for "firstName", class "input-label" ] [ text "First Name" ]
+                        , input
+                            [ id "firstName"
+                            , type_ "text"
+                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "firstName" model.errors ) ]
+                            , name "firstName"
+                            , placeholder "Jane"
+                            , value model.firstName
+                            , onInput FirstNameChanged
+                            , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
+                            , disabled model.isSubmitting
+                            ]
+                            []
+                        , errorView "firstName" model.errors
+                        ]
+                    , div [ class "flex-1" ]
+                        [ label [ for "lastName", class "input-label" ] [ text "Last Name" ]
+                        , input
+                            [ id "lastName"
+                            , type_ "text"
+                            , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "lastName" model.errors ) ]
+                            , name "lastName"
+                            , placeholder "Doe"
+                            , value model.lastName
+                            , onInput LastNameChanged
+                            , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
+                            , disabled model.isSubmitting
+                            ]
+                            []
+                        , errorView "lastName" model.errors
+                        ]
+                    ]
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "handle", class "input-label" ] [ text "Handle" ]
+                , div
+                    [ classList
+                        [ ( "input-field inline-flex leading-none items-baseline", True )
+                        , ( "input-field-error", isInvalid "handle" model.errors )
+                        ]
+                    ]
+                    [ label
+                        [ for "handle"
+                        , class "mr-1 flex-none text-dusty-blue-darker select-none font-bold"
+                        ]
+                        [ text "@" ]
+                    , div [ class "flex-1" ]
+                        [ input
+                            [ id "handle"
+                            , type_ "text"
+                            , class "placeholder-blue w-full p-0 no-outline text-dusty-blue-darker"
+                            , name "handle"
+                            , placeholder "janesmith"
+                            , value model.handle
+                            , onInput HandleChanged
+                            , onKeydown preventDefault [ ( [], enter, \event -> Submit ) ]
+                            , disabled model.isSubmitting
+                            ]
+                            []
+                        ]
+                    ]
+                , errorView "handle" model.errors
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "email", class "input-label" ] [ text "Email address" ]
+                , input
+                    [ id "email"
+                    , type_ "email"
+                    , classList [ ( "input-field", True ), ( "input-field-error", isInvalid "email" model.errors ) ]
+                    , name "email"
+                    , placeholder "jane@acmeco.com"
+                    , value model.email
+                    , onInput EmailChanged
+                    , onKeydown preventDefault [ ( [], enter, \_ -> Submit ) ]
+                    , disabled model.isSubmitting
+                    ]
+                    []
+                , errorView "email" model.errors
+                ]
+            , div [ class "pb-6" ]
+                [ label [ for "avatar", class "input-label" ] [ text "Avatar" ]
+                , Avatar.uploader "avatar" model.avatarUrl AvatarSelected
+                ]
+            ]
+        ]

@@ -2,6 +2,7 @@ module Page.Spaces exposing (Model, Msg(..), consumeEvent, init, setup, subscrip
 
 import Avatar
 import Connection exposing (Connection)
+import Device exposing (Device)
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Html exposing (..)
@@ -9,6 +10,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Icons
 import Id exposing (Id)
+import Layout.UserDesktop
+import Layout.UserMobile
 import Query.SpacesInit as SpacesInit
 import Repo exposing (Repo)
 import Route
@@ -17,7 +20,6 @@ import Session exposing (Session)
 import Space exposing (Space)
 import Task exposing (Task)
 import User exposing (User)
-import View.UserLayout
 
 
 
@@ -28,6 +30,10 @@ type alias Model =
     { viewerId : Id
     , spaceIds : List Id
     , query : String
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -66,7 +72,7 @@ buildModel : Globals -> ( Session, SpacesInit.Response ) -> ( Globals, Model )
 buildModel globals ( newSession, resp ) =
     let
         model =
-            Model resp.userId resp.spaceIds ""
+            Model resp.userId resp.spaceIds "" False False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -91,6 +97,11 @@ teardown model =
 type Msg
     = QueryChanged String
     | NoOp
+    | ToggleKeyboardCommands
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -101,6 +112,18 @@ update msg globals model =
 
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
 
 
@@ -139,8 +162,26 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
-    View.UserLayout.layout data.viewer globals.flash <|
-        div [ class "mx-auto max-w-sm" ]
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
+    let
+        config =
+            { globals = globals
+            , viewer = data.viewer
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
+            }
+    in
+    Layout.UserDesktop.layout config
+        [ div [ class "mx-auto px-4 py-8 max-w-sm" ]
             [ div [ class "flex items-center pb-6" ]
                 [ h1 [ class "flex-1 ml-4 mr-4 font-bold tracking-semi-tight text-3xl" ] [ text "My Teams" ]
                 , div [ class "flex-0 flex-no-shrink" ]
@@ -161,8 +202,38 @@ resolvedView globals model data =
                         []
                     ]
                 ]
-            , spacesView globals.repo model.query model.spaceIds
+            , div [ class "mx-4" ]
+                [ spacesView globals.repo model.query model.spaceIds ]
             ]
+        ]
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { globals = globals
+            , viewer = data.viewer
+            , title = "My Teams"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.UserMobile.NoControl
+            , rightControl =
+                Layout.UserMobile.Custom <|
+                    a
+                        [ Route.href Route.NewSpace
+                        , class "btn btn-blue btn-md no-underline"
+                        ]
+                        [ text "New" ]
+            }
+    in
+    Layout.UserMobile.layout config
+        [ div [ class "p-3" ]
+            [ spacesView globals.repo model.query model.spaceIds ]
+        ]
 
 
 spacesView : Repo -> String -> List Id -> Html Msg
@@ -177,10 +248,10 @@ spacesView repo query spaceIds =
                     |> filter query
         in
         if List.isEmpty filteredSpaces then
-            div [ class "ml-4 py-2 text-base" ] [ text "No teams match your search." ]
+            div [ class "py-2 text-base" ] [ text "No teams match your search." ]
 
         else
-            div [ class "ml-4" ] <|
+            div [] <|
                 List.map (spaceView query) filteredSpaces
 
 

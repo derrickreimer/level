@@ -821,7 +821,7 @@ resolvedMobileView globals model data =
                 , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
-            , div [ class "px-4" ] [ mobilePostsView globals model data ]
+            , div [ class "p-3 pt-0" ] [ mobilePostsView globals model data ]
             , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
                 div [ class "flex justify-center p-8 pb-16" ]
                     [ paginationView model.params model.postComps

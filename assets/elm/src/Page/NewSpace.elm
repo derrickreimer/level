@@ -1,14 +1,18 @@
 module Page.NewSpace exposing (Model, Msg(..), consumeEvent, init, setup, slugify, subscriptions, teardown, title, update, view)
 
 import Avatar
+import Beacon
 import Browser.Navigation as Nav
 import Connection exposing (Connection)
+import Device exposing (Device)
 import Event exposing (Event)
 import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onBlur, onClick, onInput)
 import Id exposing (Id)
+import Layout.UserDesktop
+import Layout.UserMobile
 import Mutation.CreateSpace as CreateSpace
 import Query.Viewer as Viewer
 import Regex exposing (Regex)
@@ -22,8 +26,7 @@ import Task exposing (Task)
 import User exposing (User)
 import ValidationError exposing (ValidationError, errorView, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.UserLayout
-import Beacon
+
 
 
 -- MODEL
@@ -35,6 +38,10 @@ type alias Model =
     , slug : String
     , errors : List ValidationError
     , formState : FormState
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -78,7 +85,7 @@ buildModel : Globals -> ( Session, Viewer.Response ) -> ( Globals, Model )
 buildModel globals ( newSession, resp ) =
     let
         model =
-            Model resp.viewerId "" "" [] Idle
+            Model resp.viewerId "" "" [] Idle False False
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -109,6 +116,11 @@ type Msg
     | Submit
     | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
     | NoOp
+    | ToggleKeyboardCommands
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Nav.Key -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -148,6 +160,18 @@ update msg globals navKey model =
 
         NoOp ->
             ( ( model, Cmd.none ), globals )
+
+        ToggleKeyboardCommands ->
+            ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
 
 
 specialCharRegex : Regex
@@ -215,10 +239,28 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
-    View.UserLayout.layout data.viewer globals.flash <|
-        div
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
+    let
+        config =
+            { globals = globals
+            , viewer = data.viewer
+            , onNoOp = NoOp
+            , onToggleKeyboardCommands = ToggleKeyboardCommands
+            }
+    in
+    Layout.UserDesktop.layout config
+        [ div
             [ classList
-                [ ( "mx-auto max-w-xs leading-normal pb-8", True )
+                [ ( "mx-auto max-w-xs leading-normal py-8", True )
                 , ( "shake", not (List.isEmpty model.errors) )
                 ]
             ]
@@ -226,14 +268,7 @@ resolvedView globals model data =
                 [ h1 [ class "pb-4 font-bold tracking-semi-tight text-3xl" ] [ text "Create a team" ]
                 , p [] [ text "A team in Level can represent a company or an organization. Once you create your team, you can invite your teammates to join." ]
                 ]
-            , div [ class "pb-6" ]
-                [ label [ for "name", class "input-label" ] [ text "Name your team" ]
-                , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
-                ]
-            , div [ class "pb-6" ]
-                [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
-                , slugField model.slug model.errors
-                ]
+            , formFields model
             , button
                 [ type_ "submit"
                 , class "btn btn-blue"
@@ -242,6 +277,64 @@ resolvedView globals model data =
                 ]
                 [ text "Create my team" ]
             ]
+        ]
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { globals = globals
+            , viewer = data.viewer
+            , title = "New Team"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.UserMobile.Back Route.Spaces
+            , rightControl =
+                Layout.UserMobile.Custom <|
+                    button
+                        [ type_ "submit"
+                        , class "btn btn-blue btn-md"
+                        , onClick Submit
+                        , disabled (model.formState == Submitting)
+                        ]
+                        [ text "Create" ]
+            }
+    in
+    Layout.UserMobile.layout config
+        [ div
+            [ classList
+                [ ( "p-5", True )
+                , ( "shake", not (List.isEmpty model.errors) )
+                ]
+            ]
+            [ div [ class "pb-6" ]
+                [ p [] [ text "A team in Level can represent a company or an organization. Once you create your team, you can invite your teammates to join." ]
+                ]
+            , formFields model
+            ]
+        ]
+
+
+
+-- SHARED
+
+
+formFields : Model -> Html Msg
+formFields model =
+    div []
+        [ div [ class "pb-6" ]
+            [ label [ for "name", class "input-label" ] [ text "Name your team" ]
+            , textField (FormField "text" "name" "Smith, Co." model.name NameChanged True) model.errors
+            ]
+        , div [ class "pb-6" ]
+            [ label [ for "slug", class "input-label" ] [ text "Pick your URL" ]
+            , slugField model.slug model.errors
+            ]
+        ]
 
 
 textField : FormField -> List ValidationError -> Html Msg

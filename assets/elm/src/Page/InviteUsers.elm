@@ -234,7 +234,7 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div [ class "p-4 leading-normal" ]
+        [ div [ class "p-5" ]
             [ bodyView (Space.openInvitationUrl data.space)
             ]
         ]
