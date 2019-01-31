@@ -164,7 +164,7 @@ spacesSidebar config =
             else
                 Icons.Off
     in
-    div [ class "fixed p-3 px-4 h-full bg-grey-light z-40 overflow-y-scroll" ]
+    div [ class "fixed p-3 h-full bg-grey-light z-40 overflow-y-scroll" ]
         [ a
             [ Route.href Route.Home
             , class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
