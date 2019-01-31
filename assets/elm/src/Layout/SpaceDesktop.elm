@@ -151,7 +151,7 @@ spacesSidebar config =
                     []
 
         homeToggle =
-            if config.globals.currentRoute == Just Route.Spaces then
+            if config.globals.currentRoute == Just Route.Home then
                 Icons.On
 
             else
@@ -166,7 +166,7 @@ spacesSidebar config =
     in
     div [ class "fixed p-3 px-4 h-full bg-grey-light z-40 overflow-y-scroll" ]
         [ a
-            [ Route.href Route.Spaces
+            [ Route.href Route.Home
             , class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
             ]
             [ Icons.home homeToggle ]

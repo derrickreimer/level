@@ -23,6 +23,7 @@ import Page.Group
 import Page.GroupSettings
 import Page.Groups
 import Page.Help
+import Page.Home
 import Page.Inbox
 import Page.InviteUsers
 import Page.NewGroup
@@ -226,6 +227,7 @@ type Msg
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
+    | HomeMsg Page.Home.Msg
     | SpacesMsg Page.Spaces.Msg
     | NewSpaceMsg Page.NewSpace.Msg
     | PostsMsg Page.Posts.Msg
@@ -334,6 +336,11 @@ update msg model =
 
         ( PageInitialized pageInit, _ ) ->
             setupPage pageInit model
+
+        ( HomeMsg pageMsg, Home pageModel ) ->
+            pageModel
+                |> Page.Home.update pageMsg globals
+                |> updatePageWithGlobals Home HomeMsg model
 
         ( SpacesMsg pageMsg, Spaces pageModel ) ->
             pageModel
@@ -532,6 +539,7 @@ update msg model =
 type Page
     = Blank
     | NotFound
+    | Home Page.Home.Model
     | Spaces Page.Spaces.Model
     | NewSpace Page.NewSpace.Model
     | Posts Page.Posts.Model
@@ -555,7 +563,8 @@ type Page
 
 
 type PageInit
-    = SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
+    = HomeInit (Result Session.Error ( Globals, Page.Home.Model ))
+    | SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
     | InboxInit (Result Session.Error (Response ( Globals, Page.Inbox.Model )))
@@ -599,6 +608,11 @@ navigateTo maybeRoute model =
 
         Just (Route.Root spaceSlug) ->
             navigateTo (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) model
+
+        Just Route.Home ->
+            globals
+                |> Page.Home.init
+                |> transition model HomeInit
 
         Just Route.Spaces ->
             globals
@@ -704,6 +718,9 @@ navigateTo maybeRoute model =
 pageTitle : Repo -> Page -> String
 pageTitle repo page =
     case page of
+        Home _ ->
+            Page.Home.title
+
         Spaces _ ->
             Page.Spaces.title
 
@@ -785,6 +802,15 @@ setupPage pageInit model =
             )
     in
     case pageInit of
+        HomeInit (Ok result) ->
+            perform Page.Home.setup Home HomeMsg model result
+
+        HomeInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        HomeInit (Err _) ->
+            ( model, Cmd.none )
+
         SpacesInit (Ok result) ->
             perform Page.Spaces.setup Spaces SpacesMsg model result
 
@@ -980,6 +1006,9 @@ setupPage pageInit model =
 teardownPage : Globals -> Page -> Cmd Msg
 teardownPage globals page =
     case page of
+        Home pageModel ->
+            Cmd.map HomeMsg (Page.Home.teardown pageModel)
+
         Spaces pageModel ->
             Cmd.map SpacesMsg (Page.Spaces.teardown pageModel)
 
@@ -1081,6 +1110,9 @@ pageSubscription page =
 routeFor : Page -> Maybe Route
 routeFor page =
     case page of
+        Home _ ->
+            Just Route.Home
+
         Spaces _ ->
             Just Route.Spaces
 
@@ -1151,6 +1183,9 @@ routeFor page =
 getSpaceSlug : Page -> Maybe String
 getSpaceSlug page =
     case page of
+        Home _ ->
+            Nothing
+
         Spaces _ ->
             Nothing
 
@@ -1221,6 +1256,11 @@ getSpaceSlug page =
 pageView : Globals -> Page -> Html Msg
 pageView globals page =
     case page of
+        Home pageModel ->
+            pageModel
+                |> Page.Home.view globals
+                |> Html.map HomeMsg
+
         Spaces pageModel ->
             pageModel
                 |> Page.Spaces.view globals
@@ -1502,6 +1542,11 @@ consumeEvent event ({ page } as model) =
 sendEventToPage : Globals -> Event -> Model -> ( Model, Cmd Msg )
 sendEventToPage globals event model =
     case model.page of
+        Home pageModel ->
+            pageModel
+                |> Page.Home.consumeEvent event
+                |> updatePage Home HomeMsg model
+
         Spaces pageModel ->
             pageModel
                 |> Page.Spaces.consumeEvent event
