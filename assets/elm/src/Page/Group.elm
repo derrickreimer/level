@@ -1046,7 +1046,8 @@ resolvedDesktopView : Globals -> Model -> Data -> Html Msg
 resolvedDesktopView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
@@ -1308,33 +1309,31 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "Open" Route.Group.Open (openParams model.params) model.params
-                , filterTab Device.Mobile "Resolved" Route.Group.Closed (closedParams model.params) model.params
-                ]
-            , viewIf (Group.state data.group == Group.Closed) <|
-                p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
-                    [ div [ class "flex-grow" ] [ text "This group is closed." ]
-                    , div [ class "flex-no-shrink" ]
-                        [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
-                        ]
-                    ]
-            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
-            , div [ class "px-3" ]
-                [ mobilePostsView globals model data ]
-            , a
-                [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupName model.params))
-                , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
-                , style "bottom" "25px"
-                , style "right" "25px"
-                ]
-                [ Icons.commentWhite ]
-            , viewIf model.showSidebar <|
-                Layout.SpaceMobile.rightSidebar config
-                    [ div [ class "p-6" ] (sidebarView data.space data.group data.featuredMembers model)
-                    ]
+        [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
+            [ filterTab Device.Mobile "Open" Route.Group.Open (openParams model.params) model.params
+            , filterTab Device.Mobile "Resolved" Route.Group.Closed (closedParams model.params) model.params
             ]
+        , viewIf (Group.state data.group == Group.Closed) <|
+            p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
+                [ div [ class "flex-grow" ] [ text "This group is closed." ]
+                , div [ class "flex-no-shrink" ]
+                    [ button [ class "btn btn-blue btn-sm", onClick ReopenClicked ] [ text "Reopen this group" ]
+                    ]
+                ]
+        , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
+        , div [ class "p-3 pt-0" ]
+            [ mobilePostsView globals model data ]
+        , a
+            [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupName model.params))
+            , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
+            , style "bottom" "25px"
+            , style "right" "25px"
+            ]
+            [ Icons.commentWhite ]
+        , viewIf model.showSidebar <|
+            Layout.SpaceMobile.rightSidebar config
+                [ div [ class "p-6" ] (sidebarView data.space data.group data.featuredMembers model)
+                ]
         ]
 
 

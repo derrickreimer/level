@@ -6,6 +6,7 @@ defmodule Level.Spaces do
   import Ecto.Query
   import Level.Gettext
 
+  alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.AssetStore
   alias Level.Events
@@ -13,6 +14,7 @@ defmodule Level.Spaces do
   alias Level.Levelbot
   alias Level.Postbot
   alias Level.Repo
+  alias Level.Schemas.Bot
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
@@ -514,5 +516,23 @@ defmodule Level.Spaces do
     space_user
     |> Ecto.Changeset.change(state: "ACTIVE")
     |> Repo.update()
+  end
+
+  @doc """
+  Installs a bot in a space.
+  """
+  @spec install_bot(Space.t(), Bot.t()) :: {:ok, SpaceBot.t()} | {:error, Ecto.Changeset.t()}
+  def install_bot(%Space{} = space, %Bot{} = bot) do
+    params = %{
+      space_id: space.id,
+      bot_id: bot.id,
+      handle: bot.handle,
+      display_name: bot.display_name,
+      avatar: bot.avatar
+    }
+
+    %SpaceBot{}
+    |> Changeset.change(params)
+    |> Repo.insert(on_conflict: :nothing)
   end
 end

@@ -338,7 +338,8 @@ resolvedDesktopView : Globals -> Model -> Data -> Html Msg
 resolvedDesktopView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
@@ -395,13 +396,11 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div [ class "mx-auto leading-normal" ]
-            [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "Open" Route.Groups.Open (openParams model.params) model.params
-                , filterTab Device.Mobile "Closed" Route.Groups.Closed (closedParams model.params) model.params
-                ]
-            , div [ class "py-2 px-4" ] [ groupsView globals.repo model.params data.space model.groups ]
+        [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
+            [ filterTab Device.Mobile "Open" Route.Groups.Open (openParams model.params) model.params
+            , filterTab Device.Mobile "Closed" Route.Groups.Closed (closedParams model.params) model.params
             ]
+        , div [ class "p-3" ] [ groupsView globals.repo model.params data.space model.groups ]
         ]
 
 

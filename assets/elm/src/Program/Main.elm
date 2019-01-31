@@ -23,6 +23,7 @@ import Page.Group
 import Page.GroupSettings
 import Page.Groups
 import Page.Help
+import Page.Home
 import Page.Inbox
 import Page.InviteUsers
 import Page.NewGroup
@@ -103,6 +104,7 @@ type alias Model =
     , pushStatus : PushStatus
     , socketState : SocketState
     , currentUser : Lazy User
+    , spaceIds : Lazy (List Id)
     , timeZone : String
     , flash : Flash
     , going : Bool
@@ -155,6 +157,7 @@ buildModel flags navKey =
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
         NotLoaded
+        NotLoaded
         flags.timeZone
         Flash.init
         False
@@ -162,21 +165,21 @@ buildModel flags navKey =
 
 
 setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
-setup { currentUser, spaceIds, spaceUserIds } model =
+setup resp model =
     let
         subscribeToSpaces =
             Cmd.batch <|
-                List.map SpaceSubscription.subscribe spaceIds
+                List.map SpaceSubscription.subscribe resp.spaceIds
 
         subscribeToSpaceUsers =
             Cmd.batch <|
-                List.map SpaceUserSubscription.subscribe spaceUserIds
+                List.map SpaceUserSubscription.subscribe resp.spaceUserIds
 
         updateTimeZone =
             -- Note: It would be better to present the user with a notice that their
             -- time zone on file differs from the one currently detected in their browser,
             -- and ask if they want to change it.
-            if User.timeZone currentUser /= model.timeZone then
+            if User.timeZone resp.currentUser /= model.timeZone then
                 model.session
                     |> UpdateUser.request (UpdateUser.timeZoneVariables model.timeZone)
                     |> Task.attempt TimeZoneUpdated
@@ -184,7 +187,11 @@ setup { currentUser, spaceIds, spaceUserIds } model =
             else
                 Cmd.none
     in
-    ( { model | currentUser = Loaded currentUser }
+    ( { model
+        | currentUser = Loaded resp.currentUser
+        , spaceIds = Loaded resp.spaceIds
+        , repo = Repo.union resp.repo model.repo
+      }
     , Cmd.batch
         [ UserSubscription.subscribe
         , subscribeToSpaces
@@ -199,6 +206,7 @@ buildGlobals model =
     { session = model.session
     , repo = model.repo
     , navKey = model.navKey
+    , spaceIds = model.spaceIds
     , timeZone = model.timeZone
     , flash = model.flash
     , device = model.device
@@ -219,6 +227,7 @@ type Msg
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
+    | HomeMsg Page.Home.Msg
     | SpacesMsg Page.Spaces.Msg
     | NewSpaceMsg Page.NewSpace.Msg
     | PostsMsg Page.Posts.Msg
@@ -327,6 +336,11 @@ update msg model =
 
         ( PageInitialized pageInit, _ ) ->
             setupPage pageInit model
+
+        ( HomeMsg pageMsg, Home pageModel ) ->
+            pageModel
+                |> Page.Home.update pageMsg globals
+                |> updatePageWithGlobals Home HomeMsg model
 
         ( SpacesMsg pageMsg, Spaces pageModel ) ->
             pageModel
@@ -525,6 +539,7 @@ update msg model =
 type Page
     = Blank
     | NotFound
+    | Home Page.Home.Model
     | Spaces Page.Spaces.Model
     | NewSpace Page.NewSpace.Model
     | Posts Page.Posts.Model
@@ -548,7 +563,8 @@ type Page
 
 
 type PageInit
-    = SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
+    = HomeInit (Result Session.Error ( Globals, Page.Home.Model ))
+    | SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
     | InboxInit (Result Session.Error (Response ( Globals, Page.Inbox.Model )))
@@ -592,6 +608,11 @@ navigateTo maybeRoute model =
 
         Just (Route.Root spaceSlug) ->
             navigateTo (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) model
+
+        Just Route.Home ->
+            globals
+                |> Page.Home.init
+                |> transition model HomeInit
 
         Just Route.Spaces ->
             globals
@@ -697,6 +718,9 @@ navigateTo maybeRoute model =
 pageTitle : Repo -> Page -> String
 pageTitle repo page =
     case page of
+        Home _ ->
+            Page.Home.title
+
         Spaces _ ->
             Page.Spaces.title
 
@@ -771,13 +795,22 @@ setupPage pageInit model =
             ( { appModel
                 | page = toPage pageModel
                 , session = newGlobals.session
-                , repo = newGlobals.repo
+                , repo = Repo.union newGlobals.repo model.repo
                 , isTransitioning = False
               }
             , Cmd.map toPageMsg (setupFn pageModel)
             )
     in
     case pageInit of
+        HomeInit (Ok result) ->
+            perform Page.Home.setup Home HomeMsg model result
+
+        HomeInit (Err Session.Expired) ->
+            ( model, Route.toLogin )
+
+        HomeInit (Err _) ->
+            ( model, Cmd.none )
+
         SpacesInit (Ok result) ->
             perform Page.Spaces.setup Spaces SpacesMsg model result
 
@@ -973,6 +1006,9 @@ setupPage pageInit model =
 teardownPage : Globals -> Page -> Cmd Msg
 teardownPage globals page =
     case page of
+        Home pageModel ->
+            Cmd.map HomeMsg (Page.Home.teardown pageModel)
+
         Spaces pageModel ->
             Cmd.map SpacesMsg (Page.Spaces.teardown pageModel)
 
@@ -1074,6 +1110,9 @@ pageSubscription page =
 routeFor : Page -> Maybe Route
 routeFor page =
     case page of
+        Home _ ->
+            Just Route.Home
+
         Spaces _ ->
             Just Route.Spaces
 
@@ -1144,6 +1183,9 @@ routeFor page =
 getSpaceSlug : Page -> Maybe String
 getSpaceSlug page =
     case page of
+        Home _ ->
+            Nothing
+
         Spaces _ ->
             Nothing
 
@@ -1214,6 +1256,11 @@ getSpaceSlug page =
 pageView : Globals -> Page -> Html Msg
 pageView globals page =
     case page of
+        Home pageModel ->
+            pageModel
+                |> Page.Home.view globals
+                |> Html.map HomeMsg
+
         Spaces pageModel ->
             pageModel
                 |> Page.Spaces.view globals
@@ -1495,6 +1542,11 @@ consumeEvent event ({ page } as model) =
 sendEventToPage : Globals -> Event -> Model -> ( Model, Cmd Msg )
 sendEventToPage globals event model =
     case model.page of
+        Home pageModel ->
+            pageModel
+                |> Page.Home.consumeEvent event
+                |> updatePage Home HomeMsg model
+
         Spaces pageModel ->
             pageModel
                 |> Page.Spaces.consumeEvent event

@@ -363,7 +363,8 @@ resolvedDesktopView : Globals -> Model -> Data -> Html Msg
 resolvedDesktopView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
@@ -512,43 +513,41 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout layoutConfig
-        [ div [ class "mx-auto leading-normal" ]
-            [ p [ class "px-3 py-3 text-sm text-dusty-blue-dark" ]
-                [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-                , text "Hashtag one or more Channels in your message."
+        [ p [ class "px-3 py-3 text-sm text-dusty-blue-dark" ]
+            [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
+            , text "Hashtag one or more Channels in your message."
+            ]
+        , PostEditor.wrapper composerConfig
+            [ textarea
+                [ id (PostEditor.getTextareaId editor)
+                , class "w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
+                , placeholder "Compose a new post..."
+                , onInput NewPostBodyChanged
+                , readonly (PostEditor.isSubmitting editor)
+                , value (PostEditor.getBody editor)
                 ]
-            , PostEditor.wrapper composerConfig
-                [ textarea
-                    [ id (PostEditor.getTextareaId editor)
-                    , class "w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
-                    , placeholder "Compose a new post..."
-                    , onInput NewPostBodyChanged
-                    , readonly (PostEditor.isSubmitting editor)
-                    , value (PostEditor.getBody editor)
+                []
+            , div [ class "p-3" ]
+                [ PostEditor.filesView editor
+                ]
+            ]
+        , div [ class "p-3" ]
+            [ viewUnless (PostEditor.getIsUrgent editor) <|
+                button
+                    [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-dusty-blue"
+                    , onClick ToggleUrgent
                     ]
-                    []
-                , div [ class "p-4" ]
-                    [ PostEditor.filesView editor
+                    [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.Off ]
+                    , div [] [ text "Click to interrupt @mentioned people" ]
                     ]
-                ]
-            , div [ class "mx-2 pb-4" ]
-                [ viewUnless (PostEditor.getIsUrgent editor) <|
-                    button
-                        [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-dusty-blue"
-                        , onClick ToggleUrgent
-                        ]
-                        [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.Off ]
-                        , div [] [ text "Click to interrupt @mentioned people" ]
-                        ]
-                , viewIf (PostEditor.getIsUrgent editor) <|
-                    button
-                        [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
-                        , onClick ToggleUrgent
-                        ]
-                        [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
-                        , div [] [ text "Click to interrupt nobody" ]
-                        ]
-                ]
+            , viewIf (PostEditor.getIsUrgent editor) <|
+                button
+                    [ class "flex items-center mr-2 p-2 pr-3 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline text-red text-md font-bold"
+                    , onClick ToggleUrgent
+                    ]
+                    [ div [ class "mr-2 flex-no-grow" ] [ Icons.alert Icons.On ]
+                    , div [] [ text "Click to interrupt nobody" ]
+                    ]
             ]
         ]
 

@@ -657,7 +657,7 @@ post-editor.dragging-over > * {
 .tooltip-left:after,
 .tooltip-right:after {
   margin-left: 0;
-  margin-bottom: -16px;
+  margin-bottom: -13px;
 }
 
 /**

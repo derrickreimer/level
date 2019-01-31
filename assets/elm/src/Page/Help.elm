@@ -205,7 +205,8 @@ resolvedDesktopView : Globals -> Model -> Data -> Html Msg
 resolvedDesktopView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
@@ -265,7 +266,7 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div [ class "p-4 leading-normal" ]
+        [ div [ class "p-5" ]
             [ div [ class "pb-6 text-dusty-blue-darker" ]
                 [ ul [ class "mb-4 pb-6 border-b list-reset" ]
                     [ li []

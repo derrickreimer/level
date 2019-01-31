@@ -664,12 +664,14 @@ module.exports = {
     '2': '0.5rem',
     '3': '0.75rem',
     '4': '1rem',
+    '5': '1.25rem',
     '6': '1.5rem',
     '8': '2rem',
     '16': '4rem',
     '24': '6rem',
     '48': '12rem',
     '56': '14rem',
+    '64': '16rem',
   },
 
 
@@ -856,7 +858,7 @@ module.exports = {
     minHeight: ['responsive'],
     minWidth: ['responsive'],
     negativeMargin: ['responsive'],
-    opacity: ['responsive'],
+    opacity: ['responsive', 'hover'],
     overflow: ['responsive'],
     padding: ['responsive'],
     pointerEvents: ['responsive'],

@@ -316,7 +316,8 @@ resolvedDesktopView globals model data =
                 (Route.GroupSettings.getGroupName model.params)
 
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute

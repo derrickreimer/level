@@ -247,7 +247,8 @@ resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute

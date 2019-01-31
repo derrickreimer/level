@@ -30,7 +30,8 @@ import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, top)
 
 
 type Route
-    = Spaces
+    = Home
+    | Spaces
     | NewSpace
     | Root String
     | Posts Route.Posts.Params
@@ -56,7 +57,8 @@ type Route
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map Spaces (s "spaces")
+        [ Parser.map Home (s "home")
+        , Parser.map Spaces (s "spaces")
         , Parser.map NewSpace (s "spaces" </> s "new")
         , Parser.map Root Parser.string
         , Parser.map Posts Route.Posts.parser
@@ -121,6 +123,9 @@ toSpace slug =
 toString : Route -> String
 toString page =
     case page of
+        Home ->
+            absolute [ "home" ] []
+
         Spaces ->
             absolute [ "spaces" ] []
 

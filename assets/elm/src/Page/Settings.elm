@@ -388,7 +388,8 @@ resolvedDesktopView : Globals -> Model -> Data -> Html Msg
 resolvedDesktopView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
@@ -440,18 +441,16 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout config
-        [ div [ class "leading-normal" ]
-            [ div [ class "flex justify-center items-baseline mb-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
-                , viewIf (Space.canUpdate data.space) <|
-                    filterTab Device.Mobile "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
-                ]
-            , div [ class "p-4" ]
-                [ viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
-                    preferencesView Device.Mobile model data
-                , viewIf (Route.Settings.getSection model.params == Route.Settings.Space) <|
-                    spaceSettingsView model data
-                ]
+        [ div [ class "flex justify-center items-baseline mb-2 pt-2 border-b" ]
+            [ filterTab Device.Mobile "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
+            , viewIf (Space.canUpdate data.space) <|
+                filterTab Device.Mobile "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
+            ]
+        , div [ class "p-5" ]
+            [ viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
+                preferencesView Device.Mobile model data
+            , viewIf (Route.Settings.getSection model.params == Route.Settings.Space) <|
+                spaceSettingsView model data
             ]
         ]
 
