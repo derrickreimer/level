@@ -260,7 +260,7 @@ resolvedDesktopView globals model data =
     Layout.UserDesktop.layout config
         [ div
             [ classList
-                [ ( "mx-auto max-w-xs leading-normal py-8", True )
+                [ ( "mx-auto max-w-xs leading-normal py-24", True )
                 , ( "shake", not (List.isEmpty model.errors) )
                 ]
             ]

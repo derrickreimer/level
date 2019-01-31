@@ -195,10 +195,11 @@ resolvedDesktopView globals model data =
     in
     Layout.UserDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
-            [ div [ class "pb-6 text-dusty-blue-darker" ]
-                [ div [ class "mb-6" ]
-                    [ h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Home" ]
-                    ]
+            [ div [ class "py-8 text-dusty-blue-darker" ]
+                [ div [ class "pb-2" ]
+                    [ span [ class "px-3 py-1 bg-turquoise text-white text-sm rounded-full font-bold" ] [ text "Coming Soon" ] ]
+                , h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Unified Inbox & Feed" ]
+                , p [ class "mb-6" ] [ text "If you belong to more than one Level team, the unified Inbox and Feed will give you one central place to keep up with all your teams!" ]
                 ]
             ]
         ]
@@ -220,13 +221,15 @@ resolvedMobileView globals model data =
             , onSidebarToggled = SidebarToggled
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
-            , leftControl = Layout.UserMobile.NoControl
+            , leftControl = Layout.UserMobile.Back Route.Spaces
             , rightControl = Layout.UserMobile.NoControl
             }
     in
     Layout.UserMobile.layout config
         [ div [ class "p-5" ]
-            [ div [ class "pb-6 text-dusty-blue-darker" ]
-                []
+            [ div [ class "pb-2" ]
+                [ span [ class "px-3 py-1 bg-turquoise text-white text-sm rounded-full font-bold" ] [ text "Coming Soon" ] ]
+            , h1 [ class "mb-4 font-bold tracking-semi-tight text-3xl text-dusty-blue-darkest" ] [ text "Unified Inbox & Feed" ]
+            , p [ class "mb-6" ] [ text "If you belong to more than one Level team, the unified Inbox and Feed will give you one central place to keep up with all your teams!" ]
             ]
         ]
