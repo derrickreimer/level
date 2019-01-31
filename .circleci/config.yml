@@ -8,6 +8,7 @@ jobs:
     environment:
       MIX_ENV: test
       COVERALLS_REPO_TOKEN: WQJAD2rl0QMcK0OukyWM49Aq1gXqQEJXY
+      TESTMETRICS_PROJECT_KEY: qJI_b4D4EMnnX2njMlltag
 
     working_directory: /home/circleci/repo
     steps:
@@ -32,7 +33,7 @@ jobs:
           command: mix ecto.create
       - run:
           name: "Run Elixir test suite (with coveralls)"
-          command: mix coveralls
+          command: mix coveralls --preload-modules
       - run:
           name: "Run Elixir linting"
           command: mix credo
