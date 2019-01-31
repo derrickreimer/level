@@ -164,18 +164,31 @@ spacesSidebar config =
             else
                 Icons.Off
     in
-    div [ class "fixed p-3 h-full bg-grey-light z-40 overflow-y-scroll" ]
-        [ a
-            [ Route.href Route.Home
-            , class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+    div [ class "fixed h-full bg-grey-light z-40" ]
+        [ div [ class "p-3" ]
+            [ a
+                [ Route.href Route.Home
+                , class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+                ]
+                [ Icons.home homeToggle ]
             ]
-            [ Icons.home homeToggle ]
-        , div [ class "mb-4" ] <| List.map (spaceLink config) spaces
-        , a
-            [ Route.href Route.NewSpace
-            , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+        , div [ class "px-3 absolute overflow-y-scroll", style "top" "65px", style "bottom" "70px" ]
+            [ div [ class "mb-4" ] <| List.map (spaceLink config) spaces
+            , a
+                [ Route.href Route.NewSpace
+                , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+                ]
+                [ Icons.plus newSpaceToggle ]
             ]
-            [ Icons.plus newSpaceToggle ]
+        , div [ class "p-3" ]
+            [ a
+                [ class "absolute pin-b flex items-center mb-5 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+                , href "/logout"
+                , rel "tooltip"
+                , title "Sign out"
+                ]
+                [ Icons.logOut ]
+            ]
         ]
 
 

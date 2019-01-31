@@ -164,7 +164,7 @@ inbox toggle =
 logOut : Html msg
 logOut =
     iconView <|
-        svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "log-out", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M6,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L6,0", id "Shape" ] [], polyline [ id "Shape", points "13 14 18 9 13 4" ] [], Svg.path [ d "M18,9 L6,9", id "Shape" ] [] ] ] ]
+        svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "log-out", transform "translate(10.000000, 10.000000) scale(-1, 1) translate(-10.000000, -10.000000) translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M6,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L6,0", id "Shape" ] [], polyline [ id "Shape", points "13 14 18 9 13 4" ] [], Svg.path [ d "M18,9 L6,9", id "Shape" ] [] ] ] ]
 
 
 menu : Html msg
@@ -228,7 +228,7 @@ home toggle =
 
         Off ->
             iconView <|
-                svg [ width "20px", height "22px", viewBox "0 0 20 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "home", transform "translate(1.000000, 1.000000)", fill "#8A98A5", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M12,20 L12,10 L6,10 L6,20 L2,20 C0.8954305,20 0,19.1045695 0,18 L0,7 L9,0 L18,7 L18,18 C18,19.1045695 17.1045695,20 16,20 L12,20 Z", id "Combined-Shape" ] [] ] ] ]
+                svg [ width "20px", height "22px", viewBox "0 0 20 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "home", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M12,20 L12,10 L6,10 L6,20 L2,20 C0.8954305,20 0,19.1045695 0,18 L0,7 L9,0 L18,7 L18,18 C18,19.1045695 17.1045695,20 16,20 L12,20 Z", id "Combined-Shape" ] [] ] ] ]
 
 
 lock : Html msg
@@ -253,11 +253,11 @@ plus toggle =
     case toggle of
         On ->
             iconView <|
-                svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "plus", transform "translate(2.000000, 2.000000)", stroke "#4b73e1", strokeWidth "3" ] [ Svg.path [ d "M7,0 L7,14", id "Path" ] [], Svg.path [ d "M0,7 L14,7", id "Path" ] [] ] ] ]
+                svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "plus-copy", transform "translate(1.000000, 1.000000)", stroke "#4b73e1", strokeWidth "2" ] [ Svg.path [ d "M8,0 L8,16", id "Path" ] [], Svg.path [ d "M0,8 L16,8", id "Path" ] [] ] ] ]
 
         Off ->
             iconView <|
-                svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "plus", transform "translate(2.000000, 2.000000)", stroke "#8A98A5", strokeWidth "3" ] [ Svg.path [ d "M7,0 L7,14", id "Path" ] [], Svg.path [ d "M0,7 L14,7", id "Path" ] [] ] ] ]
+                svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "plus-copy", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M8,0 L8,16", id "Path" ] [], Svg.path [ d "M0,8 L16,8", id "Path" ] [] ] ] ]
 
 
 postbot : Html msg
