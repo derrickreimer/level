@@ -18,6 +18,7 @@ defmodule Level.Schemas.GroupUser do
   schema "group_users" do
     field :state, :string, read_after_writes: true
     field :role, :string, read_after_writes: true
+    field :access, :string, read_after_writes: true
 
     belongs_to :space, Space
     belongs_to :space_user, SpaceUser
