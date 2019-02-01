@@ -98,6 +98,22 @@ defmodule Level.SpacesTest do
     end
   end
 
+  describe "get_first_member_space/1" do
+    test "returns the first space the user belongs to" do
+      {:ok, %{space: _, user: user}} = create_user_and_space(%{}, %{name: "Banana"})
+      {:ok, %{space: %Space{id: space_id}}} = create_space(user, %{name: "Apple"})
+      {:ok, %{space: _, user: _}} = create_user_and_space(%{}, %{name: "Aardvark"})
+
+      assert %Space{id: ^space_id} = Spaces.get_first_member_space(user)
+    end
+
+    test "returns nil if user doesn't belong to any spaces" do
+      {:ok, user} = create_user()
+
+      assert Spaces.get_first_member_space(user) == nil
+    end
+  end
+
   describe "create_space/2" do
     setup do
       {:ok, user} = create_user()

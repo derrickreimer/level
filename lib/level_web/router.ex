@@ -75,7 +75,6 @@ defmodule LevelWeb.Router do
   scope "/" do
     pipe_through [
       :anonymous_browser,
-      :fetch_current_user_by_session,
       :redirect_unless_signed_in
     ]
 

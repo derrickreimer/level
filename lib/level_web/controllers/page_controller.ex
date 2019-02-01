@@ -3,9 +3,23 @@ defmodule LevelWeb.PageController do
 
   use LevelWeb, :controller
 
+  alias Level.Schemas.Space
+  alias Level.Spaces
   alias Level.Users
 
   plug :put_layout, "page.html"
+
+  def index(%Plug.Conn{assigns: %{current_user: user}} = conn, _params) when not is_nil(user) do
+    case Spaces.get_first_member_space(user) do
+      %Space{} = space ->
+        conn
+        |> redirect(to: main_path(conn, :index, [space.slug]))
+
+      nil ->
+        conn
+        |> redirect(to: main_path(conn, :index, ["spaces", "new"]))
+    end
+  end
 
   def index(conn, _params) do
     reservation_count =

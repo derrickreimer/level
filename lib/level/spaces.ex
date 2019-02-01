@@ -77,6 +77,18 @@ defmodule Level.Spaces do
   end
 
   @doc """
+  Fetches the first space that a user belongs to.
+  """
+  @spec get_first_member_space(User.t()) :: Space.t() | nil
+  def get_first_member_space(%User{} = user) do
+    user
+    |> spaces_base_query()
+    |> order_by(asc: :name)
+    |> limit(1)
+    |> Repo.one()
+  end
+
+  @doc """
   Fetches a space by id.
   """
   @spec get_space(String.t()) :: get_space_result()
