@@ -302,7 +302,7 @@ postbotInstructions data =
             , p [ class "mb-6" ] [ text "Send messages to Level with a simple HTTP call." ]
             , h2 [ class "mb-2 text-lg font-bold" ] [ text "Endpoint" ]
             , p [ class "mb-3" ] [ text "Use the POST method with a JSON content type." ]
-            , div [ class "mb-6 flex items-baseline input-field p-0 pr-3 bg-grey border-none" ]
+            , div [ class "mb-6 flex items-baseline input-field p-0 pr-3 bg-grey-light border-none" ]
                 [ input [ type_ "text", class "block mr-4 pl-3 py-1 bg-transparent flex-grow font-mono text-md overflow-auto text-dusty-blue-darker", value (Space.postbotUrl data.space), readonly True ] []
                 , Clipboard.button "Copy"
                     (Space.postbotUrl data.space)
@@ -329,7 +329,7 @@ postbotInstructions data =
                 ]
             , h2 [ class "mb-2 text-lg font-bold" ] [ text "Example Request" ]
             , p [ class "mb-3" ] [ text "Paste the following into your Terminal to send yourself a bot message." ]
-            , div [ class "mb-6 flex items-start input-field p-0 pr-3 bg-grey border-none" ]
+            , div [ class "mb-6 flex items-start input-field p-0 pr-3 bg-grey-light border-none" ]
                 [ textarea [ class "block flex-grow mr-4 pl-3 py-2 h-16 bg-transparent font-mono text-md text-dusty-blue-darker resize-none whitespace-pre overflow-scroll", readonly True, style "overflow-wrap" "normal" ]
                     [ text curlCommand ]
                 , div [ class "py-2" ]
