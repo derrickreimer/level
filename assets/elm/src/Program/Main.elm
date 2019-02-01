@@ -1386,8 +1386,16 @@ consumeEvent event ({ page } as model) =
                     model.repo
                         |> Repo.setSpace space
                         |> Repo.setSpaceUser spaceUser
+
+                newSpaceIds =
+                    case model.spaceIds of
+                        NotLoaded ->
+                            [ Space.id space ]
+
+                        Loaded spaceIds ->
+                            Space.id space :: spaceIds
             in
-            ( { model | repo = newRepo }
+            ( { model | repo = newRepo, spaceIds = Loaded newSpaceIds }
             , Cmd.batch
                 [ SpaceSubscription.subscribe (Space.id space)
                 , SpaceUserSubscription.subscribe (SpaceUser.id spaceUser)
