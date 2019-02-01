@@ -44,6 +44,7 @@ type alias Model =
     , groupId : Id
     , bookmarkIds : List Id
     , isDefault : Bool
+    , isPrivate : Bool
     , spaceUserIds : List Id
     , selectedIds : List Id
     , isSubmitting : Bool
@@ -102,6 +103,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.groupId
                 resp.bookmarkIds
                 resp.isDefault
+                resp.isPrivate
                 resp.spaceUserIds
                 []
                 False
@@ -137,6 +139,7 @@ type Msg
     | ReopenClicked
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | DefaultToggled
+    | PrivateToggled
     | GroupUpdated (Result Session.Error ( Session, UpdateGroup.Response ))
       -- MOBILE
     | NavToggled
@@ -221,6 +224,18 @@ update msg globals model =
                         |> Task.attempt GroupUpdated
             in
             ( ( { model | isDefault = not model.isDefault, isSubmitting = True }, cmd ), globals )
+
+        PrivateToggled ->
+            let
+                variables =
+                    UpdateGroup.isPrivateVariables model.spaceId model.groupId (not model.isPrivate)
+
+                cmd =
+                    globals.session
+                        |> UpdateGroup.request variables
+                        |> Task.attempt GroupUpdated
+            in
+            ( ( { model | isPrivate = not model.isPrivate, isSubmitting = True }, cmd ), globals )
 
         GroupUpdated (Ok ( newSession, UpdateGroup.Success group )) ->
             let
@@ -341,9 +356,12 @@ resolvedDesktopView globals model data =
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab Device.Desktop "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
+                , filterTab Device.Desktop "Permissions" Route.GroupSettings.Permissions (Route.GroupSettings.setSection Route.GroupSettings.Permissions model.params) model.params
                 ]
             , viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.General) <|
                 generalView model data
+            , viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.Permissions) <|
+                permissionsView globals model data
             , viewIf (Group.state data.group == Group.Open) <|
                 button
                     [ class "text-md text-dusty-blue no-underline font-bold"
@@ -392,10 +410,13 @@ resolvedMobileView globals model data =
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
                 [ filterTab Device.Mobile "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
+                , filterTab Device.Mobile "Permissions" Route.GroupSettings.Permissions (Route.GroupSettings.setSection Route.GroupSettings.Permissions model.params) model.params
                 ]
             , div [ class "p-4" ]
                 [ viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.General) <|
                     generalView model data
+                , viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.Permissions) <|
+                    permissionsView globals model data
                 , viewIf (Group.state data.group == Group.Open) <|
                     button
                         [ class "text-md text-dusty-blue no-underline font-bold"
@@ -453,25 +474,36 @@ generalView model data =
         ]
 
 
-permissionsView : Repo -> Model -> Html Msg
-permissionsView repo model =
-    div []
-        [ div [ class "pb-6" ]
-            [ p [ class "text-base" ]
-                [ text "Manage who is allowed in the channel and appoint other owners to help admininstrate it."
+permissionsView : Globals -> Model -> Data -> Html Msg
+permissionsView globals model data =
+    div [ class "mb-4 pb-16 border-b" ]
+        [ label [ class "control checkbox pb-6" ]
+            [ input
+                [ type_ "checkbox"
+                , class "checkbox"
+                , onClick PrivateToggled
+                , checked model.isPrivate
+                , disabled model.isSubmitting
                 ]
+                []
+            , span [ class "control-indicator" ] []
+            , span [ class "select-none" ] [ text "Make this group private" ]
             ]
-        , usersView repo model
+        , viewIf model.isPrivate <|
+            usersView globals.repo model
         ]
 
 
 usersView : Repo -> Model -> Html Msg
 usersView repo model =
     div [ class "pb-6" ]
-        (model.spaceUserIds
-            |> List.filterMap (\id -> Repo.getSpaceUser id repo)
-            |> List.map (userView model)
-        )
+        [ p [ class "mb-4" ] [ text "Allow the following people to see this channel:" ]
+        , div []
+            (model.spaceUserIds
+                |> List.filterMap (\id -> Repo.getSpaceUser id repo)
+                |> List.map (userView model)
+            )
+        ]
 
 
 userView : Model -> SpaceUser -> Html Msg

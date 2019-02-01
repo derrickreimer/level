@@ -83,34 +83,34 @@ layout config children =
         , viewIf config.showNav <|
             div [ class "fixed pin z-50", style "background-color" "rgba(0,0,0,0.5)", onClick config.onNavToggled ]
                 [ div
-                    [ class "absolute w-56 pin-t pin-l pin-b shadow-lg bg-grey-lighter"
+                    [ class "absolute w-56 pin-t pin-l pin-b shadow-lg bg-white"
                     , stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed config.onNoOp))
                     ]
-                    [ div [ class "px-6 py-4" ]
-                        [ a [ Route.href Route.Spaces, class "block no-underline" ]
+                    [ div [ class "p-4 pt-3" ]
+                        [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
                             [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                            , div [ class "mb-2 font-headline font-bold text-xl text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
+                            , div [ class "mb-2 font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                             ]
                         ]
-                    , div [ class "absolute w-full overflow-y-auto", style "top" "110px", style "bottom" "60px" ]
+                    , div [ class "absolute px-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                            [ navLink config.space "Write" (Just <| Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
-                            , navLink config.space "Inbox" (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
-                            , navLink config.space "Feed" (Just <| Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                            [ sidebarTab "Write" Nothing (Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
+                            , sidebarTab "Inbox" Nothing (Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
+                            , sidebarTab "Feed" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
                             ]
                         , viewUnless (List.isEmpty config.bookmarks) <|
                             div []
-                                [ h3 [ class "mb-1p5 pl-6 font-sans text-base" ]
+                                [ h3 [ class "mb-1p5 pl-3 font-sans text-sm" ]
                                     [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue-dark no-underline" ] [ text "Channels" ] ]
-                                , bookmarkList config
+                                , channelList config
                                 ]
-                        , ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
+                        , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                             [ viewIf (List.isEmpty config.bookmarks) <|
-                                navLink config.space "Channels" (Just <| Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
-                            , navLink config.space "People" (Just <| Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
-                            , navLink config.space "Settings" (Just <| Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
-                            , navLink config.space "Integrations" (Just <| Route.Apps (Route.Apps.init spaceSlug)) config.currentRoute
-                            , navLink config.space "Help" (Just <| Route.Help (Route.Help.init spaceSlug)) config.currentRoute
+                                sidebarTab "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
+                            , sidebarTab "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
+                            , sidebarTab "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
+                            , sidebarTab "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.currentRoute
+                            , sidebarTab "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.currentRoute
                             ]
                         ]
                     , div [ class "absolute pin-b w-full" ]
@@ -170,80 +170,53 @@ controlView config control =
             div [ class "w-9" ] []
 
 
-bookmarkList : Config msg -> Html msg
-bookmarkList config =
+channelList : Config msg -> Html msg
+channelList config =
     let
         slug =
             Space.slug config.space
 
         linkify group =
-            navLink config.space ("#" ++ Group.name group) (Just <| Route.Group (Route.Group.init slug (Group.name group))) config.currentRoute
+            let
+                route =
+                    Route.Group (Route.Group.init slug (Group.name group))
+
+                icon =
+                    if Group.isPrivate group then
+                        Just Icons.lock
+
+                    else
+                        Nothing
+            in
+            sidebarTab ("#" ++ Group.name group) icon route config.currentRoute
 
         links =
             config.bookmarks
                 |> List.sortBy Group.name
                 |> List.map linkify
     in
-    ul [ class "mb-4 list-reset leading-semi-loose select-none" ] links
+    ul [ class "mb-6 list-reset leading-semi-loose select-none" ] links
 
 
-navLink : Space -> String -> Maybe Route -> Maybe Route -> Html msg
-navLink space title maybeRoute maybeCurrentRoute =
+sidebarTab : String -> Maybe (Html msg) -> Route -> Maybe Route -> Html msg
+sidebarTab title maybeIcon route currentRoute =
     let
-        currentItem route =
-            li [ class "flex items-center" ]
-                [ a
-                    [ Route.href route
-                    , class "block w-full mx-3 px-3 no-underline truncate text-dusty-blue-darkest text-lg font-bold bg-grey border-turquoise rounded-full"
-                    ]
-                    [ text title
-                    ]
-                ]
-
-        nonCurrentItem route =
-            li [ class "flex items-center" ]
-                [ a
-                    [ Route.href route
-                    , class "block w-full px-6 no-underline truncate text-dusty-blue-dark text-lg"
-                    ]
-                    [ text title ]
-                ]
+        isCurrent =
+            Route.isCurrent route currentRoute
     in
-    case ( maybeRoute, maybeCurrentRoute ) of
-        ( Just (Route.Inbox params), Just (Route.Inbox _) ) ->
-            currentItem (Route.Inbox params)
-
-        ( Just (Route.Posts params), Just (Route.Posts _) ) ->
-            currentItem (Route.Posts params)
-
-        ( Just (Route.Settings params), Just (Route.Settings _) ) ->
-            currentItem (Route.Settings params)
-
-        ( Just (Route.Group params), Just (Route.Group currentParams) ) ->
-            if Route.Group.hasSamePath params currentParams then
-                currentItem (Route.Group params)
-
-            else
-                nonCurrentItem (Route.Group params)
-
-        ( Just (Route.Groups params), Just (Route.Groups _) ) ->
-            currentItem (Route.Groups params)
-
-        ( Just route, Just currentRoute ) ->
-            if route == currentRoute then
-                currentItem route
-
-            else
-                nonCurrentItem route
-
-        ( _, _ ) ->
-            li [ class "flex" ]
-                [ a
-                    [ href "#"
-                    , class "ml-2 no-underline truncate text-dusty-blue-dark"
-                    ]
-                    [ text title ]
+    li []
+        [ a
+            [ Route.href route
+            , classList
+                [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
+                , ( "text-dusty-blue-dark bg-white hover:bg-grey-light", not isCurrent )
+                , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
                 ]
+            ]
+            [ div [ class "mr-2 flex-shrink truncate" ] [ text title ]
+            , div [ class "flex-no-grow" ] [ Maybe.withDefault (text "") maybeIcon ]
+            ]
+        ]
 
 
 alwaysStopPropagation : msg -> ( msg, Bool )

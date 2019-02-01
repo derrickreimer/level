@@ -22,6 +22,7 @@ type alias Response =
     , bookmarkIds : List Id
     , groupId : Id
     , isDefault : Bool
+    , isPrivate : Bool
     , repo : Repo
     }
 
@@ -114,6 +115,7 @@ buildResponse ( session, data ) =
                 (List.map Group.id data.bookmarks)
                 (Group.id data.group)
                 (Group.isDefault data.group)
+                (Group.isPrivate data.group)
                 repo
     in
     ( session, resp )

@@ -1,4 +1,4 @@
-module Mutation.UpdateGroup exposing (Response(..), isDefaultVariables, request, variables)
+module Mutation.UpdateGroup exposing (Response(..), isDefaultVariables, isPrivateVariables, request, variables)
 
 import GraphQL exposing (Document)
 import Group exposing (Group)
@@ -79,6 +79,15 @@ isDefaultVariables spaceId groupId isDefault =
         [ ( "spaceId", Id.encoder spaceId )
         , ( "groupId", Id.encoder groupId )
         , ( "isDefault", Encode.bool isDefault )
+        ]
+
+
+isPrivateVariables : Id -> Id -> Bool -> Encode.Value
+isPrivateVariables spaceId groupId isPrivate =
+    Encode.object
+        [ ( "spaceId", Id.encoder spaceId )
+        , ( "groupId", Id.encoder groupId )
+        , ( "isPrivate", Encode.bool isPrivate )
         ]
 
 
