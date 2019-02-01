@@ -12,9 +12,23 @@ defmodule LevelWeb.DigestView do
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
 
-  def display_name(%SpaceBot{display_name: display_name}), do: display_name
-
   def display_name(%SpaceUser{} = space_user) do
+    SpaceUser.display_name(space_user)
+  end
+
+  def display_name(%Post{} = post, %SpaceBot{display_name: bot_display_name}) do
+    post.display_name || bot_display_name
+  end
+
+  def display_name(%Post{} = post, %SpaceUser{} = space_user) do
+    post.display_name || SpaceUser.display_name(space_user)
+  end
+
+  def display_name(%Reply{}, %SpaceBot{display_name: bot_display_name}) do
+    bot_display_name
+  end
+
+  def display_name(%Reply{}, %SpaceUser{} = space_user) do
     SpaceUser.display_name(space_user)
   end
 

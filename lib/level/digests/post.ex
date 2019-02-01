@@ -12,8 +12,31 @@ defmodule Level.Digests.Post do
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
 
-  @enforce_keys [:id, :state, :body, :author, :groups, :recent_replies, :posted_at]
-  defstruct [:id, :state, :body, :author, :groups, :recent_replies, :posted_at]
+  @enforce_keys [
+    :id,
+    :state,
+    :body,
+    :author,
+    :groups,
+    :recent_replies,
+    :posted_at,
+    :display_name,
+    :initials,
+    :avatar_color
+  ]
+
+  defstruct [
+    :id,
+    :state,
+    :body,
+    :author,
+    :groups,
+    :recent_replies,
+    :posted_at,
+    :display_name,
+    :initials,
+    :avatar_color
+  ]
 
   @type t :: %__MODULE__{
           id: String.t(),
@@ -22,7 +45,10 @@ defmodule Level.Digests.Post do
           author: SpaceUser.t() | SpaceBot.t(),
           groups: [Group.t()],
           recent_replies: [Reply.t()],
-          posted_at: NaiveDateTime.t()
+          posted_at: NaiveDateTime.t(),
+          display_name: String.t() | nil,
+          initials: String.t() | nil,
+          avatar_color: String.t() | nil
         }
 
   def build(%SpaceUser{} = viewer, %Post{} = record) do
@@ -50,7 +76,10 @@ defmodule Level.Digests.Post do
       author: record.space_bot || record.space_user,
       groups: record.groups,
       recent_replies: recent_replies,
-      posted_at: record.inserted_at
+      posted_at: record.inserted_at,
+      display_name: record.display_name,
+      initials: record.initials,
+      avatar_color: record.avatar_color
     }
   end
 end
