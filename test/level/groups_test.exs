@@ -109,13 +109,15 @@ defmodule Level.GroupsTest do
 
     test "returns the group if it's private and user is a member", %{
       space_user: space_user,
-      space: space
+      space: space,
+      user: user
     } do
       {:ok, %{space_user: another_space_user}} = create_space_member(space)
 
       {:ok, %{group: %Group{id: group_id} = group}} =
         create_group(space_user, %{is_private: true})
 
+      Groups.grant_private_access(user, group, another_space_user)
       Groups.subscribe(group, another_space_user)
       assert {:ok, %Group{id: ^group_id}} = Groups.get_group(another_space_user, group_id)
     end
@@ -294,7 +296,7 @@ defmodule Level.GroupsTest do
     end
   end
 
-  describe "grant_access/3" do
+  describe "grant_private_access/3" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user, %{is_private: true})
@@ -311,7 +313,7 @@ defmodule Level.GroupsTest do
       assert Groups.get_user_state(group, another_user) == nil
       assert {:error, _} = Groups.get_group(another_user, group.id)
 
-      Groups.grant_access(user, group, another_user)
+      Groups.grant_private_access(user, group, another_user)
 
       assert {:ok, _} = Groups.get_group(another_user, group.id)
       assert Groups.get_user_state(group, another_user) == :not_subscribed
@@ -323,7 +325,7 @@ defmodule Level.GroupsTest do
       group: group
     } do
       assert Groups.get_user_state(group, space_user) == :subscribed
-      Groups.grant_access(user, group, space_user)
+      Groups.grant_private_access(user, group, space_user)
       assert Groups.get_user_state(group, space_user) == :subscribed
     end
   end
@@ -349,7 +351,7 @@ defmodule Level.GroupsTest do
       group: group
     } do
       {:ok, %{space_user: another_user}} = create_space_member(space)
-      Groups.grant_access(user, group, another_user)
+      Groups.grant_private_access(user, group, another_user)
       assert Groups.get_user_state(group, another_user) == :not_subscribed
 
       Groups.subscribe(group, another_user)
@@ -378,7 +380,7 @@ defmodule Level.GroupsTest do
       group: group
     } do
       {:ok, %{space_user: another_user}} = create_space_member(space)
-      Groups.grant_access(user, group, another_user)
+      Groups.grant_private_access(user, group, another_user)
       assert Groups.get_user_state(group, another_user) == :not_subscribed
 
       Groups.watch(group, another_user)
@@ -414,7 +416,7 @@ defmodule Level.GroupsTest do
     end
   end
 
-  describe "revoke_access/2" do
+  describe "revoke_private_access/2" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user, %{is_private: true})
@@ -427,11 +429,12 @@ defmodule Level.GroupsTest do
       group: group
     } do
       {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.grant_private_access(user, group, another_user)
       Groups.subscribe(group, another_user)
-      assert Groups.get_user_state(group, another_user) == :subscribed
+      Groups.revoke_private_access(user, group, another_user)
 
-      Groups.revoke_access(user, group, another_user)
-      assert Groups.get_user_state(group, another_user) == nil
+      assert Groups.get_user_state(group, another_user) == :not_subscribed
+      assert Groups.get_user_access(group, another_user) == :public
       assert {:error, _} = Groups.get_group(another_user, group.id)
     end
   end

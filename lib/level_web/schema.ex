@@ -197,22 +197,22 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.unsubscribe_from_group/2
     end
 
-    @desc "Grant group access to a user."
-    field :grant_group_access, type: :grant_group_access_payload do
+    @desc "Grant a user access to a private group."
+    field :grant_private_access, type: :grant_private_access_payload do
       arg :space_id, non_null(:id)
       arg :group_id, non_null(:id)
       arg :space_user_id, non_null(:id)
 
-      resolve &Level.Mutations.grant_group_access/2
+      resolve &Level.Mutations.grant_private_access/2
     end
 
-    @desc "Revoke group access from a user."
-    field :revoke_group_access, type: :revoke_group_access_payload do
+    @desc "Revoke a user's access to a private group."
+    field :revoke_private_access, type: :revoke_private_access_payload do
       arg :space_id, non_null(:id)
       arg :group_id, non_null(:id)
       arg :space_user_id, non_null(:id)
 
-      resolve &Level.Mutations.revoke_group_access/2
+      resolve &Level.Mutations.revoke_private_access/2
     end
 
     @desc "Bookmark a group."

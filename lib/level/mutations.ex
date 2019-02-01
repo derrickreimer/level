@@ -71,13 +71,13 @@ defmodule Level.Mutations do
           {:ok, %{success: boolean(), group: Group.t(), errors: validation_errors()}}
           | {:error, String.t()}
 
-  @typedoc "The payload for the grant group access mutation"
-  @type grant_group_access_payload ::
+  @typedoc "The payload for the grant private access mutation"
+  @type grant_private_access_payload ::
           {:ok, %{success: boolean(), errors: validation_errors()}}
           | {:error, String.t()}
 
-  @typedoc "The payload for the revoke group access mutation"
-  @type revoke_group_access_payload ::
+  @typedoc "The payload for the revoke private access mutation"
+  @type revoke_private_access_payload ::
           {:ok, %{success: boolean(), errors: validation_errors()}}
           | {:error, String.t()}
 
@@ -415,14 +415,14 @@ defmodule Level.Mutations do
   end
 
   @doc """
-  Grants a user access to a group.
+  Grants a user access to a private group.
   """
-  @spec grant_group_access(map(), info()) :: grant_group_access_payload()
-  def grant_group_access(args, %{context: %{current_user: user}}) do
+  @spec grant_private_access(map(), info()) :: grant_private_access_payload()
+  def grant_private_access(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
          {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
-         :ok <- Groups.grant_access(user, group, space_user) do
+         :ok <- Groups.grant_private_access(user, group, space_user) do
       {:ok, %{success: true, errors: []}}
     else
       err ->
@@ -431,14 +431,14 @@ defmodule Level.Mutations do
   end
 
   @doc """
-  Revokes a user's access to a group.
+  Revokes a user's access to a private group.
   """
-  @spec revoke_group_access(map(), info()) :: revoke_group_access_payload()
-  def revoke_group_access(args, %{context: %{current_user: user}}) do
+  @spec revoke_private_access(map(), info()) :: revoke_private_access_payload()
+  def revoke_private_access(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
          {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
-         :ok <- Groups.revoke_access(user, group, space_user) do
+         :ok <- Groups.revoke_private_access(user, group, space_user) do
       {:ok, %{success: true, errors: []}}
     else
       err ->
