@@ -40,7 +40,7 @@ defmodule Level.Digests.FeedSection do
         :index,
         [
           space_user.space.slug,
-          "posts"
+          "feed"
         ]
       )
 
