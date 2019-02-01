@@ -23,7 +23,7 @@ defmodule LevelWeb.SessionControllerTest do
         |> recycle()
         |> get("/login")
 
-      assert redirected_to(conn, 302) =~ "/spaces"
+      assert redirected_to(conn, 302) =~ "/teams"
     end
   end
 

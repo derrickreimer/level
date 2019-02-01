@@ -26,7 +26,7 @@ defmodule LevelWeb.PasswordResetControllerTest do
         |> recycle()
         |> get("/reset-password")
 
-      assert redirected_to(conn, 302) =~ "/spaces"
+      assert redirected_to(conn, 302) =~ "/teams"
     end
   end
 

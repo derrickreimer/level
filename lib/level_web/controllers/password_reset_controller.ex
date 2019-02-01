@@ -79,7 +79,7 @@ defmodule LevelWeb.PasswordResetController do
   defp redirect_if_signed_in(conn, _opts) do
     if conn.assigns.current_user do
       conn
-      |> redirect(to: main_path(conn, :index, ["spaces"]))
+      |> redirect(to: main_path(conn, :index, ["teams"]))
       |> halt()
     else
       conn

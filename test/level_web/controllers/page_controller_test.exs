@@ -34,7 +34,7 @@ defmodule LevelWeb.PageControllerTest do
         |> sign_in(user)
         |> get("/")
 
-      assert redirected_to(conn, 302) =~ "/spaces/new"
+      assert redirected_to(conn, 302) =~ "/teams/new"
     end
   end
 end

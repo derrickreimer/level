@@ -58,8 +58,8 @@ parser : Parser (Route -> a) a
 parser =
     oneOf
         [ Parser.map Home (s "home")
-        , Parser.map Spaces (s "spaces")
-        , Parser.map NewSpace (s "spaces" </> s "new")
+        , Parser.map Spaces (s "teams")
+        , Parser.map NewSpace (s "teams" </> s "new")
         , Parser.map Root Parser.string
         , Parser.map Posts Route.Posts.parser
         , Parser.map Inbox Route.Inbox.parser
@@ -127,10 +127,10 @@ toString page =
             absolute [ "home" ] []
 
         Spaces ->
-            absolute [ "spaces" ] []
+            absolute [ "teams" ] []
 
         NewSpace ->
-            absolute [ "spaces", "new" ] []
+            absolute [ "teams", "new" ] []
 
         Root slug ->
             absolute [ slug ] []

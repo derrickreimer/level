@@ -14,7 +14,7 @@ defmodule LevelWeb.UserController do
     case conn.assigns[:current_user] do
       %User{} ->
         conn
-        |> redirect(to: main_path(conn, :index, ["spaces"]))
+        |> redirect(to: main_path(conn, :index, ["teams"]))
 
       _ ->
         conn
@@ -29,7 +29,7 @@ defmodule LevelWeb.UserController do
       {:ok, user} ->
         conn
         |> LevelWeb.Auth.sign_in(user)
-        |> redirect(to: main_path(conn, :index, ["spaces", "new"]))
+        |> redirect(to: main_path(conn, :index, ["teams", "new"]))
 
       {:error, changeset} ->
         conn

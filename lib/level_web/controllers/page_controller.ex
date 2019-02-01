@@ -17,7 +17,7 @@ defmodule LevelWeb.PageController do
 
       nil ->
         conn
-        |> redirect(to: main_path(conn, :index, ["spaces", "new"]))
+        |> redirect(to: main_path(conn, :index, ["teams", "new"]))
     end
   end
 
