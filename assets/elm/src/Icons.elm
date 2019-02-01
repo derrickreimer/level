@@ -41,7 +41,7 @@ arrowLeft toggle =
                     "#e2e6e8"
     in
     iconView <|
-        svg [ width "16px", height "12px", viewBox "0 0 16 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(1.000000, 0.000000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
+        svg [ width "15px", height "13px", viewBox "0 0 15 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(0.500000, 0.500000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
 arrowRight : Toggle -> Html msg
@@ -56,7 +56,7 @@ arrowRight toggle =
                     "#e2e6e8"
     in
     iconView <|
-        svg [ width "16px", height "12px", viewBox "0 0 16 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(8.000000, 6.000000) scale(-1, 1) translate(-8.000000, -6.000000) translate(1.000000, 0.000000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
+        svg [ width "15px", height "13px", viewBox "0 0 15 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(7.500000, 6.500000) scale(-1, 1) translate(-7.500000, -6.500000) translate(0.500000, 0.500000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
 arrowUpRight : Html msg
@@ -128,7 +128,7 @@ eye toggle =
 file : Color -> Html msg
 file strokeColor =
     iconView <|
-        svg [ width "14px", height "17px", viewBox "0 0 14 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "file", transform "translate(1.000000, 1.000000)", stroke "#8A98A5" ] [ Svg.path [ d "M6.75,0 L1.5,0 C0.671572875,0 0,0.671572875 0,1.5 L0,13.5 C0,14.3284271 0.671572875,15 1.5,15 L10.5,15 C11.3284271,15 12,14.3284271 12,13.5 L12,5.25 L6.75,0 Z", id "Shape" ] [], polyline [ id "Shape", points "6.75 0 6.75 5.25 12 5.25" ] [] ] ] ]
+        svg [ width "13px", height "16px", viewBox "0 0 13 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "file", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ Svg.path [ d "M6.75,0 L1.5,0 C0.671572875,0 0,0.671572875 0,1.5 L0,13.5 C0,14.3284271 0.671572875,15 1.5,15 L10.5,15 C11.3284271,15 12,14.3284271 12,13.5 L12,5.25 L6.75,0 Z", id "Shape" ] [], polyline [ id "Shape", points "6.75 0 6.75 5.25 12 5.25" ] [] ] ] ]
 
 
 filter : Html msg
@@ -140,7 +140,7 @@ filter =
 image : Color -> Html msg
 image strokeColor =
     iconView <|
-        svg [ width "17px", height "17px", viewBox "0 0 17 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "image-copy", transform "translate(1.000000, 1.000000)", stroke "#8A98A5" ] [ rect [ id "Rectangle-path", x "0", y "0", width "15", height "15", rx "2" ] [], circle [ id "Oval", cx "4.58333333", cy "4.58333333", r "1.25" ] [], polyline [ id "Shape", points "15 10 10.8333333 5.83333333 1.66666667 15" ] [] ] ] ]
+        svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "image-copy", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ rect [ id "Rectangle-path", x "0", y "0", width "15", height "15", rx "2" ] [], circle [ id "Oval", cx "4.58333333", cy "4.58333333", r "1.25" ] [], polyline [ id "Shape", points "15 10 10.8333333 5.83333333 1.66666667 15" ] [] ] ] ]
 
 
 inboxWhite : Html msg
@@ -154,11 +154,11 @@ inbox toggle =
     case toggle of
         On ->
             iconView <|
-                svg [ width "17px", height "14px", viewBox "0 0 17 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(1.000000, 1.000000)", stroke "#38C172" ] [ Svg.path [ d "M15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 L0,6", id "Shape" ] [], Svg.path [ d "M10.5,6 L15,6 L15,10.5 C15,11.3284271 14.3284271,12 13.5,12 L1.5,12 C0.671572875,12 0,11.3284271 0,10.5 L0,6 L4.5,6 L6,8.25 L9,8.25 L10.5,6 Z", id "Combined-Shape", fill "#38C172" ] [] ] ] ]
+                svg [ width "16px", height "13px", viewBox "0 0 16 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(0.500000, 0.500000)", stroke "#38C172" ] [ Svg.path [ d "M15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 L0,6", id "Shape" ] [], Svg.path [ d "M10.5,6 L15,6 L15,10.5 C15,11.3284271 14.3284271,12 13.5,12 L1.5,12 C0.671572875,12 0,11.3284271 0,10.5 L0,6 L4.5,6 L6,8.25 L9,8.25 L10.5,6 Z", id "Combined-Shape", fill "#38C172" ] [] ] ] ]
 
         Off ->
             iconView <|
-                svg [ width "17px", height "14px", viewBox "0 0 17 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox-copy", transform "translate(1.000000, 1.000000)", stroke "#8A98A5" ] [ Svg.path [ d "M15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 L0,6", id "Shape" ] [], Svg.path [ d "M10.5,6 L15,6 L15,10.5 C15,11.3284271 14.3284271,12 13.5,12 L1.5,12 C0.671572875,12 0,11.3284271 0,10.5 L0,6 L4.5,6 L6,8.25 L9,8.25 L10.5,6 Z", id "Combined-Shape" ] [] ] ] ]
+                svg [ width "16px", height "13px", viewBox "0 0 16 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ Svg.path [ d "M15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 L0,6", id "Shape" ] [], Svg.path [ d "M10.5,6 L15,6 L15,10.5 C15,11.3284271 14.3284271,12 13.5,12 L1.5,12 C0.671572875,12 0,11.3284271 0,10.5 L0,6 L4.5,6 L6,8.25 L9,8.25 L10.5,6 Z", id "Combined-Shape" ] [] ] ] ]
 
 
 logOut : Html msg
@@ -269,8 +269,7 @@ postbot =
 reply : Html msg
 reply =
     Html.div [ Html.Attributes.class "flex items-center", Html.Attributes.style "margin-top" "2px" ]
-        [ svg [ width "18px", height "15px", viewBox "0 0 18 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "corner-up-left", transform "translate(1.000000, 0.000000)", stroke "#8A98A5" ] [ polyline [ id "Path", points "5 10 0 5 5 0" ] [], Svg.path [ d "M16,15 L16,8.63636364 C16,6.62805546 14.209139,5 12,5 L0,5", id "Path" ] [] ] ] ]
-        ]
+        [ svg [ width "17px", height "16px", viewBox "0 0 17 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "corner-up-left", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ polyline [ id "Path", points "5 10 0 5 5 0" ] [], Svg.path [ d "M16,15 L16,8.63636364 C16,6.62805546 14.209139,5 12,5 L0,5", id "Path" ] [] ] ] ] ]
 
 
 refresh : Html msg
@@ -300,7 +299,7 @@ sendWhite =
 shield : Html msg
 shield =
     iconView <|
-        svg [ width "18px", height "22px", viewBox "0 0 18 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "shield", transform "translate(1.000000, 1.000000)", stroke "#8A98A5" ] [ Svg.path [ d "M8,20 C8,20 16,16 16,10 L16,3 L8,0 L0,3 L0,10 C0,16 8,20 8,20 Z", id "Path" ] [] ] ] ]
+        svg [ width "17px", height "21px", viewBox "0 0 17 21", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "shield", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ Svg.path [ d "M8,20 C8,20 16,16 16,10 L16,3 L8,0 L0,3 L0,10 C0,16 8,20 8,20 Z", id "Path" ] [] ] ] ]
 
 
 square : Html msg
@@ -324,7 +323,7 @@ thumbs toggle =
 thumbsSmall : Html msg
 thumbsSmall =
     iconView <|
-        svg [ width "16px", height "15px", viewBox "0 0 16 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "thumbs-up-copy-4", transform "translate(1.000000, 1.000000)", stroke "#8A98A5" ] [ Svg.path [ d "M7.43839947,5.59719062 L7.9401213,2.20025635 C7.9401213,1.30279945 7.50638441,0.372043186 6.57599198,0.372043186 C6.14529687,2.2703327 5.73885841,3.60945307 5.3566766,4.3894043 C5.06962719,4.97521068 4.4648566,5.44984493 3.54236482,5.81330702 C3.41827865,6.77811362 3.37231596,7.72582458 3.40447677,8.65643989 C3.43663757,9.5870552 3.57485543,10.5115502 3.81913035,11.4299249 C5.62888201,12.1043617 7.00254567,12.4958299 7.9401213,12.6043294 C9.19028834,12.7490031 9.70091488,12.7490031 10.9195107,12.7480333 C12.1381065,12.7470635 12.4562474,12.1857834 12.4562474,11.6743978 C12.4562474,11.1630122 12.2953331,11.1949734 12.0922338,10.8225776 C12.4540351,10.5975884 13.2938825,9.94477835 13.3412315,9.72813585 C13.4935022,9.03143088 12.9967362,8.83831787 12.657188,8.40059408 C12.9917892,8.11115858 13.6974826,7.64605751 13.737536,7.35675727 C13.7853111,7.01168436 12.9017058,6.41562907 12.657188,6.18579102 C12.9017058,5.91337077 13.2965261,5.38903567 13.3412315,5.06613498 C13.3859369,4.7432343 13.0086092,4.51334042 12.657188,4.45552572 C12.3057669,4.39771101 11.5645174,4.45552572 10.5931846,4.68756782 C9.94562945,4.84226255 8.8940344,5.14547015 7.43839947,5.59719062 Z", id "Shape" ] [], Svg.path [ d "M2.21052632,11.3299493 L1.07582815,11.1823222 C0.58754001,11.0996704 0.35560367,10.8230667 0.235480058,10.3694255 C0.115356445,9.91578421 2.01078352e-17,9.45465766 0,8.58300103 C0,7.7113444 0.135864258,7.09809028 0.235480058,6.67817518 C0.335095857,6.25826009 0.507793226,5.96124268 0.952097505,5.88132392 L2.0358951,5.77777778 C1.87390137,6.74757214 1.7929045,7.68264655 1.7929045,8.58300103 C1.7929045,9.48335551 1.93211177,10.3990049 2.21052632,11.3299493 Z", id "Path" ] [] ] ] ]
+        svg [ width "15px", height "15px", viewBox "0 0 15 15", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "thumbs-up-copy-4", transform "translate(0.500000, 1.000000)", stroke "#8A98A5" ] [ Svg.path [ d "M7.43839947,5.59719062 L7.9401213,2.20025635 C7.9401213,1.30279945 7.50638441,0.372043186 6.57599198,0.372043186 C6.14529687,2.2703327 5.73885841,3.60945307 5.3566766,4.3894043 C5.06962719,4.97521068 4.4648566,5.44984493 3.54236482,5.81330702 C3.41827865,6.77811362 3.37231596,7.72582458 3.40447677,8.65643989 C3.43663757,9.5870552 3.57485543,10.5115502 3.81913035,11.4299249 C5.62888201,12.1043617 7.00254567,12.4958299 7.9401213,12.6043294 C9.19028834,12.7490031 9.70091488,12.7490031 10.9195107,12.7480333 C12.1381065,12.7470635 12.4562474,12.1857834 12.4562474,11.6743978 C12.4562474,11.1630122 12.2953331,11.1949734 12.0922338,10.8225776 C12.4540351,10.5975884 13.2938825,9.94477835 13.3412315,9.72813585 C13.4935022,9.03143088 12.9967362,8.83831787 12.657188,8.40059408 C12.9917892,8.11115858 13.6974826,7.64605751 13.737536,7.35675727 C13.7853111,7.01168436 12.9017058,6.41562907 12.657188,6.18579102 C12.9017058,5.91337077 13.2965261,5.38903567 13.3412315,5.06613498 C13.3859369,4.7432343 13.0086092,4.51334042 12.657188,4.45552572 C12.3057669,4.39771101 11.5645174,4.45552572 10.5931846,4.68756782 C9.94562945,4.84226255 8.8940344,5.14547015 7.43839947,5.59719062 Z", id "Shape" ] [], Svg.path [ d "M2.21052632,11.3299493 L1.07582815,11.1823222 C0.58754001,11.0996704 0.35560367,10.8230667 0.235480058,10.3694255 C0.115356445,9.91578421 2.01078352e-17,9.45465766 0,8.58300103 C0,7.7113444 0.135864258,7.09809028 0.235480058,6.67817518 C0.335095857,6.25826009 0.507793226,5.96124268 0.952097505,5.88132392 L2.0358951,5.77777778 C1.87390137,6.74757214 1.7929045,7.68264655 1.7929045,8.58300103 C1.7929045,9.48335551 1.93211177,10.3990049 2.21052632,11.3299493 Z", id "Path" ] [] ] ] ]
 
 
 undismissed : Html msg
