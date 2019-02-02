@@ -16,6 +16,10 @@ defmodule LevelWeb.DigestView do
     SpaceUser.display_name(space_user)
   end
 
+  def display_name(%SpaceBot{display_name: bot_display_name}) do
+    bot_display_name
+  end
+
   def display_name(%Post{} = post, %SpaceBot{display_name: bot_display_name}) do
     post.display_name || bot_display_name
   end
