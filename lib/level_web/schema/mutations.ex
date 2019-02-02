@@ -314,7 +314,7 @@ defmodule LevelWeb.Schema.Mutations do
   end
 
   @desc "The response to granting private access."
-  object :grant_private_access_payload do
+  object :grant_private_group_access_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why
@@ -329,7 +329,7 @@ defmodule LevelWeb.Schema.Mutations do
   end
 
   @desc "The response to revoking private access."
-  object :revoke_private_access_payload do
+  object :revoke_private_group_access_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why

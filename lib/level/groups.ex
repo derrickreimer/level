@@ -414,8 +414,8 @@ defmodule Level.Groups do
   @doc """
   Grants a user access to a private group.
   """
-  @spec grant_private_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
-  def grant_private_access(%User{} = current_user, %Group{} = group, space_user) do
+  @spec grant_private_group_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def grant_private_group_access(%User{} = current_user, %Group{} = group, space_user) do
     case get_user_role(group, current_user) do
       :owner ->
         changeset =
@@ -444,8 +444,8 @@ defmodule Level.Groups do
   @doc """
   Revokes a user's access from a private group.
   """
-  @spec revoke_private_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
-  def revoke_private_access(%User{} = current_user, %Group{} = group, space_user) do
+  @spec revoke_private_group_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def revoke_private_group_access(%User{} = current_user, %Group{} = group, space_user) do
     case get_user_role(group, current_user) do
       :owner ->
         changeset =

@@ -1,16 +1,16 @@
-defmodule LevelWeb.GraphQL.GrantPrivateAccessTest do
+defmodule LevelWeb.GraphQL.GrantPrivateGroupAccessTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Groups
 
   @query """
-    mutation GrantPrivateAccess(
+    mutation GrantPrivateGroupAccess(
       $space_id: ID!,
       $group_id: ID!,
       $space_user_id: ID!
     ) {
-      grantPrivateAccess(
+      grantPrivateGroupAccess(
         spaceId: $space_id,
         groupId: $group_id,
         spaceUserId: $space_user_id
@@ -42,7 +42,7 @@ defmodule LevelWeb.GraphQL.GrantPrivateAccessTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "grantPrivateAccess" => %{
+               "grantPrivateGroupAccess" => %{
                  "success" => true
                }
              }
@@ -67,12 +67,12 @@ defmodule LevelWeb.GraphQL.GrantPrivateAccessTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"grantPrivateAccess" => nil},
+             "data" => %{"grantPrivateGroupAccess" => nil},
              "errors" => [
                %{
                  "locations" => [%{"column" => 0, "line" => 6}],
                  "message" => "You are not authorized to perform this action.",
-                 "path" => ["grantPrivateAccess"]
+                 "path" => ["grantPrivateGroupAccess"]
                }
              ]
            }
@@ -92,12 +92,12 @@ defmodule LevelWeb.GraphQL.GrantPrivateAccessTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"grantPrivateAccess" => nil},
+             "data" => %{"grantPrivateGroupAccess" => nil},
              "errors" => [
                %{
                  "locations" => [%{"column" => 0, "line" => 6}],
                  "message" => "Group not found",
-                 "path" => ["grantPrivateAccess"]
+                 "path" => ["grantPrivateGroupAccess"]
                }
              ]
            }
