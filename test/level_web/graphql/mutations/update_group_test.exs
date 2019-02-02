@@ -7,15 +7,13 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
       $space_id: ID!,
       $group_id: ID!,
       $name: String,
-      $description: String,
-      $is_private: Boolean
+      $description: String
     ) {
       updateGroup(
         spaceId: $space_id,
         groupId: $group_id,
         name: $name,
-        description: $description,
-        isPrivate: $is_private
+        description: $description
       ) {
         success
         group {
@@ -94,7 +92,7 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
              "data" => %{"updateGroup" => nil},
              "errors" => [
                %{
-                 "locations" => [%{"column" => 0, "line" => 8}],
+                 "locations" => [%{"column" => 0, "line" => 7}],
                  "message" => "Group not found",
                  "path" => ["updateGroup"]
                }

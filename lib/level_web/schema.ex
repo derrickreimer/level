@@ -143,10 +143,25 @@ defmodule LevelWeb.Schema do
       arg :group_id, non_null(:id)
       arg :name, :string
       arg :description, :string
-      arg :is_private, :boolean
       arg :is_default, :boolean
 
       resolve &Level.Mutations.update_group/2
+    end
+
+    @desc "Make a group private."
+    field :privatize_group, type: :privatize_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.privatize_group/2
+    end
+
+    @desc "Make a group public."
+    field :publicize_group, type: :publicize_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.publicize_group/2
     end
 
     @desc "Closes a group."

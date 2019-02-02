@@ -16,6 +16,8 @@ import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CloseGroup as CloseGroup
+import Mutation.PrivatizeGroup as PrivatizeGroup
+import Mutation.PublicizeGroup as PublicizeGroup
 import Mutation.ReopenGroup as ReopenGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Pagination
@@ -139,8 +141,10 @@ type Msg
     | ReopenClicked
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | DefaultToggled
-    | PrivateToggled
     | GroupUpdated (Result Session.Error ( Session, UpdateGroup.Response ))
+    | PrivacyToggled
+    | GroupPrivatized (Result Session.Error ( Session, PrivatizeGroup.Response ))
+    | GroupPublicized (Result Session.Error ( Session, PublicizeGroup.Response ))
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -225,18 +229,6 @@ update msg globals model =
             in
             ( ( { model | isDefault = not model.isDefault, isSubmitting = True }, cmd ), globals )
 
-        PrivateToggled ->
-            let
-                variables =
-                    UpdateGroup.isPrivateVariables model.spaceId model.groupId (not model.isPrivate)
-
-                cmd =
-                    globals.session
-                        |> UpdateGroup.request variables
-                        |> Task.attempt GroupUpdated
-            in
-            ( ( { model | isPrivate = not model.isPrivate, isSubmitting = True }, cmd ), globals )
-
         GroupUpdated (Ok ( newSession, UpdateGroup.Success group )) ->
             let
                 newRepo =
@@ -260,6 +252,71 @@ update msg globals model =
             redirectToLogin globals model
 
         GroupUpdated (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
+
+        PrivacyToggled ->
+            let
+                cmd =
+                    if model.isPrivate then
+                        globals.session
+                            |> PublicizeGroup.request (PublicizeGroup.variables model.spaceId model.groupId)
+                            |> Task.attempt GroupPublicized
+
+                    else
+                        globals.session
+                            |> PrivatizeGroup.request (PrivatizeGroup.variables model.spaceId model.groupId)
+                            |> Task.attempt GroupPrivatized
+            in
+            ( ( { model | isPrivate = not model.isPrivate, isSubmitting = True }, cmd ), globals )
+
+        GroupPrivatized (Ok ( newSession, PrivatizeGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals
+                | session = newSession
+                , repo = newRepo
+                , flash = Flash.set Flash.Notice "Channel made private" 3000 globals.flash
+              }
+            )
+
+        GroupPrivatized (Ok ( newSession, _ )) ->
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        GroupPrivatized (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        GroupPrivatized (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
+
+        GroupPublicized (Ok ( newSession, PublicizeGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals
+                | session = newSession
+                , repo = newRepo
+                , flash = Flash.set Flash.Notice "Channel made public" 3000 globals.flash
+              }
+            )
+
+        GroupPublicized (Ok ( newSession, _ )) ->
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        GroupPublicized (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        GroupPublicized (Err _) ->
             ( ( { model | isSubmitting = False }, Cmd.none ), globals )
 
         NavToggled ->
@@ -481,7 +538,7 @@ permissionsView globals model data =
             [ input
                 [ type_ "checkbox"
                 , class "checkbox"
-                , onClick PrivateToggled
+                , onClick PrivacyToggled
                 , checked model.isPrivate
                 , disabled model.isSubmitting
                 ]

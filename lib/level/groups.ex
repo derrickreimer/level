@@ -323,11 +323,12 @@ defmodule Level.Groups do
         space_id: group.space_id,
         space_user_id: space_user.id,
         group_id: group.id,
-        state: "SUBSCRIBED"
+        state: "SUBSCRIBED",
+        access: "PRIVATE"
       })
 
     opts = [
-      on_conflict: [set: [state: "SUBSCRIBED"]],
+      on_conflict: [set: [state: "SUBSCRIBED", access: "PRIVATE"]],
       conflict_target: [:space_user_id, :group_id]
     ]
 
@@ -414,7 +415,8 @@ defmodule Level.Groups do
   @doc """
   Grants a user access to a private group.
   """
-  @spec grant_private_group_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  @spec grant_private_group_access(User.t(), Group.t(), SpaceUser.t()) ::
+          :ok | {:error, String.t()}
   def grant_private_group_access(%User{} = current_user, %Group{} = group, space_user) do
     case get_user_role(group, current_user) do
       :owner ->
@@ -444,7 +446,8 @@ defmodule Level.Groups do
   @doc """
   Revokes a user's access from a private group.
   """
-  @spec revoke_private_group_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  @spec revoke_private_group_access(User.t(), Group.t(), SpaceUser.t()) ::
+          :ok | {:error, String.t()}
   def revoke_private_group_access(%User{} = current_user, %Group{} = group, space_user) do
     case get_user_role(group, current_user) do
       :owner ->

@@ -285,6 +285,42 @@ defmodule Level.Mutations do
   end
 
   @doc """
+  Makes a group private.
+  """
+  @spec privatize_group(map(), info()) :: group_mutation_result()
+  def privatize_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, updated_group} <- Groups.update_group(group, %{is_private: true}) do
+      {:ok, %{success: true, group: updated_group, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
+  Makes a group public.
+  """
+  @spec publicize_group(map(), info()) :: group_mutation_result()
+  def publicize_group(args, %{context: %{current_user: user}}) do
+    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
+         {:ok, group} <- Groups.get_group(space_user, args.group_id),
+         {:ok, updated_group} <- Groups.update_group(group, %{is_private: false}) do
+      {:ok, %{success: true, group: updated_group, errors: []}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
+      err ->
+        err
+    end
+  end
+
+  @doc """
   Closes a group.
   """
   @spec close_group(map(), info()) :: group_mutation_result()
