@@ -48,7 +48,7 @@ type alias Model =
     , isDefault : Bool
     , isPrivate : Bool
     , spaceUserIds : List Id
-    , selectedIds : List Id
+    , privateSpaceUserIds : List Id
     , isSubmitting : Bool
 
     -- MOBILE
@@ -107,7 +107,7 @@ buildModel params globals ( newSession, resp ) =
                 resp.isDefault
                 resp.isPrivate
                 resp.spaceUserIds
-                []
+                resp.privateSpaceUserIds
                 False
                 False
                 False
@@ -162,14 +162,18 @@ update msg globals model =
 
         UserToggled toggledId ->
             let
-                newSelectedIds =
-                    if List.member toggledId model.selectedIds then
-                        ListHelpers.removeBy identity toggledId model.selectedIds
+                ( newPrivateSpaceUserIds, cmd ) =
+                    if List.member toggledId model.privateSpaceUserIds then
+                        ( ListHelpers.removeBy identity toggledId model.privateSpaceUserIds
+                        , Cmd.none
+                        )
 
                     else
-                        ListHelpers.insertUniqueBy identity toggledId model.selectedIds
+                        ( ListHelpers.insertUniqueBy identity toggledId model.privateSpaceUserIds
+                        , Cmd.none
+                        )
             in
-            ( ( { model | selectedIds = newSelectedIds }, Cmd.none ), globals )
+            ( ( { model | privateSpaceUserIds = newPrivateSpaceUserIds }, cmd ), globals )
 
         CloseClicked ->
             let
@@ -572,7 +576,7 @@ userView model spaceUser =
                     [ type_ "checkbox"
                     , class "checkbox"
                     , onClick (UserToggled (SpaceUser.id spaceUser))
-                    , checked (List.member (SpaceUser.id spaceUser) model.selectedIds)
+                    , checked (List.member (SpaceUser.id spaceUser) model.privateSpaceUserIds)
                     , disabled model.isSubmitting
                     ]
                     []
@@ -590,4 +594,4 @@ userView model spaceUser =
 
 isNotSubmittable : Model -> Bool
 isNotSubmittable model =
-    List.isEmpty model.selectedIds || model.isSubmitting
+    model.isSubmitting

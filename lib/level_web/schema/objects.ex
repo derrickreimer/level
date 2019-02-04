@@ -54,7 +54,7 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.space_users/3
     end
 
-    field :group_memberships, non_null(:group_membership_connection) do
+    field :group_memberships, non_null(:group_user_connection) do
       arg :space_id, non_null(:id)
       arg :first, :integer
       arg :last, :integer
@@ -332,7 +332,7 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     @desc "A paginated connection of group memberships."
-    field :memberships, non_null(:group_membership_connection) do
+    field :memberships, non_null(:group_user_connection) do
       arg :first, :integer
       arg :last, :integer
       arg :before, :cursor
@@ -342,21 +342,21 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     @desc "The short list of members to display in the sidebar."
-    field :featured_memberships, list_of(:group_membership) do
+    field :featured_memberships, list_of(:group_user) do
       resolve &Resolvers.featured_group_memberships/3
     end
 
     @desc "The members who have been granted private access."
-    field :private_access_memberships, list_of(:group_membership) do
+    field :private_access_memberships, list_of(:group_user) do
       resolve fn group, _, _ ->
-        {:ok, Groups.list_all_with_private_access(group)}
+        Groups.list_all_with_private_access(group)
       end
     end
 
     # Viewer-contextual fields
 
     @desc "The current user's group membership."
-    field :membership, :group_membership do
+    field :membership, :group_user do
       resolve fn group, _, %{context: %{loader: loader}} ->
         dataloader_with_handler(%{
           loader: loader,
@@ -404,7 +404,7 @@ defmodule LevelWeb.Schema.Objects do
   end
 
   @desc "A group membership defines the relationship between a user and group."
-  object :group_membership do
+  object :group_user do
     field :group, non_null(:group), resolve: dataloader(:db)
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
     field :state, non_null(:group_membership_state)

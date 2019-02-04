@@ -23,6 +23,7 @@ type alias Response =
     , groupId : Id
     , isDefault : Bool
     , isPrivate : Bool
+    , privateSpaceUserIds : List Id
     , repo : Repo
     }
 
@@ -34,6 +35,7 @@ type alias Data =
     , spaceUsers : List SpaceUser
     , bookmarks : List Group
     , group : Group
+    , privateSpaceUsers : List SpaceUser
     }
 
 
@@ -62,6 +64,11 @@ document =
           }
           group(spaceSlug: $spaceSlug, name: $groupName) {
             ...GroupFields
+            privateAccessMemberships {
+              spaceUser {
+                ...SpaceUserFields
+              }
+            }
           }
         }
         """
@@ -85,13 +92,14 @@ variables params =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data" ] <|
-        Decode.map6 Data
+        Decode.map7 Data
             (field "spaceUser" SpaceUser.decoder)
             (Decode.at [ "spaceUser", "space" ] Space.decoder)
             (Decode.at [ "spaceUser", "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
             (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
             (field "group" Group.decoder)
+            (Decode.at [ "group", "privateAccessMemberships" ] (list (field "spaceUser" SpaceUser.decoder)))
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -105,6 +113,7 @@ buildResponse ( session, data ) =
                 |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setGroup data.group
                 |> Repo.setGroups data.bookmarks
+                |> Repo.setSpaceUsers data.privateSpaceUsers
 
         resp =
             Response
@@ -116,6 +125,7 @@ buildResponse ( session, data ) =
                 (Group.id data.group)
                 (Group.isDefault data.group)
                 (Group.isPrivate data.group)
+                (List.map SpaceUser.id data.privateSpaceUsers)
                 repo
     in
     ( session, resp )
