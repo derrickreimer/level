@@ -69,8 +69,6 @@ defmodule Level.Groups do
   Fetches a group by id.
   """
   @spec get_group(SpaceUser.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-  @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-
   def get_group(%SpaceUser{} = member, id) do
     case Repo.get_by(groups_base_query(member), id: id) do
       %Group{} = group ->
@@ -81,6 +79,7 @@ defmodule Level.Groups do
     end
   end
 
+  @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
   def get_group(%User{} = user, id) do
     case Repo.get_by(groups_base_query(user), id: id) do
       %Group{} = group ->
@@ -560,6 +559,26 @@ defmodule Level.Groups do
       _ -> nil
     end
   end
+
+  @doc """
+  Determines if a user is allowed to privatize a group.
+  """
+  @spec can_privatize?(GroupUser.t() | nil) :: {:ok, boolean()}
+  def can_privatize?(%GroupUser{} = group_user) do
+    {:ok, group_user.access == "PRIVATE"}
+  end
+
+  def can_privatize?(nil), do: {:ok, false}
+
+  @doc """
+  Determines if a user is allowed to publicize a group.
+  """
+  @spec can_publicize?(GroupUser.t() | nil) :: {:ok, boolean()}
+  def can_publicize?(%GroupUser{} = group_user) do
+    {:ok, group_user.access == "PRIVATE"}
+  end
+
+  def can_publicize?(nil), do: {:ok, false}
 
   # Internal
 

@@ -438,4 +438,32 @@ defmodule Level.GroupsTest do
       assert {:error, _} = Groups.get_group(another_user, group.id)
     end
   end
+
+  describe "can_privatize?/1" do
+    test "is true if user has private access" do
+      assert {:ok, true} = Groups.can_privatize?(%GroupUser{access: "PRIVATE"})
+    end
+
+    test "is false if user only has public access" do
+      assert {:ok, false} = Groups.can_privatize?(%GroupUser{access: "PUBLIC"})
+    end
+
+    test "is false no group user exists" do
+      assert {:ok, false} = Groups.can_privatize?(nil)
+    end
+  end
+
+  describe "can_publicize?/1" do
+    test "is true if user has private access" do
+      assert {:ok, true} = Groups.can_publicize?(%GroupUser{access: "PRIVATE"})
+    end
+
+    test "is false if user only has public access" do
+      assert {:ok, false} = Groups.can_publicize?(%GroupUser{access: "PUBLIC"})
+    end
+
+    test "is false no group user exists" do
+      assert {:ok, false} = Groups.can_publicize?(nil)
+    end
+  end
 end

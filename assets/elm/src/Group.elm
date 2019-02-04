@@ -1,9 +1,10 @@
-module Group exposing (Group, State(..), decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, state)
+module Group exposing (Group, State(..), canPrivatize, canPublicize, decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, state)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, string, succeed)
+import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 
 
 
@@ -27,6 +28,8 @@ type alias Data =
     , isDefault : Bool
     , isBookmarked : Bool
     , membershipState : GroupMembershipState
+    , canPrivatize : Bool
+    , canPublicize : Bool
     , fetchedAt : Int
     }
 
@@ -45,6 +48,8 @@ fragment =
           membership {
             state
           }
+          canPrivatize
+          canPublicize
           fetchedAt
         }
         """
@@ -90,6 +95,16 @@ membershipState (Group data) =
     data.membershipState
 
 
+canPrivatize : Group -> Bool
+canPrivatize (Group data) =
+    data.canPrivatize
+
+
+canPublicize : Group -> Bool
+canPublicize (Group data) =
+    data.canPublicize
+
+
 
 -- SETTERS
 
@@ -111,15 +126,18 @@ setIsBookmarked val (Group data) =
 decoder : Decoder Group
 decoder =
     Decode.map Group <|
-        Decode.map8 Data
-            (field "id" Id.decoder)
-            (field "state" stateDecoder)
-            (field "name" string)
-            (field "isPrivate" bool)
-            (field "isDefault" bool)
-            (field "isBookmarked" bool)
-            membershipStateDecoder
-            (field "fetchedAt" int)
+        (Decode.succeed Data
+            |> required "id" Id.decoder
+            |> required "state" stateDecoder
+            |> required "name" string
+            |> required "isPrivate" bool
+            |> required "isDefault" bool
+            |> required "isBookmarked" bool
+            |> custom membershipStateDecoder
+            |> required "canPrivatize" bool
+            |> required "canPublicize" bool
+            |> required "fetchedAt" int
+        )
 
 
 stateDecoder : Decoder State

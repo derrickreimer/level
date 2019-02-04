@@ -8,6 +8,8 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Files
   alias Level.Groups
   alias Level.Resolvers
+  alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.Reply
   alias Level.Schemas.SearchResult
@@ -339,19 +341,66 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.group_memberships/3
     end
 
-    @desc "The current user's group membership."
-    field :membership, :group_membership do
-      resolve &Resolvers.group_membership/3
-    end
-
     @desc "The short list of members to display in the sidebar."
     field :featured_memberships, list_of(:group_membership) do
       resolve &Resolvers.featured_group_memberships/3
     end
 
+    # Viewer-contextual fields
+
+    @desc "The current user's group membership."
+    field :membership, :group_membership do
+      resolve fn group, _, %{context: %{loader: loader}} ->
+        dataloader_with_handler(%{
+          loader: loader,
+          source_name: :db,
+          batch_key: {:one, GroupUser},
+          item_key: [group_id: group.id],
+          handler_fn: fn record -> {:ok, record} end
+        })
+      end
+    end
+
     @desc "The bookmarking state of the current user."
     field :is_bookmarked, non_null(:boolean) do
-      resolve &Resolvers.is_bookmarked/3
+      resolve fn group, _, %{context: %{loader: loader}} ->
+        dataloader_with_handler(%{
+          loader: loader,
+          source_name: :db,
+          batch_key: {:one, GroupBookmark},
+          item_key: [group_id: group.id],
+          handler_fn: fn
+            %GroupBookmark{} -> {:ok, true}
+            _ -> {:ok, false}
+          end
+        })
+      end
+    end
+
+    @desc "Determines if the current user is allowed to privatize the group."
+    field :can_privatize, non_null(:boolean) do
+      resolve fn group, _, %{context: %{loader: loader}} ->
+        dataloader_with_handler(%{
+          loader: loader,
+          source_name: :db,
+          batch_key: {:one, GroupUser},
+          item_key: [group_id: group.id],
+          handler_fn: &Groups.can_privatize?/1
+        })
+      end
+    end
+
+    @desc "Determines if the current user is allowed to publicize the group."
+    field :can_publicize, non_null(:boolean) do
+      resolve fn group, _, %{context: %{loader: loader}} ->
+        dataloader_with_handler(%{
+          loader: loader,
+          source_name: :db,
+          batch_key: {:one, GroupUser},
+          item_key: [group_id: group.id],
+          handler_fn: &Groups.can_publicize?/1
+        })
+      end
     end
 
     interface :fetch_timeable
@@ -636,5 +685,15 @@ defmodule LevelWeb.Schema.Objects do
     fn _, _ ->
       {:ok, DateTime.utc_now()}
     end
+  end
+
+  def dataloader_with_handler(args) do
+    args.loader
+    |> Dataloader.load(args.source_name, args.batch_key, args.item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(args.source_name, args.batch_key, args.item_key)
+      |> args.handler_fn.()
+    end)
   end
 end
