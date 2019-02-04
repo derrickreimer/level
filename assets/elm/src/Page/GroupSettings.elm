@@ -16,9 +16,11 @@ import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CloseGroup as CloseGroup
+import Mutation.GrantPrivateGroupAccess as GrantPrivateGroupAccess
 import Mutation.PrivatizeGroup as PrivatizeGroup
 import Mutation.PublicizeGroup as PublicizeGroup
 import Mutation.ReopenGroup as ReopenGroup
+import Mutation.RevokePrivateGroupAccess as RevokePrivateGroupAccess
 import Mutation.UpdateGroup as UpdateGroup
 import Pagination
 import Query.GroupSettingsInit as GroupSettingsInit
@@ -136,6 +138,8 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | UserToggled Id
+    | PrivateGroupAccessRevoked Id (Result Session.Error ( Session, RevokePrivateGroupAccess.Response ))
+    | PrivateGroupAccessGranted Id (Result Session.Error ( Session, GrantPrivateGroupAccess.Response ))
     | CloseClicked
     | Closed (Result Session.Error ( Session, CloseGroup.Response ))
     | ReopenClicked
@@ -165,15 +169,45 @@ update msg globals model =
                 ( newPrivateSpaceUserIds, cmd ) =
                     if List.member toggledId model.privateSpaceUserIds then
                         ( ListHelpers.removeBy identity toggledId model.privateSpaceUserIds
-                        , Cmd.none
+                        , globals.session
+                            |> RevokePrivateGroupAccess.request (RevokePrivateGroupAccess.variables model.spaceId model.groupId toggledId)
+                            |> Task.attempt (PrivateGroupAccessRevoked toggledId)
                         )
 
                     else
                         ( ListHelpers.insertUniqueBy identity toggledId model.privateSpaceUserIds
-                        , Cmd.none
+                        , globals.session
+                            |> GrantPrivateGroupAccess.request (GrantPrivateGroupAccess.variables model.spaceId model.groupId toggledId)
+                            |> Task.attempt (PrivateGroupAccessGranted toggledId)
                         )
             in
             ( ( { model | privateSpaceUserIds = newPrivateSpaceUserIds }, cmd ), globals )
+
+        PrivateGroupAccessRevoked spaceUserId (Ok ( newSession, _ )) ->
+            let
+                newPrivateSpaceUserIds =
+                    ListHelpers.removeBy identity spaceUserId model.privateSpaceUserIds
+            in
+            ( ( { model | privateSpaceUserIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
+
+        PrivateGroupAccessRevoked _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PrivateGroupAccessRevoked _ (Err _) ->
+            ( ( model, Cmd.none ), globals )
+
+        PrivateGroupAccessGranted spaceUserId (Ok ( newSession, _ )) ->
+            let
+                newPrivateSpaceUserIds =
+                    ListHelpers.insertUniqueBy identity spaceUserId model.privateSpaceUserIds
+            in
+            ( ( { model | privateSpaceUserIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
+
+        PrivateGroupAccessGranted _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PrivateGroupAccessGranted _ (Err _) ->
+            ( ( model, Cmd.none ), globals )
 
         CloseClicked ->
             let
