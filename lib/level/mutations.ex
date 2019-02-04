@@ -468,7 +468,7 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
          {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
-         :ok <- Groups.grant_private_group_access(user, group, space_user) do
+         :ok <- Groups.grant_private_access(user, group, space_user) do
       {:ok, %{success: true, errors: []}}
     else
       err ->
@@ -484,7 +484,7 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
          {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
-         :ok <- Groups.revoke_private_group_access(user, group, space_user) do
+         :ok <- Groups.revoke_private_access(user, group, space_user) do
       {:ok, %{success: true, errors: []}}
     else
       err ->

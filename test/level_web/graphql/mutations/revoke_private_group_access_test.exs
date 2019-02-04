@@ -35,7 +35,7 @@ defmodule LevelWeb.GraphQL.RevokePrivateGroupAccessTest do
     {:ok, %{space_user: another_user}} = create_space_member(space)
     {:ok, %{group: group}} = create_group(space_user)
 
-    Groups.grant_private_group_access(user, group, another_user)
+    Groups.grant_private_access(user, group, another_user)
 
     variables = %{space_id: group.space_id, group_id: group.id, space_user_id: another_user.id}
 
