@@ -138,12 +138,12 @@ defmodule LevelWeb.Schema.Objects do
 
     # Permissions
 
-    @desc "Determines whether the current user is allowed to manage members."
+    @desc "Determines whether the user is allowed to manage members."
     field :can_manage_members, non_null(:boolean) do
       resolve &Resolvers.can_manage_members?/3
     end
 
-    @desc "Determines whether the current user is allowed to manage owners."
+    @desc "Determines whether the user is allowed to manage owners."
     field :can_manage_owners, non_null(:boolean) do
       resolve &Resolvers.can_manage_owners?/3
     end

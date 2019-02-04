@@ -565,7 +565,7 @@ defmodule Level.Groups do
   """
   @spec can_privatize?(GroupUser.t() | nil) :: {:ok, boolean()}
   def can_privatize?(%GroupUser{} = group_user) do
-    {:ok, group_user.access == "PRIVATE"}
+    {:ok, group_user.role == "OWNER"}
   end
 
   def can_privatize?(nil), do: {:ok, false}
@@ -575,20 +575,43 @@ defmodule Level.Groups do
   """
   @spec can_publicize?(GroupUser.t() | nil) :: {:ok, boolean()}
   def can_publicize?(%GroupUser{} = group_user) do
-    {:ok, group_user.access == "PRIVATE"}
+    {:ok, group_user.role == "OWNER"}
   end
 
   def can_publicize?(nil), do: {:ok, false}
 
-  # Internal
+  @doc """
+  Makes a group public.
+  """
+  @spec publicize(Group.t()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
+  def publicize(%Group{} = group) do
+    group
+    |> Ecto.Changeset.change(%{is_private: false})
+    |> Repo.update()
+  end
 
-  defp get_group_user(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
+  @doc """
+  Makes a group private.
+  """
+  @spec privatize(Group.t()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
+  def privatize(%Group{} = group) do
+    group
+    |> Ecto.Changeset.change(%{is_private: true})
+    |> Repo.update()
+  end
+
+  @doc """
+  Fetches a group user for a user.
+  """
+  @spec get_group_user(Group.t(), SpaceUser.t()) :: {:ok, GroupUser.t() | nil}
+  def get_group_user(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
     GroupUser
     |> Repo.get_by(space_user_id: space_user_id, group_id: group_id)
     |> handle_get_group_user()
   end
 
-  defp get_group_user(%Group{id: group_id}, %User{id: user_id}) do
+  @spec get_group_user(Group.t(), User.t()) :: {:ok, GroupUser.t() | nil}
+  def get_group_user(%Group{id: group_id}, %User{id: user_id}) do
     queryable =
       from gu in GroupUser,
         join: su in assoc(gu, :space_user),

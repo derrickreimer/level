@@ -2,6 +2,8 @@ defmodule LevelWeb.GraphQL.PublicizeGroupTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Groups
+
   @query """
     mutation PublicizeGroup(
       $space_id: ID!,
@@ -51,7 +53,37 @@ defmodule LevelWeb.GraphQL.PublicizeGroupTest do
            }
   end
 
-  test "returns top-level error out if group does not exist", %{conn: conn, space: space} do
+  test "returns top-level error if user is not allowed", %{
+    conn: conn,
+    space: space,
+    space_user: space_user
+  } do
+    {:ok, %{space_user: another_member}} = create_space_member(space)
+    {:ok, %{group: group}} = create_group(another_member, %{is_private: true})
+
+    # Space user is a non-owner, so cannot change permissions
+    Groups.subscribe(group, space_user)
+
+    variables = %{space_id: group.space_id, group_id: group.id}
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{"publicizeGroup" => nil},
+             "errors" => [
+               %{
+                 "locations" => [%{"column" => 0, "line" => 5}],
+                 "message" => "You are not authorized to perform this action.",
+                 "path" => ["publicizeGroup"]
+               }
+             ]
+           }
+  end
+
+  test "returns top-level error if group does not exist", %{conn: conn, space: space} do
     variables = %{space_id: space.id, group_id: Ecto.UUID.generate()}
 
     conn =

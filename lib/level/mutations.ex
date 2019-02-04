@@ -291,11 +291,16 @@ defmodule Level.Mutations do
   def privatize_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
-         {:ok, updated_group} <- Groups.update_group(group, %{is_private: true}) do
+         {:ok, group_user} <- Groups.get_group_user(group, space_user),
+         {:ok, true} <- Groups.can_privatize?(group_user),
+         {:ok, updated_group} <- Groups.privatize(group) do
       {:ok, %{success: true, group: updated_group, errors: []}}
     else
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
+      {:ok, false} ->
+        {:error, dgettext("errors", "You are not authorized to perform this action.")}
 
       err ->
         err
@@ -309,11 +314,16 @@ defmodule Level.Mutations do
   def publicize_group(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
-         {:ok, updated_group} <- Groups.update_group(group, %{is_private: false}) do
+         {:ok, group_user} <- Groups.get_group_user(group, space_user),
+         {:ok, true} <- Groups.can_publicize?(group_user),
+         {:ok, updated_group} <- Groups.publicize(group) do
       {:ok, %{success: true, group: updated_group, errors: []}}
     else
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, group: nil, errors: format_errors(changeset)}}
+
+      {:ok, false} ->
+        {:error, dgettext("errors", "You are not authorized to perform this action.")}
 
       err ->
         err
