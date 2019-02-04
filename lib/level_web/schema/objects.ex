@@ -377,28 +377,15 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
-    @desc "Determines if the current user is allowed to privatize the group."
-    field :can_privatize, non_null(:boolean) do
+    @desc "Determines if the current user is allowed to manage group permissions."
+    field :can_manage_permissions, non_null(:boolean) do
       resolve fn group, _, %{context: %{loader: loader}} ->
         dataloader_with_handler(%{
           loader: loader,
           source_name: :db,
           batch_key: {:one, GroupUser},
           item_key: [group_id: group.id],
-          handler_fn: &Groups.can_privatize?/1
-        })
-      end
-    end
-
-    @desc "Determines if the current user is allowed to publicize the group."
-    field :can_publicize, non_null(:boolean) do
-      resolve fn group, _, %{context: %{loader: loader}} ->
-        dataloader_with_handler(%{
-          loader: loader,
-          source_name: :db,
-          batch_key: {:one, GroupUser},
-          item_key: [group_id: group.id],
-          handler_fn: &Groups.can_publicize?/1
+          handler_fn: &Groups.can_manage_permissions?/1
         })
       end
     end

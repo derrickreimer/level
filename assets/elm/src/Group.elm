@@ -1,4 +1,4 @@
-module Group exposing (Group, State(..), canPrivatize, canPublicize, decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, state)
+module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, state)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -28,8 +28,7 @@ type alias Data =
     , isDefault : Bool
     , isBookmarked : Bool
     , membershipState : GroupMembershipState
-    , canPrivatize : Bool
-    , canPublicize : Bool
+    , canManagePermissions : Bool
     , fetchedAt : Int
     }
 
@@ -48,8 +47,7 @@ fragment =
           membership {
             state
           }
-          canPrivatize
-          canPublicize
+          canManagePermissions
           fetchedAt
         }
         """
@@ -95,14 +93,9 @@ membershipState (Group data) =
     data.membershipState
 
 
-canPrivatize : Group -> Bool
-canPrivatize (Group data) =
-    data.canPrivatize
-
-
-canPublicize : Group -> Bool
-canPublicize (Group data) =
-    data.canPublicize
+canManagePermissions : Group -> Bool
+canManagePermissions (Group data) =
+    data.canManagePermissions
 
 
 
@@ -134,8 +127,7 @@ decoder =
             |> required "isDefault" bool
             |> required "isBookmarked" bool
             |> custom membershipStateDecoder
-            |> required "canPrivatize" bool
-            |> required "canPublicize" bool
+            |> required "canManagePermissions" bool
             |> required "fetchedAt" int
         )
 

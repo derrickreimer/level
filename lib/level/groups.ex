@@ -561,24 +561,14 @@ defmodule Level.Groups do
   end
 
   @doc """
-  Determines if a user is allowed to privatize a group.
+  Determines if a user is allowed to manage group permissions.
   """
-  @spec can_privatize?(GroupUser.t() | nil) :: {:ok, boolean()}
-  def can_privatize?(%GroupUser{} = group_user) do
+  @spec can_manage_permissions?(GroupUser.t() | nil) :: {:ok, boolean()}
+  def can_manage_permissions?(%GroupUser{} = group_user) do
     {:ok, group_user.role == "OWNER"}
   end
 
-  def can_privatize?(nil), do: {:ok, false}
-
-  @doc """
-  Determines if a user is allowed to publicize a group.
-  """
-  @spec can_publicize?(GroupUser.t() | nil) :: {:ok, boolean()}
-  def can_publicize?(%GroupUser{} = group_user) do
-    {:ok, group_user.role == "OWNER"}
-  end
-
-  def can_publicize?(nil), do: {:ok, false}
+  def can_manage_permissions?(nil), do: {:ok, false}
 
   @doc """
   Makes a group public.
