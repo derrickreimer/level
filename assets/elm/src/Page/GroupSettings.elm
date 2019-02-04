@@ -571,22 +571,28 @@ generalView model data =
 
 permissionsView : Globals -> Model -> Data -> Html Msg
 permissionsView globals model data =
-    div [ class "mb-4 pb-16 border-b" ]
-        [ label [ class "control checkbox pb-6" ]
-            [ input
-                [ type_ "checkbox"
-                , class "checkbox"
-                , onClick PrivacyToggled
-                , checked model.isPrivate
-                , disabled model.isSubmitting
+    if Group.canManagePermissions data.group then
+        div [ class "mb-4 pb-16 border-b" ]
+            [ label [ class "control checkbox pb-6" ]
+                [ input
+                    [ type_ "checkbox"
+                    , class "checkbox"
+                    , onClick PrivacyToggled
+                    , checked model.isPrivate
+                    , disabled model.isSubmitting
+                    ]
+                    []
+                , span [ class "control-indicator" ] []
+                , span [ class "select-none" ] [ text "Make this group private" ]
                 ]
-                []
-            , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Make this group private" ]
+            , viewIf model.isPrivate <|
+                usersView globals.repo model
             ]
-        , viewIf model.isPrivate <|
-            usersView globals.repo model
-        ]
+
+    else
+        div [ class "mb-6 px-4 py-3 bg-green-lightest border-b-2 border-green text-green-dark text-md font-bold" ]
+            [ text "You must be a group owner to manage its permissions."
+            ]
 
 
 usersView : Repo -> Model -> Html Msg
