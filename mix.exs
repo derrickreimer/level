@@ -61,7 +61,7 @@ defmodule Level.Mixfile do
       {:absinthe, "~> 1.4.5"},
       {:absinthe_plug, "~> 1.4.0"},
       {:absinthe_phoenix, "~> 1.4.0"},
-      {:dataloader, "~> 1.0.0"},
+      {:dataloader, "1.0.4"},
       {:joken, "~> 1.5"},
       {:bamboo, "~> 1.1"},
       {:bamboo_postmark, "~> 0.4.2"},
