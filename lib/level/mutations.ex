@@ -467,10 +467,15 @@ defmodule Level.Mutations do
   def grant_private_group_access(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
-         {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
-         :ok <- Groups.grant_private_access(user, group, space_user) do
+         {:ok, group_user} <- Groups.get_group_user(group, space_user),
+         {:ok, true} <- Groups.can_manage_permissions?(group_user),
+         {:ok, target_space_user} <- Spaces.get_space_user(user, args.space_user_id),
+         :ok <- Groups.grant_private_access(group, target_space_user) do
       {:ok, %{success: true, errors: []}}
     else
+      {:ok, false} ->
+        {:error, dgettext("errors", "You are not authorized to perform this action.")}
+
       err ->
         err
     end
@@ -483,10 +488,15 @@ defmodule Level.Mutations do
   def revoke_private_group_access(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, group} <- Groups.get_group(space_user, args.group_id),
-         {:ok, space_user} <- Spaces.get_space_user(user, args.space_user_id),
-         :ok <- Groups.revoke_private_access(user, group, space_user) do
+         {:ok, group_user} <- Groups.get_group_user(group, space_user),
+         {:ok, true} <- Groups.can_manage_permissions?(group_user),
+         {:ok, target_space_user} <- Spaces.get_space_user(user, args.space_user_id),
+         :ok <- Groups.revoke_private_access(group, target_space_user) do
       {:ok, %{success: true, errors: []}}
     else
+      {:ok, false} ->
+        {:error, dgettext("errors", "You are not authorized to perform this action.")}
+
       err ->
         err
     end

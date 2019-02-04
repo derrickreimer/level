@@ -414,61 +414,49 @@ defmodule Level.Groups do
   @doc """
   Grants a user access to a private group.
   """
-  @spec grant_private_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
-  def grant_private_access(%User{} = current_user, %Group{} = group, space_user) do
-    case get_user_role(group, current_user) do
-      :owner ->
-        changeset =
-          Changeset.change(%GroupUser{}, %{
-            space_id: group.space_id,
-            space_user_id: space_user.id,
-            group_id: group.id,
-            access: "PRIVATE"
-          })
+  @spec grant_private_access(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def grant_private_access(%Group{} = group, space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        access: "PRIVATE"
+      })
 
-        opts = [
-          on_conflict: [set: [access: "PRIVATE"]],
-          conflict_target: [:space_user_id, :group_id]
-        ]
+    opts = [
+      on_conflict: [set: [access: "PRIVATE"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
 
-        case Repo.insert(changeset, opts) do
-          {:ok, _} -> :ok
-          _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
-        end
-
-      _ ->
-        {:error, dgettext("errors", "You are not authorized to perform this action.")}
+    case Repo.insert(changeset, opts) do
+      {:ok, _} -> :ok
+      _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
     end
   end
 
   @doc """
   Revokes a user's access from a private group.
   """
-  @spec revoke_private_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
-  def revoke_private_access(%User{} = current_user, %Group{} = group, space_user) do
-    case get_user_role(group, current_user) do
-      :owner ->
-        changeset =
-          Changeset.change(%GroupUser{}, %{
-            space_id: group.space_id,
-            space_user_id: space_user.id,
-            group_id: group.id,
-            access: "PUBLIC",
-            state: "NOT_SUBSCRIBED"
-          })
+  @spec revoke_private_access(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def revoke_private_access(%Group{} = group, space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        access: "PUBLIC",
+        state: "NOT_SUBSCRIBED"
+      })
 
-        opts = [
-          on_conflict: [set: [access: "PUBLIC", state: "NOT_SUBSCRIBED"]],
-          conflict_target: [:space_user_id, :group_id]
-        ]
+    opts = [
+      on_conflict: [set: [access: "PUBLIC", state: "NOT_SUBSCRIBED"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
 
-        case Repo.insert(changeset, opts) do
-          {:ok, _} -> :ok
-          _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
-        end
-
-      _ ->
-        {:error, dgettext("errors", "You are not authorized to perform this action.")}
+    case Repo.insert(changeset, opts) do
+      {:ok, _} -> :ok
+      _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
     end
   end
 
