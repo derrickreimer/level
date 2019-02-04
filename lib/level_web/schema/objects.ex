@@ -346,6 +346,13 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.featured_group_memberships/3
     end
 
+    @desc "The members who have been granted private access."
+    field :private_access_memberships, list_of(:group_membership) do
+      resolve fn group, _, _ ->
+        {:ok, Groups.list_all_with_private_access(group)}
+      end
+    end
+
     # Viewer-contextual fields
 
     @desc "The current user's group membership."
@@ -401,6 +408,8 @@ defmodule LevelWeb.Schema.Objects do
     field :group, non_null(:group), resolve: dataloader(:db)
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
     field :state, non_null(:group_membership_state)
+    field :role, non_null(:group_role)
+    field :access, non_null(:group_access)
 
     interface :fetch_timeable
 

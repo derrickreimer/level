@@ -60,9 +60,7 @@ defmodule Level.Groups do
       join: su in assoc(gu, :space_user),
       where: su.state == "ACTIVE",
       where: gu.group_id == ^group_id,
-      where: gu.state in ["SUBSCRIBED", "WATCHING"],
-      join: u in assoc(gu, :user),
-      select: %{gu | last_name: u.last_name}
+      select: %{gu | last_name: su.last_name}
   end
 
   @doc """
@@ -168,6 +166,7 @@ defmodule Level.Groups do
 
     query =
       from gu in subquery(base_query),
+        where: gu.state in ["SUBSCRIBED", "WATCHING"],
         order_by: {:asc, gu.last_name},
         limit: 20
 
@@ -180,7 +179,12 @@ defmodule Level.Groups do
   @spec list_all_memberships(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
   def list_all_memberships(group) do
     base_query = members_base_query(group)
-    query = from gu in subquery(base_query), order_by: {:asc, gu.last_name}
+
+    query =
+      from gu in subquery(base_query),
+        where: gu.state in ["SUBSCRIBED", "WATCHING"],
+        order_by: {:asc, gu.last_name}
+
     {:ok, Repo.all(query)}
   end
 
@@ -194,6 +198,21 @@ defmodule Level.Groups do
     query =
       from gu in subquery(base_query),
         where: gu.state == "WATCHING",
+        order_by: {:asc, gu.last_name}
+
+    {:ok, Repo.all(query)}
+  end
+
+  @doc """
+  Lists all private-access-granted members.
+  """
+  @spec list_all_with_private_access(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
+  def list_all_with_private_access(group) do
+    base_query = members_base_query(group)
+
+    query =
+      from gu in subquery(base_query),
+        where: gu.access == "PRIVATE",
         order_by: {:asc, gu.last_name}
 
     {:ok, Repo.all(query)}

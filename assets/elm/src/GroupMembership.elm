@@ -12,6 +12,9 @@ import SpaceUser exposing (SpaceUser)
 
 type alias GroupMembership =
     { user : SpaceUser
+    , state : GroupMembershipState
+    , role : GroupRole
+    , access : GroupAccess
     }
 
 
@@ -19,6 +22,16 @@ type GroupMembershipState
     = NotSubscribed
     | Subscribed
     | Watching
+
+
+type GroupAccess
+    = Public
+    | Private
+
+
+type GroupRole
+    = Member
+    | Owner
 
 
 fragment : Fragment
@@ -29,6 +42,9 @@ fragment =
           spaceUser {
             ...SpaceUserFields
           }
+          state
+          role
+          access
         }
         """
         [ SpaceUser.fragment
@@ -41,8 +57,11 @@ fragment =
 
 decoder : Decoder GroupMembership
 decoder =
-    Decode.map GroupMembership
+    Decode.map4 GroupMembership
         (field "spaceUser" SpaceUser.decoder)
+        (field "state" stateDecoder)
+        (field "role" roleDecoder)
+        (field "access" accessDecoder)
 
 
 stateDecoder : Decoder GroupMembershipState
@@ -62,6 +81,42 @@ stateDecoder =
 
                 _ ->
                     fail "Membership state not valid"
+    in
+    Decode.andThen convert string
+
+
+roleDecoder : Decoder GroupRole
+roleDecoder =
+    let
+        convert : String -> Decoder GroupRole
+        convert raw =
+            case raw of
+                "MEMBER" ->
+                    succeed Member
+
+                "OWNER" ->
+                    succeed Owner
+
+                _ ->
+                    fail "Role not valid"
+    in
+    Decode.andThen convert string
+
+
+accessDecoder : Decoder GroupAccess
+accessDecoder =
+    let
+        convert : String -> Decoder GroupAccess
+        convert raw =
+            case raw of
+                "PUBLIC" ->
+                    succeed Public
+
+                "PRIVATE" ->
+                    succeed Private
+
+                _ ->
+                    fail "Access not valid"
     in
     Decode.andThen convert string
 
