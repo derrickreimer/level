@@ -1,4 +1,4 @@
-module Mutation.UpdateGroup exposing (Response(..), isDefaultVariables, request, variables)
+module Mutation.PrivatizeGroup exposing (Response(..), request, variables)
 
 import GraphQL exposing (Document)
 import Group exposing (Group)
@@ -20,17 +20,13 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        mutation UpdateGroup(
+        mutation PrivatizeGroup(
           $spaceId: ID!,
-          $groupId: ID!,
-          $name: String,
-          $isDefault: Boolean
+          $groupId: ID!
         ) {
-          updateGroup(
+          privatizeGroup(
             spaceId: $spaceId,
-            groupId: $groupId,
-            name: $name,
-            isDefault: $isDefault
+            groupId: $groupId
           ) {
             ...ValidationFields
             group {
@@ -44,52 +40,24 @@ document =
         ]
 
 
-variables : Id -> Id -> Maybe String -> Maybe Bool -> Encode.Value
-variables spaceId groupId maybeName maybeIsPrivate =
-    let
-        requiredFields =
-            [ ( "spaceId", Id.encoder spaceId )
-            , ( "groupId", Id.encoder groupId )
-            ]
-
-        nameField =
-            case maybeName of
-                Just name ->
-                    [ ( "name", Encode.string name ) ]
-
-                Nothing ->
-                    []
-
-        privacyField =
-            case maybeIsPrivate of
-                Just isPrivate ->
-                    [ ( "isPrivate", Encode.bool isPrivate ) ]
-
-                Nothing ->
-                    []
-    in
-    Encode.object (requiredFields ++ nameField ++ privacyField)
-
-
-isDefaultVariables : Id -> Id -> Bool -> Encode.Value
-isDefaultVariables spaceId groupId isDefault =
+variables : Id -> Id -> Encode.Value
+variables spaceId groupId =
     Encode.object
         [ ( "spaceId", Id.encoder spaceId )
         , ( "groupId", Id.encoder groupId )
-        , ( "isDefault", Encode.bool isDefault )
         ]
 
 
 successDecoder : Decoder Response
 successDecoder =
     Decode.map Success <|
-        Decode.at [ "data", "updateGroup", "group" ] Group.decoder
+        Decode.at [ "data", "privatizeGroup", "group" ] Group.decoder
 
 
 failureDecoder : Decoder Response
 failureDecoder =
     Decode.map Invalid <|
-        Decode.at [ "data", "updateGroup", "errors" ] (Decode.list ValidationError.decoder)
+        Decode.at [ "data", "privatizeGroup", "errors" ] (Decode.list ValidationError.decoder)
 
 
 decoder : Decoder Response
@@ -104,7 +72,7 @@ decoder =
                 False ->
                     failureDecoder
     in
-    Decode.at [ "data", "updateGroup", "success" ] Decode.bool
+    Decode.at [ "data", "privatizeGroup", "success" ] Decode.bool
         |> Decode.andThen conditionalDecoder
 
 

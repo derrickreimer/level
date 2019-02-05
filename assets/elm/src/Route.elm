@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, href, parser, pushUrl, replaceUrl, toLogin, toSpace)
+module Route exposing (Route(..), fromUrl, href, isCurrent, parser, pushUrl, replaceUrl, toLogin, toSpace)
 
 {-| Routing logic for the application.
 -}
@@ -114,6 +114,39 @@ toLogin =
 toSpace : String -> Cmd msg
 toSpace slug =
     Nav.load ("/" ++ slug ++ "/")
+
+
+isCurrent : Route -> Maybe Route -> Bool
+isCurrent testRoute maybeCurrentRoute =
+    case ( testRoute, maybeCurrentRoute ) of
+        ( Inbox _, Just (Inbox _) ) ->
+            True
+
+        ( Posts _, Just (Posts _) ) ->
+            True
+
+        ( Settings _, Just (Settings _) ) ->
+            True
+
+        ( Group params, Just (Group currentParams) ) ->
+            if Route.Group.hasSamePath params currentParams then
+                True
+
+            else
+                False
+
+        ( Groups _, Just (Groups _) ) ->
+            True
+
+        ( route, Just currentRoute ) ->
+            if route == currentRoute then
+                True
+
+            else
+                False
+
+        ( _, _ ) ->
+            False
 
 
 

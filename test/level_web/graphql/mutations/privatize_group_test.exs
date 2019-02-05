@@ -1,23 +1,21 @@
-defmodule LevelWeb.GraphQL.UpdateGroupTest do
+defmodule LevelWeb.GraphQL.PrivatizeGroupTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
+  alias Level.Groups
+
   @query """
-    mutation UpdateGroup(
+    mutation PrivatizeGroup(
       $space_id: ID!,
-      $group_id: ID!,
-      $name: String,
-      $description: String
+      $group_id: ID!
     ) {
-      updateGroup(
+      privatizeGroup(
         spaceId: $space_id,
         groupId: $group_id,
-        name: $name,
-        description: $description
       ) {
         success
         group {
-          name
+          isPrivate
         }
         errors {
           attribute
@@ -33,9 +31,9 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "updates a group given valid data", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "old-name"})
-    variables = %{space_id: group.space_id, group_id: group.id, name: "new-name"}
+  test "makes a group private", %{conn: conn, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    variables = %{space_id: group.space_id, group_id: group.id}
 
     conn =
       conn
@@ -44,10 +42,10 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "updateGroup" => %{
+               "privatizeGroup" => %{
                  "success" => true,
                  "group" => %{
-                   "name" => variables.name
+                   "isPrivate" => true
                  },
                  "errors" => []
                }
@@ -55,9 +53,18 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
            }
   end
 
-  test "returns validation errors given invalid data", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user, %{name: "old-name"})
-    variables = %{space_id: group.space_id, group_id: group.id, name: ""}
+  test "returns top-level error if user is not allowed", %{
+    conn: conn,
+    space: space,
+    space_user: space_user
+  } do
+    {:ok, %{space_user: another_member}} = create_space_member(space)
+    {:ok, %{group: group}} = create_group(another_member, %{is_private: true})
+
+    # Space user is a non-owner, so cannot change permissions
+    Groups.subscribe(group, space_user)
+
+    variables = %{space_id: group.space_id, group_id: group.id}
 
     conn =
       conn
@@ -65,23 +72,19 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{
-               "updateGroup" => %{
-                 "success" => false,
-                 "group" => nil,
-                 "errors" => [
-                   %{
-                     "attribute" => "name",
-                     "message" => "can't be blank"
-                   }
-                 ]
+             "data" => %{"privatizeGroup" => nil},
+             "errors" => [
+               %{
+                 "locations" => [%{"column" => 0, "line" => 5}],
+                 "message" => "You are not authorized to perform this action.",
+                 "path" => ["privatizeGroup"]
                }
-             }
+             ]
            }
   end
 
   test "returns top-level error out if group does not exist", %{conn: conn, space: space} do
-    variables = %{space_id: space.id, group_id: Ecto.UUID.generate(), name: "new-name"}
+    variables = %{space_id: space.id, group_id: Ecto.UUID.generate()}
 
     conn =
       conn
@@ -89,12 +92,12 @@ defmodule LevelWeb.GraphQL.UpdateGroupTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"updateGroup" => nil},
+             "data" => %{"privatizeGroup" => nil},
              "errors" => [
                %{
-                 "locations" => [%{"column" => 0, "line" => 7}],
+                 "locations" => [%{"column" => 0, "line" => 5}],
                  "message" => "Group not found",
-                 "path" => ["updateGroup"]
+                 "path" => ["privatizeGroup"]
                }
              ]
            }

@@ -1432,12 +1432,10 @@ sidebarView space group featuredMembers model =
                 (Route.Group.getGroupName model.params)
                 Route.GroupSettings.General
     in
-    [ h3 [ class "flex items-center mb-2 text-base font-bold" ]
-        [ text "Subscribers"
-
-        -- Hide this for now while private groups are disabled
-        , viewIf False <|
-            privacyIcon (Group.isPrivate group)
+    [ h3 [ class "flex items-baseline mb-2 text-base font-bold" ]
+        [ span [ class "mr-2" ] [ text "Subscribers" ]
+        , viewIf (Group.isPrivate group) <|
+            div [ class "tooltip tooltip-bottom font-sans", attribute "data-tooltip" "This channel is private" ] [ Icons.lock ]
         ]
     , memberListView space featuredMembers
     , ul [ class "list-reset leading-normal" ]

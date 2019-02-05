@@ -16,7 +16,11 @@ import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.CloseGroup as CloseGroup
+import Mutation.GrantPrivateGroupAccess as GrantPrivateGroupAccess
+import Mutation.PrivatizeGroup as PrivatizeGroup
+import Mutation.PublicizeGroup as PublicizeGroup
 import Mutation.ReopenGroup as ReopenGroup
+import Mutation.RevokePrivateGroupAccess as RevokePrivateGroupAccess
 import Mutation.UpdateGroup as UpdateGroup
 import Pagination
 import Query.GroupSettingsInit as GroupSettingsInit
@@ -26,6 +30,7 @@ import Route.Group
 import Route.GroupSettings exposing (Params)
 import Scroll
 import Session exposing (Session)
+import Set
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
@@ -44,8 +49,10 @@ type alias Model =
     , groupId : Id
     , bookmarkIds : List Id
     , isDefault : Bool
+    , isPrivate : Bool
     , spaceUserIds : List Id
-    , selectedIds : List Id
+    , ownerIds : List Id
+    , privateAccessorIds : List Id
     , isSubmitting : Bool
 
     -- MOBILE
@@ -102,8 +109,10 @@ buildModel params globals ( newSession, resp ) =
                 resp.groupId
                 resp.bookmarkIds
                 resp.isDefault
+                resp.isPrivate
                 resp.spaceUserIds
-                []
+                resp.ownerIds
+                resp.privateAccessorIds
                 False
                 False
                 False
@@ -132,12 +141,18 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | UserToggled Id
+    | PrivateGroupAccessRevoked Id (Result Session.Error ( Session, RevokePrivateGroupAccess.Response ))
+    | PrivateGroupAccessGranted Id (Result Session.Error ( Session, GrantPrivateGroupAccess.Response ))
     | CloseClicked
     | Closed (Result Session.Error ( Session, CloseGroup.Response ))
     | ReopenClicked
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | DefaultToggled
     | GroupUpdated (Result Session.Error ( Session, UpdateGroup.Response ))
+    | MakePublicChecked
+    | MakePrivateChecked
+    | GroupPrivatized (Result Session.Error ( Session, PrivatizeGroup.Response ))
+    | GroupPublicized (Result Session.Error ( Session, PublicizeGroup.Response ))
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -155,14 +170,48 @@ update msg globals model =
 
         UserToggled toggledId ->
             let
-                newSelectedIds =
-                    if List.member toggledId model.selectedIds then
-                        ListHelpers.removeBy identity toggledId model.selectedIds
+                ( newPrivateSpaceUserIds, cmd ) =
+                    if List.member toggledId model.privateAccessorIds then
+                        ( ListHelpers.removeBy identity toggledId model.privateAccessorIds
+                        , globals.session
+                            |> RevokePrivateGroupAccess.request (RevokePrivateGroupAccess.variables model.spaceId model.groupId toggledId)
+                            |> Task.attempt (PrivateGroupAccessRevoked toggledId)
+                        )
 
                     else
-                        ListHelpers.insertUniqueBy identity toggledId model.selectedIds
+                        ( ListHelpers.insertUniqueBy identity toggledId model.privateAccessorIds
+                        , globals.session
+                            |> GrantPrivateGroupAccess.request (GrantPrivateGroupAccess.variables model.spaceId model.groupId toggledId)
+                            |> Task.attempt (PrivateGroupAccessGranted toggledId)
+                        )
             in
-            ( ( { model | selectedIds = newSelectedIds }, Cmd.none ), globals )
+            ( ( { model | privateAccessorIds = newPrivateSpaceUserIds }, cmd ), globals )
+
+        PrivateGroupAccessRevoked spaceUserId (Ok ( newSession, _ )) ->
+            let
+                newPrivateSpaceUserIds =
+                    ListHelpers.removeBy identity spaceUserId model.privateAccessorIds
+            in
+            ( ( { model | privateAccessorIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
+
+        PrivateGroupAccessRevoked _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PrivateGroupAccessRevoked _ (Err _) ->
+            ( ( model, Cmd.none ), globals )
+
+        PrivateGroupAccessGranted spaceUserId (Ok ( newSession, _ )) ->
+            let
+                newPrivateSpaceUserIds =
+                    ListHelpers.insertUniqueBy identity spaceUserId model.privateAccessorIds
+            in
+            ( ( { model | privateAccessorIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
+
+        PrivateGroupAccessGranted _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PrivateGroupAccessGranted _ (Err _) ->
+            ( ( model, Cmd.none ), globals )
 
         CloseClicked ->
             let
@@ -245,6 +294,74 @@ update msg globals model =
             redirectToLogin globals model
 
         GroupUpdated (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
+
+        MakePublicChecked ->
+            let
+                cmd =
+                    globals.session
+                        |> PublicizeGroup.request (PublicizeGroup.variables model.spaceId model.groupId)
+                        |> Task.attempt GroupPublicized
+            in
+            ( ( { model | isPrivate = False, isSubmitting = True }, cmd ), globals )
+
+        MakePrivateChecked ->
+            let
+                cmd =
+                    globals.session
+                        |> PrivatizeGroup.request (PrivatizeGroup.variables model.spaceId model.groupId)
+                        |> Task.attempt GroupPrivatized
+            in
+            ( ( { model | isPrivate = True, isSubmitting = True }, cmd ), globals )
+
+        GroupPrivatized (Ok ( newSession, PrivatizeGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals
+                | session = newSession
+                , repo = newRepo
+                , flash = Flash.set Flash.Notice "Channel made private" 3000 globals.flash
+              }
+            )
+
+        GroupPrivatized (Ok ( newSession, _ )) ->
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        GroupPrivatized (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        GroupPrivatized (Err _) ->
+            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
+
+        GroupPublicized (Ok ( newSession, PublicizeGroup.Success group )) ->
+            let
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup group
+            in
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals
+                | session = newSession
+                , repo = newRepo
+                , flash = Flash.set Flash.Notice "Channel made public" 3000 globals.flash
+              }
+            )
+
+        GroupPublicized (Ok ( newSession, _ )) ->
+            ( ( { model | isSubmitting = False }, Cmd.none )
+            , { globals | session = newSession }
+            )
+
+        GroupPublicized (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        GroupPublicized (Err _) ->
             ( ( { model | isSubmitting = False }, Cmd.none ), globals )
 
         NavToggled ->
@@ -341,9 +458,12 @@ resolvedDesktopView globals model data =
                 ]
             , div [ class "flex items-baseline mb-6 border-b" ]
                 [ filterTab Device.Desktop "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
+                , filterTab Device.Desktop "Permissions" Route.GroupSettings.Permissions (Route.GroupSettings.setSection Route.GroupSettings.Permissions model.params) model.params
                 ]
             , viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.General) <|
                 generalView model data
+            , viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.Permissions) <|
+                permissionsView globals model data
             , viewIf (Group.state data.group == Group.Open) <|
                 button
                     [ class "text-md text-dusty-blue no-underline font-bold"
@@ -392,10 +512,13 @@ resolvedMobileView globals model data =
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
                 [ filterTab Device.Mobile "General" Route.GroupSettings.General (Route.GroupSettings.setSection Route.GroupSettings.General model.params) model.params
+                , filterTab Device.Mobile "Permissions" Route.GroupSettings.Permissions (Route.GroupSettings.setSection Route.GroupSettings.Permissions model.params) model.params
                 ]
             , div [ class "p-4" ]
                 [ viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.General) <|
                     generalView model data
+                , viewIf (Route.GroupSettings.getSection model.params == Route.GroupSettings.Permissions) <|
+                    permissionsView globals model data
                 , viewIf (Group.state data.group == Group.Open) <|
                     button
                         [ class "text-md text-dusty-blue no-underline font-bold"
@@ -444,52 +567,105 @@ generalView model data =
                 , class "checkbox"
                 , onClick DefaultToggled
                 , checked model.isDefault
-                , disabled model.isSubmitting
+                , disabled model.isPrivate
                 ]
                 []
             , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Auto-subscribe new members to this channel" ]
-            ]
-        ]
-
-
-permissionsView : Repo -> Model -> Html Msg
-permissionsView repo model =
-    div []
-        [ div [ class "pb-6" ]
-            [ p [ class "text-base" ]
-                [ text "Manage who is allowed in the channel and appoint other owners to help admininstrate it."
+            , span [ class "select-none" ]
+                [ text "Auto-subscribe new members to this channel"
+                , viewIf model.isPrivate <|
+                    text " (disallowed because this channel is private)"
                 ]
             ]
-        , usersView repo model
         ]
 
 
-usersView : Repo -> Model -> Html Msg
-usersView repo model =
-    div [ class "pb-6" ]
-        (model.spaceUserIds
+permissionsView : Globals -> Model -> Data -> Html Msg
+permissionsView globals model data =
+    div [ class "mb-4 pb-16 border-b" ]
+        [ ownersView globals.repo model
+        , viewIf (Group.canManagePermissions data.group) <|
+            div []
+                [ label [ class "control radio pb-2" ]
+                    [ input
+                        [ type_ "radio"
+                        , class "radio"
+                        , onClick MakePublicChecked
+                        , checked (not model.isPrivate)
+                        ]
+                        []
+                    , span [ class "control-indicator" ] []
+                    , span [ class "select-none" ] [ text "Anyone can see this channel" ]
+                    ]
+                , label [ class "control radio pb-3" ]
+                    [ input
+                        [ type_ "radio"
+                        , class "radio"
+                        , onClick MakePrivateChecked
+                        , checked model.isPrivate
+                        ]
+                        []
+                    , span [ class "control-indicator" ] []
+                    , span [ class "select-none" ] [ text "Only people granted access can see this channel" ]
+                    ]
+                , viewIf model.isPrivate <|
+                    privateAccessorsView globals.repo model
+                ]
+        ]
+
+
+ownersView : Repo -> Model -> Html Msg
+ownersView repo model =
+    div [ class "mb-6" ]
+        [ p [ class "mb-3" ] [ text "This channel is owned by:" ]
+        , div []
+            (model.ownerIds
+                |> List.filterMap (\id -> Repo.getSpaceUser id repo)
+                |> List.map (ownerView model)
+            )
+        ]
+
+
+ownerView : Model -> SpaceUser -> Html Msg
+ownerView model spaceUser =
+    div [ class "flex items-center pr-4 pb-1 font-normal text-base select-none" ]
+        [ div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+        , text (SpaceUser.displayName spaceUser)
+        ]
+
+
+privateAccessorsView : Repo -> Model -> Html Msg
+privateAccessorsView repo model =
+    let
+        nonOwnerIds =
+            model.ownerIds
+                |> Set.fromList
+                |> Set.diff (Set.fromList model.spaceUserIds)
+                |> Set.toList
+    in
+    div [ style "margin-left" "38px" ]
+        (nonOwnerIds
             |> List.filterMap (\id -> Repo.getSpaceUser id repo)
-            |> List.map (userView model)
+            |> List.map (privateAccessorView model)
         )
 
 
-userView : Model -> SpaceUser -> Html Msg
-userView model spaceUser =
+privateAccessorView : Model -> SpaceUser -> Html Msg
+privateAccessorView model spaceUser =
     div []
-        [ label [ class "control checkbox flex items-center pr-4 pb-1 font-normal text-base select-none" ]
+        [ label [ class "control checkbox flex items-center pr-4 pb-1 font-normal text-md select-none" ]
             [ div [ class "flex-0" ]
                 [ input
                     [ type_ "checkbox"
                     , class "checkbox"
                     , onClick (UserToggled (SpaceUser.id spaceUser))
-                    , checked (List.member (SpaceUser.id spaceUser) model.selectedIds)
+                    , checked (List.member (SpaceUser.id spaceUser) model.privateAccessorIds)
                     , disabled model.isSubmitting
                     ]
                     []
-                , span [ class "control-indicator" ] []
+                , span [ class "control-indicator w-4 h-4 mr-2 border" ] []
                 ]
-            , div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+            , div [ class "mr-2" ] [ SpaceUser.avatar Avatar.Tiny spaceUser ]
             , text (SpaceUser.displayName spaceUser)
             ]
         ]
@@ -501,4 +677,4 @@ userView model spaceUser =
 
 isNotSubmittable : Model -> Bool
 isNotSubmittable model =
-    List.isEmpty model.selectedIds || model.isSubmitting
+    model.isSubmitting

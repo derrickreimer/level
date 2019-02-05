@@ -22,6 +22,9 @@ type alias Response =
     , bookmarkIds : List Id
     , groupId : Id
     , isDefault : Bool
+    , isPrivate : Bool
+    , ownerIds : List Id
+    , privateAccessorIds : List Id
     , repo : Repo
     }
 
@@ -33,6 +36,8 @@ type alias Data =
     , spaceUsers : List SpaceUser
     , bookmarks : List Group
     , group : Group
+    , ownerIds : List Id
+    , privateAccessorIds : List Id
     }
 
 
@@ -61,6 +66,16 @@ document =
           }
           group(spaceSlug: $spaceSlug, name: $groupName) {
             ...GroupFields
+            owners {
+              spaceUser {
+                id
+              }
+            }
+            privateAccessors {
+              spaceUser {
+                id
+              }
+            }
           }
         }
         """
@@ -84,13 +99,15 @@ variables params =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data" ] <|
-        Decode.map6 Data
+        Decode.map8 Data
             (field "spaceUser" SpaceUser.decoder)
             (Decode.at [ "spaceUser", "space" ] Space.decoder)
             (Decode.at [ "spaceUser", "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
             (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
             (field "group" Group.decoder)
+            (Decode.at [ "group", "owners" ] (list (Decode.at [ "spaceUser", "id" ] Id.decoder)))
+            (Decode.at [ "group", "privateAccessors" ] (list (Decode.at [ "spaceUser", "id" ] Id.decoder)))
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -114,6 +131,9 @@ buildResponse ( session, data ) =
                 (List.map Group.id data.bookmarks)
                 (Group.id data.group)
                 (Group.isDefault data.group)
+                (Group.isPrivate data.group)
+                data.ownerIds
+                data.privateAccessorIds
                 repo
     in
     ( session, resp )

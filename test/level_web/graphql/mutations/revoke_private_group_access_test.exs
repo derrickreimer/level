@@ -1,16 +1,16 @@
-defmodule LevelWeb.GraphQL.RevokeGroupAccessTest do
+defmodule LevelWeb.GraphQL.RevokePrivateGroupAccessTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Groups
 
   @query """
-    mutation RevokeGroupAccess(
+    mutation RevokePrivateGroupAccess(
       $space_id: ID!,
       $group_id: ID!,
       $space_user_id: ID!
     ) {
-      revokeGroupAccess(
+      revokePrivateGroupAccess(
         spaceId: $space_id,
         groupId: $group_id,
         spaceUserId: $space_user_id
@@ -29,13 +29,12 @@ defmodule LevelWeb.GraphQL.RevokeGroupAccessTest do
   test "revokes group access if current user is a group owner", %{
     conn: conn,
     space: space,
-    space_user: space_user,
-    user: user
+    space_user: space_user
   } do
     {:ok, %{space_user: another_user}} = create_space_member(space)
     {:ok, %{group: group}} = create_group(space_user)
 
-    Groups.grant_access(user, group, another_user)
+    Groups.grant_private_access(group, another_user)
 
     variables = %{space_id: group.space_id, group_id: group.id, space_user_id: another_user.id}
 
@@ -46,13 +45,13 @@ defmodule LevelWeb.GraphQL.RevokeGroupAccessTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "revokeGroupAccess" => %{
+               "revokePrivateGroupAccess" => %{
                  "success" => true
                }
              }
            }
 
-    assert Groups.get_user_state(group, another_user) == nil
+    assert Groups.get_user_access(group, another_user) == :public
   end
 
   test "returns top-level errors if current user is not allowed to revoke access", %{
@@ -69,12 +68,12 @@ defmodule LevelWeb.GraphQL.RevokeGroupAccessTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"revokeGroupAccess" => nil},
+             "data" => %{"revokePrivateGroupAccess" => nil},
              "errors" => [
                %{
                  "locations" => [%{"column" => 0, "line" => 6}],
                  "message" => "You are not authorized to perform this action.",
-                 "path" => ["revokeGroupAccess"]
+                 "path" => ["revokePrivateGroupAccess"]
                }
              ]
            }
@@ -94,12 +93,12 @@ defmodule LevelWeb.GraphQL.RevokeGroupAccessTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"revokeGroupAccess" => nil},
+             "data" => %{"revokePrivateGroupAccess" => nil},
              "errors" => [
                %{
                  "locations" => [%{"column" => 0, "line" => 6}],
                  "message" => "Group not found",
-                 "path" => ["revokeGroupAccess"]
+                 "path" => ["revokePrivateGroupAccess"]
                }
              ]
            }

@@ -73,7 +73,7 @@ defmodule Level.Posts do
       left_join: pu in assoc(p, :post_users),
       on: pu.space_user_id == ^space_user_id,
       where: ps.space_id == ^space_id,
-      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      where: not is_nil(pu.id) or g.is_private == false or gu.access == "PRIVATE",
       where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^query)),
       select: %{
         ps
@@ -98,7 +98,7 @@ defmodule Level.Posts do
       left_join: pu in PostUser,
       on: pu.post_id == p.id and pu.space_user_id == su.id,
       where: r.is_deleted == false,
-      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      where: not is_nil(pu.id) or g.is_private == false or gu.access == "PRIVATE",
       distinct: r.id
   end
 

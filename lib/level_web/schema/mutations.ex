@@ -160,6 +160,48 @@ defmodule LevelWeb.Schema.Mutations do
     interface :validatable
   end
 
+  @desc "The response to making a group private."
+  object :privatize_group_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The mutated object. If the mutation was not successful,
+    this field may be null.
+    """
+    field :group, :group
+
+    interface :validatable
+  end
+
+  @desc "The response to making a group public."
+  object :publicize_group_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc """
+    The mutated object. If the mutation was not successful,
+    this field may be null.
+    """
+    field :group, :group
+
+    interface :validatable
+  end
+
   @desc "The response to closing a group."
   object :close_group_payload do
     @desc """
@@ -313,8 +355,8 @@ defmodule LevelWeb.Schema.Mutations do
     interface :validatable
   end
 
-  @desc "The response to granting group access."
-  object :grant_group_access_payload do
+  @desc "The response to granting private access."
+  object :grant_private_group_access_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why
@@ -328,8 +370,8 @@ defmodule LevelWeb.Schema.Mutations do
     interface :validatable
   end
 
-  @desc "The response to revoking group access."
-  object :revoke_group_access_payload do
+  @desc "The response to revoking private access."
+  object :revoke_private_group_access_payload do
     @desc """
     A boolean indicating if the mutation was successful. If true, the errors
     list will be empty. Otherwise, errors may contain objects describing why

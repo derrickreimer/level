@@ -8,6 +8,8 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Files
   alias Level.Groups
   alias Level.Resolvers
+  alias Level.Schemas.GroupBookmark
+  alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.Reply
   alias Level.Schemas.SearchResult
@@ -52,7 +54,7 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.space_users/3
     end
 
-    field :group_memberships, non_null(:group_membership_connection) do
+    field :group_memberships, non_null(:group_user_connection) do
       arg :space_id, non_null(:id)
       arg :first, :integer
       arg :last, :integer
@@ -136,12 +138,12 @@ defmodule LevelWeb.Schema.Objects do
 
     # Permissions
 
-    @desc "Determines whether the current user is allowed to manage members."
+    @desc "Determines whether the user is allowed to manage members."
     field :can_manage_members, non_null(:boolean) do
       resolve &Resolvers.can_manage_members?/3
     end
 
-    @desc "Determines whether the current user is allowed to manage owners."
+    @desc "Determines whether the user is allowed to manage owners."
     field :can_manage_owners, non_null(:boolean) do
       resolve &Resolvers.can_manage_owners?/3
     end
@@ -330,7 +332,7 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     @desc "A paginated connection of group memberships."
-    field :memberships, non_null(:group_membership_connection) do
+    field :memberships, non_null(:group_user_connection) do
       arg :first, :integer
       arg :last, :integer
       arg :before, :cursor
@@ -339,19 +341,67 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.group_memberships/3
     end
 
-    @desc "The current user's group membership."
-    field :membership, :group_membership do
-      resolve &Resolvers.group_membership/3
+    @desc "The short list of members to display in the sidebar."
+    field :featured_memberships, list_of(:group_user) do
+      resolve &Resolvers.featured_group_memberships/3
     end
 
-    @desc "The short list of members to display in the sidebar."
-    field :featured_memberships, list_of(:group_membership) do
-      resolve &Resolvers.featured_group_memberships/3
+    @desc "Member with group ownership rights."
+    field :owners, list_of(:group_user) do
+      resolve fn group, _, _ ->
+        Groups.list_all_owners(group)
+      end
+    end
+
+    @desc "Members who have been granted private access."
+    field :private_accessors, list_of(:group_user) do
+      resolve fn group, _, _ ->
+        Groups.list_all_with_private_access(group)
+      end
+    end
+
+    # Viewer-contextual fields
+
+    @desc "The current user's group membership."
+    field :membership, :group_user do
+      resolve fn group, _, %{context: %{loader: loader}} ->
+        dataloader_with_handler(%{
+          loader: loader,
+          source_name: :db,
+          batch_key: {:one, GroupUser},
+          item_key: [group_id: group.id],
+          handler_fn: fn record -> {:ok, record} end
+        })
+      end
     end
 
     @desc "The bookmarking state of the current user."
     field :is_bookmarked, non_null(:boolean) do
-      resolve &Resolvers.is_bookmarked/3
+      resolve fn group, _, %{context: %{loader: loader}} ->
+        dataloader_with_handler(%{
+          loader: loader,
+          source_name: :db,
+          batch_key: {:one, GroupBookmark},
+          item_key: [group_id: group.id],
+          handler_fn: fn
+            %GroupBookmark{} -> {:ok, true}
+            _ -> {:ok, false}
+          end
+        })
+      end
+    end
+
+    @desc "Determines if the current user is allowed to manage group permissions."
+    field :can_manage_permissions, non_null(:boolean) do
+      resolve fn group, _, %{context: %{loader: loader}} ->
+        dataloader_with_handler(%{
+          loader: loader,
+          source_name: :db,
+          batch_key: {:one, GroupUser},
+          item_key: [group_id: group.id],
+          handler_fn: &Groups.can_manage_permissions?/1
+        })
+      end
     end
 
     interface :fetch_timeable
@@ -361,10 +411,12 @@ defmodule LevelWeb.Schema.Objects do
   end
 
   @desc "A group membership defines the relationship between a user and group."
-  object :group_membership do
+  object :group_user do
     field :group, non_null(:group), resolve: dataloader(:db)
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
     field :state, non_null(:group_membership_state)
+    field :role, non_null(:group_role)
+    field :access, non_null(:group_access)
 
     interface :fetch_timeable
 
@@ -636,5 +688,15 @@ defmodule LevelWeb.Schema.Objects do
     fn _, _ ->
       {:ok, DateTime.utc_now()}
     end
+  end
+
+  def dataloader_with_handler(args) do
+    args.loader
+    |> Dataloader.load(args.source_name, args.batch_key, args.item_key)
+    |> on_load(fn loader ->
+      loader
+      |> Dataloader.get(args.source_name, args.batch_key, args.item_key)
+      |> args.handler_fn.()
+    end)
   end
 end

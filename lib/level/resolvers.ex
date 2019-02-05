@@ -21,7 +21,6 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.SpaceUserConnection
   alias Level.Resolvers.UserGroupMembershipConnection
   alias Level.Schemas.Group
-  alias Level.Schemas.GroupBookmark
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.PostUser
@@ -266,35 +265,6 @@ defmodule Level.Resolvers do
 
   defp handle_reply_views_fetched([]), do: {:ok, false}
   defp handle_reply_views_fetched(_), do: {:ok, true}
-
-  @doc """
-  Fetches the current user's membership.
-  """
-  @spec group_membership(Group.t(), map(), info()) :: dataloader_result()
-  def group_membership(%Group{} = group, _args, %{context: %{loader: loader}}) do
-    dataloader_one(loader, :db, {:one, GroupUser}, group_id: group.id)
-  end
-
-  @doc """
-  Fetches is bookmarked status for a group.
-  """
-  @spec is_bookmarked(Group.t(), any(), info()) :: dataloader_result()
-  def is_bookmarked(%Group{} = group, _, %{context: %{loader: loader}}) do
-    source_name = :db
-    batch_key = {:one, GroupBookmark}
-    item_key = [group_id: group.id]
-
-    loader
-    |> Dataloader.load(source_name, batch_key, item_key)
-    |> on_load(fn loader ->
-      loader
-      |> Dataloader.get(source_name, batch_key, item_key)
-      |> handle_bookmark_fetch()
-    end)
-  end
-
-  defp handle_bookmark_fetch(%GroupBookmark{}), do: {:ok, true}
-  defp handle_bookmark_fetch(_), do: {:ok, false}
 
   @doc """
   Fetches posts accessible by the current user.

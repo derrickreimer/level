@@ -30,7 +30,7 @@ defmodule Level.Groups do
       where: g.space_id == ^space_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == ^space_user_id,
-      where: g.is_private == false or (g.is_private == true and not is_nil(gu.id)),
+      where: g.is_private == false or (g.is_private == true and gu.access == "PRIVATE"),
       where: g.state != "DELETED"
   end
 
@@ -47,7 +47,7 @@ defmodule Level.Groups do
       on: su.space_id == g.space_id and su.user_id == ^user_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == su.id,
-      where: g.is_private == false or (g.is_private == true and not is_nil(gu.id)),
+      where: g.is_private == false or (g.is_private == true and gu.access == "PRIVATE"),
       where: g.state != "DELETED"
   end
 
@@ -60,17 +60,13 @@ defmodule Level.Groups do
       join: su in assoc(gu, :space_user),
       where: su.state == "ACTIVE",
       where: gu.group_id == ^group_id,
-      where: gu.state in ["SUBSCRIBED", "WATCHING"],
-      join: u in assoc(gu, :user),
-      select: %{gu | last_name: u.last_name}
+      select: %{gu | last_name: su.last_name}
   end
 
   @doc """
   Fetches a group by id.
   """
   @spec get_group(SpaceUser.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-  @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
-
   def get_group(%SpaceUser{} = member, id) do
     case Repo.get_by(groups_base_query(member), id: id) do
       %Group{} = group ->
@@ -81,6 +77,7 @@ defmodule Level.Groups do
     end
   end
 
+  @spec get_group(User.t(), String.t()) :: {:ok, Group.t()} | {:error, String.t()}
   def get_group(%User{} = user, id) do
     case Repo.get_by(groups_base_query(user), id: id) do
       %Group{} = group ->
@@ -169,6 +166,7 @@ defmodule Level.Groups do
 
     query =
       from gu in subquery(base_query),
+        where: gu.state in ["SUBSCRIBED", "WATCHING"],
         order_by: {:asc, gu.last_name},
         limit: 20
 
@@ -181,7 +179,12 @@ defmodule Level.Groups do
   @spec list_all_memberships(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
   def list_all_memberships(group) do
     base_query = members_base_query(group)
-    query = from gu in subquery(base_query), order_by: {:asc, gu.last_name}
+
+    query =
+      from gu in subquery(base_query),
+        where: gu.state in ["SUBSCRIBED", "WATCHING"],
+        order_by: {:asc, gu.last_name}
+
     {:ok, Repo.all(query)}
   end
 
@@ -195,6 +198,36 @@ defmodule Level.Groups do
     query =
       from gu in subquery(base_query),
         where: gu.state == "WATCHING",
+        order_by: {:asc, gu.last_name}
+
+    {:ok, Repo.all(query)}
+  end
+
+  @doc """
+  Lists all private-access-granted members.
+  """
+  @spec list_all_with_private_access(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
+  def list_all_with_private_access(group) do
+    base_query = members_base_query(group)
+
+    query =
+      from gu in subquery(base_query),
+        where: gu.access == "PRIVATE",
+        order_by: {:asc, gu.last_name}
+
+    {:ok, Repo.all(query)}
+  end
+
+  @doc """
+  Lists all group owners.
+  """
+  @spec list_all_owners(Group.t()) :: {:ok, [GroupUser.t()]} | no_return()
+  def list_all_owners(group) do
+    base_query = members_base_query(group)
+
+    query =
+      from gu in subquery(base_query),
+        where: gu.role == "OWNER",
         order_by: {:asc, gu.last_name}
 
     {:ok, Repo.all(query)}
@@ -323,11 +356,12 @@ defmodule Level.Groups do
         space_id: group.space_id,
         space_user_id: space_user.id,
         group_id: group.id,
-        state: "SUBSCRIBED"
+        state: "SUBSCRIBED",
+        access: "PRIVATE"
       })
 
     opts = [
-      on_conflict: [set: [state: "SUBSCRIBED"]],
+      on_conflict: [set: [state: "SUBSCRIBED", access: "PRIVATE"]],
       conflict_target: [:space_user_id, :group_id]
     ]
 
@@ -412,48 +446,57 @@ defmodule Level.Groups do
   end
 
   @doc """
-  Grants a user access to a group.
+  Grants a user access to a private group.
   """
-  @spec grant_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
-  def grant_access(%User{} = current_user, %Group{} = group, %SpaceUser{} = space_user) do
-    case get_user_role(group, current_user) do
-      :owner ->
+  @spec grant_private_access(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def grant_private_access(%Group{} = group, space_user) do
+    changeset =
+      Changeset.change(%GroupUser{}, %{
+        space_id: group.space_id,
+        space_user_id: space_user.id,
+        group_id: group.id,
+        access: "PRIVATE"
+      })
+
+    opts = [
+      on_conflict: [set: [access: "PRIVATE"]],
+      conflict_target: [:space_user_id, :group_id]
+    ]
+
+    case Repo.insert(changeset, opts) do
+      {:ok, _} -> :ok
+      _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
+    end
+  end
+
+  @doc """
+  Revokes a user's access from a private group.
+  """
+  @spec revoke_private_access(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
+  def revoke_private_access(%Group{} = group, space_user) do
+    case get_group_user(group, space_user) do
+      {:ok, %GroupUser{role: "OWNER"}} ->
+        {:error, dgettext("errors", "Channel owners cannot have their access revoked.")}
+
+      _ ->
         changeset =
           Changeset.change(%GroupUser{}, %{
             space_id: group.space_id,
             space_user_id: space_user.id,
             group_id: group.id,
+            access: "PUBLIC",
             state: "NOT_SUBSCRIBED"
           })
 
-        case Repo.insert(changeset, on_conflict: :nothing) do
+        opts = [
+          on_conflict: [set: [access: "PUBLIC", state: "NOT_SUBSCRIBED"]],
+          conflict_target: [:space_user_id, :group_id]
+        ]
+
+        case Repo.insert(changeset, opts) do
           {:ok, _} -> :ok
           _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
         end
-
-      _ ->
-        {:error, dgettext("errors", "You are not authorized to perform this action.")}
-    end
-  end
-
-  @doc """
-  Revokes a user's access from a group.
-  """
-  @spec revoke_access(User.t(), Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
-  def revoke_access(%User{} = current_user, %Group{} = group, %SpaceUser{id: space_user_id}) do
-    case get_user_role(group, current_user) do
-      :owner ->
-        group_id = group.id
-
-        query =
-          from gu in GroupUser,
-            where: gu.space_user_id == ^space_user_id and gu.group_id == ^group_id
-
-        {_count, _} = Repo.delete_all(query)
-        :ok
-
-      _ ->
-        {:error, dgettext("errors", "You are not authorized to perform this action.")}
     end
   end
 
@@ -531,15 +574,60 @@ defmodule Level.Groups do
     end
   end
 
-  # Internal
+  @doc """
+  Gets a user's access.
+  """
+  @spec get_user_access(Group.t(), User.t() | SpaceUser.t()) :: :private | :public | nil
+  def get_user_access(%Group{} = group, user) do
+    case get_group_user(group, user) do
+      {:ok, %GroupUser{access: "PRIVATE"}} -> :private
+      {:ok, %GroupUser{access: "PUBLIC"}} -> :public
+      _ -> nil
+    end
+  end
 
-  defp get_group_user(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
+  @doc """
+  Determines if a user is allowed to manage group permissions.
+  """
+  @spec can_manage_permissions?(GroupUser.t() | nil) :: {:ok, boolean()}
+  def can_manage_permissions?(%GroupUser{} = group_user) do
+    {:ok, group_user.role == "OWNER"}
+  end
+
+  def can_manage_permissions?(nil), do: {:ok, false}
+
+  @doc """
+  Makes a group public.
+  """
+  @spec publicize(Group.t()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
+  def publicize(%Group{} = group) do
+    group
+    |> Ecto.Changeset.change(%{is_private: false})
+    |> Repo.update()
+  end
+
+  @doc """
+  Makes a group private.
+  """
+  @spec privatize(Group.t()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
+  def privatize(%Group{} = group) do
+    group
+    |> Ecto.Changeset.change(%{is_private: true, is_default: false})
+    |> Repo.update()
+  end
+
+  @doc """
+  Fetches a group user for a user.
+  """
+  @spec get_group_user(Group.t(), SpaceUser.t()) :: {:ok, GroupUser.t() | nil}
+  def get_group_user(%Group{id: group_id}, %SpaceUser{id: space_user_id}) do
     GroupUser
     |> Repo.get_by(space_user_id: space_user_id, group_id: group_id)
     |> handle_get_group_user()
   end
 
-  defp get_group_user(%Group{id: group_id}, %User{id: user_id}) do
+  @spec get_group_user(Group.t(), User.t()) :: {:ok, GroupUser.t() | nil}
+  def get_group_user(%Group{id: group_id}, %User{id: user_id}) do
     queryable =
       from gu in GroupUser,
         join: su in assoc(gu, :space_user),

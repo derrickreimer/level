@@ -53,7 +53,7 @@ defmodule Level.Posts.Query do
       left_join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id,
       where: p.state != "DELETED",
-      where: not is_nil(pu.id) or g.is_private == false or not is_nil(gu.id),
+      where: not is_nil(pu.id) or g.is_private == false or gu.access == "PRIVATE",
       distinct: p.id
   end
 
@@ -152,7 +152,7 @@ defmodule Level.Posts.Query do
   @spec where_is_following_and_not_subscribed(Ecto.Query.t()) :: Ecto.Query.t()
   def where_is_following_and_not_subscribed(query) do
     from [p, su, u, g, gu, pu] in query,
-      where: not is_nil(gu.id),
+      where: gu.state in ["SUBSCRIBED", "WATCHING"],
       where: pu.subscription_state in ["NOT_SUBSCRIBED", "UNSUBSCRIBED"] or is_nil(pu.id),
       group_by: p.id
   end
@@ -163,7 +163,7 @@ defmodule Level.Posts.Query do
   @spec where_is_following(Ecto.Query.t()) :: Ecto.Query.t()
   def where_is_following(query) do
     from [p, su, u, g, gu, pu] in query,
-      where: not is_nil(gu.id) or pu.subscription_state == "SUBSCRIBED",
+      where: gu.state in ["SUBSCRIBED", "WATCHING"] or pu.subscription_state == "SUBSCRIBED",
       group_by: p.id
   end
 

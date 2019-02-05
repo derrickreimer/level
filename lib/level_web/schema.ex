@@ -143,10 +143,25 @@ defmodule LevelWeb.Schema do
       arg :group_id, non_null(:id)
       arg :name, :string
       arg :description, :string
-      arg :is_private, :boolean
       arg :is_default, :boolean
 
       resolve &Level.Mutations.update_group/2
+    end
+
+    @desc "Make a group private."
+    field :privatize_group, type: :privatize_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.privatize_group/2
+    end
+
+    @desc "Make a group public."
+    field :publicize_group, type: :publicize_group_payload do
+      arg :space_id, non_null(:id)
+      arg :group_id, non_null(:id)
+
+      resolve &Level.Mutations.publicize_group/2
     end
 
     @desc "Closes a group."
@@ -197,22 +212,22 @@ defmodule LevelWeb.Schema do
       resolve &Level.Mutations.unsubscribe_from_group/2
     end
 
-    @desc "Grant group access to a user."
-    field :grant_group_access, type: :grant_group_access_payload do
+    @desc "Grant a user access to a private group."
+    field :grant_private_group_access, type: :grant_private_group_access_payload do
       arg :space_id, non_null(:id)
       arg :group_id, non_null(:id)
       arg :space_user_id, non_null(:id)
 
-      resolve &Level.Mutations.grant_group_access/2
+      resolve &Level.Mutations.grant_private_group_access/2
     end
 
-    @desc "Revoke group access from a user."
-    field :revoke_group_access, type: :revoke_group_access_payload do
+    @desc "Revoke a user's access to a private group."
+    field :revoke_private_group_access, type: :revoke_private_group_access_payload do
       arg :space_id, non_null(:id)
       arg :group_id, non_null(:id)
       arg :space_user_id, non_null(:id)
 
-      resolve &Level.Mutations.revoke_group_access/2
+      resolve &Level.Mutations.revoke_private_group_access/2
     end
 
     @desc "Bookmark a group."

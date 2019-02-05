@@ -76,6 +76,16 @@ defmodule LevelWeb.Schema.Enums do
     value :watching, as: "WATCHING"
   end
 
+  enum :group_role do
+    value :member, as: "MEMBER"
+    value :owner, as: "OWNER"
+  end
+
+  enum :group_access do
+    value :public, as: "PUBLIC"
+    value :private, as: "PRIVATE"
+  end
+
   enum :post_order_field do
     value :posted_at
     value :last_pinged_at

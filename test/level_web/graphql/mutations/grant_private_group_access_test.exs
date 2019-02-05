@@ -1,16 +1,16 @@
-defmodule LevelWeb.GraphQL.GrantGroupAccessTest do
+defmodule LevelWeb.GraphQL.GrantPrivateGroupAccessTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
   alias Level.Groups
 
   @query """
-    mutation GrantGroupAccess(
+    mutation GrantPrivateGroupAccess(
       $space_id: ID!,
       $group_id: ID!,
       $space_user_id: ID!
     ) {
-      grantGroupAccess(
+      grantPrivateGroupAccess(
         spaceId: $space_id,
         groupId: $group_id,
         spaceUserId: $space_user_id
@@ -26,7 +26,7 @@ defmodule LevelWeb.GraphQL.GrantGroupAccessTest do
     {:ok, %{conn: conn, user: user, space: space, space_user: space_user}}
   end
 
-  test "grants group access if current user is a group owner", %{
+  test "grants private access if current user is a group owner", %{
     conn: conn,
     space: space,
     space_user: space_user
@@ -42,12 +42,13 @@ defmodule LevelWeb.GraphQL.GrantGroupAccessTest do
 
     assert json_response(conn, 200) == %{
              "data" => %{
-               "grantGroupAccess" => %{
+               "grantPrivateGroupAccess" => %{
                  "success" => true
                }
              }
            }
 
+    assert Groups.get_user_access(group, another_user) == :private
     assert Groups.get_user_state(group, another_user) == :not_subscribed
     assert Groups.get_user_role(group, another_user) == :member
   end
@@ -66,12 +67,12 @@ defmodule LevelWeb.GraphQL.GrantGroupAccessTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"grantGroupAccess" => nil},
+             "data" => %{"grantPrivateGroupAccess" => nil},
              "errors" => [
                %{
                  "locations" => [%{"column" => 0, "line" => 6}],
                  "message" => "You are not authorized to perform this action.",
-                 "path" => ["grantGroupAccess"]
+                 "path" => ["grantPrivateGroupAccess"]
                }
              ]
            }
@@ -91,12 +92,12 @@ defmodule LevelWeb.GraphQL.GrantGroupAccessTest do
       |> post("/graphql", %{query: @query, variables: variables})
 
     assert json_response(conn, 200) == %{
-             "data" => %{"grantGroupAccess" => nil},
+             "data" => %{"grantPrivateGroupAccess" => nil},
              "errors" => [
                %{
                  "locations" => [%{"column" => 0, "line" => 6}],
                  "message" => "Group not found",
-                 "path" => ["grantGroupAccess"]
+                 "path" => ["grantPrivateGroupAccess"]
                }
              ]
            }

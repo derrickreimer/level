@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, home, image, inbox, inboxWhite, lock, logOut, logo, logomark, menu, more, open, plus, postbot, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
+module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, home, image, inbox, inboxWhite, lock, lockLarge, logOut, logo, logomark, menu, more, open, plus, postbot, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsSmall, undismissed, unlock, zapWhite)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -234,7 +234,13 @@ home toggle =
 lock : Html msg
 lock =
     iconView <|
-        svg [ width "16px", height "18px", viewBox "0 0 16 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "lock", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ rect [ id "Rectangle-path", fill "#8A98A5", x "0", y "7.2", width "14", height "8.8", rx "2" ] [], Svg.path [ d "M3.11111111,7.2 L3.11111111,4 C3.11111111,1.790861 4.85222597,1.24344979e-15 7,8.8817842e-16 C9.14777403,1.77635684e-16 10.8888889,1.790861 10.8888889,4 L10.8888889,7.2", id "Shape" ] [] ] ] ]
+        svg [ width "10px", height "12px", viewBox "0 0 10 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "lock", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ rect [ id "Rectangle-path", fill "#8A98A5", x "0", y "4.95", width "9", height "6.05", rx "2" ] [], Svg.path [ d "M2,4.95 L2,2.75 C2,1.23121694 3.11928813,1.13242749e-15 4.5,8.8817842e-16 C5.88071187,3.99680289e-16 7,1.23121694 7,2.75 L7,4.95", id "Shape" ] [] ] ] ]
+
+
+lockLarge : Html msg
+lockLarge =
+    iconView <|
+        svg [ width "15px", height "17px", viewBox "0 0 15 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "lock-copy", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ rect [ id "Rectangle-path", fill "#8A98A5", x "0", y "7.2", width "14", height "8.8", rx "2" ] [], Svg.path [ d "M3.11111111,7.2 L3.11111111,4 C3.11111111,1.790861 4.85222597,1.24344979e-15 7,8.8817842e-16 C9.14777403,1.77635684e-16 10.8888889,1.790861 10.8888889,4 L10.8888889,7.2", id "Shape" ] [] ] ] ]
 
 
 logo : Html msg

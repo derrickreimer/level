@@ -1,9 +1,10 @@
-module Group exposing (Group, State(..), decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, state)
+module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, state)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, string, succeed)
+import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 
 
 
@@ -27,6 +28,7 @@ type alias Data =
     , isDefault : Bool
     , isBookmarked : Bool
     , membershipState : GroupMembershipState
+    , canManagePermissions : Bool
     , fetchedAt : Int
     }
 
@@ -45,6 +47,7 @@ fragment =
           membership {
             state
           }
+          canManagePermissions
           fetchedAt
         }
         """
@@ -90,6 +93,11 @@ membershipState (Group data) =
     data.membershipState
 
 
+canManagePermissions : Group -> Bool
+canManagePermissions (Group data) =
+    data.canManagePermissions
+
+
 
 -- SETTERS
 
@@ -111,15 +119,17 @@ setIsBookmarked val (Group data) =
 decoder : Decoder Group
 decoder =
     Decode.map Group <|
-        Decode.map8 Data
-            (field "id" Id.decoder)
-            (field "state" stateDecoder)
-            (field "name" string)
-            (field "isPrivate" bool)
-            (field "isDefault" bool)
-            (field "isBookmarked" bool)
-            membershipStateDecoder
-            (field "fetchedAt" int)
+        (Decode.succeed Data
+            |> required "id" Id.decoder
+            |> required "state" stateDecoder
+            |> required "name" string
+            |> required "isPrivate" bool
+            |> required "isDefault" bool
+            |> required "isBookmarked" bool
+            |> custom membershipStateDecoder
+            |> required "canManagePermissions" bool
+            |> required "fetchedAt" int
+        )
 
 
 stateDecoder : Decoder State
