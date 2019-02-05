@@ -30,6 +30,7 @@ import Route.Group
 import Route.GroupSettings exposing (Params)
 import Scroll
 import Session exposing (Session)
+import Set
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
@@ -633,8 +634,15 @@ ownerView model spaceUser =
 
 privateAccessorsView : Repo -> Model -> Html Msg
 privateAccessorsView repo model =
+    let
+        nonOwnerIds =
+            model.ownerIds
+                |> Set.fromList
+                |> Set.diff (Set.fromList model.spaceUserIds)
+                |> Set.toList
+    in
     div [ class "pb-6 pl-12" ]
-        (model.spaceUserIds
+        (nonOwnerIds
             |> List.filterMap (\id -> Repo.getSpaceUser id repo)
             |> List.map (privateAccessorView model)
         )
