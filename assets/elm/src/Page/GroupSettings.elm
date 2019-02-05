@@ -577,41 +577,38 @@ generalView model data =
 
 permissionsView : Globals -> Model -> Data -> Html Msg
 permissionsView globals model data =
-    if Group.canManagePermissions data.group then
-        div [ class "mb-4 pb-16 border-b" ]
-            [ ownersView globals.repo model
-            , label [ class "control radio pb-2" ]
-                [ input
-                    [ type_ "radio"
-                    , class "radio"
-                    , onClick MakePublicChecked
-                    , checked (not model.isPrivate)
-                    , disabled model.isSubmitting
+    div [ class "mb-4 pb-16 border-b" ]
+        [ ownersView globals.repo model
+        , viewIf (Group.canManagePermissions data.group) <|
+            div []
+                [ label [ class "control radio pb-2" ]
+                    [ input
+                        [ type_ "radio"
+                        , class "radio"
+                        , onClick MakePublicChecked
+                        , checked (not model.isPrivate)
+                        , disabled model.isSubmitting
+                        ]
+                        []
+                    , span [ class "control-indicator" ] []
+                    , span [ class "select-none" ] [ text "Anyone can see this channel" ]
                     ]
-                    []
-                , span [ class "control-indicator" ] []
-                , span [ class "select-none" ] [ text "Anyone can see this channel" ]
-                ]
-            , label [ class "control radio pb-3" ]
-                [ input
-                    [ type_ "radio"
-                    , class "radio"
-                    , onClick MakePrivateChecked
-                    , checked model.isPrivate
-                    , disabled model.isSubmitting
+                , label [ class "control radio pb-3" ]
+                    [ input
+                        [ type_ "radio"
+                        , class "radio"
+                        , onClick MakePrivateChecked
+                        , checked model.isPrivate
+                        , disabled model.isSubmitting
+                        ]
+                        []
+                    , span [ class "control-indicator" ] []
+                    , span [ class "select-none" ] [ text "Only people granted access can see this channel" ]
                     ]
-                    []
-                , span [ class "control-indicator" ] []
-                , span [ class "select-none" ] [ text "Only people granted access can see this channel" ]
+                , viewIf model.isPrivate <|
+                    privateAccessorsView globals.repo model
                 ]
-            , viewIf model.isPrivate <|
-                privateAccessorsView globals.repo model
-            ]
-
-    else
-        div [ class "mb-6 px-4 py-3 bg-green-lightest border-b-2 border-green text-green-dark text-md font-bold" ]
-            [ text "You must be a group owner to manage its permissions."
-            ]
+        ]
 
 
 ownersView : Repo -> Model -> Html Msg
