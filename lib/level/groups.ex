@@ -474,23 +474,29 @@ defmodule Level.Groups do
   """
   @spec revoke_private_access(Group.t(), SpaceUser.t()) :: :ok | {:error, String.t()}
   def revoke_private_access(%Group{} = group, space_user) do
-    changeset =
-      Changeset.change(%GroupUser{}, %{
-        space_id: group.space_id,
-        space_user_id: space_user.id,
-        group_id: group.id,
-        access: "PUBLIC",
-        state: "NOT_SUBSCRIBED"
-      })
+    case get_group_user(group, space_user) do
+      {:ok, %GroupUser{role: "OWNER"}} ->
+        {:error, dgettext("errors", "Channel owners cannot have their access revoked.")}
 
-    opts = [
-      on_conflict: [set: [access: "PUBLIC", state: "NOT_SUBSCRIBED"]],
-      conflict_target: [:space_user_id, :group_id]
-    ]
+      _ ->
+        changeset =
+          Changeset.change(%GroupUser{}, %{
+            space_id: group.space_id,
+            space_user_id: space_user.id,
+            group_id: group.id,
+            access: "PUBLIC",
+            state: "NOT_SUBSCRIBED"
+          })
 
-    case Repo.insert(changeset, opts) do
-      {:ok, _} -> :ok
-      _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
+        opts = [
+          on_conflict: [set: [access: "PUBLIC", state: "NOT_SUBSCRIBED"]],
+          conflict_target: [:space_user_id, :group_id]
+        ]
+
+        case Repo.insert(changeset, opts) do
+          {:ok, _} -> :ok
+          _ -> {:error, dgettext("errors", "An unexpected error occurred.")}
+        end
     end
   end
 

@@ -431,6 +431,18 @@ defmodule Level.GroupsTest do
       assert Groups.get_user_access(group, another_user) == :public
       assert {:error, _} = Groups.get_group(another_user, group.id)
     end
+
+    test "does not allow revoking an owner's private access", %{
+      space_user: space_user,
+      group: group
+    } do
+      assert Groups.get_user_access(group, space_user) == :private
+
+      assert {:error, "Channel owners cannot have their access revoked."} =
+               Groups.revoke_private_access(group, space_user)
+
+      assert Groups.get_user_access(group, space_user) == :private
+    end
   end
 
   describe "can_manage_permissions?/1" do
