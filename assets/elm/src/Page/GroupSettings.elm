@@ -50,7 +50,8 @@ type alias Model =
     , isDefault : Bool
     , isPrivate : Bool
     , spaceUserIds : List Id
-    , privateSpaceUserIds : List Id
+    , ownerIds : List Id
+    , privateAccessorIds : List Id
     , isSubmitting : Bool
 
     -- MOBILE
@@ -109,7 +110,8 @@ buildModel params globals ( newSession, resp ) =
                 resp.isDefault
                 resp.isPrivate
                 resp.spaceUserIds
-                resp.privateSpaceUserIds
+                resp.ownerIds
+                resp.privateAccessorIds
                 False
                 False
                 False
@@ -146,7 +148,8 @@ type Msg
     | Reopened (Result Session.Error ( Session, ReopenGroup.Response ))
     | DefaultToggled
     | GroupUpdated (Result Session.Error ( Session, UpdateGroup.Response ))
-    | PrivacyToggled
+    | MakePublicChecked
+    | MakePrivateChecked
     | GroupPrivatized (Result Session.Error ( Session, PrivatizeGroup.Response ))
     | GroupPublicized (Result Session.Error ( Session, PublicizeGroup.Response ))
       -- MOBILE
@@ -167,28 +170,28 @@ update msg globals model =
         UserToggled toggledId ->
             let
                 ( newPrivateSpaceUserIds, cmd ) =
-                    if List.member toggledId model.privateSpaceUserIds then
-                        ( ListHelpers.removeBy identity toggledId model.privateSpaceUserIds
+                    if List.member toggledId model.privateAccessorIds then
+                        ( ListHelpers.removeBy identity toggledId model.privateAccessorIds
                         , globals.session
                             |> RevokePrivateGroupAccess.request (RevokePrivateGroupAccess.variables model.spaceId model.groupId toggledId)
                             |> Task.attempt (PrivateGroupAccessRevoked toggledId)
                         )
 
                     else
-                        ( ListHelpers.insertUniqueBy identity toggledId model.privateSpaceUserIds
+                        ( ListHelpers.insertUniqueBy identity toggledId model.privateAccessorIds
                         , globals.session
                             |> GrantPrivateGroupAccess.request (GrantPrivateGroupAccess.variables model.spaceId model.groupId toggledId)
                             |> Task.attempt (PrivateGroupAccessGranted toggledId)
                         )
             in
-            ( ( { model | privateSpaceUserIds = newPrivateSpaceUserIds }, cmd ), globals )
+            ( ( { model | privateAccessorIds = newPrivateSpaceUserIds }, cmd ), globals )
 
         PrivateGroupAccessRevoked spaceUserId (Ok ( newSession, _ )) ->
             let
                 newPrivateSpaceUserIds =
-                    ListHelpers.removeBy identity spaceUserId model.privateSpaceUserIds
+                    ListHelpers.removeBy identity spaceUserId model.privateAccessorIds
             in
-            ( ( { model | privateSpaceUserIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
+            ( ( { model | privateAccessorIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
 
         PrivateGroupAccessRevoked _ (Err Session.Expired) ->
             redirectToLogin globals model
@@ -199,9 +202,9 @@ update msg globals model =
         PrivateGroupAccessGranted spaceUserId (Ok ( newSession, _ )) ->
             let
                 newPrivateSpaceUserIds =
-                    ListHelpers.insertUniqueBy identity spaceUserId model.privateSpaceUserIds
+                    ListHelpers.insertUniqueBy identity spaceUserId model.privateAccessorIds
             in
-            ( ( { model | privateSpaceUserIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
+            ( ( { model | privateAccessorIds = newPrivateSpaceUserIds }, Cmd.none ), { globals | session = newSession } )
 
         PrivateGroupAccessGranted _ (Err Session.Expired) ->
             redirectToLogin globals model
@@ -292,20 +295,23 @@ update msg globals model =
         GroupUpdated (Err _) ->
             ( ( { model | isSubmitting = False }, Cmd.none ), globals )
 
-        PrivacyToggled ->
+        MakePublicChecked ->
             let
                 cmd =
-                    if model.isPrivate then
-                        globals.session
-                            |> PublicizeGroup.request (PublicizeGroup.variables model.spaceId model.groupId)
-                            |> Task.attempt GroupPublicized
-
-                    else
-                        globals.session
-                            |> PrivatizeGroup.request (PrivatizeGroup.variables model.spaceId model.groupId)
-                            |> Task.attempt GroupPrivatized
+                    globals.session
+                        |> PublicizeGroup.request (PublicizeGroup.variables model.spaceId model.groupId)
+                        |> Task.attempt GroupPublicized
             in
-            ( ( { model | isPrivate = not model.isPrivate, isSubmitting = True }, cmd ), globals )
+            ( ( { model | isPrivate = False, isSubmitting = True }, cmd ), globals )
+
+        MakePrivateChecked ->
+            let
+                cmd =
+                    globals.session
+                        |> PrivatizeGroup.request (PrivatizeGroup.variables model.spaceId model.groupId)
+                        |> Task.attempt GroupPrivatized
+            in
+            ( ( { model | isPrivate = True, isSubmitting = True }, cmd ), globals )
 
         GroupPrivatized (Ok ( newSession, PrivatizeGroup.Success group )) ->
             let
@@ -573,20 +579,33 @@ permissionsView : Globals -> Model -> Data -> Html Msg
 permissionsView globals model data =
     if Group.canManagePermissions data.group then
         div [ class "mb-4 pb-16 border-b" ]
-            [ label [ class "control checkbox pb-6" ]
+            [ ownersView globals.repo model
+            , label [ class "control radio pb-2" ]
                 [ input
-                    [ type_ "checkbox"
-                    , class "checkbox"
-                    , onClick PrivacyToggled
+                    [ type_ "radio"
+                    , class "radio"
+                    , onClick MakePublicChecked
+                    , checked (not model.isPrivate)
+                    , disabled model.isSubmitting
+                    ]
+                    []
+                , span [ class "control-indicator" ] []
+                , span [ class "select-none" ] [ text "Anyone can see this channel" ]
+                ]
+            , label [ class "control radio pb-3" ]
+                [ input
+                    [ type_ "radio"
+                    , class "radio"
+                    , onClick MakePrivateChecked
                     , checked model.isPrivate
                     , disabled model.isSubmitting
                     ]
                     []
                 , span [ class "control-indicator" ] []
-                , span [ class "select-none" ] [ text "Make this group private" ]
+                , span [ class "select-none" ] [ text "Only people granted access can see this channel" ]
                 ]
             , viewIf model.isPrivate <|
-                usersView globals.repo model
+                privateAccessorsView globals.repo model
             ]
 
     else
@@ -595,34 +614,51 @@ permissionsView globals model data =
             ]
 
 
-usersView : Repo -> Model -> Html Msg
-usersView repo model =
-    div [ class "pb-6" ]
-        [ p [ class "mb-4" ] [ text "Allow the following people to see this channel:" ]
+ownersView : Repo -> Model -> Html Msg
+ownersView repo model =
+    div [ class "mb-6" ]
+        [ p [ class "mb-3" ] [ text "This channel is owned by:" ]
         , div []
-            (model.spaceUserIds
+            (model.ownerIds
                 |> List.filterMap (\id -> Repo.getSpaceUser id repo)
-                |> List.map (userView model)
+                |> List.map (ownerView model)
             )
         ]
 
 
-userView : Model -> SpaceUser -> Html Msg
-userView model spaceUser =
+ownerView : Model -> SpaceUser -> Html Msg
+ownerView model spaceUser =
+    div [ class "flex items-center pr-4 pb-1 font-normal text-base select-none" ]
+        [ div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+        , text (SpaceUser.displayName spaceUser)
+        ]
+
+
+privateAccessorsView : Repo -> Model -> Html Msg
+privateAccessorsView repo model =
+    div [ class "pb-6 pl-12" ]
+        (model.spaceUserIds
+            |> List.filterMap (\id -> Repo.getSpaceUser id repo)
+            |> List.map (privateAccessorView model)
+        )
+
+
+privateAccessorView : Model -> SpaceUser -> Html Msg
+privateAccessorView model spaceUser =
     div []
-        [ label [ class "control checkbox flex items-center pr-4 pb-1 font-normal text-base select-none" ]
+        [ label [ class "control checkbox flex items-center pr-4 pb-1 font-normal text-md select-none" ]
             [ div [ class "flex-0" ]
                 [ input
                     [ type_ "checkbox"
                     , class "checkbox"
                     , onClick (UserToggled (SpaceUser.id spaceUser))
-                    , checked (List.member (SpaceUser.id spaceUser) model.privateSpaceUserIds)
+                    , checked (List.member (SpaceUser.id spaceUser) model.privateAccessorIds)
                     , disabled model.isSubmitting
                     ]
                     []
-                , span [ class "control-indicator" ] []
+                , span [ class "control-indicator w-4 h-4 mr-2 border" ] []
                 ]
-            , div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+            , div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Tiny spaceUser ]
             , text (SpaceUser.displayName spaceUser)
             ]
         ]

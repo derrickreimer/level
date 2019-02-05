@@ -346,8 +346,15 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.featured_group_memberships/3
     end
 
-    @desc "The members who have been granted private access."
-    field :private_access_memberships, list_of(:group_user) do
+    @desc "Member with group ownership rights."
+    field :owners, list_of(:group_user) do
+      resolve fn group, _, _ ->
+        Groups.list_all_owners(group)
+      end
+    end
+
+    @desc "Members who have been granted private access."
+    field :private_accessors, list_of(:group_user) do
       resolve fn group, _, _ ->
         Groups.list_all_with_private_access(group)
       end
