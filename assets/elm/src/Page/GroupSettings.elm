@@ -643,7 +643,7 @@ privateAccessorsView repo model =
                 |> Set.diff (Set.fromList model.spaceUserIds)
                 |> Set.toList
     in
-    div [ class "pb-6 pl-12" ]
+    div [ style "margin-left" "38px" ]
         (nonOwnerIds
             |> List.filterMap (\id -> Repo.getSpaceUser id repo)
             |> List.map (privateAccessorView model)
@@ -665,7 +665,7 @@ privateAccessorView model spaceUser =
                     []
                 , span [ class "control-indicator w-4 h-4 mr-2 border" ] []
                 ]
-            , div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Tiny spaceUser ]
+            , div [ class "mr-2" ] [ SpaceUser.avatar Avatar.Tiny spaceUser ]
             , text (SpaceUser.displayName spaceUser)
             ]
         ]
