@@ -115,7 +115,7 @@
 
         # Controversial and experimental checks (opt-in, just remove `, false`)
         #
-        {Credo.Check.Refactor.ABCSize},
+        {Credo.Check.Refactor.ABCSize, false},
         {Credo.Check.Refactor.AppendSingleItem},
         {Credo.Check.Refactor.VariableRebinding, false},
         {Credo.Check.Warning.MapGetUnsafePass},
