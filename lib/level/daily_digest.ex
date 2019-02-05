@@ -40,6 +40,9 @@ defmodule Level.DailyDigest do
       from su in "space_users",
         join: u in "users",
         on: su.user_id == u.id,
+        join: s in "spaces",
+        on: su.space_id == s.id,
+        where: s.state == "ACTIVE",
         where: su.is_digest_enabled == true,
         where: su.state == "ACTIVE",
         select: %DueDigest{

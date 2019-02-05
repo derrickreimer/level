@@ -91,18 +91,9 @@ defmodule Level.Spaces do
   @doc """
   Fetches a space by id.
   """
-  @spec get_space(String.t()) :: get_space_result()
   @spec get_space(User.t(), String.t()) :: get_space_result()
-
-  def get_space(id) do
-    case Repo.get(Space, id) do
-      %Space{} = space -> {:ok, space}
-      nil -> {:error, dgettext("errors", "Space not found")}
-    end
-  end
-
   def get_space(user, id) do
-    with %Space{} = space <- Repo.get(Space, id),
+    with %Space{} = space <- Repo.get_by(Space, id: id, state: "ACTIVE"),
          {:ok, space_user} <- get_space_user(user, space) do
       {:ok, %{space: space, space_user: space_user}}
     else
@@ -116,7 +107,7 @@ defmodule Level.Spaces do
   """
   @spec get_space_by_slug(String.t()) :: {:ok, Space.t()} | {:error, String.t()}
   def get_space_by_slug(slug) do
-    case Repo.get_by(Space, %{slug: slug}) do
+    case Repo.get_by(Space, slug: slug, state: "ACTIVE") do
       %Space{} = space ->
         {:ok, space}
 
@@ -127,7 +118,7 @@ defmodule Level.Spaces do
 
   @spec get_space_by_slug(User.t(), String.t()) :: get_space_result()
   def get_space_by_slug(user, slug) do
-    with %Space{} = space <- Repo.get_by(Space, %{slug: slug}),
+    with %Space{} = space <- Repo.get_by(Space, slug: slug, state: "ACTIVE"),
          {:ok, space_user} <- get_space_user(user, space) do
       {:ok, %{space: space, space_user: space_user}}
     else
@@ -220,14 +211,16 @@ defmodule Level.Spaces do
       join: s in assoc(su, :space),
       join: usu in SpaceUser,
       on: usu.space_id == su.space_id and usu.user_id == ^user.id,
+      where: s.state == "ACTIVE",
       where: usu.state == "ACTIVE",
       select: %{su | space_name: s.name}
   end
 
-  def space_users_base_query(%Space{} = space) do
+  def space_users_base_query(%Space{id: space_id}) do
     from su in SpaceUser,
       join: s in assoc(su, :space),
-      where: su.space_id == ^space.id,
+      where: s.state == "ACTIVE",
+      where: s.id == ^space_id,
       select: %{su | space_name: s.name}
   end
 
@@ -237,8 +230,10 @@ defmodule Level.Spaces do
   @spec space_bots_base_query(User.t()) :: Ecto.Query.t()
   def space_bots_base_query(%User{id: user_id}) do
     from sb in SpaceBot,
+      join: s in assoc(sb, :space),
       join: su in SpaceUser,
       on: su.space_id == sb.space_id,
+      where: s.state == "ACTIVE",
       where: su.user_id == ^user_id
   end
 
