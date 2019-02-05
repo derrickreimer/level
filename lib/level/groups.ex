@@ -612,7 +612,7 @@ defmodule Level.Groups do
   @spec privatize(Group.t()) :: {:ok, Group.t()} | {:error, Ecto.Changeset.t()}
   def privatize(%Group{} = group) do
     group
-    |> Ecto.Changeset.change(%{is_private: true})
+    |> Ecto.Changeset.change(%{is_private: true, is_default: false})
     |> Repo.update()
   end
 

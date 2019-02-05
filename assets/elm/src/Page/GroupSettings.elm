@@ -567,11 +567,15 @@ generalView model data =
                 , class "checkbox"
                 , onClick DefaultToggled
                 , checked model.isDefault
-                , disabled model.isSubmitting
+                , disabled model.isPrivate
                 ]
                 []
             , span [ class "control-indicator" ] []
-            , span [ class "select-none" ] [ text "Auto-subscribe new members to this channel" ]
+            , span [ class "select-none" ]
+                [ text "Auto-subscribe new members to this channel"
+                , viewIf model.isPrivate <|
+                    text " (disallowed because this channel is private)"
+                ]
             ]
         ]
 
@@ -588,7 +592,6 @@ permissionsView globals model data =
                         , class "radio"
                         , onClick MakePublicChecked
                         , checked (not model.isPrivate)
-                        , disabled model.isSubmitting
                         ]
                         []
                     , span [ class "control-indicator" ] []
@@ -600,7 +603,6 @@ permissionsView globals model data =
                         , class "radio"
                         , onClick MakePrivateChecked
                         , checked model.isPrivate
-                        , disabled model.isSubmitting
                         ]
                         []
                     , span [ class "control-indicator" ] []

@@ -170,6 +170,17 @@ defmodule Level.GroupsTest do
     end
   end
 
+  describe "update_group/2" do
+    test "does not allow private groups to be default" do
+      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user, %{is_default: false})
+
+      {:ok, group} = Groups.privatize(group)
+      {:error, changeset} = Groups.update_group(group, %{is_default: true})
+      assert changeset.errors == [is_default: {"cannot be enabled for private channels", []}]
+    end
+  end
+
   describe "bookmark_group/2" do
     setup do
       create_user_and_space()

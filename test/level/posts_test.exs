@@ -48,7 +48,7 @@ defmodule Level.PostsTest do
       space_user: space_user,
       group: group
     } do
-      {:ok, group} = Groups.update_group(group, %{is_private: true})
+      {:ok, group} = Groups.privatize(group)
       {:ok, %{post: %Post{id: post_id}}} = create_post(space_user, group)
       {:ok, %{user: another_user}} = create_space_member(space)
 
@@ -65,7 +65,7 @@ defmodule Level.PostsTest do
       space_user: space_user,
       group: group
     } do
-      {:ok, group} = Groups.update_group(group, %{is_private: true})
+      {:ok, group} = Groups.privatize(group)
       {:ok, %{post: %Post{id: post_id}}} = create_post(space_user, group)
       {:ok, %{user: another_user, space_user: another_space_user}} = create_space_member(space)
       :ok = Groups.subscribe(group, another_space_user)

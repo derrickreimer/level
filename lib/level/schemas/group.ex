@@ -36,19 +36,30 @@ defmodule Level.Schemas.Group do
   @doc false
   def create_changeset(%__MODULE__{} = group, attrs) do
     group
-    |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_private, :is_default])
+    |> cast(attrs, [:creator_id, :space_id, :name, :description, :is_default, :is_private])
+    |> validate_default()
     |> validate()
   end
 
   @doc false
   def update_changeset(%__MODULE__{} = group, attrs) do
     group
-    |> cast(attrs, [:name, :description, :is_private, :is_default])
+    |> cast(attrs, [:name, :description, :is_default])
+    |> validate_default()
     |> validate()
   end
 
-  @doc false
-  def validate(changeset) do
+  defp validate_default(changeset) do
+    validate_change(changeset, :is_default, fn _, is_default ->
+      if is_default && get_field(changeset, :is_private) do
+        [is_default: "cannot be enabled for private channels"]
+      else
+        []
+      end
+    end)
+  end
+
+  defp validate(changeset) do
     changeset
     |> validate_required([:name])
     |> Handles.validate_format(:name)
