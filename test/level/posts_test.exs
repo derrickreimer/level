@@ -514,7 +514,7 @@ defmodule Level.PostsTest do
       assert [%Notification{event: "REPLY_CREATED"}] = Notifications.list(mentioned, post)
     end
 
-    test "loops in mentioned people who previously did not have access", %{
+    test "does not loop in mentioned people who previously did not have access", %{
       space: space,
       space_user: space_user,
       post: post,
@@ -523,14 +523,14 @@ defmodule Level.PostsTest do
       {:ok, %{space_user: %SpaceUser{id: mentioned_id} = mentioned}} =
         create_space_member(space, %{handle: "tiff"})
 
-      {:ok, _} = Groups.update_group(group, %{is_private: true})
+      {:ok, _} = Groups.privatize(group)
 
       params = valid_post_params() |> Map.merge(%{body: "Hey @tiff"})
 
       {:ok, %{mentions: %{space_users: [%SpaceUser{id: ^mentioned_id}]}}} =
         Posts.create_reply(space_user, post, params)
 
-      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+      assert %{inbox: "EXCLUDED", subscription: "NOT_SUBSCRIBED"} =
                Posts.get_user_state(post, mentioned)
     end
 
