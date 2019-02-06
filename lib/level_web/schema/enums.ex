@@ -27,6 +27,7 @@ defmodule LevelWeb.Schema.Enums do
   enum :space_state do
     value :active, as: "ACTIVE"
     value :disabled, as: "DISABLED"
+    value :deleted, as: "DELETED"
   end
 
   enum :space_setup_state do
