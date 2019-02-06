@@ -885,4 +885,30 @@ defmodule Level.PostsTest do
       {:error, "Reaction not found"} = Posts.delete_reply_reaction(space_user, reply)
     end
   end
+
+  describe "private?/1" do
+    test "returns true if a post is a DM" do
+      {:ok, %{space_user: author, space: space}} = create_user_and_space()
+      {:ok, %{space_user: _}} = create_space_member(space, %{handle: "tiff"})
+      {:ok, %{post: post}} = create_global_post(author, %{body: "Hey @tiff"})
+
+      assert {:ok, true} = Posts.private?(post)
+    end
+
+    test "returns true if a post belongs to private groups only" do
+      {:ok, %{space_user: author}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(author, %{is_private: true})
+      {:ok, %{post: post}} = create_post(author, group)
+
+      assert {:ok, true} = Posts.private?(post)
+    end
+
+    test "returns false if a post belongs to a public group" do
+      {:ok, %{space_user: author}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(author, %{is_private: false})
+      {:ok, %{post: post}} = create_post(author, group)
+
+      assert {:ok, false} = Posts.private?(post)
+    end
+  end
 end

@@ -812,6 +812,21 @@ defmodule Level.Posts do
     |> Repo.insert(on_conflict: :nothing)
   end
 
+  @doc """
+  Determines if a post is privately-scoped.
+  """
+  @spec private?(Post.t()) :: {:ok, boolean()}
+  def private?(%Post{} = post) do
+    public_groups =
+      post
+      |> Ecto.assoc(:groups)
+      |> where([g], g.is_private == false)
+      |> limit(1)
+      |> Repo.all()
+
+    {:ok, Enum.count(public_groups) == 0}
+  end
+
   # Internal
 
   defp update_many_user_states(space_user, posts, params) do

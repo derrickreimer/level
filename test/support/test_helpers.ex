@@ -130,6 +130,14 @@ defmodule Level.TestHelpers do
     Posts.create_post(sender, recipient, params)
   end
 
+  def create_global_post(sender, params \\ %{}) do
+    params =
+      valid_post_params()
+      |> Map.merge(params)
+
+    Posts.create_post(sender, params)
+  end
+
   def create_reply(space_user, post, params \\ %{}) do
     params =
       valid_reply_params()
