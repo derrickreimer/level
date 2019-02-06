@@ -62,6 +62,7 @@ defmodule Level.Spaces do
   def spaces_base_query(user) do
     from s in Space,
       join: su in assoc(s, :space_users),
+      where: s.state == "ACTIVE",
       where: su.user_id == ^user.id and su.state == "ACTIVE"
   end
 
