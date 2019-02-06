@@ -465,7 +465,7 @@ defmodule Level.PostsTest do
                Posts.create_reply(space_user, post, params)
     end
 
-    test "adds to tagged groups", %{space_user: space_user, post: post} do
+    test "adds to tagged groups if the post is public", %{space_user: space_user, post: post} do
       {:ok, %{group: another_group}} = create_group(space_user, %{name: "my-group"})
 
       params =
@@ -476,6 +476,25 @@ defmodule Level.PostsTest do
 
       post = Repo.preload(post, :groups)
       assert Enum.any?(post.groups, fn group -> group.id == another_group.id end)
+    end
+
+    test "does not add to tagged groups if the post is private", %{
+      group: group,
+      space_user: space_user,
+      post: post
+    } do
+      {:ok, _} = Groups.privatize(group)
+
+      {:ok, %{group: another_group}} = create_group(space_user, %{name: "my-group"})
+
+      params =
+        valid_reply_params()
+        |> Map.put(:body, "What about #my-group")
+
+      {:ok, _} = Posts.create_reply(space_user, post, params)
+
+      post = Repo.preload(post, :groups)
+      refute Enum.any?(post.groups, fn group -> group.id == another_group.id end)
     end
 
     test "logs the event", %{space_user: space_user, post: post, group: group} do

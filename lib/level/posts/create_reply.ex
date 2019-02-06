@@ -35,6 +35,7 @@ defmodule Level.Posts.CreateReply do
   def perform(%SpaceUser{} = author, %Post{} = post, params, opts) do
     Multi.new()
     |> do_insert(build_params(author, post, params))
+    |> check_privacy(post)
     |> record_mentions(post, author)
     |> detect_tagged_groups(post, author)
     |> attach_files(author, params)
@@ -65,6 +66,12 @@ defmodule Level.Posts.CreateReply do
     Multi.insert(multi, :reply, Reply.create_changeset(%Reply{}, params))
   end
 
+  defp check_privacy(multi, post) do
+    Multi.run(multi, :is_private, fn _ ->
+      Posts.private?(post)
+    end)
+  end
+
   defp record_mentions(multi, post, author) do
     Multi.run(multi, :mentions, fn %{reply: reply} ->
       Mentions.record(author, post, reply)
@@ -72,16 +79,21 @@ defmodule Level.Posts.CreateReply do
   end
 
   defp detect_tagged_groups(multi, post, author) do
-    Multi.run(multi, :tagged_groups, fn %{reply: reply} ->
-      groups =
-        author
-        |> TaggedGroups.get_tagged_groups(reply.body)
-        |> Enum.map(fn group ->
-          _ = Posts.publish_to_group(post, group)
-          group
-        end)
+    Multi.run(multi, :tagged_groups, fn
+      # Skip detecting tagged groups when the post is private
+      %{is_private: true} ->
+        {:ok, []}
 
-      {:ok, groups}
+      %{reply: reply} ->
+        groups =
+          author
+          |> TaggedGroups.get_tagged_groups(reply.body)
+          |> Enum.map(fn group ->
+            _ = Posts.publish_to_group(post, group)
+            group
+          end)
+
+        {:ok, groups}
     end)
   end
 
