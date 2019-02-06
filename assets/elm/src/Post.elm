@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate
     , fragment
     , decoder, decoderWithReplies
     )
@@ -15,7 +15,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate
 
 
 # GraphQL
@@ -87,6 +87,7 @@ type alias Data =
     , hasReacted : Bool
     , reactionCount : Int
     , reactorIds : List Id
+    , isPrivate : Bool
     , fetchedAt : Int
     }
 
@@ -182,6 +183,11 @@ reactorIds (Post data) =
     data.reactorIds
 
 
+isPrivate : Post -> Bool
+isPrivate (Post data) =
+    data.isPrivate
+
+
 
 -- GRAPHQL
 
@@ -223,6 +229,7 @@ fragment =
               }
               canEdit
               hasReacted
+              isPrivate
               fetchedAt
             }
             """
@@ -258,6 +265,7 @@ decoder =
             |> required "hasReacted" bool
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> custom (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
+            |> required "isPrivate" bool
             |> required "fetchedAt" int
         )
 

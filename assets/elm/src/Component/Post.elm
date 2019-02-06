@@ -1083,8 +1083,8 @@ resolvedView config model data =
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
                     [ postAuthorName config.space model.postId data.author
-
-                    -- , span [ class "mx-1 text-dusty-blue" ] [ text "·" ]
+                    , viewIf (Post.isPrivate data.post) <|
+                        span [ class "mr-2 inline-block" ] [ Icons.lock ]
                     , a
                         [ Route.href <| Route.Post (Space.slug config.space) model.postId
                         , class "no-underline whitespace-no-wrap"

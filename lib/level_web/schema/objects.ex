@@ -7,6 +7,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.AssetStore
   alias Level.Files
   alias Level.Groups
+  alias Level.Posts
   alias Level.Resolvers
   alias Level.Schemas.GroupBookmark
   alias Level.Schemas.GroupUser
@@ -465,6 +466,12 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     field :files, list_of(:file), resolve: dataloader(:db)
+
+    field :is_private, non_null(:boolean) do
+      resolve fn post, _, _ ->
+        Posts.private?(post)
+      end
+    end
 
     # Viewer-contextual fields
     @desc "The viewer's subscription to the post."
