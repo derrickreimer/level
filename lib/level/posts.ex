@@ -824,7 +824,7 @@ defmodule Level.Posts do
       |> limit(1)
       |> Repo.all()
 
-    {:ok, Enum.count(public_groups) == 0}
+    {:ok, Enum.empty?(public_groups)}
   end
 
   # Internal
