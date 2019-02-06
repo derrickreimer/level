@@ -1058,7 +1058,7 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
+        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-3 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ nameView data.group model.nameEditor

@@ -640,7 +640,7 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto px-8 max-w-xl leading-normal" ]
+        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "sticky pin-t mb-3 pt-3 px-3 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-grow font-bold text-2xl" ] [ text "Feed" ]
