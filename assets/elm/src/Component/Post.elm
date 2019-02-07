@@ -1311,7 +1311,7 @@ replyView config model data reply =
         Just author ->
             div
                 [ id (replyNodeId replyId)
-                , classList [ ( "flex mt-3 relative", True ) ]
+                , classList [ ( "flex mt-3 text-md relative", True ) ]
                 ]
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 h-9 rounded pin-t bg-orange flex-no-shrink" ] []
@@ -1319,8 +1319,6 @@ replyView config model data reply =
                 , div [ class "flex-grow leading-normal" ]
                     [ div [ class "pb-1/2" ]
                         [ replyAuthorName config.space author
-
-                        -- , span [ class "mx-1 text-dusty-blue text-sm" ] [ text "·" ]
                         , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             button
@@ -1328,13 +1326,6 @@ replyView config model data reply =
                                 , onClick (ExpandReplyEditor replyId)
                                 ]
                                 [ text "Edit" ]
-                        , viewIf (Reply.reactionCount reply == 0) <|
-                            button
-                                [ class "relative border-dusty-blue rounded"
-                                , style "bottom" "-2px"
-                                , onClick <| CreateReplyReactionClicked (Reply.id reply)
-                                ]
-                                [ Icons.thumbsSmall ]
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
@@ -1347,8 +1338,7 @@ replyView config model data reply =
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <| replyEditorView config replyId editor
-                    , viewIf (Reply.reactionCount reply > 0) <|
-                        div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
+                    , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
                     ]
                 ]
 
@@ -1478,7 +1468,7 @@ expandedReplyComposerView viewConfig editor =
             , classList = [ ( "tribute-pin-t", True ) ]
             }
     in
-    div [ class "-ml-3 pt-3 sticky pin-b bg-white" ]
+    div [ class "-ml-3 pt-3 sticky pin-b bg-white text-md" ]
         [ PostEditor.wrapper config
             [ div [ class "composer p-0" ]
                 [ label [ class "flex p-3" ]
@@ -1530,7 +1520,7 @@ expandedReplyComposerView viewConfig editor =
 replyPromptView : ViewConfig -> Model -> Data -> Html Msg
 replyPromptView config model data =
     if not (Connection.isEmpty model.replyIds) then
-        button [ class "flex my-4 items-center", onClick ExpandReplyComposer ]
+        button [ class "flex my-4 items-center text-md", onClick ExpandReplyComposer ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
             , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
                 [ text "Reply or resolve..."
