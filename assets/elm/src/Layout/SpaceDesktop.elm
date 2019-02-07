@@ -164,7 +164,7 @@ spacesSidebar config =
             else
                 Icons.Off
     in
-    div [ class "fixed h-full z-40" ]
+    div [ class "fixed h-full bg-grey-lighter z-40" ]
         [ div [ class "p-3" ]
             [ a
                 [ Route.href Route.Home
@@ -176,7 +176,7 @@ spacesSidebar config =
             [ div [ class "mb-4" ] <| List.map (spaceLink config) spaces
             , a
                 [ Route.href Route.NewSpace
-                , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-grey-light hover:bg-grey transition-bg"
+                , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
                 ]
                 [ Icons.plus newSpaceToggle ]
             ]
