@@ -642,7 +642,7 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "sticky pin-t mb-3 pt-3 px-3 bg-white z-40" ]
-                [ div [ class "flex items-center" ]
+                [ div [ class "flex items-center pb-1/2" ]
                     [ h2 [ class "flex-grow font-bold text-2xl" ] [ text "Feed" ]
                     , controlsView model
                     ]
@@ -885,7 +885,7 @@ filterTab device label state linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 border-b-4 border-transparent no-underline font-bold", True )
+            [ ( "block text-md mr-4 py-3/2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )

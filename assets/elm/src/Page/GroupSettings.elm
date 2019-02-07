@@ -549,7 +549,7 @@ filterTab device label section linkParams currentParams =
     a
         [ Route.href (Route.GroupSettings linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 border-b-3 border-transparent no-underline font-bold", True )
+            [ ( "block text-md mr-4 py-3/2 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
