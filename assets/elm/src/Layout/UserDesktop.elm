@@ -47,8 +47,10 @@ layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
         [ spacesSidebar config
-        , fullSidebar config
-        , div [ class "ml-64 lg:ml-64 lg:mr-64" ] children
+        , div [ class "mx-auto max-w-4xl pl-16 xl:px-16" ]
+            [ fullSidebar config
+            , div [ class "ml-48 xl:mx-48 relative" ] children
+            ]
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         , Flash.view config.globals.flash
         , viewIf config.globals.showKeyboardCommands (keyboardCommandReference config)
@@ -159,7 +161,7 @@ spacesSidebar config =
             else
                 Icons.Off
     in
-    div [ class "fixed h-full bg-grey-lighter z-40" ]
+    div [ class "fixed h-full bg-grey-light z-40" ]
         [ div [ class "p-3" ]
             [ a
                 [ Route.href Route.Home
