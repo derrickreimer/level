@@ -30,6 +30,7 @@ import Post exposing (Post)
 import PostEditor exposing (PostEditor)
 import PushStatus exposing (PushStatus)
 import Query.PostsInit as PostsInit
+import Regex exposing (Regex)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -78,6 +79,12 @@ type alias Data =
     , bookmarks : List Group
     , featuredUsers : List SpaceUser
     }
+
+
+type Recipient
+    = Nobody
+    | Direct
+    | Channel
 
 
 resolveData : Repo -> Model -> Maybe Data
@@ -192,6 +199,7 @@ type Msg
     | NewPostFileUploadProgress Id Int
     | NewPostFileUploaded Id Id String
     | NewPostFileUploadError Id
+    | ToggleUrgent
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | PostSelected Id
@@ -324,6 +332,9 @@ update msg globals model =
                         |> PostEditor.insertFileLink fileId
             in
             ( ( { model | postComposer = newPostComposer }, cmd ), globals )
+
+        ToggleUrgent ->
+            ( ( { model | postComposer = PostEditor.toggleIsUrgent model.postComposer }, Cmd.none ), globals )
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -640,18 +651,11 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 pt-3 px-3 bg-white z-40" ]
-                [ div [ class "flex items-center pb-1/2" ]
-                    [ h2 [ class "flex-grow font-bold text-2xl" ] [ text "Feed" ]
-                    , controlsView model
-                    ]
-                , div [ class "flex items-center trans-border-b-grey" ]
-                    [ div [ class "flex-grow flex" ]
-                        [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
-                        , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
-                        ]
-                    ]
+        [ div [ class "mx-auto px-8 py-4 max-w-lg leading-normal" ]
+            [ desktopPostComposerView globals model data
+            , div [ class "flex items-baseline mb-4 mx-3 border-b" ]
+                [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
+                , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
                 ]
 
             -- , desktopPostComposerView globals model data
@@ -685,16 +689,31 @@ desktopPostComposerView globals model data =
             , onFileUploadError = NewPostFileUploadError
             , classList = []
             }
+
+        buttonText =
+            if PostEditor.getBody editor == "" then
+                "Send"
+
+            else
+                case determineRecipient (PostEditor.getBody editor) of
+                    Nobody ->
+                        "Save Private Note"
+
+                    Direct ->
+                        "Send Direct Message "
+
+                    Channel ->
+                        "Send to Channel"
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-4" ]
+        [ label [ class "composer mb-2" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
-                        , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Compose a new post..."
+                        , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , placeholder "Write something..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault
                             [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
@@ -705,14 +724,28 @@ desktopPostComposerView globals model data =
                         ]
                         []
                     , PostEditor.filesView editor
-                    , div [ class "flex items-baseline justify-end" ]
-                        [ button
-                            [ class "btn btn-blue btn-md flex-no-shrink"
+                    , div [ class "flex items-center justify-end" ]
+                        [ viewUnless (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                , attribute "data-tooltip" "Interrupt all @mentioned people"
+                                , onClick ToggleUrgent
+                                ]
+                                [ Icons.alert Icons.Off ]
+                        , viewIf (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                , attribute "data-tooltip" "Don't interrupt anyone"
+                                , onClick ToggleUrgent
+                                ]
+                                [ Icons.alert Icons.On ]
+                        , button
+                            [ class "btn btn-blue btn-md"
                             , onClick NewPostSubmit
                             , disabled (isUnsubmittable editor)
                             , tabindex 3
                             ]
-                            [ text "Send" ]
+                            [ text buttonText ]
                         ]
                     ]
                 ]
@@ -885,7 +918,7 @@ filterTab device label state linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-md mr-4 py-3/2 border-b-3 border-transparent no-underline font-bold", True )
+            [ ( "block text-sm mr-4 py-2 px-4 border-b-4 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
@@ -955,4 +988,30 @@ closedParams params =
 
 isUnsubmittable : PostEditor -> Bool
 isUnsubmittable editor =
-    PostEditor.isUnsubmittable editor || not (String.contains "#" (PostEditor.getBody editor))
+    PostEditor.isUnsubmittable editor
+
+
+determineRecipient : String -> Recipient
+determineRecipient text =
+    if Regex.contains hashtagRegex text then
+        Channel
+
+    else if Regex.contains mentionRegex text then
+        Direct
+
+    else
+        Nobody
+
+
+mentionRegex : Regex
+mentionRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromStringWith { caseInsensitive = True, multiline = True }
+            "(?:^|\\W)@(\\#?[a-z0-9][a-z0-9-]*)(?!\\/)(?=\\.+[ \\t\\W]|\\.+$|[^0-9a-zA-Z_.]|$)"
+
+
+hashtagRegex : Regex
+hashtagRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromStringWith { caseInsensitive = True, multiline = True }
+            "(?:^|\\W)\\#([a-z0-9][a-z0-9-]*)(?!\\/)(?=\\.+[ \\t\\W]|\\.+$|[^0-9a-zA-Z_.]|$)"
