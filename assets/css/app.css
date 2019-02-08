@@ -406,12 +406,16 @@ post-editor.dragging-over > * {
   @apply mb-6;
 }
 
-.tagged-group {
-  @apply text-blue no-underline;
+a.tagged-group {
+  @apply text-dusty-blue-dark no-underline;
+}
+
+a.tagged-group:hover {
+  @apply text-blue;
 }
 
 .user-mention {
-  @apply text-blue no-underline;
+  @apply text-dusty-blue-dark no-underline;
 }
 
 /**
