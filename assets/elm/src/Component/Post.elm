@@ -1637,7 +1637,7 @@ replyReactionButton reply reactors =
             [ class "flex relative items-center mr-6 no-outline react-button"
             , onClick <| DeleteReplyReactionClicked (Reply.id reply)
             ]
-            [ Icons.thumbs Icons.On
+            [ Icons.thumbsMedium Icons.On
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
                     [ class "ml-1 text-green font-bold text-sm"
@@ -1655,7 +1655,7 @@ replyReactionButton reply reactors =
             [ class "flex relative items-center mr-6 no-outline react-button"
             , onClick <| CreateReplyReactionClicked (Reply.id reply)
             ]
-            [ Icons.thumbs Icons.Off
+            [ Icons.thumbsMedium Icons.Off
             , viewIf (Reply.reactionCount reply > 0) <|
                 div
                     [ class "ml-1 text-dusty-blue font-bold text-sm"
