@@ -1078,7 +1078,7 @@ resolvedView config model data =
             config.now
     in
     div [ id (postNodeId model.postId), class "flex" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
+        [ div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []

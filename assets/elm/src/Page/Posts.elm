@@ -653,17 +653,12 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 py-4 max-w-lg leading-normal" ]
             [ desktopPostComposerView globals model data
-            , div [ class "flex items-baseline mb-4 mx-3 border-b" ]
-                [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
-                , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+            , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
+                [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
+                    [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
+                    , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                    ]
                 ]
-
-            -- , desktopPostComposerView globals model data
-            -- , viewIf (not (String.contains "#" (PostEditor.getBody model.postComposer))) <|
-            --     div [ classList [ ( "mr-4 text-right text-sm text-dusty-blue-dark", True ) ] ]
-            --         [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-            --         , text "Hashtag one or more Channels in your post."
-            --         ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
 
@@ -706,10 +701,10 @@ desktopPostComposerView globals model data =
                         "Send to Channel"
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-2" ]
+        [ label [ class "composer mb-0" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
-                , div [ class "flex-grow pl-2 pt-2" ]
+                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
@@ -918,7 +913,7 @@ filterTab device label state linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-2 px-4 border-b-4 border-transparent no-underline font-bold", True )
+            [ ( "block text-sm mr-4 py-3 px-4 border-b-4 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )

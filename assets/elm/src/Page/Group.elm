@@ -1076,9 +1076,11 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "flex items-baseline mb-4 mx-3 border-b" ]
-                [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
-                , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
+            , div [ class "sticky mb-4 pt-1 bg-white z-20", style "top" "56px" ]
+                [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
+                    [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
+                    , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
+                    ]
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
@@ -1192,8 +1194,8 @@ desktopPostComposerView globals model data =
     PostEditor.wrapper config
         [ label [ class "composer mb-2" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
-                , div [ class "flex-grow pl-2 pt-2" ]
+                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"

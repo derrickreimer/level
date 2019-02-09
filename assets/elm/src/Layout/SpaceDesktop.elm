@@ -52,7 +52,7 @@ layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
         [ spacesSidebar config
-        , div [ class "mx-auto max-w-4xl pl-16 xl:px-16" ]
+        , div [ class "mx-auto max-w-4xl pl-16 xl:px-24" ]
             [ fullSidebar config
             , div [ class "ml-48 xl:mx-48 relative" ] children
             ]
@@ -66,10 +66,9 @@ rightSidebar : List (Html msg) -> Html msg
 rightSidebar children =
     div
         [ classList
-            [ ( "absolute pin-t pin-b py-4 w-48", True )
+            [ ( "fixed pin-t pin-b pin-r py-4 w-48", True )
             , ( "hidden xl:block", True )
             ]
-        , style "left" "100%"
         ]
         children
 
