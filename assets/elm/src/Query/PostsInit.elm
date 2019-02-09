@@ -51,7 +51,9 @@ document =
           $last: Int,
           $before: Cursor,
           $after: Cursor,
-          $stateFilter: PostStateFilter!
+          $followingStateFilter: FollowingStateFilter!,
+          $stateFilter: PostStateFilter!,
+          $inboxStateFilter: InboxStateFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -69,8 +71,9 @@ document =
                 before: $before,
                 after: $after,
                 filter: {
-                  followingState: IS_FOLLOWING,
-                  state: $stateFilter
+                  followingState: $followingStateFilter,
+                  state: $stateFilter,
+                  inboxState: $inboxStateFilter
                 },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
@@ -102,7 +105,20 @@ variables params =
             Encode.string (Route.Posts.getSpaceSlug params)
 
         stateFilter =
-            Encode.string (castState <| Route.Posts.getState params)
+            case Route.Posts.getState params of
+                Route.Posts.Open ->
+                    Encode.string "OPEN"
+
+                Route.Posts.Closed ->
+                    Encode.string "CLOSED"
+
+        ( followingStateFilter, inboxStateFilter ) =
+            case Route.Posts.getInboxState params of
+                Route.Posts.Undismissed ->
+                    ( Encode.string "ALL", Encode.string "UNDISMISSED" )
+
+                _ ->
+                    ( Encode.string "IS_FOLLOWING", Encode.string "ALL" )
 
         values =
             case
@@ -115,6 +131,8 @@ variables params =
                     , ( "last", Encode.int 20 )
                     , ( "before", Encode.string before )
                     , ( "stateFilter", stateFilter )
+                    , ( "followingStateFilter", followingStateFilter )
+                    , ( "inboxStateFilter", inboxStateFilter )
                     ]
 
                 ( Nothing, Just after ) ->
@@ -122,25 +140,19 @@ variables params =
                     , ( "first", Encode.int 20 )
                     , ( "after", Encode.string after )
                     , ( "stateFilter", stateFilter )
+                    , ( "followingStateFilter", followingStateFilter )
+                    , ( "inboxStateFilter", inboxStateFilter )
                     ]
 
                 ( _, _ ) ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "first", Encode.int 20 )
                     , ( "stateFilter", stateFilter )
+                    , ( "followingStateFilter", followingStateFilter )
+                    , ( "inboxStateFilter", inboxStateFilter )
                     ]
     in
     Just (Encode.object values)
-
-
-castState : Route.Posts.State -> String
-castState state =
-    case state of
-        Route.Posts.Open ->
-            "OPEN"
-
-        Route.Posts.Closed ->
-            "CLOSED"
 
 
 decoder : Decoder Data

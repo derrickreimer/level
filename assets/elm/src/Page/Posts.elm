@@ -655,8 +655,9 @@ resolvedDesktopView globals model data =
             [ desktopPostComposerView globals model data
             , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
-                    [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
-                    , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                    [ filterTab Device.Desktop "To Do" (inboxParams model.params) model.params
+                    , filterTab Device.Desktop "Feed" (openParams model.params) model.params
+                    , filterTab Device.Desktop "Resolved" (closedParams model.params) model.params
                     ]
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
@@ -845,8 +846,9 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "Open" Route.Posts.Open (openParams model.params) model.params
-                , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                [ filterTab Device.Mobile "To Do" (inboxParams model.params) model.params
+                , filterTab Device.Mobile "Open" (openParams model.params) model.params
+                , filterTab Device.Mobile "Resolved" (closedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "p-3 pt-0" ] [ mobilePostsView globals model data ]
@@ -904,16 +906,19 @@ mobilePostView globals spaceUsers groups model data component =
 -- SHARED
 
 
-filterTab : Device -> String -> Route.Posts.State -> Params -> Params -> Html Msg
-filterTab device label state linkParams currentParams =
+filterTab : Device -> String -> Params -> Params -> Html Msg
+filterTab device label linkParams currentParams =
     let
         isCurrent =
-            Route.Posts.getState currentParams == state
+            Route.Posts.getState currentParams
+                == Route.Posts.getState linkParams
+                && Route.Posts.getInboxState currentParams
+                == Route.Posts.getInboxState linkParams
     in
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-sm mr-4 py-3 px-4 border-b-4 border-transparent no-underline font-bold", True )
+            [ ( "block text-md mr-4 py-3 px-4 border-b-4 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-dusty-blue-darker", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
@@ -967,11 +972,20 @@ userItemView space user =
 -- INTERNAL
 
 
+inboxParams : Params -> Params
+inboxParams params =
+    params
+        |> Route.Posts.setCursors Nothing Nothing
+        |> Route.Posts.setState Route.Posts.Open
+        |> Route.Posts.setInboxState Route.Posts.Undismissed
+
+
 openParams : Params -> Params
 openParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
         |> Route.Posts.setState Route.Posts.Open
+        |> Route.Posts.setInboxState Route.Posts.All
 
 
 closedParams : Params -> Params
@@ -979,6 +993,7 @@ closedParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
         |> Route.Posts.setState Route.Posts.Closed
+        |> Route.Posts.setInboxState Route.Posts.All
 
 
 isUnsubmittable : PostEditor -> Bool

@@ -1,6 +1,6 @@
 module Route.Posts exposing
-    ( Params, State(..)
-    , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState
+    ( Params, State(..), InboxState(..)
+    , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState
     , parser
     , toString
     )
@@ -10,12 +10,12 @@ module Route.Posts exposing
 
 # Types
 
-@docs Params, State
+@docs Params, State, InboxState
 
 
 # API
 
-@docs init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState
+@docs init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState
 
 
 # Parsing
@@ -43,6 +43,7 @@ type alias Internal =
     , after : Maybe String
     , before : Maybe String
     , state : State
+    , inboxState : InboxState
     }
 
 
@@ -51,13 +52,18 @@ type State
     | Closed
 
 
+type InboxState
+    = Undismissed
+    | All
+
+
 
 -- API
 
 
 init : String -> Params
 init spaceSlug =
-    Params (Internal spaceSlug Nothing Nothing Open)
+    Params (Internal spaceSlug Nothing Nothing Open All)
 
 
 getSpaceSlug : Params -> String
@@ -90,6 +96,16 @@ setState newState (Params internal) =
     Params { internal | state = newState }
 
 
+getInboxState : Params -> InboxState
+getInboxState (Params internal) =
+    internal.inboxState
+
+
+setInboxState : InboxState -> Params -> Params
+setInboxState newState (Params internal) =
+    Params { internal | inboxState = newState }
+
+
 
 -- PARSING
 
@@ -97,7 +113,14 @@ setState newState (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "feed" <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
+        map Internal
+            (string
+                </> s "feed"
+                <?> Query.string "after"
+                <?> Query.string "before"
+                <?> Query.map parseState (Query.string "state")
+                <?> Query.map parseInboxState (Query.string "inbox")
+            )
 
 
 
@@ -136,12 +159,33 @@ castState state =
             Just "closed"
 
 
+parseInboxState : Maybe String -> InboxState
+parseInboxState value =
+    case value of
+        Just "undismissed" ->
+            Undismissed
+
+        _ ->
+            All
+
+
+castInboxState : InboxState -> Maybe String
+castInboxState state =
+    case state of
+        Undismissed ->
+            Just "undismissed"
+
+        All ->
+            Nothing
+
+
 buildQuery : Internal -> List QueryParameter
 buildQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
         , ( "state", castState internal.state )
+        , ( "inbox", castInboxState internal.inboxState )
         ]
 
 
