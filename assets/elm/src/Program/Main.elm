@@ -607,7 +607,7 @@ navigateTo maybeRoute model =
             ( { model | page = NotFound }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
-            navigateTo (Just <| Route.Inbox (Route.Inbox.init spaceSlug)) model
+            navigateTo (Just <| Route.Posts (Route.Posts.init spaceSlug)) model
 
         Just Route.Home ->
             globals
