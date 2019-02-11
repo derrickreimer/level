@@ -8,6 +8,7 @@ import Id exposing (Id)
 import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
+import LastActivityFilter
 import Post exposing (Post)
 import PostStateFilter exposing (PostStateFilter)
 import Reply exposing (Reply)
@@ -55,7 +56,8 @@ document =
           $after: Cursor,
           $followingStateFilter: FollowingStateFilter!,
           $stateFilter: PostStateFilter!,
-          $inboxStateFilter: InboxStateFilter!
+          $inboxStateFilter: InboxStateFilter!,
+          $lastActivityFilter: LastActivityFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -75,7 +77,8 @@ document =
                 filter: {
                   followingState: $followingStateFilter,
                   state: $stateFilter,
-                  inboxState: $inboxStateFilter
+                  inboxState: $inboxStateFilter,
+                  lastActivity: $lastActivityFilter
                 },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
@@ -106,61 +109,43 @@ variables params =
         spaceSlug =
             Encode.string (Route.Posts.getSpaceSlug params)
 
-        stateFilter =
-            case Route.Posts.getState params of
-                PostStateFilter.Open ->
-                    Encode.string "OPEN"
-
-                PostStateFilter.Closed ->
-                    Encode.string "CLOSED"
-
-                PostStateFilter.All ->
-                    Encode.string "ALL"
-
-        ( followingStateFilter, inboxStateFilter ) =
+        followingStateFilter =
             case Route.Posts.getInboxState params of
-                InboxStateFilter.Undismissed ->
-                    ( Encode.string "ALL", Encode.string "UNDISMISSED" )
-
-                InboxStateFilter.Dismissed ->
-                    ( Encode.string "ALL", Encode.string "DISMISSED" )
+                InboxStateFilter.All ->
+                    "IS_FOLLOWING"
 
                 _ ->
-                    ( Encode.string "IS_FOLLOWING", Encode.string "ALL" )
+                    "ALL"
 
-        values =
+        filters =
+            [ ( "spaceSlug", spaceSlug )
+            , ( "stateFilter", Encode.string (PostStateFilter.toEnum (Route.Posts.getState params)) )
+            , ( "followingStateFilter", Encode.string followingStateFilter )
+            , ( "inboxStateFilter", Encode.string (InboxStateFilter.toEnum (Route.Posts.getInboxState params)) )
+            , ( "lastActivityFilter", Encode.string (LastActivityFilter.toEnum (Route.Posts.getLastActivity params)) )
+            ]
+
+        cursors =
             case
                 ( Route.Posts.getBefore params
                 , Route.Posts.getAfter params
                 )
             of
                 ( Just before, Nothing ) ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "last", Encode.int 20 )
+                    [ ( "last", Encode.int 20 )
                     , ( "before", Encode.string before )
-                    , ( "stateFilter", stateFilter )
-                    , ( "followingStateFilter", followingStateFilter )
-                    , ( "inboxStateFilter", inboxStateFilter )
                     ]
 
                 ( Nothing, Just after ) ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "first", Encode.int 20 )
+                    [ ( "first", Encode.int 20 )
                     , ( "after", Encode.string after )
-                    , ( "stateFilter", stateFilter )
-                    , ( "followingStateFilter", followingStateFilter )
-                    , ( "inboxStateFilter", inboxStateFilter )
                     ]
 
                 ( _, _ ) ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "first", Encode.int 20 )
-                    , ( "stateFilter", stateFilter )
-                    , ( "followingStateFilter", followingStateFilter )
-                    , ( "inboxStateFilter", inboxStateFilter )
+                    [ ( "first", Encode.int 20 )
                     ]
     in
-    Just (Encode.object values)
+    Just (Encode.object (filters ++ cursors))
 
 
 decoder : Decoder Data

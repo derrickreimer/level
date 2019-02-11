@@ -1057,7 +1057,7 @@ userItemView space user =
 inboxParams : Params -> Params
 inboxParams params =
     params
-        |> Route.Posts.setCursors Nothing Nothing
+        |> Route.Posts.clearFilters
         |> Route.Posts.setState PostStateFilter.All
         |> Route.Posts.setInboxState InboxStateFilter.Undismissed
 
@@ -1065,17 +1065,15 @@ inboxParams params =
 feedParams : Params -> Params
 feedParams params =
     params
-        |> Route.Posts.setCursors Nothing Nothing
+        |> Route.Posts.clearFilters
         |> Route.Posts.setState PostStateFilter.Open
-        |> Route.Posts.setInboxState InboxStateFilter.All
 
 
 resolvedParams : Params -> Params
 resolvedParams params =
     params
-        |> Route.Posts.setCursors Nothing Nothing
+        |> Route.Posts.clearFilters
         |> Route.Posts.setState PostStateFilter.Closed
-        |> Route.Posts.setInboxState InboxStateFilter.All
 
 
 isUnsubmittable : PostEditor -> Bool
