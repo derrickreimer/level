@@ -112,14 +112,38 @@ setInboxState newState (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal
-            (string
-                </> s "feed"
-                <?> Query.string "after"
-                <?> Query.string "before"
-                <?> Query.map parseState (Query.string "state")
-                <?> Query.map parseInboxState (Query.string "inbox")
-            )
+        oneOf
+            [ feedParser
+            , inboxParser
+            ]
+
+
+feedParser : Parser (Internal -> a) a
+feedParser =
+    let
+        toInternal : String -> Maybe String -> Maybe String -> PostStateFilter -> Internal
+        toInternal spaceSlug afterCursor beforeCursor state =
+            Internal spaceSlug afterCursor beforeCursor state InboxStateFilter.All
+    in
+    map toInternal
+        (string
+            </> s "feed"
+            <?> Query.string "after"
+            <?> Query.string "before"
+            <?> Query.map parseFeedPostState (Query.string "state")
+        )
+
+
+inboxParser : Parser (Internal -> a) a
+inboxParser =
+    map Internal
+        (string
+            </> s "inbox"
+            <?> Query.string "after"
+            <?> Query.string "before"
+            <?> Query.map parseInboxPostState (Query.string "state")
+            <?> Query.map parseInboxState (Query.string "inbox_state")
+        )
 
 
 
@@ -128,15 +152,36 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "feed" ] (buildQuery internal)
+    case internal.inboxState of
+        InboxStateFilter.Undismissed ->
+            absolute [ internal.spaceSlug, "inbox" ] (buildInboxQuery internal)
+
+        InboxStateFilter.Dismissed ->
+            absolute [ internal.spaceSlug, "inbox" ] (buildInboxQuery internal)
+
+        _ ->
+            absolute [ internal.spaceSlug, "feed" ] (buildFeedQuery internal)
 
 
 
 -- PRIVATE
 
 
-parseState : Maybe String -> PostStateFilter
-parseState value =
+parseFeedPostState : Maybe String -> PostStateFilter
+parseFeedPostState value =
+    case value of
+        Just "closed" ->
+            PostStateFilter.Closed
+
+        Just "all" ->
+            PostStateFilter.All
+
+        _ ->
+            PostStateFilter.Open
+
+
+parseInboxPostState : Maybe String -> PostStateFilter
+parseInboxPostState value =
     case value of
         Just "closed" ->
             PostStateFilter.Closed
@@ -148,8 +193,21 @@ parseState value =
             PostStateFilter.All
 
 
-castState : PostStateFilter -> Maybe String
-castState state =
+castFeedPostState : PostStateFilter -> Maybe String
+castFeedPostState state =
+    case state of
+        PostStateFilter.All ->
+            Just "all"
+
+        PostStateFilter.Closed ->
+            Just "closed"
+
+        PostStateFilter.Open ->
+            Nothing
+
+
+castInboxPostState : PostStateFilter -> Maybe String
+castInboxPostState state =
     case state of
         PostStateFilter.Open ->
             Just "open"
@@ -164,30 +222,45 @@ castState state =
 parseInboxState : Maybe String -> InboxStateFilter
 parseInboxState value =
     case value of
-        Just "undismissed" ->
-            InboxStateFilter.Undismissed
+        Just "dismissed" ->
+            InboxStateFilter.Dismissed
+
+        Just "all" ->
+            InboxStateFilter.All
 
         _ ->
-            InboxStateFilter.All
+            InboxStateFilter.Undismissed
 
 
 castInboxState : InboxStateFilter -> Maybe String
 castInboxState state =
     case state of
         InboxStateFilter.Undismissed ->
-            Just "undismissed"
-
-        InboxStateFilter.All ->
             Nothing
 
+        InboxStateFilter.Dismissed ->
+            Just "dismissed"
 
-buildQuery : Internal -> List QueryParameter
-buildQuery internal =
+        InboxStateFilter.All ->
+            Just "all"
+
+
+buildFeedQuery : Internal -> List QueryParameter
+buildFeedQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
-        , ( "state", castState internal.state )
-        , ( "inbox", castInboxState internal.inboxState )
+        , ( "state", castFeedPostState internal.state )
+        ]
+
+
+buildInboxQuery : Internal -> List QueryParameter
+buildInboxQuery internal =
+    buildStringParams
+        [ ( "after", internal.after )
+        , ( "before", internal.before )
+        , ( "state", castInboxPostState internal.state )
+        , ( "inbox_state", castInboxState internal.inboxState )
         ]
 
 

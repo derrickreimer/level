@@ -122,6 +122,9 @@ variables params =
                 InboxStateFilter.Undismissed ->
                     ( Encode.string "ALL", Encode.string "UNDISMISSED" )
 
+                InboxStateFilter.Dismissed ->
+                    ( Encode.string "ALL", Encode.string "DISMISSED" )
+
                 _ ->
                     ( Encode.string "IS_FOLLOWING", Encode.string "ALL" )
 
