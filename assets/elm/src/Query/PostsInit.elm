@@ -5,9 +5,11 @@ import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import Id exposing (Id)
+import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Post exposing (Post)
+import PostStateFilter exposing (PostStateFilter)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -106,15 +108,18 @@ variables params =
 
         stateFilter =
             case Route.Posts.getState params of
-                Route.Posts.Open ->
+                PostStateFilter.Open ->
                     Encode.string "OPEN"
 
-                Route.Posts.Closed ->
+                PostStateFilter.Closed ->
                     Encode.string "CLOSED"
+
+                PostStateFilter.All ->
+                    Encode.string "ALL"
 
         ( followingStateFilter, inboxStateFilter ) =
             case Route.Posts.getInboxState params of
-                Route.Posts.Undismissed ->
+                InboxStateFilter.Undismissed ->
                     ( Encode.string "ALL", Encode.string "UNDISMISSED" )
 
                 _ ->

@@ -15,6 +15,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts exposing (Modifier(..))
@@ -28,6 +29,7 @@ import Mutation.MarkAsRead as MarkAsRead
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PostStateFilter exposing (PostStateFilter)
 import PushStatus exposing (PushStatus)
 import Query.PostsInit as PostsInit
 import Regex exposing (Regex)
@@ -102,7 +104,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Feed"
+    "Home"
 
 
 
@@ -655,8 +657,8 @@ resolvedDesktopView globals model data =
             [ desktopPostComposerView globals model data
             , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
-                    [ filterTab Device.Desktop "To Do" (inboxParams model.params) model.params
-                    , filterTab Device.Desktop "Feed" (openParams model.params) model.params
+                    [ filterTab Device.Desktop "My Channels" (openParams model.params) model.params
+                    , filterTab Device.Desktop "Inbox" (inboxParams model.params) model.params
                     , filterTab Device.Desktop "Resolved" (closedParams model.params) model.params
                     ]
                 ]
@@ -833,7 +835,7 @@ resolvedMobileView globals model data =
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
-            , title = "Feed"
+            , title = "Home"
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled
@@ -846,8 +848,8 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "To Do" (inboxParams model.params) model.params
-                , filterTab Device.Mobile "Open" (openParams model.params) model.params
+                [ filterTab Device.Mobile "My Channels" (openParams model.params) model.params
+                , filterTab Device.Mobile "Inbox" (inboxParams model.params) model.params
                 , filterTab Device.Mobile "Resolved" (closedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
@@ -918,9 +920,9 @@ filterTab device label linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-md mr-4 py-3 px-4 border-b-4 border-transparent no-underline font-bold", True )
+            [ ( "block text-md mr-4 py-3 px-4 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            , ( "border-turquoise text-turquoise-dark", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
             ]
         ]
@@ -976,24 +978,24 @@ inboxParams : Params -> Params
 inboxParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
-        |> Route.Posts.setState Route.Posts.Open
-        |> Route.Posts.setInboxState Route.Posts.Undismissed
+        |> Route.Posts.setState PostStateFilter.All
+        |> Route.Posts.setInboxState InboxStateFilter.Undismissed
 
 
 openParams : Params -> Params
 openParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
-        |> Route.Posts.setState Route.Posts.Open
-        |> Route.Posts.setInboxState Route.Posts.All
+        |> Route.Posts.setState PostStateFilter.Open
+        |> Route.Posts.setInboxState InboxStateFilter.All
 
 
 closedParams : Params -> Params
 closedParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
-        |> Route.Posts.setState Route.Posts.Closed
-        |> Route.Posts.setInboxState Route.Posts.All
+        |> Route.Posts.setState PostStateFilter.Closed
+        |> Route.Posts.setInboxState InboxStateFilter.All
 
 
 isUnsubmittable : PostEditor -> Bool

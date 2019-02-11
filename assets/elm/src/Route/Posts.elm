@@ -1,5 +1,5 @@
 module Route.Posts exposing
-    ( Params, State(..), InboxState(..)
+    ( Params
     , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState
     , parser
     , toString
@@ -10,7 +10,7 @@ module Route.Posts exposing
 
 # Types
 
-@docs Params, State, InboxState
+@docs Params
 
 
 # API
@@ -29,6 +29,8 @@ module Route.Posts exposing
 
 -}
 
+import InboxStateFilter exposing (InboxStateFilter)
+import PostStateFilter exposing (PostStateFilter)
 import Url.Builder as Builder exposing (QueryParameter, absolute)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, map, oneOf, s, string)
 import Url.Parser.Query as Query
@@ -42,19 +44,9 @@ type alias Internal =
     { spaceSlug : String
     , after : Maybe String
     , before : Maybe String
-    , state : State
-    , inboxState : InboxState
+    , state : PostStateFilter
+    , inboxState : InboxStateFilter
     }
-
-
-type State
-    = Open
-    | Closed
-
-
-type InboxState
-    = Undismissed
-    | All
 
 
 
@@ -63,7 +55,14 @@ type InboxState
 
 init : String -> Params
 init spaceSlug =
-    Params (Internal spaceSlug Nothing Nothing Open All)
+    Params
+        (Internal
+            spaceSlug
+            Nothing
+            Nothing
+            PostStateFilter.Open
+            InboxStateFilter.All
+        )
 
 
 getSpaceSlug : Params -> String
@@ -86,22 +85,22 @@ setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
 
 
-getState : Params -> State
+getState : Params -> PostStateFilter
 getState (Params internal) =
     internal.state
 
 
-setState : State -> Params -> Params
+setState : PostStateFilter -> Params -> Params
 setState newState (Params internal) =
     Params { internal | state = newState }
 
 
-getInboxState : Params -> InboxState
+getInboxState : Params -> InboxStateFilter
 getInboxState (Params internal) =
     internal.inboxState
 
 
-setInboxState : InboxState -> Params -> Params
+setInboxState : InboxStateFilter -> Params -> Params
 setInboxState newState (Params internal) =
     Params { internal | inboxState = newState }
 
@@ -136,46 +135,49 @@ toString (Params internal) =
 -- PRIVATE
 
 
-parseState : Maybe String -> State
+parseState : Maybe String -> PostStateFilter
 parseState value =
     case value of
         Just "closed" ->
-            Closed
+            PostStateFilter.Closed
 
         Just "open" ->
-            Open
+            PostStateFilter.Open
 
         _ ->
-            Open
+            PostStateFilter.All
 
 
-castState : State -> Maybe String
+castState : PostStateFilter -> Maybe String
 castState state =
     case state of
-        Open ->
-            Nothing
+        PostStateFilter.Open ->
+            Just "open"
 
-        Closed ->
+        PostStateFilter.Closed ->
             Just "closed"
 
+        PostStateFilter.All ->
+            Nothing
 
-parseInboxState : Maybe String -> InboxState
+
+parseInboxState : Maybe String -> InboxStateFilter
 parseInboxState value =
     case value of
         Just "undismissed" ->
-            Undismissed
+            InboxStateFilter.Undismissed
 
         _ ->
-            All
+            InboxStateFilter.All
 
 
-castInboxState : InboxState -> Maybe String
+castInboxState : InboxStateFilter -> Maybe String
 castInboxState state =
     case state of
-        Undismissed ->
+        InboxStateFilter.Undismissed ->
             Just "undismissed"
 
-        All ->
+        InboxStateFilter.All ->
             Nothing
 
 
