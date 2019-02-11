@@ -657,7 +657,7 @@ resolvedDesktopView globals model data =
             [ desktopPostComposerView globals model data
             , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
-                    [ filterTab Device.Desktop "My Channels" (openParams model.params) model.params
+                    [ filterTab Device.Desktop "Timeline" (openParams model.params) model.params
                     , filterTab Device.Desktop "Inbox" (inboxParams model.params) model.params
                     , filterTab Device.Desktop "Resolved" (closedParams model.params) model.params
                     ]
@@ -848,7 +848,7 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "My Channels" (openParams model.params) model.params
+                [ filterTab Device.Mobile "Timeline" (openParams model.params) model.params
                 , filterTab Device.Mobile "Inbox" (inboxParams model.params) model.params
                 , filterTab Device.Mobile "Resolved" (closedParams model.params) model.params
                 ]
