@@ -715,6 +715,10 @@ resolvedDesktopView globals model data =
             , filterNoticeView globals.repo model data
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "mx-3 p-8 pb-16" ]
+                    [ paginationView model.params model.postComps
+                    ]
 
             -- , Layout.SpaceDesktop.rightSidebar (sidebarView globals data.space data.featuredUsers)
             ]
@@ -778,7 +782,6 @@ controlsView model data =
     div [ class "flex flex-no-grow justify-end" ]
         [ selectionControlsView model.postComps
         , searchEditorView model.searchEditor
-        , paginationView model.params model.postComps
         ]
 
 

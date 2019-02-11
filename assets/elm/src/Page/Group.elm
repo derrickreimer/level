@@ -1084,6 +1084,10 @@ resolvedDesktopView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "mx-3 p-8 pb-16" ]
+                    [ paginationView model.params model.postComps
+                    ]
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.group data.featuredMembers model)
             ]
         ]
@@ -1158,7 +1162,6 @@ controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
         [ searchEditorView model.searchEditor
-        , paginationView model.params model.postComps
         ]
 
 
@@ -1324,7 +1327,12 @@ resolvedMobileView globals model data =
                 ]
         , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
         , div [ class "p-3 pt-0" ]
-            [ mobilePostsView globals model data ]
+            [ mobilePostsView globals model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "mx-3 p-8 pb-16 border-t" ]
+                    [ paginationView model.params model.postComps
+                    ]
+            ]
         , a
             [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupName model.params))
             , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"

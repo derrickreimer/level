@@ -664,6 +664,10 @@ resolvedDesktopView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "mx-3 p-8 pb-16" ]
+                    [ paginationView model.params model.postComps
+                    ]
 
             -- , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]

@@ -269,6 +269,9 @@ resolvedView globals model data =
                     ]
                 ]
             , resultsView globals.repo model.params model.now data
+            , div [ class "p-8 pb-16" ]
+                [ paginationView model.params model.searchResults
+                ]
             ]
         ]
 
@@ -277,7 +280,6 @@ controlsView : Model -> Data -> Html Msg
 controlsView model data =
     div [ class "flex items-center flex-grow justify-end" ]
         [ queryEditorView model.queryEditor
-        , paginationView model.params model.searchResults
         ]
 
 
