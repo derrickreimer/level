@@ -231,7 +231,7 @@ fullSidebar config =
             , viewUnless (List.isEmpty config.bookmarks) <|
                 div []
                     [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
-                        [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue-dark no-underline" ] [ text "Channels" ] ]
+                        [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue no-underline" ] [ text "Channels" ] ]
                     , channelList config
                     ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
@@ -294,7 +294,7 @@ sidebarTab title maybeIcon route currentRoute =
             [ Route.href route
             , classList
                 [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
-                , ( "text-dusty-blue-dark bg-white hover:bg-grey-light", not isCurrent )
+                , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
                 ]
             ]
