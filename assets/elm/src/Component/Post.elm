@@ -1428,9 +1428,8 @@ replyComposerView viewConfig model data =
             data.post
     in
     if Post.state post == Post.Closed then
-        div [ class "flex flex-wrap items-center my-3" ]
-            [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
-            , div [ class "flex-no-shrink mr-3 text-base text-green font-bold" ] [ text "Resolved" ]
+        div [ class "flex flex-wrap items-center" ]
+            [ div [ class "flex-no-shrink mr-3 text-base text-green font-bold" ] [ text "Resolved" ]
             , div [ class "flex-no-shrink leading-semi-loose" ]
                 [ button
                     [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
