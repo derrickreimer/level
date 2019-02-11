@@ -733,8 +733,8 @@ resolvedDesktopView globals model data =
             [ desktopPostComposerView globals model data
             , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
-                    [ filterTab Device.Desktop "Feed" (feedParams model.params) model.params
-                    , filterTab Device.Desktop "Inbox" (inboxParams model.params) model.params
+                    [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
+                    , filterTab Device.Desktop "Feed" (feedParams model.params) model.params
                     , filterTab Device.Desktop "Resolved" (resolvedParams model.params) model.params
                     ]
                 ]
@@ -928,8 +928,8 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "Feed" (feedParams model.params) model.params
-                , filterTab Device.Mobile "Inbox" (inboxParams model.params) model.params
+                [ filterTab Device.Mobile "Inbox" (undismissedParams model.params) model.params
+                , filterTab Device.Mobile "Feed" (feedParams model.params) model.params
                 , filterTab Device.Mobile "Resolved" (resolvedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
@@ -1000,7 +1000,7 @@ filterTab device label linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-md mr-4 py-3 px-4 border-b-3 border-transparent no-underline font-bold", True )
+            [ ( "block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center min-w-100px", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-turquoise-dark", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
@@ -1054,12 +1054,20 @@ userItemView space user =
 -- INTERNAL
 
 
-inboxParams : Params -> Params
-inboxParams params =
+undismissedParams : Params -> Params
+undismissedParams params =
     params
         |> Route.Posts.clearFilters
         |> Route.Posts.setState PostStateFilter.All
         |> Route.Posts.setInboxState InboxStateFilter.Undismissed
+
+
+dismissedParams : Params -> Params
+dismissedParams params =
+    params
+        |> Route.Posts.clearFilters
+        |> Route.Posts.setState PostStateFilter.All
+        |> Route.Posts.setInboxState InboxStateFilter.Dismissed
 
 
 feedParams : Params -> Params

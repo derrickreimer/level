@@ -444,7 +444,7 @@ resolvedMobileView globals model data =
         [ div [ class "flex justify-center items-baseline mb-2 pt-2 border-b" ]
             [ filterTab Device.Mobile "Preferences" Route.Settings.Preferences (Route.Settings.setSection Route.Settings.Preferences model.params) model.params
             , viewIf (Space.canUpdate data.space) <|
-                filterTab Device.Mobile "Space Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
+                filterTab Device.Mobile "Team Settings" Route.Settings.Space (Route.Settings.setSection Route.Settings.Space model.params) model.params
             ]
         , div [ class "p-5" ]
             [ viewIf (Route.Settings.getSection model.params == Route.Settings.Preferences) <|
@@ -573,7 +573,7 @@ filterTab device label section linkParams currentParams =
     a
         [ Route.href (Route.Settings linkParams)
         , classList
-            [ ( "block text-md mr-4 py-3 px-4 border-b-3 border-transparent no-underline font-bold", True )
+            [ ( "block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-turquoise-dark", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
