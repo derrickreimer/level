@@ -1192,7 +1192,7 @@ desktopPostComposerView globals model data =
             }
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-2" ]
+        [ label [ class "composer" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow pt-2" ]
@@ -1390,9 +1390,9 @@ filterTab device label state linkParams currentParams =
     a
         [ Route.href (Route.Group linkParams)
         , classList
-            [ ( "block text-md mr-4 py-2 px-4 border-b-4 border-transparent no-underline font-bold", True )
+            [ ( "block text-md mr-4 py-3 px-4 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            , ( "border-turquoise text-turquoise-dark", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
             ]
         ]

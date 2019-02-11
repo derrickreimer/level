@@ -704,7 +704,7 @@ desktopPostComposerView globals model data =
                         "Send to Channel"
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-0" ]
+        [ label [ class "composer" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow pt-2" ]
