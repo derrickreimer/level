@@ -277,8 +277,23 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
+        PostsDismissed (Ok ( newSession, DismissPosts.Success posts )) ->
+            let
+                ( newModel, cmd ) =
+                    if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
+                        List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+                    else
+                        ( model, Cmd.none )
+            in
+            ( ( newModel, cmd )
+            , { globals
+                | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
+              }
+            )
+
         PostsDismissed _ ->
-            noCmd { globals | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash } model
+            noCmd globals model
 
         PostsMarkedAsRead _ ->
             noCmd { globals | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash } model
@@ -459,6 +474,37 @@ removePost globals post ( model, cmd ) =
             ( model, cmd )
 
 
+addPost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addPost globals post ( model, cmd ) =
+    if Post.spaceId post == model.spaceId then
+        case Connection.get .id (Post.id post) model.postComps of
+            Just _ ->
+                ( model, Cmd.none )
+
+            Nothing ->
+                let
+                    postComp =
+                        Component.Post.init
+                            model.spaceId
+                            (Post.id post)
+                            Connection.empty
+
+                    newPostComps =
+                        Connection.prepend .id postComp model.postComps
+
+                    setupCmd =
+                        Cmd.map (PostComponentMsg postComp.id)
+                            (Component.Post.setup globals postComp)
+
+                    newCmd =
+                        Cmd.batch [ cmd, setupCmd ]
+                in
+                ( { model | postComps = newPostComps }, newCmd )
+
+    else
+        ( model, cmd )
+
+
 
 -- EVENTS
 
@@ -489,6 +535,33 @@ consumeEvent globals event model =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        Event.PostsMarkedAsUnread posts ->
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
+                -- else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                --     List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsMarkedAsRead posts ->
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
+                -- else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                --     List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsDismissed posts ->
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
+                -- else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed && not (Connection.hasPreviousPage model.postComps) then
+                --     List.foldr (addPost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
 
         Event.PostDeleted post ->
             removePost globals post ( model, Cmd.none )
