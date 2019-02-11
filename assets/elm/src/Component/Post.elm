@@ -1168,7 +1168,7 @@ reopenButton : Post -> Html Msg
 reopenButton post =
     button
         [ class "tooltip tooltip-bottom mr-3"
-        , attribute "data-tooltip" "Resolved"
+        , attribute "data-tooltip" "Reopen conversation"
         , onClick ReopenPostClicked
         ]
         [ Icons.closedSmall ]
@@ -1523,7 +1523,7 @@ replyPromptView config model data =
                     ( "Reply or resolve...", ExpandReplyComposer )
 
                 Post.Closed ->
-                    ( "Reopen to reply...", ReopenPostClicked )
+                    ( "Reopen conversation...", ReopenPostClicked )
 
                 Post.Deleted ->
                     ( "", NoOp )

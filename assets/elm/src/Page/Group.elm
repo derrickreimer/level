@@ -1226,7 +1226,7 @@ desktopPostComposerView globals model data =
                                 ]
                                 [ Icons.alert Icons.On ]
                         , button
-                            [ class "btn btn-blue btn-md"
+                            [ class "btn btn-blue btn-sm"
                             , onClick NewPostSubmit
                             , disabled (PostEditor.isUnsubmittable editor)
                             ]
