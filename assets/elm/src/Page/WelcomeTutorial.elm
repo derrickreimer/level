@@ -32,7 +32,7 @@ import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.Group
 import Route.Help
-import Route.Inbox
+import Route.Posts
 import Route.WelcomeTutorial exposing (Params)
 import Scroll
 import Session exposing (Session)
@@ -225,7 +225,7 @@ update msg globals model =
                         |> Task.attempt MarkedComplete
 
                 redirectCmd =
-                    Route.pushUrl globals.navKey (inboxRoute model.params)
+                    Route.pushUrl globals.navKey (redirectRoute model.params)
             in
             ( ( model, Cmd.batch [ completeCmd, redirectCmd ] ), globals )
 
@@ -638,7 +638,7 @@ stepView device step model data =
                 , p [ class "mb-6" ] [ text "To access the knowledgebase or contact support, just click Help in the left sidebar. Don’t hesitate to reach out! " ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
-                    , a [ Route.href <| inboxRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ]
+                    , a [ Route.href <| redirectRoute model.params, class "btn btn-blue no-underline" ] [ text "Take me to Level" ]
                     ]
                 ]
 
@@ -654,9 +654,9 @@ backButton buttonText =
         ]
 
 
-inboxRoute : Params -> Route
-inboxRoute params =
-    Route.Inbox (Route.Inbox.init (Route.WelcomeTutorial.getSpaceSlug params))
+redirectRoute : Params -> Route
+redirectRoute params =
+    Route.Posts (Route.Posts.init (Route.WelcomeTutorial.getSpaceSlug params))
 
 
 createGroupsView : Model -> Html Msg

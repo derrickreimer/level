@@ -667,6 +667,9 @@ consumeKeyboardEvent globals event model =
                 Nothing ->
                     ( ( model, Cmd.none ), globals )
 
+        ( "c", [] ) ->
+            ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
+
         _ ->
             ( ( model, Cmd.none ), globals )
 
@@ -730,9 +733,9 @@ resolvedDesktopView globals model data =
             [ desktopPostComposerView globals model data
             , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
-                    [ filterTab Device.Desktop "Timeline" (openParams model.params) model.params
+                    [ filterTab Device.Desktop "Feed" (feedParams model.params) model.params
                     , filterTab Device.Desktop "Inbox" (inboxParams model.params) model.params
-                    , filterTab Device.Desktop "Resolved" (closedParams model.params) model.params
+                    , filterTab Device.Desktop "Resolved" (resolvedParams model.params) model.params
                     ]
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
@@ -925,9 +928,9 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "Timeline" (openParams model.params) model.params
+                [ filterTab Device.Mobile "Feed" (feedParams model.params) model.params
                 , filterTab Device.Mobile "Inbox" (inboxParams model.params) model.params
-                , filterTab Device.Mobile "Resolved" (closedParams model.params) model.params
+                , filterTab Device.Mobile "Resolved" (resolvedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "p-3 pt-0" ] [ mobilePostsView globals model data ]
@@ -1059,16 +1062,16 @@ inboxParams params =
         |> Route.Posts.setInboxState InboxStateFilter.Undismissed
 
 
-openParams : Params -> Params
-openParams params =
+feedParams : Params -> Params
+feedParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
         |> Route.Posts.setState PostStateFilter.Open
         |> Route.Posts.setInboxState InboxStateFilter.All
 
 
-closedParams : Params -> Params
-closedParams params =
+resolvedParams : Params -> Params
+resolvedParams params =
     params
         |> Route.Posts.setCursors Nothing Nothing
         |> Route.Posts.setState PostStateFilter.Closed

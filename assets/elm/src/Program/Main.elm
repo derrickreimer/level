@@ -12,6 +12,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Icons
 import Id exposing (Id)
+import InboxStateFilter
 import Json.Decode as Decode exposing (decodeString)
 import KeyboardShortcuts exposing (Modifier(..))
 import Lazy exposing (Lazy(..))
@@ -24,7 +25,6 @@ import Page.GroupSettings
 import Page.Groups
 import Page.Help
 import Page.Home
-import Page.Inbox
 import Page.InviteUsers
 import Page.NewGroup
 import Page.NewGroupPost
@@ -39,6 +39,7 @@ import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
 import Page.WelcomeTutorial
+import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
@@ -50,7 +51,6 @@ import Route.Group
 import Route.GroupSettings
 import Route.Groups
 import Route.Help
-import Route.Inbox
 import Route.NewGroupPost
 import Route.NewPost
 import Route.Posts
@@ -231,7 +231,6 @@ type Msg
     | SpacesMsg Page.Spaces.Msg
     | NewSpaceMsg Page.NewSpace.Msg
     | PostsMsg Page.Posts.Msg
-    | InboxMsg Page.Inbox.Msg
     | SpaceUserMsg Page.SpaceUser.Msg
     | SpaceUsersMsg Page.SpaceUsers.Msg
     | InviteUsersMsg Page.InviteUsers.Msg
@@ -356,11 +355,6 @@ update msg model =
             pageModel
                 |> Page.Posts.update pageMsg globals
                 |> updatePageWithGlobals Posts PostsMsg model
-
-        ( InboxMsg pageMsg, Inbox pageModel ) ->
-            pageModel
-                |> Page.Inbox.update pageMsg globals
-                |> updatePageWithGlobals Inbox InboxMsg model
 
         ( SpaceUserMsg pageMsg, SpaceUser pageModel ) ->
             pageModel
@@ -509,11 +503,20 @@ update msg model =
                         Group _ ->
                             sendKeyboardEventToPage event { model | going = False }
 
+                        Posts _ ->
+                            sendKeyboardEventToPage event { model | going = False }
+
                         _ ->
-                            ( { model | going = False }, Route.pushUrl model.navKey (Route.NewPost <| Route.NewPost.init spaceSlug) )
+                            ( { model | going = False }, Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug) )
 
                 ( "i", [], Just spaceSlug ) ->
-                    ( { model | going = False }, Route.pushUrl model.navKey (Route.Inbox <| Route.Inbox.init spaceSlug) )
+                    let
+                        inboxParams =
+                            Route.Posts.init spaceSlug
+                                |> Route.Posts.setState PostStateFilter.All
+                                |> Route.Posts.setInboxState InboxStateFilter.Undismissed
+                    in
+                    ( { model | going = False }, Route.pushUrl model.navKey (Route.Posts inboxParams) )
 
                 ( "f", [], Just spaceSlug ) ->
                     ( { model | going = False }, Route.pushUrl model.navKey (Route.Posts <| Route.Posts.init spaceSlug) )
@@ -543,7 +546,6 @@ type Page
     | Spaces Page.Spaces.Model
     | NewSpace Page.NewSpace.Model
     | Posts Page.Posts.Model
-    | Inbox Page.Inbox.Model
     | SpaceUser Page.SpaceUser.Model
     | SpaceUsers Page.SpaceUsers.Model
     | InviteUsers Page.InviteUsers.Model
@@ -567,7 +569,6 @@ type PageInit
     | SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
-    | InboxInit (Result Session.Error (Response ( Globals, Page.Inbox.Model )))
     | SpaceUserInit (Result Session.Error ( Globals, Page.SpaceUser.Model ))
     | SpaceUsersInit (Result Session.Error ( Globals, Page.SpaceUsers.Model ))
     | InviteUsersInit (Result Session.Error ( Globals, Page.InviteUsers.Model ))
@@ -628,11 +629,6 @@ navigateTo maybeRoute model =
             globals
                 |> Page.Posts.init params
                 |> transition model PostsInit
-
-        Just (Route.Inbox params) ->
-            globals
-                |> Page.Inbox.init params
-                |> transition model InboxInit
 
         Just (Route.SpaceUser params) ->
             globals
@@ -730,9 +726,6 @@ pageTitle repo page =
         Posts _ ->
             Page.Posts.title
 
-        Inbox _ ->
-            Page.Inbox.title
-
         SpaceUser _ ->
             Page.SpaceUser.title
 
@@ -827,18 +820,6 @@ setupPage pageInit model =
             ( model, Route.toLogin )
 
         NewSpaceInit (Err _) ->
-            ( model, Cmd.none )
-
-        InboxInit (Ok (Response.Found ( newGlobals, pageModel ))) ->
-            perform (Page.Inbox.setup newGlobals) Inbox InboxMsg model ( newGlobals, pageModel )
-
-        InboxInit (Ok Response.NotFound) ->
-            ( { model | page = NotFound }, Cmd.none )
-
-        InboxInit (Err Session.Expired) ->
-            ( model, Route.toLogin )
-
-        InboxInit (Err _) ->
             ( model, Cmd.none )
 
         PostsInit (Ok ( newGlobals, pageModel )) ->
@@ -1015,9 +996,6 @@ teardownPage globals page =
         NewSpace pageModel ->
             Cmd.map NewSpaceMsg (Page.NewSpace.teardown pageModel)
 
-        Inbox pageModel ->
-            Cmd.map InboxMsg (Page.Inbox.teardown globals pageModel)
-
         SpaceUser pageModel ->
             Cmd.map SpaceUserMsg (Page.SpaceUser.teardown pageModel)
 
@@ -1079,9 +1057,6 @@ pageSubscription page =
         Posts _ ->
             Sub.map PostsMsg Page.Posts.subscriptions
 
-        Inbox _ ->
-            Sub.map InboxMsg Page.Inbox.subscriptions
-
         Group _ ->
             Sub.map GroupMsg Page.Group.subscriptions
 
@@ -1121,9 +1096,6 @@ routeFor page =
 
         Posts { params } ->
             Just <| Route.Posts params
-
-        Inbox { params } ->
-            Just <| Route.Inbox params
 
         SpaceUser { params } ->
             Just <| Route.SpaceUser params
@@ -1194,9 +1166,6 @@ getSpaceSlug page =
 
         Posts { params } ->
             Just <| Route.Posts.getSpaceSlug params
-
-        Inbox { params } ->
-            Just <| Route.Inbox.getSpaceSlug params
 
         SpaceUser { params } ->
             Just <| Route.SpaceUser.getSpaceSlug params
@@ -1275,11 +1244,6 @@ pageView globals page =
             pageModel
                 |> Page.Posts.view globals
                 |> Html.map PostsMsg
-
-        Inbox pageModel ->
-            pageModel
-                |> Page.Inbox.view globals
-                |> Html.map InboxMsg
 
         SpaceUser pageModel ->
             pageModel
@@ -1570,11 +1534,6 @@ sendEventToPage globals event model =
                 |> Page.Posts.consumeEvent globals event
                 |> updatePage Posts PostsMsg model
 
-        Inbox pageModel ->
-            pageModel
-                |> Page.Inbox.consumeEvent globals event
-                |> updatePage Inbox InboxMsg model
-
         SpaceUser pageModel ->
             pageModel
                 |> Page.SpaceUser.consumeEvent event
@@ -1669,11 +1628,6 @@ sendKeyboardEventToPage event model =
             buildGlobals model
     in
     case model.page of
-        Inbox pageModel ->
-            pageModel
-                |> Page.Inbox.consumeKeyboardEvent globals event
-                |> updatePageWithGlobals Inbox InboxMsg model
-
         Posts pageModel ->
             pageModel
                 |> Page.Posts.consumeKeyboardEvent globals event

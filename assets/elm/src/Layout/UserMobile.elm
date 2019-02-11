@@ -18,7 +18,6 @@ import Route.Apps
 import Route.Group
 import Route.Groups
 import Route.Help
-import Route.Inbox
 import Route.NewPost
 import Route.Posts
 import Route.Settings

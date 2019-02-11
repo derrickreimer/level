@@ -11,7 +11,6 @@ import Route.Group
 import Route.GroupSettings
 import Route.Groups
 import Route.Help
-import Route.Inbox
 import Route.NewGroupPost
 import Route.NewPost
 import Route.Posts
@@ -35,7 +34,6 @@ type Route
     | NewSpace
     | Root String
     | Posts Route.Posts.Params
-    | Inbox Route.Inbox.Params
     | SpaceUsers Route.SpaceUsers.Params
     | SpaceUser Route.SpaceUser.Params
     | InviteUsers String
@@ -62,7 +60,6 @@ parser =
         , Parser.map NewSpace (s "teams" </> s "new")
         , Parser.map Root Parser.string
         , Parser.map Posts Route.Posts.parser
-        , Parser.map Inbox Route.Inbox.parser
         , Parser.map SpaceUsers Route.SpaceUsers.parser
         , Parser.map SpaceUser Route.SpaceUser.parser
         , Parser.map InviteUsers (Parser.string </> s "invites")
@@ -119,9 +116,6 @@ toSpace slug =
 isCurrent : Route -> Maybe Route -> Bool
 isCurrent testRoute maybeCurrentRoute =
     case ( testRoute, maybeCurrentRoute ) of
-        ( Inbox _, Just (Inbox _) ) ->
-            True
-
         ( Posts _, Just (Posts _) ) ->
             True
 
@@ -170,9 +164,6 @@ toString page =
 
         Posts params ->
             Route.Posts.toString params
-
-        Inbox params ->
-            Route.Inbox.toString params
 
         SpaceUser params ->
             Route.SpaceUser.toString params
