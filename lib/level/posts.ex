@@ -827,6 +827,33 @@ defmodule Level.Posts do
     {:ok, Enum.empty?(public_groups)}
   end
 
+  @doc """
+  Fetches all the users who see the post in their Feed.
+  """
+  @spec get_followers(Post.t()) :: {:ok, [SpaceUser.t()]} | no_return()
+  def get_followers(%Post{id: post_id, space_id: space_id}) do
+    query =
+      from su in SpaceUser,
+        left_join: pg in PostGroup,
+        on: pg.post_id == ^post_id,
+        left_join: gu in GroupUser,
+        on: gu.group_id == pg.group_id and gu.space_user_id == su.id,
+        left_join: pu in PostUser,
+        on: pu.space_user_id == su.id and pu.post_id == ^post_id,
+        where: su.space_id == ^space_id,
+        where:
+          (gu.state in ["SUBSCRIBED", "WATCHING"] and not is_nil(pg.id)) or not is_nil(pu.id),
+        distinct: su.id
+
+    query
+    |> Repo.all()
+    |> after_get_followers()
+  end
+
+  defp after_get_followers(space_users) do
+    {:ok, space_users}
+  end
+
   # Internal
 
   defp update_many_user_states(space_user, posts, params) do
