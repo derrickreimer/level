@@ -539,8 +539,9 @@ consumeEvent globals event model =
         Event.PostsMarkedAsUnread posts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
                 List.foldr (addPost globals) ( model, Cmd.none ) posts
-                -- else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                --     List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
 
             else
                 ( model, Cmd.none )
@@ -548,8 +549,9 @@ consumeEvent globals event model =
         Event.PostsMarkedAsRead posts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
                 List.foldr (addPost globals) ( model, Cmd.none ) posts
-                -- else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                --     List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
 
             else
                 ( model, Cmd.none )
@@ -557,8 +559,9 @@ consumeEvent globals event model =
         Event.PostsDismissed posts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
                 List.foldr (removePost globals) ( model, Cmd.none ) posts
-                -- else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed && not (Connection.hasPreviousPage model.postComps) then
-                --     List.foldr (addPost globals) ( model, Cmd.none ) posts
+
+            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
 
             else
                 ( model, Cmd.none )
