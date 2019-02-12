@@ -5,6 +5,7 @@ module Layout.SpaceMobile exposing (Config, Control(..), layout, rightSidebar)
 
 import Avatar exposing (personAvatar, thingAvatar)
 import Flash exposing (Flash)
+import Globals exposing (Globals)
 import Group exposing (Group)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -12,6 +13,7 @@ import Html.Events exposing (..)
 import Icons
 import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
+import Repo
 import Route exposing (Route)
 import Route.Apps
 import Route.Group
@@ -40,9 +42,9 @@ type Control msg
 
 
 type alias Config msg =
-    { space : Space
+    { globals : Globals
+    , space : Space
     , spaceUser : SpaceUser
-    , bookmarks : List Group
     , currentRoute : Maybe Route
     , flash : Flash
     , title : String
@@ -65,6 +67,11 @@ layout config children =
     let
         spaceSlug =
             Space.slug config.space
+
+        bookmarks =
+            config.globals.repo
+                |> Repo.getBookmarks (Space.id config.space)
+                |> List.sortBy Group.name
     in
     div [ class "font-sans font-antialised", style "padding-top" "60px" ]
         [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-white z-40" ]
@@ -95,14 +102,14 @@ layout config children =
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
                             ]
-                        , viewUnless (List.isEmpty config.bookmarks) <|
+                        , viewUnless (List.isEmpty bookmarks) <|
                             div []
                                 [ h3 [ class "mb-1p5 pl-3 font-sans text-sm" ]
                                     [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue no-underline" ] [ text "Channels" ] ]
-                                , channelList config
+                                , bookmarkList config bookmarks
                                 ]
                         , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                            [ viewIf (List.isEmpty config.bookmarks) <|
+                            [ viewIf (List.isEmpty bookmarks) <|
                                 sidebarTab "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
                             , sidebarTab "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
                             , sidebarTab "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
@@ -167,8 +174,8 @@ controlView config control =
             div [ class "w-9" ] []
 
 
-channelList : Config msg -> Html msg
-channelList config =
+bookmarkList : Config msg -> List Group -> Html msg
+bookmarkList config bookmarks =
     let
         slug =
             Space.slug config.space
@@ -188,9 +195,7 @@ channelList config =
             sidebarTab ("#" ++ Group.name group) icon route config.currentRoute
 
         links =
-            config.bookmarks
-                |> List.sortBy Group.name
-                |> List.map linkify
+            List.map linkify bookmarks
     in
     ul [ class "mb-6 list-reset leading-semi-loose select-none" ] links
 

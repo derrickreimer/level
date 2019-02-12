@@ -24,7 +24,6 @@ type alias Data =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , featuredUserIds : List Id
     , postWithRepliesIds : Connection ( Id, Connection Id )
     , repo : Repo
@@ -36,7 +35,6 @@ type alias ResolvedData =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , featuredUsers : List SpaceUser
     , resolvedPosts : Connection ResolvedPostWithReplies
     }
@@ -57,9 +55,6 @@ document =
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
-            bookmarks {
-              ...GroupFields
-            }
             space {
               ...SpaceFields
               featuredUsers {
@@ -173,7 +168,6 @@ unresolve resolvedData =
                 |> Repo.setGroups resolvedData.groups
                 |> Repo.setSpaceUsers resolvedData.spaceUsers
                 |> Repo.setSpaceUser resolvedData.viewer
-                |> Repo.setGroups resolvedData.bookmarks
                 |> Repo.setSpaceUsers resolvedData.featuredUsers
                 |> ResolvedPostWithReplies.addManyToRepo (Connection.toList resolvedData.resolvedPosts)
     in
@@ -182,7 +176,6 @@ unresolve resolvedData =
         (Space.id resolvedData.space)
         (List.map Group.id resolvedData.groups)
         (List.map SpaceUser.id resolvedData.spaceUsers)
-        (List.map Group.id resolvedData.bookmarks)
         (List.map SpaceUser.id resolvedData.featuredUsers)
         (Connection.map ResolvedPostWithReplies.unresolve resolvedData.resolvedPosts)
         repo
@@ -191,12 +184,11 @@ unresolve resolvedData =
 resolvedDecoder : Decoder ResolvedData
 resolvedDecoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map7 ResolvedData
+        Decode.map6 ResolvedData
             SpaceUser.decoder
             (field "space" Space.decoder)
             (Decode.at [ "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             (Decode.at [ "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
-            (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "featuredUsers" ] (list SpaceUser.decoder))
             (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
 

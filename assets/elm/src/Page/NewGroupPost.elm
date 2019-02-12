@@ -381,9 +381,9 @@ resolvedMobileView globals model data =
             Route.Group <| Route.Group.init (Route.NewGroupPost.getSpaceSlug model.params) (Route.NewGroupPost.getGroupName model.params)
 
         layoutConfig =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = []
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , title = "Post to " ++ Group.name data.group

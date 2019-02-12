@@ -61,7 +61,6 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , bookmarkIds : List Id
     , featuredUserIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
@@ -78,7 +77,6 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , bookmarks : List Group
     , featuredUsers : List SpaceUser
     }
 
@@ -91,10 +89,9 @@ type Recipient
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map4 Data
+    Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getGroups model.bookmarkIds repo)
         (Just <| Repo.getSpaceUsers model.featuredUserIds repo)
 
 
@@ -130,7 +127,6 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 params
                 resp.viewerId
                 resp.spaceId
-                resp.bookmarkIds
                 resp.featuredUserIds
                 postComps
                 now
@@ -512,12 +508,6 @@ addPost globals post ( model, cmd ) =
 consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
     case event of
-        Event.GroupBookmarked group ->
-            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
         Event.ReplyCreated reply ->
             let
                 postId =
@@ -723,7 +713,6 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
@@ -913,9 +902,9 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , title = "Home"

@@ -19,7 +19,6 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , filteredGroups : Connection Group
     , repo : Repo
     }
@@ -30,7 +29,6 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , filteredGroups : Connection Group
     }
 
@@ -60,9 +58,6 @@ document params =
               ) {
                 ...GroupConnectionFields
               }
-            }
-            bookmarks {
-              ...GroupFields
             }
           }
         }
@@ -120,12 +115,11 @@ variables params limit =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map6 Data
+        Decode.map5 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
             (Decode.at [ "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             (Decode.at [ "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
-            (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "filteredGroups" ] (Connection.decoder Group.decoder))
 
 
@@ -138,7 +132,6 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
-                |> Repo.setGroups data.bookmarks
                 |> Repo.setGroups (Connection.toList data.filteredGroups)
 
         resp =
@@ -147,7 +140,6 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (List.map Group.id data.bookmarks)
                 data.filteredGroups
                 repo
     in

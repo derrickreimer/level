@@ -33,23 +33,20 @@ type alias Model =
     { spaceSlug : String
     , viewerId : Id
     , spaceId : Id
-    , bookmarkIds : List Id
     }
 
 
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , bookmarks : List Group
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map3 Data
+    Maybe.map2 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getGroups model.bookmarkIds repo)
 
 
 
@@ -80,7 +77,6 @@ buildModel spaceSlug globals ( newSession, resp ) =
                 spaceSlug
                 resp.viewerId
                 resp.spaceId
-                resp.bookmarkIds
 
         newRepo =
             Repo.union resp.repo globals.repo
@@ -148,15 +144,7 @@ redirectToLogin globals model =
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
-    case event of
-        Event.GroupBookmarked group ->
-            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
+    ( model, Cmd.none )
 
 
 
@@ -194,7 +182,6 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
@@ -218,9 +205,9 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , title = "Invite people"

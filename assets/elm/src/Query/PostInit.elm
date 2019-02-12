@@ -22,7 +22,6 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , postWithRepliesId : ( Id, Connection Id )
     , repo : Repo
     }
@@ -33,7 +32,6 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , resolvedPost : ResolvedPostWithReplies
     }
 
@@ -48,9 +46,6 @@ document =
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
-            bookmarks {
-              ...GroupFields
-            }
             space {
               ...SpaceFields
               post(id: $postId) {
@@ -83,12 +78,11 @@ variables spaceSlug postId =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "spaceUser" ] <|
-        Decode.map6 Data
+        Decode.map5 Data
             SpaceUser.decoder
             (field "space" Space.decoder)
             (Decode.at [ "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             (Decode.at [ "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
-            (field "bookmarks" (list Group.decoder))
             (Decode.at [ "space", "post" ] ResolvedPostWithReplies.decoder)
 
 
@@ -101,7 +95,6 @@ buildResponse ( session, data ) =
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setSpaceUser data.viewer
-                |> Repo.setGroups data.bookmarks
                 |> ResolvedPostWithReplies.addToRepo data.resolvedPost
 
         resp =
@@ -110,7 +103,6 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (List.map Group.id data.bookmarks)
                 (ResolvedPostWithReplies.unresolve data.resolvedPost)
                 repo
     in

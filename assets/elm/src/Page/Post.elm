@@ -50,7 +50,6 @@ type alias Model =
     , postId : Id
     , viewerId : Id
     , spaceId : Id
-    , bookmarkIds : List Id
     , postComp : Component.Post.Model
     , now : ( Zone, Posix )
     , currentViewers : Lazy PresenceList
@@ -66,17 +65,15 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , bookmarks : List Group
     , post : Post
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map4 Data
+    Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getGroups model.bookmarkIds repo)
         (Repo.getPost model.postId repo)
 
 
@@ -124,7 +121,6 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
                 postId
                 resp.viewerId
                 resp.spaceId
-                resp.bookmarkIds
                 postComp
                 now
                 NotLoaded
@@ -411,12 +407,6 @@ redirectToLogin globals model =
 consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
     case event of
-        Event.GroupBookmarked group ->
-            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
         Event.ReplyCreated reply ->
             let
                 ( newPostComp, cmd ) =
@@ -525,7 +515,6 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
@@ -573,9 +562,9 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , title = "Post"

@@ -22,7 +22,6 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , searchResults : OffsetConnection SearchResult
     , repo : Repo
     }
@@ -33,7 +32,6 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , resolvedSearchResults : OffsetConnection ResolvedSearchResult
     }
 
@@ -64,9 +62,6 @@ document =
                 }
               }
             }
-            bookmarks {
-              ...GroupFields
-            }
           }
         }
         """
@@ -95,7 +90,6 @@ decoder =
             |> Pipeline.custom (Decode.field "space" Space.decoder)
             |> Pipeline.custom (Decode.at [ "space", "groups", "edges" ] (Decode.list (Decode.field "node" Group.decoder)))
             |> Pipeline.custom (Decode.at [ "space", "spaceUsers", "edges" ] (Decode.list (Decode.field "node" SpaceUser.decoder)))
-            |> Pipeline.custom (Decode.field "bookmarks" (Decode.list Group.decoder))
             |> Pipeline.custom (Decode.at [ "space", "search" ] (OffsetConnection.decoder ResolvedSearchResult.decoder))
         )
 
@@ -114,7 +108,6 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
-                |> Repo.setGroups data.bookmarks
                 |> addSearchResultsToRepo data.resolvedSearchResults
 
         resp =
@@ -123,7 +116,6 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (List.map Group.id data.bookmarks)
                 (OffsetConnection.map ResolvedSearchResult.unresolve data.resolvedSearchResults)
                 repo
     in

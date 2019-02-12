@@ -19,7 +19,6 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , spaceUserId : Id
     , role : SpaceUser.Role
     , repo : Repo
@@ -31,7 +30,6 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , spaceUser : SpaceUser
     }
 
@@ -49,9 +47,6 @@ document =
             space {
               ...SpaceFields
             }
-            bookmarks {
-              ...GroupFields
-            }
           }
           viewedUser: spaceUser(id: $spaceUserId) {
             ...SpaceUserFields
@@ -60,7 +55,6 @@ document =
         """
         [ SpaceUser.fragment
         , Space.fragment
-        , Group.fragment
         , Connection.fragment "SpaceUserConnection" SpaceUser.fragment
         ]
 
@@ -77,12 +71,11 @@ variables params =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data" ] <|
-        Decode.map6 Data
+        Decode.map5 Data
             (field "viewingUser" SpaceUser.decoder)
             (Decode.at [ "viewingUser", "space" ] Space.decoder)
             (Decode.at [ "viewingUser", "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             (Decode.at [ "viewingUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
-            (Decode.at [ "viewingUser", "bookmarks" ] (list Group.decoder))
             (field "viewedUser" SpaceUser.decoder)
 
 
@@ -96,7 +89,6 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
-                |> Repo.setGroups data.bookmarks
 
         resp =
             Response
@@ -104,7 +96,6 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (List.map Group.id data.bookmarks)
                 (SpaceUser.id data.spaceUser)
                 (SpaceUser.role data.spaceUser)
                 repo

@@ -38,7 +38,6 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , bookmarkIds : List Id
     , spaceUserId : Id
     , role : SpaceUser.Role
     , showPermissionsModal : Bool
@@ -49,17 +48,15 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , bookmarks : List Group
     , spaceUser : SpaceUser
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map4 Data
+    Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getGroups model.bookmarkIds repo)
         (Repo.getSpaceUser model.spaceUserId repo)
 
 
@@ -91,7 +88,6 @@ buildModel params globals ( newSession, resp ) =
                 params
                 resp.viewerId
                 resp.spaceId
-                resp.bookmarkIds
                 resp.spaceUserId
                 resp.role
                 False
@@ -254,15 +250,7 @@ update msg globals model =
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
-    case event of
-        Event.GroupBookmarked group ->
-            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
+    ( model, Cmd.none )
 
 
 
@@ -300,7 +288,6 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , showKeyboardCommands = globals.showKeyboardCommands
@@ -335,9 +322,9 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
             , title = "People"
