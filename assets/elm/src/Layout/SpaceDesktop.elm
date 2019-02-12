@@ -165,7 +165,7 @@ spacesSidebar config =
             else
                 Icons.Off
     in
-    div [ class "fixed h-full bg-grey-light z-40" ]
+    div [ class "fixed h-full z-40" ]
         [ div [ class "p-3" ]
             [ a
                 [ Route.href Route.Home
