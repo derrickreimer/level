@@ -5,9 +5,12 @@ import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import Id exposing (Id)
+import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
+import LastActivityFilter
 import Post exposing (Post)
+import PostStateFilter exposing (PostStateFilter)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -51,7 +54,10 @@ document =
           $last: Int,
           $before: Cursor,
           $after: Cursor,
-          $stateFilter: PostStateFilter!
+          $followingStateFilter: FollowingStateFilter!,
+          $stateFilter: PostStateFilter!,
+          $inboxStateFilter: InboxStateFilter!,
+          $lastActivityFilter: LastActivityFilter!
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -69,8 +75,10 @@ document =
                 before: $before,
                 after: $after,
                 filter: {
-                  followingState: IS_FOLLOWING,
-                  state: $stateFilter
+                  followingState: $followingStateFilter,
+                  state: $stateFilter,
+                  inboxState: $inboxStateFilter,
+                  lastActivity: $lastActivityFilter
                 },
                 orderBy: { field: LAST_ACTIVITY_AT, direction: DESC }
               ) {
@@ -101,46 +109,43 @@ variables params =
         spaceSlug =
             Encode.string (Route.Posts.getSpaceSlug params)
 
-        stateFilter =
-            Encode.string (castState <| Route.Posts.getState params)
+        followingStateFilter =
+            case Route.Posts.getInboxState params of
+                InboxStateFilter.All ->
+                    "IS_FOLLOWING"
 
-        values =
+                _ ->
+                    "ALL"
+
+        filters =
+            [ ( "spaceSlug", spaceSlug )
+            , ( "stateFilter", Encode.string (PostStateFilter.toEnum (Route.Posts.getState params)) )
+            , ( "followingStateFilter", Encode.string followingStateFilter )
+            , ( "inboxStateFilter", Encode.string (InboxStateFilter.toEnum (Route.Posts.getInboxState params)) )
+            , ( "lastActivityFilter", Encode.string (LastActivityFilter.toEnum (Route.Posts.getLastActivity params)) )
+            ]
+
+        cursors =
             case
                 ( Route.Posts.getBefore params
                 , Route.Posts.getAfter params
                 )
             of
                 ( Just before, Nothing ) ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "last", Encode.int 20 )
+                    [ ( "last", Encode.int 20 )
                     , ( "before", Encode.string before )
-                    , ( "stateFilter", stateFilter )
                     ]
 
                 ( Nothing, Just after ) ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "first", Encode.int 20 )
+                    [ ( "first", Encode.int 20 )
                     , ( "after", Encode.string after )
-                    , ( "stateFilter", stateFilter )
                     ]
 
                 ( _, _ ) ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "first", Encode.int 20 )
-                    , ( "stateFilter", stateFilter )
+                    [ ( "first", Encode.int 20 )
                     ]
     in
-    Just (Encode.object values)
-
-
-castState : Route.Posts.State -> String
-castState state =
-    case state of
-        Route.Posts.Open ->
-            "OPEN"
-
-        Route.Posts.Closed ->
-            "CLOSED"
+    Just (Encode.object (filters ++ cursors))
 
 
 decoder : Decoder Data

@@ -375,7 +375,7 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto px-8 py-6 max-w-lg leading-normal" ]
+        [ div [ class "mx-auto px-8 py-4 max-w-lg leading-normal" ]
             [ desktopPostComposerView globals model data
             , p [ class "px-8 text-md text-dusty-blue-dark text-center" ]
                 [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
@@ -425,7 +425,7 @@ desktopPostComposerView globals model data =
                 , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
-                        , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault
@@ -441,14 +441,14 @@ desktopPostComposerView globals model data =
                     , div [ class "flex items-center justify-end" ]
                         [ viewUnless (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Interrupt all @mentioned people"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.Off ]
                         , viewIf (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Don't interrupt anyone"
                                 , onClick ToggleUrgent
                                 ]

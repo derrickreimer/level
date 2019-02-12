@@ -16,7 +16,6 @@ import Route.Apps
 import Route.Group
 import Route.Groups
 import Route.Help
-import Route.Inbox
 import Route.NewPost
 import Route.Posts
 import Route.Settings
@@ -52,8 +51,10 @@ layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
         [ spacesSidebar config
-        , fullSidebar config
-        , div [ class "ml-64 lg:ml-64 lg:mr-64" ] children
+        , div [ class "mx-auto max-w-4xl pl-16 xl:px-24" ]
+            [ fullSidebar config
+            , div [ class "ml-48 xl:mx-48 relative" ] children
+            ]
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
         , Flash.view config.flash
         , viewIf config.showKeyboardCommands (keyboardCommandReference config)
@@ -64,8 +65,8 @@ rightSidebar : List (Html msg) -> Html msg
 rightSidebar children =
     div
         [ classList
-            [ ( "fixed pin-r pin-t mt-2 py-2 pl-6 min-h-half", True )
-            , ( "hidden lg:block md:w-48 lg:w-56", True )
+            [ ( "fixed pin-t pin-b pin-r py-4 w-48", True )
+            , ( "hidden xl:block", True )
             ]
         ]
         children
@@ -164,7 +165,7 @@ spacesSidebar config =
             else
                 Icons.Off
     in
-    div [ class "fixed h-full bg-grey-lighter z-40" ]
+    div [ class "fixed h-full z-40" ]
         [ div [ class "p-3" ]
             [ a
                 [ Route.href Route.Home
@@ -215,24 +216,21 @@ fullSidebar config =
         [ classList
             [ ( "fixed w-48 h-full min-h-screen z-30", True )
             ]
-        , style "left" "4.5rem"
         ]
-        [ div [ class "p-4 pt-3" ]
-            [ a [ Route.href Route.Spaces, class "block ml-2 no-underline" ]
+        [ div [ class "p-4 pt-2" ]
+            [ a [ Route.href (Route.Posts (Route.Posts.init spaceSlug)), class "block p-2 rounded no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                , div [ class "mb-2 font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
+                , div [ class "font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                 ]
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
             [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ sidebarTab "Write" Nothing (Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
-                , sidebarTab "Inbox" Nothing (Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
-                , sidebarTab "Feed" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
                 ]
             , viewUnless (List.isEmpty config.bookmarks) <|
                 div []
-                    [ h3 [ class "mb-1p5 pl-3 font-sans text-sm" ]
-                        [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue-dark no-underline" ] [ text "Channels" ] ]
+                    [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
+                        [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue no-underline" ] [ text "Channels" ] ]
                     , channelList config
                     ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
@@ -295,7 +293,7 @@ sidebarTab title maybeIcon route currentRoute =
             [ Route.href route
             , classList
                 [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
-                , ( "text-dusty-blue-dark bg-white hover:bg-grey-light", not isCurrent )
+                , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
                 ]
             ]

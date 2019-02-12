@@ -1,6 +1,6 @@
 module Route.Posts exposing
-    ( Params, State(..)
-    , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState
+    ( Params
+    , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
     , parser
     , toString
     )
@@ -10,12 +10,12 @@ module Route.Posts exposing
 
 # Types
 
-@docs Params, State
+@docs Params
 
 
 # API
 
-@docs init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState
+@docs init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
 
 
 # Parsing
@@ -29,6 +29,9 @@ module Route.Posts exposing
 
 -}
 
+import InboxStateFilter exposing (InboxStateFilter)
+import LastActivityFilter exposing (LastActivityFilter)
+import PostStateFilter exposing (PostStateFilter)
 import Url.Builder as Builder exposing (QueryParameter, absolute)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, map, oneOf, s, string)
 import Url.Parser.Query as Query
@@ -42,13 +45,10 @@ type alias Internal =
     { spaceSlug : String
     , after : Maybe String
     , before : Maybe String
-    , state : State
+    , state : PostStateFilter
+    , inboxState : InboxStateFilter
+    , lastActivity : LastActivityFilter
     }
-
-
-type State
-    = Open
-    | Closed
 
 
 
@@ -57,7 +57,15 @@ type State
 
 init : String -> Params
 init spaceSlug =
-    Params (Internal spaceSlug Nothing Nothing Open)
+    Params
+        (Internal
+            spaceSlug
+            Nothing
+            Nothing
+            PostStateFilter.Open
+            InboxStateFilter.All
+            LastActivityFilter.All
+        )
 
 
 getSpaceSlug : Params -> String
@@ -80,14 +88,43 @@ setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
 
 
-getState : Params -> State
+getState : Params -> PostStateFilter
 getState (Params internal) =
     internal.state
 
 
-setState : State -> Params -> Params
+setState : PostStateFilter -> Params -> Params
 setState newState (Params internal) =
     Params { internal | state = newState }
+
+
+getInboxState : Params -> InboxStateFilter
+getInboxState (Params internal) =
+    internal.inboxState
+
+
+setInboxState : InboxStateFilter -> Params -> Params
+setInboxState newState (Params internal) =
+    Params { internal | inboxState = newState }
+
+
+getLastActivity : Params -> LastActivityFilter
+getLastActivity (Params internal) =
+    internal.lastActivity
+
+
+setLastActivity : LastActivityFilter -> Params -> Params
+setLastActivity newState (Params internal) =
+    Params { internal | lastActivity = newState }
+
+
+clearFilters : Params -> Params
+clearFilters params =
+    params
+        |> setCursors Nothing Nothing
+        |> setLastActivity LastActivityFilter.All
+        |> setState PostStateFilter.All
+        |> setInboxState InboxStateFilter.All
 
 
 
@@ -97,7 +134,40 @@ setState newState (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "feed" <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
+        oneOf
+            [ feedParser
+            , inboxParser
+            ]
+
+
+feedParser : Parser (Internal -> a) a
+feedParser =
+    let
+        toInternal : String -> Maybe String -> Maybe String -> PostStateFilter -> LastActivityFilter -> Internal
+        toInternal spaceSlug afterCursor beforeCursor state lastActivity =
+            Internal spaceSlug afterCursor beforeCursor state InboxStateFilter.All lastActivity
+    in
+    map toInternal
+        (string
+            </> s "feed"
+            <?> Query.string "after"
+            <?> Query.string "before"
+            <?> Query.map parseFeedPostState (Query.string "state")
+            <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
+        )
+
+
+inboxParser : Parser (Internal -> a) a
+inboxParser =
+    map Internal
+        (string
+            </> s "inbox"
+            <?> Query.string "after"
+            <?> Query.string "before"
+            <?> Query.map parseInboxPostState (Query.string "state")
+            <?> Query.map parseInboxState (Query.string "inbox_state")
+            <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
+        )
 
 
 
@@ -106,42 +176,117 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "feed" ] (buildQuery internal)
+    case internal.inboxState of
+        InboxStateFilter.Undismissed ->
+            absolute [ internal.spaceSlug, "inbox" ] (buildInboxQuery internal)
+
+        InboxStateFilter.Dismissed ->
+            absolute [ internal.spaceSlug, "inbox" ] (buildInboxQuery internal)
+
+        _ ->
+            absolute [ internal.spaceSlug, "feed" ] (buildFeedQuery internal)
 
 
 
 -- PRIVATE
 
 
-parseState : Maybe String -> State
-parseState value =
+parseFeedPostState : Maybe String -> PostStateFilter
+parseFeedPostState value =
     case value of
         Just "closed" ->
-            Closed
+            PostStateFilter.Closed
 
-        Just "open" ->
-            Open
+        Just "all" ->
+            PostStateFilter.All
 
         _ ->
-            Open
+            PostStateFilter.Open
 
 
-castState : State -> Maybe String
-castState state =
+parseInboxPostState : Maybe String -> PostStateFilter
+parseInboxPostState value =
+    case value of
+        Just "closed" ->
+            PostStateFilter.Closed
+
+        Just "open" ->
+            PostStateFilter.Open
+
+        _ ->
+            PostStateFilter.All
+
+
+castFeedPostState : PostStateFilter -> Maybe String
+castFeedPostState state =
     case state of
-        Open ->
-            Nothing
+        PostStateFilter.All ->
+            Just "all"
 
-        Closed ->
+        PostStateFilter.Closed ->
             Just "closed"
 
+        PostStateFilter.Open ->
+            Nothing
 
-buildQuery : Internal -> List QueryParameter
-buildQuery internal =
+
+castInboxPostState : PostStateFilter -> Maybe String
+castInboxPostState state =
+    case state of
+        PostStateFilter.Open ->
+            Just "open"
+
+        PostStateFilter.Closed ->
+            Just "closed"
+
+        PostStateFilter.All ->
+            Nothing
+
+
+parseInboxState : Maybe String -> InboxStateFilter
+parseInboxState value =
+    case value of
+        Just "dismissed" ->
+            InboxStateFilter.Dismissed
+
+        Just "all" ->
+            InboxStateFilter.All
+
+        _ ->
+            InboxStateFilter.Undismissed
+
+
+castInboxState : InboxStateFilter -> Maybe String
+castInboxState state =
+    case state of
+        InboxStateFilter.Undismissed ->
+            Nothing
+
+        InboxStateFilter.Dismissed ->
+            Just "dismissed"
+
+        InboxStateFilter.All ->
+            Just "all"
+
+
+buildFeedQuery : Internal -> List QueryParameter
+buildFeedQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
-        , ( "state", castState internal.state )
+        , ( "state", castFeedPostState internal.state )
+        , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
+        ]
+
+
+buildInboxQuery : Internal -> List QueryParameter
+buildInboxQuery internal =
+    buildStringParams
+        [ ( "after", internal.after )
+        , ( "before", internal.before )
+        , ( "state", castInboxPostState internal.state )
+        , ( "inbox_state", castInboxState internal.inboxState )
+        , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
         ]
 
 

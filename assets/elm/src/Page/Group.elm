@@ -1076,12 +1076,18 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "flex items-baseline mb-4 mx-3 border-b" ]
-                [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
-                , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
+            , div [ class "sticky mb-4 pt-1 bg-white z-20", style "top" "56px" ]
+                [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
+                    [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
+                    , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
+                    ]
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "mx-3 p-8 pb-16" ]
+                    [ paginationView model.params model.postComps
+                    ]
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.group data.featuredMembers model)
             ]
         ]
@@ -1156,7 +1162,6 @@ controlsView : Model -> Html Msg
 controlsView model =
     div [ class "flex flex-grow justify-end" ]
         [ searchEditorView model.searchEditor
-        , paginationView model.params model.postComps
         ]
 
 
@@ -1190,10 +1195,10 @@ desktopPostComposerView globals model data =
             }
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-2" ]
+        [ label [ class "composer" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
-                , div [ class "flex-grow pl-2 pt-2" ]
+                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
@@ -1208,20 +1213,20 @@ desktopPostComposerView globals model data =
                     , div [ class "flex items-center justify-end" ]
                         [ viewUnless (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Interrupt all @mentioned people"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.Off ]
                         , viewIf (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Don't interrupt anyone"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.On ]
                         , button
-                            [ class "btn btn-blue btn-md"
+                            [ class "btn btn-blue btn-sm"
                             , onClick NewPostSubmit
                             , disabled (PostEditor.isUnsubmittable editor)
                             ]
@@ -1322,7 +1327,12 @@ resolvedMobileView globals model data =
                 ]
         , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
         , div [ class "p-3 pt-0" ]
-            [ mobilePostsView globals model data ]
+            [ mobilePostsView globals model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "mx-3 p-8 pb-16 border-t" ]
+                    [ paginationView model.params model.postComps
+                    ]
+            ]
         , a
             [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupName model.params))
             , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
@@ -1388,9 +1398,9 @@ filterTab device label state linkParams currentParams =
     a
         [ Route.href (Route.Group linkParams)
         , classList
-            [ ( "block text-md mr-4 py-3/2 border-b-3 border-transparent no-underline font-bold", True )
+            [ ( "block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold", True )
             , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            , ( "border-turquoise text-turquoise-dark", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
             ]
         ]

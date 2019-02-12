@@ -841,8 +841,13 @@ update msg globals model =
                 newRepo =
                     globals.repo
                         |> Repo.setPost post
+
+                newReplyComposer =
+                    model.replyComposer
+                        |> PostEditor.setNotSubmitting
+                        |> PostEditor.collapse
             in
-            ( ( { model | replyComposer = PostEditor.setNotSubmitting model.replyComposer }, Cmd.none )
+            ( ( { model | replyComposer = newReplyComposer }, Cmd.none )
             , { globals | repo = newRepo, session = newSession }
             )
 
@@ -1078,7 +1083,7 @@ resolvedView config model data =
             config.now
     in
     div [ id (postNodeId model.postId), class "flex" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
+        [ div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
@@ -1100,6 +1105,7 @@ resolvedView config model data =
                             [ text "Edit" ]
                     ]
                 , inboxButton data.post
+                , viewIf (Post.state data.post == Post.Closed) (reopenButton data.post)
                 ]
             , viewIf config.showGroups <|
                 groupsLabel config.space (Repo.getGroups (Post.groupIds data.post) config.globals.repo)
@@ -1128,7 +1134,7 @@ inboxButton post =
     let
         addButton =
             button
-                [ class "flex tooltip tooltip-bottom no-outline"
+                [ class "mr-3 flex tooltip tooltip-bottom no-outline"
                 , onClick MoveToInboxClicked
                 , attribute "data-tooltip" "Move to inbox"
                 ]
@@ -1137,7 +1143,7 @@ inboxButton post =
 
         removeButton =
             button
-                [ class "flex tooltip tooltip-bottom no-outline text-sm text-green font-bold"
+                [ class "mr-3 flex tooltip tooltip-bottom no-outline text-sm text-green font-bold"
                 , onClick DismissClicked
                 , attribute "data-tooltip" "Dismiss from inbox"
                 ]
@@ -1156,6 +1162,16 @@ inboxButton post =
 
         Post.Unread ->
             removeButton
+
+
+reopenButton : Post -> Html Msg
+reopenButton post =
+    button
+        [ class "tooltip tooltip-bottom mr-3"
+        , attribute "data-tooltip" "Reopen conversation"
+        , onClick ReopenPostClicked
+        ]
+        [ Icons.closedSmall ]
 
 
 postAuthorName : Space -> Id -> ResolvedAuthor -> Html Msg
@@ -1427,26 +1443,7 @@ replyComposerView viewConfig model data =
         post =
             data.post
     in
-    if Post.state post == Post.Closed then
-        div [ class "flex flex-wrap items-center my-3" ]
-            [ div [ class "flex-no-shrink mr-3" ] [ Icons.closedAvatar ]
-            , div [ class "flex-no-shrink mr-3 text-base text-green font-bold" ] [ text "Resolved" ]
-            , div [ class "flex-no-shrink leading-semi-loose" ]
-                [ button
-                    [ class "mr-2 my-1 btn btn-grey-outline btn-sm"
-                    , onClick ReopenPostClicked
-                    ]
-                    [ text "Reopen" ]
-                , viewIf (Post.inboxState post == Post.Read || Post.inboxState post == Post.Unread) <|
-                    button
-                        [ class "my-1 btn btn-grey-outline btn-sm"
-                        , onClick DismissClicked
-                        ]
-                        [ text "Dismiss from inbox" ]
-                ]
-            ]
-
-    else if PostEditor.isExpanded model.replyComposer then
+    if PostEditor.isExpanded model.replyComposer then
         expandedReplyComposerView viewConfig model.replyComposer
 
     else
@@ -1519,11 +1516,23 @@ expandedReplyComposerView viewConfig editor =
 
 replyPromptView : ViewConfig -> Model -> Data -> Html Msg
 replyPromptView config model data =
+    let
+        ( prompt, msg ) =
+            case Post.state data.post of
+                Post.Open ->
+                    ( "Reply or resolve...", ExpandReplyComposer )
+
+                Post.Closed ->
+                    ( "Reopen conversation...", ReopenPostClicked )
+
+                Post.Deleted ->
+                    ( "", NoOp )
+    in
     if not (Connection.isEmpty model.replyIds) then
-        button [ class "flex my-4 items-center text-md", onClick ExpandReplyComposer ]
+        button [ class "flex my-4 items-center text-md", onClick msg ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
             , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
-                [ text "Reply or resolve..."
+                [ text prompt
                 ]
             ]
 
@@ -1542,7 +1551,12 @@ replyButtonView config model data =
             [ Icons.reply ]
 
     else
-        text ""
+        button
+            [ class "tooltip tooltip-bottom"
+            , onClick ReopenPostClicked
+            , attribute "data-tooltip" "Reopen"
+            ]
+            [ Icons.reply ]
 
 
 staticFilesView : List File -> Html msg

@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, home, image, inbox, inboxWhite, lock, lockLarge, logOut, logo, logomark, menu, more, open, plus, postbot, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsMedium, thumbsSmall, undismissed, unlock, zapWhite)
+module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, closedSmall, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, home, image, inbox, inboxWhite, lock, lockLarge, logOut, logo, logomark, menu, more, open, plus, postbot, refresh, reply, revokeMember, search, sendWhite, shield, square, thumbs, thumbsMedium, thumbsSmall, undismissed, unlock, zapWhite)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -31,32 +31,14 @@ alert toggle =
 
 arrowLeft : Toggle -> Html msg
 arrowLeft toggle =
-    let
-        color =
-            case toggle of
-                On ->
-                    "#8a98a5"
-
-                Off ->
-                    "#e2e6e8"
-    in
     iconView <|
-        svg [ width "15px", height "13px", viewBox "0 0 15 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(0.500000, 0.500000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
+        svg [ width "16px", height "14px", viewBox "0 0 16 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-left", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
 arrowRight : Toggle -> Html msg
 arrowRight toggle =
-    let
-        color =
-            case toggle of
-                On ->
-                    "#8a98a5"
-
-                Off ->
-                    "#e2e6e8"
-    in
     iconView <|
-        svg [ width "15px", height "13px", viewBox "0 0 15 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(7.500000, 6.500000) scale(-1, 1) translate(-7.500000, -6.500000) translate(0.500000, 0.500000)", stroke color ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
+        svg [ width "16px", height "14px", viewBox "0 0 16 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "arrow-right", transform "translate(8.000000, 7.000000) scale(-1, 1) translate(-8.000000, -7.000000) translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M14,6 L0,6", id "Shape" ] [], polyline [ id "Shape", points "6 12 0 6 6 0" ] [] ] ] ]
 
 
 arrowUpRight : Html msg
@@ -193,6 +175,12 @@ closed : Html msg
 closed =
     iconView <|
         svg [ width "22px", height "22px", viewBox "0 0 22 22", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "check-circle", transform "translate(1.000000, 0.000000)", stroke "#FF1E12", strokeWidth "2" ] [ Svg.path [ d "M20,10.08 L20,11 C19.9974678,15.4286859 17.082294,19.328213 12.8353524,20.583901 C8.58841086,21.839589 4.02139355,20.1523121 1.61095509,16.4370663 C-0.799483376,12.7218205 -0.479136554,7.86363898 2.39827419,4.49707214 C5.27568494,1.13050531 10.0247126,0.0575252842 14.07,1.86", id "Shape" ] [], polyline [ id "Shape", points "20 3 10 13.01 7 10.01" ] [] ] ] ]
+
+
+closedSmall : Html msg
+closedSmall =
+    iconView <|
+        svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "closed-avatar-2-copy-4" ] [ circle [ id "Oval-2", fill "#38C172", cx "8", cy "8", r "8" ] [], g [ id "check", transform "translate(4.444444, 5.777778)", stroke "#FFFFFF", strokeLinecap "round", strokeLinejoin "round", strokeWidth "2" ] [ polyline [ id "Shape", points "7.11111111 0 2.22222222 4.88888889 0 2.66666667" ] [] ] ] ] ]
 
 
 comment : Html msg

@@ -10,7 +10,6 @@ import Json.Decode as Decode exposing (Decoder, bool, field, int, list, maybe, s
 import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import Json.Encode as Encode
 import Route exposing (Route)
-import Route.Inbox
 import SpaceUser exposing (SpaceUser)
 
 

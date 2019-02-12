@@ -17,7 +17,6 @@ import Route.Apps
 import Route.Group
 import Route.Groups
 import Route.Help
-import Route.Inbox
 import Route.NewPost
 import Route.Posts
 import Route.Settings
@@ -94,14 +93,12 @@ layout config children =
                         ]
                     , div [ class "absolute px-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                            [ sidebarTab "Write" Nothing (Route.NewPost (Route.NewPost.init spaceSlug)) config.currentRoute
-                            , sidebarTab "Inbox" Nothing (Route.Inbox (Route.Inbox.init spaceSlug)) config.currentRoute
-                            , sidebarTab "Feed" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                            [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
                             ]
                         , viewUnless (List.isEmpty config.bookmarks) <|
                             div []
                                 [ h3 [ class "mb-1p5 pl-3 font-sans text-sm" ]
-                                    [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue-dark no-underline" ] [ text "Channels" ] ]
+                                    [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue no-underline" ] [ text "Channels" ] ]
                                 , channelList config
                                 ]
                         , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
@@ -209,7 +206,7 @@ sidebarTab title maybeIcon route currentRoute =
             [ Route.href route
             , classList
                 [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
-                , ( "text-dusty-blue-dark bg-white hover:bg-grey-light", not isCurrent )
+                , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
                 ]
             ]

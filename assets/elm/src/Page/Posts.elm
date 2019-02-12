@@ -15,6 +15,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import KeyboardShortcuts exposing (Modifier(..))
@@ -28,8 +29,10 @@ import Mutation.MarkAsRead as MarkAsRead
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PostStateFilter exposing (PostStateFilter)
 import PushStatus exposing (PushStatus)
 import Query.PostsInit as PostsInit
+import Regex exposing (Regex)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -80,6 +83,12 @@ type alias Data =
     }
 
 
+type Recipient
+    = Nobody
+    | Direct
+    | Channel
+
+
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
     Maybe.map4 Data
@@ -95,7 +104,7 @@ resolveData repo model =
 
 title : String
 title =
-    "Feed"
+    "Home"
 
 
 
@@ -192,6 +201,7 @@ type Msg
     | NewPostFileUploadProgress Id Int
     | NewPostFileUploaded Id Id String
     | NewPostFileUploadError Id
+    | ToggleUrgent
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | PostSelected Id
@@ -267,8 +277,23 @@ update msg globals model =
             in
             ( ( { model | searchEditor = newSearchEditor }, cmd ), globals )
 
+        PostsDismissed (Ok ( newSession, DismissPosts.Success posts )) ->
+            let
+                ( newModel, cmd ) =
+                    if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
+                        List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+                    else
+                        ( model, Cmd.none )
+            in
+            ( ( newModel, cmd )
+            , { globals
+                | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
+              }
+            )
+
         PostsDismissed _ ->
-            noCmd { globals | flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash } model
+            noCmd globals model
 
         PostsMarkedAsRead _ ->
             noCmd { globals | flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash } model
@@ -324,6 +349,9 @@ update msg globals model =
                         |> PostEditor.insertFileLink fileId
             in
             ( ( { model | postComposer = newPostComposer }, cmd ), globals )
+
+        ToggleUrgent ->
+            ( ( { model | postComposer = PostEditor.toggleIsUrgent model.postComposer }, Cmd.none ), globals )
 
         NewPostSubmit ->
             if PostEditor.isSubmittable model.postComposer then
@@ -446,6 +474,37 @@ removePost globals post ( model, cmd ) =
             ( model, cmd )
 
 
+addPost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addPost globals post ( model, cmd ) =
+    if Post.spaceId post == model.spaceId then
+        case Connection.get .id (Post.id post) model.postComps of
+            Just _ ->
+                ( model, Cmd.none )
+
+            Nothing ->
+                let
+                    postComp =
+                        Component.Post.init
+                            model.spaceId
+                            (Post.id post)
+                            Connection.empty
+
+                    newPostComps =
+                        Connection.prepend .id postComp model.postComps
+
+                    setupCmd =
+                        Cmd.map (PostComponentMsg postComp.id)
+                            (Component.Post.setup globals postComp)
+
+                    newCmd =
+                        Cmd.batch [ cmd, setupCmd ]
+                in
+                ( { model | postComps = newPostComps }, newCmd )
+
+    else
+        ( model, cmd )
+
+
 
 -- EVENTS
 
@@ -476,6 +535,36 @@ consumeEvent globals event model =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        Event.PostsMarkedAsUnread posts ->
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
+
+            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsMarkedAsRead posts ->
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
+
+            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsDismissed posts ->
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) posts
+
+            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed && not (Connection.hasPreviousPage model.postComps) then
+                List.foldr (addPost globals) ( model, Cmd.none ) posts
+
+            else
+                ( model, Cmd.none )
 
         Event.PostDeleted post ->
             removePost globals post ( model, Cmd.none )
@@ -581,6 +670,9 @@ consumeKeyboardEvent globals event model =
                 Nothing ->
                     ( ( model, Cmd.none ), globals )
 
+        ( "c", [] ) ->
+            ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
+
         _ ->
             ( ( model, Cmd.none ), globals )
 
@@ -640,28 +732,21 @@ resolvedDesktopView globals model data =
             }
     in
     Layout.SpaceDesktop.layout config
-        [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 pt-3 px-3 bg-white z-40" ]
-                [ div [ class "flex items-center pb-1/2" ]
-                    [ h2 [ class "flex-grow font-bold text-2xl" ] [ text "Feed" ]
-                    , controlsView model
-                    ]
-                , div [ class "flex items-center trans-border-b-grey" ]
-                    [ div [ class "flex-grow flex" ]
-                        [ filterTab Device.Desktop "Open" Route.Posts.Open (openParams model.params) model.params
-                        , filterTab Device.Desktop "Resolved" Route.Posts.Closed (closedParams model.params) model.params
-                        ]
+        [ div [ class "mx-auto px-8 py-4 max-w-lg leading-normal" ]
+            [ desktopPostComposerView globals model data
+            , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
+                [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
+                    [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
+                    , filterTab Device.Desktop "Feed" (feedParams model.params) model.params
+                    , filterTab Device.Desktop "Resolved" (resolvedParams model.params) model.params
                     ]
                 ]
-
-            -- , desktopPostComposerView globals model data
-            -- , viewIf (not (String.contains "#" (PostEditor.getBody model.postComposer))) <|
-            --     div [ classList [ ( "mr-4 text-right text-sm text-dusty-blue-dark", True ) ] ]
-            --         [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-            --         , text "Hashtag one or more Channels in your post."
-            --         ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
+            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+                div [ class "mx-3 p-8 pb-16" ]
+                    [ paginationView model.params model.postComps
+                    ]
 
             -- , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
             ]
@@ -685,16 +770,31 @@ desktopPostComposerView globals model data =
             , onFileUploadError = NewPostFileUploadError
             , classList = []
             }
+
+        buttonText =
+            if PostEditor.getBody editor == "" then
+                "Send"
+
+            else
+                case determineRecipient (PostEditor.getBody editor) of
+                    Nobody ->
+                        "Save Private Note"
+
+                    Direct ->
+                        "Send Direct Message "
+
+                    Channel ->
+                        "Send to Channel"
     in
     PostEditor.wrapper config
-        [ label [ class "composer mb-4" ]
+        [ label [ class "composer" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
-                , div [ class "flex-grow pl-2 pt-2" ]
+                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
-                        , class "w-full h-12 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Compose a new post..."
+                        , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , placeholder "Write something..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault
                             [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
@@ -705,14 +805,28 @@ desktopPostComposerView globals model data =
                         ]
                         []
                     , PostEditor.filesView editor
-                    , div [ class "flex items-baseline justify-end" ]
-                        [ button
-                            [ class "btn btn-blue btn-md flex-no-shrink"
+                    , div [ class "flex items-center justify-end" ]
+                        [ viewUnless (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                , attribute "data-tooltip" "Interrupt all @mentioned people"
+                                , onClick ToggleUrgent
+                                ]
+                                [ Icons.alert Icons.Off ]
+                        , viewIf (PostEditor.getIsUrgent editor) <|
+                            button
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                , attribute "data-tooltip" "Don't interrupt anyone"
+                                , onClick ToggleUrgent
+                                ]
+                                [ Icons.alert Icons.On ]
+                        , button
+                            [ class "btn btn-blue btn-sm"
                             , onClick NewPostSubmit
                             , disabled (isUnsubmittable editor)
                             , tabindex 3
                             ]
-                            [ text "Send" ]
+                            [ text buttonText ]
                         ]
                     ]
                 ]
@@ -781,7 +895,7 @@ desktopPostView globals spaceUsers groups model data component =
         ]
         [ viewIf isSelected <|
             div
-                [ class "tooltip tooltip-top cursor-default absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green"
+                [ class "tooltip tooltip-top cursor-default absolute mt-3 w-2 h-2 rounded-full pin-t pin-l bg-turquoise"
                 , attribute "data-tooltip" "Currently selected"
                 ]
                 []
@@ -804,7 +918,7 @@ resolvedMobileView globals model data =
             , bookmarks = data.bookmarks
             , currentRoute = globals.currentRoute
             , flash = globals.flash
-            , title = "Feed"
+            , title = "Home"
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled
@@ -817,8 +931,9 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-                [ filterTab Device.Mobile "Open" Route.Posts.Open (openParams model.params) model.params
-                , filterTab Device.Mobile "Resolved" Route.Posts.Closed (closedParams model.params) model.params
+                [ filterTab Device.Mobile "Inbox" (undismissedParams model.params) model.params
+                , filterTab Device.Mobile "Feed" (feedParams model.params) model.params
+                , filterTab Device.Mobile "Resolved" (resolvedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "p-3 pt-0" ] [ mobilePostsView globals model data ]
@@ -876,18 +991,21 @@ mobilePostView globals spaceUsers groups model data component =
 -- SHARED
 
 
-filterTab : Device -> String -> Route.Posts.State -> Params -> Params -> Html Msg
-filterTab device label state linkParams currentParams =
+filterTab : Device -> String -> Params -> Params -> Html Msg
+filterTab device label linkParams currentParams =
     let
         isCurrent =
-            Route.Posts.getState currentParams == state
+            Route.Posts.getState currentParams
+                == Route.Posts.getState linkParams
+                && Route.Posts.getInboxState currentParams
+                == Route.Posts.getInboxState linkParams
     in
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-md mr-4 py-3/2 border-b-3 border-transparent no-underline font-bold", True )
+            [ ( "block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center min-w-100px", True )
             , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-dusty-blue-darker", isCurrent )
+            , ( "border-turquoise text-turquoise-dark", isCurrent )
             , ( "text-center min-w-100px", device == Device.Mobile )
             ]
         ]
@@ -939,20 +1057,62 @@ userItemView space user =
 -- INTERNAL
 
 
-openParams : Params -> Params
-openParams params =
+undismissedParams : Params -> Params
+undismissedParams params =
     params
-        |> Route.Posts.setCursors Nothing Nothing
-        |> Route.Posts.setState Route.Posts.Open
+        |> Route.Posts.clearFilters
+        |> Route.Posts.setState PostStateFilter.All
+        |> Route.Posts.setInboxState InboxStateFilter.Undismissed
 
 
-closedParams : Params -> Params
-closedParams params =
+dismissedParams : Params -> Params
+dismissedParams params =
     params
-        |> Route.Posts.setCursors Nothing Nothing
-        |> Route.Posts.setState Route.Posts.Closed
+        |> Route.Posts.clearFilters
+        |> Route.Posts.setState PostStateFilter.All
+        |> Route.Posts.setInboxState InboxStateFilter.Dismissed
+
+
+feedParams : Params -> Params
+feedParams params =
+    params
+        |> Route.Posts.clearFilters
+        |> Route.Posts.setState PostStateFilter.Open
+
+
+resolvedParams : Params -> Params
+resolvedParams params =
+    params
+        |> Route.Posts.clearFilters
+        |> Route.Posts.setState PostStateFilter.Closed
 
 
 isUnsubmittable : PostEditor -> Bool
 isUnsubmittable editor =
-    PostEditor.isUnsubmittable editor || not (String.contains "#" (PostEditor.getBody editor))
+    PostEditor.isUnsubmittable editor
+
+
+determineRecipient : String -> Recipient
+determineRecipient text =
+    if Regex.contains hashtagRegex text then
+        Channel
+
+    else if Regex.contains mentionRegex text then
+        Direct
+
+    else
+        Nobody
+
+
+mentionRegex : Regex
+mentionRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromStringWith { caseInsensitive = True, multiline = True }
+            "(?:^|\\W)@(\\#?[a-z0-9][a-z0-9-]*)(?!\\/)(?=\\.+[ \\t\\W]|\\.+$|[^0-9a-zA-Z_.]|$)"
+
+
+hashtagRegex : Regex
+hashtagRegex =
+    Maybe.withDefault Regex.never <|
+        Regex.fromStringWith { caseInsensitive = True, multiline = True }
+            "(?:^|\\W)\\#([a-z0-9][a-z0-9-]*)(?!\\/)(?=\\.+[ \\t\\W]|\\.+$|[^0-9a-zA-Z_.]|$)"
