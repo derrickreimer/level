@@ -34,9 +34,6 @@ type alias Config msg =
     { globals : Globals
     , space : Space
     , spaceUser : SpaceUser
-    , currentRoute : Maybe Route
-    , flash : Flash
-    , showKeyboardCommands : Bool
     , onNoOp : msg
     , onToggleKeyboardCommands : msg
     }
@@ -55,8 +52,8 @@ layout config children =
             , div [ class "ml-48 xl:mx-48 relative" ] children
             ]
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
-        , Flash.view config.flash
-        , viewIf config.showKeyboardCommands (keyboardCommandReference config)
+        , Flash.view config.globals.flash
+        , viewIf config.globals.showKeyboardCommands (keyboardCommandReference config)
         ]
 
 
@@ -229,7 +226,7 @@ fullSidebar config =
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
             [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
                 ]
             , viewUnless (List.isEmpty bookmarks) <|
                 div []
@@ -239,11 +236,11 @@ fullSidebar config =
                     ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ viewIf (List.isEmpty bookmarks) <|
-                    sidebarTab "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
-                , sidebarTab "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
-                , sidebarTab "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
-                , sidebarTab "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.currentRoute
-                , sidebarTab "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.currentRoute
+                    sidebarTab "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
+                , sidebarTab "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
+                , sidebarTab "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
+                , sidebarTab "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.globals.currentRoute
+                , sidebarTab "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
                 ]
             ]
         , div [ class "absolute w-full", style "bottom" "0.75rem", style "left" "0.75rem" ]
@@ -276,7 +273,7 @@ bookmarkList config bookmarks =
                     else
                         Nothing
             in
-            sidebarTab ("#" ++ Group.name group) icon route config.currentRoute
+            sidebarTab ("#" ++ Group.name group) icon route config.globals.currentRoute
 
         links =
             List.map linkify bookmarks

@@ -212,9 +212,6 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
-            , showKeyboardCommands = globals.showKeyboardCommands
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
