@@ -808,14 +808,14 @@ desktopPostComposerView globals model data =
                     , div [ class "flex items-center justify-end" ]
                         [ viewUnless (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Interrupt all @mentioned people"
                                 , onClick ToggleUrgent
                                 ]
                                 [ Icons.alert Icons.Off ]
                         , viewIf (PostEditor.getIsUrgent editor) <|
                             button
-                                [ class "tooltip tooltip-bottom mr-2 p-2 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
+                                [ class "tooltip tooltip-bottom mr-2 p-1 rounded-full bg-grey-light hover:bg-grey transition-bg no-outline"
                                 , attribute "data-tooltip" "Don't interrupt anyone"
                                 , onClick ToggleUrgent
                                 ]
