@@ -105,7 +105,6 @@ type alias Model =
     , pushStatus : PushStatus
     , socketState : SocketState
     , currentUser : Lazy User
-    , spaceIds : Lazy (List Id)
     , timeZone : String
     , flash : Flash
     , going : Bool
@@ -156,7 +155,6 @@ buildModel flags navKey =
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
         NotLoaded
-        NotLoaded
         flags.timeZone
         Flash.init
         False
@@ -173,8 +171,10 @@ setup resp url model =
             navigateTo (Route.fromUrl url) modelWithRepo
 
         subscribeToSpaces =
-            Cmd.batch <|
-                List.map SpaceSubscription.subscribe resp.spaceIds
+            modelWithNavigation.repo
+                |> Repo.getAllSpaces
+                |> List.map (SpaceSubscription.subscribe << Space.id)
+                |> Cmd.batch
 
         subscribeToSpaceUsers =
             Cmd.batch <|
@@ -192,10 +192,7 @@ setup resp url model =
             else
                 Cmd.none
     in
-    ( { modelWithNavigation
-        | currentUser = Loaded resp.currentUser
-        , spaceIds = Loaded resp.spaceIds
-      }
+    ( { modelWithNavigation | currentUser = Loaded resp.currentUser }
     , Cmd.batch
         [ navigateToUrl
         , UserSubscription.subscribe
@@ -211,7 +208,6 @@ buildGlobals model =
     { session = model.session
     , repo = model.repo
     , navKey = model.navKey
-    , spaceIds = model.spaceIds
     , timeZone = model.timeZone
     , flash = model.flash
     , device = model.device
@@ -1394,16 +1390,8 @@ consumeEvent event ({ page } as model) =
                     model.repo
                         |> Repo.setSpace space
                         |> Repo.setSpaceUser spaceUser
-
-                newSpaceIds =
-                    case model.spaceIds of
-                        NotLoaded ->
-                            [ Space.id space ]
-
-                        Loaded spaceIds ->
-                            Space.id space :: spaceIds
             in
-            ( { model | repo = newRepo, spaceIds = Loaded newSpaceIds }
+            ( { model | repo = newRepo }
             , Cmd.batch
                 [ SpaceSubscription.subscribe (Space.id space)
                 , SpaceUserSubscription.subscribe (SpaceUser.id spaceUser)
