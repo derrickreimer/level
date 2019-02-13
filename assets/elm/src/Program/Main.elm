@@ -583,7 +583,7 @@ type PageInit
     | NewGroupInit (Result PageError ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
-    | NewPostInit (Result Session.Error ( Globals, Page.NewPost.Model ))
+    | NewPostInit (Result PageError ( Globals, Page.NewPost.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
@@ -939,7 +939,10 @@ setupPage pageInit model =
         NewPostInit (Ok result) ->
             perform Page.NewPost.setup NewPost NewPostMsg model result
 
-        NewPostInit (Err Session.Expired) ->
+        NewPostInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        NewPostInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         NewPostInit (Err _) ->
