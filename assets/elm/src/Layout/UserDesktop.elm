@@ -137,14 +137,9 @@ spacesSidebar : Config msg -> Html msg
 spacesSidebar config =
     let
         spaces =
-            case config.globals.spaceIds of
-                Loaded spaceIds ->
-                    config.globals.repo
-                        |> Repo.getSpaces spaceIds
-                        |> List.sortBy Space.name
-
-                NotLoaded ->
-                    []
+            config.globals.repo
+                |> Repo.getAllSpaces
+                |> List.sortBy Space.name
 
         homeToggle =
             if config.globals.currentRoute == Just Route.Home then

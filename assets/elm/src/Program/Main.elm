@@ -39,6 +39,7 @@ import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
 import Page.WelcomeTutorial
+import PageError exposing (PageError)
 import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
@@ -104,7 +105,6 @@ type alias Model =
     , pushStatus : PushStatus
     , socketState : SocketState
     , currentUser : Lazy User
-    , spaceIds : Lazy (List Id)
     , timeZone : String
     , flash : Flash
     , going : Bool
@@ -127,19 +127,17 @@ type alias Flags =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        ( model, navigateCmd ) =
-            navigateTo (Route.fromUrl url) <|
-                buildModel flags navKey
+        model =
+            buildModel flags navKey
 
         initCmd =
             model.session
                 |> MainInit.request
-                |> Task.attempt AppInitialized
+                |> Task.attempt (AppInitialized url)
     in
     ( model
     , Cmd.batch
-        [ navigateCmd
-        , initCmd
+        [ initCmd
         , ServiceWorker.getPushSubscription
         ]
     )
@@ -157,19 +155,26 @@ buildModel flags navKey =
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
         NotLoaded
-        NotLoaded
         flags.timeZone
         Flash.init
         False
         False
 
 
-setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
-setup resp model =
+setup : MainInit.Response -> Url -> Model -> ( Model, Cmd Msg )
+setup resp url model =
     let
+        modelWithRepo =
+            { model | repo = Repo.union resp.repo model.repo }
+
+        ( modelWithNavigation, navigateToUrl ) =
+            navigateTo (Route.fromUrl url) modelWithRepo
+
         subscribeToSpaces =
-            Cmd.batch <|
-                List.map SpaceSubscription.subscribe resp.spaceIds
+            modelWithNavigation.repo
+                |> Repo.getAllSpaces
+                |> List.map (SpaceSubscription.subscribe << Space.id)
+                |> Cmd.batch
 
         subscribeToSpaceUsers =
             Cmd.batch <|
@@ -179,21 +184,18 @@ setup resp model =
             -- Note: It would be better to present the user with a notice that their
             -- time zone on file differs from the one currently detected in their browser,
             -- and ask if they want to change it.
-            if User.timeZone resp.currentUser /= model.timeZone then
+            if User.timeZone resp.currentUser /= modelWithNavigation.timeZone then
                 model.session
-                    |> UpdateUser.request (UpdateUser.timeZoneVariables model.timeZone)
+                    |> UpdateUser.request (UpdateUser.timeZoneVariables modelWithNavigation.timeZone)
                     |> Task.attempt TimeZoneUpdated
 
             else
                 Cmd.none
     in
-    ( { model
-        | currentUser = Loaded resp.currentUser
-        , spaceIds = Loaded resp.spaceIds
-        , repo = Repo.union resp.repo model.repo
-      }
+    ( { modelWithNavigation | currentUser = Loaded resp.currentUser }
     , Cmd.batch
-        [ UserSubscription.subscribe
+        [ navigateToUrl
+        , UserSubscription.subscribe
         , subscribeToSpaces
         , subscribeToSpaceUsers
         , updateTimeZone
@@ -206,7 +208,6 @@ buildGlobals model =
     { session = model.session
     , repo = model.repo
     , navKey = model.navKey
-    , spaceIds = model.spaceIds
     , timeZone = model.timeZone
     , flash = model.flash
     , device = model.device
@@ -223,7 +224,7 @@ buildGlobals model =
 type Msg
     = UrlChange Url
     | UrlRequest UrlRequest
-    | AppInitialized (Result Session.Error ( Session, MainInit.Response ))
+    | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
@@ -308,17 +309,17 @@ update msg model =
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        ( AppInitialized (Ok ( newSession, response )), _ ) ->
+        ( AppInitialized url (Ok ( newSession, response )), _ ) ->
             let
                 ( newModel, cmd ) =
-                    setup response model
+                    setup response url model
             in
             ( { newModel | session = newSession }, cmd )
 
-        ( AppInitialized (Err Session.Expired), _ ) ->
+        ( AppInitialized _ (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
 
-        ( AppInitialized (Err _), _ ) ->
+        ( AppInitialized _ (Err _), _ ) ->
             ( model, Cmd.none )
 
         ( SessionRefreshed (Ok newSession), _ ) ->
@@ -565,26 +566,26 @@ type Page
 
 
 type PageInit
-    = HomeInit (Result Session.Error ( Globals, Page.Home.Model ))
-    | SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
-    | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
+    = HomeInit (Result PageError ( Globals, Page.Home.Model ))
+    | SpacesInit (Result PageError ( Globals, Page.Spaces.Model ))
+    | NewSpaceInit (Result PageError ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
-    | SpaceUserInit (Result Session.Error ( Globals, Page.SpaceUser.Model ))
-    | SpaceUsersInit (Result Session.Error ( Globals, Page.SpaceUsers.Model ))
-    | InviteUsersInit (Result Session.Error ( Globals, Page.InviteUsers.Model ))
-    | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
+    | SpaceUserInit (Result PageError ( Globals, Page.SpaceUser.Model ))
+    | SpaceUsersInit (Result PageError ( Globals, Page.SpaceUsers.Model ))
+    | InviteUsersInit (Result PageError ( Globals, Page.InviteUsers.Model ))
+    | GroupsInit (Result PageError ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
-    | NewGroupPostInit (Result Session.Error ( Globals, Page.NewGroupPost.Model ))
-    | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
+    | NewGroupPostInit (Result PageError ( Globals, Page.NewGroupPost.Model ))
+    | NewGroupInit (Result PageError ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
-    | NewPostInit (Result Session.Error ( Globals, Page.NewPost.Model ))
+    | NewPostInit (Result PageError ( Globals, Page.NewPost.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
-    | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
-    | HelpInit (Result Session.Error ( Globals, Page.Help.Model ))
-    | AppsInit (Result Session.Error ( Globals, Page.Apps.Model ))
+    | WelcomeTutorialInit (Result PageError ( Globals, Page.WelcomeTutorial.Model ))
+    | HelpInit (Result PageError ( Globals, Page.Help.Model ))
+    | AppsInit (Result PageError ( Globals, Page.Apps.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -605,7 +606,7 @@ navigateTo maybeRoute model =
     in
     case maybeRoute of
         Nothing ->
-            ( { model | page = NotFound }, Cmd.none )
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
             navigateTo (Just <| Route.Posts (Route.Posts.init spaceSlug)) model
@@ -798,7 +799,10 @@ setupPage pageInit model =
         HomeInit (Ok result) ->
             perform Page.Home.setup Home HomeMsg model result
 
-        HomeInit (Err Session.Expired) ->
+        HomeInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        HomeInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         HomeInit (Err _) ->
@@ -807,7 +811,10 @@ setupPage pageInit model =
         SpacesInit (Ok result) ->
             perform Page.Spaces.setup Spaces SpacesMsg model result
 
-        SpacesInit (Err Session.Expired) ->
+        SpacesInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        SpacesInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         SpacesInit (Err _) ->
@@ -816,7 +823,10 @@ setupPage pageInit model =
         NewSpaceInit (Ok result) ->
             perform Page.NewSpace.setup NewSpace NewSpaceMsg model result
 
-        NewSpaceInit (Err Session.Expired) ->
+        NewSpaceInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        NewSpaceInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         NewSpaceInit (Err _) ->
@@ -834,7 +844,10 @@ setupPage pageInit model =
         SpaceUserInit (Ok result) ->
             perform Page.SpaceUser.setup SpaceUser SpaceUserMsg model result
 
-        SpaceUserInit (Err Session.Expired) ->
+        SpaceUserInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        SpaceUserInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         SpaceUserInit (Err _) ->
@@ -843,7 +856,10 @@ setupPage pageInit model =
         SpaceUsersInit (Ok result) ->
             perform Page.SpaceUsers.setup SpaceUsers SpaceUsersMsg model result
 
-        SpaceUsersInit (Err Session.Expired) ->
+        SpaceUsersInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        SpaceUsersInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         SpaceUsersInit (Err _) ->
@@ -852,7 +868,10 @@ setupPage pageInit model =
         InviteUsersInit (Ok result) ->
             perform Page.InviteUsers.setup InviteUsers InviteUsersMsg model result
 
-        InviteUsersInit (Err Session.Expired) ->
+        InviteUsersInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        InviteUsersInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         InviteUsersInit (Err _) ->
@@ -861,7 +880,10 @@ setupPage pageInit model =
         GroupsInit (Ok result) ->
             perform Page.Groups.setup Groups GroupsMsg model result
 
-        GroupsInit (Err Session.Expired) ->
+        GroupsInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        GroupsInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         GroupsInit (Err _) ->
@@ -879,7 +901,10 @@ setupPage pageInit model =
         NewGroupPostInit (Ok result) ->
             perform Page.NewGroupPost.setup NewGroupPost NewGroupPostMsg model result
 
-        NewGroupPostInit (Err Session.Expired) ->
+        NewGroupPostInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        NewGroupPostInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         NewGroupPostInit (Err _) ->
@@ -888,7 +913,10 @@ setupPage pageInit model =
         NewGroupInit (Ok result) ->
             perform Page.NewGroup.setup NewGroup NewGroupMsg model result
 
-        NewGroupInit (Err Session.Expired) ->
+        NewGroupInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        NewGroupInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         NewGroupInit (Err _) ->
@@ -919,7 +947,10 @@ setupPage pageInit model =
         NewPostInit (Ok result) ->
             perform Page.NewPost.setup NewPost NewPostMsg model result
 
-        NewPostInit (Err Session.Expired) ->
+        NewPostInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        NewPostInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         NewPostInit (Err _) ->
@@ -959,16 +990,22 @@ setupPage pageInit model =
             in
             perform (Page.WelcomeTutorial.setup newGlobals) WelcomeTutorial WelcomeTutorialMsg model result
 
-        WelcomeTutorialInit (Err Session.Expired) ->
+        WelcomeTutorialInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        WelcomeTutorialInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
-        WelcomeTutorialInit (Err err) ->
+        WelcomeTutorialInit (Err _) ->
             ( model, Cmd.none )
 
         HelpInit (Ok result) ->
             perform Page.Help.setup Help HelpMsg model result
 
-        HelpInit (Err Session.Expired) ->
+        HelpInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        HelpInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         HelpInit (Err err) ->
@@ -977,7 +1014,10 @@ setupPage pageInit model =
         AppsInit (Ok result) ->
             perform Page.Apps.setup Apps AppsMsg model result
 
-        AppsInit (Err Session.Expired) ->
+        AppsInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        AppsInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         AppsInit (Err err) ->
@@ -1350,16 +1390,8 @@ consumeEvent event ({ page } as model) =
                     model.repo
                         |> Repo.setSpace space
                         |> Repo.setSpaceUser spaceUser
-
-                newSpaceIds =
-                    case model.spaceIds of
-                        NotLoaded ->
-                            [ Space.id space ]
-
-                        Loaded spaceIds ->
-                            Space.id space :: spaceIds
             in
-            ( { model | repo = newRepo, spaceIds = Loaded newSpaceIds }
+            ( { model | repo = newRepo }
             , Cmd.batch
                 [ SpaceSubscription.subscribe (Space.id space)
                 , SpaceUserSubscription.subscribe (SpaceUser.id spaceUser)

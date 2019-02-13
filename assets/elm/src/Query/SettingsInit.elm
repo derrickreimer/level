@@ -21,7 +21,6 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , space : Space
     , digestSettings : DigestSettings
     , nudges : List Nudge
@@ -35,7 +34,6 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , digestSettings : DigestSettings
     , nudges : List Nudge
     , timeZone : String
@@ -63,14 +61,10 @@ document =
             space {
               ...SpaceFields
             }
-            bookmarks {
-              ...GroupFields
-            }
           }
         }
         """
-        [ Group.fragment
-        , SpaceUser.fragment
+        [ SpaceUser.fragment
         , Space.fragment
         , DigestSettings.fragment
         , Nudge.fragment
@@ -93,7 +87,6 @@ decoder =
             |> Pipeline.custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "groups", "edges" ] (Decode.list (Decode.field "node" Group.decoder)))
             |> Pipeline.custom (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (Decode.list (Decode.field "node" SpaceUser.decoder)))
-            |> Pipeline.custom (Decode.at [ "spaceUser", "bookmarks" ] (Decode.list Group.decoder))
             |> Pipeline.custom (Decode.at [ "spaceUser", "digestSettings" ] DigestSettings.decoder)
             |> Pipeline.custom (Decode.at [ "spaceUser", "nudges" ] (Decode.list Nudge.decoder))
             |> Pipeline.custom (Decode.at [ "viewer", "timeZone" ] Decode.string)
@@ -109,7 +102,6 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
-                |> Repo.setGroups data.bookmarks
 
         resp =
             Response
@@ -117,7 +109,6 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (List.map Group.id data.bookmarks)
                 data.space
                 data.digestSettings
                 data.nudges

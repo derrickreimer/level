@@ -930,4 +930,75 @@ defmodule Level.PostsTest do
       assert {:ok, false} = Posts.private?(post)
     end
   end
+
+  describe "get_followers/1" do
+    setup do
+      {:ok, %{space_user: space_user, space: space}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+      {:ok, %{space_user: space_user, space: space, group: group, post: post}}
+    end
+
+    test "includes users who are subscribed to groups the post is in", %{
+      space: space,
+      group: group,
+      post: post
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      Groups.subscribe(group, another_user)
+
+      {:ok, followers} = Posts.get_followers(post)
+      assert Enum.any?(followers, fn follower -> follower.id == another_user.id end)
+    end
+
+    test "includes users who are watching groups the post is in", %{
+      space: space,
+      group: group,
+      post: post
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      Groups.watch(group, another_user)
+
+      {:ok, followers} = Posts.get_followers(post)
+      assert Enum.any?(followers, fn follower -> follower.id == another_user.id end)
+    end
+
+    test "excludes users who are not subscribed to groups", %{
+      space: space,
+      post: post
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      {:ok, followers} = Posts.get_followers(post)
+      refute Enum.any?(followers, fn follower -> follower.id == another_user.id end)
+    end
+
+    test "includes users who are directly subscribed", %{
+      space: space,
+      post: post
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      Posts.mark_as_unread(another_user, [post])
+
+      {:ok, followers} = Posts.get_followers(post)
+      assert Enum.any?(followers, fn follower -> follower.id == another_user.id end)
+    end
+
+    test "excludes users who have unsubscribed from a group", %{
+      space: space,
+      group: group,
+      post: post
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      Groups.subscribe(group, another_user)
+      Groups.unsubscribe(group, another_user)
+
+      {:ok, followers} = Posts.get_followers(post)
+      refute Enum.any?(followers, fn follower -> follower.id == another_user.id end)
+    end
+  end
 end

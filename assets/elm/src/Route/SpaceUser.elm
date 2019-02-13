@@ -1,6 +1,6 @@
 module Route.SpaceUser exposing
     ( Params
-    , init, getSpaceSlug, getSpaceUserId
+    , init, getSpaceSlug, getHandle
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.SpaceUser exposing
 
 # API
 
-@docs init, getSpaceSlug, getSpaceUserId
+@docs init, getSpaceSlug, getHandle
 
 
 # Parsing
@@ -41,7 +41,7 @@ type Params
 
 type alias Internal =
     { spaceSlug : String
-    , spaceUserId : Id
+    , handle : String
     }
 
 
@@ -50,8 +50,8 @@ type alias Internal =
 
 
 init : String -> Id -> Params
-init spaceSlug spaceUserId =
-    Params (Internal spaceSlug spaceUserId)
+init spaceSlug handle =
+    Params (Internal spaceSlug handle)
 
 
 getSpaceSlug : Params -> String
@@ -59,9 +59,9 @@ getSpaceSlug (Params internal) =
     internal.spaceSlug
 
 
-getSpaceUserId : Params -> Id
-getSpaceUserId (Params internal) =
-    internal.spaceUserId
+getHandle : Params -> Id
+getHandle (Params internal) =
+    internal.handle
 
 
 
@@ -80,4 +80,4 @@ parser =
 
 toString : Params -> String
 toString (Params internal) =
-    absolute [ internal.spaceSlug, "users", internal.spaceUserId ] []
+    absolute [ internal.spaceSlug, "users", internal.handle ] []

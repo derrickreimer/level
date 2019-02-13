@@ -1,4 +1,4 @@
-module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, state)
+module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, spaceId, state)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -22,6 +22,7 @@ type State
 
 type alias Data =
     { id : Id
+    , spaceId : Id
     , state : State
     , name : String
     , isPrivate : Bool
@@ -39,6 +40,9 @@ fragment =
         """
         fragment GroupFields on Group {
           id
+          space {
+            id
+          }
           state
           name
           isPrivate
@@ -61,6 +65,11 @@ fragment =
 id : Group -> Id
 id (Group data) =
     data.id
+
+
+spaceId : Group -> Id
+spaceId (Group data) =
+    data.spaceId
 
 
 state : Group -> State
@@ -121,6 +130,7 @@ decoder =
     Decode.map Group <|
         (Decode.succeed Data
             |> required "id" Id.decoder
+            |> custom (Decode.at [ "space", "id" ] Id.decoder)
             |> required "state" stateDecoder
             |> required "name" string
             |> required "isPrivate" bool

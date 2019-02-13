@@ -13,6 +13,7 @@ import Id exposing (Id)
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import PageError exposing (PageError)
 import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
@@ -36,8 +37,6 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , bookmarkIds : List Id
-    , spaceUserIds : Connection Id
 
     -- MOBILE
     , showNav : Bool
@@ -52,16 +51,14 @@ type alias IndexedUser =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , bookmarks : List Group
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map3 Data
+    Maybe.map2 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getGroups model.bookmarkIds repo)
 
 
 
@@ -77,23 +74,41 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( Globals, Model )
 init params globals =
-    globals.session
-        |> SpaceUsersInit.request params 20
-        |> Task.map (buildModel params globals)
-
-
-buildModel : Params -> Globals -> ( Session, SpaceUsersInit.Response ) -> ( Globals, Model )
-buildModel params globals ( newSession, resp ) =
     let
-        model =
-            Model params resp.viewerId resp.spaceId resp.bookmarkIds resp.filteredSpaceUserIds False False
+        maybeUserId =
+            Session.getUserId globals.session
 
-        newRepo =
-            Repo.union resp.repo globals.repo
+        maybeSpaceId =
+            globals.repo
+                |> Repo.getSpaceBySlug (Route.SpaceUsers.getSpaceSlug params)
+                |> Maybe.andThen (Just << Space.id)
+
+        maybeViewerId =
+            case ( maybeSpaceId, maybeUserId ) of
+                ( Just spaceId, Just userId ) ->
+                    Repo.getSpaceUserByUserId spaceId userId globals.repo
+                        |> Maybe.andThen (Just << SpaceUser.id)
+
+                _ ->
+                    Nothing
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
+    case ( maybeViewerId, maybeSpaceId ) of
+        ( Just viewerId, Just spaceId ) ->
+            let
+                model =
+                    Model
+                        params
+                        viewerId
+                        spaceId
+                        False
+                        False
+            in
+            Task.succeed ( globals, model )
+
+        _ ->
+            Task.fail PageError.NotFound
 
 
 setup : Model -> Cmd Msg
@@ -144,15 +159,7 @@ update msg globals model =
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
-    case event of
-        Event.GroupBookmarked group ->
-            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
+    ( model, Cmd.none )
 
 
 
@@ -190,13 +197,14 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
-            , showKeyboardCommands = globals.showKeyboardCommands
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
+
+        spaceUsers =
+            globals.repo
+                |> Repo.getSpaceUsersBySpaceId model.spaceId
+                |> List.sortBy SpaceUser.lastName
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto max-w-sm leading-normal p-8" ]
@@ -217,7 +225,7 @@ resolvedDesktopView globals model data =
             --         , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
             --         ]
             --     ]
-            , usersView globals.repo model.params model.spaceUserIds
+            , usersView globals.repo model.params spaceUsers
             ]
         ]
 
@@ -230,11 +238,9 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
             , title = "People"
             , showNav = model.showNav
             , onNavToggled = NavToggled
@@ -250,10 +256,15 @@ resolvedMobileView globals model data =
                         ]
                         [ text "Invite" ]
             }
+
+        spaceUsers =
+            globals.repo
+                |> Repo.getSpaceUsersBySpaceId model.spaceId
+                |> List.sortBy SpaceUser.lastName
     in
     Layout.SpaceMobile.layout config
         [ div [ class "p-3" ]
-            [ usersView globals.repo model.params model.spaceUserIds
+            [ usersView globals.repo model.params spaceUsers
             ]
         ]
 
@@ -262,12 +273,9 @@ resolvedMobileView globals model data =
 -- SHARED
 
 
-usersView : Repo -> Params -> Connection Id -> Html Msg
-usersView repo params spaceUserIds =
+usersView : Repo -> Params -> List SpaceUser -> Html Msg
+usersView repo params spaceUsers =
     let
-        spaceUsers =
-            Repo.getSpaceUsers (Connection.toList spaceUserIds) repo
-
         partitions =
             spaceUsers
                 |> List.indexedMap Tuple.pair
@@ -275,7 +283,6 @@ usersView repo params spaceUserIds =
     in
     div [ class "leading-semi-loose" ]
         [ div [] <| List.map (userPartitionView params) partitions
-        , paginationView params spaceUserIds
         ]
 
 
@@ -288,22 +295,13 @@ userView : Params -> IndexedUser -> Html Msg
 userView params ( index, spaceUser ) =
     let
         viewParams =
-            Route.SpaceUser.init (Route.SpaceUsers.getSpaceSlug params) (SpaceUser.id spaceUser)
+            Route.SpaceUser.init (Route.SpaceUsers.getSpaceSlug params) (SpaceUser.handle spaceUser)
     in
     a [ Route.href <| Route.SpaceUser viewParams, class "block pb-1 no-underline text-dusty-blue-darker" ]
         [ h2 [ class "flex items-center pr-4 font-normal font-sans text-lg" ]
             [ div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
             , text (SpaceUser.displayName spaceUser)
             ]
-        ]
-
-
-paginationView : Params -> Connection a -> Html Msg
-paginationView params connection =
-    div [ class "py-4" ]
-        [ Pagination.view connection
-            (\beforeCursor -> Route.SpaceUsers (Route.SpaceUsers.setCursors (Just beforeCursor) Nothing params))
-            (\afterCursor -> Route.SpaceUsers (Route.SpaceUsers.setCursors Nothing (Just afterCursor) params))
         ]
 
 

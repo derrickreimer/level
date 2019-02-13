@@ -25,7 +25,6 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , groupId : Id
     , featuredMemberIds : List Id
     , postWithRepliesIds : Connection ( Id, Connection Id )
@@ -39,7 +38,6 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , group : Group
     , resolvedPosts : Connection ResolvedPostWithReplies
     , featuredMembers : List SpaceUser
@@ -63,9 +61,6 @@ document =
             ...SpaceUserFields
             space {
               ...SpaceFields
-            }
-            bookmarks {
-              ...GroupFields
             }
           }
           group(spaceSlug: $spaceSlug, name: $groupName) {
@@ -170,7 +165,6 @@ decoder =
             |> custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
             |> custom (Decode.at [ "spaceUser", "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             |> custom (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
-            |> custom (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
             |> custom (Decode.at [ "group" ] Group.decoder)
             |> custom (Decode.at [ "group", "posts" ] (Connection.decoder ResolvedPostWithReplies.decoder))
             |> custom (Decode.at [ "group", "featuredMemberships" ] (list (field "spaceUser" SpaceUser.decoder)))
@@ -186,7 +180,6 @@ buildResponse ( session, data ) =
                 |> Repo.setSpace data.space
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
-                |> Repo.setGroups data.bookmarks
                 |> Repo.setGroup data.group
                 |> Repo.setSpaceUsers data.featuredMembers
                 |> ResolvedPostWithReplies.addManyToRepo (Connection.toList data.resolvedPosts)
@@ -197,7 +190,6 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (List.map Group.id data.bookmarks)
                 (Group.id data.group)
                 (List.map SpaceUser.id data.featuredMembers)
                 (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)

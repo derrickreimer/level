@@ -34,10 +34,6 @@ type alias Config msg =
     { globals : Globals
     , space : Space
     , spaceUser : SpaceUser
-    , bookmarks : List Group
-    , currentRoute : Maybe Route
-    , flash : Flash
-    , showKeyboardCommands : Bool
     , onNoOp : msg
     , onToggleKeyboardCommands : msg
     }
@@ -56,8 +52,8 @@ layout config children =
             , div [ class "ml-48 xl:mx-48 relative" ] children
             ]
         , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
-        , Flash.view config.flash
-        , viewIf config.showKeyboardCommands (keyboardCommandReference config)
+        , Flash.view config.globals.flash
+        , viewIf config.globals.showKeyboardCommands (keyboardCommandReference config)
         ]
 
 
@@ -142,14 +138,9 @@ spacesSidebar : Config msg -> Html msg
 spacesSidebar config =
     let
         spaces =
-            case config.globals.spaceIds of
-                Loaded spaceIds ->
-                    config.globals.repo
-                        |> Repo.getSpaces spaceIds
-                        |> List.sortBy Space.name
-
-                NotLoaded ->
-                    []
+            config.globals.repo
+                |> Repo.getAllSpaces
+                |> List.sortBy Space.name
 
         homeToggle =
             if config.globals.currentRoute == Just Route.Home then
@@ -211,6 +202,11 @@ fullSidebar config =
     let
         spaceSlug =
             Space.slug config.space
+
+        bookmarks =
+            config.globals.repo
+                |> Repo.getBookmarks (Space.id config.space)
+                |> List.sortBy Group.name
     in
     div
         [ classList
@@ -225,21 +221,21 @@ fullSidebar config =
             ]
         , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
             [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.currentRoute
+                [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
                 ]
-            , viewUnless (List.isEmpty config.bookmarks) <|
+            , viewUnless (List.isEmpty bookmarks) <|
                 div []
                     [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
                         [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue no-underline" ] [ text "Channels" ] ]
-                    , channelList config
+                    , bookmarkList config bookmarks
                     ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ viewIf (List.isEmpty config.bookmarks) <|
-                    sidebarTab "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.currentRoute
-                , sidebarTab "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.currentRoute
-                , sidebarTab "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.currentRoute
-                , sidebarTab "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.currentRoute
-                , sidebarTab "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.currentRoute
+                [ viewIf (List.isEmpty bookmarks) <|
+                    sidebarTab "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
+                , sidebarTab "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
+                , sidebarTab "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
+                , sidebarTab "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.globals.currentRoute
+                , sidebarTab "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
                 ]
             ]
         , div [ class "absolute w-full", style "bottom" "0.75rem", style "left" "0.75rem" ]
@@ -254,8 +250,8 @@ fullSidebar config =
         ]
 
 
-channelList : Config msg -> Html msg
-channelList config =
+bookmarkList : Config msg -> List Group -> Html msg
+bookmarkList config bookmarks =
     let
         slug =
             Space.slug config.space
@@ -272,12 +268,10 @@ channelList config =
                     else
                         Nothing
             in
-            sidebarTab ("#" ++ Group.name group) icon route config.currentRoute
+            sidebarTab ("#" ++ Group.name group) icon route config.globals.currentRoute
 
         links =
-            config.bookmarks
-                |> List.sortBy Group.name
-                |> List.map linkify
+            List.map linkify bookmarks
     in
     ul [ class "mb-6 list-reset leading-semi-loose select-none" ] links
 

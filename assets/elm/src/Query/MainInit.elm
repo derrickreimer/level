@@ -6,6 +6,7 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Encode as Encode
 import Repo exposing (Repo)
+import ResolvedSpace exposing (ResolvedSpace)
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -23,8 +24,8 @@ type alias Response =
 
 type alias Data =
     { currentUser : User
-    , spaces : List Space
-    , spaceUserIds : List Id
+    , resolvedSpaces : List ResolvedSpace
+    , spaceUsers : List SpaceUser
     }
 
 
@@ -36,11 +37,11 @@ document =
           viewer {
             ...UserFields
             spaceUsers(
-              first: 100
+              first: 1000
             ) {
               edges {
                 node {
-                  id
+                  ...SpaceUserFields
                   space {
                     ...SpaceFields
                   }
@@ -52,6 +53,7 @@ document =
         """
         [ User.fragment
         , Space.fragment
+        , SpaceUser.fragment
         ]
 
 
@@ -65,8 +67,8 @@ decoder =
     Decode.at [ "data", "viewer" ] <|
         Decode.map3 Data
             User.decoder
-            (Decode.at [ "spaceUsers", "edges" ] (list (Decode.at [ "node", "space" ] Space.decoder)))
-            (Decode.at [ "spaceUsers", "edges" ] (list (Decode.at [ "node", "id" ] Id.decoder)))
+            (Decode.at [ "spaceUsers", "edges" ] (list (Decode.at [ "node", "space" ] ResolvedSpace.decoder)))
+            (Decode.at [ "spaceUsers", "edges" ] (list (Decode.at [ "node" ] SpaceUser.decoder)))
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -74,13 +76,15 @@ buildResponse ( session, data ) =
     let
         repo =
             Repo.empty
-                |> Repo.setSpaces data.spaces
+                |> ResolvedSpace.addManyToRepo data.resolvedSpaces
+                |> Repo.setSpaceUsers data.spaceUsers
+                |> Repo.setUser data.currentUser
 
         resp =
             Response
                 data.currentUser
-                (List.map Space.id data.spaces)
-                data.spaceUserIds
+                (List.map ResolvedSpace.unresolve data.resolvedSpaces)
+                (List.map SpaceUser.id data.spaceUsers)
                 repo
     in
     ( session, resp )

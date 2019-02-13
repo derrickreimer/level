@@ -18,6 +18,7 @@ import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
+import PageError exposing (PageError)
 import Pagination
 import Query.GroupsInit as GroupsInit
 import Repo exposing (Repo)
@@ -41,8 +42,6 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , bookmarkIds : List Id
-    , groups : Connection Group
 
     -- MOBILE
     , showNav : Bool
@@ -57,16 +56,30 @@ type alias IndexedGroup =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , bookmarks : List Group
+    , groups : List Group
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
+    let
+        groupState =
+            case Route.Groups.getState model.params of
+                Route.Groups.Open ->
+                    Group.Open
+
+                Route.Groups.Closed ->
+                    Group.Closed
+
+        filteredGroups =
+            repo
+                |> Repo.getGroupsBySpaceId model.spaceId
+                |> List.filter (\group -> Group.state group == groupState)
+    in
     Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getGroups model.bookmarkIds repo)
+        (Just filteredGroups)
 
 
 
@@ -82,32 +95,41 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( Globals, Model )
 init params globals =
-    globals.session
-        |> GroupsInit.request params 100
-        |> Task.map (buildModel params globals)
-
-
-buildModel : Params -> Globals -> ( Session, GroupsInit.Response ) -> ( Globals, Model )
-buildModel params globals ( newSession, resp ) =
     let
-        model =
-            Model
-                params
-                resp.viewerId
-                resp.spaceId
-                resp.bookmarkIds
-                resp.filteredGroups
-                False
-                False
+        maybeUserId =
+            Session.getUserId globals.session
 
-        newRepo =
-            Repo.union resp.repo globals.repo
+        maybeSpaceId =
+            globals.repo
+                |> Repo.getSpaceBySlug (Route.Groups.getSpaceSlug params)
+                |> Maybe.andThen (Just << Space.id)
+
+        maybeViewerId =
+            case ( maybeSpaceId, maybeUserId ) of
+                ( Just spaceId, Just userId ) ->
+                    Repo.getSpaceUserByUserId spaceId userId globals.repo
+                        |> Maybe.andThen (Just << SpaceUser.id)
+
+                _ ->
+                    Nothing
     in
-    ( { globals | session = newSession, repo = newRepo }
-    , model
-    )
+    case ( maybeViewerId, maybeSpaceId ) of
+        ( Just viewerId, Just spaceId ) ->
+            let
+                model =
+                    Model
+                        params
+                        viewerId
+                        spaceId
+                        False
+                        False
+            in
+            Task.succeed ( globals, model )
+
+        _ ->
+            Task.fail PageError.NotFound
 
 
 setup : Model -> Cmd Msg
@@ -169,21 +191,19 @@ update msg globals model =
                             |> Task.attempt UnsubscribedFromGroup
                         )
 
-                newGroups =
-                    Connection.update Group.id newGroup model.groups
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup newGroup
             in
-            ( ( { model | groups = newGroups }, cmd ), globals )
+            ( ( model, cmd ), { globals | repo = newRepo } )
 
         UnsubscribedFromGroup (Ok ( newSession, UnsubscribeFromGroup.Success group )) ->
             let
                 newRepo =
                     globals.repo
                         |> Repo.setGroup group
-
-                newGroups =
-                    Connection.update Group.id group model.groups
             in
-            ( ( { model | groups = newGroups }, Cmd.none )
+            ( ( model, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -198,11 +218,8 @@ update msg globals model =
                 newRepo =
                     globals.repo
                         |> Repo.setGroup group
-
-                newGroups =
-                    Connection.update Group.id group model.groups
             in
-            ( ( { model | groups = newGroups }, Cmd.none )
+            ( ( model, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -219,21 +236,19 @@ update msg globals model =
                         |> BookmarkGroup.request model.spaceId (Group.id group)
                         |> Task.attempt Bookmarked
 
-                newGroups =
-                    Connection.update Group.id (Group.setIsBookmarked True group) model.groups
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup (Group.setIsBookmarked True group)
             in
-            ( ( { model | groups = newGroups }, cmd ), globals )
+            ( ( model, cmd ), { globals | repo = newRepo } )
 
         Bookmarked (Ok ( newSession, BookmarkGroup.Success group )) ->
             let
                 newRepo =
                     globals.repo
                         |> Repo.setGroup group
-
-                newGroups =
-                    Connection.update Group.id group model.groups
             in
-            ( ( { model | groups = newGroups }, Cmd.none )
+            ( ( model, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -250,21 +265,19 @@ update msg globals model =
                         |> UnbookmarkGroup.request model.spaceId (Group.id group)
                         |> Task.attempt Unbookmarked
 
-                newGroups =
-                    Connection.update Group.id (Group.setIsBookmarked False group) model.groups
+                newRepo =
+                    globals.repo
+                        |> Repo.setGroup (Group.setIsBookmarked False group)
             in
-            ( ( { model | groups = newGroups }, cmd ), globals )
+            ( ( model, cmd ), { globals | repo = newRepo } )
 
         Unbookmarked (Ok ( newSession, UnbookmarkGroup.Success group )) ->
             let
                 newRepo =
                     globals.repo
                         |> Repo.setGroup group
-
-                newGroups =
-                    Connection.update Group.id group model.groups
             in
-            ( ( { model | groups = newGroups }, Cmd.none )
+            ( ( model, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -295,15 +308,7 @@ redirectToLogin globals model =
 
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event model =
-    case event of
-        Event.GroupBookmarked group ->
-            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
+    ( model, Cmd.none )
 
 
 
@@ -341,10 +346,6 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
-            , showKeyboardCommands = globals.showKeyboardCommands
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
@@ -361,7 +362,7 @@ resolvedDesktopView globals model data =
                 [ filterTab Device.Desktop "Open" Route.Groups.Open (openParams model.params) model.params
                 , filterTab Device.Desktop "Closed" Route.Groups.Closed (closedParams model.params) model.params
                 ]
-            , groupsView globals.repo model.params data.space model.groups
+            , groupsView globals.repo model.params data.space data.groups
             ]
         ]
 
@@ -374,11 +375,9 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
             , title = "Channels"
             , showNav = model.showNav
             , onNavToggled = NavToggled
@@ -400,7 +399,7 @@ resolvedMobileView globals model data =
             [ filterTab Device.Mobile "Open" Route.Groups.Open (openParams model.params) model.params
             , filterTab Device.Mobile "Closed" Route.Groups.Closed (closedParams model.params) model.params
             ]
-        , div [ class "p-3" ] [ groupsView globals.repo model.params data.space model.groups ]
+        , div [ class "p-3" ] [ groupsView globals.repo model.params data.space data.groups ]
         ]
 
 
@@ -426,9 +425,9 @@ filterTab device label state linkParams currentParams =
         [ text label ]
 
 
-groupsView : Repo -> Params -> Space -> Connection Group -> Html Msg
+groupsView : Repo -> Params -> Space -> List Group -> Html Msg
 groupsView repo params space groups =
-    if Connection.isEmpty groups then
+    if List.isEmpty groups then
         case Route.Groups.getState params of
             Route.Groups.Open ->
                 div [ class "p-2 text-center" ]
@@ -440,8 +439,7 @@ groupsView repo params space groups =
 
     else
         div [ class "leading-semi-loose" ]
-            [ ul [ class "list-reset" ] (Connection.mapList (groupView space) groups)
-            , div [ class "py-4" ] [ paginationView params groups ]
+            [ ul [ class "list-reset" ] (List.map (groupView space) groups)
             ]
 
 
@@ -491,13 +489,6 @@ groupView space group =
                 [ Icons.bookmark Icons.Off
                 ]
         ]
-
-
-paginationView : Params -> Connection a -> Html Msg
-paginationView params connection =
-    Pagination.view connection
-        (\beforeCursor -> Route.Groups (Route.Groups.setCursors (Just beforeCursor) Nothing params))
-        (\afterCursor -> Route.Groups (Route.Groups.setCursors Nothing (Just afterCursor) params))
 
 
 

@@ -17,8 +17,7 @@ view repo space list =
     let
         spaceUsers =
             repo
-                |> Repo.getSpaceUsersByUserId (Presence.getUserIds list)
-                |> List.filter (\spaceUser -> SpaceUser.spaceId spaceUser == Space.id space)
+                |> Repo.getSpaceUsersByUserIds (Space.id space) (Presence.getUserIds list)
                 |> List.sortBy SpaceUser.lastName
     in
     if List.isEmpty spaceUsers then
@@ -31,7 +30,7 @@ view repo space list =
 itemView : Space -> SpaceUser -> Html msg
 itemView space user =
     a
-        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.handle user))
         , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
         ]
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]

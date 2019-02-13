@@ -16,6 +16,7 @@ import Id exposing (Id)
 import Layout.UserDesktop
 import Layout.UserMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import PageError exposing (PageError)
 import Query.Viewer as Viewer
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -68,26 +69,21 @@ title =
 -- LIFECYCLE
 
 
-init : Globals -> Task Session.Error ( Globals, Model )
+init : Globals -> Task PageError ( Globals, Model )
 init globals =
-    globals.session
-        |> Viewer.request
-        |> Task.map (buildModel globals)
+    case Session.getUserId globals.session of
+        Just viewerId ->
+            let
+                model =
+                    Model
+                        viewerId
+                        False
+                        False
+            in
+            Task.succeed ( globals, model )
 
-
-buildModel : Globals -> ( Session, Viewer.Response ) -> ( Globals, Model )
-buildModel globals ( newSession, resp ) =
-    let
-        model =
-            Model
-                resp.viewerId
-                False
-                False
-
-        newRepo =
-            Repo.union resp.repo globals.repo
-    in
-    ( { globals | session = newSession, repo = newRepo }, model )
+        _ ->
+            Task.fail PageError.NotFound
 
 
 setup : Model -> Cmd Msg

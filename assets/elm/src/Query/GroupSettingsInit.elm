@@ -19,7 +19,6 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , bookmarkIds : List Id
     , groupId : Id
     , isDefault : Bool
     , isPrivate : Bool
@@ -34,7 +33,6 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , bookmarks : List Group
     , group : Group
     , ownerIds : List Id
     , privateAccessorIds : List Id
@@ -59,9 +57,6 @@ document =
               ) {
                 ...SpaceUserConnectionFields
               }
-            }
-            bookmarks {
-              ...GroupFields
             }
           }
           group(spaceSlug: $spaceSlug, name: $groupName) {
@@ -99,12 +94,11 @@ variables params =
 decoder : Decoder Data
 decoder =
     Decode.at [ "data" ] <|
-        Decode.map8 Data
+        Decode.map7 Data
             (field "spaceUser" SpaceUser.decoder)
             (Decode.at [ "spaceUser", "space" ] Space.decoder)
             (Decode.at [ "spaceUser", "space", "groups", "edges" ] (list (field "node" Group.decoder)))
             (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
-            (Decode.at [ "spaceUser", "bookmarks" ] (list Group.decoder))
             (field "group" Group.decoder)
             (Decode.at [ "group", "owners" ] (list (Decode.at [ "spaceUser", "id" ] Id.decoder)))
             (Decode.at [ "group", "privateAccessors" ] (list (Decode.at [ "spaceUser", "id" ] Id.decoder)))
@@ -120,7 +114,6 @@ buildResponse ( session, data ) =
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setGroup data.group
-                |> Repo.setGroups data.bookmarks
 
         resp =
             Response
@@ -128,7 +121,6 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (List.map Group.id data.bookmarks)
                 (Group.id data.group)
                 (Group.isDefault data.group)
                 (Group.isPrivate data.group)

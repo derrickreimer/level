@@ -61,7 +61,6 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , bookmarkIds : List Id
     , featuredUserIds : List Id
     , postComps : Connection Component.Post.Model
     , now : ( Zone, Posix )
@@ -78,7 +77,6 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , bookmarks : List Group
     , featuredUsers : List SpaceUser
     }
 
@@ -91,10 +89,9 @@ type Recipient
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map4 Data
+    Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getGroups model.bookmarkIds repo)
         (Just <| Repo.getSpaceUsers model.featuredUserIds repo)
 
 
@@ -130,7 +127,6 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 params
                 resp.viewerId
                 resp.spaceId
-                resp.bookmarkIds
                 resp.featuredUserIds
                 postComps
                 now
@@ -512,12 +508,6 @@ addPost globals post ( model, cmd ) =
 consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
     case event of
-        Event.GroupBookmarked group ->
-            ( { model | bookmarkIds = insertUniqueBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
-        Event.GroupUnbookmarked group ->
-            ( { model | bookmarkIds = removeBy identity (Group.id group) model.bookmarkIds }, Cmd.none )
-
         Event.ReplyCreated reply ->
             let
                 postId =
@@ -723,10 +713,6 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
-            , showKeyboardCommands = globals.showKeyboardCommands
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
@@ -913,11 +899,9 @@ resolvedMobileView : Globals -> Model -> Data -> Html Msg
 resolvedMobileView globals model data =
     let
         config =
-            { space = data.space
+            { globals = globals
+            , space = data.space
             , spaceUser = data.viewer
-            , bookmarks = data.bookmarks
-            , currentRoute = globals.currentRoute
-            , flash = globals.flash
             , title = "Home"
             , showNav = model.showNav
             , onNavToggled = NavToggled
@@ -1003,10 +987,9 @@ filterTab device label linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center min-w-100px", True )
+            [ ( "flex-1 block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center", True )
             , ( "text-dusty-blue", not isCurrent )
             , ( "border-turquoise text-turquoise-dark", isCurrent )
-            , ( "text-center min-w-100px", device == Device.Mobile )
             ]
         ]
         [ text label ]
@@ -1045,7 +1028,7 @@ sidebarView space featuredUsers =
 userItemView : Space -> SpaceUser -> Html Msg
 userItemView space user =
     a
-        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.handle user))
         , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
         ]
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]

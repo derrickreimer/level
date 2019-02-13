@@ -2,11 +2,11 @@ module Repo exposing
     ( Repo
     , empty, union
     , getUser, setUser
-    , getSpace, getSpaces, setSpace, setSpaces
-    , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, setSpaceUser, setSpaceUsers
+    , getSpace, getSpaces, getAllSpaces, setSpace, setSpaces, getSpaceBySlug
+    , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, getSpaceUsersBySpaceId, getSpaceUserByHandle, setSpaceUser, setSpaceUsers
     , getSpaceBot, setSpaceBot
     , getActor, setActor
-    , getGroup, getGroups, setGroup, setGroups
+    , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts
     , getReply, getReplies, setReply, setReplies
     )
@@ -31,12 +31,12 @@ module Repo exposing
 
 # Spaces
 
-@docs getSpace, getSpaces, setSpace, setSpaces
+@docs getSpace, getSpaces, getAllSpaces, setSpace, setSpaces, getSpaceBySlug
 
 
 # Space Users
 
-@docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, filterSpaceUsers, setSpaceUser, setSpaceUsers
+@docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, filterSpaceUsers, getSpaceUsersBySpaceId, getSpaceUserByHandle, setSpaceUser, setSpaceUsers
 
 
 # Space Bots
@@ -51,7 +51,7 @@ module Repo exposing
 
 # Groups
 
-@docs getGroup, getGroups, setGroup, setGroups
+@docs getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
 
 
 # Posts
@@ -142,6 +142,11 @@ getSpaces ids repo =
     List.filterMap (\id -> getSpace id repo) ids
 
 
+getAllSpaces : Repo -> List Space
+getAllSpaces (Repo data) =
+    Dict.values data.spaces
+
+
 setSpace : Space -> Repo -> Repo
 setSpace space (Repo data) =
     Repo { data | spaces = Dict.insert (Space.id space) space data.spaces }
@@ -150,6 +155,14 @@ setSpace space (Repo data) =
 setSpaces : List Space -> Repo -> Repo
 setSpaces spaces repo =
     List.foldr setSpace repo spaces
+
+
+getSpaceBySlug : String -> Repo -> Maybe Space
+getSpaceBySlug slug (Repo data) =
+    data.spaces
+        |> Dict.values
+        |> List.filter (\space -> Space.slug space == slug)
+        |> List.head
 
 
 
@@ -166,19 +179,34 @@ getSpaceUsers ids repo =
     List.filterMap (\id -> getSpaceUser id repo) ids
 
 
-getSpaceUserByUserId : String -> Repo -> Maybe SpaceUser
-getSpaceUserByUserId userId (Repo data) =
+getSpaceUserByUserId : Id -> Id -> Repo -> Maybe SpaceUser
+getSpaceUserByUserId spaceId userId (Repo data) =
     data.spaceUsers
         |> Dict.values
-        |> List.filter (\su -> SpaceUser.userId su == userId)
+        |> List.filter (\su -> SpaceUser.spaceId su == spaceId && SpaceUser.userId su == userId)
         |> List.head
 
 
-getSpaceUsersByUserId : List String -> Repo -> List SpaceUser
-getSpaceUsersByUserId userIds (Repo data) =
+getSpaceUsersByUserIds : Id -> List Id -> Repo -> List SpaceUser
+getSpaceUsersByUserIds spaceId userIds (Repo data) =
     data.spaceUsers
         |> Dict.values
-        |> List.filter (\su -> List.member (SpaceUser.userId su) userIds)
+        |> List.filter (\su -> SpaceUser.spaceId su == spaceId && List.member (SpaceUser.userId su) userIds)
+
+
+getSpaceUsersBySpaceId : Id -> Repo -> List SpaceUser
+getSpaceUsersBySpaceId spaceId (Repo data) =
+    data.spaceUsers
+        |> Dict.values
+        |> List.filter (\su -> SpaceUser.spaceId su == spaceId)
+
+
+getSpaceUserByHandle : Id -> String -> Repo -> Maybe SpaceUser
+getSpaceUserByHandle spaceId handle (Repo data) =
+    data.spaceUsers
+        |> Dict.values
+        |> List.filter (\su -> SpaceUser.spaceId su == spaceId && SpaceUser.handle su == handle)
+        |> List.head
 
 
 setSpaceUser : SpaceUser -> Repo -> Repo
@@ -245,6 +273,21 @@ getGroups ids repo =
     List.filterMap (\id -> getGroup id repo) ids
 
 
+getGroupsBySpaceId : Id -> Repo -> List Group
+getGroupsBySpaceId spaceId (Repo data) =
+    data.groups
+        |> Dict.values
+        |> List.filter (\group -> Group.spaceId group == spaceId)
+
+
+getGroupByName : Id -> String -> Repo -> Maybe Group
+getGroupByName spaceId name (Repo data) =
+    data.groups
+        |> Dict.values
+        |> List.filter (\group -> Group.spaceId group == spaceId && Group.name group == name)
+        |> List.head
+
+
 setGroup : Group -> Repo -> Repo
 setGroup group (Repo data) =
     Repo { data | groups = Dict.insert (Group.id group) group data.groups }
@@ -253,6 +296,13 @@ setGroup group (Repo data) =
 setGroups : List Group -> Repo -> Repo
 setGroups groups repo =
     List.foldr setGroup repo groups
+
+
+getBookmarks : Id -> Repo -> List Group
+getBookmarks spaceId (Repo data) =
+    data.groups
+        |> Dict.values
+        |> List.filter (\group -> Group.spaceId group == spaceId && Group.isBookmarked group)
 
 
 
