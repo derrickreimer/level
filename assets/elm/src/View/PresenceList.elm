@@ -17,8 +17,7 @@ view repo space list =
     let
         spaceUsers =
             repo
-                |> Repo.getSpaceUsersByUserId (Presence.getUserIds list)
-                |> List.filter (\spaceUser -> SpaceUser.spaceId spaceUser == Space.id space)
+                |> Repo.getSpaceUsersByUserIds (Space.id space) (Presence.getUserIds list)
                 |> List.sortBy SpaceUser.lastName
     in
     if List.isEmpty spaceUsers then

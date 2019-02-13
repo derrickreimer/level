@@ -575,7 +575,7 @@ type PageInit
     | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
     | SpaceUserInit (Result Session.Error ( Globals, Page.SpaceUser.Model ))
-    | SpaceUsersInit (Result Session.Error ( Globals, Page.SpaceUsers.Model ))
+    | SpaceUsersInit (Result PageError ( Globals, Page.SpaceUsers.Model ))
     | InviteUsersInit (Result Session.Error ( Globals, Page.InviteUsers.Model ))
     | GroupsInit (Result Session.Error ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
@@ -848,7 +848,10 @@ setupPage pageInit model =
         SpaceUsersInit (Ok result) ->
             perform Page.SpaceUsers.setup SpaceUsers SpaceUsersMsg model result
 
-        SpaceUsersInit (Err Session.Expired) ->
+        SpaceUsersInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        SpaceUsersInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         SpaceUsersInit (Err _) ->
