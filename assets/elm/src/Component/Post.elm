@@ -1350,7 +1350,7 @@ replyView config model data reply =
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
-                            [ div [ class "markdown" ]
+                            [ div [ class "markdown pb-1" ]
                                 [ RenderedHtml.node
                                     { html = Reply.bodyHtml reply
                                     , onInternalLinkClicked = InternalLinkClicked
@@ -1359,8 +1359,8 @@ replyView config model data reply =
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <| replyEditorView config replyId editor
-
-                    -- , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
+                    , viewUnless (PostEditor.isExpanded editor) <|
+                        div [ class "pb-1/2 flex items-start" ] [ replyReactionButton reply reactors ]
                     ]
                 ]
 
@@ -1471,7 +1471,7 @@ expandedReplyComposerView viewConfig editor =
             , classList = [ ( "tribute-pin-t", True ) ]
             }
     in
-    div [ class "-ml-3 pt-3 sticky pin-b bg-white text-md" ]
+    div [ class "-ml-3 pt-3 sticky pin-b bg-white text-md z-20" ]
         [ PostEditor.wrapper config
             [ div [ class "composer p-0" ]
                 [ label [ class "flex p-3" ]
