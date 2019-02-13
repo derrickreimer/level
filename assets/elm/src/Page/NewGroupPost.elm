@@ -28,6 +28,7 @@ import Mutation.SubscribeToGroup as SubscribeToGroup
 import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
 import Mutation.UpdateGroup as UpdateGroup
+import PageError exposing (PageError)
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
@@ -64,7 +65,6 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , groupId : Id
-    , now : ( Zone, Posix )
     , postComposer : PostEditor
 
     -- MOBILE
@@ -106,32 +106,53 @@ title repo model =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( Globals, Model )
 init params globals =
-    globals.session
-        |> NewGroupPostInit.request params 10
-        |> TaskHelpers.andThenGetCurrentTime
-        |> Task.map (buildModel params globals)
-
-
-buildModel : Params -> Globals -> ( ( Session, NewGroupPostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
-buildModel params globals ( ( newSession, resp ), now ) =
     let
-        model =
-            Model
-                params
-                resp.viewerId
-                resp.spaceId
-                resp.groupId
-                now
-                (PostEditor.init ("post-composer-" ++ resp.groupId))
-                False
-                False
+        maybeUserId =
+            Session.getUserId globals.session
 
-        newRepo =
-            Repo.union resp.repo globals.repo
+        maybeSpaceId =
+            globals.repo
+                |> Repo.getSpaceBySlug (Route.NewGroupPost.getSpaceSlug params)
+                |> Maybe.andThen (Just << Space.id)
+
+        maybeGroupId =
+            case maybeSpaceId of
+                Just spaceId ->
+                    globals.repo
+                        |> Repo.getGroupByName spaceId (Route.NewGroupPost.getGroupName params)
+                        |> Maybe.andThen (Just << Group.id)
+
+                Nothing ->
+                    Nothing
+
+        maybeViewerId =
+            case ( maybeSpaceId, maybeUserId ) of
+                ( Just spaceId, Just userId ) ->
+                    Repo.getSpaceUserByUserId spaceId userId globals.repo
+                        |> Maybe.andThen (Just << SpaceUser.id)
+
+                _ ->
+                    Nothing
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
+    case ( maybeViewerId, maybeSpaceId, maybeGroupId ) of
+        ( Just viewerId, Just spaceId, Just groupId ) ->
+            let
+                model =
+                    Model
+                        params
+                        viewerId
+                        spaceId
+                        groupId
+                        (PostEditor.init ("post-composer-" ++ groupId))
+                        False
+                        False
+            in
+            Task.succeed ( globals, model )
+
+        _ ->
+            Task.fail PageError.NotFound
 
 
 setup : Model -> Cmd Msg
@@ -175,8 +196,6 @@ teardownSockets groupId =
 
 type Msg
     = NoOp
-    | Tick Posix
-    | SetCurrentTime Posix Zone
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -197,12 +216,6 @@ update msg globals model =
     case msg of
         NoOp ->
             noCmd globals model
-
-        Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
-
-        SetCurrentTime posix zone ->
-            noCmd globals { model | now = ( zone, posix ) }
 
         PostEditorEventReceived value ->
             case PostEditor.decodeEvent value of
