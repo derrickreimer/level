@@ -456,7 +456,7 @@ handleSync list model =
 
 handleJoin : Presence -> Globals -> Model -> ( Model, Cmd Msg )
 handleJoin presence globals model =
-    case Repo.getSpaceUserByUserId (Presence.getUserId presence) globals.repo of
+    case Repo.getSpaceUserByUserId model.spaceId (Presence.getUserId presence) globals.repo of
         Just _ ->
             ( model, Cmd.none )
 

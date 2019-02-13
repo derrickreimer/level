@@ -1,6 +1,7 @@
-module Session exposing (Error(..), Payload, Session, decodeToken, fetchNewToken, init, propagateToken, request)
+module Session exposing (Error(..), Payload, Session, decodeToken, fetchNewToken, getUserId, init, propagateToken, request)
 
 import Http
+import Id exposing (Id)
 import Json.Decode as Decode exposing (field)
 import Json.Decode.Pipeline as Pipeline
 import Ports
@@ -53,6 +54,16 @@ payload.
 init : String -> Session
 init token =
     Session token (decodeToken token)
+
+
+getUserId : Session -> Maybe Id
+getUserId session =
+    case session.payload of
+        Ok payload ->
+            Just payload.sub
+
+        _ ->
+            Nothing
 
 
 {-| Accepts a token and returns a Result from attempting to decode the payload.

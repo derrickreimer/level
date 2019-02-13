@@ -39,6 +39,7 @@ import Page.SpaceUsers
 import Page.Spaces
 import Page.UserSettings
 import Page.WelcomeTutorial
+import PageError exposing (PageError)
 import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
@@ -127,19 +128,17 @@ type alias Flags =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        ( model, navigateCmd ) =
-            navigateTo (Route.fromUrl url) <|
-                buildModel flags navKey
+        model =
+            buildModel flags navKey
 
         initCmd =
             model.session
                 |> MainInit.request
-                |> Task.attempt AppInitialized
+                |> Task.attempt (AppInitialized url)
     in
     ( model
     , Cmd.batch
-        [ navigateCmd
-        , initCmd
+        [ initCmd
         , ServiceWorker.getPushSubscription
         ]
     )
@@ -164,9 +163,15 @@ buildModel flags navKey =
         False
 
 
-setup : MainInit.Response -> Model -> ( Model, Cmd Msg )
-setup resp model =
+setup : MainInit.Response -> Url -> Model -> ( Model, Cmd Msg )
+setup resp url model =
     let
+        modelWithRepo =
+            { model | repo = Repo.union resp.repo model.repo }
+
+        ( modelWithNavigation, navigateToUrl ) =
+            navigateTo (Route.fromUrl url) modelWithRepo
+
         subscribeToSpaces =
             Cmd.batch <|
                 List.map SpaceSubscription.subscribe resp.spaceIds
@@ -179,21 +184,21 @@ setup resp model =
             -- Note: It would be better to present the user with a notice that their
             -- time zone on file differs from the one currently detected in their browser,
             -- and ask if they want to change it.
-            if User.timeZone resp.currentUser /= model.timeZone then
+            if User.timeZone resp.currentUser /= modelWithNavigation.timeZone then
                 model.session
-                    |> UpdateUser.request (UpdateUser.timeZoneVariables model.timeZone)
+                    |> UpdateUser.request (UpdateUser.timeZoneVariables modelWithNavigation.timeZone)
                     |> Task.attempt TimeZoneUpdated
 
             else
                 Cmd.none
     in
-    ( { model
+    ( { modelWithNavigation
         | currentUser = Loaded resp.currentUser
         , spaceIds = Loaded resp.spaceIds
-        , repo = Repo.union resp.repo model.repo
       }
     , Cmd.batch
-        [ UserSubscription.subscribe
+        [ navigateToUrl
+        , UserSubscription.subscribe
         , subscribeToSpaces
         , subscribeToSpaceUsers
         , updateTimeZone
@@ -223,7 +228,7 @@ buildGlobals model =
 type Msg
     = UrlChange Url
     | UrlRequest UrlRequest
-    | AppInitialized (Result Session.Error ( Session, MainInit.Response ))
+    | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
     | PageInitialized PageInit
@@ -308,17 +313,17 @@ update msg model =
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        ( AppInitialized (Ok ( newSession, response )), _ ) ->
+        ( AppInitialized url (Ok ( newSession, response )), _ ) ->
             let
                 ( newModel, cmd ) =
-                    setup response model
+                    setup response url model
             in
             ( { newModel | session = newSession }, cmd )
 
-        ( AppInitialized (Err Session.Expired), _ ) ->
+        ( AppInitialized _ (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
 
-        ( AppInitialized (Err _), _ ) ->
+        ( AppInitialized _ (Err _), _ ) ->
             ( model, Cmd.none )
 
         ( SessionRefreshed (Ok newSession), _ ) ->
@@ -584,7 +589,7 @@ type PageInit
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
     | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
     | HelpInit (Result Session.Error ( Globals, Page.Help.Model ))
-    | AppsInit (Result Session.Error ( Globals, Page.Apps.Model ))
+    | AppsInit (Result PageError ( Globals, Page.Apps.Model ))
 
 
 transition : Model -> (Result x a -> PageInit) -> Task x a -> ( Model, Cmd Msg )
@@ -605,7 +610,7 @@ navigateTo maybeRoute model =
     in
     case maybeRoute of
         Nothing ->
-            ( { model | page = NotFound }, Cmd.none )
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
 
         Just (Route.Root spaceSlug) ->
             navigateTo (Just <| Route.Posts (Route.Posts.init spaceSlug)) model
@@ -977,7 +982,10 @@ setupPage pageInit model =
         AppsInit (Ok result) ->
             perform Page.Apps.setup Apps AppsMsg model result
 
-        AppsInit (Err Session.Expired) ->
+        AppsInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        AppsInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         AppsInit (Err err) ->

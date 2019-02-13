@@ -2,7 +2,7 @@ module Repo exposing
     ( Repo
     , empty, union
     , getUser, setUser
-    , getSpace, getSpaces, setSpace, setSpaces
+    , getSpace, getSpaces, setSpace, setSpaces, getSpaceBySlug
     , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserId, setSpaceUser, setSpaceUsers
     , getSpaceBot, setSpaceBot
     , getActor, setActor
@@ -31,7 +31,7 @@ module Repo exposing
 
 # Spaces
 
-@docs getSpace, getSpaces, setSpace, setSpaces
+@docs getSpace, getSpaces, setSpace, setSpaces, getSpaceBySlug
 
 
 # Space Users
@@ -152,6 +152,14 @@ setSpaces spaces repo =
     List.foldr setSpace repo spaces
 
 
+getSpaceBySlug : String -> Repo -> Maybe Space
+getSpaceBySlug slug (Repo data) =
+    data.spaces
+        |> Dict.values
+        |> List.filter (\space -> Space.slug space == slug)
+        |> List.head
+
+
 
 -- SPACE USERS
 
@@ -166,11 +174,11 @@ getSpaceUsers ids repo =
     List.filterMap (\id -> getSpaceUser id repo) ids
 
 
-getSpaceUserByUserId : String -> Repo -> Maybe SpaceUser
-getSpaceUserByUserId userId (Repo data) =
+getSpaceUserByUserId : Id -> Id -> Repo -> Maybe SpaceUser
+getSpaceUserByUserId spaceId userId (Repo data) =
     data.spaceUsers
         |> Dict.values
-        |> List.filter (\su -> SpaceUser.userId su == userId)
+        |> List.filter (\su -> SpaceUser.spaceId su == spaceId && SpaceUser.userId su == userId)
         |> List.head
 
 
