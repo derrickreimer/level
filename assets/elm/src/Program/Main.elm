@@ -570,7 +570,7 @@ type Page
 
 
 type PageInit
-    = HomeInit (Result Session.Error ( Globals, Page.Home.Model ))
+    = HomeInit (Result PageError ( Globals, Page.Home.Model ))
     | SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result Session.Error ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
@@ -803,7 +803,10 @@ setupPage pageInit model =
         HomeInit (Ok result) ->
             perform Page.Home.setup Home HomeMsg model result
 
-        HomeInit (Err Session.Expired) ->
+        HomeInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        HomeInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         HomeInit (Err _) ->
