@@ -49,7 +49,7 @@ fragment =
           spaceUsers(first: 1000) {
             ...SpaceUserConnectionFields
           }
-          groups(first: 1000) {
+          groups(first: 1000, state: ALL) {
             ...GroupConnectionFields
           }
           canUpdate

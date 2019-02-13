@@ -6,7 +6,7 @@ module Repo exposing
     , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, getSpaceUsersBySpaceId, setSpaceUser, setSpaceUsers
     , getSpaceBot, setSpaceBot
     , getActor, setActor
-    , getGroup, getGroups, setGroup, setGroups, getBookmarks
+    , getGroup, getGroups, getGroupsBySpaceId, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts
     , getReply, getReplies, setReply, setReplies
     )
@@ -51,7 +51,7 @@ module Repo exposing
 
 # Groups
 
-@docs getGroup, getGroups, setGroup, setGroups, getBookmarks
+@docs getGroup, getGroups, getGroupsBySpaceId, setGroup, setGroups, getBookmarks
 
 
 # Posts
@@ -258,6 +258,13 @@ getGroup id (Repo data) =
 getGroups : List String -> Repo -> List Group
 getGroups ids repo =
     List.filterMap (\id -> getGroup id repo) ids
+
+
+getGroupsBySpaceId : Id -> Repo -> List Group
+getGroupsBySpaceId spaceId (Repo data) =
+    data.groups
+        |> Dict.values
+        |> List.filter (\group -> Group.spaceId group == spaceId)
 
 
 setGroup : Group -> Repo -> Repo
