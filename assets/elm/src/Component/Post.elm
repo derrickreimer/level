@@ -1327,12 +1327,17 @@ replyView config model data reply =
         Just author ->
             div
                 [ id (replyNodeId replyId)
-                , classList [ ( "flex mt-3 text-md relative", True ) ]
+                , classList [ ( "flex mt-2 text-md relative", True ) ]
                 ]
                 [ viewUnless (Reply.hasViewed reply) <|
                     div [ class "mr-2 -ml-3 w-1 h-9 rounded pin-t bg-orange flex-no-shrink" ] []
-                , div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small author) ]
-                , div [ class "flex-grow leading-normal" ]
+                , div [ class "flex-no-shrink mr-3 z-10 pt-1" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small author) ]
+                , div
+                    [ classList
+                        [ ( "leading-normal -ml-6 px-6 py-2 mb-1 bg-grey-light rounded-xl", True )
+                        , ( "flex-grow", PostEditor.isExpanded editor )
+                        ]
+                    ]
                     [ div [ class "pb-1/2" ]
                         [ replyAuthorName config.space author
                         , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
@@ -1345,7 +1350,7 @@ replyView config model data reply =
                         ]
                     , viewUnless (PostEditor.isExpanded editor) <|
                         div []
-                            [ div [ class "markdown pb-3/2" ]
+                            [ div [ class "markdown" ]
                                 [ RenderedHtml.node
                                     { html = Reply.bodyHtml reply
                                     , onInternalLinkClicked = InternalLinkClicked
@@ -1354,7 +1359,8 @@ replyView config model data reply =
                             , staticFilesView (Reply.files reply)
                             ]
                     , viewIf (PostEditor.isExpanded editor) <| replyEditorView config replyId editor
-                    , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
+
+                    -- , div [ class "pb-2 flex items-start" ] [ replyReactionButton reply reactors ]
                     ]
                 ]
 
@@ -1398,7 +1404,7 @@ replyEditorView viewConfig replyId editor =
             }
     in
     PostEditor.wrapper config
-        [ label [ class "composer my-2 p-3" ]
+        [ label [ class "composer my-2 p-0" ]
             [ textarea
                 [ id (PostEditor.getTextareaId editor)
                 , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
