@@ -17,6 +17,7 @@ import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RevokeSpaceAccess as RevokeSpaceAccess
 import Mutation.UpdateRole as UpdateRole
+import PageError exposing (PageError)
 import Query.SpaceUserInit as SpaceUserInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -73,30 +74,47 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( Globals, Model )
 init params globals =
-    globals.session
-        |> SpaceUserInit.request (SpaceUserInit.variables params)
-        |> Task.map (buildModel params globals)
-
-
-buildModel : Params -> Globals -> ( Session, SpaceUserInit.Response ) -> ( Globals, Model )
-buildModel params globals ( newSession, resp ) =
     let
-        model =
-            Model
-                params
-                resp.viewerId
-                resp.spaceId
-                resp.spaceUserId
-                resp.role
-                False
-                False
+        maybeUserId =
+            Session.getUserId globals.session
 
-        newRepo =
-            Repo.union resp.repo globals.repo
+        maybeSpaceId =
+            globals.repo
+                |> Repo.getSpaceBySlug (Route.SpaceUser.getSpaceSlug params)
+                |> Maybe.andThen (Just << Space.id)
+
+        maybeViewerId =
+            case ( maybeSpaceId, maybeUserId ) of
+                ( Just spaceId, Just userId ) ->
+                    Repo.getSpaceUserByUserId spaceId userId globals.repo
+                        |> Maybe.andThen (Just << SpaceUser.id)
+
+                _ ->
+                    Nothing
+
+        maybeSpaceUser =
+            globals.repo
+                |> Repo.getSpaceUser (Route.SpaceUser.getSpaceUserId params)
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
+    case ( maybeViewerId, maybeSpaceId, maybeSpaceUser ) of
+        ( Just viewerId, Just spaceId, Just spaceUser ) ->
+            let
+                model =
+                    Model
+                        params
+                        viewerId
+                        spaceId
+                        (SpaceUser.id spaceUser)
+                        (SpaceUser.role spaceUser)
+                        False
+                        False
+            in
+            Task.succeed ( globals, model )
+
+        _ ->
+            Task.fail PageError.NotFound
 
 
 setup : Model -> Cmd Msg
