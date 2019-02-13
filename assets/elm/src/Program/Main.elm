@@ -580,7 +580,7 @@ type PageInit
     | GroupsInit (Result PageError ( Globals, Page.Groups.Model ))
     | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
     | NewGroupPostInit (Result Session.Error ( Globals, Page.NewGroupPost.Model ))
-    | NewGroupInit (Result Session.Error ( Globals, Page.NewGroup.Model ))
+    | NewGroupInit (Result PageError ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
     | PostInit String (Result Session.Error ( Globals, Page.Post.Model ))
     | NewPostInit (Result Session.Error ( Globals, Page.NewPost.Model ))
@@ -905,7 +905,10 @@ setupPage pageInit model =
         NewGroupInit (Ok result) ->
             perform Page.NewGroup.setup NewGroup NewGroupMsg model result
 
-        NewGroupInit (Err Session.Expired) ->
+        NewGroupInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        NewGroupInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         NewGroupInit (Err _) ->
