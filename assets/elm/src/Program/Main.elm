@@ -571,7 +571,7 @@ type Page
 
 type PageInit
     = HomeInit (Result PageError ( Globals, Page.Home.Model ))
-    | SpacesInit (Result Session.Error ( Globals, Page.Spaces.Model ))
+    | SpacesInit (Result PageError ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result PageError ( Globals, Page.NewSpace.Model ))
     | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
     | SpaceUserInit (Result Session.Error ( Globals, Page.SpaceUser.Model ))
@@ -815,7 +815,10 @@ setupPage pageInit model =
         SpacesInit (Ok result) ->
             perform Page.Spaces.setup Spaces SpacesMsg model result
 
-        SpacesInit (Err Session.Expired) ->
+        SpacesInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        SpacesInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         SpacesInit (Err _) ->

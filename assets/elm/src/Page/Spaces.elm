@@ -12,6 +12,7 @@ import Icons
 import Id exposing (Id)
 import Layout.UserDesktop
 import Layout.UserMobile
+import PageError exposing (PageError)
 import Query.SpacesInit as SpacesInit
 import Repo exposing (Repo)
 import Route
@@ -28,7 +29,6 @@ import User exposing (User)
 
 type alias Model =
     { viewerId : Id
-    , spaceIds : List Id
     , query : String
 
     -- MOBILE
@@ -61,23 +61,22 @@ title =
 -- LIFECYCLE
 
 
-init : Globals -> Task Session.Error ( Globals, Model )
+init : Globals -> Task PageError ( Globals, Model )
 init globals =
-    globals.session
-        |> SpacesInit.request 100
-        |> Task.map (buildModel globals)
+    case Session.getUserId globals.session of
+        Just viewerId ->
+            let
+                model =
+                    Model
+                        viewerId
+                        ""
+                        False
+                        False
+            in
+            Task.succeed ( globals, model )
 
-
-buildModel : Globals -> ( Session, SpacesInit.Response ) -> ( Globals, Model )
-buildModel globals ( newSession, resp ) =
-    let
-        model =
-            Model resp.userId resp.spaceIds "" False False
-
-        newRepo =
-            Repo.union resp.repo globals.repo
-    in
-    ( { globals | session = newSession, repo = newRepo }, model )
+        _ ->
+            Task.fail PageError.NotFound
 
 
 setup : Model -> Cmd Msg
@@ -179,6 +178,11 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             }
+
+        spaces =
+            globals.repo
+                |> Repo.getAllSpaces
+                |> List.sortBy Space.name
     in
     Layout.UserDesktop.layout config
         [ div [ class "mx-auto px-4 py-8 max-w-sm" ]
@@ -203,7 +207,7 @@ resolvedDesktopView globals model data =
                     ]
                 ]
             , div [ class "mx-4" ]
-                [ spacesView globals.repo model.query model.spaceIds ]
+                [ spacesView globals.repo model.query spaces ]
             ]
         ]
 
@@ -229,23 +233,27 @@ resolvedMobileView globals model data =
                         ]
                         [ text "New" ]
             }
+
+        spaces =
+            globals.repo
+                |> Repo.getAllSpaces
+                |> List.sortBy Space.name
     in
     Layout.UserMobile.layout config
         [ div [ class "p-3" ]
-            [ spacesView globals.repo model.query model.spaceIds ]
+            [ spacesView globals.repo model.query spaces ]
         ]
 
 
-spacesView : Repo -> String -> List Id -> Html Msg
-spacesView repo query spaceIds =
-    if List.isEmpty spaceIds then
+spacesView : Repo -> String -> List Space -> Html Msg
+spacesView repo query spaces =
+    if List.isEmpty spaces then
         blankSlateView
 
     else
         let
             filteredSpaces =
-                Repo.getSpaces spaceIds repo
-                    |> filter query
+                filter query spaces
         in
         if List.isEmpty filteredSpaces then
             div [ class "py-2 text-base" ] [ text "No teams match your search." ]
