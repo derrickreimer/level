@@ -587,7 +587,7 @@ type PageInit
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
-    | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
+    | WelcomeTutorialInit (Result PageError ( Globals, Page.WelcomeTutorial.Model ))
     | HelpInit (Result PageError ( Globals, Page.Help.Model ))
     | AppsInit (Result PageError ( Globals, Page.Apps.Model ))
 
@@ -991,10 +991,13 @@ setupPage pageInit model =
             in
             perform (Page.WelcomeTutorial.setup newGlobals) WelcomeTutorial WelcomeTutorialMsg model result
 
-        WelcomeTutorialInit (Err Session.Expired) ->
+        WelcomeTutorialInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        WelcomeTutorialInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
-        WelcomeTutorialInit (Err err) ->
+        WelcomeTutorialInit (Err _) ->
             ( model, Cmd.none )
 
         HelpInit (Ok result) ->

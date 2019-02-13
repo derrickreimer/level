@@ -20,13 +20,10 @@ import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.BulkCreateGroups as BulkCreateGroups
-import Mutation.CreateGroup as CreateGroup
-import Mutation.CreateNudge as CreateNudge
-import Mutation.DeleteNudge as DeleteNudge
 import Mutation.MarkTutorialComplete as MarkTutorialComplete
 import Mutation.UpdateTutorialStep as UpdateTutorialStep
 import Nudge exposing (Nudge)
+import PageError exposing (PageError)
 import Query.SetupInit as SetupInit
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -42,7 +39,6 @@ import Task exposing (Task)
 import ValidationError exposing (ValidationError, errorView, errorsFor, isInvalid)
 import Vendor.Keys as Keys exposing (enter, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, viewIf)
-import View.Nudges
 
 
 
@@ -53,12 +49,6 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , selectedGroups : List String
-    , digestSettings : DigestSettings
-    , nudges : List Nudge
-    , timeZone : String
-    , isSubmitting : Bool
-    , keyboardTutorialStep : Int
 
     -- MOBILE
     , showNav : Bool
@@ -76,11 +66,6 @@ resolveData repo model =
     Maybe.map2 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-
-
-defaultGroups : List String
-defaultGroups =
-    [ "Everyone", "Engineering", "Marketing", "Support", "Random" ]
 
 
 stepCount : Int
@@ -101,33 +86,40 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( Globals, Model )
 init params globals =
-    globals.session
-        |> SetupInit.request (Route.WelcomeTutorial.getSpaceSlug params)
-        |> Task.map (buildModel params globals)
-
-
-buildModel : Params -> Globals -> ( Session, SetupInit.Response ) -> ( Globals, Model )
-buildModel params globals ( newSession, resp ) =
     let
-        model =
-            Model
-                params
-                resp.viewerId
-                resp.spaceId
-                [ "Everyone" ]
-                resp.digestSettings
-                resp.nudges
-                resp.timeZone
-                False
-                1
-                False
+        maybeUserId =
+            Session.getUserId globals.session
 
-        newRepo =
-            Repo.union resp.repo globals.repo
+        maybeSpaceId =
+            globals.repo
+                |> Repo.getSpaceBySlug (Route.WelcomeTutorial.getSpaceSlug params)
+                |> Maybe.andThen (Just << Space.id)
+
+        maybeViewerId =
+            case ( maybeSpaceId, maybeUserId ) of
+                ( Just spaceId, Just userId ) ->
+                    Repo.getSpaceUserByUserId spaceId userId globals.repo
+                        |> Maybe.andThen (Just << SpaceUser.id)
+
+                _ ->
+                    Nothing
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
+    case ( maybeViewerId, maybeSpaceId ) of
+        ( Just viewerId, Just spaceId ) ->
+            let
+                model =
+                    Model
+                        params
+                        viewerId
+                        spaceId
+                        False
+            in
+            Task.succeed ( globals, model )
+
+        _ ->
+            Task.fail PageError.NotFound
 
 
 setup : Globals -> Model -> Cmd Msg
@@ -180,16 +172,10 @@ type Msg
     | BackUp
     | Advance
     | SkipClicked
-    | GroupToggled String
-    | SubmitGroups
-    | GroupsSubmitted (Result Session.Error ( Session, BulkCreateGroups.Response ))
     | LinkCopied
     | LinkCopyFailed
     | StepUpdated (Result Session.Error ( Session, UpdateTutorialStep.Response ))
     | MarkedComplete (Result Session.Error ( Session, MarkTutorialComplete.Response ))
-    | NudgeToggled Int
-    | NudgeCreated (Result Session.Error ( Session, CreateNudge.Response ))
-    | NudgeDeleted (Result Session.Error ( Session, DeleteNudge.Response ))
       -- MOBILE
     | NavToggled
     | ScrollTopClicked
@@ -225,39 +211,6 @@ update msg globals model =
             in
             ( ( model, Cmd.batch [ completeCmd, redirectCmd ] ), globals )
 
-        GroupToggled name ->
-            if List.member name model.selectedGroups then
-                ( ( { model | selectedGroups = removeBy identity name model.selectedGroups }, Cmd.none ), globals )
-
-            else
-                ( ( { model | selectedGroups = name :: model.selectedGroups }, Cmd.none ), globals )
-
-        SubmitGroups ->
-            let
-                cmd =
-                    globals.session
-                        |> BulkCreateGroups.request model.spaceId model.selectedGroups
-                        |> Task.attempt GroupsSubmitted
-            in
-            ( ( { model | isSubmitting = True }, cmd ), globals )
-
-        GroupsSubmitted (Ok ( newSession, BulkCreateGroups.Success )) ->
-            let
-                newParams =
-                    model.params
-                        |> Route.WelcomeTutorial.setStep (Route.WelcomeTutorial.getStep model.params + 1)
-
-                cmd =
-                    Route.pushUrl globals.navKey (Route.WelcomeTutorial newParams)
-            in
-            ( ( { model | isSubmitting = False }, cmd ), { globals | session = newSession } )
-
-        GroupsSubmitted (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        GroupsSubmitted (Err _) ->
-            ( ( { model | isSubmitting = False }, Cmd.none ), globals )
-
         LinkCopied ->
             let
                 newGlobals =
@@ -283,52 +236,6 @@ update msg globals model =
 
         MarkedComplete _ ->
             ( ( model, Cmd.none ), globals )
-
-        NudgeToggled minute ->
-            let
-                cmd =
-                    case nudgeAt minute model of
-                        Just nudge ->
-                            globals.session
-                                |> DeleteNudge.request (DeleteNudge.variables model.spaceId (Nudge.id nudge))
-                                |> Task.attempt NudgeDeleted
-
-                        Nothing ->
-                            globals.session
-                                |> CreateNudge.request (CreateNudge.variables model.spaceId minute)
-                                |> Task.attempt NudgeCreated
-            in
-            ( ( model, cmd ), globals )
-
-        NudgeCreated (Ok ( newSession, CreateNudge.Success nudge )) ->
-            let
-                newNudges =
-                    nudge :: model.nudges
-            in
-            ( ( { model | nudges = newNudges }, Cmd.none )
-            , { globals | session = newSession }
-            )
-
-        NudgeCreated (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        NudgeCreated _ ->
-            noCmd globals model
-
-        NudgeDeleted (Ok ( newSession, DeleteNudge.Success nudge )) ->
-            let
-                newNudges =
-                    removeBy Nudge.id nudge model.nudges
-            in
-            ( ( { model | nudges = newNudges }, Cmd.none )
-            , { globals | session = newSession }
-            )
-
-        NudgeDeleted (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        NudgeDeleted _ ->
-            noCmd globals model
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -641,32 +548,6 @@ redirectRoute params =
     Route.Posts (Route.Posts.init (Route.WelcomeTutorial.getSpaceSlug params))
 
 
-createGroupsView : Model -> Html Msg
-createGroupsView model =
-    div []
-        [ p [ class "mb-6" ] [ text "Let's create your first groups now. You can always add more later." ]
-        , div [ class "mb-6" ] (List.map (groupCheckbox model.selectedGroups) defaultGroups)
-        , div [ class "mb-4 pb-6 border-b" ]
-            [ button [ class "btn btn-blue", onClick SubmitGroups, disabled model.isSubmitting ] [ text "Next step" ]
-            ]
-        ]
-
-
-groupCheckbox : List String -> String -> Html Msg
-groupCheckbox selectedGroups name =
-    label [ class "control checkbox mb-1" ]
-        [ input
-            [ type_ "checkbox"
-            , class "checkbox"
-            , onClick (GroupToggled name)
-            , checked (List.member name selectedGroups)
-            ]
-            []
-        , span [ class "control-indicator" ] []
-        , span [ class "select-none" ] [ text name ]
-        ]
-
-
 inviteView : Maybe String -> Html Msg
 inviteView maybeUrl =
     case maybeUrl of
@@ -688,154 +569,3 @@ inviteView maybeUrl =
             div []
                 [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
                 ]
-
-
-
--- KEYBOARD TUTORIAL
-
-
-keyboardTutorialCommands : Dict Int ( String, List Modifier )
-keyboardTutorialCommands =
-    Dict.fromList
-        [ ( 1, ( "j", [] ) )
-        , ( 2, ( "k", [] ) )
-        , ( 3, ( "r", [] ) )
-        , ( 4, ( "Enter", [ Meta ] ) )
-        , ( 5, ( "Escape", [] ) )
-        , ( 6, ( "e", [] ) )
-        ]
-
-
-keyboardTutorialCommand : Int -> ( String, List Modifier )
-keyboardTutorialCommand step =
-    Dict.get step keyboardTutorialCommands
-        |> Maybe.withDefault ( "", [] )
-
-
-keyboardTutorialStepView : Int -> Html Msg
-keyboardTutorialStepView step =
-    case step of
-        1 ->
-            div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Navigate through posts" ]
-                , p [ class "mb-6" ] [ text "The grey bar on the left indicates which post is currently selected." ]
-                , p [ class "mb-6 font-bold" ]
-                    [ text "Press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "j" ]
-                    , text " to select the next post in the list."
-                    ]
-                ]
-
-        2 ->
-            div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Navigate through posts" ]
-                , p [ class "mb-6" ] [ text "The grey bar on the left indicates which post is currently selected." ]
-                , p [ class "mb-6 font-bold" ]
-                    [ text "Press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "k" ]
-                    , text " to select the previous post."
-                    ]
-                ]
-
-        3 ->
-            div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Expand the reply composer" ]
-                , p [ class "mb-6 font-bold" ]
-                    [ text "Press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "r" ]
-                    , text " to start replying to the selected post."
-                    ]
-                ]
-
-        4 ->
-            div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Submit a reply" ]
-                , p [ class "mb-6 font-bold" ]
-                    [ text "Press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "⌘ + Enter" ]
-                    , text " to send the reply."
-                    ]
-                ]
-
-        5 ->
-            div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Close the reply composer" ]
-                , p [ class "mb-6" ]
-                    [ text "Once you are finished replying to a thread, "
-                    , span [ class "font-bold" ]
-                        [ text "press "
-                        , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "esc" ]
-                        , text " to close the reply editor."
-                        ]
-                    ]
-                ]
-
-        6 ->
-            div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Dismiss posts from your Inbox" ]
-                , p [ class "mb-6" ]
-                    [ text "When the "
-                    , span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ]
-                    , text " symbol is highlighted in green, that indicates the post is in your Inbox. It's best to dismiss posts from your Inbox once you are finished following up."
-                    ]
-                , p [ class "mb-6 font-bold" ]
-                    [ text "Press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-blue text-white font-bold" ] [ text "e" ]
-                    , text " to dismiss the selected post."
-                    ]
-                ]
-
-        7 ->
-            div []
-                [ h3 [ class "mb-4 text-2xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Learn as you go" ]
-                , p [ class "mb-6" ]
-                    [ text "There are even more keyboard commands to help you smoothly navigate around Level!"
-                    ]
-                , p [ class "mb-6" ]
-                    [ text "Press "
-                    , code [ class "mx-1 px-3 py-1 rounded bg-grey font-bold" ] [ text "?" ]
-                    , text " any time to see all the shortcuts."
-                    ]
-                ]
-
-        _ ->
-            text ""
-
-
-keyboardTutorialGraphicView : Int -> Html Msg
-keyboardTutorialGraphicView step =
-    case step of
-        1 ->
-            Graphics.keyboardTutorial 1
-
-        2 ->
-            Graphics.keyboardTutorial 2
-
-        3 ->
-            Graphics.keyboardTutorial 1
-
-        4 ->
-            Graphics.keyboardTutorial 3
-
-        5 ->
-            Graphics.keyboardTutorial 4
-
-        6 ->
-            Graphics.keyboardTutorial 5
-
-        7 ->
-            Graphics.keyboardTutorial 6
-
-        _ ->
-            text ""
-
-
-
--- HELPERS
-
-
-nudgeAt : Int -> Model -> Maybe Nudge
-nudgeAt minute model =
-    model.nudges
-        |> List.filter (\nudge -> Nudge.minute nudge == minute)
-        |> List.head
