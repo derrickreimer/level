@@ -588,7 +588,7 @@ type PageInit
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
     | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
     | WelcomeTutorialInit (Result Session.Error ( Globals, Page.WelcomeTutorial.Model ))
-    | HelpInit (Result Session.Error ( Globals, Page.Help.Model ))
+    | HelpInit (Result PageError ( Globals, Page.Help.Model ))
     | AppsInit (Result PageError ( Globals, Page.Apps.Model ))
 
 
@@ -973,7 +973,10 @@ setupPage pageInit model =
         HelpInit (Ok result) ->
             perform Page.Help.setup Help HelpMsg model result
 
-        HelpInit (Err Session.Expired) ->
+        HelpInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        HelpInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         HelpInit (Err err) ->
