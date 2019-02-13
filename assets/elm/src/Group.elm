@@ -1,4 +1,4 @@
-module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, membershipState, name, setIsBookmarked, setMembershipState, spaceId, state)
+module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, isWatching, membershipState, name, setIsBookmarked, setMembershipState, spaceId, state)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -100,6 +100,16 @@ isBookmarked (Group data) =
 membershipState : Group -> GroupMembershipState
 membershipState (Group data) =
     data.membershipState
+
+
+isWatching : Group -> Bool
+isWatching (Group data) =
+    case data.membershipState of
+        GroupMembership.Watching ->
+            True
+
+        _ ->
+            False
 
 
 canManagePermissions : Group -> Bool

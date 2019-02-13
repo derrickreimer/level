@@ -33,6 +33,7 @@ import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.WatchGroup as WatchGroup
+import PageError exposing (PageError)
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
@@ -122,12 +123,57 @@ title repo model =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( Globals, Model )
 init params globals =
-    globals.session
-        |> GroupInit.request params 10
-        |> TaskHelpers.andThenGetCurrentTime
-        |> Task.map (buildModel params globals)
+    let
+        maybeUserId =
+            Session.getUserId globals.session
+
+        maybeSpace =
+            Repo.getSpaceBySlug (Route.Group.getSpaceSlug params) globals.repo
+
+        maybeViewer =
+            case ( maybeSpace, maybeUserId ) of
+                ( Just space, Just userId ) ->
+                    Repo.getSpaceUserByUserId (Space.id space) userId globals.repo
+
+                _ ->
+                    Nothing
+
+        maybeGroup =
+            case maybeSpace of
+                Just space ->
+                    Repo.getGroupByName (Space.id space) (Route.Group.getGroupName params) globals.repo
+
+                Nothing ->
+                    Nothing
+    in
+    case ( maybeViewer, maybeSpace, maybeGroup ) of
+        ( Just viewer, Just space, Just group ) ->
+            TaskHelpers.getCurrentTime
+                |> Task.andThen (\now -> Task.succeed ( globals, scaffold params viewer space group now ))
+
+        _ ->
+            Task.fail PageError.NotFound
+
+
+scaffold : Params -> SpaceUser -> Space -> Group -> ( Zone, Posix ) -> Model
+scaffold params viewer space group now =
+    Model
+        params
+        (SpaceUser.id viewer)
+        (Space.id space)
+        (Group.id group)
+        []
+        Connection.empty
+        now
+        (FieldEditor.init "name-editor" "")
+        (PostEditor.init ("post-composer-" ++ Group.id group))
+        (FieldEditor.init "search-editor" "")
+        (Group.isWatching group)
+        False
+        False
+        False
 
 
 buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
