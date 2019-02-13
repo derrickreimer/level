@@ -30,7 +30,7 @@ view repo space list =
 itemView : Space -> SpaceUser -> Html msg
 itemView space user =
     a
-        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+        [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.handle user))
         , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
         ]
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]

@@ -295,7 +295,7 @@ userView : Params -> IndexedUser -> Html Msg
 userView params ( index, spaceUser ) =
     let
         viewParams =
-            Route.SpaceUser.init (Route.SpaceUsers.getSpaceSlug params) (SpaceUser.id spaceUser)
+            Route.SpaceUser.init (Route.SpaceUsers.getSpaceSlug params) (SpaceUser.handle spaceUser)
     in
     a [ Route.href <| Route.SpaceUser viewParams, class "block pb-1 no-underline text-dusty-blue-darker" ]
         [ h2 [ class "flex items-center pr-4 font-normal font-sans text-lg" ]

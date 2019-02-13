@@ -1180,7 +1180,7 @@ postAuthorName space postId author =
         route =
             case ResolvedAuthor.actor author of
                 Actor.User user ->
-                    Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+                    Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.handle user))
 
                 _ ->
                     Route.Post (Space.slug space) postId
@@ -1368,7 +1368,7 @@ replyAuthorName space author =
     case ResolvedAuthor.actor author of
         Actor.User user ->
             a
-                [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.id user))
+                [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.handle user))
                 , class "whitespace-no-wrap no-underline"
                 ]
                 [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| ResolvedAuthor.displayName author ]

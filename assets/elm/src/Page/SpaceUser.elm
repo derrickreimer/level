@@ -18,7 +18,6 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RevokeSpaceAccess as RevokeSpaceAccess
 import Mutation.UpdateRole as UpdateRole
 import PageError exposing (PageError)
-import Query.SpaceUserInit as SpaceUserInit
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Route.SpaceUser exposing (Params)
@@ -95,8 +94,13 @@ init params globals =
                     Nothing
 
         maybeSpaceUser =
-            globals.repo
-                |> Repo.getSpaceUser (Route.SpaceUser.getSpaceUserId params)
+            case maybeSpaceId of
+                Just spaceId ->
+                    globals.repo
+                        |> Repo.getSpaceUserByHandle spaceId (Route.SpaceUser.getHandle params)
+
+                Nothing ->
+                    Nothing
     in
     case ( maybeViewerId, maybeSpaceId, maybeSpaceUser ) of
         ( Just viewerId, Just spaceId, Just spaceUser ) ->
