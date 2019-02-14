@@ -23,7 +23,7 @@ type Event
     = SpaceJoined ( Space, SpaceUser )
     | GroupBookmarked Group
     | GroupUnbookmarked Group
-    | PostCreated ( Post, Connection Reply )
+    | PostCreated ResolvedPostWithReplies
     | PostUpdated Post
     | PostClosed Post
     | PostReopened Post

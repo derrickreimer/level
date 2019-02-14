@@ -7,6 +7,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Socket
 import Subscription
 
@@ -37,12 +38,12 @@ groupUpdatedDecoder =
         Group.decoder
 
 
-postCreatedDecoder : Decode.Decoder ( Post, Connection Reply )
+postCreatedDecoder : Decode.Decoder ResolvedPostWithReplies
 postCreatedDecoder =
     Subscription.decoder "group"
         "PostCreated"
         "post"
-        Post.decoderWithReplies
+        ResolvedPostWithReplies.decoder
 
 
 subscribedToGroupDecoder : Decode.Decoder Group

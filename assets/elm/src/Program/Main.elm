@@ -1419,14 +1419,8 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.PostCreated ( post, replies ) ->
-            let
-                repo =
-                    model.repo
-                        |> Repo.setPost post
-                        |> Repo.setReplies (Connection.toList replies)
-            in
-            ( { model | repo = repo }
+        Event.PostCreated resolvedPost ->
+            ( { model | repo = ResolvedPostWithReplies.addToRepo resolvedPost model.repo }
             , Cmd.none
             )
 

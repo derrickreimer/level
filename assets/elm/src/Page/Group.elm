@@ -41,6 +41,7 @@ import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
 import Reply exposing (Reply)
 import Repo exposing (Repo)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route exposing (Route)
 import Route.Group exposing (Params(..))
 import Route.GroupSettings
@@ -843,21 +844,24 @@ consumeEvent globals event model =
             else
                 ( model, Cmd.none )
 
-        Event.PostCreated ( post, replies ) ->
+        Event.PostCreated resolvedPost ->
             let
+                ( postId, replyIds ) =
+                    ResolvedPostWithReplies.unresolve resolvedPost
+
                 postComp =
                     Component.Post.init
                         model.spaceId
-                        (Post.id post)
-                        (Connection.map Reply.id replies)
+                        postId
+                        replyIds
             in
             if
                 Route.Group.getState model.params
                     == Route.Group.Open
-                    && List.member model.groupId (Post.groupIds post)
+                    && List.member model.groupId (Post.groupIds resolvedPost.post)
             then
                 ( { model | postComps = Connection.prepend .id postComp model.postComps }
-                , Cmd.map (PostComponentMsg <| Post.id post) (Component.Post.setup globals postComp)
+                , Cmd.map (PostComponentMsg postId) (Component.Post.setup globals postComp)
                 )
 
             else
