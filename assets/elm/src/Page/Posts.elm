@@ -35,6 +35,7 @@ import Query.PostsInit as PostsInit
 import Regex exposing (Regex)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route exposing (Route)
 import Route.Posts exposing (Params(..))
 import Route.Search
@@ -470,10 +471,14 @@ removePost globals post ( model, cmd ) =
             ( model, cmd )
 
 
-addPost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addPost globals post ( model, cmd ) =
-    if Post.spaceId post == model.spaceId then
-        case Connection.get .id (Post.id post) model.postComps of
+addPost : Globals -> ResolvedPostWithReplies -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addPost globals resolvedPost ( model, cmd ) =
+    let
+        ( postId, replyIds ) =
+            ResolvedPostWithReplies.unresolve resolvedPost
+    in
+    if Post.spaceId resolvedPost.post == model.spaceId then
+        case Connection.get .id postId model.postComps of
             Just _ ->
                 ( model, Cmd.none )
 
@@ -482,8 +487,8 @@ addPost globals post ( model, cmd ) =
                     postComp =
                         Component.Post.init
                             model.spaceId
-                            (Post.id post)
-                            Connection.empty
+                            postId
+                            replyIds
 
                     newPostComps =
                         Connection.prepend .id postComp model.postComps
@@ -526,32 +531,32 @@ consumeEvent globals event model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        Event.PostsMarkedAsUnread posts ->
+        Event.PostsMarkedAsUnread resolvedPosts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
-                List.foldr (addPost globals) ( model, Cmd.none ) posts
+                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
 
             else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                List.foldr (removePost globals) ( model, Cmd.none ) posts
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
 
             else
                 ( model, Cmd.none )
 
-        Event.PostsMarkedAsRead posts ->
+        Event.PostsMarkedAsRead resolvedPosts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed && not (Connection.hasPreviousPage model.postComps) then
-                List.foldr (addPost globals) ( model, Cmd.none ) posts
+                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
 
             else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                List.foldr (removePost globals) ( model, Cmd.none ) posts
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
 
             else
                 ( model, Cmd.none )
 
-        Event.PostsDismissed posts ->
+        Event.PostsDismissed resolvedPosts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
-                List.foldr (removePost globals) ( model, Cmd.none ) posts
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
 
             else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed && not (Connection.hasPreviousPage model.postComps) then
-                List.foldr (addPost globals) ( model, Cmd.none ) posts
+                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
 
             else
                 ( model, Cmd.none )

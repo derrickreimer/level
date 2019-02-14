@@ -45,6 +45,7 @@ import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Response exposing (Response)
 import Route exposing (Route)
 import Route.Apps
@@ -1469,18 +1470,18 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.PostsMarkedAsUnread posts ->
-            ( { model | repo = Repo.setPosts posts model.repo }
+        Event.PostsMarkedAsUnread resolvedPosts ->
+            ( { model | repo = ResolvedPostWithReplies.addManyToRepo resolvedPosts model.repo }
             , Cmd.none
             )
 
-        Event.PostsMarkedAsRead posts ->
-            ( { model | repo = Repo.setPosts posts model.repo }
+        Event.PostsMarkedAsRead resolvedPosts ->
+            ( { model | repo = ResolvedPostWithReplies.addManyToRepo resolvedPosts model.repo }
             , Cmd.none
             )
 
-        Event.PostsDismissed posts ->
-            ( { model | repo = Repo.setPosts posts model.repo }
+        Event.PostsDismissed resolvedPosts ->
+            ( { model | repo = ResolvedPostWithReplies.addManyToRepo resolvedPosts model.repo }
             , Cmd.none
             )
 

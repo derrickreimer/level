@@ -5,6 +5,7 @@ import Group exposing (Group)
 import Json.Decode as Decode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Subscription.GroupSubscription as GroupSubscription
@@ -33,9 +34,9 @@ type Event
     | ReplyReactionDeleted Reply
     | PostsSubscribed (List Post)
     | PostsUnsubscribed (List Post)
-    | PostsMarkedAsUnread (List Post)
-    | PostsMarkedAsRead (List Post)
-    | PostsDismissed (List Post)
+    | PostsMarkedAsUnread (List ResolvedPostWithReplies)
+    | PostsMarkedAsRead (List ResolvedPostWithReplies)
+    | PostsDismissed (List ResolvedPostWithReplies)
     | RepliesViewed (List Reply)
     | MentionsDismissed Post
     | UserMentioned Post

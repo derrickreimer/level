@@ -7,6 +7,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Socket
 import Subscription
 
@@ -61,28 +62,28 @@ postsUnsubscribedDecoder =
         (Decode.list Post.decoder)
 
 
-postsMarkedAsUnreadDecoder : Decode.Decoder (List Post)
+postsMarkedAsUnreadDecoder : Decode.Decoder (List ResolvedPostWithReplies)
 postsMarkedAsUnreadDecoder =
     Subscription.decoder "spaceUser"
         "PostsMarkedAsUnread"
         "posts"
-        (Decode.list Post.decoder)
+        (Decode.list ResolvedPostWithReplies.decoder)
 
 
-postsMarkedAsReadDecoder : Decode.Decoder (List Post)
+postsMarkedAsReadDecoder : Decode.Decoder (List ResolvedPostWithReplies)
 postsMarkedAsReadDecoder =
     Subscription.decoder "spaceUser"
         "PostsMarkedAsRead"
         "posts"
-        (Decode.list Post.decoder)
+        (Decode.list ResolvedPostWithReplies.decoder)
 
 
-postsDismissedDecoder : Decode.Decoder (List Post)
+postsDismissedDecoder : Decode.Decoder (List ResolvedPostWithReplies)
 postsDismissedDecoder =
     Subscription.decoder "spaceUser"
         "PostsDismissed"
         "posts"
-        (Decode.list Post.decoder)
+        (Decode.list ResolvedPostWithReplies.decoder)
 
 
 userMentionedDecoder : Decode.Decoder Post
@@ -150,16 +151,25 @@ document =
             ... on PostsMarkedAsUnreadPayload {
               posts {
                 ...PostFields
+                replies(last: 3) {
+                  ...ReplyConnectionFields
+                }
               }
             }
             ... on PostsMarkedAsReadPayload {
               posts {
                 ...PostFields
+                replies(last: 3) {
+                  ...ReplyConnectionFields
+                }
               }
             }
             ... on PostsDismissedPayload {
               posts {
                 ...PostFields
+                replies(last: 3) {
+                  ...ReplyConnectionFields
+                }
               }
             }
             ... on UserMentionedPayload {
@@ -183,6 +193,7 @@ document =
         [ Group.fragment
         , Post.fragment
         , Reply.fragment
+        , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 
