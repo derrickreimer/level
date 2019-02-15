@@ -1,18 +1,14 @@
-module TaskHelpers exposing (andThenGetCurrentTime, getCurrentTime)
+module TaskHelpers exposing (andThenGetCurrentTime)
 
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
+import TimeWithZone exposing (TimeWithZone)
 
 
 
 -- API
 
 
-getCurrentTime : Task x ( Zone, Posix )
-getCurrentTime =
-    Task.map2 Tuple.pair Time.here Time.now
-
-
-andThenGetCurrentTime : Task x a -> Task x ( a, ( Zone, Posix ) )
+andThenGetCurrentTime : Task x a -> Task x ( a, TimeWithZone )
 andThenGetCurrentTime task =
-    Task.map3 (\res zone now -> ( res, ( zone, now ) )) task Time.here Time.now
+    Task.map2 (\res now -> ( res, now )) task TimeWithZone.now

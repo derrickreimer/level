@@ -49,6 +49,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import TimeWithZone exposing (TimeWithZone)
 import Vendor.Keys as Keys exposing (enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (setFocus, smartFormatTime, viewIf, viewUnless)
 import View.SearchBox
@@ -64,7 +65,7 @@ type alias Model =
     , spaceId : Id
     , featuredUserIds : List Id
     , postComps : Connection Component.Post.Model
-    , now : ( Zone, Posix )
+    , now : TimeWithZone
     , searchEditor : FieldEditor String
     , postComposer : PostEditor
     , isSubmitting : Bool
@@ -117,7 +118,7 @@ init params globals =
         |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> Globals -> ( ( Session, PostsInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel : Params -> Globals -> ( ( Session, PostsInit.Response ), TimeWithZone ) -> ( Globals, Model )
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
@@ -183,7 +184,6 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
-    | SetCurrentTime Posix Zone
     | PostComponentMsg String Component.Post.Msg
     | ExpandSearchEditor
     | CollapseSearchEditor
@@ -219,11 +219,7 @@ update msg globals model =
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
-
-        SetCurrentTime posix zone ->
-            { model | now = ( zone, posix ) }
-                |> noCmd globals
+            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         PostComponentMsg id componentMsg ->
             case Connection.get .id id model.postComps of

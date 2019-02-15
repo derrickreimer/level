@@ -37,6 +37,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import TimeWithZone exposing (TimeWithZone)
 import View.Helpers exposing (viewIf)
 import View.PresenceList
 
@@ -51,7 +52,7 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , postComp : Component.Post.Model
-    , now : ( Zone, Posix )
+    , now : TimeWithZone
     , currentViewers : Lazy PresenceList
     , isChangingState : Bool
     , isChangingInboxState : Bool
@@ -103,7 +104,7 @@ init spaceSlug postId globals =
         |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : String -> Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel : String -> Globals -> ( ( Session, PostInit.Response ), TimeWithZone ) -> ( Globals, Model )
 buildModel spaceSlug globals ( ( newSession, resp ), now ) =
     let
         ( postId, replyIds ) =
@@ -190,7 +191,6 @@ type Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | Tick Posix
-    | SetCurrentTime Posix Zone
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | ClosePostClicked
     | ReopenPostClicked
@@ -257,11 +257,7 @@ update msg globals model =
             noCmd globals model
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
-
-        SetCurrentTime posix zone ->
-            { model | now = ( zone, posix ) }
-                |> noCmd globals
+            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         SpaceUserFetched (Ok ( newSession, response )) ->
             let

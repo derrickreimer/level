@@ -48,6 +48,7 @@ import SpaceUser exposing (SpaceUser)
 import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
+import TimeWithZone exposing (TimeWithZone)
 import ValidationError
 import Vendor.Keys as Keys exposing (Modifier(..), enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (onPassiveClick, setFocus, smartFormatTime, unsetFocus, viewIf, viewUnless)
@@ -1059,7 +1060,7 @@ type alias ViewConfig =
     { globals : Globals
     , space : Space
     , currentUser : SpaceUser
-    , now : ( Zone, Posix )
+    , now : TimeWithZone
     , spaceUsers : List SpaceUser
     , groups : List Group
     , showGroups : Bool
@@ -1078,10 +1079,6 @@ view config model =
 
 resolvedView : ViewConfig -> Model -> Data -> Html Msg
 resolvedView config model data =
-    let
-        ( zone, posix ) =
-            config.now
-    in
     div [ id (postNodeId model.postId), class "flex" ]
         [ div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
@@ -1096,7 +1093,7 @@ resolvedView config model data =
                         , rel "tooltip"
                         , title "Expand post"
                         ]
-                        [ View.Helpers.time config.now ( zone, Post.postedAt data.post ) [ class "mr-3 text-sm text-dusty-blue" ] ]
+                        [ View.Helpers.timeTag config.now (TimeWithZone.setPosix (Post.postedAt data.post) config.now) [ class "mr-3 text-sm text-dusty-blue" ] ]
                     , viewIf (not (PostEditor.isExpanded model.postEditor) && Post.canEdit data.post) <|
                         button
                             [ class "mr-3 text-sm text-dusty-blue"
@@ -1311,9 +1308,6 @@ repliesView config model data =
 replyView : ViewConfig -> Model -> Data -> Reply -> Html Msg
 replyView config model data reply =
     let
-        ( zone, _ ) =
-            config.now
-
         replyId =
             Reply.id reply
 
@@ -1340,7 +1334,7 @@ replyView config model data reply =
                     ]
                     [ div [ class "pb-1/2" ]
                         [ replyAuthorName config.space author
-                        , View.Helpers.time config.now ( zone, Reply.postedAt reply ) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                        , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Reply.postedAt reply) config.now) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                         , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
                             button
                                 [ class "mr-3 text-sm text-dusty-blue"

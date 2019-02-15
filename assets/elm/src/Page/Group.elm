@@ -58,6 +58,7 @@ import Subscription.GroupSubscription as GroupSubscription
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import TimeWithZone exposing (TimeWithZone)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
@@ -75,7 +76,7 @@ type alias Model =
     , groupId : Id
     , featuredMemberIds : List Id
     , postComps : Connection Component.Post.Model
-    , now : ( Zone, Posix )
+    , now : TimeWithZone
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
     , searchEditor : FieldEditor String
@@ -150,14 +151,14 @@ init params globals =
     in
     case ( maybeViewer, maybeSpace, maybeGroup ) of
         ( Just viewer, Just space, Just group ) ->
-            TaskHelpers.getCurrentTime
+            TimeWithZone.now
                 |> Task.andThen (\now -> Task.succeed ( globals, scaffold params viewer space group now ))
 
         _ ->
             Task.fail PageError.NotFound
 
 
-scaffold : Params -> SpaceUser -> Space -> Group -> ( Zone, Posix ) -> Model
+scaffold : Params -> SpaceUser -> Space -> Group -> TimeWithZone -> Model
 scaffold params viewer space group now =
     Model
         params
@@ -176,7 +177,7 @@ scaffold params viewer space group now =
         False
 
 
-buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), TimeWithZone ) -> ( Globals, Model )
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
@@ -263,7 +264,6 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
-    | SetCurrentTime Posix Zone
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -323,10 +323,7 @@ update msg globals model =
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
-
-        SetCurrentTime posix zone ->
-            noCmd globals { model | now = ( zone, posix ) }
+            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         PostEditorEventReceived value ->
             case PostEditor.decodeEvent value of
