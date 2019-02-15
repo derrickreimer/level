@@ -11,13 +11,6 @@ defmodule Level.Posts.Query do
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
 
-  @notable_activities [
-    "POST_CREATED",
-    "REPLY_CREATED",
-    "POST_CLOSED",
-    "POST_REOPENED"
-  ]
-
   @doc """
   Builds a query for posts accessible to a particular user.
   """
