@@ -473,6 +473,16 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    field :last_activity_at, non_null(:timestamp) do
+      resolve fn
+        %Post{last_activity_at: last_activity_at}, _, _ when not is_nil(last_activity_at) ->
+          {:ok, last_activity_at}
+
+        post, _, _ ->
+          Posts.last_activity_at(post)
+      end
+    end
+
     # Viewer-contextual fields
     @desc "The viewer's subscription to the post."
     field :subscription_state, non_null(:post_subscription_state) do

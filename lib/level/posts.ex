@@ -854,6 +854,26 @@ defmodule Level.Posts do
     {:ok, space_users}
   end
 
+  @doc """
+  Calculate the last activity timestamp.
+  """
+  @spec last_activity_at(Post.t()) :: {:ok, DateTime.t()} | no_return()
+  def last_activity_at(%Post{id: post_id} = post) do
+    query =
+      from pl in PostLog,
+        where: pl.post_id == ^post_id,
+        order_by: [desc: pl.occurred_at],
+        limit: 1
+
+    case Repo.one(query) do
+      %PostLog{occurred_at: occurred_at} ->
+        {:ok, occurred_at}
+
+      _ ->
+        {:ok, post.inserted_at}
+    end
+  end
+
   # Internal
 
   defp update_many_user_states(space_user, posts, params) do

@@ -64,7 +64,7 @@ defmodule Level.Posts.Query do
   def select_last_activity_at(query) do
     from [p, su, u, g, gu, pu] in query,
       left_join: pl in PostLog,
-      on: pl.post_id == p.id and pl.event in @notable_activities,
+      on: pl.post_id == p.id,
       group_by: p.id,
       select_merge: %{
         last_activity_at: max(pl.occurred_at)

@@ -88,7 +88,8 @@ type alias Data =
     , reactionCount : Int
     , reactorIds : List Id
     , isPrivate : Bool
-    , fetchedAt : Int
+    , lastActivityAt : Posix
+    , fetchedAt : Posix
     }
 
 
@@ -106,7 +107,7 @@ spaceId (Post data) =
     data.spaceId
 
 
-fetchedAt : Post -> Int
+fetchedAt : Post -> Posix
 fetchedAt (Post data) =
     data.fetchedAt
 
@@ -227,6 +228,7 @@ fragment =
                 }
                 totalCount
               }
+              lastActivityAt
               canEdit
               hasReacted
               isPrivate
@@ -266,7 +268,8 @@ decoder =
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> custom (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
             |> required "isPrivate" bool
-            |> required "fetchedAt" int
+            |> required "lastActivityAt" dateDecoder
+            |> required "fetchedAt" dateDecoder
         )
 
 
