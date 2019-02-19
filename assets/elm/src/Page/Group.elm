@@ -325,20 +325,17 @@ update msg globals model =
 
         RefreshPosts (Ok ( newSession, resp )) ->
             let
-                prependPost resolvedPost ( postComps, cmds ) =
-                    let
-                        ( newPostComps, cmd ) =
-                            PostSet.prepend globals resolvedPost postComps
-                    in
-                    ( newPostComps, Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) cmd :: cmds )
+                ( newModel, setupCmds ) =
+                    List.foldr (prependPost globals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
 
-                ( newPostComps2, setupCmds ) =
-                    List.foldr prependPost ( model.postComps, [] ) (Connection.toList resp.resolvedPosts)
+                newPostComps =
+                    newModel.postComps
+                        |> PostSet.setLoaded
 
                 newGlobals =
                     { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
             in
-            ( ( { model | postComps = newPostComps2 }, Cmd.batch setupCmds ), newGlobals )
+            ( ( { newModel | postComps = newPostComps }, setupCmds ), newGlobals )
 
         RefreshPosts _ ->
             ( ( model, Cmd.none ), globals )
@@ -857,6 +854,21 @@ expandSearchEditor globals model =
     )
 
 
+prependPost : Globals -> ResolvedPostWithReplies -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+prependPost globals resolvedPost ( model, cmd ) =
+    let
+        ( newPostComps, setupCmd ) =
+            PostSet.prepend globals resolvedPost model.postComps
+
+        newCmd =
+            Cmd.batch
+                [ cmd
+                , Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) setupCmd
+                ]
+    in
+    ( { model | postComps = newPostComps }, newCmd )
+
+
 removePost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 removePost globals post ( model, cmd ) =
     case PostSet.get (Post.id post) model.postComps of
@@ -1293,13 +1305,18 @@ desktopPostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    -- if Connection.isEmptyAndExpanded model.postComps then
-    --     div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
-    --         [ text "You're all caught up!" ]
-    --
-    -- else
-    div [] <|
-        PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
+    case ( PostSet.isLoaded model.postComps, PostSet.isEmpty model.postComps ) of
+        ( True, False ) ->
+            div [] <|
+                PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
+
+        ( True, True ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "You're all caught up!" ]
+
+        ( False, _ ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "Loading..." ]
 
 
 desktopPostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
@@ -1401,13 +1418,18 @@ mobilePostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    -- if Connection.isEmptyAndExpanded model.postComps then
-    --     div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
-    --         [ text "You’re all caught up!" ]
-    --
-    -- else
-    div [] <|
-        PostSet.mapList (mobilePostView globals spaceUsers groups model data) model.postComps
+    case ( PostSet.isLoaded model.postComps, PostSet.isEmpty model.postComps ) of
+        ( True, False ) ->
+            div [] <|
+                PostSet.mapList (mobilePostView globals spaceUsers groups model data) model.postComps
+
+        ( True, True ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "You're all caught up!" ]
+
+        ( False, _ ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "Loading..." ]
 
 
 mobilePostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg

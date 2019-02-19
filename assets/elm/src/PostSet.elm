@@ -1,4 +1,4 @@
-module PostSet exposing (PostSet, empty, get, load, mapList, prepend, remove, select, selectNext, selectPrev, selected, toList, update)
+module PostSet exposing (PostSet, State(..), empty, get, isEmpty, isLoaded, load, mapList, prepend, remove, select, selectNext, selectPrev, selected, setLoaded, toList, update)
 
 import Component.Post
 import Connection exposing (Connection)
@@ -20,13 +20,20 @@ type Components
     | NonEmpty (SelectList Component.Post.Model)
 
 
+type State
+    = Loading
+    | Loaded
+
+
 type alias Internal =
-    { comps : Components }
+    { comps : Components
+    , state : State
+    }
 
 
 empty : PostSet
 empty =
-    PostSet (Internal Empty)
+    PostSet (Internal Empty Loading)
 
 
 load : List ResolvedPostWithReplies -> PostSet -> PostSet
@@ -40,7 +47,17 @@ load resolvedPosts (PostSet internal) =
                 hd :: tl ->
                     NonEmpty (SelectList.fromLists [] hd tl)
     in
-    PostSet { internal | comps = newComps }
+    PostSet { internal | comps = newComps, state = Loaded }
+
+
+isLoaded : PostSet -> Bool
+isLoaded (PostSet internal) =
+    internal.state == Loaded
+
+
+setLoaded : PostSet -> PostSet
+setLoaded (PostSet internal) =
+    PostSet { internal | state = Loaded }
 
 
 get : Id -> PostSet -> Maybe Component.Post.Model
@@ -221,6 +238,11 @@ toList (PostSet internal) =
 mapList : (Component.Post.Model -> b) -> PostSet -> List b
 mapList fn postSet =
     List.map fn (toList postSet)
+
+
+isEmpty : PostSet -> Bool
+isEmpty (PostSet internal) =
+    internal.comps == Empty
 
 
 
