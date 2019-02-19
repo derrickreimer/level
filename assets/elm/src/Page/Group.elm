@@ -217,14 +217,14 @@ setup globals model =
                 , PostEditor.fetchLocal model.postComposer
                 ]
 
-        postsCmd =
-            PostSet.toList model.postComps
-                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.setup globals post))
-                |> Cmd.batch
+        refreshCmd =
+            globals.session
+                |> GroupInit.request model.params 20
+                |> Task.attempt RefreshPosts
     in
     Cmd.batch
         [ pageCmd
-        , postsCmd
+        , refreshCmd
         , Scroll.toDocumentTop NoOp
         ]
 
@@ -261,6 +261,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
+    | RefreshPosts (Result Session.Error ( Session, GroupInit.Response ))
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -321,6 +322,26 @@ update msg globals model =
 
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
+
+        RefreshPosts (Ok ( newSession, resp )) ->
+            let
+                prependPost resolvedPost ( postComps, cmds ) =
+                    let
+                        ( newPostComps, cmd ) =
+                            PostSet.prepend globals resolvedPost postComps
+                    in
+                    ( newPostComps, Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) cmd :: cmds )
+
+                ( newPostComps2, setupCmds ) =
+                    List.foldr prependPost ( model.postComps, [] ) (Connection.toList resp.resolvedPosts)
+
+                newGlobals =
+                    { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
+            in
+            ( ( { model | postComps = newPostComps2 }, Cmd.batch setupCmds ), newGlobals )
+
+        RefreshPosts _ ->
+            ( ( model, Cmd.none ), globals )
 
         PostEditorEventReceived value ->
             case PostEditor.decodeEvent value of
