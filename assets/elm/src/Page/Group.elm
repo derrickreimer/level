@@ -20,6 +20,7 @@ import Json.Decode as Decode
 import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
+import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CloseGroup as CloseGroup
@@ -75,7 +76,7 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , groupId : Id
-    , featuredMemberIds : List Id
+    , featuredMemberIds : Lazy (List Id)
     , postComps : PostSet
     , now : TimeWithZone
     , nameEditor : FieldEditor String
@@ -94,7 +95,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , group : Group
-    , featuredMembers : List SpaceUser
+    , featuredMembers : Lazy (List SpaceUser)
     }
 
 
@@ -104,7 +105,7 @@ resolveData repo model =
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Repo.getGroup model.groupId repo)
-        (Just <| Repo.getSpaceUsers model.featuredMemberIds repo)
+        (Just <| Lazy.map (\ids -> Repo.getSpaceUsers ids repo) model.featuredMemberIds)
 
 
 
@@ -166,7 +167,7 @@ scaffold params viewer space group now =
         (SpaceUser.id viewer)
         (Space.id space)
         (Group.id group)
-        []
+        NotLoaded
         PostSet.empty
         now
         (FieldEditor.init "name-editor" "")
@@ -176,36 +177,6 @@ scaffold params viewer space group now =
         False
         False
         False
-
-
-buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), TimeWithZone ) -> ( Globals, Model )
-buildModel params globals ( ( newSession, resp ), now ) =
-    let
-        postComps =
-            PostSet.empty
-                |> PostSet.load (Connection.toList resp.resolvedPosts)
-
-        model =
-            Model
-                params
-                resp.viewerId
-                resp.spaceId
-                resp.groupId
-                resp.featuredMemberIds
-                postComps
-                now
-                (FieldEditor.init "name-editor" "")
-                (PostEditor.init ("post-composer-" ++ resp.groupId))
-                (FieldEditor.init "search-editor" "")
-                resp.isWatching
-                False
-                False
-                False
-
-        newRepo =
-            Repo.union resp.repo globals.repo
-    in
-    ( { globals | session = newSession, repo = newRepo }, model )
 
 
 setup : Globals -> Model -> Cmd Msg
@@ -221,10 +192,16 @@ setup globals model =
             globals.session
                 |> GroupInit.request model.params 20
                 |> Task.attempt RefreshPosts
+
+        featuredMembersCmd =
+            globals.session
+                |> FeaturedMemberships.request model.groupId
+                |> Task.attempt FeaturedMembershipsRefreshed
     in
     Cmd.batch
         [ pageCmd
         , refreshCmd
+        , featuredMembersCmd
         , Scroll.toDocumentTop NoOp
         ]
 
@@ -641,7 +618,7 @@ update msg globals model =
                 newRepo =
                     Repo.union resp.repo globals.repo
             in
-            ( ( { model | featuredMemberIds = resp.spaceUserIds }, Cmd.none )
+            ( ( { model | featuredMemberIds = Loaded resp.spaceUserIds }, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -1500,7 +1477,7 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-sidebarView : Space -> Group -> List SpaceUser -> Model -> List (Html Msg)
+sidebarView : Space -> Group -> Lazy (List SpaceUser) -> Model -> List (Html Msg)
 sidebarView space group featuredMembers model =
     let
         settingsParams =
@@ -1547,13 +1524,18 @@ sidebarView space group featuredMembers model =
     ]
 
 
-memberListView : Space -> List SpaceUser -> Html Msg
+memberListView : Space -> Lazy (List SpaceUser) -> Html Msg
 memberListView space featuredMembers =
-    if List.isEmpty featuredMembers then
-        div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
+    case featuredMembers of
+        Loaded members ->
+            if List.isEmpty members then
+                div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
 
-    else
-        div [ class "pb-4" ] <| List.map (memberItemView space) featuredMembers
+            else
+                div [ class "pb-4" ] <| List.map (memberItemView space) members
+
+        NotLoaded ->
+            div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Loading..." ]
 
 
 memberItemView : Space -> SpaceUser -> Html Msg

@@ -26,7 +26,6 @@ type alias Response =
     , groupIds : List Id
     , spaceUserIds : List Id
     , groupId : Id
-    , featuredMemberIds : List Id
     , postWithRepliesIds : Connection ( Id, Connection Id )
     , resolvedPosts : Connection ResolvedPostWithReplies
     , isWatching : Bool
@@ -41,7 +40,6 @@ type alias Data =
     , spaceUsers : List SpaceUser
     , group : Group
     , resolvedPosts : Connection ResolvedPostWithReplies
-    , featuredMembers : List SpaceUser
     }
 
 
@@ -66,11 +64,6 @@ document =
           }
           group(spaceSlug: $spaceSlug, name: $groupName) {
             ...GroupFields
-            featuredMemberships {
-              spaceUser {
-                ...SpaceUserFields
-              }
-            }
             posts(
               first: $first,
               last: $last,
@@ -168,7 +161,6 @@ decoder =
             |> custom (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
             |> custom (Decode.at [ "group" ] Group.decoder)
             |> custom (Decode.at [ "group", "posts" ] (Connection.decoder ResolvedPostWithReplies.decoder))
-            |> custom (Decode.at [ "group", "featuredMemberships" ] (list (field "spaceUser" SpaceUser.decoder)))
         )
 
 
@@ -182,7 +174,6 @@ buildResponse ( session, data ) =
                 |> Repo.setGroups data.groups
                 |> Repo.setSpaceUsers data.spaceUsers
                 |> Repo.setGroup data.group
-                |> Repo.setSpaceUsers data.featuredMembers
                 |> ResolvedPostWithReplies.addManyToRepo (Connection.toList data.resolvedPosts)
 
         resp =
@@ -192,7 +183,6 @@ buildResponse ( session, data ) =
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
                 (Group.id data.group)
-                (List.map SpaceUser.id data.featuredMembers)
                 (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)
                 data.resolvedPosts
                 (Group.membershipState data.group == GroupMembership.Watching)
