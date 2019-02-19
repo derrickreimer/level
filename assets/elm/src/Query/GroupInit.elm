@@ -28,6 +28,7 @@ type alias Response =
     , groupId : Id
     , featuredMemberIds : List Id
     , postWithRepliesIds : Connection ( Id, Connection Id )
+    , resolvedPosts : Connection ResolvedPostWithReplies
     , isWatching : Bool
     , repo : Repo
     }
@@ -193,6 +194,7 @@ buildResponse ( session, data ) =
                 (Group.id data.group)
                 (List.map SpaceUser.id data.featuredMembers)
                 (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)
+                data.resolvedPosts
                 (Group.membershipState data.group == GroupMembership.Watching)
                 repo
     in

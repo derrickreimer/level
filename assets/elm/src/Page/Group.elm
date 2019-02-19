@@ -37,6 +37,7 @@ import PageError exposing (PageError)
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PostSet exposing (PostSet)
 import PushStatus
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupInit as GroupInit
@@ -75,7 +76,7 @@ type alias Model =
     , spaceId : Id
     , groupId : Id
     , featuredMemberIds : List Id
-    , postComps : Connection Component.Post.Model
+    , postComps : PostSet
     , now : TimeWithZone
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
@@ -166,7 +167,7 @@ scaffold params viewer space group now =
         (Space.id space)
         (Group.id group)
         []
-        Connection.empty
+        PostSet.empty
         now
         (FieldEditor.init "name-editor" "")
         (PostEditor.init ("post-composer-" ++ Group.id group))
@@ -181,7 +182,8 @@ buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), TimeWithZon
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
-            Connection.map (buildPostComponent resp.spaceId) resp.postWithRepliesIds
+            PostSet.empty
+                |> PostSet.load (Connection.toList resp.resolvedPosts)
 
         model =
             Model
@@ -206,11 +208,6 @@ buildModel params globals ( ( newSession, resp ), now ) =
     ( { globals | session = newSession, repo = newRepo }, model )
 
 
-buildPostComponent : Id -> ( Id, Connection Id ) -> Component.Post.Model
-buildPostComponent spaceId ( postId, replyIds ) =
-    Component.Post.init spaceId postId replyIds
-
-
 setup : Globals -> Model -> Cmd Msg
 setup globals model =
     let
@@ -221,7 +218,7 @@ setup globals model =
                 ]
 
         postsCmd =
-            Connection.toList model.postComps
+            PostSet.toList model.postComps
                 |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.setup globals post))
                 |> Cmd.batch
     in
@@ -239,7 +236,7 @@ teardown globals model =
             teardownSockets model.groupId
 
         postsCmd =
-            Connection.toList model.postComps
+            PostSet.toList model.postComps
                 |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.teardown globals post))
                 |> Cmd.batch
     in
@@ -637,13 +634,13 @@ update msg globals model =
             noCmd globals model
 
         PostComponentMsg postId componentMsg ->
-            case Connection.get .id postId model.postComps of
+            case PostSet.get postId model.postComps of
                 Just postComp ->
                     let
                         ( ( newPostComp, cmd ), newGlobals ) =
                             Component.Post.update componentMsg globals postComp
                     in
-                    ( ( { model | postComps = Connection.update .id newPostComp model.postComps }
+                    ( ( { model | postComps = PostSet.update newPostComp model.postComps }
                       , Cmd.map (PostComponentMsg postId) cmd
                       )
                     , newGlobals
@@ -800,7 +797,7 @@ update msg globals model =
         PostSelected postId ->
             let
                 newPostComps =
-                    Connection.selectBy .id postId model.postComps
+                    PostSet.select postId model.postComps
             in
             ( ( { model | postComps = newPostComps }, Cmd.none ), globals )
 
@@ -841,11 +838,11 @@ expandSearchEditor globals model =
 
 removePost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 removePost globals post ( model, cmd ) =
-    case Connection.get .id (Post.id post) model.postComps of
+    case PostSet.get (Post.id post) model.postComps of
         Just postComp ->
             let
                 newPostComps =
-                    Connection.remove .id (Post.id post) model.postComps
+                    PostSet.remove (Post.id post) model.postComps
 
                 teardownCmd =
                     Cmd.map (PostComponentMsg postComp.id)
@@ -888,23 +885,17 @@ consumeEvent globals event model =
                 ( model, Cmd.none )
 
         Event.PostCreated resolvedPost ->
-            let
-                ( postId, replyIds ) =
-                    ResolvedPostWithReplies.unresolve resolvedPost
-
-                postComp =
-                    Component.Post.init
-                        model.spaceId
-                        postId
-                        replyIds
-            in
             if
                 Route.Group.getState model.params
                     == Route.Group.Open
                     && List.member model.groupId (Post.groupIds resolvedPost.post)
             then
-                ( { model | postComps = Connection.prepend .id postComp model.postComps }
-                , Cmd.map (PostComponentMsg postId) (Component.Post.setup globals postComp)
+                let
+                    ( newPostComps, cmd ) =
+                        PostSet.prepend globals resolvedPost model.postComps
+                in
+                ( { model | postComps = newPostComps }
+                , Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) cmd
                 )
 
             else
@@ -915,13 +906,13 @@ consumeEvent globals event model =
                 postId =
                     Reply.postId reply
             in
-            case Connection.get .id postId model.postComps of
+            case PostSet.get postId model.postComps of
                 Just postComp ->
                     let
                         ( newPostComp, cmd ) =
                             Component.Post.handleReplyCreated reply postComp
                     in
-                    ( { model | postComps = Connection.update .id newPostComp model.postComps }
+                    ( { model | postComps = PostSet.update newPostComp model.postComps }
                     , Cmd.map (PostComponentMsg postId) cmd
                     )
 
@@ -944,10 +935,10 @@ consumeKeyboardEvent globals event model =
         ( "k", [] ) ->
             let
                 newPostComps =
-                    Connection.selectPrev model.postComps
+                    PostSet.selectPrev model.postComps
 
                 cmd =
-                    case Connection.selected newPostComps of
+                    case PostSet.selected newPostComps of
                         Just currentPost ->
                             Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
 
@@ -959,10 +950,10 @@ consumeKeyboardEvent globals event model =
         ( "j", [] ) ->
             let
                 newPostComps =
-                    Connection.selectNext model.postComps
+                    PostSet.selectNext model.postComps
 
                 cmd =
-                    case Connection.selected newPostComps of
+                    case PostSet.selected newPostComps of
                         Just currentPost ->
                             Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
 
@@ -972,7 +963,7 @@ consumeKeyboardEvent globals event model =
             ( ( { model | postComps = newPostComps }, cmd ), globals )
 
         ( "e", [] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postComps of
                 Just currentPost ->
                     let
                         cmd =
@@ -986,7 +977,7 @@ consumeKeyboardEvent globals event model =
                     ( ( model, Cmd.none ), globals )
 
         ( "e", [ Meta ] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postComps of
                 Just currentPost ->
                     let
                         cmd =
@@ -1000,7 +991,7 @@ consumeKeyboardEvent globals event model =
                     ( ( model, Cmd.none ), globals )
 
         ( "y", [] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postComps of
                 Just currentPost ->
                     let
                         cmd =
@@ -1014,14 +1005,14 @@ consumeKeyboardEvent globals event model =
                     ( ( model, Cmd.none ), globals )
 
         ( "r", [] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postComps of
                 Just currentPost ->
                     let
                         ( ( newCurrentPost, compCmd ), newGlobals ) =
                             Component.Post.expandReplyComposer globals currentPost
 
                         newPostComps =
-                            Connection.update .id newCurrentPost model.postComps
+                            PostSet.update newCurrentPost model.postComps
                     in
                     ( ( { model | postComps = newPostComps }
                       , Cmd.map (PostComponentMsg currentPost.id) compCmd
@@ -1117,10 +1108,11 @@ resolvedDesktopView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
-            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
-                div [ class "mx-3 p-8 pb-16" ]
-                    [ paginationView model.params model.postComps
-                    ]
+
+            -- , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+            --     div [ class "mx-3 p-8 pb-16" ]
+            --         [ paginationView model.params model.postComps
+            --         ]
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.group data.featuredMembers model)
             ]
         ]
@@ -1280,13 +1272,13 @@ desktopPostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
-            [ text "You're all caught up!" ]
-
-    else
-        div [] <|
-            Connection.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
+    -- if Connection.isEmptyAndExpanded model.postComps then
+    --     div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+    --         [ text "You're all caught up!" ]
+    --
+    -- else
+    div [] <|
+        PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
 
 
 desktopPostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
@@ -1303,7 +1295,7 @@ desktopPostView globals spaceUsers groups model data component =
             }
 
         isSelected =
-            Connection.selected model.postComps == Just component
+            PostSet.selected model.postComps == Just component
     in
     div
         [ classList
@@ -1359,10 +1351,11 @@ resolvedMobileView globals model data =
         , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
         , div [ class "p-3 pt-0" ]
             [ mobilePostsView globals model data
-            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
-                div [ class "mx-3 p-8 pb-16 border-t" ]
-                    [ paginationView model.params model.postComps
-                    ]
+
+            -- , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
+            --     div [ class "mx-3 p-8 pb-16 border-t" ]
+            --         [ paginationView model.params model.postComps
+            --         ]
             ]
         , a
             [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupName model.params))
@@ -1387,13 +1380,13 @@ mobilePostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
-            [ text "You’re all caught up!" ]
-
-    else
-        div [] <|
-            Connection.mapList (mobilePostView globals spaceUsers groups model data) model.postComps
+    -- if Connection.isEmptyAndExpanded model.postComps then
+    --     div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
+    --         [ text "You’re all caught up!" ]
+    --
+    -- else
+    div [] <|
+        PostSet.mapList (mobilePostView globals spaceUsers groups model data) model.postComps
 
 
 mobilePostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
@@ -1437,11 +1430,12 @@ filterTab device label state linkParams currentParams =
         [ text label ]
 
 
-paginationView : Params -> Connection a -> Html Msg
-paginationView params connection =
-    Pagination.view connection
-        (\beforeCursor -> Route.Group (Route.Group.setCursors (Just beforeCursor) Nothing params))
-        (\afterCursor -> Route.Group (Route.Group.setCursors Nothing (Just afterCursor) params))
+
+-- paginationView : Params -> Connection a -> Html Msg
+-- paginationView params connection =
+--     Pagination.view connection
+--         (\beforeCursor -> Route.Group (Route.Group.setCursors (Just beforeCursor) Nothing params))
+--         (\afterCursor -> Route.Group (Route.Group.setCursors Nothing (Just afterCursor) params))
 
 
 bookmarkButtonView : Bool -> Html Msg
