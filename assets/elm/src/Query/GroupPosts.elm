@@ -1,4 +1,4 @@
-module Query.GroupInit exposing (Response, request)
+module Query.GroupPosts exposing (Response, request)
 
 import Component.Post
 import Connection exposing (Connection)
@@ -21,25 +21,13 @@ import Task exposing (Task)
 
 
 type alias Response =
-    { viewerId : Id
-    , spaceId : Id
-    , groupIds : List Id
-    , spaceUserIds : List Id
-    , groupId : Id
-    , postWithRepliesIds : Connection ( Id, Connection Id )
-    , resolvedPosts : Connection ResolvedPostWithReplies
-    , isWatching : Bool
+    { resolvedPosts : Connection ResolvedPostWithReplies
     , repo : Repo
     }
 
 
 type alias Data =
-    { viewer : SpaceUser
-    , space : Space
-    , groups : List Group
-    , spaceUsers : List SpaceUser
-    , group : Group
-    , resolvedPosts : Connection ResolvedPostWithReplies
+    { resolvedPosts : Connection ResolvedPostWithReplies
     }
 
 
@@ -47,7 +35,7 @@ document : Document
 document =
     GraphQL.toDocument
         """
-        query GroupInit(
+        query GroupPosts(
           $spaceSlug: String!,
           $groupName: String!,
           $first: Int,
@@ -56,14 +44,7 @@ document =
           $after: Cursor,
           $stateFilter: PostStateFilter!
         ) {
-          spaceUser(spaceSlug: $spaceSlug) {
-            ...SpaceUserFields
-            space {
-              ...SpaceFields
-            }
-          }
           group(spaceSlug: $spaceSlug, name: $groupName) {
-            ...GroupFields
             posts(
               first: $first,
               last: $last,
@@ -71,10 +52,6 @@ document =
               after: $after,
               filter: {
                 state: $stateFilter
-              },
-              orderBy: {
-                field: LAST_ACTIVITY_AT,
-                direction: DESC
               }
             ) {
               ...PostConnectionFields
@@ -89,16 +66,13 @@ document =
           }
         }
         """
-        [ Group.fragment
-        , SpaceUser.fragment
-        , Space.fragment
-        , Connection.fragment "PostConnection" Post.fragment
+        [ Connection.fragment "PostConnection" Post.fragment
         , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 
 
-variables : Params -> Int -> Maybe Encode.Value
-variables params limit =
+variables : Params -> Int -> Maybe Int -> Maybe Encode.Value
+variables params limit maybeAfter =
     let
         spaceSlug =
             Encode.string (Route.Group.getSpaceSlug params)
@@ -110,32 +84,20 @@ variables params limit =
             Encode.string (castState <| Route.Group.getState params)
 
         values =
-            case
-                ( Route.Group.getBefore params
-                , Route.Group.getAfter params
-                )
-            of
-                ( Just before, Nothing ) ->
+            case maybeAfter of
+                Just after ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "groupName", groupName )
-                    , ( "last", Encode.int limit )
-                    , ( "before", Encode.string before )
                     , ( "stateFilter", stateFilter )
+                    , ( "first", Encode.int limit )
+                    , ( "after", Encode.int after )
                     ]
 
-                ( Nothing, Just after ) ->
+                Nothing ->
                     [ ( "spaceSlug", spaceSlug )
                     , ( "groupName", groupName )
-                    , ( "first", Encode.int limit )
-                    , ( "after", Encode.string after )
                     , ( "stateFilter", stateFilter )
-                    ]
-
-                ( _, _ ) ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "groupName", groupName )
                     , ( "first", Encode.int limit )
-                    , ( "stateFilter", stateFilter )
                     ]
     in
     Just (Encode.object values)
@@ -155,11 +117,6 @@ decoder : Decoder Data
 decoder =
     Decode.at [ "data" ] <|
         (Decode.succeed Data
-            |> custom (Decode.at [ "spaceUser" ] SpaceUser.decoder)
-            |> custom (Decode.at [ "spaceUser", "space" ] Space.decoder)
-            |> custom (Decode.at [ "spaceUser", "space", "groups", "edges" ] (list (field "node" Group.decoder)))
-            |> custom (Decode.at [ "spaceUser", "space", "spaceUsers", "edges" ] (list (field "node" SpaceUser.decoder)))
-            |> custom (Decode.at [ "group" ] Group.decoder)
             |> custom (Decode.at [ "group", "posts" ] (Connection.decoder ResolvedPostWithReplies.decoder))
         )
 
@@ -169,30 +126,18 @@ buildResponse ( session, data ) =
     let
         repo =
             Repo.empty
-                |> Repo.setSpaceUser data.viewer
-                |> Repo.setSpace data.space
-                |> Repo.setGroups data.groups
-                |> Repo.setSpaceUsers data.spaceUsers
-                |> Repo.setGroup data.group
                 |> ResolvedPostWithReplies.addManyToRepo (Connection.toList data.resolvedPosts)
 
         resp =
             Response
-                (SpaceUser.id data.viewer)
-                (Space.id data.space)
-                (List.map Group.id data.groups)
-                (List.map SpaceUser.id data.spaceUsers)
-                (Group.id data.group)
-                (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)
                 data.resolvedPosts
-                (Group.membershipState data.group == GroupMembership.Watching)
                 repo
     in
     ( session, resp )
 
 
-request : Params -> Int -> Session -> Task Session.Error ( Session, Response )
-request params limit session =
-    GraphQL.request document (variables params limit) decoder
+request : Params -> Int -> Maybe Int -> Session -> Task Session.Error ( Session, Response )
+request params limit maybeAfter session =
+    GraphQL.request document (variables params limit maybeAfter) decoder
         |> Session.request session
         |> Task.map buildResponse

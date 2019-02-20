@@ -41,7 +41,7 @@ import PostEditor exposing (PostEditor)
 import PostSet exposing (PostSet)
 import PushStatus
 import Query.FeaturedMemberships as FeaturedMemberships
-import Query.GroupInit as GroupInit
+import Query.GroupPosts as GroupPosts
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -188,10 +188,10 @@ setup globals model =
                 , PostEditor.fetchLocal model.postComposer
                 ]
 
-        refreshCmd =
+        postsCmd =
             globals.session
-                |> GroupInit.request model.params 20
-                |> Task.attempt RefreshPosts
+                |> GroupPosts.request model.params 20 Nothing
+                |> Task.attempt (FetchPosts 20)
 
         featuredMembersCmd =
             globals.session
@@ -200,7 +200,7 @@ setup globals model =
     in
     Cmd.batch
         [ pageCmd
-        , refreshCmd
+        , postsCmd
         , featuredMembersCmd
         , Scroll.toDocumentTop NoOp
         ]
@@ -238,7 +238,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
-    | RefreshPosts (Result Session.Error ( Session, GroupInit.Response ))
+    | FetchPosts Int (Result Session.Error ( Session, GroupPosts.Response ))
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -300,7 +300,7 @@ update msg globals model =
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
-        RefreshPosts (Ok ( newSession, resp )) ->
+        FetchPosts limit (Ok ( newSession, resp )) ->
             let
                 ( newModel, setupCmds ) =
                     List.foldr (prependPost globals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
@@ -315,10 +315,10 @@ update msg globals model =
             in
             ( ( { newModel | postComps = newPostComps }, setupCmds ), newGlobals )
 
-        RefreshPosts (Err Session.Expired) ->
+        FetchPosts _ (Err Session.Expired) ->
             redirectToLogin globals model
 
-        RefreshPosts _ ->
+        FetchPosts _ _ ->
             ( ( model, Cmd.none ), globals )
 
         PostEditorEventReceived value ->

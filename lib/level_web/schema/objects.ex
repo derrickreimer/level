@@ -271,9 +271,8 @@ defmodule LevelWeb.Schema.Objects do
     field :posts, non_null(:post_connection) do
       arg :first, :integer
       arg :last, :integer
-      arg :before, :cursor
-      arg :after, :cursor
-      arg :order_by, :post_order
+      arg :before, :timestamp
+      arg :after, :timestamp
 
       @desc "Filtering criteria for posts."
       arg :filter, :post_filters
@@ -322,9 +321,8 @@ defmodule LevelWeb.Schema.Objects do
     field :posts, non_null(:post_connection) do
       arg :first, :integer
       arg :last, :integer
-      arg :before, :cursor
-      arg :after, :cursor
-      arg :order_by, :post_order
+      arg :before, :timestamp
+      arg :after, :timestamp
 
       @desc "Filtering criteria for posts."
       arg :filter, :post_filters
