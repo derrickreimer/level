@@ -16,6 +16,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import InboxStateFilter
 import Json.Decode as Decode
 import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
@@ -39,6 +40,7 @@ import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
 import PostSet exposing (PostSet)
+import PostStateFilter
 import PushStatus
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupPosts as GroupPosts
@@ -914,11 +916,7 @@ consumeEvent globals event model =
                 ( model, Cmd.none )
 
         Event.PostCreated resolvedPost ->
-            if
-                Route.Group.getState model.params
-                    == Route.Group.Open
-                    && List.member model.groupId (Post.groupIds resolvedPost.post)
-            then
+            if List.member model.groupId (Post.groupIds resolvedPost.post) then
                 let
                     ( newPostComps, cmd ) =
                         PostSet.prepend globals resolvedPost model.postComps
@@ -1131,8 +1129,8 @@ resolvedDesktopView globals model data =
                     ]
             , div [ class "sticky mb-4 pt-1 bg-white z-20", style "top" "56px" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
-                    [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
-                    , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
+                    [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
+                    , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
                     ]
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
@@ -1374,8 +1372,8 @@ resolvedMobileView globals model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-            [ filterTab Device.Mobile "Open" Route.Group.Open (openParams model.params) model.params
-            , filterTab Device.Mobile "Resolved" Route.Group.Closed (closedParams model.params) model.params
+            [ filterTab Device.Mobile "Inbox" (undismissedParams model.params) model.params
+            , filterTab Device.Mobile "Everything" (feedParams model.params) model.params
             ]
         , viewIf (Group.state data.group == Group.Closed) <|
             p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
@@ -1456,11 +1454,14 @@ mobilePostView globals spaceUsers groups model data component =
 -- SHARED
 
 
-filterTab : Device -> String -> Route.Group.State -> Params -> Params -> Html Msg
-filterTab device label state linkParams currentParams =
+filterTab : Device -> String -> Params -> Params -> Html Msg
+filterTab device label linkParams currentParams =
     let
         isCurrent =
-            Route.Group.getState currentParams == state
+            Route.Group.getState currentParams
+                == Route.Group.getState linkParams
+                && Route.Group.getInboxState currentParams
+                == Route.Group.getInboxState linkParams
     in
     a
         [ Route.href (Route.Group linkParams)
@@ -1471,14 +1472,6 @@ filterTab device label state linkParams currentParams =
             ]
         ]
         [ text label ]
-
-
-
--- paginationView : Params -> Connection a -> Html Msg
--- paginationView params connection =
---     Pagination.view connection
---         (\beforeCursor -> Route.Group (Route.Group.setCursors (Just beforeCursor) Nothing params))
---         (\afterCursor -> Route.Group (Route.Group.setCursors Nothing (Just afterCursor) params))
 
 
 bookmarkButtonView : Bool -> Html Msg
@@ -1601,15 +1594,16 @@ subscribeButtonView state =
 -- INTERNAL
 
 
-openParams : Params -> Params
-openParams params =
+undismissedParams : Params -> Params
+undismissedParams params =
     params
-        |> Route.Group.setCursors Nothing Nothing
-        |> Route.Group.setState Route.Group.Open
+        |> Route.Group.clearFilters
+        |> Route.Group.setState PostStateFilter.All
+        |> Route.Group.setInboxState InboxStateFilter.Undismissed
 
 
-closedParams : Params -> Params
-closedParams params =
+feedParams : Params -> Params
+feedParams params =
     params
-        |> Route.Group.setCursors Nothing Nothing
-        |> Route.Group.setState Route.Group.Closed
+        |> Route.Group.clearFilters
+        |> Route.Group.setState PostStateFilter.All

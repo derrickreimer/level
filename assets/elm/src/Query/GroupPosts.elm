@@ -6,10 +6,13 @@ import GraphQL exposing (Document)
 import Group exposing (Group)
 import GroupMembership exposing (GroupMembership)
 import Id exposing (Id)
+import InboxStateFilter
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Decode.Pipeline as Pipeline exposing (custom)
 import Json.Encode as Encode
+import LastActivityFilter
 import Post exposing (Post)
+import PostStateFilter
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -43,7 +46,9 @@ document =
           $last: Int,
           $before: Cursor,
           $after: Cursor,
-          $stateFilter: PostStateFilter!
+          $stateFilter: PostStateFilter!,
+          $inboxStateFilter: InboxStateFilter!,
+          $lastActivityFilter: LastActivityFilter!
         ) {
           group(spaceSlug: $spaceSlug, name: $groupName) {
             posts(
@@ -52,7 +57,9 @@ document =
               before: $before,
               after: $after,
               filter: {
-                state: $stateFilter
+                state: $stateFilter,
+                inboxState: $inboxStateFilter,
+                lastActivity: $lastActivityFilter
               }
             ) {
               ...PostConnectionFields
@@ -75,43 +82,26 @@ document =
 variables : Params -> Int -> Maybe Posix -> Maybe Encode.Value
 variables params limit maybeAfter =
     let
-        spaceSlug =
-            Encode.string (Route.Group.getSpaceSlug params)
+        filters =
+            [ ( "spaceSlug", Encode.string (Route.Group.getSpaceSlug params) )
+            , ( "groupName", Encode.string (Route.Group.getGroupName params) )
+            , ( "stateFilter", Encode.string (PostStateFilter.toEnum (Route.Group.getState params)) )
+            , ( "inboxStateFilter", Encode.string (InboxStateFilter.toEnum (Route.Group.getInboxState params)) )
+            , ( "lastActivityFilter", Encode.string (LastActivityFilter.toEnum (Route.Group.getLastActivity params)) )
+            ]
 
-        groupName =
-            Encode.string (Route.Group.getGroupName params)
-
-        stateFilter =
-            Encode.string (castState <| Route.Group.getState params)
-
-        values =
+        cursors =
             case maybeAfter of
                 Just after ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "groupName", groupName )
-                    , ( "stateFilter", stateFilter )
-                    , ( "first", Encode.int limit )
+                    [ ( "first", Encode.int limit )
                     , ( "after", Encode.int (Time.posixToMillis after) )
                     ]
 
                 Nothing ->
-                    [ ( "spaceSlug", spaceSlug )
-                    , ( "groupName", groupName )
-                    , ( "stateFilter", stateFilter )
-                    , ( "first", Encode.int limit )
+                    [ ( "first", Encode.int limit )
                     ]
     in
-    Just (Encode.object values)
-
-
-castState : Route.Group.State -> String
-castState state =
-    case state of
-        Route.Group.Open ->
-            "OPEN"
-
-        Route.Group.Closed ->
-            "CLOSED"
+    Just (Encode.object (filters ++ cursors))
 
 
 decoder : Decoder Data
