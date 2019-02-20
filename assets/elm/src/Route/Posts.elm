@@ -62,7 +62,7 @@ init spaceSlug =
             spaceSlug
             Nothing
             Nothing
-            PostStateFilter.Open
+            PostStateFilter.All
             InboxStateFilter.All
             LastActivityFilter.All
         )
@@ -197,11 +197,11 @@ parseFeedPostState value =
         Just "closed" ->
             PostStateFilter.Closed
 
-        Just "all" ->
-            PostStateFilter.All
+        Just "open" ->
+            PostStateFilter.Open
 
         _ ->
-            PostStateFilter.Open
+            PostStateFilter.All
 
 
 parseInboxPostState : Maybe String -> PostStateFilter
@@ -220,13 +220,13 @@ parseInboxPostState value =
 castFeedPostState : PostStateFilter -> Maybe String
 castFeedPostState state =
     case state of
-        PostStateFilter.All ->
-            Just "all"
+        PostStateFilter.Open ->
+            Just "open"
 
         PostStateFilter.Closed ->
             Just "closed"
 
-        PostStateFilter.Open ->
+        PostStateFilter.All ->
             Nothing
 
 

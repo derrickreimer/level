@@ -743,8 +743,7 @@ resolvedDesktopView globals model data =
             , div [ class "sticky pin-t mb-4 pt-1 bg-white z-20" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
-                    , filterTab Device.Desktop "Feed" (feedParams model.params) model.params
-                    , filterTab Device.Desktop "Resolved" (resolvedParams model.params) model.params
+                    , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
                     ]
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
@@ -942,7 +941,6 @@ resolvedMobileView globals model data =
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
                 [ filterTab Device.Mobile "Inbox" (undismissedParams model.params) model.params
                 , filterTab Device.Mobile "Feed" (feedParams model.params) model.params
-                , filterTab Device.Mobile "Resolved" (resolvedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "p-3 pt-0" ] [ mobilePostsView globals model data ]
@@ -1082,7 +1080,7 @@ feedParams : Params -> Params
 feedParams params =
     params
         |> Route.Posts.clearFilters
-        |> Route.Posts.setState PostStateFilter.Open
+        |> Route.Posts.setState PostStateFilter.All
 
 
 resolvedParams : Params -> Params
