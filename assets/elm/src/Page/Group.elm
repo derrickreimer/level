@@ -1137,11 +1137,14 @@ resolvedDesktopView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
-
-            -- , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
-            --     div [ class "mx-3 p-8 pb-16" ]
-            --         [ paginationView model.params model.postComps
-            --         ]
+            , viewIf (PostSet.isLoaded model.postComps) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
+                    ]
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.group data.featuredMembers model)
             ]
         ]
@@ -1303,16 +1306,7 @@ desktopPostsView globals model data =
     in
     case ( PostSet.isLoaded model.postComps, PostSet.isEmpty model.postComps ) of
         ( True, False ) ->
-            div []
-                [ div [] (PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postComps)
-                , div [ class "py-8 text-center" ]
-                    [ button
-                        [ class "btn btn-grey-outline btn-md"
-                        , onClick LoadMoreClicked
-                        ]
-                        [ text "Load more..." ]
-                    ]
-                ]
+            div [] (PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postComps)
 
         ( True, True ) ->
             div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
@@ -1393,11 +1387,14 @@ resolvedMobileView globals model data =
         , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
         , div [ class "p-3 pt-0" ]
             [ mobilePostsView globals model data
-
-            -- , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
-            --     div [ class "mx-3 p-8 pb-16 border-t" ]
-            --         [ paginationView model.params model.postComps
-            --         ]
+            , viewIf (PostSet.isLoaded model.postComps) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
+                    ]
             ]
         , a
             [ Route.href <| Route.NewGroupPost (Route.NewGroupPost.init (Route.Group.getSpaceSlug model.params) (Route.Group.getGroupName model.params))
@@ -1424,16 +1421,7 @@ mobilePostsView globals model data =
     in
     case ( PostSet.isLoaded model.postComps, PostSet.isEmpty model.postComps ) of
         ( True, False ) ->
-            div []
-                [ div [] (PostSet.mapList (mobilePostView globals spaceUsers groups model data) model.postComps)
-                , div [ class "py-8 text-center" ]
-                    [ button
-                        [ class "btn btn-grey-outline btn-md"
-                        , onClick LoadMoreClicked
-                        ]
-                        [ text "Load more..." ]
-                    ]
-                ]
+            div [] (PostSet.mapList (mobilePostView globals spaceUsers groups model data) model.postComps)
 
         ( True, True ) ->
             div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
