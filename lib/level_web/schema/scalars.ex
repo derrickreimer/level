@@ -18,7 +18,9 @@ defmodule LevelWeb.Schema.Scalars do
   This scalar type represents time values as a Unix timestamp (in milliseconds).
   """
   scalar :timestamp do
-    parse(&Timex.from_unix(&1.value, :millisecond))
+    parse(fn %{value: value} ->
+      {:ok, Timex.from_unix(value, :millisecond)}
+    end)
 
     serialize(fn time ->
       DateTime.to_unix(Timex.to_datetime(time), :millisecond)

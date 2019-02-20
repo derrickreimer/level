@@ -1,4 +1,4 @@
-module PostSet exposing (PostSet, State(..), empty, get, isEmpty, isLoaded, load, mapList, prepend, remove, select, selectNext, selectPrev, selected, setLoaded, sortByPostedAt, toList, update)
+module PostSet exposing (PostSet, State(..), empty, get, isEmpty, isLoaded, lastPostedAt, load, mapList, prepend, remove, select, selectNext, selectPrev, selected, setLoaded, sortByPostedAt, toList, update)
 
 import Component.Post
 import Connection exposing (Connection)
@@ -8,7 +8,7 @@ import ListHelpers exposing (getBy, memberBy, updateBy)
 import Post
 import Reply
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
-import Time
+import Time exposing (Posix)
 import Vendor.SelectList as SelectList exposing (SelectList)
 
 
@@ -244,6 +244,15 @@ mapList fn postSet =
 isEmpty : PostSet -> Bool
 isEmpty (PostSet internal) =
     internal.comps == Empty
+
+
+lastPostedAt : PostSet -> Maybe Posix
+lastPostedAt postSet =
+    postSet
+        |> toList
+        |> List.reverse
+        |> List.head
+        |> Maybe.andThen (Just << .postedAt)
 
 
 

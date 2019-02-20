@@ -238,6 +238,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
+    | LoadMoreClicked
     | FetchPosts Int (Result Session.Error ( Session, GroupPosts.Response ))
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
@@ -299,6 +300,20 @@ update msg globals model =
 
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
+
+        LoadMoreClicked ->
+            let
+                cmd =
+                    case PostSet.lastPostedAt model.postComps of
+                        Just lastPostedAt ->
+                            globals.session
+                                |> GroupPosts.request model.params 20 (Just lastPostedAt)
+                                |> Task.attempt (FetchPosts 20)
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( model, cmd ), globals )
 
         FetchPosts limit (Ok ( newSession, resp )) ->
             let
@@ -1288,8 +1303,12 @@ desktopPostsView globals model data =
     in
     case ( PostSet.isLoaded model.postComps, PostSet.isEmpty model.postComps ) of
         ( True, False ) ->
-            div [] <|
-                PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
+            div []
+                [ div [] (PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postComps)
+                , div [ class "py-8 text-center" ]
+                    [ button [ class "btn btn-grey-outline btn-md", onClick LoadMoreClicked ] [ text "Load more..." ]
+                    ]
+                ]
 
         ( True, True ) ->
             div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]

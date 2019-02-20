@@ -18,6 +18,7 @@ import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import Time exposing (Posix)
 
 
 type alias Response =
@@ -71,7 +72,7 @@ document =
         ]
 
 
-variables : Params -> Int -> Maybe Int -> Maybe Encode.Value
+variables : Params -> Int -> Maybe Posix -> Maybe Encode.Value
 variables params limit maybeAfter =
     let
         spaceSlug =
@@ -90,7 +91,7 @@ variables params limit maybeAfter =
                     , ( "groupName", groupName )
                     , ( "stateFilter", stateFilter )
                     , ( "first", Encode.int limit )
-                    , ( "after", Encode.int after )
+                    , ( "after", Encode.int (Time.posixToMillis after) )
                     ]
 
                 Nothing ->
@@ -136,7 +137,7 @@ buildResponse ( session, data ) =
     ( session, resp )
 
 
-request : Params -> Int -> Maybe Int -> Session -> Task Session.Error ( Session, Response )
+request : Params -> Int -> Maybe Posix -> Session -> Task Session.Error ( Session, Response )
 request params limit maybeAfter session =
     GraphQL.request document (variables params limit maybeAfter) decoder
         |> Session.request session
