@@ -1250,7 +1250,7 @@ postEditorView viewConfig editor =
             }
     in
     PostEditor.wrapper config
-        [ label [ class "composer my-2 p-3" ]
+        [ label [ class "composer my-2 p-3 bg-grey-light rounded-xl" ]
             [ textarea
                 [ id (PostEditor.getTextareaId editor)
                 , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
@@ -1472,12 +1472,12 @@ expandedReplyComposerView viewConfig editor =
             , classList = [ ( "tribute-pin-t", True ) ]
             }
     in
-    div [ class "-ml-3 pt-3 sticky pin-b bg-white text-md z-20" ]
+    div [ class "pt-3 sticky pin-b bg-white text-md z-20" ]
         [ PostEditor.wrapper config
             [ div [ class "composer p-0" ]
-                [ label [ class "flex p-3" ]
-                    [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small viewConfig.currentUser ]
-                    , div [ class "flex-grow" ]
+                [ label [ class "flex" ]
+                    [ div [ class "flex-no-shrink mr-2 pt-1 z-10" ] [ SpaceUser.avatar Avatar.Small viewConfig.currentUser ]
+                    , div [ class "flex-grow -ml-6 pl-6 pr-3 py-3 bg-grey-light w-full rounded-xl" ]
                         [ textarea
                             [ id (PostEditor.getTextareaId editor)
                             , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"

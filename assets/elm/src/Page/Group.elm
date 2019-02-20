@@ -1152,8 +1152,8 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "sticky mb-4 pt-1 bg-white z-30", style "top" "56px" ]
-                [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
+            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "56px" ]
+                [ div [ class "flex items-baseline trans-border-b-grey" ]
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
                     ]
@@ -1277,12 +1277,12 @@ desktopPostComposerView globals model data =
     PostEditor.wrapper config
         [ label [ class "composer" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
-                , div [ class "flex-grow pt-2" ]
+                [ div [ class "flex-no-shrink mt-2 mr-3 z-10" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow -ml-6 pl-6 pr-3 py-3 bg-grey-light w-full rounded-xl" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder <| "Post in #" ++ Group.name data.group ++ "..."
+                        , placeholder <| "Write to #" ++ Group.name data.group ++ "..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]
                         , readonly (PostEditor.isSubmitting editor)

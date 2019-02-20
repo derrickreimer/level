@@ -178,7 +178,7 @@ h6 {
  */
 
 .composer {
-  @apply block relative p-3 bg-grey-light w-full rounded-xl;
+  @apply block relative; /* p-3 bg-grey-light w-full rounded-xl; */
 }
 
 .composer:focus,
