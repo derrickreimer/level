@@ -320,7 +320,7 @@ update msg globals model =
         FetchPosts limit (Ok ( newSession, resp )) ->
             let
                 ( newModel, setupCmds ) =
-                    List.foldr (prependPost globals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
+                    List.foldr (addPost globals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
 
                 newPostComps =
                     newModel.postComps
@@ -852,19 +852,23 @@ expandSearchEditor globals model =
     )
 
 
-prependPost : Globals -> ResolvedPostWithReplies -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-prependPost globals resolvedPost ( model, cmd ) =
-    let
-        ( newPostComps, setupCmd ) =
-            PostSet.prepend globals resolvedPost model.postComps
+addPost : Globals -> ResolvedPostWithReplies -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addPost globals resolvedPost ( model, cmd ) =
+    if Post.isInGroup model.groupId resolvedPost.post then
+        let
+            ( newPostComps, setupCmd ) =
+                PostSet.prepend globals resolvedPost model.postComps
 
-        newCmd =
-            Cmd.batch
-                [ cmd
-                , Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) setupCmd
-                ]
-    in
-    ( { model | postComps = newPostComps }, newCmd )
+            newCmd =
+                Cmd.batch
+                    [ cmd
+                    , Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) setupCmd
+                    ]
+        in
+        ( { model | postComps = newPostComps }, newCmd )
+
+    else
+        ( model, cmd )
 
 
 removePost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -916,17 +920,8 @@ consumeEvent globals event model =
                 ( model, Cmd.none )
 
         Event.PostCreated resolvedPost ->
-            if List.member model.groupId (Post.groupIds resolvedPost.post) then
-                let
-                    ( newPostComps, cmd ) =
-                        PostSet.prepend globals resolvedPost model.postComps
-                in
-                ( { model | postComps = newPostComps }
-                , Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) cmd
-                )
-
-            else
-                ( model, Cmd.none )
+            -- TODO: queue this up instead
+            addPost globals resolvedPost ( model, Cmd.none )
 
         Event.ReplyCreated reply ->
             let
@@ -945,6 +940,36 @@ consumeEvent globals event model =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        Event.PostsMarkedAsUnread resolvedPosts ->
+            if Route.Group.getInboxState model.params == InboxStateFilter.Undismissed then
+                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
+
+            else if Route.Group.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsMarkedAsRead resolvedPosts ->
+            if Route.Group.getInboxState model.params == InboxStateFilter.Undismissed then
+                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
+
+            else if Route.Group.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsDismissed resolvedPosts ->
+            if Route.Group.getInboxState model.params == InboxStateFilter.Undismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+
+            else if Route.Group.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
+
+            else
+                ( model, Cmd.none )
 
         Event.PostDeleted post ->
             removePost globals post ( model, Cmd.none )
@@ -1127,7 +1152,7 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "sticky mb-4 pt-1 bg-white z-20", style "top" "56px" ]
+            , div [ class "sticky mb-4 pt-1 bg-white z-30", style "top" "56px" ]
                 [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
