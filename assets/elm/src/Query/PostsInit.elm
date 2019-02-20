@@ -27,7 +27,7 @@ type alias Response =
     , groupIds : List Id
     , spaceUserIds : List Id
     , featuredUserIds : List Id
-    , postWithRepliesIds : Connection ( Id, Connection Id )
+    , resolvedPosts : Connection ResolvedPostWithReplies
     , repo : Repo
     }
 
@@ -174,7 +174,7 @@ buildResponse ( session, data ) =
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
                 (List.map SpaceUser.id data.featuredUsers)
-                (Connection.map ResolvedPostWithReplies.unresolve data.resolvedPosts)
+                data.resolvedPosts
                 repo
     in
     ( session, resp )

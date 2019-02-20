@@ -308,11 +308,15 @@ update msg globals model =
                 newPostComps =
                     newModel.postComps
                         |> PostSet.setLoaded
+                        |> PostSet.sortByPostedAt
 
                 newGlobals =
                     { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
             in
             ( ( { newModel | postComps = newPostComps }, setupCmds ), newGlobals )
+
+        RefreshPosts (Err Session.Expired) ->
+            redirectToLogin globals model
 
         RefreshPosts _ ->
             ( ( model, Cmd.none ), globals )

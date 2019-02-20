@@ -107,19 +107,13 @@ init spaceSlug postId globals =
 buildModel : String -> Globals -> ( ( Session, PostInit.Response ), TimeWithZone ) -> ( Globals, Model )
 buildModel spaceSlug globals ( ( newSession, resp ), now ) =
     let
-        ( postId, replyIds ) =
-            resp.postWithRepliesId
-
         postComp =
-            Component.Post.init
-                resp.spaceId
-                postId
-                replyIds
+            Component.Post.init resp.resolvedPost
 
         model =
             Model
                 spaceSlug
-                postId
+                postComp.postId
                 resp.viewerId
                 resp.spaceId
                 postComp

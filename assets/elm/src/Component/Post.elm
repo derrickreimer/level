@@ -38,6 +38,7 @@ import RenderedHtml
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route
 import Route.Group
 import Route.SpaceUser
@@ -63,6 +64,7 @@ type alias Model =
     , spaceId : String
     , postId : Id
     , replyIds : Connection Id
+    , postedAt : Posix
     , replyComposer : PostEditor
     , postEditor : PostEditor
     , replyEditors : ReplyEditors
@@ -102,13 +104,18 @@ resolveData repo model =
 -- LIFECYCLE
 
 
-init : Id -> Id -> Connection Id -> Model
-init spaceId postId replyIds =
+init : ResolvedPostWithReplies -> Model
+init resolvedPost =
+    let
+        ( postId, replyIds ) =
+            ResolvedPostWithReplies.unresolve resolvedPost
+    in
     Model
         postId
-        spaceId
+        (Post.spaceId resolvedPost.post)
         postId
         replyIds
+        (Post.postedAt resolvedPost.post)
         (PostEditor.init postId)
         (PostEditor.init postId)
         Dict.empty

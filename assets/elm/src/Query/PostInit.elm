@@ -22,7 +22,7 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , postWithRepliesId : ( Id, Connection Id )
+    , resolvedPost : ResolvedPostWithReplies
     , repo : Repo
     }
 
@@ -103,7 +103,7 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (ResolvedPostWithReplies.unresolve data.resolvedPost)
+                data.resolvedPost
                 repo
     in
     ( session, resp )

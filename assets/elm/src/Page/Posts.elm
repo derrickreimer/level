@@ -122,7 +122,7 @@ buildModel : Params -> Globals -> ( ( Session, PostsInit.Response ), TimeWithZon
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         postComps =
-            Connection.map (buildPostComponent resp.spaceId) resp.postWithRepliesIds
+            Connection.map Component.Post.init resp.resolvedPosts
 
         model =
             Model
@@ -144,9 +144,9 @@ buildModel params globals ( ( newSession, resp ), now ) =
     ( { globals | session = newSession, repo = newRepo }, model )
 
 
-buildPostComponent : Id -> ( Id, Connection Id ) -> Component.Post.Model
-buildPostComponent spaceId ( postId, replyIds ) =
-    Component.Post.init spaceId postId replyIds
+buildPostComponent : ResolvedPostWithReplies -> Component.Post.Model
+buildPostComponent resolvedPost =
+    Component.Post.init resolvedPost
 
 
 setup : Globals -> Model -> Cmd Msg
@@ -366,10 +366,10 @@ update msg globals model =
             else
                 noCmd globals model
 
-        NewPostSubmitted (Ok ( newSession, CreatePost.Success newPost )) ->
+        NewPostSubmitted (Ok ( newSession, CreatePost.Success resolvedPost )) ->
             let
                 newRepo =
-                    Repo.setPost newPost globals.repo
+                    ResolvedPostWithReplies.addToRepo resolvedPost globals.repo
 
                 newGlobals =
                     { globals | session = newSession, repo = newRepo }
@@ -379,7 +379,7 @@ update msg globals model =
                         |> PostEditor.reset
 
                 newPostComp =
-                    buildPostComponent model.spaceId ( Post.id newPost, Connection.empty )
+                    Component.Post.init resolvedPost
 
                 postSetupCmd =
                     Cmd.map (PostComponentMsg newPostComp.id) (Component.Post.setup newGlobals newPostComp)
@@ -481,10 +481,7 @@ addPost globals resolvedPost ( model, cmd ) =
             Nothing ->
                 let
                     postComp =
-                        Component.Post.init
-                            model.spaceId
-                            postId
-                            replyIds
+                        Component.Post.init resolvedPost
 
                     newPostComps =
                         Connection.prepend .id postComp model.postComps

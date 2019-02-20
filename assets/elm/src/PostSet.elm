@@ -1,4 +1,4 @@
-module PostSet exposing (PostSet, State(..), empty, get, isEmpty, isLoaded, load, mapList, prepend, remove, select, selectNext, selectPrev, selected, setLoaded, toList, update)
+module PostSet exposing (PostSet, State(..), empty, get, isEmpty, isLoaded, load, mapList, prepend, remove, select, selectNext, selectPrev, selected, setLoaded, sortByPostedAt, toList, update)
 
 import Component.Post
 import Connection exposing (Connection)
@@ -8,6 +8,7 @@ import ListHelpers exposing (getBy, memberBy, updateBy)
 import Post
 import Reply
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import Time
 import Vendor.SelectList as SelectList exposing (SelectList)
 
 
@@ -246,6 +247,37 @@ isEmpty (PostSet internal) =
 
 
 
+-- SORTING
+
+
+sortByPostedAt : PostSet -> PostSet
+sortByPostedAt ((PostSet internal) as postSet) =
+    let
+        sorter a b =
+            case compare (a.postedAt |> Time.posixToMillis) (b.postedAt |> Time.posixToMillis) of
+                LT ->
+                    GT
+
+                EQ ->
+                    EQ
+
+                GT ->
+                    LT
+
+        sortedList =
+            postSet
+                |> toList
+                |> List.sortWith sorter
+    in
+    case sortedList of
+        [] ->
+            postSet
+
+        hd :: tl ->
+            PostSet { internal | comps = NonEmpty (SelectList.fromLists [] hd tl) }
+
+
+
 -- PRIVATE
 
 
@@ -258,4 +290,4 @@ buildComponent resolvedPost =
         replies =
             Connection.map .reply resolvedPost.resolvedReplies
     in
-    Component.Post.init (Post.spaceId post) (Post.id post) (Connection.map Reply.id replies)
+    Component.Post.init resolvedPost

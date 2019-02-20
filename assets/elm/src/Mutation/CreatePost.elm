@@ -7,6 +7,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Session exposing (Session)
 import Task exposing (Task)
 import ValidationError exposing (ValidationError)
@@ -14,7 +15,7 @@ import ValidationFields
 
 
 type Response
-    = Success Post
+    = Success ResolvedPostWithReplies
     | Invalid (List ValidationError)
 
 
@@ -79,7 +80,7 @@ conditionalDecoder : Bool -> Decoder Response
 conditionalDecoder success =
     case success of
         True ->
-            Decode.at [ "data", "createPost", "post" ] Post.decoder
+            Decode.at [ "data", "createPost", "post" ] ResolvedPostWithReplies.decoder
                 |> Decode.map Success
 
         False ->
