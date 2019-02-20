@@ -2,6 +2,7 @@ module Page.Posts exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, 
 
 import Avatar exposing (personAvatar)
 import Component.Post
+import Connection
 import Device exposing (Device)
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
@@ -32,7 +33,7 @@ import PostEditor exposing (PostEditor)
 import PostSet exposing (PostSet)
 import PostStateFilter exposing (PostStateFilter)
 import PushStatus exposing (PushStatus)
-import Query.PostsInit as PostsInit
+import Query.Posts as Posts
 import Regex exposing (Regex)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
@@ -155,8 +156,19 @@ scaffold params viewer space now =
 
 setup : Globals -> Model -> Cmd Msg
 setup globals model =
+    let
+        pageCmd =
+            PostEditor.fetchLocal model.postComposer
+
+        postsCmd =
+            globals.session
+                |> Posts.request model.params 20 Nothing
+                |> Task.attempt (FetchPosts 20)
+    in
     Cmd.batch
-        [ Scroll.toDocumentTop NoOp
+        [ pageCmd
+        , postsCmd
+        , Scroll.toDocumentTop NoOp
         ]
 
 
@@ -173,6 +185,8 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
+    | LoadMoreClicked
+    | FetchPosts Int (Result Session.Error ( Session, Posts.Response ))
     | PostComponentMsg String Component.Post.Msg
     | ExpandSearchEditor
     | CollapseSearchEditor
@@ -209,6 +223,41 @@ update msg globals model =
 
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
+
+        LoadMoreClicked ->
+            let
+                cmd =
+                    case PostSet.lastPostedAt model.postComps of
+                        Just lastPostedAt ->
+                            globals.session
+                                |> Posts.request model.params 20 (Just lastPostedAt)
+                                |> Task.attempt (FetchPosts 20)
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( model, cmd ), globals )
+
+        FetchPosts limit (Ok ( newSession, resp )) ->
+            let
+                ( newModel, setupCmds ) =
+                    List.foldr (addPost globals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
+
+                newPostComps =
+                    newModel.postComps
+                        |> PostSet.setLoaded
+                        |> PostSet.sortByPostedAt
+
+                newGlobals =
+                    { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
+            in
+            ( ( { newModel | postComps = newPostComps }, setupCmds ), newGlobals )
+
+        FetchPosts _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        FetchPosts _ _ ->
+            ( ( model, Cmd.none ), globals )
 
         PostComponentMsg postId componentMsg ->
             case PostSet.get postId model.postComps of
@@ -700,8 +749,14 @@ resolvedDesktopView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
-
-            -- , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.featuredUsers)
+            , viewIf (PostSet.isLoaded model.postComps) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
+                    ]
             ]
         ]
 
@@ -879,7 +934,7 @@ resolvedMobileView globals model data =
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
             , leftControl = Layout.SpaceMobile.ShowNav
-            , rightControl = Layout.SpaceMobile.ShowSidebar
+            , rightControl = Layout.SpaceMobile.NoControl
             }
     in
     Layout.SpaceMobile.layout config
@@ -891,9 +946,13 @@ resolvedMobileView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "p-3 pt-0" ] [ mobilePostsView globals model data ]
-            , viewIf model.showSidebar <|
-                Layout.SpaceMobile.rightSidebar config
-                    [ div [ class "p-6" ] (sidebarView data.space data.featuredUsers)
+            , viewIf (PostSet.isLoaded model.postComps) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
                     ]
             ]
         ]
