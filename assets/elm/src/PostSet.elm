@@ -1,4 +1,45 @@
-module PostSet exposing (PostSet, State(..), empty, get, isEmpty, isLoaded, lastPostedAt, load, mapList, prepend, remove, select, selectNext, selectPrev, selected, setLoaded, sortByPostedAt, toList, update)
+module PostSet exposing
+    ( PostSet, State(..)
+    , empty, load, isLoaded, setLoaded
+    , get, update, remove, add, enqueue
+    , toList, mapList, isEmpty, lastPostedAt, queueDepth
+    , select, selectPrev, selectNext, selected
+    , sortByPostedAt
+    )
+
+{-| A PostSet represents a timeline of posts.
+
+
+# Types
+
+@docs PostSet, State
+
+
+# Initialization
+
+@docs empty, load, isLoaded, setLoaded
+
+
+# Operations
+
+@docs get, update, remove, add, enqueue, flushQueue
+
+
+# Inspection
+
+@docs toList, mapList, isEmpty, lastPostedAt, queueDepth
+
+
+# Selection
+
+@docs select, selectPrev, selectNext, selected
+
+
+# Sorting
+
+@docs sortByPostedAt
+
+-}
 
 import Component.Post
 import Connection exposing (Connection)
@@ -8,6 +49,7 @@ import ListHelpers exposing (getBy, memberBy, updateBy)
 import Post
 import Reply
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import Set exposing (Set)
 import Time exposing (Posix)
 import Vendor.SelectList as SelectList exposing (SelectList)
 
@@ -28,20 +70,25 @@ type State
 
 type alias Internal =
     { comps : Components
+    , queue : Set Id
     , state : State
     }
 
 
+
+-- INITIALIZATION
+
+
 empty : PostSet
 empty =
-    PostSet (Internal Empty Loading)
+    PostSet (Internal Empty Set.empty Loading)
 
 
 load : List ResolvedPostWithReplies -> PostSet -> PostSet
 load resolvedPosts (PostSet internal) =
     let
         newComps =
-            case List.map buildComponent resolvedPosts of
+            case List.map Component.Post.init resolvedPosts of
                 [] ->
                     Empty
 
@@ -61,21 +108,15 @@ setLoaded (PostSet internal) =
     PostSet { internal | state = Loaded }
 
 
+
+-- OPERATIONS
+
+
 get : Id -> PostSet -> Maybe Component.Post.Model
 get id postSet =
     postSet
         |> toList
         |> getBy .id id
-
-
-selected : PostSet -> Maybe Component.Post.Model
-selected (PostSet internal) =
-    case internal.comps of
-        Empty ->
-            Nothing
-
-        NonEmpty slist ->
-            Just <| SelectList.selected slist
 
 
 update : Component.Post.Model -> PostSet -> PostSet
@@ -142,6 +183,67 @@ remove id (PostSet internal) =
     PostSet { internal | comps = newComps }
 
 
+add : Globals -> ResolvedPostWithReplies -> PostSet -> ( PostSet, Cmd Component.Post.Msg )
+add globals resolvedPost postSet =
+    let
+        ( newPostSet, cmds ) =
+            flushPost globals resolvedPost ( postSet, [] )
+
+        cmd =
+            cmds
+                |> List.head
+                |> Maybe.withDefault Cmd.none
+    in
+    ( newPostSet, cmd )
+
+
+enqueue : Id -> PostSet -> PostSet
+enqueue postId (PostSet internal) =
+    PostSet { internal | queue = Set.insert postId internal.queue }
+
+
+
+-- INSPECTION
+
+
+toList : PostSet -> List Component.Post.Model
+toList (PostSet internal) =
+    case internal.comps of
+        Empty ->
+            []
+
+        NonEmpty slist ->
+            SelectList.toList slist
+
+
+mapList : (Component.Post.Model -> b) -> PostSet -> List b
+mapList fn postSet =
+    List.map fn (toList postSet)
+
+
+isEmpty : PostSet -> Bool
+isEmpty (PostSet internal) =
+    internal.comps == Empty
+
+
+lastPostedAt : PostSet -> Maybe Posix
+lastPostedAt postSet =
+    postSet
+        |> toList
+        |> List.reverse
+        |> List.head
+        |> Maybe.andThen (Just << .postedAt)
+
+
+queueDepth : PostSet -> Int
+queueDepth (PostSet internals) =
+    Set.size internals.queue
+
+
+
+-- SELECTION
+
+
 select : Id -> PostSet -> PostSet
 select id (PostSet internal) =
     case internal.comps of
@@ -202,57 +304,14 @@ selectNext (PostSet internal) =
     PostSet { internal | comps = newComps }
 
 
-prepend : Globals -> ResolvedPostWithReplies -> PostSet -> ( PostSet, Cmd Component.Post.Msg )
-prepend globals resolvedPost (PostSet internal) =
-    let
-        newComp =
-            buildComponent resolvedPost
-
-        setupCmd =
-            Component.Post.setup globals newComp
-
-        ( newComps, cmd ) =
-            case internal.comps of
-                Empty ->
-                    ( NonEmpty (SelectList.fromLists [] newComp []), setupCmd )
-
-                NonEmpty slist ->
-                    if memberBy .id newComp (SelectList.toList slist) then
-                        ( NonEmpty slist, Cmd.none )
-
-                    else
-                        ( NonEmpty (SelectList.prepend [ newComp ] slist), setupCmd )
-    in
-    ( PostSet { internal | comps = newComps }, cmd )
-
-
-toList : PostSet -> List Component.Post.Model
-toList (PostSet internal) =
+selected : PostSet -> Maybe Component.Post.Model
+selected (PostSet internal) =
     case internal.comps of
         Empty ->
-            []
+            Nothing
 
         NonEmpty slist ->
-            SelectList.toList slist
-
-
-mapList : (Component.Post.Model -> b) -> PostSet -> List b
-mapList fn postSet =
-    List.map fn (toList postSet)
-
-
-isEmpty : PostSet -> Bool
-isEmpty (PostSet internal) =
-    internal.comps == Empty
-
-
-lastPostedAt : PostSet -> Maybe Posix
-lastPostedAt postSet =
-    postSet
-        |> toList
-        |> List.reverse
-        |> List.head
-        |> Maybe.andThen (Just << .postedAt)
+            Just <| SelectList.selected slist
 
 
 
@@ -290,13 +349,25 @@ sortByPostedAt ((PostSet internal) as postSet) =
 -- PRIVATE
 
 
-buildComponent : ResolvedPostWithReplies -> Component.Post.Model
-buildComponent resolvedPost =
+flushPost : Globals -> ResolvedPostWithReplies -> ( PostSet, List (Cmd Component.Post.Msg) ) -> ( PostSet, List (Cmd Component.Post.Msg) )
+flushPost globals resolvedPost ( PostSet internal, cmds ) =
     let
-        post =
-            resolvedPost.post
+        newComp =
+            Component.Post.init resolvedPost
 
-        replies =
-            Connection.map .reply resolvedPost.resolvedReplies
+        setupCmd =
+            Component.Post.setup globals newComp
+
+        ( newComps, newCmds ) =
+            case internal.comps of
+                Empty ->
+                    ( NonEmpty (SelectList.fromLists [] newComp []), setupCmd :: cmds )
+
+                NonEmpty slist ->
+                    if memberBy .id newComp (SelectList.toList slist) then
+                        ( NonEmpty slist, cmds )
+
+                    else
+                        ( NonEmpty (SelectList.prepend [ newComp ] slist), setupCmd :: cmds )
     in
-    Component.Post.init resolvedPost
+    ( PostSet { internal | comps = newComps }, newCmds )

@@ -163,7 +163,7 @@ setup globals model =
         postsCmd =
             globals.session
                 |> Posts.request model.params 20 Nothing
-                |> Task.attempt (FetchPosts 20)
+                |> Task.attempt (PostsFetched 20)
     in
     Cmd.batch
         [ pageCmd
@@ -186,7 +186,7 @@ type Msg
     | ToggleKeyboardCommands
     | Tick Posix
     | LoadMoreClicked
-    | FetchPosts Int (Result Session.Error ( Session, Posts.Response ))
+    | PostsFetched Int (Result Session.Error ( Session, Posts.Response ))
     | PostComponentMsg String Component.Post.Msg
     | ExpandSearchEditor
     | CollapseSearchEditor
@@ -231,14 +231,14 @@ update msg globals model =
                         Just lastPostedAt ->
                             globals.session
                                 |> Posts.request model.params 20 (Just lastPostedAt)
-                                |> Task.attempt (FetchPosts 20)
+                                |> Task.attempt (PostsFetched 20)
 
                         Nothing ->
                             Cmd.none
             in
             ( ( model, cmd ), globals )
 
-        FetchPosts limit (Ok ( newSession, resp )) ->
+        PostsFetched limit (Ok ( newSession, resp )) ->
             let
                 ( newModel, setupCmds ) =
                     List.foldr (addPost globals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
@@ -253,10 +253,10 @@ update msg globals model =
             in
             ( ( { newModel | postComps = newPostComps }, setupCmds ), newGlobals )
 
-        FetchPosts _ (Err Session.Expired) ->
+        PostsFetched _ (Err Session.Expired) ->
             redirectToLogin globals model
 
-        FetchPosts _ _ ->
+        PostsFetched _ _ ->
             ( ( model, Cmd.none ), globals )
 
         PostComponentMsg postId componentMsg ->
@@ -419,11 +419,11 @@ update msg globals model =
                 ( postId, _ ) =
                     ResolvedPostWithReplies.unresolve resolvedPost
 
-                ( newPostComps, postSetupCmd ) =
-                    PostSet.prepend globals resolvedPost model.postComps
+                newPostComps =
+                    PostSet.enqueue (Post.id resolvedPost.post) model.postComps
             in
             ( ( { model | postComposer = newPostComposer, postComps = newPostComps }
-              , Cmd.batch [ postComposerCmd, Cmd.map (PostComponentMsg postId) postSetupCmd ]
+              , postComposerCmd
               )
             , newGlobals
             )
@@ -502,20 +502,29 @@ removePost globals post ( model, cmd ) =
             ( model, cmd )
 
 
+enqueuePost : ResolvedPostWithReplies -> Model -> Model
+enqueuePost resolvedPost model =
+    if Post.spaceId resolvedPost.post == model.spaceId then
+        let
+            newPostComps =
+                PostSet.enqueue (Post.id resolvedPost.post) model.postComps
+        in
+        { model | postComps = newPostComps }
+
+    else
+        model
+
+
 addPost : Globals -> ResolvedPostWithReplies -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addPost globals resolvedPost ( model, cmd ) =
     if Post.spaceId resolvedPost.post == model.spaceId then
         let
-            ( newPostComps, setupCmd ) =
-                PostSet.prepend globals resolvedPost model.postComps
-
-            newCmd =
-                Cmd.batch
-                    [ cmd
-                    , Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) setupCmd
-                    ]
+            ( newPostComps, newCmd ) =
+                PostSet.add globals resolvedPost model.postComps
         in
-        ( { model | postComps = newPostComps }, newCmd )
+        ( { model | postComps = newPostComps }
+        , Cmd.batch [ cmd, Cmd.map (PostComponentMsg (Post.id resolvedPost.post)) newCmd ]
+        )
 
     else
         ( model, cmd )
@@ -548,7 +557,7 @@ consumeEvent globals event model =
 
         Event.PostsMarkedAsUnread resolvedPosts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
-                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
+                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
 
             else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
                 List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
@@ -558,7 +567,7 @@ consumeEvent globals event model =
 
         Event.PostsMarkedAsRead resolvedPosts ->
             if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
-                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
+                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
 
             else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
                 List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
@@ -571,7 +580,7 @@ consumeEvent globals event model =
                 List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
 
             else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                List.foldr (addPost globals) ( model, Cmd.none ) resolvedPosts
+                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
 
             else
                 ( model, Cmd.none )
