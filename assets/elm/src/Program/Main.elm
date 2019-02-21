@@ -1168,8 +1168,8 @@ routeFor page =
         GroupSettings { params } ->
             Just <| Route.GroupSettings params
 
-        Post { spaceSlug, postComp } ->
-            Just <| Route.Post spaceSlug postComp.id
+        Post { spaceSlug, postView } ->
+            Just <| Route.Post spaceSlug postView.id
 
         NewPost { params } ->
             Just <| Route.NewPost params
@@ -1238,7 +1238,7 @@ getSpaceSlug page =
         GroupSettings { params } ->
             Just <| Route.GroupSettings.getSpaceSlug params
 
-        Post { spaceSlug, postComp } ->
+        Post { spaceSlug } ->
             Just spaceSlug
 
         NewPost { params } ->

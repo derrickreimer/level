@@ -41,12 +41,12 @@ module PostSet exposing
 
 -}
 
-import Component.Post
 import Connection exposing (Connection)
 import Globals exposing (Globals)
 import Id exposing (Id)
 import ListHelpers exposing (getBy, memberBy, updateBy)
 import Post
+import PostView exposing (PostView)
 import Reply
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Set exposing (Set)
@@ -58,9 +58,9 @@ type PostSet
     = PostSet Internal
 
 
-type Components
+type Views
     = Empty
-    | NonEmpty (SelectList Component.Post.Model)
+    | NonEmpty (SelectList PostView)
 
 
 type State
@@ -69,7 +69,7 @@ type State
 
 
 type alias Internal =
-    { comps : Components
+    { views : Views
     , queue : Set Id
     , state : State
     }
@@ -88,14 +88,14 @@ load : List ResolvedPostWithReplies -> PostSet -> PostSet
 load resolvedPosts (PostSet internal) =
     let
         newComps =
-            case List.map Component.Post.init resolvedPosts of
+            case List.map PostView.init resolvedPosts of
                 [] ->
                     Empty
 
                 hd :: tl ->
                     NonEmpty (SelectList.fromLists [] hd tl)
     in
-    PostSet { internal | comps = newComps, state = Loaded }
+    PostSet { internal | views = newComps, state = Loaded }
 
 
 isLoaded : PostSet -> Bool
@@ -112,39 +112,39 @@ setLoaded (PostSet internal) =
 -- OPERATIONS
 
 
-get : Id -> PostSet -> Maybe Component.Post.Model
+get : Id -> PostSet -> Maybe PostView
 get id postSet =
     postSet
         |> toList
         |> getBy .id id
 
 
-update : Component.Post.Model -> PostSet -> PostSet
-update postComp (PostSet internal) =
+update : PostView -> PostSet -> PostSet
+update postView (PostSet internal) =
     let
         replacer current =
-            if current.id == postComp.id then
-                postComp
+            if current.id == postView.id then
+                postView
 
             else
                 current
 
-        newComps =
-            case internal.comps of
+        newViews =
+            case internal.views of
                 Empty ->
                     Empty
 
                 NonEmpty slist ->
                     NonEmpty (SelectList.map replacer slist)
     in
-    PostSet { internal | comps = newComps }
+    PostSet { internal | views = newViews }
 
 
 remove : Id -> PostSet -> PostSet
 remove id (PostSet internal) =
     let
         newComps =
-            case internal.comps of
+            case internal.views of
                 Empty ->
                     Empty
 
@@ -180,10 +180,10 @@ remove id (PostSet internal) =
                         in
                         NonEmpty (SelectList.fromLists newBefore currentlySelected newAfter)
     in
-    PostSet { internal | comps = newComps }
+    PostSet { internal | views = newComps }
 
 
-add : Globals -> ResolvedPostWithReplies -> PostSet -> ( PostSet, Cmd Component.Post.Msg )
+add : Globals -> ResolvedPostWithReplies -> PostSet -> ( PostSet, Cmd PostView.Msg )
 add globals resolvedPost postSet =
     let
         ( newPostSet, cmds ) =
@@ -206,9 +206,9 @@ enqueue postId (PostSet internal) =
 -- INSPECTION
 
 
-toList : PostSet -> List Component.Post.Model
+toList : PostSet -> List PostView
 toList (PostSet internal) =
-    case internal.comps of
+    case internal.views of
         Empty ->
             []
 
@@ -216,14 +216,14 @@ toList (PostSet internal) =
             SelectList.toList slist
 
 
-mapList : (Component.Post.Model -> b) -> PostSet -> List b
+mapList : (PostView -> b) -> PostSet -> List b
 mapList fn postSet =
     List.map fn (toList postSet)
 
 
 isEmpty : PostSet -> Bool
 isEmpty (PostSet internal) =
-    internal.comps == Empty
+    internal.views == Empty
 
 
 lastPostedAt : PostSet -> Maybe Posix
@@ -246,7 +246,7 @@ queueDepth (PostSet internals) =
 
 select : Id -> PostSet -> PostSet
 select id (PostSet internal) =
-    case internal.comps of
+    case internal.views of
         Empty ->
             PostSet internal
 
@@ -255,14 +255,14 @@ select id (PostSet internal) =
                 newComps =
                     SelectList.select (\item -> item.id == id) slist
             in
-            PostSet { internal | comps = NonEmpty newComps }
+            PostSet { internal | views = NonEmpty newComps }
 
 
 selectPrev : PostSet -> PostSet
 selectPrev (PostSet internal) =
     let
         newComps =
-            case internal.comps of
+            case internal.views of
                 Empty ->
                     Empty
 
@@ -278,14 +278,14 @@ selectPrev (PostSet internal) =
                                     newSelected
                                     (SelectList.selected slist :: SelectList.after slist)
     in
-    PostSet { internal | comps = newComps }
+    PostSet { internal | views = newComps }
 
 
 selectNext : PostSet -> PostSet
 selectNext (PostSet internal) =
     let
         newComps =
-            case internal.comps of
+            case internal.views of
                 Empty ->
                     Empty
 
@@ -301,12 +301,12 @@ selectNext (PostSet internal) =
                                     newSelected
                                     newAfter
     in
-    PostSet { internal | comps = newComps }
+    PostSet { internal | views = newComps }
 
 
-selected : PostSet -> Maybe Component.Post.Model
+selected : PostSet -> Maybe PostView
 selected (PostSet internal) =
-    case internal.comps of
+    case internal.views of
         Empty ->
             Nothing
 
@@ -342,24 +342,24 @@ sortByPostedAt ((PostSet internal) as postSet) =
             postSet
 
         hd :: tl ->
-            PostSet { internal | comps = NonEmpty (SelectList.fromLists [] hd tl) }
+            PostSet { internal | views = NonEmpty (SelectList.fromLists [] hd tl) }
 
 
 
 -- PRIVATE
 
 
-flushPost : Globals -> ResolvedPostWithReplies -> ( PostSet, List (Cmd Component.Post.Msg) ) -> ( PostSet, List (Cmd Component.Post.Msg) )
+flushPost : Globals -> ResolvedPostWithReplies -> ( PostSet, List (Cmd PostView.Msg) ) -> ( PostSet, List (Cmd PostView.Msg) )
 flushPost globals resolvedPost ( PostSet internal, cmds ) =
     let
         newComp =
-            Component.Post.init resolvedPost
+            PostView.init resolvedPost
 
         setupCmd =
-            Component.Post.setup globals newComp
+            PostView.setup globals newComp
 
         ( newComps, newCmds ) =
-            case internal.comps of
+            case internal.views of
                 Empty ->
                     ( NonEmpty (SelectList.fromLists [] newComp []), setupCmd :: cmds )
 
@@ -370,4 +370,4 @@ flushPost globals resolvedPost ( PostSet internal, cmds ) =
                     else
                         ( NonEmpty (SelectList.prepend [ newComp ] slist), setupCmd :: cmds )
     in
-    ( PostSet { internal | comps = newComps }, newCmds )
+    ( PostSet { internal | views = newComps }, newCmds )

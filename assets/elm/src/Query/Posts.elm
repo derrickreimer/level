@@ -1,6 +1,6 @@
 module Query.Posts exposing (Response, request)
 
-import Component.Post
+import PostView
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
