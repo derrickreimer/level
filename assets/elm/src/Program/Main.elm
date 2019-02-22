@@ -570,7 +570,7 @@ type PageInit
     = HomeInit (Result PageError ( Globals, Page.Home.Model ))
     | SpacesInit (Result PageError ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result PageError ( Globals, Page.NewSpace.Model ))
-    | PostsInit (Result PageError ( Globals, Page.Posts.Model ))
+    | PostsInit (Result PageError ( ( Page.Posts.Model, Cmd Page.Posts.Msg ), Globals ))
     | SpaceUserInit (Result PageError ( Globals, Page.SpaceUser.Model ))
     | SpaceUsersInit (Result PageError ( Globals, Page.SpaceUsers.Model ))
     | InviteUsersInit (Result PageError ( Globals, Page.InviteUsers.Model ))
@@ -846,8 +846,8 @@ setupPage pageInit model =
         NewSpaceInit (Err _) ->
             ( model, Cmd.none )
 
-        PostsInit (Ok ( newGlobals, pageModel )) ->
-            perform (Page.Posts.setup newGlobals) Posts PostsMsg model ( newGlobals, pageModel )
+        PostsInit (Ok ( ( pageModel, cmd ), newGlobals )) ->
+            performWithCmd (Page.Posts.setup newGlobals) Posts PostsMsg model ( ( pageModel, cmd ), newGlobals )
 
         PostsInit (Err PageError.NotFound) ->
             ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
@@ -907,7 +907,7 @@ setupPage pageInit model =
             ( model, Cmd.none )
 
         GroupInit (Ok ( ( pageModel, cmd ), newGlobals )) ->
-            perform (Page.Group.setup newGlobals) Group GroupMsg model ( newGlobals, pageModel )
+            performWithCmd (Page.Group.setup newGlobals) Group GroupMsg model ( ( pageModel, cmd ), newGlobals )
 
         GroupInit (Err PageError.NotFound) ->
             ( { model | page = NotFound, isTransitioning = False }, Cmd.none )

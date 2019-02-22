@@ -168,6 +168,7 @@ scaffold globals params viewer space group now =
         cachedPosts =
             globals.repo
                 |> Repo.getPostsByGroup (Group.id group) Nothing
+                |> List.sortWith Post.desc
                 |> List.filter (Post.withInboxState (Route.Group.getInboxState params))
                 |> List.take 20
 

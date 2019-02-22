@@ -65,7 +65,6 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , featuredUserIds : List Id
     , postViews : PostSet
     , now : TimeWithZone
     , searchEditor : FieldEditor String
@@ -81,7 +80,6 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , featuredUsers : List SpaceUser
     }
 
 
@@ -93,10 +91,9 @@ type Recipient
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
-    Maybe.map3 Data
+    Maybe.map2 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| Repo.getSpaceUsers model.featuredUserIds repo)
 
 
 
@@ -112,7 +109,7 @@ title =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task PageError ( Globals, Model )
+init : Params -> Globals -> Task PageError ( ( Model, Cmd Msg ), Globals )
 init params globals =
     let
         maybeUserId =
@@ -132,26 +129,44 @@ init params globals =
     case ( maybeViewer, maybeSpace ) of
         ( Just viewer, Just space ) ->
             TimeWithZone.now
-                |> Task.andThen (\now -> Task.succeed ( globals, scaffold params viewer space now ))
+                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space now))
 
         _ ->
             Task.fail PageError.NotFound
 
 
-scaffold : Params -> SpaceUser -> Space -> TimeWithZone -> Model
-scaffold params viewer space now =
-    Model
-        params
-        (SpaceUser.id viewer)
-        (Space.id space)
-        []
-        PostSet.empty
-        now
-        (FieldEditor.init "search-editor" "")
-        (PostEditor.init "post-composer")
-        False
-        False
-        False
+scaffold : Globals -> Params -> SpaceUser -> Space -> TimeWithZone -> ( ( Model, Cmd Msg ), Globals )
+scaffold globals params viewer space now =
+    let
+        -- TODO: filter these posts by "is following"
+        cachedPosts =
+            globals.repo
+                |> Repo.getPostsBySpace (Space.id space) Nothing
+                |> List.filter (Post.withInboxState (Route.Posts.getInboxState params))
+                |> List.take 20
+
+        ( postSet, postViewCmds ) =
+            PostSet.loadCached globals cachedPosts PostSet.empty
+
+        cmds =
+            postViewCmds
+                |> List.map (\( id, viewCmd ) -> Cmd.map (PostViewMsg id) viewCmd)
+                |> Cmd.batch
+
+        model =
+            Model
+                params
+                (SpaceUser.id viewer)
+                (Space.id space)
+                postSet
+                now
+                (FieldEditor.init "search-editor" "")
+                (PostEditor.init "post-composer")
+                False
+                False
+                False
+    in
+    ( ( model, cmds ), globals )
 
 
 setup : Globals -> Model -> Cmd Msg
@@ -538,6 +553,24 @@ consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
     case event of
         Event.ReplyCreated reply ->
+            let
+                postId =
+                    Reply.postId reply
+            in
+            case PostSet.get postId model.postViews of
+                Just postView ->
+                    let
+                        ( newPostView, cmd ) =
+                            PostView.refreshFromCache globals postView
+                    in
+                    ( { model | postViews = PostSet.update newPostView model.postViews }
+                    , Cmd.map (PostViewMsg postId) cmd
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Event.ReplyDeleted reply ->
             let
                 postId =
                     Reply.postId reply
@@ -1029,29 +1062,6 @@ filterTab device label linkParams currentParams =
             ]
         ]
         [ text label ]
-
-
-sidebarView : Space -> List SpaceUser -> List (Html Msg)
-sidebarView space featuredUsers =
-    [ h3 [ class "mb-2 text-base font-bold" ]
-        [ a
-            [ Route.href (Route.SpaceUsers <| Route.SpaceUsers.init (Space.slug space))
-            , class "flex items-center text-dusty-blue-darkest no-underline"
-            ]
-            [ text "Team Members"
-            ]
-        ]
-    , div [ class "pb-4" ] <| List.map (userItemView space) featuredUsers
-    , ul [ class "list-reset" ]
-        [ li []
-            [ a
-                [ Route.href (Route.InviteUsers (Space.slug space))
-                , class "text-md text-dusty-blue no-underline font-bold"
-                ]
-                [ text "Invite people" ]
-            ]
-        ]
-    ]
 
 
 userItemView : Space -> SpaceUser -> Html Msg
