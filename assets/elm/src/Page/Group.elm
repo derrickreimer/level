@@ -128,7 +128,7 @@ title repo model =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task PageError ( Globals, Model )
+init : Params -> Globals -> Task PageError ( ( Model, Cmd Msg ), Globals )
 init params globals =
     let
         maybeUserId =
@@ -156,29 +156,47 @@ init params globals =
     case ( maybeViewer, maybeSpace, maybeGroup ) of
         ( Just viewer, Just space, Just group ) ->
             TimeWithZone.now
-                |> Task.andThen (\now -> Task.succeed ( globals, scaffold params viewer space group now ))
+                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space group now))
 
         _ ->
             Task.fail PageError.NotFound
 
 
-scaffold : Params -> SpaceUser -> Space -> Group -> TimeWithZone -> Model
-scaffold params viewer space group now =
-    Model
-        params
-        (SpaceUser.id viewer)
-        (Space.id space)
-        (Group.id group)
-        NotLoaded
-        PostSet.empty
-        now
-        (FieldEditor.init "name-editor" "")
-        (PostEditor.init ("post-composer-" ++ Group.id group))
-        (FieldEditor.init "search-editor" "")
-        (Group.isWatching group)
-        False
-        False
-        False
+scaffold : Globals -> Params -> SpaceUser -> Space -> Group -> TimeWithZone -> ( ( Model, Cmd Msg ), Globals )
+scaffold globals params viewer space group now =
+    let
+        cachedPosts =
+            globals.repo
+                |> Repo.getPostsByGroup (Group.id group) Nothing
+                |> List.filter (Post.withInboxState (Route.Group.getInboxState params))
+                |> List.take 20
+
+        ( postSet, postViewCmds ) =
+            PostSet.loadCached globals cachedPosts PostSet.empty
+
+        cmds =
+            postViewCmds
+                |> List.map (\( id, viewCmd ) -> Cmd.map (PostViewMsg id) viewCmd)
+                |> Cmd.batch
+
+        model =
+            Model
+                params
+                (SpaceUser.id viewer)
+                (Space.id space)
+                (Group.id group)
+                NotLoaded
+                postSet
+                now
+                (FieldEditor.init "name-editor" "")
+                (PostEditor.init ("post-composer-" ++ Group.id group))
+                (FieldEditor.init "search-editor" "")
+                (Group.isWatching group)
+                False
+                False
+                False
+    in
+    ( ( model, cmds ), globals )
 
 
 setup : Globals -> Model -> Cmd Msg

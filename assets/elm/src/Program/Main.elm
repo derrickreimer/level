@@ -575,7 +575,7 @@ type PageInit
     | SpaceUsersInit (Result PageError ( Globals, Page.SpaceUsers.Model ))
     | InviteUsersInit (Result PageError ( Globals, Page.InviteUsers.Model ))
     | GroupsInit (Result PageError ( Globals, Page.Groups.Model ))
-    | GroupInit (Result PageError ( Globals, Page.Group.Model ))
+    | GroupInit (Result PageError ( ( Page.Group.Model, Cmd Page.Group.Msg ), Globals ))
     | NewGroupPostInit (Result PageError ( Globals, Page.NewGroupPost.Model ))
     | NewGroupInit (Result PageError ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
@@ -795,6 +795,19 @@ setupPage pageInit model =
               }
             , Cmd.map toPageMsg (setupFn pageModel)
             )
+
+        performWithCmd setupFn toPage toPageMsg appModel ( ( pageModel, initCmd ), newGlobals ) =
+            ( { appModel
+                | page = toPage pageModel
+                , session = newGlobals.session
+                , repo = Repo.union newGlobals.repo model.repo
+                , isTransitioning = False
+              }
+            , Cmd.batch
+                [ Cmd.map toPageMsg initCmd
+                , Cmd.map toPageMsg (setupFn pageModel)
+                ]
+            )
     in
     case pageInit of
         HomeInit (Ok result) ->
@@ -893,7 +906,7 @@ setupPage pageInit model =
         GroupsInit (Err _) ->
             ( model, Cmd.none )
 
-        GroupInit (Ok ( newGlobals, pageModel )) ->
+        GroupInit (Ok ( ( pageModel, cmd ), newGlobals )) ->
             perform (Page.Group.setup newGlobals) Group GroupMsg model ( newGlobals, pageModel )
 
         GroupInit (Err PageError.NotFound) ->

@@ -7,7 +7,7 @@ module Repo exposing
     , getSpaceBot, setSpaceBot
     , getActor, setActor
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
-    , getPost, getPosts, setPost, setPosts
+    , getPost, getPosts, setPost, setPosts, getPostsByGroup
     , getReply, getReplies, setReply, setReplies, getRepliesByPost
     )
 
@@ -56,7 +56,7 @@ module Repo exposing
 
 # Posts
 
-@docs getPost, getPosts, setPost, setPosts
+@docs getPost, getPosts, setPost, setPosts, getPostsByGroup
 
 
 # Replies
@@ -328,6 +328,24 @@ setPost post (Repo data) =
 setPosts : List Post -> Repo -> Repo
 setPosts posts repo =
     List.foldr setPost repo posts
+
+
+getPostsByGroup : Id -> Maybe Posix -> Repo -> List Post
+getPostsByGroup groupId maybeBefore (Repo data) =
+    let
+        basePosts =
+            data.posts
+                |> Dict.values
+                |> List.filter (\post -> List.member groupId (Post.groupIds post))
+                |> List.sortWith Post.desc
+    in
+    case maybeBefore of
+        Nothing ->
+            basePosts
+
+        Just before ->
+            basePosts
+                |> List.filter (\post -> Time.posixToMillis (Post.postedAt post) < Time.posixToMillis before)
 
 
 

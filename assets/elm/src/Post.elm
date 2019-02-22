@@ -3,6 +3,8 @@ module Post exposing
     , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
     , fragment
     , decoder, decoderWithReplies
+    , asc, desc
+    , withInboxState
     )
 
 {-| A post represents a message posted to group.
@@ -27,6 +29,16 @@ module Post exposing
 
 @docs decoder, decoderWithReplies
 
+
+# Sorting
+
+@docs asc, desc
+
+
+# Filtering
+
+@docs withInboxState
+
 -}
 
 import Author exposing (Author)
@@ -35,6 +47,7 @@ import File exposing (File)
 import GraphQL exposing (Fragment)
 import Group exposing (Group)
 import Id exposing (Id)
+import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import List
@@ -347,3 +360,49 @@ inboxStateDecoder =
                     fail "Inbox state not valid"
     in
     Decode.andThen convert string
+
+
+
+-- SORTING
+
+
+asc : Post -> Post -> Order
+asc (Post a) (Post b) =
+    compare (Time.posixToMillis a.postedAt) (Time.posixToMillis b.postedAt)
+
+
+desc : Post -> Post -> Order
+desc (Post a) (Post b) =
+    let
+        ac =
+            Time.posixToMillis a.postedAt
+
+        bc =
+            Time.posixToMillis b.postedAt
+    in
+    case compare ac bc of
+        LT ->
+            GT
+
+        EQ ->
+            EQ
+
+        GT ->
+            LT
+
+
+
+-- FILTERING
+
+
+withInboxState : InboxStateFilter -> Post -> Bool
+withInboxState filter (Post data) =
+    case filter of
+        InboxStateFilter.Undismissed ->
+            data.inboxState == Read || data.inboxState == Unread
+
+        InboxStateFilter.Dismissed ->
+            data.inboxState == Dismissed
+
+        _ ->
+            True

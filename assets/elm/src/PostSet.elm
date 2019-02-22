@@ -1,6 +1,6 @@
 module PostSet exposing
     ( PostSet, State(..)
-    , empty, load, isLoaded, setLoaded
+    , empty, loadCached, isLoaded, setLoaded
     , get, update, remove, add, enqueue
     , toList, mapList, isEmpty, lastPostedAt, queueDepth
     , select, selectPrev, selectNext, selected
@@ -17,7 +17,7 @@ module PostSet exposing
 
 # Initialization
 
-@docs empty, load, isLoaded, setLoaded
+@docs empty, loadCached, isLoaded, setLoaded
 
 
 # Operations
@@ -84,18 +84,24 @@ empty =
     PostSet (Internal Empty Set.empty Loading)
 
 
-load : Repo -> List Post -> PostSet -> PostSet
-load repo posts (PostSet internal) =
+loadCached : Globals -> List Post -> PostSet -> ( PostSet, List ( Id, Cmd PostView.Msg ) )
+loadCached globals posts (PostSet internal) =
     let
+        newViewList =
+            List.map (PostView.init globals.repo 3) posts
+
         newViews =
-            case List.map (PostView.init repo 3) posts of
+            case newViewList of
                 [] ->
                     Empty
 
                 hd :: tl ->
                     NonEmpty (SelectList.fromLists [] hd tl)
+
+        cmds =
+            List.map (\view -> ( view.id, PostView.setup globals view )) newViewList
     in
-    PostSet { internal | views = newViews, state = Loaded }
+    ( PostSet { internal | views = newViews, state = Loaded }, cmds )
 
 
 isLoaded : PostSet -> Bool
