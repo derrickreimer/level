@@ -87,7 +87,7 @@ empty =
 load : List ResolvedPostWithReplies -> PostSet -> PostSet
 load resolvedPosts (PostSet internal) =
     let
-        newComps =
+        newViews =
             case List.map PostView.init resolvedPosts of
                 [] ->
                     Empty
@@ -95,7 +95,7 @@ load resolvedPosts (PostSet internal) =
                 hd :: tl ->
                     NonEmpty (SelectList.fromLists [] hd tl)
     in
-    PostSet { internal | views = newComps, state = Loaded }
+    PostSet { internal | views = newViews, state = Loaded }
 
 
 isLoaded : PostSet -> Bool

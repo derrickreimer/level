@@ -36,6 +36,7 @@ import PostEditor exposing (PostEditor)
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
+import ReplySet exposing (ReplySet)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
