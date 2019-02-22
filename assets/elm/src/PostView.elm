@@ -1,4 +1,4 @@
-module PostView exposing (Msg(..), PostView, ViewConfig, expandReplyComposer, handleEditorEventReceived, handleReplyCreated, init, markVisibleRepliesAsViewed, postNodeId, setup, teardown, update, view)
+module PostView exposing (Msg(..), PostView, ViewConfig, expandReplyComposer, handleEditorEventReceived, init, markVisibleRepliesAsViewed, postNodeId, refreshFromCache, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -103,7 +103,11 @@ init repo replyLimit post =
             Post.id post
 
         replies =
-            Repo.getRepliesByPost postId replyLimit Nothing repo
+            repo
+                |> Repo.getRepliesByPost postId Nothing Nothing
+                |> List.sortWith Reply.desc
+                |> List.take replyLimit
+                |> List.sortWith Reply.asc
 
         replyViews =
             ReplySet.empty
@@ -751,17 +755,30 @@ expandReplyComposer globals postView =
     ( ( newPostView, cmd ), globals )
 
 
+{-| TODO: Should newly added replies to the set be automatically marked as read?
+-}
+refreshFromCache : Globals -> PostView -> ( PostView, Cmd Msg )
+refreshFromCache globals postView =
+    let
+        newReplies =
+            case ReplySet.lastPostedAt postView.replyViews of
+                Just lastPostedAt ->
+                    globals.repo
+                        |> Repo.getRepliesByPost postView.id Nothing (Just lastPostedAt)
+                        |> List.sortWith Reply.asc
+
+                Nothing ->
+                    globals.repo
+                        |> Repo.getRepliesByPost postView.id Nothing Nothing
+                        |> List.sortWith Reply.desc
+                        |> List.take 3
+                        |> List.sortWith Reply.asc
+    in
+    ( { postView | replyViews = ReplySet.appendMany postView.spaceId newReplies postView.replyViews }, Cmd.none )
+
+
 
 -- EVENT HANDLERS
-
-
-handleReplyCreated : Reply -> PostView -> ( PostView, Cmd Msg )
-handleReplyCreated reply postView =
-    if Reply.postId reply == postView.id then
-        ( { postView | replyViews = ReplySet.append postView.spaceId reply postView.replyViews }, Cmd.none )
-
-    else
-        ( postView, Cmd.none )
 
 
 handleEditorEventReceived : Decode.Value -> PostView -> PostView

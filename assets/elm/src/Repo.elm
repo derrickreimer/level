@@ -372,23 +372,30 @@ setReplies replies repo =
     List.foldr setReply repo replies
 
 
-getRepliesByPost : Id -> Int -> Maybe Posix -> Repo -> List Reply
-getRepliesByPost postId limit maybeBefore (Repo data) =
+getRepliesByPost : Id -> Maybe Posix -> Maybe Posix -> Repo -> List Reply
+getRepliesByPost postId maybeBefore maybeAfter (Repo data) =
     let
         baseReplies =
             data.replies
                 |> Dict.values
                 |> List.filter (\reply -> Reply.postId reply == postId)
-                |> List.sortWith Reply.desc
-    in
-    case maybeBefore of
-        Nothing ->
-            baseReplies
-                |> List.take limit
-                |> List.sortWith Reply.asc
 
-        Just before ->
-            baseReplies
-                |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) < Time.posixToMillis before)
-                |> List.take limit
-                |> List.sortWith Reply.asc
+        repliesWithBefore =
+            case maybeBefore of
+                Nothing ->
+                    baseReplies
+
+                Just before ->
+                    baseReplies
+                        |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) < Time.posixToMillis before)
+
+        repliesWithBeforeAndAfter =
+            case maybeAfter of
+                Nothing ->
+                    repliesWithBefore
+
+                Just after ->
+                    repliesWithBefore
+                        |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) > Time.posixToMillis after)
+    in
+    repliesWithBeforeAndAfter

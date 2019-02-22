@@ -127,23 +127,7 @@ get id postSet =
 
 update : PostView -> PostSet -> PostSet
 update postView (PostSet internal) =
-    let
-        replacer current =
-            if current.id == postView.id then
-                postView
-
-            else
-                current
-
-        newViews =
-            case internal.views of
-                Empty ->
-                    Empty
-
-                NonEmpty slist ->
-                    NonEmpty (SelectList.map replacer slist)
-    in
-    PostSet { internal | views = newViews }
+    PostSet { internal | views = updateView postView internal.views }
 
 
 remove : Id -> PostSet -> PostSet
@@ -356,24 +340,47 @@ sortByPostedAt ((PostSet internal) as postSet) =
 
 
 flushPost : Globals -> Post -> ( PostSet, List (Cmd PostView.Msg) ) -> ( PostSet, List (Cmd PostView.Msg) )
-flushPost globals post ( PostSet internal, cmds ) =
+flushPost globals post ( (PostSet internal) as postSet, cmds ) =
     let
-        newComp =
+        newView =
             PostView.init globals.repo 3 post
 
         setupCmd =
-            PostView.setup globals newComp
+            PostView.setup globals newView
 
-        ( newComps, newCmds ) =
+        ( newViews, newCmds ) =
             case internal.views of
                 Empty ->
-                    ( NonEmpty (SelectList.fromLists [] newComp []), setupCmd :: cmds )
+                    ( NonEmpty (SelectList.fromLists [] newView []), setupCmd :: cmds )
 
                 NonEmpty slist ->
-                    if memberBy .id newComp (SelectList.toList slist) then
-                        ( NonEmpty slist, cmds )
+                    case ListHelpers.getBy .id newView.id (SelectList.toList slist) of
+                        Just currentView ->
+                            let
+                                ( refreshedView, refreshCmd ) =
+                                    PostView.refreshFromCache globals currentView
+                            in
+                            ( updateView refreshedView internal.views, refreshCmd :: cmds )
 
-                    else
-                        ( NonEmpty (SelectList.prepend [ newComp ] slist), setupCmd :: cmds )
+                        Nothing ->
+                            ( NonEmpty (SelectList.prepend [ newView ] slist), setupCmd :: cmds )
     in
-    ( PostSet { internal | views = newComps }, newCmds )
+    ( PostSet { internal | views = newViews }, newCmds )
+
+
+updateView : PostView -> Views -> Views
+updateView postView views =
+    let
+        replacer current =
+            if current.id == postView.id then
+                postView
+
+            else
+                current
+    in
+    case views of
+        Empty ->
+            Empty
+
+        NonEmpty slist ->
+            NonEmpty (SelectList.map replacer slist)

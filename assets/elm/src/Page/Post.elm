@@ -401,7 +401,7 @@ consumeEvent globals event model =
         Event.ReplyCreated reply ->
             let
                 ( newPostComp, cmd ) =
-                    PostView.handleReplyCreated reply model.postView
+                    PostView.refreshFromCache globals model.postView
 
                 viewCmd =
                     globals.session

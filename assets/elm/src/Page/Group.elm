@@ -958,7 +958,7 @@ consumeEvent globals event model =
                 Just postView ->
                     let
                         ( newPostView, cmd ) =
-                            PostView.handleReplyCreated reply postView
+                            PostView.refreshFromCache globals postView
                     in
                     ( { model | postViews = PostSet.update newPostView model.postViews }
                     , Cmd.map (PostViewMsg postId) cmd
