@@ -1,7 +1,7 @@
 module ReplySet exposing
     ( ReplySet, State(..)
     , empty, load, isLoaded, setLoaded
-    , get, update, add, addPrev
+    , get, update, append, prepend, prependMany
     , map, isEmpty, firstPostedAt
     , sortByPostedAt
     )
@@ -21,7 +21,7 @@ module ReplySet exposing
 
 # Operations
 
-@docs get, update, add, addPrev
+@docs get, update, append, prepend, prependMany
 
 
 # Inspection
@@ -113,22 +113,27 @@ update replyView (ReplySet internal) =
     ReplySet { internal | views = List.map replacer internal.views }
 
 
-add : Id -> Reply -> ReplySet -> ReplySet
-add spaceId reply (ReplySet internal) =
-    let
-        newView =
-            ReplyView.init spaceId reply
-    in
-    ReplySet { internal | views = List.append internal.views [ newView ] }
+append : Id -> Reply -> ReplySet -> ReplySet
+append spaceId reply (ReplySet internal) =
+    if List.any (\view -> view.id == Reply.id reply) internal.views then
+        ReplySet internal
+
+    else
+        ReplySet { internal | views = List.append internal.views [ ReplyView.init spaceId reply ] }
 
 
-addPrev : Id -> List Reply -> ReplySet -> ReplySet
-addPrev spaceId replies (ReplySet internal) =
-    let
-        newViews =
-            List.map (ReplyView.init spaceId) replies
-    in
-    ReplySet { internal | views = List.append newViews internal.views }
+prepend : Id -> Reply -> ReplySet -> ReplySet
+prepend spaceId reply (ReplySet internal) =
+    if List.any (\view -> view.id == Reply.id reply) internal.views then
+        ReplySet internal
+
+    else
+        ReplySet { internal | views = ReplyView.init spaceId reply :: internal.views }
+
+
+prependMany : Id -> List Reply -> ReplySet -> ReplySet
+prependMany spaceId replies replySet =
+    List.foldr (prepend spaceId) replySet replies
 
 
 

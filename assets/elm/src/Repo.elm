@@ -338,7 +338,7 @@ getReply id (Repo data) =
     Dict.get id data.replies
 
 
-getReplies : List String -> Repo -> List Reply
+getReplies : List Id -> Repo -> List Reply
 getReplies ids repo =
     List.filterMap (\id -> getReply id repo) ids
 

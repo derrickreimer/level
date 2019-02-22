@@ -337,7 +337,7 @@ update msg globals postView =
                         |> Connection.toList
 
                 newReplyViews =
-                    ReplySet.addPrev postView.spaceId replies postView.replyViews
+                    ReplySet.prependMany postView.spaceId replies postView.replyViews
 
                 newGlobals =
                     { globals
@@ -760,7 +760,7 @@ expandReplyComposer globals postView =
 handleReplyCreated : Reply -> PostView -> ( PostView, Cmd Msg )
 handleReplyCreated reply postView =
     if Reply.postId reply == postView.id then
-        ( { postView | replyViews = ReplySet.add postView.spaceId reply postView.replyViews }, Cmd.none )
+        ( { postView | replyViews = ReplySet.append postView.spaceId reply postView.replyViews }, Cmd.none )
 
     else
         ( postView, Cmd.none )
