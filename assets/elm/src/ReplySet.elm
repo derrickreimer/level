@@ -1,8 +1,8 @@
 module ReplySet exposing
     ( ReplySet, State(..)
     , empty, load, isLoaded, setLoaded
-    , get, update, add
-    , map, isEmpty, lastPostedAt
+    , get, update, add, addPrev
+    , map, isEmpty, firstPostedAt
     , sortByPostedAt
     )
 
@@ -21,12 +21,12 @@ module ReplySet exposing
 
 # Operations
 
-@docs get, update, add
+@docs get, update, add, addPrev
 
 
 # Inspection
 
-@docs map, isEmpty, lastPostedAt
+@docs map, isEmpty, firstPostedAt
 
 
 # Sorting
@@ -122,6 +122,15 @@ add spaceId reply (ReplySet internal) =
     ReplySet { internal | views = List.append internal.views [ newView ] }
 
 
+addPrev : Id -> List Reply -> ReplySet -> ReplySet
+addPrev spaceId replies (ReplySet internal) =
+    let
+        newViews =
+            List.map (ReplyView.init spaceId) replies
+    in
+    ReplySet { internal | views = List.append newViews internal.views }
+
+
 
 -- INSPECTION
 
@@ -136,10 +145,9 @@ isEmpty (ReplySet internal) =
     List.isEmpty internal.views
 
 
-lastPostedAt : ReplySet -> Maybe Posix
-lastPostedAt (ReplySet internal) =
+firstPostedAt : ReplySet -> Maybe Posix
+firstPostedAt (ReplySet internal) =
     internal.views
-        |> List.reverse
         |> List.head
         |> Maybe.andThen (Just << .postedAt)
 

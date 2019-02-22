@@ -1,6 +1,5 @@
 module Query.Posts exposing (Response, request)
 
-import PostView
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
@@ -11,6 +10,7 @@ import Json.Encode as Encode
 import LastActivityFilter
 import Post exposing (Post)
 import PostStateFilter exposing (PostStateFilter)
+import PostView
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -41,8 +41,8 @@ document =
           $spaceSlug: String!,
           $first: Int,
           $last: Int,
-          $before: Cursor,
-          $after: Cursor,
+          $before: Timestamp,
+          $after: Timestamp,
           $followingStateFilter: FollowingStateFilter!,
           $stateFilter: PostStateFilter!,
           $inboxStateFilter: InboxStateFilter!,
@@ -118,9 +118,9 @@ variables params limit maybeAfter =
 
 decoder : Decoder Data
 decoder =
-    Decode.at [ "data", "spaceUser" ] <|
+    Decode.at [ "data", "spaceUser", "space", "posts" ] <|
         Decode.map Data
-            (Decode.at [ "space", "posts" ] <| Connection.decoder ResolvedPostWithReplies.decoder)
+            (Connection.decoder ResolvedPostWithReplies.decoder)
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )

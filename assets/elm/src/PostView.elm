@@ -313,41 +313,45 @@ update msg globals postView =
             noCmd globals postView
 
         PreviousRepliesRequested ->
-            -- case Connection.startCursor postView.replyIds of
-            --     Just cursor ->
-            --         let
-            --             cmd =
-            --                 globals.session
-            --                     |> Query.Replies.request postView.spaceId postView.id cursor 10
-            --                     |> Task.attempt PreviousRepliesFetched
-            --         in
-            --         ( ( postView, cmd ), globals )
-            --
-            --     Nothing ->
-            noCmd globals postView
+            case ReplySet.firstPostedAt postView.replyViews of
+                Just postedAt ->
+                    let
+                        variables =
+                            Query.Replies.variables postView.spaceId postView.id 10 postedAt
+
+                        cmd =
+                            globals.session
+                                |> Query.Replies.request variables
+                                |> Task.attempt PreviousRepliesFetched
+                    in
+                    ( ( postView, cmd ), globals )
+
+                Nothing ->
+                    noCmd globals postView
 
         PreviousRepliesFetched (Ok ( newSession, resp )) ->
-            -- let
-            --     maybeFirstReplyId =
-            --         Connection.head postView.replyIds
-            --
-            --     newReplyIds =
-            --         Connection.prependConnection resp.replyIds postView.replyIds
-            --
-            --     newGlobals =
-            --         { globals
-            --             | session = newSession
-            --             , repo = Repo.union resp.repo globals.repo
-            --         }
-            --
-            --     newPostView =
-            --         { postView | replyIds = newReplyIds }
-            --
-            --     viewCmd =
-            --         markVisibleRepliesAsViewed newGlobals newPostView
-            -- in
-            -- ( ( newPostView, Cmd.batch [ viewCmd ] ), newGlobals )
-            noCmd globals postView
+            let
+                replies =
+                    resp.resolvedReplies
+                        |> Connection.map .reply
+                        |> Connection.toList
+
+                newReplyViews =
+                    ReplySet.addPrev postView.spaceId replies postView.replyViews
+
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , repo = Repo.union resp.repo globals.repo
+                    }
+
+                newPostView =
+                    { postView | replyViews = newReplyViews }
+
+                viewCmd =
+                    markVisibleRepliesAsViewed newGlobals newPostView
+            in
+            ( ( newPostView, viewCmd ), newGlobals )
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin globals postView

@@ -448,8 +448,8 @@ defmodule LevelWeb.Schema.Objects do
     field :replies, non_null(:reply_connection) do
       arg :first, :integer
       arg :last, :integer
-      arg :before, :cursor
-      arg :after, :cursor
+      arg :before, :timestamp
+      arg :after, :timestamp
       arg :order_by, :reply_order
       resolve &Resolvers.replies/3
     end
