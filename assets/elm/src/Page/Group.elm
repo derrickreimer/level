@@ -1000,7 +1000,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.postId) 85
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 85
 
                         Nothing ->
                             Cmd.none
@@ -1015,7 +1015,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.postId) 85
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 85
 
                         Nothing ->
                             Cmd.none
@@ -1028,7 +1028,7 @@ consumeKeyboardEvent globals event model =
                     let
                         cmd =
                             globals.session
-                                |> DismissPosts.request model.spaceId [ currentPost.postId ]
+                                |> DismissPosts.request model.spaceId [ currentPost.id ]
                                 |> Task.attempt PostsDismissed
                     in
                     ( ( model, cmd ), globals )
@@ -1042,7 +1042,7 @@ consumeKeyboardEvent globals event model =
                     let
                         cmd =
                             globals.session
-                                |> MarkAsRead.request model.spaceId [ currentPost.postId ]
+                                |> MarkAsRead.request model.spaceId [ currentPost.id ]
                                 |> Task.attempt PostsMarkedAsRead
                     in
                     ( ( model, cmd ), globals )
@@ -1056,7 +1056,7 @@ consumeKeyboardEvent globals event model =
                     let
                         cmd =
                             globals.session
-                                |> ClosePost.request model.spaceId currentPost.postId
+                                |> ClosePost.request model.spaceId currentPost.id
                                 |> Task.attempt PostClosed
                     in
                     ( ( model, cmd ), globals )

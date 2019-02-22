@@ -20,23 +20,20 @@ import Markdown
 import Mutation.ClosePost as ClosePost
 import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
-import Mutation.CreateReplyReaction as CreateReplyReaction
 import Mutation.DeletePost as DeletePost
 import Mutation.DeletePostReaction as DeletePostReaction
-import Mutation.DeleteReply as DeleteReply
-import Mutation.DeleteReplyReaction as DeleteReplyReaction
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
 import Mutation.UpdatePost as UpdatePost
-import Mutation.UpdateReply as UpdateReply
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
 import ReplySet exposing (ReplySet)
+import ReplyView exposing (ReplyView)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -63,12 +60,10 @@ import View.Helpers exposing (onPassiveClick, setFocus, smartFormatTime, unsetFo
 type alias PostView =
     { id : String
     , spaceId : String
-    , postId : Id
-    , replyIds : Connection Id
+    , replyViews : ReplySet
     , postedAt : Posix
+    , editor : PostEditor
     , replyComposer : PostEditor
-    , postEditor : PostEditor
-    , replyEditors : ReplyEditors
     , isChecked : Bool
     }
 
@@ -80,15 +75,11 @@ type alias Data =
     }
 
 
-type alias ReplyEditors =
-    Dict Id PostEditor
-
-
 resolveData : Repo -> PostView -> Maybe Data
 resolveData repo postView =
     let
         maybePost =
-            Repo.getPost postView.postId repo
+            Repo.getPost postView.id repo
     in
     case maybePost of
         Just post ->
@@ -108,32 +99,39 @@ resolveData repo postView =
 init : ResolvedPostWithReplies -> PostView
 init resolvedPost =
     let
-        ( postId, replyIds ) =
-            ResolvedPostWithReplies.unresolve resolvedPost
+        postId =
+            Post.id resolvedPost.post
+
+        replies =
+            resolvedPost.resolvedReplies
+                |> Connection.map .reply
+                |> Connection.toList
+
+        replyViews =
+            ReplySet.empty
+                |> ReplySet.load (Post.spaceId resolvedPost.post) replies
     in
     PostView
         postId
         (Post.spaceId resolvedPost.post)
-        postId
-        replyIds
+        replyViews
         (Post.postedAt resolvedPost.post)
         (PostEditor.init postId)
         (PostEditor.init postId)
-        Dict.empty
         False
 
 
 setup : Globals -> PostView -> Cmd Msg
 setup globals postView =
     Cmd.batch
-        [ PostSubscription.subscribe postView.postId
+        [ PostSubscription.subscribe postView.id
         , markVisibleRepliesAsViewed globals postView
         ]
 
 
 teardown : Globals -> PostView -> Cmd Msg
 teardown globals postView =
-    PostSubscription.unsubscribe postView.postId
+    PostSubscription.unsubscribe postView.id
 
 
 
@@ -142,6 +140,7 @@ teardown globals postView =
 
 type Msg
     = NoOp
+    | ReplyViewMsg Id ReplyView.Msg
     | ExpandReplyComposer
     | NewReplyBodyChanged String
     | NewReplyFileAdded File
@@ -170,31 +169,16 @@ type Msg
     | PostEditorFileUploadError Id
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
-    | ExpandReplyEditor Id
-    | CollapseReplyEditor Id
-    | ReplyEditorBodyChanged Id String
-    | ReplyEditorFileAdded Id File
-    | ReplyEditorFileUploadProgress Id Id Int
-    | ReplyEditorFileUploaded Id Id Id String
-    | ReplyEditorFileUploadError Id Id
-    | ReplyEditorSubmitted Id
-    | ReplyUpdated Id (Result Session.Error ( Session, UpdateReply.Response ))
     | CreatePostReactionClicked
     | DeletePostReactionClicked
     | PostReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
     | PostReactionDeleted (Result Session.Error ( Session, DeletePostReaction.Response ))
-    | CreateReplyReactionClicked Id
-    | DeleteReplyReactionClicked Id
-    | ReplyReactionCreated Id (Result Session.Error ( Session, CreateReplyReaction.Response ))
-    | ReplyReactionDeleted Id (Result Session.Error ( Session, DeleteReplyReaction.Response ))
     | ClosePostClicked
     | ReopenPostClicked
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
     | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
     | DeletePostClicked
     | PostDeleted (Result Session.Error ( Session, DeletePost.Response ))
-    | DeleteReplyClicked Id
-    | ReplyDeleted Id (Result Session.Error ( Session, DeleteReply.Response ))
     | InternalLinkClicked String
 
 
@@ -203,6 +187,22 @@ update msg globals postView =
     case msg of
         NoOp ->
             noCmd globals postView
+
+        ReplyViewMsg replyId replyViewMsg ->
+            case ReplySet.get replyId postView.replyViews of
+                Just replyView ->
+                    let
+                        ( ( newReplyView, cmd ), newGlobals ) =
+                            ReplyView.update replyViewMsg globals replyView
+                    in
+                    ( ( { postView | replyViews = ReplySet.update newReplyView postView.replyViews }
+                      , Cmd.map (ReplyViewMsg replyId) cmd
+                      )
+                    , newGlobals
+                    )
+
+                Nothing ->
+                    ( ( postView, Cmd.none ), globals )
 
         ExpandReplyComposer ->
             expandReplyComposer globals postView
@@ -249,7 +249,7 @@ update msg globals postView =
 
                 cmd =
                     globals.session
-                        |> CreateReply.request postView.spaceId postView.postId body (PostEditor.getUploadIds postView.replyComposer)
+                        |> CreateReply.request postView.spaceId postView.id body (PostEditor.getUploadIds postView.replyComposer)
                         |> Task.attempt NewReplySubmitted
             in
             ( ( newPostView, cmd ), globals )
@@ -264,12 +264,12 @@ update msg globals postView =
 
                 replyCmd =
                     globals.session
-                        |> CreateReply.request postView.spaceId postView.postId body (PostEditor.getUploadIds postView.replyComposer)
+                        |> CreateReply.request postView.spaceId postView.id body (PostEditor.getUploadIds postView.replyComposer)
                         |> Task.attempt NewReplySubmitted
 
                 closeCmd =
                     globals.session
-                        |> ClosePost.request postView.spaceId postView.postId
+                        |> ClosePost.request postView.spaceId postView.id
                         |> Task.attempt PostClosed
             in
             ( ( newPostView, Cmd.batch [ replyCmd, closeCmd ] ), globals )
@@ -313,40 +313,41 @@ update msg globals postView =
             noCmd globals postView
 
         PreviousRepliesRequested ->
-            case Connection.startCursor postView.replyIds of
-                Just cursor ->
-                    let
-                        cmd =
-                            globals.session
-                                |> Query.Replies.request postView.spaceId postView.postId cursor 10
-                                |> Task.attempt PreviousRepliesFetched
-                    in
-                    ( ( postView, cmd ), globals )
-
-                Nothing ->
-                    noCmd globals postView
+            -- case Connection.startCursor postView.replyIds of
+            --     Just cursor ->
+            --         let
+            --             cmd =
+            --                 globals.session
+            --                     |> Query.Replies.request postView.spaceId postView.id cursor 10
+            --                     |> Task.attempt PreviousRepliesFetched
+            --         in
+            --         ( ( postView, cmd ), globals )
+            --
+            --     Nothing ->
+            noCmd globals postView
 
         PreviousRepliesFetched (Ok ( newSession, resp )) ->
-            let
-                maybeFirstReplyId =
-                    Connection.head postView.replyIds
-
-                newReplyIds =
-                    Connection.prependConnection resp.replyIds postView.replyIds
-
-                newGlobals =
-                    { globals
-                        | session = newSession
-                        , repo = Repo.union resp.repo globals.repo
-                    }
-
-                newPostView =
-                    { postView | replyIds = newReplyIds }
-
-                viewCmd =
-                    markVisibleRepliesAsViewed newGlobals newPostView
-            in
-            ( ( newPostView, Cmd.batch [ viewCmd ] ), newGlobals )
+            -- let
+            --     maybeFirstReplyId =
+            --         Connection.head postView.replyIds
+            --
+            --     newReplyIds =
+            --         Connection.prependConnection resp.replyIds postView.replyIds
+            --
+            --     newGlobals =
+            --         { globals
+            --             | session = newSession
+            --             , repo = Repo.union resp.repo globals.repo
+            --         }
+            --
+            --     newPostView =
+            --         { postView | replyIds = newReplyIds }
+            --
+            --     viewCmd =
+            --         markVisibleRepliesAsViewed newGlobals newPostView
+            -- in
+            -- ( ( newPostView, Cmd.batch [ viewCmd ] ), newGlobals )
+            noCmd globals postView
 
         PreviousRepliesFetched (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -374,7 +375,7 @@ update msg globals postView =
             let
                 cmd =
                     globals.session
-                        |> DismissPosts.request postView.spaceId [ postView.postId ]
+                        |> DismissPosts.request postView.spaceId [ postView.id ]
                         |> Task.attempt Dismissed
             in
             ( ( postView, cmd ), globals )
@@ -397,7 +398,7 @@ update msg globals postView =
             let
                 cmd =
                     globals.session
-                        |> MarkAsRead.request postView.spaceId [ postView.postId ]
+                        |> MarkAsRead.request postView.spaceId [ postView.id ]
                         |> Task.attempt PostMovedToInbox
             in
             ( ( postView, cmd ), globals )
@@ -421,10 +422,10 @@ update msg globals postView =
                 Just data ->
                     let
                         nodeId =
-                            PostEditor.getTextareaId postView.postEditor
+                            PostEditor.getTextareaId postView.editor
 
                         newPostEditor =
-                            postView.postEditor
+                            postView.editor
                                 |> PostEditor.expand
                                 |> PostEditor.setBody (Post.body data.post)
                                 |> PostEditor.setFiles (Post.files data.post)
@@ -435,7 +436,7 @@ update msg globals postView =
                                 [ setFocus nodeId NoOp
                                 ]
                     in
-                    ( ( { postView | postEditor = newPostEditor }, cmd ), globals )
+                    ( ( { postView | editor = newPostEditor }, cmd ), globals )
 
                 Nothing ->
                     noCmd globals postView
@@ -443,68 +444,68 @@ update msg globals postView =
         CollapsePostEditor ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.collapse
             in
-            ( ( { postView | postEditor = newPostEditor }, Cmd.none ), globals )
+            ( ( { postView | editor = newPostEditor }, Cmd.none ), globals )
 
         PostEditorBodyChanged val ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setBody val
             in
-            noCmd globals { postView | postEditor = newPostEditor }
+            noCmd globals { postView | editor = newPostEditor }
 
         PostEditorFileAdded file ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.addFile file
             in
-            noCmd globals { postView | postEditor = newPostEditor }
+            noCmd globals { postView | editor = newPostEditor }
 
         PostEditorFileUploadProgress clientId percentage ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setFileUploadPercentage clientId percentage
             in
-            noCmd globals { postView | postEditor = newPostEditor }
+            noCmd globals { postView | editor = newPostEditor }
 
         PostEditorFileUploaded clientId fileId url ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setFileState clientId (File.Uploaded fileId url)
 
                 cmd =
                     newPostEditor
                         |> PostEditor.insertFileLink fileId
             in
-            ( ( { postView | postEditor = newPostEditor }, cmd ), globals )
+            ( ( { postView | editor = newPostEditor }, cmd ), globals )
 
         PostEditorFileUploadError clientId ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setFileState clientId File.UploadError
             in
-            noCmd globals { postView | postEditor = newPostEditor }
+            noCmd globals { postView | editor = newPostEditor }
 
         PostEditorSubmitted ->
             let
                 cmd =
                     globals.session
-                        |> UpdatePost.request postView.spaceId postView.postId (PostEditor.getBody postView.postEditor)
+                        |> UpdatePost.request postView.spaceId postView.id (PostEditor.getBody postView.editor)
                         |> Task.attempt PostUpdated
 
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setToSubmitting
                         |> PostEditor.clearErrors
             in
-            ( ( { postView | postEditor = newPostEditor }, cmd ), globals )
+            ( ( { postView | editor = newPostEditor }, cmd ), globals )
 
         PostUpdated (Ok ( newSession, UpdatePost.Success post )) ->
             let
@@ -512,20 +513,20 @@ update msg globals postView =
                     { globals | session = newSession, repo = Repo.setPost post globals.repo }
 
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setNotSubmitting
                         |> PostEditor.collapse
             in
-            ( ( { postView | postEditor = newPostEditor }, Cmd.none ), newGlobals )
+            ( ( { postView | editor = newPostEditor }, Cmd.none ), newGlobals )
 
         PostUpdated (Ok ( newSession, UpdatePost.Invalid errors )) ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setNotSubmitting
                         |> PostEditor.setErrors errors
             in
-            ( ( { postView | postEditor = newPostEditor }, Cmd.none ), globals )
+            ( ( { postView | editor = newPostEditor }, Cmd.none ), globals )
 
         PostUpdated (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -533,195 +534,15 @@ update msg globals postView =
         PostUpdated (Err _) ->
             let
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setNotSubmitting
             in
-            ( ( { postView | postEditor = newPostEditor }, Cmd.none ), globals )
-
-        ExpandReplyEditor replyId ->
-            case Repo.getReply replyId globals.repo of
-                Just reply ->
-                    let
-                        newReplyEditor =
-                            postView.replyEditors
-                                |> getReplyEditor replyId
-                                |> PostEditor.expand
-                                |> PostEditor.setBody (Reply.body reply)
-                                |> PostEditor.setFiles (Reply.files reply)
-                                |> PostEditor.clearErrors
-
-                        nodeId =
-                            PostEditor.getTextareaId newReplyEditor
-
-                        cmd =
-                            Cmd.batch
-                                [ setFocus nodeId NoOp
-                                ]
-
-                        newReplyEditors =
-                            postView.replyEditors
-                                |> Dict.insert replyId newReplyEditor
-                    in
-                    ( ( { postView | replyEditors = newReplyEditors }, cmd ), globals )
-
-                Nothing ->
-                    noCmd globals postView
-
-        CollapseReplyEditor replyId ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.collapse
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), globals )
-
-        ReplyEditorBodyChanged replyId val ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setBody val
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), globals )
-
-        ReplyEditorFileAdded replyId file ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.addFile file
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), globals )
-
-        ReplyEditorFileUploadProgress replyId clientId percentage ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setFileUploadPercentage clientId percentage
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), globals )
-
-        ReplyEditorFileUploaded replyId clientId fileId url ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setFileState clientId (File.Uploaded fileId url)
-
-                cmd =
-                    newReplyEditor
-                        |> PostEditor.insertFileLink fileId
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, cmd ), globals )
-
-        ReplyEditorFileUploadError replyId clientId ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setFileState clientId File.UploadError
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), globals )
-
-        ReplyEditorSubmitted replyId ->
-            let
-                replyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-
-                cmd =
-                    globals.session
-                        |> UpdateReply.request postView.spaceId replyId (PostEditor.getBody replyEditor)
-                        |> Task.attempt (ReplyUpdated replyId)
-
-                newReplyEditor =
-                    replyEditor
-                        |> PostEditor.setToSubmitting
-                        |> PostEditor.clearErrors
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, cmd ), globals )
-
-        ReplyUpdated replyId (Ok ( newSession, UpdateReply.Success reply )) ->
-            let
-                newGlobals =
-                    { globals | session = newSession, repo = Repo.setReply reply globals.repo }
-
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setNotSubmitting
-                        |> PostEditor.collapse
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), newGlobals )
-
-        ReplyUpdated replyId (Ok ( newSession, UpdateReply.Invalid errors )) ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setNotSubmitting
-                        |> PostEditor.setErrors errors
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), globals )
-
-        ReplyUpdated replyId (Err Session.Expired) ->
-            redirectToLogin globals postView
-
-        ReplyUpdated replyId (Err _) ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setNotSubmitting
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none ), globals )
+            ( ( { postView | editor = newPostEditor }, Cmd.none ), globals )
 
         CreatePostReactionClicked ->
             let
                 variables =
-                    CreatePostReaction.variables postView.spaceId postView.postId
+                    CreatePostReaction.variables postView.spaceId postView.id
 
                 cmd =
                     globals.session
@@ -746,7 +567,7 @@ update msg globals postView =
         DeletePostReactionClicked ->
             let
                 variables =
-                    DeletePostReaction.variables postView.spaceId postView.postId
+                    DeletePostReaction.variables postView.spaceId postView.id
 
                 cmd =
                     globals.session
@@ -768,61 +589,11 @@ update msg globals postView =
         PostReactionDeleted _ ->
             ( ( postView, Cmd.none ), globals )
 
-        CreateReplyReactionClicked replyId ->
-            let
-                variables =
-                    CreateReplyReaction.variables postView.spaceId postView.postId replyId
-
-                cmd =
-                    globals.session
-                        |> CreateReplyReaction.request variables
-                        |> Task.attempt (ReplyReactionCreated replyId)
-            in
-            ( ( postView, cmd ), globals )
-
-        ReplyReactionCreated _ (Ok ( newSession, CreateReplyReaction.Success reply )) ->
-            let
-                newGlobals =
-                    { globals | repo = Repo.setReply reply globals.repo, session = newSession }
-            in
-            ( ( postView, Cmd.none ), newGlobals )
-
-        ReplyReactionCreated _ (Err Session.Expired) ->
-            redirectToLogin globals postView
-
-        ReplyReactionCreated _ _ ->
-            ( ( postView, Cmd.none ), globals )
-
-        DeleteReplyReactionClicked replyId ->
-            let
-                variables =
-                    DeleteReplyReaction.variables postView.spaceId postView.postId replyId
-
-                cmd =
-                    globals.session
-                        |> DeleteReplyReaction.request variables
-                        |> Task.attempt (ReplyReactionDeleted replyId)
-            in
-            ( ( postView, cmd ), globals )
-
-        ReplyReactionDeleted _ (Ok ( newSession, DeleteReplyReaction.Success reply )) ->
-            let
-                newGlobals =
-                    { globals | repo = Repo.setReply reply globals.repo, session = newSession }
-            in
-            ( ( postView, Cmd.none ), newGlobals )
-
-        ReplyReactionDeleted _ (Err Session.Expired) ->
-            redirectToLogin globals postView
-
-        ReplyReactionDeleted _ _ ->
-            ( ( postView, Cmd.none ), globals )
-
         ClosePostClicked ->
             let
                 cmd =
                     globals.session
-                        |> ClosePost.request postView.spaceId postView.postId
+                        |> ClosePost.request postView.spaceId postView.id
                         |> Task.attempt PostClosed
             in
             ( ( { postView | replyComposer = PostEditor.setToSubmitting postView.replyComposer }, cmd ), globals )
@@ -831,7 +602,7 @@ update msg globals postView =
             let
                 cmd =
                     globals.session
-                        |> ReopenPost.request postView.spaceId postView.postId
+                        |> ReopenPost.request postView.spaceId postView.id
                         |> Task.attempt PostReopened
             in
             ( ( { postView | replyComposer = PostEditor.setToSubmitting postView.replyComposer }, cmd ), globals )
@@ -840,10 +611,10 @@ update msg globals postView =
             let
                 cmd =
                     globals.session
-                        |> DeletePost.request (DeletePost.variables postView.spaceId postView.postId)
+                        |> DeletePost.request (DeletePost.variables postView.spaceId postView.id)
                         |> Task.attempt PostDeleted
             in
-            ( ( { postView | postEditor = PostEditor.setToSubmitting postView.postEditor }, cmd ), globals )
+            ( ( { postView | editor = PostEditor.setToSubmitting postView.editor }, cmd ), globals )
 
         PostClosed (Ok ( newSession, ClosePost.Success post )) ->
             let
@@ -907,16 +678,16 @@ update msg globals postView =
                         |> Repo.setPost post
 
                 newPostEditor =
-                    postView.postEditor
+                    postView.editor
                         |> PostEditor.setNotSubmitting
                         |> PostEditor.collapse
             in
-            ( ( { postView | postEditor = newPostEditor }, Cmd.none )
+            ( ( { postView | editor = newPostEditor }, Cmd.none )
             , { globals | repo = newRepo, session = newSession }
             )
 
         PostDeleted (Ok ( newSession, DeletePost.Invalid errors )) ->
-            ( ( { postView | postEditor = PostEditor.setNotSubmitting postView.postEditor }, Cmd.none )
+            ( ( { postView | editor = PostEditor.setNotSubmitting postView.editor }, Cmd.none )
             , { globals | session = newSession }
             )
 
@@ -925,60 +696,6 @@ update msg globals postView =
 
         PostDeleted (Err _) ->
             noCmd globals postView
-
-        DeleteReplyClicked replyId ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setToSubmitting
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-
-                cmd =
-                    globals.session
-                        |> DeleteReply.request (DeleteReply.variables postView.spaceId replyId)
-                        |> Task.attempt (ReplyDeleted replyId)
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, cmd ), globals )
-
-        ReplyDeleted _ (Ok ( newSession, DeleteReply.Success reply )) ->
-            ( ( postView, Cmd.none ), { globals | session = newSession } )
-
-        ReplyDeleted replyId (Ok ( newSession, DeleteReply.Invalid _ )) ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setNotSubmitting
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none )
-            , { globals | session = newSession }
-            )
-
-        ReplyDeleted _ (Err Session.Expired) ->
-            redirectToLogin globals postView
-
-        ReplyDeleted replyId (Err _) ->
-            let
-                newReplyEditor =
-                    postView.replyEditors
-                        |> getReplyEditor replyId
-                        |> PostEditor.setNotSubmitting
-
-                newReplyEditors =
-                    postView.replyEditors
-                        |> Dict.insert replyId newReplyEditor
-            in
-            ( ( { postView | replyEditors = newReplyEditors }, Cmd.none )
-            , globals
-            )
 
         InternalLinkClicked pathname ->
             ( ( postView, Nav.pushUrl globals.navKey pathname ), globals )
@@ -996,22 +713,22 @@ redirectToLogin globals postView =
 
 markVisibleRepliesAsViewed : Globals -> PostView -> Cmd Msg
 markVisibleRepliesAsViewed globals postView =
-    let
-        ( replies, _ ) =
-            visibleReplies globals.repo postView.replyIds
-
-        unviewedReplyIds =
-            replies
-                |> List.filter (\reply -> not (Reply.hasViewed reply))
-                |> List.map Reply.id
-    in
-    if List.length unviewedReplyIds > 0 then
-        globals.session
-            |> RecordReplyViews.request postView.spaceId unviewedReplyIds
-            |> Task.attempt ReplyViewsRecorded
-
-    else
-        Cmd.none
+    -- let
+    --     ( replies, _ ) =
+    --         visibleReplies globals.repo postView.replyIds
+    --
+    --     unviewedReplyIds =
+    --         replies
+    --             |> List.filter (\reply -> not (Reply.hasViewed reply))
+    --             |> List.map Reply.id
+    -- in
+    -- if List.length unviewedReplyIds > 0 then
+    --     globals.session
+    --         |> RecordReplyViews.request postView.spaceId unviewedReplyIds
+    --         |> Task.attempt ReplyViewsRecorded
+    --
+    -- else
+    Cmd.none
 
 
 expandReplyComposer : Globals -> PostView -> ( ( PostView, Cmd Msg ), Globals )
@@ -1035,11 +752,11 @@ expandReplyComposer globals postView =
 
 handleReplyCreated : Reply -> PostView -> ( PostView, Cmd Msg )
 handleReplyCreated reply postView =
-    if Reply.postId reply == postView.postId then
-        ( { postView | replyIds = Connection.append identity (Reply.id reply) postView.replyIds }, Cmd.none )
-
-    else
-        ( postView, Cmd.none )
+    -- if Reply.postId reply == postView.id then
+    --     ( { postView | replyIds = Connection.append identity (Reply.id reply) postView.replyIds }, Cmd.none )
+    --
+    -- else
+    ( postView, Cmd.none )
 
 
 handleEditorEventReceived : Decode.Value -> PostView -> PostView
@@ -1087,22 +804,22 @@ view config postView =
 
 resolvedView : ViewConfig -> PostView -> Data -> Html Msg
 resolvedView config postView data =
-    div [ id (postNodeId postView.postId), class "flex" ]
+    div [ id (postNodeId postView.id), class "flex" ]
         [ div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
-                    [ postAuthorName config.space postView.postId data.author
+                    [ postAuthorName config.space postView.id data.author
                     , viewIf (Post.isPrivate data.post) <|
                         span [ class "mr-2 inline-block" ] [ Icons.lock ]
                     , a
-                        [ Route.href <| Route.Post (Space.slug config.space) postView.postId
+                        [ Route.href <| Route.Post (Space.slug config.space) postView.id
                         , class "no-underline whitespace-no-wrap"
                         , rel "tooltip"
                         , title "Expand post"
                         ]
                         [ View.Helpers.timeTag config.now (TimeWithZone.setPosix (Post.postedAt data.post) config.now) [ class "mr-3 text-sm text-dusty-blue" ] ]
-                    , viewIf (not (PostEditor.isExpanded postView.postEditor) && Post.canEdit data.post) <|
+                    , viewIf (not (PostEditor.isExpanded postView.editor) && Post.canEdit data.post) <|
                         button
                             [ class "mr-3 text-sm text-dusty-blue"
                             , onClick ExpandPostEditor
@@ -1114,10 +831,10 @@ resolvedView config postView data =
                 ]
             , viewIf config.showGroups <|
                 groupsLabel config.space (Repo.getGroups (Post.groupIds data.post) config.globals.repo)
-            , viewUnless (PostEditor.isExpanded postView.postEditor) <|
+            , viewUnless (PostEditor.isExpanded postView.editor) <|
                 bodyView config.space data.post
-            , viewIf (PostEditor.isExpanded postView.postEditor) <|
-                postEditorView config postView.postEditor
+            , viewIf (PostEditor.isExpanded postView.editor) <|
+                editorView config postView.editor
             , div [ class "pb-2 flex items-start" ]
                 [ postReactionButton data.post data.reactors
                 , replyButtonView config postView data
@@ -1235,8 +952,8 @@ bodyView space post =
         ]
 
 
-postEditorView : ViewConfig -> PostEditor -> Html Msg
-postEditorView viewConfig editor =
+editorView : ViewConfig -> PostEditor -> Html Msg
+editorView viewConfig editor =
     let
         config =
             { editor = editor
@@ -1296,153 +1013,23 @@ postEditorView viewConfig editor =
 
 repliesView : ViewConfig -> PostView -> Data -> Html Msg
 repliesView config postView data =
-    let
-        ( replies, hasPreviousPage ) =
-            visibleReplies config.globals.repo postView.replyIds
-    in
-    viewUnless (Connection.isEmptyAndExpanded postView.replyIds) <|
+    viewUnless (ReplySet.isEmpty postView.replyViews) <|
         div []
-            [ viewIf hasPreviousPage <|
-                button
-                    [ class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
-                    , onClick PreviousRepliesRequested
-                    ]
-                    [ text "Load more..."
-                    ]
-            , div [] (List.map (replyView config postView data) replies)
+            [ button
+                [ class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
+                , onClick PreviousRepliesRequested
+                ]
+                [ text "Load more..."
+                ]
+            , div []
+                (ReplySet.map
+                    (\replyView ->
+                        ReplyView.view config replyView
+                            |> Html.map (ReplyViewMsg replyView.id)
+                    )
+                    postView.replyViews
+                )
             ]
-
-
-replyView : ViewConfig -> PostView -> Data -> Reply -> Html Msg
-replyView config postView data reply =
-    let
-        replyId =
-            Reply.id reply
-
-        reactors =
-            Repo.getSpaceUsers (Reply.reactorIds reply) config.globals.repo
-
-        editor =
-            getReplyEditor replyId postView.replyEditors
-    in
-    case ResolvedAuthor.resolve config.globals.repo (Reply.author reply) of
-        Just author ->
-            div
-                [ id (replyNodeId replyId)
-                , classList [ ( "flex mt-2 text-md relative", True ) ]
-                ]
-                [ viewUnless (Reply.hasViewed reply) <|
-                    div [ class "mr-2 -ml-3 mt-1 w-1 h-9 rounded pin-t bg-orange flex-no-shrink" ] []
-                , div [ class "flex-no-shrink mr-3 z-10 pt-1" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small author) ]
-                , div
-                    [ classList
-                        [ ( "leading-normal -ml-6 px-6 py-2 mb-1 bg-grey-light rounded-xl", True )
-                        , ( "flex-grow", PostEditor.isExpanded editor )
-                        ]
-                    ]
-                    [ div [ class "pb-1/2" ]
-                        [ replyAuthorName config.space author
-                        , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Reply.postedAt reply) config.now) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
-                        , viewIf (not (PostEditor.isExpanded editor) && Reply.canEdit reply) <|
-                            button
-                                [ class "mr-3 text-sm text-dusty-blue"
-                                , onClick (ExpandReplyEditor replyId)
-                                ]
-                                [ text "Edit" ]
-                        ]
-                    , viewUnless (PostEditor.isExpanded editor) <|
-                        div []
-                            [ div [ class "markdown pb-1" ]
-                                [ RenderedHtml.node
-                                    { html = Reply.bodyHtml reply
-                                    , onInternalLinkClicked = InternalLinkClicked
-                                    }
-                                ]
-                            , staticFilesView (Reply.files reply)
-                            ]
-                    , viewIf (PostEditor.isExpanded editor) <| replyEditorView config replyId editor
-                    , viewUnless (PostEditor.isExpanded editor) <|
-                        div [ class "pb-1/2 flex items-start" ] [ replyReactionButton reply reactors ]
-                    ]
-                ]
-
-        Nothing ->
-            -- The author was not in the repo as expected, so we can't display the reply
-            text ""
-
-
-replyAuthorName : Space -> ResolvedAuthor -> Html Msg
-replyAuthorName space author =
-    case ResolvedAuthor.actor author of
-        Actor.User user ->
-            a
-                [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.handle user))
-                , class "whitespace-no-wrap no-underline"
-                ]
-                [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| ResolvedAuthor.displayName author ]
-                , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ ResolvedAuthor.handle author ]
-                ]
-
-        _ ->
-            span [ class "whitespace-no-wrap" ]
-                [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| ResolvedAuthor.displayName author ]
-                , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ ResolvedAuthor.handle author ]
-                ]
-
-
-replyEditorView : ViewConfig -> Id -> PostEditor -> Html Msg
-replyEditorView viewConfig replyId editor =
-    let
-        config =
-            { editor = editor
-            , spaceId = Space.id viewConfig.space
-            , spaceUsers = viewConfig.spaceUsers
-            , groups = viewConfig.groups
-            , onFileAdded = ReplyEditorFileAdded replyId
-            , onFileUploadProgress = ReplyEditorFileUploadProgress replyId
-            , onFileUploaded = ReplyEditorFileUploaded replyId
-            , onFileUploadError = ReplyEditorFileUploadError replyId
-            , classList = [ ( "tribute-pin-t", True ) ]
-            }
-    in
-    PostEditor.wrapper config
-        [ label [ class "composer my-2 p-0" ]
-            [ textarea
-                [ id (PostEditor.getTextareaId editor)
-                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
-                , placeholder "Edit reply..."
-                , onInput (ReplyEditorBodyChanged replyId)
-                , readonly (PostEditor.isSubmitting editor)
-                , value (PostEditor.getBody editor)
-                , onKeydown preventDefault
-                    [ ( [ Meta ], enter, \event -> ReplyEditorSubmitted replyId )
-                    ]
-                ]
-                []
-            , ValidationError.prefixedErrorView "body" "Body" (PostEditor.getErrors editor)
-            , PostEditor.filesView editor
-            , div [ class "flex" ]
-                [ button
-                    [ class "mr-2 btn btn-grey-outline btn-sm"
-                    , onClick (DeleteReplyClicked replyId)
-                    ]
-                    [ text "Delete reply" ]
-                , div [ class "flex-grow flex justify-end" ]
-                    [ button
-                        [ class "mr-2 btn btn-grey-outline btn-sm"
-                        , onClick (CollapseReplyEditor replyId)
-                        ]
-                        [ text "Cancel" ]
-                    , button
-                        [ class "btn btn-blue btn-sm"
-                        , onClick (ReplyEditorSubmitted replyId)
-                        , disabled (PostEditor.isUnsubmittable editor)
-                        ]
-                        [ text "Update reply" ]
-                    ]
-                ]
-            ]
-        ]
 
 
 replyComposerView : ViewConfig -> PostView -> Data -> Html Msg
@@ -1536,7 +1123,7 @@ replyPromptView config postView data =
                 Post.Deleted ->
                     ( "", NoOp )
     in
-    if not (Connection.isEmpty postView.replyIds) then
+    if not (ReplySet.isEmpty postView.replyViews) then
         button [ class "flex my-4 items-center text-md", onClick msg ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
             , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
@@ -1644,53 +1231,6 @@ postReactionButton post reactors =
             ]
 
 
-replyReactionButton : Reply -> List SpaceUser -> Html Msg
-replyReactionButton reply reactors =
-    let
-        flyoutLabel =
-            if List.isEmpty reactors then
-                "Acknowledge"
-
-            else
-                "Acknowledged by"
-    in
-    if Reply.hasReacted reply then
-        button
-            [ class "flex relative items-center mr-6 no-outline react-button"
-            , onClick <| DeleteReplyReactionClicked (Reply.id reply)
-            ]
-            [ Icons.thumbsMedium Icons.On
-            , viewIf (Reply.reactionCount reply > 0) <|
-                div
-                    [ class "ml-1 text-green font-bold text-sm"
-                    ]
-                    [ text <| String.fromInt (Reply.reactionCount reply) ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
-                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactors) <|
-                    div [ class "mt-1" ] (List.map reactorView reactors)
-                ]
-            ]
-
-    else
-        button
-            [ class "flex relative items-center mr-6 no-outline react-button"
-            , onClick <| CreateReplyReactionClicked (Reply.id reply)
-            ]
-            [ Icons.thumbsMedium Icons.Off
-            , viewIf (Reply.reactionCount reply > 0) <|
-                div
-                    [ class "ml-1 text-dusty-blue font-bold text-sm"
-                    ]
-                    [ text <| String.fromInt (Reply.reactionCount reply) ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
-                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactors) <|
-                    div [ class "mt-1" ] (List.map reactorView reactors)
-                ]
-            ]
-
-
 reactorView : SpaceUser -> Html Msg
 reactorView user =
     div
@@ -1732,9 +1272,3 @@ visibleReplies repo replyIds =
             Connection.hasPreviousPage replyIds
     in
     ( replies, hasPreviousPage )
-
-
-getReplyEditor : Id -> ReplyEditors -> PostEditor
-getReplyEditor replyId editors =
-    Dict.get replyId editors
-        |> Maybe.withDefault (PostEditor.init replyId)

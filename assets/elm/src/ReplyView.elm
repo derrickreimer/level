@@ -1,4 +1,4 @@
-module ReplyView exposing (ReplyView, init, view)
+module ReplyView exposing (Msg(..), ReplyView, init, update, view)
 
 import Actor
 import Avatar

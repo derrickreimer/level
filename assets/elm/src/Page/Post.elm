@@ -28,6 +28,7 @@ import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
+import ReplySet
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Scroll
@@ -113,7 +114,7 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
         model =
             Model
                 spaceSlug
-                postView.postId
+                postView.id
                 resp.viewerId
                 resp.spaceId
                 postView
@@ -160,7 +161,7 @@ recordReplyViews globals model =
     let
         unviewedReplyIds =
             globals.repo
-                |> Repo.getReplies (Connection.toList model.postView.replyIds)
+                |> Repo.getReplies (ReplySet.map .id model.postView.replyViews)
                 |> List.filter (\reply -> not (Reply.hasViewed reply))
                 |> List.map Reply.id
     in
