@@ -717,22 +717,25 @@ redirectToLogin globals postView =
 
 markVisibleRepliesAsViewed : Globals -> PostView -> Cmd Msg
 markVisibleRepliesAsViewed globals postView =
-    -- let
-    --     ( replies, _ ) =
-    --         visibleReplies globals.repo postView.replyIds
-    --
-    --     unviewedReplyIds =
-    --         replies
-    --             |> List.filter (\reply -> not (Reply.hasViewed reply))
-    --             |> List.map Reply.id
-    -- in
-    -- if List.length unviewedReplyIds > 0 then
-    --     globals.session
-    --         |> RecordReplyViews.request postView.spaceId unviewedReplyIds
-    --         |> Task.attempt ReplyViewsRecorded
-    --
-    -- else
-    Cmd.none
+    let
+        replyIds =
+            ReplySet.map .id postView.replyViews
+
+        replies =
+            Repo.getReplies replyIds globals.repo
+
+        unviewedReplyIds =
+            replies
+                |> List.filter (not << Reply.hasViewed)
+                |> List.map Reply.id
+    in
+    if List.length unviewedReplyIds > 0 then
+        globals.session
+            |> RecordReplyViews.request postView.spaceId unviewedReplyIds
+            |> Task.attempt ReplyViewsRecorded
+
+    else
+        Cmd.none
 
 
 expandReplyComposer : Globals -> PostView -> ( ( PostView, Cmd Msg ), Globals )
@@ -756,11 +759,11 @@ expandReplyComposer globals postView =
 
 handleReplyCreated : Reply -> PostView -> ( PostView, Cmd Msg )
 handleReplyCreated reply postView =
-    -- if Reply.postId reply == postView.id then
-    --     ( { postView | replyIds = Connection.append identity (Reply.id reply) postView.replyIds }, Cmd.none )
-    --
-    -- else
-    ( postView, Cmd.none )
+    if Reply.postId reply == postView.id then
+        ( { postView | replyViews = ReplySet.add postView.spaceId reply postView.replyViews }, Cmd.none )
+
+    else
+        ( postView, Cmd.none )
 
 
 handleEditorEventReceived : Decode.Value -> PostView -> PostView
