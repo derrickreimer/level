@@ -773,8 +773,13 @@ refreshFromCache globals postView =
                         |> List.sortWith Reply.desc
                         |> List.take 3
                         |> List.sortWith Reply.asc
+
+        newReplyViews =
+            postView.replyViews
+                |> ReplySet.appendMany postView.spaceId newReplies
+                |> ReplySet.removeDeleted globals.repo
     in
-    ( { postView | replyViews = ReplySet.appendMany postView.spaceId newReplies postView.replyViews }, Cmd.none )
+    ( { postView | replyViews = newReplyViews }, Cmd.none )
 
 
 
@@ -831,7 +836,7 @@ resolvedView config postView data =
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
                 [ div []
-                    [ postAuthorName config.space postView.id data.author
+                    [ authorLabel config.space postView.id data.author
                     , viewIf (Post.isPrivate data.post) <|
                         span [ class "mr-2 inline-block" ] [ Icons.lock ]
                     , a
@@ -918,8 +923,8 @@ reopenButton post =
         [ Icons.closedSmall ]
 
 
-postAuthorName : Space -> Id -> ResolvedAuthor -> Html Msg
-postAuthorName space postId author =
+authorLabel : Space -> Id -> ResolvedAuthor -> Html Msg
+authorLabel space postId author =
     let
         route =
             case ResolvedAuthor.actor author of
@@ -1270,27 +1275,3 @@ reactorView user =
 postNodeId : String -> String
 postNodeId postId =
     "post-" ++ postId
-
-
-replyNodeId : String -> String
-replyNodeId replyId =
-    "reply-" ++ replyId
-
-
-replyComposerId : String -> String
-replyComposerId postId =
-    "reply-composer-" ++ postId
-
-
-visibleReplies : Repo -> Connection Id -> ( List Reply, Bool )
-visibleReplies repo replyIds =
-    let
-        replies =
-            repo
-                |> Repo.getReplies (Connection.toList replyIds)
-                |> List.filter Reply.notDeleted
-
-        hasPreviousPage =
-            Connection.hasPreviousPage replyIds
-    in
-    ( replies, hasPreviousPage )

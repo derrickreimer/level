@@ -1,7 +1,7 @@
 module ReplySet exposing
     ( ReplySet, State(..)
     , empty, load, isLoaded, setLoaded
-    , get, update, append, appendMany, prepend, prependMany
+    , get, update, append, appendMany, prepend, prependMany, removeDeleted
     , map, isEmpty, firstPostedAt, lastPostedAt
     , sortByPostedAt
     )
@@ -21,7 +21,7 @@ module ReplySet exposing
 
 # Operations
 
-@docs get, update, append, appendMany, prepend, prependMany
+@docs get, update, append, appendMany, prepend, prependMany, removeDeleted
 
 
 # Inspection
@@ -42,6 +42,7 @@ import ListHelpers exposing (getBy, memberBy, updateBy)
 import Post
 import Reply exposing (Reply)
 import ReplyView exposing (ReplyView)
+import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Set exposing (Set)
 import Time exposing (Posix)
@@ -139,6 +140,28 @@ prepend spaceId reply (ReplySet internal) =
 prependMany : Id -> List Reply -> ReplySet -> ReplySet
 prependMany spaceId replies replySet =
     List.foldr (prepend spaceId) replySet replies
+
+
+removeDeleted : Repo -> ReplySet -> ReplySet
+removeDeleted repo (ReplySet internal) =
+    let
+        filterFn repo2 view =
+            case Repo.getReply view.id repo2 of
+                Just reply ->
+                    if Reply.notDeleted reply then
+                        Just view
+
+                    else
+                        Nothing
+
+                Nothing ->
+                    Nothing
+
+        newViews =
+            internal.views
+                |> List.filterMap (filterFn repo)
+    in
+    ReplySet { internal | views = newViews }
 
 
 

@@ -967,6 +967,24 @@ consumeEvent globals event model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        Event.ReplyDeleted reply ->
+            let
+                postId =
+                    Reply.postId reply
+            in
+            case PostSet.get postId model.postViews of
+                Just postView ->
+                    let
+                        ( newPostView, cmd ) =
+                            PostView.refreshFromCache globals postView
+                    in
+                    ( { model | postViews = PostSet.update newPostView model.postViews }
+                    , Cmd.map (PostViewMsg postId) cmd
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         Event.PostsMarkedAsUnread resolvedPosts ->
             if Route.Group.getInboxState model.params == InboxStateFilter.Undismissed then
                 ( List.foldr enqueuePost model resolvedPosts, Cmd.none )

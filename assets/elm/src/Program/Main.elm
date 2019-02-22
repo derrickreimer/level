@@ -449,7 +449,7 @@ update msg model =
                             consumeEvent event model
 
                         ( newModel2, cmd2 ) =
-                            sendEventToPage globals event newModel
+                            sendEventToPage (buildGlobals newModel) event newModel
                     in
                     ( newModel2, Cmd.batch [ cmd, cmd2 ] )
 
