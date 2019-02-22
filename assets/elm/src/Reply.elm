@@ -1,4 +1,4 @@
-module Reply exposing (Reply, author, body, bodyHtml, canEdit, decoder, files, fragment, hasReacted, hasViewed, id, notDeleted, postId, postedAt, reactionCount, reactorIds)
+module Reply exposing (Reply, asc, author, body, bodyHtml, canEdit, decoder, desc, files, fragment, hasReacted, hasViewed, id, notDeleted, postId, postedAt, reactionCount, reactorIds)
 
 import Author exposing (Author)
 import File exposing (File)
@@ -166,3 +166,32 @@ decoder =
             |> required "postedAt" dateDecoder
             |> required "fetchedAt" int
         )
+
+
+
+-- SORTING
+
+
+asc : Reply -> Reply -> Order
+asc (Reply a) (Reply b) =
+    compare (Time.posixToMillis a.postedAt) (Time.posixToMillis b.postedAt)
+
+
+desc : Reply -> Reply -> Order
+desc (Reply a) (Reply b) =
+    let
+        ac =
+            Time.posixToMillis a.postedAt
+
+        bc =
+            Time.posixToMillis b.postedAt
+    in
+    case compare ac bc of
+        LT ->
+            GT
+
+        EQ ->
+            EQ
+
+        GT ->
+            LT

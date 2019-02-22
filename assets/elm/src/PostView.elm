@@ -96,26 +96,24 @@ resolveData repo postView =
 -- LIFECYCLE
 
 
-init : ResolvedPostWithReplies -> PostView
-init resolvedPost =
+init : Repo -> Int -> Post -> PostView
+init repo replyLimit post =
     let
         postId =
-            Post.id resolvedPost.post
+            Post.id post
 
         replies =
-            resolvedPost.resolvedReplies
-                |> Connection.map .reply
-                |> Connection.toList
+            Repo.getRepliesByPost postId replyLimit Nothing repo
 
         replyViews =
             ReplySet.empty
-                |> ReplySet.load (Post.spaceId resolvedPost.post) replies
+                |> ReplySet.load (Post.spaceId post) replies
     in
     PostView
         postId
-        (Post.spaceId resolvedPost.post)
+        (Post.spaceId post)
         replyViews
-        (Post.postedAt resolvedPost.post)
+        (Post.postedAt post)
         (PostEditor.init postId)
         (PostEditor.init postId)
         False

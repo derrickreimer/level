@@ -319,16 +319,16 @@ update msg globals model =
 
         PostsFetched limit (Ok ( newSession, resp )) ->
             let
+                newGlobals =
+                    { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
+
                 ( newModel, setupCmds ) =
-                    List.foldr (addPost globals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
+                    List.foldr (addPost newGlobals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
 
                 newPostComps =
                     newModel.postViews
                         |> PostSet.setLoaded
                         |> PostSet.sortByPostedAt
-
-                newGlobals =
-                    { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
             in
             ( ( { newModel | postViews = newPostComps }, setupCmds ), newGlobals )
 
@@ -870,7 +870,7 @@ addPost globals resolvedPost ( model, cmd ) =
     if Post.spaceId resolvedPost.post == model.spaceId then
         let
             ( newPostComps, newCmd ) =
-                PostSet.add globals resolvedPost model.postViews
+                PostSet.add globals resolvedPost.post model.postViews
         in
         ( { model | postViews = newPostComps }
         , Cmd.batch [ cmd, Cmd.map (PostViewMsg (Post.id resolvedPost.post)) newCmd ]

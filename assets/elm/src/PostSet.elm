@@ -45,10 +45,10 @@ import Connection exposing (Connection)
 import Globals exposing (Globals)
 import Id exposing (Id)
 import ListHelpers exposing (getBy, memberBy, updateBy)
-import Post
+import Post exposing (Post)
 import PostView exposing (PostView)
 import Reply
-import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import Repo exposing (Repo)
 import Set exposing (Set)
 import Time exposing (Posix)
 import Vendor.SelectList as SelectList exposing (SelectList)
@@ -84,11 +84,11 @@ empty =
     PostSet (Internal Empty Set.empty Loading)
 
 
-load : List ResolvedPostWithReplies -> PostSet -> PostSet
-load resolvedPosts (PostSet internal) =
+load : Repo -> List Post -> PostSet -> PostSet
+load repo posts (PostSet internal) =
     let
         newViews =
-            case List.map PostView.init resolvedPosts of
+            case List.map (PostView.init repo 3) posts of
                 [] ->
                     Empty
 
@@ -183,11 +183,11 @@ remove id (PostSet internal) =
     PostSet { internal | views = newComps }
 
 
-add : Globals -> ResolvedPostWithReplies -> PostSet -> ( PostSet, Cmd PostView.Msg )
-add globals resolvedPost postSet =
+add : Globals -> Post -> PostSet -> ( PostSet, Cmd PostView.Msg )
+add globals post postSet =
     let
         ( newPostSet, cmds ) =
-            flushPost globals resolvedPost ( postSet, [] )
+            flushPost globals post ( postSet, [] )
 
         cmd =
             cmds
@@ -349,11 +349,11 @@ sortByPostedAt ((PostSet internal) as postSet) =
 -- PRIVATE
 
 
-flushPost : Globals -> ResolvedPostWithReplies -> ( PostSet, List (Cmd PostView.Msg) ) -> ( PostSet, List (Cmd PostView.Msg) )
-flushPost globals resolvedPost ( PostSet internal, cmds ) =
+flushPost : Globals -> Post -> ( PostSet, List (Cmd PostView.Msg) ) -> ( PostSet, List (Cmd PostView.Msg) )
+flushPost globals post ( PostSet internal, cmds ) =
     let
         newComp =
-            PostView.init resolvedPost
+            PostView.init globals.repo 3 post
 
         setupCmd =
             PostView.setup globals newComp

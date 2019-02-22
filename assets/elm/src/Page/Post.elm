@@ -109,7 +109,7 @@ buildModel : String -> Globals -> ( ( Session, PostInit.Response ), TimeWithZone
 buildModel spaceSlug globals ( ( newSession, resp ), now ) =
     let
         postView =
-            PostView.init resp.resolvedPost
+            PostView.init globals.repo 20 resp.resolvedPost.post
 
         model =
             Model

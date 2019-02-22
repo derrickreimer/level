@@ -8,7 +8,7 @@ module Repo exposing
     , getActor, setActor
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts
-    , getReply, getReplies, setReply, setReplies
+    , getReply, getReplies, setReply, setReplies, getRepliesByPost
     )
 
 {-| The repo is a central repository of data fetched from the server.
@@ -61,7 +61,7 @@ module Repo exposing
 
 # Replies
 
-@docs getReply, getReplies, setReply, setReplies
+@docs getReply, getReplies, setReply, setReplies, getRepliesByPost
 
 -}
 
@@ -74,6 +74,7 @@ import Reply exposing (Reply)
 import Space exposing (Space)
 import SpaceBot exposing (SpaceBot)
 import SpaceUser exposing (SpaceUser)
+import Time exposing (Posix)
 import User exposing (User)
 
 
@@ -351,3 +352,25 @@ setReply reply (Repo data) =
 setReplies : List Reply -> Repo -> Repo
 setReplies replies repo =
     List.foldr setReply repo replies
+
+
+getRepliesByPost : Id -> Int -> Maybe Posix -> Repo -> List Reply
+getRepliesByPost postId limit maybeBefore (Repo data) =
+    let
+        baseReplies =
+            data.replies
+                |> Dict.values
+                |> List.filter (\reply -> Reply.postId reply == postId)
+                |> List.sortWith Reply.desc
+    in
+    case maybeBefore of
+        Nothing ->
+            baseReplies
+                |> List.take limit
+                |> List.sortWith Reply.asc
+
+        Just before ->
+            baseReplies
+                |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) < Time.posixToMillis before)
+                |> List.take limit
+                |> List.sortWith Reply.asc
