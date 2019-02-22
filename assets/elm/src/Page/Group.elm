@@ -212,7 +212,7 @@ setup globals model =
         postsCmd =
             globals.session
                 |> GroupPosts.request model.params 20 Nothing
-                |> Task.attempt (PostsFetched 20)
+                |> Task.attempt (PostsFetched model.groupId 20)
 
         featuredMembersCmd =
             globals.session
@@ -260,7 +260,7 @@ type Msg
     | ToggleKeyboardCommands
     | Tick Posix
     | LoadMoreClicked
-    | PostsFetched Int (Result Session.Error ( Session, GroupPosts.Response ))
+    | PostsFetched Id Int (Result Session.Error ( Session, GroupPosts.Response ))
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -329,32 +329,36 @@ update msg globals model =
                         Just lastPostedAt ->
                             globals.session
                                 |> GroupPosts.request model.params 20 (Just lastPostedAt)
-                                |> Task.attempt (PostsFetched 20)
+                                |> Task.attempt (PostsFetched model.groupId 20)
 
                         Nothing ->
                             Cmd.none
             in
             ( ( model, cmd ), globals )
 
-        PostsFetched limit (Ok ( newSession, resp )) ->
-            let
-                newGlobals =
-                    { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
+        PostsFetched groupId limit (Ok ( newSession, resp )) ->
+            if groupId == model.groupId then
+                let
+                    newGlobals =
+                        { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
 
-                ( newModel, setupCmds ) =
-                    List.foldr (addPost newGlobals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
+                    ( newModel, setupCmds ) =
+                        List.foldr (addPost newGlobals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
 
-                newPostComps =
-                    newModel.postViews
-                        |> PostSet.setLoaded
-                        |> PostSet.sortByPostedAt
-            in
-            ( ( { newModel | postViews = newPostComps }, setupCmds ), newGlobals )
+                    newPostComps =
+                        newModel.postViews
+                            |> PostSet.setLoaded
+                            |> PostSet.sortByPostedAt
+                in
+                ( ( { newModel | postViews = newPostComps }, setupCmds ), newGlobals )
 
-        PostsFetched _ (Err Session.Expired) ->
+            else
+                ( ( model, Cmd.none ), globals )
+
+        PostsFetched _ _ (Err Session.Expired) ->
             redirectToLogin globals model
 
-        PostsFetched _ _ ->
+        PostsFetched _ _ _ ->
             ( ( model, Cmd.none ), globals )
 
         PostEditorEventReceived value ->
