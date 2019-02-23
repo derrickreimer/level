@@ -1,7 +1,7 @@
 module PostSet exposing
     ( PostSet, State(..)
     , empty, loadCached, isLoaded, setLoaded
-    , get, update, remove, add, enqueue
+    , get, update, remove, add, enqueue, flushQueue, mapCommands
     , toList, mapList, isEmpty, lastPostedAt, queueDepth
     , select, selectPrev, selectNext, selected
     , sortByPostedAt
@@ -22,7 +22,7 @@ module PostSet exposing
 
 # Operations
 
-@docs get, update, remove, add, enqueue, flushQueue
+@docs get, update, remove, add, enqueue, flushQueue, mapCommands
 
 
 # Inspection
@@ -182,14 +182,46 @@ add globals post postSet =
         cmd =
             cmds
                 |> List.head
+                |> Maybe.map Tuple.second
                 |> Maybe.withDefault Cmd.none
     in
     ( newPostSet, cmd )
 
 
 enqueue : Id -> PostSet -> PostSet
-enqueue postId (PostSet internal) =
-    PostSet { internal | queue = Set.insert postId internal.queue }
+enqueue postId ((PostSet internal) as postSet) =
+    case get postId postSet of
+        Just _ ->
+            postSet
+
+        Nothing ->
+            PostSet { internal | queue = Set.insert postId internal.queue }
+
+
+flushQueue : Globals -> PostSet -> ( PostSet, List ( Id, Cmd PostView.Msg ) )
+flushQueue globals ((PostSet internal) as postSet) =
+    let
+        postIds =
+            internal.queue
+                |> Set.toList
+
+        posts =
+            globals.repo
+                |> Repo.getPosts postIds
+                |> List.sortWith Post.desc
+    in
+    List.foldr (flushPost globals) ( postSet, [] ) posts
+
+
+mapCommands : (Id -> PostView.Msg -> msg) -> ( PostSet, List ( Id, Cmd PostView.Msg ) ) -> ( PostSet, Cmd msg )
+mapCommands toMsg ( postSet, cmds ) =
+    let
+        batch =
+            cmds
+                |> List.map (\( id, cmd ) -> Cmd.map (toMsg id) cmd)
+                |> Cmd.batch
+    in
+    ( postSet, batch )
 
 
 
@@ -339,9 +371,12 @@ sortByPostedAt ((PostSet internal) as postSet) =
 -- PRIVATE
 
 
-flushPost : Globals -> Post -> ( PostSet, List (Cmd PostView.Msg) ) -> ( PostSet, List (Cmd PostView.Msg) )
+flushPost : Globals -> Post -> ( PostSet, List ( Id, Cmd PostView.Msg ) ) -> ( PostSet, List ( Id, Cmd PostView.Msg ) )
 flushPost globals post ( (PostSet internal) as postSet, cmds ) =
     let
+        postId =
+            Post.id post
+
         newView =
             PostView.init globals.repo 3 post
 
@@ -351,7 +386,7 @@ flushPost globals post ( (PostSet internal) as postSet, cmds ) =
         ( newViews, newCmds ) =
             case internal.views of
                 Empty ->
-                    ( NonEmpty (SelectList.fromLists [] newView []), setupCmd :: cmds )
+                    ( NonEmpty (SelectList.fromLists [] newView []), ( postId, setupCmd ) :: cmds )
 
                 NonEmpty slist ->
                     case ListHelpers.getBy .id newView.id (SelectList.toList slist) of
@@ -360,12 +395,12 @@ flushPost globals post ( (PostSet internal) as postSet, cmds ) =
                                 ( refreshedView, refreshCmd ) =
                                     PostView.refreshFromCache globals currentView
                             in
-                            ( updateView refreshedView internal.views, refreshCmd :: cmds )
+                            ( updateView refreshedView internal.views, ( postId, refreshCmd ) :: cmds )
 
                         Nothing ->
-                            ( NonEmpty (SelectList.prepend [ newView ] slist), setupCmd :: cmds )
+                            ( NonEmpty (SelectList.prepend [ newView ] slist), ( postId, setupCmd ) :: cmds )
     in
-    ( PostSet { internal | views = newViews }, newCmds )
+    ( PostSet { internal | views = newViews, queue = Set.remove (Post.id post) internal.queue }, newCmds )
 
 
 updateView : PostView -> Views -> Views

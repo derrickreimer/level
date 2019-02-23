@@ -245,6 +245,7 @@ type Msg
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | PostSelected Id
     | PushSubscribeClicked
+    | FlushQueueClicked
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -494,6 +495,15 @@ update msg globals model =
 
         PushSubscribeClicked ->
             ( ( model, ServiceWorker.pushSubscribe ), globals )
+
+        FlushQueueClicked ->
+            let
+                ( newPostViews, cmd ) =
+                    model.postViews
+                        |> PostSet.flushQueue globals
+                        |> PostSet.mapCommands PostViewMsg
+            in
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -822,6 +832,7 @@ resolvedDesktopView globals model data =
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
                     ]
+                , flushQueueButton model
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
@@ -835,6 +846,24 @@ resolvedDesktopView globals model data =
                     ]
             ]
         ]
+
+
+flushQueueButton : Model -> Html Msg
+flushQueueButton model =
+    let
+        depth =
+            PostSet.queueDepth model.postViews
+    in
+    viewIf (depth > 0) <|
+        div
+            [ class "absolute"
+            , style "left" "50%"
+            , style "top" "65px"
+            , style "transform" "translateX(-50%)"
+            ]
+            [ button [ class "btn btn-blue btn-sm shadow", onClick FlushQueueClicked ]
+                [ text <| "Show " ++ String.fromInt depth ++ " new post(s)" ]
+            ]
 
 
 desktopPostComposerView : Globals -> Model -> Data -> Html Msg
