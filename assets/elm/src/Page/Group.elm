@@ -173,7 +173,11 @@ scaffold globals params viewer space group now =
                 |> List.take 20
 
         ( postSet, postViewCmds ) =
-            PostSet.loadCached globals cachedPosts PostSet.empty
+            if List.isEmpty cachedPosts then
+                ( PostSet.empty, [] )
+
+            else
+                PostSet.loadCached globals cachedPosts PostSet.empty
 
         cmds =
             postViewCmds
