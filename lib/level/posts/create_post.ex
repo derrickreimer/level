@@ -156,10 +156,10 @@ defmodule Level.Posts.CreatePost do
     |> gather_groups()
     |> Enum.each(fn group ->
       _ = subscribe_watchers(result.post, group)
-      _ = send_events(result.post, group)
     end)
 
     _ = send_push_notifications(result, author)
+    _ = send_events(result.post)
 
     {:ok, result}
   end
@@ -206,10 +206,6 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp send_events(post, group) do
-    _ = Events.post_created(group.id, post)
-  end
-
   defp after_bot_post({:ok, result}, author) do
     _ = subscribe_mentioned_users(result.post, result)
     _ = subscribe_mentioned_groups(result.post, result)
@@ -218,10 +214,10 @@ defmodule Level.Posts.CreatePost do
     |> gather_groups()
     |> Enum.each(fn group ->
       _ = subscribe_watchers(result.post, group)
-      _ = send_events(result.post, group)
     end)
 
     _ = send_push_notifications(result, author)
+    _ = send_events(result.post)
 
     {:ok, result}
   end
@@ -254,5 +250,11 @@ defmodule Level.Posts.CreatePost do
       require_interaction: true,
       url: url
     }
+  end
+
+  defp send_events(post) do
+    {:ok, space_users} = Posts.get_accessors(post)
+    ids = Enum.map(space_users, fn space_user -> space_user.id end)
+    _ = Events.post_created(ids, post)
   end
 end

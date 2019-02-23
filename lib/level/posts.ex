@@ -828,29 +828,37 @@ defmodule Level.Posts do
   end
 
   @doc """
-  Fetches all the users who see the post in their Feed.
+  Fetches all the users who are allowed to see a post.
   """
-  @spec get_followers(Post.t()) :: {:ok, [SpaceUser.t()]} | no_return()
-  def get_followers(%Post{id: post_id, space_id: space_id}) do
+  @spec get_accessors(Post.t()) :: {:ok, [SpaceUser.t()]} | no_return()
+  def get_accessors(%Post{id: post_id, space_id: space_id} = post) do
     query =
-      from su in SpaceUser,
-        left_join: pg in PostGroup,
-        on: pg.post_id == ^post_id,
-        left_join: gu in GroupUser,
-        on: gu.group_id == pg.group_id and gu.space_user_id == su.id,
-        left_join: pu in PostUser,
-        on: pu.space_user_id == su.id and pu.post_id == ^post_id,
-        where: su.space_id == ^space_id,
-        where:
-          (gu.state in ["SUBSCRIBED", "WATCHING"] and not is_nil(pg.id)) or not is_nil(pu.id),
-        distinct: su.id
+      case private?(post) do
+        {:ok, true} ->
+          from su in SpaceUser,
+            left_join: pg in PostGroup,
+            on: pg.post_id == ^post_id,
+            left_join: gu in GroupUser,
+            on: gu.group_id == pg.group_id and gu.space_user_id == su.id,
+            left_join: pu in PostUser,
+            on: pu.space_user_id == su.id and pu.post_id == ^post_id,
+            where: su.space_id == ^space_id,
+            where: su.state == "ACTIVE",
+            where: not is_nil(pu.id) or gu.access == "PRIVATE",
+            distinct: su.id
+
+        _ ->
+          from su in SpaceUser,
+            where: su.space_id == ^space_id,
+            where: su.state == "ACTIVE"
+      end
 
     query
     |> Repo.all()
-    |> after_get_followers()
+    |> after_get_accessors()
   end
 
-  defp after_get_followers(space_users) do
+  defp after_get_accessors(space_users) do
     {:ok, space_users}
   end
 

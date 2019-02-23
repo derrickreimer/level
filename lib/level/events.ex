@@ -30,6 +30,10 @@ defmodule Level.Events do
 
   # Space user
 
+  def post_created(ids, %Post{} = post) do
+    publish_to_many_space_users(ids, :post_created, %{post: post})
+  end
+
   def group_bookmarked(id, %Group{} = group) do
     publish_to_space_user(id, :group_bookmarked, %{group: group})
   end
@@ -71,10 +75,6 @@ defmodule Level.Events do
   end
 
   # Group
-
-  def post_created(id, %Post{} = post) do
-    publish_to_group(id, :post_created, %{post: post})
-  end
 
   def group_membership_updated(id, {%Group{} = group, group_user}) do
     publish_to_group(id, :group_membership_updated, %{group: group, membership: group_user})
@@ -154,6 +154,11 @@ defmodule Level.Events do
 
   defp publish_to_space_user(id, type, data) do
     do_publish(Map.merge(data, %{type: type}), space_user_subscription: id)
+  end
+
+  defp publish_to_many_space_users(ids, type, data) do
+    topics = Enum.map(ids, fn id -> {:space_user_subscription, id} end)
+    do_publish(Map.merge(data, %{type: type}), topics)
   end
 
   defp publish_to_group(id, type, data) do

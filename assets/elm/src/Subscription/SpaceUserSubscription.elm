@@ -1,4 +1,4 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, subscribe, unsubscribe, userMentionedDecoder)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postCreatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, subscribe, unsubscribe, userMentionedDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -28,6 +28,14 @@ unsubscribe spaceUserId =
 
 
 -- DECODERS
+
+
+postCreatedDecoder : Decode.Decoder ResolvedPostWithReplies
+postCreatedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostCreated"
+        "post"
+        ResolvedPostWithReplies.decoder
 
 
 groupBookmarkedDecoder : Decode.Decoder Group
@@ -128,6 +136,14 @@ document =
         ) {
           spaceUserSubscription(spaceUserId: $spaceUserId) {
             __typename
+            ... on PostCreatedPayload {
+              post {
+                ...PostFields
+                replies(last: 5) {
+                  ...ReplyConnectionFields
+                }
+              }
+            }
             ... on GroupBookmarkedPayload {
               group {
                 ...GroupFields

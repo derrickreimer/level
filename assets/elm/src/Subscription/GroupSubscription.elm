@@ -1,4 +1,4 @@
-module Subscription.GroupSubscription exposing (groupUpdatedDecoder, postCreatedDecoder, subscribe, subscribedToGroupDecoder, unsubscribe, unsubscribedFromGroupDecoder)
+module Subscription.GroupSubscription exposing (groupUpdatedDecoder, subscribe, subscribedToGroupDecoder, unsubscribe, unsubscribedFromGroupDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -38,14 +38,6 @@ groupUpdatedDecoder =
         Group.decoder
 
 
-postCreatedDecoder : Decode.Decoder ResolvedPostWithReplies
-postCreatedDecoder =
-    Subscription.decoder "group"
-        "PostCreated"
-        "post"
-        ResolvedPostWithReplies.decoder
-
-
 subscribedToGroupDecoder : Decode.Decoder Group
 subscribedToGroupDecoder =
     Subscription.decoder "group"
@@ -83,14 +75,6 @@ document =
             ... on GroupUpdatedPayload {
               group {
                 ...GroupFields
-              }
-            }
-            ... on PostCreatedPayload {
-              post {
-                ...PostFields
-                replies(last: 5) {
-                  ...ReplyConnectionFields
-                }
               }
             }
             ... on SubscribedToGroupPayload {

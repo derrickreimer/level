@@ -68,6 +68,7 @@ eventDecoder =
           Decode.map SpaceJoined UserSubscription.spaceJoinedDecoder
 
         -- SPACE USER EVENTS
+        , Decode.map PostCreated SpaceUserSubscription.postCreatedDecoder
         , Decode.map GroupBookmarked SpaceUserSubscription.groupBookmarkedDecoder
         , Decode.map GroupUnbookmarked SpaceUserSubscription.groupUnbookmarkedDecoder
         , Decode.map PostsSubscribed SpaceUserSubscription.postsSubscribedDecoder
@@ -81,7 +82,6 @@ eventDecoder =
 
         -- GROUP EVENTS
         , Decode.map GroupUpdated GroupSubscription.groupUpdatedDecoder
-        , Decode.map PostCreated GroupSubscription.postCreatedDecoder
         , Decode.map SubscribedToGroup GroupSubscription.subscribedToGroupDecoder
         , Decode.map UnsubscribedFromGroup GroupSubscription.unsubscribedFromGroupDecoder
 
