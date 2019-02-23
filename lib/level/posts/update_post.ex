@@ -81,8 +81,9 @@ defmodule Level.Posts.UpdatePost do
     end)
   end
 
-  defp after_transaction({:ok, result}) do
-    Events.post_updated(result.updated_post)
+  defp after_transaction({:ok, %{updated_post: post} = result}) do
+    {:ok, space_user_ids} = Posts.get_accessor_ids(post)
+    Events.post_updated(space_user_ids, post)
     {:ok, result}
   end
 

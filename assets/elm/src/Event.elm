@@ -9,7 +9,6 @@ import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Subscription.GroupSubscription as GroupSubscription
-import Subscription.PostSubscription as PostSubscription
 import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Subscription.UserSubscription as UserSubscription
@@ -69,6 +68,17 @@ eventDecoder =
 
         -- SPACE USER EVENTS
         , Decode.map PostCreated SpaceUserSubscription.postCreatedDecoder
+        , Decode.map PostUpdated SpaceUserSubscription.postUpdatedDecoder
+        , Decode.map ReplyCreated SpaceUserSubscription.replyCreatedDecoder
+        , Decode.map ReplyUpdated SpaceUserSubscription.replyUpdatedDecoder
+        , Decode.map ReplyDeleted SpaceUserSubscription.replyDeletedDecoder
+        , Decode.map PostClosed SpaceUserSubscription.postClosedDecoder
+        , Decode.map PostReopened SpaceUserSubscription.postReopenedDecoder
+        , Decode.map PostDeleted SpaceUserSubscription.postDeletedDecoder
+        , Decode.map PostReactionCreated SpaceUserSubscription.postReactionCreatedDecoder
+        , Decode.map PostReactionDeleted SpaceUserSubscription.postReactionDeletedDecoder
+        , Decode.map ReplyReactionCreated SpaceUserSubscription.replyReactionCreatedDecoder
+        , Decode.map ReplyReactionDeleted SpaceUserSubscription.replyReactionDeletedDecoder
         , Decode.map GroupBookmarked SpaceUserSubscription.groupBookmarkedDecoder
         , Decode.map GroupUnbookmarked SpaceUserSubscription.groupUnbookmarkedDecoder
         , Decode.map PostsSubscribed SpaceUserSubscription.postsSubscribedDecoder
@@ -84,19 +94,6 @@ eventDecoder =
         , Decode.map GroupUpdated GroupSubscription.groupUpdatedDecoder
         , Decode.map SubscribedToGroup GroupSubscription.subscribedToGroupDecoder
         , Decode.map UnsubscribedFromGroup GroupSubscription.unsubscribedFromGroupDecoder
-
-        -- POST EVENTS
-        , Decode.map PostUpdated PostSubscription.postUpdatedDecoder
-        , Decode.map ReplyCreated PostSubscription.replyCreatedDecoder
-        , Decode.map ReplyUpdated PostSubscription.replyUpdatedDecoder
-        , Decode.map ReplyDeleted PostSubscription.replyDeletedDecoder
-        , Decode.map PostClosed PostSubscription.postClosedDecoder
-        , Decode.map PostReopened PostSubscription.postReopenedDecoder
-        , Decode.map PostDeleted PostSubscription.postDeletedDecoder
-        , Decode.map PostReactionCreated PostSubscription.postReactionCreatedDecoder
-        , Decode.map PostReactionDeleted PostSubscription.postReactionDeletedDecoder
-        , Decode.map ReplyReactionCreated PostSubscription.replyReactionCreatedDecoder
-        , Decode.map ReplyReactionDeleted PostSubscription.replyReactionDeletedDecoder
 
         -- SPACE EVENTS
         , Decode.map SpaceUpdated SpaceSubscription.spaceUpdatedDecoder

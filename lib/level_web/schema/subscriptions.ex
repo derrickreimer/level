@@ -21,6 +21,17 @@ defmodule LevelWeb.Schema.Subscriptions do
   union :space_user_subscription_payload do
     types [
       :post_created_payload,
+      :post_updated_payload,
+      :reply_created_payload,
+      :reply_updated_payload,
+      :reply_deleted_payload,
+      :post_closed_payload,
+      :post_reopened_payload,
+      :post_deleted_payload,
+      :post_reaction_created_payload,
+      :post_reaction_deleted_payload,
+      :reply_reaction_created_payload,
+      :reply_reaction_deleted_payload,
       :group_bookmarked_payload,
       :group_unbookmarked_payload,
       :posts_subscribed_payload,
@@ -43,25 +54,6 @@ defmodule LevelWeb.Schema.Subscriptions do
       :subscribed_to_group_payload,
       :watched_group_payload,
       :unsubscribed_from_group_payload
-    ]
-
-    resolve_type &type_resolver/2
-  end
-
-  @desc "The payload for messages propagated to a post topic."
-  union :post_subscription_payload do
-    types [
-      :post_updated_payload,
-      :reply_created_payload,
-      :reply_updated_payload,
-      :reply_deleted_payload,
-      :post_closed_payload,
-      :post_reopened_payload,
-      :post_deleted_payload,
-      :post_reaction_created_payload,
-      :post_reaction_deleted_payload,
-      :reply_reaction_created_payload,
-      :reply_reaction_deleted_payload
     ]
 
     resolve_type &type_resolver/2

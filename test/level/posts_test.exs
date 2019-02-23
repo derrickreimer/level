@@ -931,7 +931,7 @@ defmodule Level.PostsTest do
     end
   end
 
-  describe "get_accessors/1" do
+  describe "get_accessor_ids/1" do
     setup do
       {:ok, %{space_user: space_user, space: space}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
@@ -948,8 +948,8 @@ defmodule Level.PostsTest do
 
       Groups.privatize(group)
 
-      {:ok, accessors} = Posts.get_accessors(post)
-      refute Enum.any?(accessors, fn accessor -> accessor.id == another_user.id end)
+      {:ok, ids} = Posts.get_accessor_ids(post)
+      refute Enum.any?(ids, fn id -> id == another_user.id end)
     end
 
     test "includes users who are subscribed to groups the post is in", %{
@@ -961,8 +961,8 @@ defmodule Level.PostsTest do
 
       Groups.subscribe(group, another_user)
 
-      {:ok, accessors} = Posts.get_accessors(post)
-      assert Enum.any?(accessors, fn accessor -> accessor.id == another_user.id end)
+      {:ok, ids} = Posts.get_accessor_ids(post)
+      assert Enum.any?(ids, fn id -> id == another_user.id end)
     end
 
     test "includes users who are watching groups the post is in", %{
@@ -974,8 +974,8 @@ defmodule Level.PostsTest do
 
       Groups.watch(group, another_user)
 
-      {:ok, accessors} = Posts.get_accessors(post)
-      assert Enum.any?(accessors, fn accessor -> accessor.id == another_user.id end)
+      {:ok, ids} = Posts.get_accessor_ids(post)
+      assert Enum.any?(ids, fn id -> id == another_user.id end)
     end
 
     test "includes users who are not subscribed to groups", %{
@@ -984,8 +984,8 @@ defmodule Level.PostsTest do
     } do
       {:ok, %{space_user: another_user}} = create_space_member(space)
 
-      {:ok, accessors} = Posts.get_accessors(post)
-      assert Enum.any?(accessors, fn accessor -> accessor.id == another_user.id end)
+      {:ok, ids} = Posts.get_accessor_ids(post)
+      assert Enum.any?(ids, fn id -> id == another_user.id end)
     end
 
     test "includes users who are directly subscribed", %{
@@ -996,8 +996,8 @@ defmodule Level.PostsTest do
 
       Posts.mark_as_unread(another_user, [post])
 
-      {:ok, accessors} = Posts.get_accessors(post)
-      assert Enum.any?(accessors, fn accessor -> accessor.id == another_user.id end)
+      {:ok, ids} = Posts.get_accessor_ids(post)
+      assert Enum.any?(ids, fn id -> id == another_user.id end)
     end
 
     test "includes users who have unsubscribed from a group", %{
@@ -1010,8 +1010,8 @@ defmodule Level.PostsTest do
       Groups.subscribe(group, another_user)
       Groups.unsubscribe(group, another_user)
 
-      {:ok, accessors} = Posts.get_accessors(post)
-      assert Enum.any?(accessors, fn accessor -> accessor.id == another_user.id end)
+      {:ok, ids} = Posts.get_accessor_ids(post)
+      assert Enum.any?(ids, fn id -> id == another_user.id end)
     end
   end
 end

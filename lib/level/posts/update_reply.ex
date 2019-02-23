@@ -81,8 +81,9 @@ defmodule Level.Posts.UpdateReply do
     end)
   end
 
-  defp after_transaction({:ok, result}) do
-    Events.reply_updated(result.updated_reply.post_id, result.updated_reply)
+  defp after_transaction({:ok, %{updated_reply: reply} = result}) do
+    {:ok, space_user_ids} = Posts.get_accessor_ids(reply)
+    Events.reply_updated(space_user_ids, reply)
     {:ok, result}
   end
 

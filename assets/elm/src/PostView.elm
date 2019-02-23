@@ -44,7 +44,6 @@ import Scroll
 import Session exposing (Session)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
-import Subscription.PostSubscription as PostSubscription
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
 import TimeWithZone exposing (TimeWithZone)
@@ -126,14 +125,13 @@ init repo replyLimit post =
 setup : Globals -> PostView -> Cmd Msg
 setup globals postView =
     Cmd.batch
-        [ PostSubscription.subscribe postView.id
-        , markVisibleRepliesAsViewed globals postView
+        [ markVisibleRepliesAsViewed globals postView
         ]
 
 
 teardown : Globals -> PostView -> Cmd Msg
 teardown globals postView =
-    PostSubscription.unsubscribe postView.id
+    Cmd.none
 
 
 

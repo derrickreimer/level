@@ -28,7 +28,6 @@ type alias Data =
     , handle : String
     , role : Role
     , avatarUrl : Maybe String
-    , welcomeTutorial : Maybe Tutorial
     , canManageMembers : Bool
     , canManageOwners : Bool
     , fetchedAt : Int
@@ -62,9 +61,6 @@ fragment =
           handle
           role
           avatarUrl
-          welcomeTutorial: tutorial(key: "welcome") {
-            ...TutorialFields
-          }
           canManageMembers
           canManageOwners
           fetchedAt
@@ -149,11 +145,6 @@ role (SpaceUser data) =
     data.role
 
 
-welcomeTutorial : SpaceUser -> Maybe Tutorial
-welcomeTutorial (SpaceUser data) =
-    data.welcomeTutorial
-
-
 canManageMembers : SpaceUser -> Bool
 canManageMembers (SpaceUser data) =
     data.canManageMembers
@@ -220,7 +211,6 @@ decoder =
             |> required "handle" string
             |> required "role" roleDecoder
             |> required "avatarUrl" (maybe string)
-            |> required "welcomeTutorial" (maybe Tutorial.decoder)
             |> required "canManageMembers" bool
             |> required "canManageOwners" bool
             |> required "fetchedAt" int

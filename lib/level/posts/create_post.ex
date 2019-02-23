@@ -253,8 +253,7 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp send_events(post) do
-    {:ok, space_users} = Posts.get_accessors(post)
-    ids = Enum.map(space_users, fn space_user -> space_user.id end)
-    _ = Events.post_created(ids, post)
+    {:ok, space_user_ids} = Posts.get_accessor_ids(post)
+    _ = Events.post_created(space_user_ids, post)
   end
 end

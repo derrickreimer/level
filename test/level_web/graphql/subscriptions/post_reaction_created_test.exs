@@ -4,10 +4,10 @@ defmodule LevelWeb.GraphQL.PostReactionCreatedTest do
   alias Level.Posts
 
   @operation """
-    subscription PostSubscription(
+    subscription SpaceUserSubscription(
       $id: ID!
     ) {
-      postSubscription(postId: $id) {
+      spaceUserSubscription(spaceUserId: $id) {
         __typename
         ... on PostReactionCreatedPayload {
           post {
@@ -32,7 +32,7 @@ defmodule LevelWeb.GraphQL.PostReactionCreatedTest do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: post}} = create_post(space_user, group)
 
-    ref = push_subscription(socket, @operation, %{"id" => post.id})
+    ref = push_subscription(socket, @operation, %{"id" => space_user.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, _} = Posts.create_post_reaction(space_user, post)
@@ -40,7 +40,7 @@ defmodule LevelWeb.GraphQL.PostReactionCreatedTest do
     payload = %{
       result: %{
         data: %{
-          "postSubscription" => %{
+          "spaceUserSubscription" => %{
             "__typename" => "PostReactionCreatedPayload",
             "post" => %{
               "id" => post.id

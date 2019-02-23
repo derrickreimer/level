@@ -208,8 +208,9 @@ defmodule Level.Posts.CreateReply do
 
   defp send_events(post, %{reply: reply, mentions: %{space_users: mentioned_users}}, opts) do
     events = Keyword.get(opts, :events)
+    {:ok, space_user_ids} = Posts.get_accessor_ids(post)
 
-    _ = events.reply_created(post.id, reply)
+    _ = events.reply_created(space_user_ids, reply)
 
     Enum.each(mentioned_users, fn %SpaceUser{id: id} ->
       _ = events.user_mentioned(id, post)
